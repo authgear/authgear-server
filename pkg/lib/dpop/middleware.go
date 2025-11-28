@@ -47,7 +47,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		r = r.WithContext(WithDPoPProof(r.Context(), proof))
+		r = r.WithContext(WithDPoPProof(ctx, proof))
 		next.ServeHTTP(rw, r)
 	})
 }
@@ -62,7 +62,7 @@ func (m *Middleware) handleError(ctx context.Context, next http.Handler, rw http
 			"failed to parse dpop proof",
 			slog.Bool("dpop_logs", true),
 		)
-		r = r.WithContext(WithDPoPProof(r.Context(), &InvalidDPoPProofWithError{
+		r = r.WithContext(WithDPoPProof(ctx, &InvalidDPoPProofWithError{
 			Error: err,
 		}))
 		next.ServeHTTP(rw, r)
