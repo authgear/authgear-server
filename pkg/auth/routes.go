@@ -37,6 +37,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	baseChain := httproute.Chain(
 		p.RootMiddleware(newContextHolderMiddleware),
+		p.RootMiddleware(newUserAgentMiddleware),
 		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
