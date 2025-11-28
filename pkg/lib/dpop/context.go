@@ -1,6 +1,10 @@
 package dpop
 
-import "context"
+import (
+	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
 
 type contextKeyType struct{}
 
@@ -32,15 +36,18 @@ func GetDPoPProof(ctx context.Context) MaybeDPoPProof {
 	return actx.DPoPProof
 }
 
-func GetDPoPProofJKT(ctx context.Context) (string, bool, error) {
+func GetDPoPProofJKT(ctx context.Context, client *config.OAuthClientConfig) (string, bool, error) {
 	actx := getContext(ctx)
 	if actx == nil || actx.DPoPProof == nil {
 		return "", false, nil
 	}
 	proof, err := actx.DPoPProof.Get()
 	if err != nil {
-
-		return "", false, err
+		if !client.DPoPDisabled {
+			return "", false, err
+		} else {
+			return "", false, nil
+		}
 	}
 
 	return proof.JKT, true, nil
