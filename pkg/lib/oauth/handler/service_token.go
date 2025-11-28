@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -283,8 +282,6 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 
 	logger := TokenServiceLogger.GetLogger(ctx)
 
-	maybeDpopProof := dpop.GetDPoPProof(ctx)
-
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
@@ -339,16 +336,10 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	}
 
 	_, client := resolveClient(ctx, s.ClientResolver, offlineGrantSession.ClientID)
-	dpopProof, err := maybeDpopProof.Get()
-	if err != nil {
-		if !client.DPoPDisabled {
-			return nil, nil, "", err
-		}
-	}
 
-	if dpopErr := offlineGrantSession.MatchDPoPJKT(dpopProof); dpopErr != nil {
+	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, offlineGrantSession.MatchDPoPJKT, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
-			fmt.Sprintf("failed to match dpop jkt on parse refresh token:%s", dpopErr.Message),
+			"failed to match dpop jkt on parse refresh token",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("dpop_logs", true),
 		)
@@ -360,10 +351,8 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("refresh_token_log", true),
 		)
-
-		if client != nil && !client.DPoPDisabled {
-			return nil, nil, "", ErrInvalidDPoPKeyBinding
-		}
+	}); dpopErr != nil {
+		return nil, nil, "", ErrInvalidDPoPKeyBinding
 	}
 
 	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
