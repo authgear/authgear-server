@@ -592,23 +592,14 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	maybeDpopProof := dpop.GetDPoPProof(ctx)
-	dpopProof, err := maybeDpopProof.Get()
-	if err != nil {
-		if !client.DPoPDisabled {
-			return nil, err
-		}
-	}
-
-	if dpopErr := codeGrant.MatchDPoPJKT(dpopProof); dpopErr != nil {
+	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, codeGrant.MatchDPoPJKT, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
-			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", dpopErr.Message),
+			"failed to match dpop jkt on issue tokens",
 			slog.String("user_id", codeGrant.AuthenticationInfo.UserID),
 			slog.Bool("dpop_logs", true),
 		)
-		if !client.DPoPDisabled {
-			return nil, ErrInvalidDPoPKeyBinding
-		}
+	}); dpopErr != nil {
+		return nil, dpopErr
 	}
 
 	// Restore uiparam
@@ -856,24 +847,17 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
 	}
 	logger := TokenHandlerLogger.GetLogger(ctx)
 
-	maybeDpopProof := dpop.GetDPoPProof(ctx)
-	dpopProof, err := maybeDpopProof.Get()
-	if err != nil {
-		if !client.DPoPDisabled {
-			return err
-		}
-	}
-
-	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof); dpopErr != nil {
+	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, offlineGrant.MatchDeviceSecretDPoPJKT, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
-			fmt.Sprintf("failed to match dpop jkt of device_secret: %s", dpopErr.Message),
+			"failed to match dpop jkt of device_secret",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("dpop_logs", true),
 		)
-		if !client.DPoPDisabled {
-			err = ErrInvalidDPoPKeyBinding
-		}
+	}); dpopErr != nil {
+		err = ErrInvalidDPoPKeyBinding
+		return err
 	}
+
 	return err
 }
 
