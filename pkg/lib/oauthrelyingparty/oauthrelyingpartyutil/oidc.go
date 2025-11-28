@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -62,25 +61,6 @@ func FetchOIDCDiscoveryDocument(ctx context.Context, client *http.Client, endpoi
 		return nil, err
 	}
 	return &document, nil
-}
-
-func (d *OIDCDiscoveryDocument) WithRewrittenEndpoints(original string, replacement string) *OIDCDiscoveryDocument {
-	cloned := *d
-
-	if strings.Contains(cloned.AuthorizationEndpoint, original) {
-		cloned.AuthorizationEndpoint = strings.ReplaceAll(cloned.AuthorizationEndpoint, original, replacement)
-	}
-	if strings.Contains(cloned.TokenEndpoint, original) {
-		cloned.TokenEndpoint = strings.ReplaceAll(cloned.TokenEndpoint, original, replacement)
-	}
-	if strings.Contains(cloned.UserInfoEndpoint, original) {
-		cloned.UserInfoEndpoint = strings.ReplaceAll(cloned.UserInfoEndpoint, original, replacement)
-	}
-	if strings.Contains(cloned.JWKSUri, original) {
-		cloned.JWKSUri = strings.ReplaceAll(cloned.JWKSUri, original, replacement)
-	}
-
-	return &cloned
 }
 
 func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) string {
