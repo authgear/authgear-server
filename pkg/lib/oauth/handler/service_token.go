@@ -337,7 +337,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 
 	_, client := resolveClient(ctx, s.ClientResolver, offlineGrantSession.ClientID)
 
-	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, offlineGrantSession.MatchDPoPJKT, func(dpopErr error) {
+	if dpopErr := offlineGrantSession.MatchDPoPJKT(ctx, client, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			"failed to match dpop jkt on parse refresh token",
 			slog.String("user_id", offlineGrant.GetUserID()),
