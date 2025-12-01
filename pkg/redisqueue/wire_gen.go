@@ -196,10 +196,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthConfig:                     oAuthConfig,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -740,7 +742,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
-	oAuthConfig := appConfig.OAuth
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -988,10 +989,12 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthConfig:                     oAuthConfig,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1387,10 +1390,12 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthConfig:                     oAuthConfig,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

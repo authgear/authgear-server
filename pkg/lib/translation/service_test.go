@@ -83,6 +83,14 @@ XState: {{ .XState }}`, lang, path))
 		service := translation.Service{
 			TemplateEngine: engine,
 			StaticAssets:   NewMockStaticAssetResolver(ctl),
+			OAuthConfig: &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{
+					{
+						ClientID: "my client id",
+						Name:     "my client name",
+					},
+				},
+			},
 		}
 		return &service
 	}

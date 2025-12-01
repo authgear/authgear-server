@@ -40,3 +40,7 @@ func ProvideSupportedLanguageTags(app *model.App) template.SupportedLanguageTags
 func ProvideNilSMTPServerCredentialsSecretItem() *config.SMTPServerCredentialsSecretItem {
 	return nil
 }
+
+func ProvideEmptyOAuthConfig() *config.OAuthConfig {
+	return &config.OAuthConfig{}
+}

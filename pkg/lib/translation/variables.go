@@ -19,6 +19,7 @@ type PartialTemplateVariables struct {
 type PreparedTemplateVariables struct {
 	AppName        string
 	ClientID       string
+	ClientName     string
 	Code           string
 	Email          string
 	HasPassword    bool
