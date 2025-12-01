@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
@@ -58,13 +57,6 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
-	))
-}
-
-func newUserAgentMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panic(wire.Build(
-		slogutil.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*slogutil.UserAgentMiddleware)),
 	))
 }
 

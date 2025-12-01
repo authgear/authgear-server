@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func newProjectRootDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
@@ -37,7 +38,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	baseChain := httproute.Chain(
 		p.RootMiddleware(newContextHolderMiddleware),
-		p.RootMiddleware(newUserAgentMiddleware),
+		httproute.MiddlewareFunc(slogutil.UserAgentMiddleware),
 		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),

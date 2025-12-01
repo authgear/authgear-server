@@ -5,9 +5,7 @@ import (
 	"net/http"
 )
 
-type UserAgentMiddleware struct{}
-
-func (m *UserAgentMiddleware) Handle(next http.Handler) http.Handler {
+func UserAgentMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		logger := GetContextLogger(ctx)
