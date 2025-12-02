@@ -24,8 +24,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
-  "overrides": {
-  },
+  "overrides": {},
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
     "@graphql-codegen/cli": "^5.0.7",
@@ -37,8 +36,8 @@
     "@oursky/eslint-plugin": "^17.0.0",
     "@oursky/stylelint-oursky": "^6.0.0",
     "@savvywombat/tailwindcss-grid-areas": "^3.1.0",
-    "@storybook/addon-onboarding": "^9.1.16",
     "@storybook/addon-docs": "^9.1.16",
+    "@storybook/addon-onboarding": "^9.1.16",
     "@storybook/addon-vitest": "^9.1.16",
     "@storybook/react-vite": "^9.1.16",
     "@types/deep-equal": "1.0.4",
@@ -54,7 +53,7 @@
     "@vitest/browser": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4",
     "browserslist": "^4.28.0",
-    "caniuse-lite": "^1.0.30001755",
+    "caniuse-lite": "^1.0.30001757",
     "chromatic": "^11.29.0",
     "eslint": "^9.39.1",
     "eslint-plugin-storybook": "^0.11.6",
