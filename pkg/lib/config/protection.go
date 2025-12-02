@@ -17,7 +17,7 @@ var _ = Schema.Add("IPBlocklistConfig", `
 	"properties": {
 		"cidrs": {
 			"type": "array",
-			"items": { "type": "string" }
+			"items": { "type": "string", "format": "x_cidr" }
 		},
 		"country_codes": {
 			"type": "array",

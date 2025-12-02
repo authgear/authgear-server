@@ -1556,3 +1556,18 @@ config:
       country_codes:
         - HK
         - GB
+
+---
+name: protection-config-invalid-cidr
+error: |-
+  invalid configuration:
+  /protection/ip_blocklist/cidrs/0: format
+    map[error:invalid CIDR: invalid CIDR address: 192.168.1.1 format:x_cidr]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  protection:
+    ip_blocklist:
+      cidrs:
+        - 192.168.1.1

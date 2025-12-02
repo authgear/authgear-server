@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"net/mail"
 	"net/url"
 	"path"
@@ -62,6 +63,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
 	jsonschemaformat.DefaultChecker["x_public_https_url"] = FormatPublicHTTPSURL{}
+	jsonschemaformat.DefaultChecker["x_cidr"] = FormatCIDR{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -393,6 +395,20 @@ func (FormatDateTime) CheckFormat(ctx context.Context, value interface{}) error 
 		return fmt.Errorf("date-time must be in rfc3339 format")
 	}
 
+	return nil
+}
+
+// FormatCIDR checks if input is a valid CIDR notation.
+type FormatCIDR struct{}
+
+func (FormatCIDR) CheckFormat(ctx context.Context, value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+	if _, _, err := net.ParseCIDR(str); err != nil {
+		return fmt.Errorf("invalid CIDR: %v", err)
+	}
 	return nil
 }
 
