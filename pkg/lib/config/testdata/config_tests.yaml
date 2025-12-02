@@ -1540,3 +1540,19 @@ config:
         redirect_uris:
           - "https://example.com"
         logo_uri: http://example.com/logo.png
+
+---
+name: protection-config
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  protection:
+    ip_blocklist:
+      cidrs:
+        - 2.2.2.2/32
+        - 2001:db8::/32
+      country_codes:
+        - HK
+        - GB
