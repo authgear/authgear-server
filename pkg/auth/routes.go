@@ -56,6 +56,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	projectRootChain := httproute.Chain(
 		baseChain,
 		MakeWebAppRequestMiddleware(p, configSource, newWebAppRequestMiddleware),
+		p.Middleware(newIPBlocklistMiddleware),
 		p.Middleware(newProjectRootDynamicCSPMiddleware),
 	)
 

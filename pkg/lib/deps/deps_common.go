@@ -47,6 +47,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/protection"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
@@ -190,6 +191,10 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		audit.DependencySet,
+	),
+
+	wire.NewSet(
+		protection.DependencySet,
 	),
 
 	wire.NewSet(
