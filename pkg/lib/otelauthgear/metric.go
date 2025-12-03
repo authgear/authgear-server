@@ -133,14 +133,23 @@ var AttributeKeyCSRFHasStrictCookie = attribute.Key("csrf.has_strict_cookie")
 // AttributeKeyGorillaCSRFFailureReason defines the attribute.
 var AttributeKeyGorillaCSRFFailureReason = attribute.Key("gorilla_csrf.failure_reason")
 
-// AttributeKeySecFetchCSRFStatus defines the attribute.
-var AttributeKeySecFetchCSRFStatus = attribute.Key("sec_fetch_csrf.status")
+// AttributeKeySecFetchBasedStatus defines the attribute.
+var AttributeKeySecFetchBasedStatus = attribute.Key("sec_fetch_based.status")
 
-// AttributeSecFetchCSRFStatusOK is "sec_fetch_csrf.status=ok".
-var AttributeSecFetchCSRFStatusOK = AttributeKeySecFetchCSRFStatus.String("ok")
+// AttributeSecFetchBasedStatusOK is "sec_fetch_based.status=ok".
+var AttributeSecFetchBasedStatusOK = AttributeKeySecFetchBasedStatus.String("ok")
 
-// AttributeSecFetchCSRFStatusError is "sec_fetch_csrf.status=error".
-var AttributeSecFetchCSRFStatusError = AttributeKeySecFetchCSRFStatus.String("error")
+// AttributeSecFetchBasedStatusError is "sec_fetch_based.status=error".
+var AttributeSecFetchBasedStatusError = AttributeKeySecFetchBasedStatus.String("error")
+
+// AttributeKeyCookiesBasedStatus defines the attribute.
+var AttributeKeyCookiesBasedStatus = attribute.Key("cookies_based.status")
+
+// AttributeCookiesBasedStatusOK is "cookies_based.status=ok".
+var AttributeCookiesBasedStatusOK = AttributeKeyCookiesBasedStatus.String("ok")
+
+// AttributeCookiesBasedStatusError is "cookies_based.status=error".
+var AttributeCookiesBasedStatusError = AttributeKeyCookiesBasedStatus.String("error")
 
 var CounterOAuthSessionCreationCount = otelutil.MustInt64Counter(
 	meter,
@@ -235,16 +244,17 @@ var CounterCSRFRequestCount = otelutil.MustInt64Counter(
 var CounterSecFetchCSRFRequestCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.sec_fetch_csrf.request.count",
-	metric.WithDescription("The number of HTTP request with Sec-Fetch-CSRF"),
+	metric.WithDescription("The number of HTTP request processed with Sec-Fetch-* based CSRF protection mechanism"),
 	metric.WithUnit("{request}"),
 )
 
 // CounterSecFetchCSRFUnmatchedCount has the following labels:
-// - AttributeKeySecFetchCSRFStatus
+// - AttributeKeyCookieBasedStatus
+// - AttributeKeySecFetchBasedStatus
 var CounterSecFetchCSRFUnmatchedCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.sec_fetch_csrf.unmatched.count",
-	metric.WithDescription("The number of requests with unmatched Sec-Fetch-CSRF result"),
+	metric.WithDescription("The number of requests with unmatched result among cookies-based and Sec-Fetch-* based CSRF protection mechanism"),
 	metric.WithUnit("{count}"),
 )
 
@@ -373,12 +383,20 @@ func WithGorillaCSRFFailureReason(reason string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyGorillaCSRFFailureReason.String(reason)}
 }
 
-func WithSecFetchCSRFStatusOK() otelutil.MetricOption {
-	return metricOptionAttributeKeyValue{AttributeSecFetchCSRFStatusOK}
+func WithSecFetchBasedStatusOK() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeSecFetchBasedStatusOK}
 }
 
-func WithSecFetchCSRFStatusError() otelutil.MetricOption {
-	return metricOptionAttributeKeyValue{AttributeSecFetchCSRFStatusError}
+func WithSecFetchBasedStatusError() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeSecFetchBasedStatusError}
+}
+
+func WithCookiesBasedStatusOK() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeCookiesBasedStatusOK}
+}
+
+func WithCookiesBasedStatusError() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeCookiesBasedStatusError}
 }
 
 func SetProjectID(ctx context.Context, projectID string) {

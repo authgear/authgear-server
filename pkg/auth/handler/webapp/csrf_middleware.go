@@ -97,12 +97,16 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			if secFetchError != nil {
 				ctx := r.Context()
 				logger := CSRFMiddlewareLogger.GetLogger(ctx)
-				logger.WithError(secFetchError).Warn(ctx, "csrf protection successful but sec-fetch-csrf is not")
+				logger.WithError(secFetchError).Warn(ctx,
+					"mismatched csrf protection result",
+					slog.String("cookies_based_status", "ok"),
+					slog.String("sec_fetch_based_status", "error"))
 
 				otelutil.IntCounterAddOne(
 					ctx,
 					otelauthgear.CounterSecFetchCSRFUnmatchedCount,
-					otelauthgear.WithSecFetchCSRFStatusError(),
+					otelauthgear.WithCookiesBasedStatusOK(),
+					otelauthgear.WithSecFetchBasedStatusError(),
 				)
 			}
 			next.ServeHTTP(w, r)
@@ -113,25 +117,11 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *CSRFMiddleware) makeUnauthorizedHandler(secFetchError error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		// The CSRF protection is not successful but Sec-Fetch-CSRF is.
-		// Record unmatched metrics.
-		if secFetchError == nil {
-			logger := CSRFMiddlewareLogger.GetLogger(ctx)
-			logger.Warn(ctx, "csrf protection failed but sec-fetch-csrf is ok")
-
-			otelutil.IntCounterAddOne(
-				ctx,
-				otelauthgear.CounterSecFetchCSRFUnmatchedCount,
-				otelauthgear.WithSecFetchCSRFStatusOK(),
-			)
-		}
-		m.unauthorizedHandler(w, r)
+		m.unauthorizedHandler(secFetchError, w, r)
 	})
 }
 
-func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
+func (m *CSRFMiddleware) unauthorizedHandler(secFetchError error, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Check debug cookies and inject info for reporting
@@ -222,6 +212,27 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	logger := CSRFMiddlewareLogger.GetLogger(ctx)
+
+	// The CSRF protection is not successful but Sec-Fetch-CSRF is.
+	// Record unmatched metrics.
+	if secFetchError == nil {
+		logger.With(
+			slog.String("securecookieError", securecookieError),
+			slog.Any("csrfFailureReason", csrfFailureReason),
+		).Warn(
+			ctx,
+			"mismatched csrf protection result",
+			slog.String("cookies_based_status", "error"),
+			slog.String("sec_fetch_based_status", "ok"),
+		)
+
+		otelutil.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterSecFetchCSRFUnmatchedCount,
+			otelauthgear.WithCookiesBasedStatusError(),
+			otelauthgear.WithSecFetchBasedStatusOK(),
+		)
+	}
 
 	logger.With(
 		slog.Bool("hasOmitCookie", hasOmitCookie),
