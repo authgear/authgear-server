@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -30,6 +32,18 @@ func (m *IPBlocklistMiddleware) Handle(next http.Handler) http.Handler {
 					if cidrNet.Contains(ip) {
 						http.Error(w, "Your IP is not allowed to access this resource", http.StatusForbidden)
 						return
+					}
+				}
+
+				if len(m.Config.IPBlocklist.CountryCodes) > 0 {
+					if info, ok := geoip.IPString(remoteIP); ok {
+						countryCode := info.CountryCode
+						for _, blocked := range m.Config.IPBlocklist.CountryCodes {
+							if strings.EqualFold(countryCode, blocked) {
+								http.Error(w, "Your IP is not allowed to access this resource", http.StatusForbidden)
+								return
+							}
+						}
 					}
 				}
 			}
