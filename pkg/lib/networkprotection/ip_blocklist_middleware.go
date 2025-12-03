@@ -23,32 +23,42 @@ func (m *IPBlocklistMiddleware) Handle(next http.Handler) http.Handler {
 			ip := net.ParseIP(remoteIP)
 
 			if ip != nil {
-				for _, cidrStr := range m.Config.IPBlocklist.CIDRs {
-					_, cidrNet, err := net.ParseCIDR(cidrStr)
-					if err != nil {
-						panic(fmt.Errorf("failed to parse cidr: %w", err))
-					}
-
-					if cidrNet.Contains(ip) {
-						http.Error(w, "Your IP is not allowed to access this resource", http.StatusForbidden)
-						return
-					}
-				}
-
-				if len(m.Config.IPBlocklist.CountryCodes) > 0 {
-					if info, ok := geoip.IPString(remoteIP); ok {
-						countryCode := info.CountryCode
-						for _, blocked := range m.Config.IPBlocklist.CountryCodes {
-							if strings.EqualFold(countryCode, blocked) {
-								http.Error(w, "Your IP is not allowed to access this resource", http.StatusForbidden)
-								return
-							}
-						}
-					}
+				if m.isIPBlocked(ip) || m.isCountryBlocked(remoteIP) {
+					http.Error(w, "Your IP is not allowed to access this resource", http.StatusForbidden)
+					return
 				}
 			}
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *IPBlocklistMiddleware) isIPBlocked(ip net.IP) bool {
+	for _, cidrStr := range m.Config.IPBlocklist.CIDRs {
+		_, cidrNet, err := net.ParseCIDR(cidrStr)
+		if err != nil {
+			panic(fmt.Errorf("failed to parse cidr: %w", err))
+		}
+
+		if cidrNet.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *IPBlocklistMiddleware) isCountryBlocked(remoteIP string) bool {
+	if len(m.Config.IPBlocklist.CountryCodes) == 0 {
+		return false
+	}
+	if info, ok := geoip.IPString(remoteIP); ok {
+		countryCode := info.CountryCode
+		for _, blocked := range m.Config.IPBlocklist.CountryCodes {
+			if strings.EqualFold(countryCode, blocked) {
+				return true
+			}
+		}
+	}
+	return false
 }
