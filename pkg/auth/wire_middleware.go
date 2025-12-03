@@ -17,8 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	networkprotection "github.com/authgear/authgear-server/pkg/lib/networkprotection"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
-	"github.com/authgear/authgear-server/pkg/lib/protection"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -265,6 +265,6 @@ func newDPoPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newIPBlocklistMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*protection.IPBlocklistMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*networkprotection.IPBlocklistMiddleware)),
 	))
 }

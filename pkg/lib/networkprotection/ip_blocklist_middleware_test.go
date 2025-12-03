@@ -1,21 +1,22 @@
-package protection
+package networkprotection
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestIPBlocklistMiddleware(t *testing.T) {
 	hkGoogleIP := "172.253.5.0"
 
 	Convey("IP inside blocklist CIDR should be forbidden", t, func() {
-		cfg := &config.ProtectionConfig{
-			IPBlocklist: &config.IPBlocklistConfig{
+		cfg := &config.NetworkProtectionConfig{
+			IPBlocklist: &config.NetworkIPBlocklistConfig{
 				CIDRs: []string{"203.0.113.0/24"},
 			},
 		}
@@ -42,8 +43,8 @@ func TestIPBlocklistMiddleware(t *testing.T) {
 	})
 
 	Convey("IP outside blocklist CIDR should pass through", t, func() {
-		cfg := &config.ProtectionConfig{
-			IPBlocklist: &config.IPBlocklistConfig{
+		cfg := &config.NetworkProtectionConfig{
+			IPBlocklist: &config.NetworkIPBlocklistConfig{
 				CIDRs: []string{"203.0.113.0/24"},
 			},
 		}
@@ -70,8 +71,8 @@ func TestIPBlocklistMiddleware(t *testing.T) {
 	})
 
 	Convey("Country code matching should be forbidden (case-insensitive)", t, func() {
-		cfg := &config.ProtectionConfig{
-			IPBlocklist: &config.IPBlocklistConfig{
+		cfg := &config.NetworkProtectionConfig{
+			IPBlocklist: &config.NetworkIPBlocklistConfig{
 				CountryCodes: []string{"HK"},
 			},
 		}
@@ -98,8 +99,8 @@ func TestIPBlocklistMiddleware(t *testing.T) {
 	})
 
 	Convey("Country code non-matching should pass through", t, func() {
-		cfg := &config.ProtectionConfig{
-			IPBlocklist: &config.IPBlocklistConfig{
+		cfg := &config.NetworkProtectionConfig{
+			IPBlocklist: &config.NetworkIPBlocklistConfig{
 				CountryCodes: []string{"US"},
 			},
 		}
@@ -126,8 +127,8 @@ func TestIPBlocklistMiddleware(t *testing.T) {
 	})
 
 	Convey("Invalid IP should skip geoip lookup and pass through", t, func() {
-		cfg := &config.ProtectionConfig{
-			IPBlocklist: &config.IPBlocklistConfig{
+		cfg := &config.NetworkProtectionConfig{
+			IPBlocklist: &config.NetworkIPBlocklistConfig{
 				CountryCodes: []string{"US"},
 			},
 		}

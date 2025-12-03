@@ -1,4 +1,4 @@
-package protection
+package networkprotection
 
 import (
 	"github.com/google/wire"
