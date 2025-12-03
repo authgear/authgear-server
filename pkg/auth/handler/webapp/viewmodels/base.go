@@ -75,6 +75,7 @@ type BaseViewModel struct {
 	ClientURI             string
 	ClientName            string
 	LogoURI               string
+	ReplaceProjectLogo    bool
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeURLWithBackURL    func(path string, pairs ...string) string
@@ -217,8 +218,10 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		clientName = client.Name
 	}
 	logoURI := ""
+	replaceProjectLogo := false
 	if client != nil {
 		logoURI = client.LogoURI
+		replaceProjectLogo = client.ReplaceProjectLogoWithLogoURI
 	}
 	hasThirdPartyApp := false
 	for _, c := range m.OAuth.Clients {
@@ -320,6 +323,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		ClientURI:                   clientURI,
 		ClientName:                  clientName,
 		LogoURI:                     logoURI,
+		ReplaceProjectLogo:          replaceProjectLogo,
 		SliceContains:               SliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			return makeURL(path, pairs...).String()

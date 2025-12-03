@@ -174,7 +174,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" },
 		"x_pre_authenticated_url_enabled": { "type": "boolean" },
 		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } },
-		"logo_uri": { "type": "string", "format": "x_public_https_url" }
+		"logo_uri": { "type": "string", "format": "x_public_https_url" },
+		"x_replace_project_logo_with_logo_uri": { "type": "boolean" }
 	},
 	"required": ["name", "client_id"],
 	"allOf": [
@@ -273,6 +274,7 @@ type OAuthClientConfig struct {
 	PreAuthenticatedURLEnabled             bool                         `json:"x_pre_authenticated_url_enabled,omitempty"`
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 	LogoURI                                string                       `json:"logo_uri,omitempty"`
+	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
 }
 
 func (c *OAuthClientConfig) UseHTTP200() bool {

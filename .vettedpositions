@@ -252,8 +252,8 @@
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity_success.go:42:27: requestcontext
 /pkg/auth/handler/webapp/verify_login_link.go:92:27: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:209:9: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:422:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:210:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:426:9: requestcontext
 /pkg/auth/handler/webapp/websocket.go:42:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:53:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:77:30: requestcontext
