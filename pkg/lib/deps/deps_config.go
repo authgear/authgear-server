@@ -33,7 +33,7 @@ var ConfigDeps = wire.NewSet(
 		"AccountMigration",
 		"Captcha",
 		"BotProtection",
-		"Protection",
+		"NetworkProtection",
 		"TestMode",
 		"AuthenticationFlow",
 		"ExternalJWT",

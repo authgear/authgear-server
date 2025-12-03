@@ -1,16 +1,16 @@
 package config
 
-var _ = Schema.Add("ProtectionConfig", `
+var _ = Schema.Add("NetworkProtectionConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"ip_blocklist": { "$ref": "#/$defs/IPBlocklistConfig" }
+		"ip_blocklist": { "$ref": "#/$defs/NetworkIPBlocklistConfig" }
 	}
 }
 `)
 
-var _ = Schema.Add("IPBlocklistConfig", `
+var _ = Schema.Add("NetworkIPBlocklistConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -27,11 +27,11 @@ var _ = Schema.Add("IPBlocklistConfig", `
 }
 `)
 
-type ProtectionConfig struct {
-	IPBlocklist *IPBlocklistConfig `json:"ip_blocklist,omitempty"`
+type NetworkProtectionConfig struct {
+	IPBlocklist *NetworkIPBlocklistConfig `json:"ip_blocklist,omitempty"`
 }
 
-type IPBlocklistConfig struct {
+type NetworkIPBlocklistConfig struct {
 	CIDRs        []string `json:"cidrs,omitempty"`
 	CountryCodes []string `json:"country_codes,omitempty"`
 }

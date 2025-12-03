@@ -1,4 +1,4 @@
-package protection
+package networkprotection
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 
 type IPBlocklistMiddleware struct {
 	RemoteIP httputil.RemoteIP
-	Config   *config.ProtectionConfig
+	Config   *config.NetworkProtectionConfig
 }
 
 func (m *IPBlocklistMiddleware) Handle(next http.Handler) http.Handler {

@@ -658,7 +658,7 @@ account_migration:
       timeout: 5
 captcha: {}
 bot_protection: {}
-protection:
+network_protection:
   ip_blocklist: {}
 test_mode:
   oob_otp:
