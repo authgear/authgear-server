@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/authgear/authgear-server/pkg/util/netutil"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -44,7 +43,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check using golang net.CrossOriginProtection and record metrics only
-		secFetchError := netutil.NewCrossOriginProtection().Check(r)
+		secFetchError := httputil.NewCrossOriginProtection().Check(r)
 		if secFetchError != nil {
 			otelutil.IntCounterAddOne(
 				r.Context(),
