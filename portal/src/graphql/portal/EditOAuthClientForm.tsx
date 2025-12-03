@@ -37,7 +37,6 @@ import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import { formatSeconds } from "../../util/formatDuration";
-import TextFieldWithImagePreview from "../../TextFieldWithImagePreview";
 
 const MASKED_SECRET = "***************";
 
@@ -128,16 +127,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         updateClientConfig(
           clientConfig,
           "client_name",
-          ensureNonEmptyString(value)
-        )
-      );
-    });
-
-    const { onChange: onLogoURIChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "logo_uri",
           ensureNonEmptyString(value)
         )
       );
@@ -600,35 +589,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             label={renderToString("EditOAuthClientForm.application-type.label")}
             value={applicationTypeLabel}
             readOnly={true}
-          />
-          <TextFieldWithImagePreview
-            parentJSONPointer={parentJSONPointer}
-            fieldName="logo_uri"
-            label={renderToString("EditOAuthClientForm.logo-uri.label")}
-            description={
-              (
-                <FormattedMessage
-                  id="EditOAuthClientForm.logo-uri.description"
-                  values={{
-                    href: `/project/${encodeURIComponent(
-                      appID
-                    )}/branding/design`,
-                  }}
-                />
-              ) as any as string
-            }
-            placeholder={renderToString(
-              "EditOAuthClientForm.logo-uri.placeholder"
-            )}
-            value={clientConfig.logo_uri ?? ""}
-            onChange={onLogoURIChange}
-            errorRules={[
-              makeValidationErrorCustomMessageIDRule(
-                "format",
-                /\/logo_uri$/,
-                "EditOAuthClientForm.logo-uri.error.format"
-              ),
-            ]}
           />
         </Widget>
 
