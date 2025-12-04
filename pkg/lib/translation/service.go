@@ -23,6 +23,7 @@ type Service struct {
 	TemplateEngine                  *template.Engine
 	StaticAssets                    StaticAssetResolver
 	SMTPServerCredentialsSecretItem *config.SMTPServerCredentialsSecretItem
+	OAuthConfig                     *config.OAuthConfig
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -274,10 +275,17 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 	}
 
 	uiParams := uiparam.GetUIParam(ctx)
+	clientName := ""
+	if uiParams.ClientID != "" {
+		if client, ok := s.OAuthConfig.GetClient(uiParams.ClientID); ok {
+			clientName = client.Name
+		}
+	}
 
 	return &PreparedTemplateVariables{
 		AppName:     appName,
 		ClientID:    uiParams.ClientID,
+		ClientName:  clientName,
 		Code:        v.Code,
 		Email:       v.Email,
 		HasPassword: v.HasPassword,

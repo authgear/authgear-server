@@ -249,8 +249,9 @@ var _ = Schema.Add("OAuthClientConfig", `
 `)
 
 type OAuthClientConfig struct {
-	ClientID                               string                       `json:"client_id,omitempty"`
-	ClientURI                              string                       `json:"client_uri,omitempty"`
+	ClientID  string `json:"client_id,omitempty"`
+	ClientURI string `json:"client_uri,omitempty"`
+	// client_name is for 3rd party app only. Use `name` for display name
 	ClientName                             string                       `json:"client_name,omitempty"`
 	Name                                   string                       `json:"name,omitempty"`
 	ApplicationType                        OAuthClientApplicationType   `json:"x_application_type,omitempty"`

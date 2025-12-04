@@ -181,10 +181,12 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		EmbeddedResources: nilResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthConfig:                     oAuthConfig,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

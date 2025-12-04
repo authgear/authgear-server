@@ -234,10 +234,12 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthConfig:                     oAuthConfig,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -778,7 +780,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,

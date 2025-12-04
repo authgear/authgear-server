@@ -410,6 +410,7 @@ var NoProjectDependencySet = wire.NewSet(
 
 	ProvideNilSMTPServerCredentialsSecretItem,
 	ProvideLocalizationConfig,
+	ProvideOAuthConfig,
 	template.DependencySet,
 	httputil.DependencySet,
 
