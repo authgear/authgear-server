@@ -2,10 +2,14 @@ package oauth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
+
+var ErrInvalidDPoPKeyBinding = protocol.NewError(dpop.InvalidDPoPProof, "Invalid DPoP key binding")
 
 type oauthDPoPChecker func(*dpop.DPoPProof) error
 
@@ -19,7 +23,7 @@ func checkDPoPWithClient(
 	dpopProof, err := maybeDpopProof.Get()
 	if err != nil {
 		if !client.DPoPDisabled {
-			return err
+			return errors.Join(ErrInvalidDPoPKeyBinding, err)
 		}
 	}
 
@@ -27,7 +31,7 @@ func checkDPoPWithClient(
 	if err != nil {
 		errorLogger(err)
 		if !client.DPoPDisabled {
-			return err
+			return errors.Join(ErrInvalidDPoPKeyBinding, err)
 		}
 	}
 

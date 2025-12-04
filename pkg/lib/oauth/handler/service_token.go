@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
@@ -29,7 +28,6 @@ import (
 var TokenServiceLogger = slogutil.NewLogger("oauth-token-service")
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
-var ErrInvalidDPoPKeyBinding = protocol.NewError(dpop.InvalidDPoPProof, "Invalid DPoP key binding")
 
 type IssueOfflineGrantOptions struct {
 	AuthenticationInfo authenticationinfo.T
@@ -352,7 +350,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			slog.Bool("refresh_token_log", true),
 		)
 	}); dpopErr != nil {
-		return nil, nil, "", ErrInvalidDPoPKeyBinding
+		return nil, nil, "", dpopErr
 	}
 
 	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)

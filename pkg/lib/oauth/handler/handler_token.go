@@ -852,8 +852,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
 			slog.Bool("dpop_logs", true),
 		)
 	}); dpopErr != nil {
-		err = ErrInvalidDPoPKeyBinding
-		return err
+		return dpopErr
 	}
 
 	return err
