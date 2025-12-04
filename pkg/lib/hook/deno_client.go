@@ -11,7 +11,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -93,16 +95,27 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 
 	logger.With(
 		slog.String("response_error", runResponse.Error),
+		slog.String("error_code", string(runResponse.ErrorCode)),
 		slog.Any("output", runResponse.Output),
 		slog.Any("stdout", runResponse.Stdout),
 		slog.Any("stderr", runResponse.Stderr),
 	).Info(ctx, "run deno script")
 
 	if runResponse.Error != "" {
+		otelutil.IntCounterAddOne(ctx,
+			otelauthgear.CounterDenoRunCount,
+			otelauthgear.WithStatusError(),
+			otelauthgear.WithDenoErrorCode(string(runResponse.ErrorCode)),
+		)
+
 		return nil, DenoRunError.NewWithInfo(runResponse.Error, apierrors.Details{
 			"stdout": runResponse.Stdout,
 			"stderr": runResponse.Stderr,
 		})
+	} else {
+		otelutil.IntCounterAddOne(ctx,
+			otelauthgear.CounterDenoRunCount,
+			otelauthgear.WithStatusOk())
 	}
 
 	return runResponse.Output, nil
