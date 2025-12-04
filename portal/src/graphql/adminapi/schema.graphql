@@ -1775,10 +1775,13 @@ input SendResetPasswordMessageInput {
 """"""
 type Session implements Entity & Node {
   """"""
-  acr: String!
+  acr: String
 
   """"""
   amr: [String!]!
+
+  """"""
+  applicationName: String
 
   """"""
   clientID: String
@@ -1800,6 +1803,12 @@ type Session implements Entity & Node {
 
   """"""
   lastAccessedByIP: String!
+
+  """"""
+  lastAccessedByIPCountryCode: String!
+
+  """"""
+  lastAccessedByIPEnglishCountryName: String!
 
   """"""
   type: SessionType!

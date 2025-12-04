@@ -1619,8 +1619,9 @@ export type SendResetPasswordMessageInput = {
 
 export type Session = Entity & Node & {
   __typename?: 'Session';
-  acr: Scalars['String']['output'];
+  acr?: Maybe<Scalars['String']['output']>;
   amr: Array<Scalars['String']['output']>;
+  applicationName?: Maybe<Scalars['String']['output']>;
   clientID?: Maybe<Scalars['String']['output']>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
@@ -1630,6 +1631,8 @@ export type Session = Entity & Node & {
   id: Scalars['ID']['output'];
   lastAccessedAt: Scalars['DateTime']['output'];
   lastAccessedByIP: Scalars['String']['output'];
+  lastAccessedByIPCountryCode: Scalars['String']['output'];
+  lastAccessedByIPEnglishCountryName: Scalars['String']['output'];
   type: SessionType;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];

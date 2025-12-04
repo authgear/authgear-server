@@ -37,11 +37,12 @@ var nodeSession = node(
 			"type": &graphql.Field{
 				Type: graphql.NewNonNull(sessionType),
 			},
-			"acr": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.String),
-			},
 			"amr": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+			},
+			// This field was removed, but we keep it in graphql schema so existing queries won't break
+			"acr": &graphql.Field{
+				Type: graphql.String,
 			},
 			"clientID": &graphql.Field{
 				Type: graphql.String,
@@ -52,6 +53,12 @@ var nodeSession = node(
 			"lastAccessedByIP": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 			},
+			"lastAccessedByIPCountryCode": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+			},
+			"lastAccessedByIPEnglishCountryName": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+			},
 			"createdByIP": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 			},
@@ -59,6 +66,9 @@ var nodeSession = node(
 				Type: graphql.NewNonNull(graphql.String),
 			},
 			"userAgent": &graphql.Field{
+				Type: graphql.String,
+			},
+			"applicationName": &graphql.Field{
 				Type: graphql.String,
 			},
 		},
