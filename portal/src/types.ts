@@ -570,6 +570,7 @@ export interface OAuthClientConfig {
   client_name?: string;
   x_application_type?: ApplicationType;
   x_max_concurrent_session?: number;
+  x_dpop_disabled?: boolean;
   redirect_uris?: string[];
   grant_types?: string[];
   response_types?: string[];

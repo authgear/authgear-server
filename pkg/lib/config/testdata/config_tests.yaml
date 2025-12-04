@@ -1510,6 +1510,20 @@ config:
           - "https://realdomain.com"
         logo_uri: https://realdomain.com/logo.png
 ---
+name: oauth-client-dpop-disabled
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client DPoP
+        client_id: test-client-dpop
+        redirect_uris:
+          - "https://example.com/callback"
+        x_dpop_disabled: true
+---
 name: oauth-client-logo-uri-non-https
 error: |-
   invalid configuration:

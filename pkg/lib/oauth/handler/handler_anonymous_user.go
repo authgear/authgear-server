@@ -228,7 +228,10 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+	dpopJKT, _, err := dpop.GetDPoPProofJKT(ctx, client)
+	if err != nil {
+		return nil, err
+	}
 
 	resp := protocol.TokenResponse{}
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login

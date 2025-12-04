@@ -1230,6 +1230,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserAgentString:     userAgentString,
 		AppID:               appID,
 		Config:              oAuthConfig,
+		ClientResolver:      oauthclientResolver,
 		Authorizations:      authorizationStore,
 		OfflineGrants:       redisStore,
 		AccessGrants:        redisStore,

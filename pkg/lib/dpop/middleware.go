@@ -2,7 +2,6 @@ package dpop
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -34,48 +33,39 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		dpopJwt := dpopHeader[0]
 		proof, err := m.DPoPProvider.ParseProof(dpopJwt)
 		if err != nil {
-			m.handleError(ctx, rw, err)
+			m.handleError(ctx, next, rw, r, err)
 			return
 		}
 
 		if err := m.DPoPProvider.CompareHTM(proof, r.Method); err != nil {
-			m.handleError(ctx, rw, err)
+			m.handleError(ctx, next, rw, r, err)
 			return
 		}
 
 		if err := m.DPoPProvider.CompareHTU(proof, r); err != nil {
-			m.handleError(ctx, rw, err)
+			m.handleError(ctx, next, rw, r, err)
 			return
 		}
 
-		r = r.WithContext(WithDPoPProof(r.Context(), proof))
+		r = r.WithContext(WithDPoPProof(ctx, proof))
 		next.ServeHTTP(rw, r)
 	})
 }
 
-func (m *Middleware) handleError(ctx context.Context, rw http.ResponseWriter, err error) {
+func (m *Middleware) handleError(ctx context.Context, next http.Handler, rw http.ResponseWriter, r *http.Request, err error) {
 	logger := middlewareLogger.GetLogger(ctx)
 	var oauthErr *protocol.OAuthProtocolError
+	// If it is an dpop error, we do not return error here.
+	// Continue to serve the request, until someone need the proof and handle error there.
 	if errors.As(err, &oauthErr) {
 		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to parse dpop proof",
 			slog.Bool("dpop_logs", true),
 		)
-		rw.Header().Set("Content-Type", "application/json")
-		rw.Header().Set("Cache-Control", "no-store")
-		rw.Header().Set("Pragma", "no-cache")
-		errJson := oauthErr.Response
-		errJsonStr, _ := json.Marshal(errJson)
-		statusCode := oauthErr.StatusCode
-		if statusCode == 0 {
-			statusCode = http.StatusBadRequest
-		}
-		rw.WriteHeader(statusCode)
-		_, err := rw.Write([]byte(errJsonStr))
-		if err != nil {
-			panic(err)
-		}
-		return
+		r = r.WithContext(WithDPoPProof(ctx, &InvalidDPoPProofWithError{
+			Error: err,
+		}))
+		next.ServeHTTP(rw, r)
 	} else {
 		panic(err)
 	}
