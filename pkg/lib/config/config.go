@@ -51,6 +51,7 @@ var _ = Schema.Add("AppConfig", `
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
 		"bot_protection": { "$ref": "#/$defs/BotProtectionConfig" },
+		"network_protection": { "$ref": "#/$defs/NetworkProtectionConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
 		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" },
 		"external_jwt": { "$ref": "#/$defs/ExternalJWTConfig" }
@@ -92,8 +93,9 @@ type AppConfig struct {
 
 	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
-	Captcha       *CaptchaConfig       `json:"captcha,omitempty"`
-	BotProtection *BotProtectionConfig `json:"bot_protection,omitempty"`
+	Captcha           *CaptchaConfig           `json:"captcha,omitempty"`
+	BotProtection     *BotProtectionConfig     `json:"bot_protection,omitempty"`
+	NetworkProtection *NetworkProtectionConfig `json:"network_protection,omitempty"`
 
 	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 
