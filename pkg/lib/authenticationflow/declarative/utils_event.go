@@ -158,7 +158,7 @@ func toRateLimitWeights(eventratelimits event.RateLimits) ratelimit.Weights {
 
 	weights := ratelimit.Weights{}
 	for rl, rlRequirements := range eventratelimits {
-		weights[rl] = rlRequirements.Weight
+		weights[ratelimit.RateLimit(rl)] = rlRequirements.Weight
 	}
 	return weights
 }
