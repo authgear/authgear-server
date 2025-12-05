@@ -115,6 +115,9 @@ var AttributeKeyCustomProviderResponseCode = attribute.Key("custom_provider_resp
 // AttributeKeyDenoErrorCode defines the attribute.
 var AttributeKeyDenoErrorCode = attribute.Key("deno.error_code")
 
+// AttributeKeyDenoErrorReason defines the attribute.
+var AttributeKeyDenoErrorReason = attribute.Key("deno.error_reason")
+
 // AttributeStatusOK is "status=ok".
 var AttributeStatusOK = AttributeKeyStatus.String("ok")
 
@@ -359,6 +362,10 @@ func WithProviderErrorCode(code string) otelutil.MetricOption {
 
 func WithDenoErrorCode(code string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyDenoErrorCode.String(code)}
+}
+
+func WithDenoErrorReason(reason string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyDenoErrorReason.String(reason)}
 }
 
 func WithCustomProviderType(providerType string) otelutil.MetricOption {

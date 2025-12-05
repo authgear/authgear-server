@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -77,11 +78,25 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		var reason = "unknown"
+		if os.IsTimeout(err) {
+			reason = "client_timeout"
+		}
+		otelutil.IntCounterAddOne(ctx,
+			otelauthgear.CounterDenoRunCount,
+			otelauthgear.WithStatusError(),
+			otelauthgear.WithDenoErrorReason(reason),
+		)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
+		otelutil.IntCounterAddOne(ctx,
+			otelauthgear.CounterDenoRunCount,
+			otelauthgear.WithStatusError(),
+			otelauthgear.WithDenoErrorReason("invalid_status"),
+		)
 		return nil, HookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
@@ -90,6 +105,11 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 	var runResponse RunResponse
 	err = json.NewDecoder(resp.Body).Decode(&runResponse)
 	if err != nil {
+		otelutil.IntCounterAddOne(ctx,
+			otelauthgear.CounterDenoRunCount,
+			otelauthgear.WithStatusError(),
+			otelauthgear.WithDenoErrorReason("invalid_response"),
+		)
 		return nil, err
 	}
 
@@ -105,6 +125,7 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 		otelutil.IntCounterAddOne(ctx,
 			otelauthgear.CounterDenoRunCount,
 			otelauthgear.WithStatusError(),
+			otelauthgear.WithDenoErrorReason("error_response"),
 			otelauthgear.WithDenoErrorCode(string(runResponse.ErrorCode)),
 		)
 
