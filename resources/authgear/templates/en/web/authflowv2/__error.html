@@ -108,11 +108,13 @@
             {{ include "v2.error.max-length" (dict "expected" .details.expected) }}
           </span>
         {{ else if (eq .kind "blocked") }}
-          {{ if (or (eq .details.reason "EmailDomainBlocklist") (eq .details.reason "EmailDomainAllowlist")) }}
+          {{ if (eq .details.reason "EmailDomainAllowlist") }}
             <span>{{ include "v2.error.email-not-allowed" nil }}</span>
-          {{ else if (eq .details.reason "EmailFreeDomainBlocklist" )}}
+          {{ else if (and (eq .details.reason "EmailDomainBlocklist") (eq .details.blocklist "custom")) }}
+            <span>{{ include "v2.error.email-not-allowed" nil }}</span>
+          {{ else if (and (eq .details.reason "EmailDomainBlocklist") (eq .details.blocklist "free")) }}
             <span>{{ include "v2.error.email-free-domain-not-allowed" nil }}</span>
-          {{ else if (eq .details.reason "EmailDisposableDomainBlocklist" )}}
+          {{ else if (and (eq .details.reason "EmailDomainBlocklist") (eq .details.blocklist "disposable")) }}
             <span>{{ include "v2.error.email-disposable-domain-not-allowed" nil }}</span>
           {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason "UsernameExcludedKeywords")) }}
             <span>{{ include "v2.error.username-not-allowed" nil }}</span>
