@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "De beheerder heeft uw account uitgeschakeld. Neem contact op met de klantenservice.",
   "v2.error.disabled-user-title": "Account niet beschikbaar",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{U heeft dit telefoonnummer al ingesteld voor authenticatie. Wilt u misschien een ander telefoonnummer instellen?} oob_otp_email{U heeft dit e-mailadres al ingesteld voor authenticatie. Wilt u misschien een ander e-mailadres instellen?} other{U heeft deze authenticator al ingesteld. Wilt u misschien een andere instellen?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Dit lijkt op een wegwerp e-mailadres. Gebruik alstublieft een standaard e-mail in plaats daarvan. Als u denkt dat dit een fout is, neem dan contact op met de klantenservice.",
+  "v2.error.email-free-domain-not-allowed": "Gebruik alstublieft uw zakelijke e-mailadres. Gratis e-mailproviders zijn niet toegestaan.",
   "v2.error.email-not-allowed": "Het e-mailadres dat u heeft ingevoerd, is niet toegestaan. Neem contact op met de klantenservice als u denkt dat het e-mailadres geldig zou moeten zijn.",
   "v2.error.email-plus-sign-not-allowed": "Ongeldig e-mailadres, plusteken (+) is niet toegestaan.",
   "v2.error.email-required": "Voer uw e-mailadres in.",

@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Quản trị viên đã vô hiệu hóa tài khoản của bạn. Vui lòng liên hệ với bộ phận hỗ trợ khách hàng.",
   "v2.error.disabled-user-title": "Tài khoản không khả dụng",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Bạn đã thiết lập số điện thoại này để xác thực. Có lẽ bạn muốn thiết lập một số điện thoại khác?} oob_otp_email{Bạn đã thiết lập địa chỉ email này để xác thực. Có lẽ bạn muốn thiết lập một địa chỉ email khác?} other{Bạn đã thiết lập bộ xác thực này. Có lẽ bạn muốn thiết lập một cái khác?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Đây có vẻ là một địa chỉ email dùng một lần. Vui lòng sử dụng email tiêu chuẩn thay thế. Nếu bạn cho rằng đây là lỗi, vui lòng liên hệ với bộ phận hỗ trợ khách hàng.",
+  "v2.error.email-free-domain-not-allowed": "Vui lòng sử dụng địa chỉ email công việc của bạn. Các nhà cung cấp email miễn phí không được phép sử dụng.",
   "v2.error.email-not-allowed": "Địa chỉ email bạn nhập không được phép. Vui lòng liên hệ với bộ phận hỗ trợ khách hàng nếu bạn nghĩ rằng địa chỉ email này nên hợp lệ.",
   "v2.error.email-plus-sign-not-allowed": "Địa chỉ email không hợp lệ, không cho phép sử dụng dấu cộng (+).",
   "v2.error.email-required": "Vui lòng nhập địa chỉ email của bạn.",
