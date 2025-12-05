@@ -71,6 +71,8 @@ func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float
 
 	logger.With(
 		slog.String("key", spec.Key()),
+		slog.String("bucket", string(spec.Name)),
+		slog.String("ratelimit", string(spec.RateLimit)),
 		slog.Bool("ok", ok),
 		slog.Time("timeToAct", timeToAct),
 	).Debug(ctx, "check global rate limit")

@@ -79,6 +79,8 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 	logger.Debug(ctx, "check rate limit",
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("key", key),
+		slog.String("bucket", string(spec.Name)),
+		slog.String("ratelimit", string(spec.RateLimit)),
 		slog.Bool("ok", ok),
 		slog.Time("timeToAct", timeToAct),
 	)
@@ -90,6 +92,16 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 			tokenTaken: n,
 		}, nil, &timeToAct, nil
 	}
+
+	logger.WithSkipStackTrace().WithSkipLogging().Error(ctx, "rate limited",
+		slog.Bool("global", spec.IsGlobal),
+		slog.String("bucket", string(spec.Name)),
+		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("key", key),
+		slog.Bool("ok", ok),
+		slog.Bool("ratelimit_logging", true),
+		slog.Time("timeToAct", timeToAct),
+	)
 
 	return nil, &FailedReservation{
 		key:       key,
