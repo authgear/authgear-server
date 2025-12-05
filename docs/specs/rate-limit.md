@@ -279,3 +279,9 @@ messaging:
       period: 1h
       burst: 10
 ```
+
+## Audit Log
+
+There will an audit log produced whenever any request blocked by a rate limit.
+
+See [events](./event.md#rate_limitblocked) for details.
