@@ -221,7 +221,7 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailFreeDomainBlocklist"})
 			return
 		}
 	}
@@ -233,7 +233,7 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDisposableDomainBlocklist"})
 			return
 		}
 	}

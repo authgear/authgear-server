@@ -110,6 +110,10 @@
         {{ else if (eq .kind "blocked") }}
           {{ if (or (eq .details.reason "EmailDomainBlocklist") (eq .details.reason "EmailDomainAllowlist")) }}
             <span>{{ include "v2.error.email-not-allowed" nil }}</span>
+          {{ else if (eq .details.reason "EmailFreeDomainBlocklist" )}}
+            <span>{{ include "v2.error.email-free-domain-not-allowed" nil }}</span>
+          {{ else if (eq .details.reason "EmailDisposableDomainBlocklist" )}}
+            <span>{{ include "v2.error.email-disposable-domain-not-allowed" nil }}</span>
           {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason "UsernameExcludedKeywords")) }}
             <span>{{ include "v2.error.username-not-allowed" nil }}</span>
           {{ else if (eq .details.reason "PhoneNumberCountryCodeAllowlist") }}

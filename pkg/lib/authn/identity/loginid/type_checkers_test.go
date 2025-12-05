@@ -113,8 +113,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block free email provider domains", func() {
 			cases := []Case{
-				{"faseng@free-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@FREE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@free-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailFreeDomainBlocklist]"},
+				{"faseng@FREE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailFreeDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
@@ -135,8 +135,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block disposable email domains", func() {
 			cases := []Case{
-				{"faseng@disposable-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@DISPOSABLE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@disposable-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDisposableDomainBlocklist]"},
+				{"faseng@DISPOSABLE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDisposableDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
