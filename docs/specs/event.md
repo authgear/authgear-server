@@ -107,6 +107,7 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
 - `ip_address`: The IP address of the HTTP request, if present.
 - `user_agent`: The User-Agent HTTP request header, if present.
+- `url`: The url of the HTTP request, if present.
 - `triggered_by`: The origin of the event.
   - `user`: The event originates from a end-user facing UI.
   - `admin_api`: The event originates from the Admin API.
@@ -537,6 +538,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
+- [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
 
@@ -1119,6 +1121,20 @@ Occurs when biometric login is disabled. It will be triggered only when the user
   "payload": {
     "user": { /* ... */ },
     "identity": { /* ... */ }
+  }
+}
+```
+
+#### rate_limit.blocked
+
+Occurs after a request is blocked by rate limiting.
+
+Payload:
+```json5
+{
+  "payload": {
+    "rate_limit": "authentication.general",
+    "bucket": "VerifyPasswordPerIP"
   }
 }
 ```
