@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "L''amministratore ha disabilitato il tuo account. Per favore contatta l''assistenza clienti.",
   "v2.error.disabled-user-title": "Account non disponibile",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Hai già impostato questo numero di telefono per l''autenticazione. Forse vuoi impostare un altro numero di telefono?} oob_otp_email{Hai già impostato questo indirizzo email per l''autenticazione. Forse vuoi impostare un altro indirizzo email?} other{Hai già impostato questo autenticatore. Forse vuoi impostarne un altro?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Questo sembra un indirizzo email temporaneo. Per favore utilizza un''email standard invece. Se ritieni che questo sia un errore, contatta l''assistenza clienti.",
+  "v2.error.email-free-domain-not-allowed": "Per favore utilizza il tuo indirizzo email di lavoro. I provider di email gratuiti non sono consentiti.",
   "v2.error.email-not-allowed": "L''indirizzo email inserito non è consentito. Contatta l''assistenza clienti se ritieni che l''indirizzo email debba essere valido.",
   "v2.error.email-plus-sign-not-allowed": "Indirizzo email non valido, il segno più (+) non è consentito.",
   "v2.error.email-required": "Inserisci il tuo indirizzo email.",

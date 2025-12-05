@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "管理员已禁用您的账户。请联系客户支持。",
   "v2.error.disabled-user-title": "账户不可用",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{您已经设置了此手机号码进行身份验证。也许您想设置另一个手机号码?} oob_otp_email{您已经设置了此电子邮件地址进行身份验证。也许您想设置另一个电子邮件地址?} other{您已经设置了此验证器。也许您想设置另一个?}}",
+  "v2.error.email-disposable-domain-not-allowed": "该邮箱地址为一次性邮箱，请使用常用邮箱。如果您认为这是误判，请联系客户支持。",
+  "v2.error.email-free-domain-not-allowed": "请使用您的公司或工作邮箱地址，不支持使用免费邮箱服务。",
   "v2.error.email-not-allowed": "您输入的电子邮件地址不被允许。如果您认为该电子邮件地址应该有效,请联系客户支持。",
   "v2.error.email-plus-sign-not-allowed": "无效的电子邮件地址，不允许使用加号 (+)。",
   "v2.error.email-required": "请输入您的电子邮件地址。",

@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "管理者によりアカウントが無効化されています。カスタマーサポートにお問い合わせください。",
   "v2.error.disabled-user-title": "アカウントが利用できません",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{この電話番号は既に認証に設定されています。別の電話番号を設定しますか?} oob_otp_email{このメールアドレスは既に認証に設定されています。別のメールアドレスを設定しますか?} other{この認証方法は既に設定されています。別の認証方法を設定しますか?}}",
+  "v2.error.email-disposable-domain-not-allowed": "これは使い捨てメールアドレスのようです。代わりに標準のメールを使用してください。これがエラーだと思われる場合は、カスタマーサポートにお問い合わせください。",
+  "v2.error.email-free-domain-not-allowed": "仕事用のメールアドレスを使用してください。フリーメールプロバイダーは許可されていません。",
   "v2.error.email-not-allowed": "入力されたメールアドレスは許可されていません。メールアドレスが有効と思われる場合は、カスタマーサポートにお問い合わせください。",
   "v2.error.email-plus-sign-not-allowed": "無効なメールアドレスです。プラス記号（+）は許可されていません。",
   "v2.error.email-required": "メールアドレスを入力してください。",

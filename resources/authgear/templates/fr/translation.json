@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "L''administrateur a désactivé votre compte. Veuillez contacter le service clientèle.",
   "v2.error.disabled-user-title": "Compte indisponible",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Vous avez déjà configuré ce numéro de téléphone pour l''authentification. Peut-être voulez-vous configurer un autre numéro de téléphone ?} oob_otp_email{Vous avez déjà configuré cette adresse e-mail pour l''authentification. Peut-être voulez-vous configurer une autre adresse e-mail ?} other{Vous avez déjà configuré cet authentificateur. Peut-être voulez-vous en configurer un autre ?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Ceci semble être une adresse e-mail jetable. Veuillez utiliser une adresse e-mail standard à la place. Si vous pensez qu''il s''agit d''une erreur, veuillez contacter le service client.",
+  "v2.error.email-free-domain-not-allowed": "Veuillez utiliser votre adresse e-mail professionnelle. Les fournisseurs d''e-mail gratuits ne sont pas autorisés.",
   "v2.error.email-not-allowed": "L''adresse e-mail que vous avez saisie n''est pas autorisée. Veuillez contacter le service client si vous pensez que l''adresse e-mail devrait être valide.",
   "v2.error.email-plus-sign-not-allowed": "Adresse e-mail invalide, le signe plus (+) n''est pas autorisé.",
   "v2.error.email-required": "Veuillez saisir votre adresse e-mail.",

@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "El administrador ha deshabilitado su cuenta. Por favor, póngase en contacto con el servicio de atención al cliente.",
   "v2.error.disabled-user-title": "Cuenta no disponible",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Ya has configurado este número de teléfono para la autenticación. ¿Quizás quieras configurar otro número de teléfono?} oob_otp_email{Ya has configurado esta dirección de correo electrónico para la autenticación. ¿Quizás quieras configurar otra dirección de correo electrónico?} other{Ya has configurado este autenticador. ¿Quizás quieras configurar otro?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Esto parece una dirección de correo electrónico desechable. Por favor, utiliza un correo electrónico estándar en su lugar. Si crees que esto es un error, por favor contacta con el servicio de atención al cliente.",
+  "v2.error.email-free-domain-not-allowed": "Por favor, utiliza tu dirección de correo electrónico del trabajo. No se permiten proveedores de correo electrónico gratuitos.",
   "v2.error.email-not-allowed": "La dirección de correo electrónico que ingresaste no está permitida. Por favor, contacta al servicio de atención al cliente si crees que la dirección de correo electrónico debería ser válida.",
   "v2.error.email-plus-sign-not-allowed": "Dirección de correo electrónico no válida, el signo más (+) no está permitido.",
   "v2.error.email-required": "Por favor, ingrese su dirección de correo electrónico.",

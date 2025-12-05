@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Administrator has disabled your account. Please contact customer support.",
   "v2.error.disabled-user-title": "Account Unavailable",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{You have already set up this phone number for authentication. Maybe you want to set up another phone number?} oob_otp_email{You have already set up this email address for authentication. Maybe you want to set up another email address?} other{You have already set up this authenticator. Maybe want to set up another one?}}",
+  "v2.error.email-disposable-domain-not-allowed": "This looks like a disposable email address. Please use a standard email instead. If you think this is an error, please contact customer support.",
+  "v2.error.email-free-domain-not-allowed": "Please use your work email address. Free email providers are not allowed.",
   "v2.error.email-not-allowed": "The email address you entered is disallowed. Please contact the customer support if you think the email address should be valid.",
   "v2.error.email-plus-sign-not-allowed": "Invalid email address, plus sign (+) is not allowed.",
   "v2.error.email-required": "Please enter your email address.",
