@@ -34,6 +34,7 @@ type RateLimiter interface {
 }
 
 type Service struct {
+	ReadOnlyService
 	IP            httputil.RemoteIP
 	DeviceTokens  StoreDeviceToken
 	RecoveryCodes StoreRecoveryCode
@@ -221,8 +222,4 @@ func (s *Service) ConsumeRecoveryCode(ctx context.Context, rc *RecoveryCode) err
 	}
 
 	return nil
-}
-
-func (s *Service) ListRecoveryCodes(ctx context.Context, userID string) ([]*RecoveryCode, error) {
-	return s.RecoveryCodes.List(ctx, userID)
 }
