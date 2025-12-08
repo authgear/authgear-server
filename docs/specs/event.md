@@ -56,6 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+    + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
     + [Login](#login)
@@ -1138,6 +1139,54 @@ Payload:
   }
 }
 ```
+
+### Events that support audit log
+
+The following documented events have audit log support.
+Read [Audit Logs](./audit-log.md) for details.
+
+- `user.created`
+- `user.profile.updated`
+- `user.authenticated`
+- `user.reauthenticated`
+- `user.signed_out`
+- `user.session.terminated`
+- `user.anonymous.promoted`
+- `user.disabled`
+- `user.reenabled`
+- `user.deletion_scheduled`
+- `user.deletion_unscheduled`
+- `user.deleted`
+- `user.anonymization_scheduled`
+- `user.anonymization_unscheduled`
+- `user.anonymized`
+- `authentication.identity.login_id.failed`
+- `authentication.identity.anonymous.failed`
+- `authentication.identity.biometric.failed`
+- `authentication.primary.password.failed`
+- `authentication.primary.oob_otp_email.failed`
+- `authentication.primary.oob_otp_sms.failed`
+- `authentication.secondary.password.failed`
+- `authentication.secondary.totp.failed`
+- `authentication.secondary.oob_otp_email.failed`
+- `authentication.secondary.oob_otp_sms.failed`
+- `authentication.secondary.recovery_code.failed`
+- `bot_protection.verification.failed`
+- `authentication.blocked`
+- `identity.email.added`
+- `identity.email.removed`
+- `identity.email.updated`
+- `identity.phone.added`
+- `identity.phone.removed`
+- `identity.phone.updated`
+- `identity.username.added`
+- `identity.username.removed`
+- `identity.username.updated`
+- `identity.oauth.connected`
+- `identity.oauth.disconnected`
+- `identity.biometric.enabled`
+- `identity.biometric.disabled`
+- `rate_limit.blocked`
 
 ## Trigger Points Diagrams
 
