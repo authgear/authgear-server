@@ -325,6 +325,12 @@ export function AccountValidPeriodForm(
   const { themes } = useSystemConfig();
   const { locale } = useContext(Context);
   const formattedZone = formatSystemZone(new Date(), locale);
+  const showEndAtWarning = useMemo(
+    () =>
+      accountValidUntil != null &&
+      accountValidUntil.getTime() < new Date().getTime(),
+    [accountValidUntil]
+  );
   return (
     <div className={cn(className, "flex flex-col gap-2")}>
       <MessageBar
@@ -388,6 +394,11 @@ export function AccountValidPeriodForm(
           </Text>
         }
       />
+      {showEndAtWarning ? (
+        <MessageBar messageBarType={MessageBarType.warning}>
+          <FormattedMessage id="AccountValidPeriodForm.end-at-warning" />
+        </MessageBar>
+      ) : null}
     </div>
   );
 }

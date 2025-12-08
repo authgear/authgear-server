@@ -505,6 +505,7 @@
   "AccountValidPeriodForm.start-at": "Start at",
   "AccountValidPeriodForm.end-at": "End at",
   "AccountValidPeriodForm.hint": "Leave blank for no limit",
+  "AccountValidPeriodForm.end-at-warning": "The end time is earlier than the current time, user will not be able to login immediately.",
 
   "DateTimePicker.clear": "Clear",
   "DateTimePicker.fluent.isResetStatusMessage": "'{'0'}' is invalid, reset to '{'1'}'",
