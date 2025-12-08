@@ -108,7 +108,6 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
 - `ip_address`: The IP address of the HTTP request, if present.
 - `user_agent`: The User-Agent HTTP request header, if present.
-- `url`: The url of the HTTP request, if present.
 - `triggered_by`: The origin of the event.
   - `user`: The event originates from a end-user facing UI.
   - `admin_api`: The event originates from the Admin API.
@@ -120,6 +119,8 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - `oauth`: Data related to OAuth. The field does not exist if the event is not from an OAuth flow (Such as SAML login).
   - `state`: `state` of the authorization request.
   - `x_state`: `x_state` of the authorization request.
+- `audit_context`: An object containing information for audit purposes.
+  - `http_url`: The URL of the HTTP request, if present.
 
 ## Event List
 
