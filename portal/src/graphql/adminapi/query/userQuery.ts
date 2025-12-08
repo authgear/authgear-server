@@ -1,4 +1,4 @@
-import { QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery, WatchQueryFetchPolicy } from "@apollo/client";
 import { useMemo } from "react";
 import {
   UserQueryQuery,
@@ -18,7 +18,7 @@ interface UserQueryResult
 
 export function useUserQuery(
   userID: string,
-  options?: { skip?: boolean }
+  options?: { skip?: boolean; fetchPolicy?: WatchQueryFetchPolicy }
 ): UserQueryResult {
   const { data, loading, error, refetch } = useQuery<
     UserQueryQuery,
@@ -27,6 +27,8 @@ export function useUserQuery(
     variables: {
       userID,
     },
+    // cache-first is the default
+    fetchPolicy: options?.fetchPolicy ?? "cache-first",
     skip: options?.skip,
   });
 
