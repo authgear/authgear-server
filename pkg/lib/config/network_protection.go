@@ -21,7 +21,7 @@ var _ = Schema.Add("NetworkIPBlocklistConfig", `
 		},
 		"country_codes": {
 			"type": "array",
-			"items": { "type": "string" }
+			"items": { "type": "string", "minLength": 2, "maxLength": 2 }
 		}
 	}
 }
