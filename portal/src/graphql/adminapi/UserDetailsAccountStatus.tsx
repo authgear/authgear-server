@@ -1718,7 +1718,7 @@ export function AccountStatusMessageBar(
       );
       break;
     case "disabled":
-      if (accountState.temporarilyDisabledUntil == null) {
+      if (accountState.temporarilyDisabledUntil != null) {
         message = (
           <FormattedMessage
             id="AccountStatusMessageBar.disabled-tempoararily"
