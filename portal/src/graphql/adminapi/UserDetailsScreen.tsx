@@ -540,7 +540,14 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
 const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
-  const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
+  const {
+    user,
+    loading: loadingUser,
+    error,
+    refetch,
+  } = useUserQuery(userID, {
+    fetchPolicy: "cache-and-network",
+  });
   const {
     effectiveAppConfig,
     isLoading: loadingAppConfig,
