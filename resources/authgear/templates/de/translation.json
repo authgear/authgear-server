@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Der Administrator hat Ihr Konto deaktiviert. Bitte wenden Sie sich an den Kundensupport.",
   "v2.error.disabled-user-title": "Konto nicht verfügbar",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Sie haben diese Telefonnummer bereits für die Authentifizierung eingerichtet. Vielleicht möchten Sie eine andere Telefonnummer einrichten?} oob_otp_email{Sie haben diese E-Mail-Adresse bereits für die Authentifizierung eingerichtet. Vielleicht möchten Sie eine andere E-Mail-Adresse einrichten?} other{Sie haben diesen Authentifikator bereits eingerichtet. Vielleicht möchten Sie einen anderen einrichten?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Dies scheint eine temporäre E-Mail-Adresse zu sein. Bitte verwenden Sie stattdessen eine Standard-E-Mail. Wenn Sie denken, dass dies ein Fehler ist, kontaktieren Sie bitte den Kundensupport.",
+  "v2.error.email-free-domain-not-allowed": "Bitte verwenden Sie Ihre Arbeits-E-Mail-Adresse. Kostenlose E-Mail-Anbieter sind nicht erlaubt.",
   "v2.error.email-not-allowed": "Die von Ihnen eingegebene E-Mail-Adresse ist nicht zulässig. Bitte wenden Sie sich an den Kundensupport, wenn Sie denken, dass die E-Mail-Adresse gültig sein sollte.",
   "v2.error.email-plus-sign-not-allowed": "Ungültige E-Mail-Adresse, Pluszeichen (+) ist nicht erlaubt.",
   "v2.error.email-required": "Bitte geben Sie Ihre E-Mail-Adresse ein.",

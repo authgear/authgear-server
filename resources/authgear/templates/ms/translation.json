@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Pentadbir telah melumpuhkan akaun anda. Sila hubungi sokongan pelanggan.",
   "v2.error.disabled-user-title": "Akaun Tidak Tersedia",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Anda telah menyediakan nombor telefon ini untuk pengesahan. Mungkin anda mahu menyediakan nombor telefon lain?} oob_otp_email{Anda telah menyediakan alamat e-mel ini untuk pengesahan. Mungkin anda mahu menyediakan alamat e-mel lain?} other{Anda telah menyediakan pengesah ini. Mungkin anda mahu menyediakan yang lain?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Ini kelihatan seperti alamat e-mel pakai buang. Sila gunakan e-mel standard sebaliknya. Jika anda fikir ini adalah kesilapan, sila hubungi sokongan pelanggan.",
+  "v2.error.email-free-domain-not-allowed": "Sila gunakan alamat e-mel kerja anda. Pembekal e-mel percuma tidak dibenarkan.",
   "v2.error.email-not-allowed": "Alamat e-mel yang anda masukkan tidak dibenarkan. Sila hubungi sokongan pelanggan jika anda fikir alamat e-mel tersebut harus sah.",
   "v2.error.email-plus-sign-not-allowed": "Alamat e-mel tidak sah, tanda tambah (+) tidak dibenarkan.",
   "v2.error.email-required": "Sila masukkan alamat emel anda.",

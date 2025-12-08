@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Administrator telah menonaktifkan akun Anda. Silakan hubungi dukungan pelanggan.",
   "v2.error.disabled-user-title": "Akun Tidak Tersedia",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Anda sudah mengatur nomor telepon ini untuk autentikasi. Mungkin Anda ingin mengatur nomor telepon lain?} oob_otp_email{Anda sudah mengatur alamat email ini untuk autentikasi. Mungkin Anda ingin mengatur alamat email lain?} other{Anda sudah mengatur authenticator ini. Mungkin Anda ingin mengatur yang lain?}}",
+  "v2.error.email-disposable-domain-not-allowed": "Ini tampak seperti alamat email sekali pakai. Silakan gunakan email standar sebagai gantinya. Jika Anda merasa ini adalah kesalahan, silakan hubungi layanan pelanggan.",
+  "v2.error.email-free-domain-not-allowed": "Silakan gunakan alamat email kerja Anda. Penyedia email gratis tidak diizinkan.",
   "v2.error.email-not-allowed": "Alamat email yang Anda masukkan tidak diizinkan. Silakan hubungi dukungan pelanggan jika Anda pikir alamat email tersebut valid.",
   "v2.error.email-plus-sign-not-allowed": "Alamat email tidak valid, tanda plus (+) tidak diperbolehkan.",
   "v2.error.email-required": "Silakan masukkan alamat email Anda.",

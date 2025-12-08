@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "Administrator zablokował Twoje konto. Skontaktuj się z działem obsługi klienta.",
   "v2.error.disabled-user-title": "Konto niedostępne",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Już ustawiłeś ten numer telefonu do uwierzytelniania. Może chcesz ustawić inny numer telefonu?} oob_otp_email{Już ustawiłeś ten adres e-mail do uwierzytelniania. Może chcesz ustawić inny adres e-mail?} other{Już ustawiłeś ten uwierzytelniacz. Może chcesz ustawić inny?}}",
+  "v2.error.email-disposable-domain-not-allowed": "To wygląda na tymczasowy adres e-mail. Proszę użyć standardowego adresu e-mail. Jeśli uważasz, że to błąd, skontaktuj się z obsługą klienta.",
+  "v2.error.email-free-domain-not-allowed": "Proszę użyć służbowego adresu e-mail. Darmowi dostawcy poczty e-mail nie są dozwoleni.",
   "v2.error.email-not-allowed": "Wprowadzony adres e-mail jest niedozwolony. Skontaktuj się z obsługą klienta, jeśli uważasz, że adres e-mail powinien być prawidłowy.",
   "v2.error.email-plus-sign-not-allowed": "Nieprawidłowy adres e-mail, znak plus (+) jest niedozwolony.",
   "v2.error.email-required": "Wprowadź swój adres e-mail.",

@@ -949,6 +949,8 @@
   "v2.error.disabled-user-subtitle": "管理員已停用您的帳號，請聯絡客戶支援。",
   "v2.error.disabled-user-title": "帳號不可用",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{你已設置該電話號碼作驗證用途。或許你想設置另一個電話號碼?} oob_otp_email{你已設置該電郵地址作驗證用途。或許你想設置另一個電郵地址?} other{你已設置該驗證器。或許你想設置新的一個?}}",
+  "v2.error.email-disposable-domain-not-allowed": "此電郵地址是一次性信箱，請改用一般的電郵地址。如果您認為這是錯誤，請聯絡客戶支援。",
+  "v2.error.email-free-domain-not-allowed": "請使用您的公司或工作用電郵地址，不支援使用免費電郵服務。",
   "v2.error.email-not-allowed": "你所輸入的電郵地址被禁用。如你認為該電郵地址應為有效，請聯絡客戶服務",
   "v2.error.email-plus-sign-not-allowed": "無效的電子郵件地址，不允許使用加號 (+)。",
   "v2.error.email-required": "請輸入電郵地址",

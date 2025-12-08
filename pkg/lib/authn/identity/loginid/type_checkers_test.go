@@ -88,10 +88,10 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("email domain blocklist", func() {
 			cases := []Case{
-				{"Faseng@Example.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@example.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@testing.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@TESTING.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"Faseng@Example.com", "invalid login ID:\n/login_id: blocked\n  map[blocklist:custom reason:EmailDomainBlocklist]"},
+				{"faseng@example.com", "invalid login ID:\n/login_id: blocked\n  map[blocklist:custom reason:EmailDomainBlocklist]"},
+				{"faseng@testing.com", "invalid login ID:\n/login_id: blocked\n  map[blocklist:custom reason:EmailDomainBlocklist]"},
+				{"faseng@TESTING.COM", "invalid login ID:\n/login_id: blocked\n  map[blocklist:custom reason:EmailDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
@@ -113,8 +113,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block free email provider domains", func() {
 			cases := []Case{
-				{"faseng@free-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@FREE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@free-mail.com", "invalid login ID:\n/login_id: blocked\n  map[blocklist:free reason:EmailDomainBlocklist]"},
+				{"faseng@FREE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[blocklist:free reason:EmailDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
@@ -135,8 +135,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block disposable email domains", func() {
 			cases := []Case{
-				{"faseng@disposable-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@DISPOSABLE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@disposable-mail.com", "invalid login ID:\n/login_id: blocked\n  map[blocklist:disposable reason:EmailDomainBlocklist]"},
+				{"faseng@DISPOSABLE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[blocklist:disposable reason:EmailDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 

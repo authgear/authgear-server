@@ -28,6 +28,7 @@ description
 details
 devices
 distance
+domain
 done
 download
 dropdown
