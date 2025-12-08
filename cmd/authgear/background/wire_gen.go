@@ -189,6 +189,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	remoteIP := ProvideRemoteIP()
 	userAgentString := ProvideUserAgentString()
+	request := NewDummyHTTPRequest()
+	httpProto := ProvideHTTPProto()
+	httpHost := ProvideHTTPHost()
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
@@ -265,7 +269,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Redis: appredisHandle,
 		AppID: configAppID,
 	}
-	request := NewDummyHTTPRequest()
 	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
@@ -277,8 +280,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := ProvideHTTPProto()
-	httpHost := ProvideHTTPHost()
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := p.EmbeddedResources
@@ -581,7 +582,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(configAppID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(configAppID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,

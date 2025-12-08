@@ -515,6 +515,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 	}
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
@@ -619,7 +620,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,

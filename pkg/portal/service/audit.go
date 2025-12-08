@@ -29,6 +29,7 @@ type AuditServiceAppService interface {
 type AuditService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
+	HTTPRequestURL  httputil.HTTPRequestURL
 	Request         *http.Request
 
 	Apps     AuditServiceAppService
@@ -119,11 +120,13 @@ func (s *AuditService) makeContext(ctx context.Context, appID string, payload ev
 	clientID := uiParam.ClientID
 	// This audit context must be constructed here.
 	// We cannot use GetAdminAuthzAudit because that is for Admin API to audit context.
-	auditCtx := PortalAdminAPIAuthContext{
+	portalAuditCtx := PortalAdminAPIAuthContext{
 		Usage:       UsageInternal,
 		ActorUserID: userIDStr,
 		HTTPReferer: s.Request.Header.Get("Referer"),
 	}
+
+	auditCtx := portalAuditCtx.ToAuditContext(s.HTTPRequestURL)
 
 	var geoIPCountryCode *string
 	geoipInfo, ok := geoip.IPString(string(s.RemoteIP))

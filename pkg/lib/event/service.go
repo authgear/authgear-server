@@ -41,6 +41,7 @@ type Service struct {
 	AppID           config.AppID
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
+	HTTPRequestURL  httputil.HTTPRequestURL
 	Database        Database
 	Clock           clock.Clock
 	Localization    *config.LocalizationConfig
@@ -228,6 +229,7 @@ func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.
 
 	uiParam := uiparam.GetUIParam(ctx)
 	auditCtx := adminauthz.GetAdminAuthzAudit(ctx)
+	auditCtx = event.NewAuditContext(string(s.HTTPRequestURL), auditCtx)
 	clientID := uiParam.ClientID
 
 	var oauthContext *event.OAuthContext

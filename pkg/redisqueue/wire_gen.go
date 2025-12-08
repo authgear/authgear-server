@@ -84,6 +84,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	appID := appConfig.ID
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
 	userAgentString := deps.ProvideRedisQueueUserAgentString()
+	request := deps.ProvideRedisQueueHTTPRequest()
+	httpProto := deps.ProvideRedisQueueHTTPProto()
+	httpHost := deps.ProvideRedisQueueHTTPHost()
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
 	clock := _wireSystemClockValue
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
@@ -168,7 +172,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Redis: appredisHandle,
 		AppID: appID,
 	}
-	request := deps.ProvideRedisQueueHTTPRequest()
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -182,8 +185,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := deps.ProvideRedisQueueHTTPProto()
-	httpHost := deps.ProvideRedisQueueHTTPHost()
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -486,7 +487,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
