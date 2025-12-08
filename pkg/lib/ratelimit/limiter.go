@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -108,6 +109,19 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 		slog.Bool("ratelimit_logging", true),
 		slog.Time("timeToAct", timeToAct),
 	)
+
+	if spec.RateLimit != "" {
+		// Create audit log only if the rate limit is part of the public api
+		ev := nonblocking.RateLimitBlockedEventPayload{
+			RateLimit: string(spec.RateLimit),
+			Bucket:    string(spec.Name),
+		}
+		logErr := l.EventService.DispatchEventImmediately(ctx, &ev)
+		if logErr != nil {
+			// Log the error and continue to ensure the api returns a RateLimited error
+			logger.WithError(logErr).Error(ctx, "failed to dispatch rate_limit.blocked")
+		}
+	}
 
 	return nil, &FailedReservation{
 		key:       key,
