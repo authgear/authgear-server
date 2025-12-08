@@ -6,19 +6,25 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var LimiterLogger = slogutil.NewLogger("rate-limit")
 
+type LimiterEventService interface {
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error)
+}
+
 // Limiter implements rate limiting using a simple token bucket algorithm.
 // Consumers take token from a bucket every operation, and tokens are refilled
 // periodically.
 type Limiter struct {
-	Storage Storage
-	AppID   config.AppID
-	Config  *config.RateLimitsFeatureConfig
+	Storage      Storage
+	AppID        config.AppID
+	Config       *config.RateLimitsFeatureConfig
+	EventService LimiterEventService
 }
 
 // GetTimeToAct allows you to check what is the earliest time you can retry.

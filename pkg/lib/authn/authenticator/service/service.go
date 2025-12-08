@@ -75,12 +75,9 @@ type OTPCodeService interface {
 }
 
 type Service struct {
+	ReadOnlyService
 	Store          *Store
 	Config         *config.AppConfig
-	Password       PasswordAuthenticatorProvider
-	Passkey        PasskeyAuthenticatorProvider
-	TOTP           TOTPAuthenticatorProvider
-	OOBOTP         OOBOTPAuthenticatorProvider
 	OTPCodeService OTPCodeService
 	RateLimits     RateLimits
 	Lockout        Lockout

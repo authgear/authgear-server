@@ -20,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -32,9 +31,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
-	"github.com/authgear/authgear-server/pkg/lib/lockout"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -295,105 +291,12 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
-	testModeConfig := appConfig.TestMode
-	testModeFeatureConfig := featureConfig.TestMode
-	remoteIP := ProvideRemoteIP()
-	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clock,
-	}
-	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clock,
-	}
-	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clock,
-	}
-	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Storage: storageRedis,
-		AppID:   configAppID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	whatsappConfig := messagingConfig.Whatsapp
-	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clock,
-	}
-	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
-	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	appHostSuffixes := environmentConfig.AppHostSuffixes
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	globalredisHandle := NewNilGlobalRedis()
-	messageStore := &whatsapp.MessageStore{
-		Redis:       globalredisHandle,
-		Credentials: whatsappCloudAPICredentials,
-	}
-	whatsappService := &whatsapp.Service{
-		Clock:                 clock,
-		WhatsappConfig:        whatsappConfig,
-		LocalizationConfig:    localizationConfig,
-		GlobalWhatsappAPIType: globalWhatsappAPIType,
-		OnPremisesClient:      onPremisesClient,
-		CloudAPIClient:        cloudAPIClient,
-		MessageStore:          messageStore,
-		Credentials:           whatsappCloudAPICredentials,
-	}
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	otpService := &otp.Service{
-		Clock:                 clock,
-		AppID:                 configAppID,
-		TestModeConfig:        testModeConfig,
-		TestModeFeatureConfig: testModeFeatureConfig,
-		RemoteIP:              remoteIP,
-		CodeStore:             codeStoreRedis,
-		LookupStore:           lookupStoreRedis,
-		AttemptTracker:        attemptTrackerRedis,
-		RateLimiter:           limiter,
-		WhatsappService:       whatsappService,
-		FeatureConfig:         featureConfig,
-		EnvConfig:             rateLimitsEnvironmentConfig,
-	}
-	rateLimits := service2.RateLimits{
-		IP:            remoteIP,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-	}
-	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutStorageRedis := &lockout.StorageRedis{
-		AppID: configAppID,
-		Redis: appredisHandle,
-	}
-	lockoutService := &lockout.Service{
-		Storage: lockoutStorageRedis,
-	}
-	serviceLockout := service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -438,7 +341,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
-		Authenticators:     service3,
+		Authenticators:     readOnlyService,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
