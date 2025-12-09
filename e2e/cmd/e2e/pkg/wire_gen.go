@@ -553,6 +553,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
+		Database:     handle,
 		Storage:      storageRedis,
 		AppID:        appID,
 		Config:       rateLimitsFeatureConfig,

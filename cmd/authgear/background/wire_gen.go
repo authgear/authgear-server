@@ -624,6 +624,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
+		Database:     handle,
 		Storage:      storageRedis,
 		AppID:        configAppID,
 		Config:       rateLimitsFeatureConfig,
