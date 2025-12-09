@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -22,6 +23,7 @@ type LimiterEventService interface {
 // Consumers take token from a bucket every operation, and tokens are refilled
 // periodically.
 type Limiter struct {
+	Database     *appdb.Handle
 	Storage      Storage
 	AppID        config.AppID
 	Config       *config.RateLimitsFeatureConfig
@@ -116,7 +118,15 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 			RateLimit: string(spec.RateLimit),
 			Bucket:    string(spec.Name),
 		}
-		logErr := l.EventService.DispatchEventImmediately(ctx, &ev)
+		var logErr error
+		// Limiter might be used outside transaction, so we need to check if there is an open transaction first.
+		if l.Database.IsInTx(ctx) {
+			logErr = l.EventService.DispatchEventImmediately(ctx, &ev)
+		} else {
+			logErr = l.Database.WithTx(ctx, func(ctx context.Context) error {
+				return l.EventService.DispatchEventImmediately(ctx, &ev)
+			})
+		}
 		if logErr != nil {
 			// Log the error and continue to ensure the api returns a RateLimited error
 			logger.WithError(logErr).Error(ctx, "failed to dispatch rate_limit.blocked")

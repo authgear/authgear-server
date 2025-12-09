@@ -515,6 +515,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
+		Database:     handle,
 		Storage:      storageRedis,
 		AppID:        appID,
 		Config:       rateLimitsFeatureConfig,

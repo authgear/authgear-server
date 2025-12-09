@@ -648,6 +648,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
+		Database:     appdbHandle,
 		Storage:      storageRedis,
 		AppID:        appID,
 		Config:       rateLimitsFeatureConfig,

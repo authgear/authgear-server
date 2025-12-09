@@ -621,6 +621,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	limiter := &ratelimit.Limiter{
+		Database:     handle,
 		Storage:      storageRedis,
 		AppID:        appID,
 		Config:       rateLimitsFeatureConfig,
