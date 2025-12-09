@@ -407,6 +407,26 @@ export function makeInvariantViolatedErrorParseRule(
   };
 }
 
+export function makeInvalidAccountStatusTransitionErrorParseRule(
+  kind: string,
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ErrorParseRuleResult => {
+    if (apiError.reason === "InvalidAccountStatusTransition") {
+      if (apiError.info.cause.kind === kind) {
+        return {
+          parsedAPIErrors: [{ messageID: errorMessageID }],
+          fullyHandled: true,
+        };
+      }
+    }
+    return {
+      parsedAPIErrors: [],
+      fullyHandled: false,
+    };
+  };
+}
+
 function matchRule(
   rule: ErrorParseRule,
   error: APIError

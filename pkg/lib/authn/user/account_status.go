@@ -242,36 +242,54 @@ func (s AccountStatusWithRefTime) deriveAccountStatusStaleFrom() *time.Time {
 func (s AccountStatusWithRefTime) checkAllTimestampsAreValid() error {
 	if s.accountStatus.accountValidFrom != nil && s.accountStatus.accountValidUntil != nil {
 		if !s.accountStatus.accountValidFrom.Before(*s.accountStatus.accountValidUntil) {
-			return InvalidAccountStatusTransition.New("the start timestamp of account valid period must be less than the end timestamp of the account valid period")
+			return InvalidAccountStatusTransition.NewWithCause(
+				"the start timestamp of account valid period must be less than the end timestamp of the account valid period",
+				apierrors.StringCause("AccountValidFromShouldBeBeforeAccountValidUntil"),
+			)
 		}
 	}
 
 	if s.accountStatus.temporarilyDisabledFrom != nil {
 		if s.accountStatus.temporarilyDisabledUntil == nil {
-			return InvalidAccountStatusTransition.New("temporarily disabled period is missing the end timestamp")
+			return InvalidAccountStatusTransition.NewWithCause(
+				"temporarily disabled period is missing the end timestamp",
+				apierrors.StringCause("TemporarilyDisabledPeriodMissingUntilTimestamp"),
+			)
 		}
 	}
 
 	if s.accountStatus.temporarilyDisabledUntil != nil {
 		if s.accountStatus.temporarilyDisabledFrom == nil {
-			return InvalidAccountStatusTransition.New("temporarily disabled period is missing the start timestamp")
+			return InvalidAccountStatusTransition.NewWithCause(
+				"temporarily disabled period is missing the start timestamp",
+				apierrors.StringCause("TemporarilyDisabledPeriodMissingFromTimestamp"),
+			)
 		}
 	}
 
 	if s.accountStatus.temporarilyDisabledFrom != nil && s.accountStatus.temporarilyDisabledUntil != nil {
 		if !s.accountStatus.temporarilyDisabledFrom.Before(*s.accountStatus.temporarilyDisabledUntil) {
-			return InvalidAccountStatusTransition.New("the start timestamp of temporarily disabled period must be less than the end timestamp of temporarily disabled period")
+			return InvalidAccountStatusTransition.NewWithCause(
+				"the start timestamp of temporarily disabled period must be less than the end timestamp of temporarily disabled period",
+				apierrors.StringCause("TemporarilyDisabledFromShouldBeBeforeTemporarilyDisabledUntil"),
+			)
 		}
 
 		if s.accountStatus.accountValidFrom != nil {
 			if !s.accountStatus.accountValidFrom.Before(*s.accountStatus.temporarilyDisabledFrom) {
-				return InvalidAccountStatusTransition.New("the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
+				return InvalidAccountStatusTransition.NewWithCause(
+					"the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+					apierrors.StringCause("AccountValidFromShouldBeBeforeTemporarilyDisabledFrom"),
+				)
 			}
 		}
 
 		if s.accountStatus.accountValidUntil != nil {
 			if !s.accountStatus.temporarilyDisabledUntil.Before(*s.accountStatus.accountValidUntil) {
-				return InvalidAccountStatusTransition.New("the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period")
+				return InvalidAccountStatusTransition.NewWithCause(
+					"the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period",
+					apierrors.StringCause("TemporarilyDisabledUntilShouldBeBeforeAccountValidUntil"),
+				)
 			}
 		}
 	}

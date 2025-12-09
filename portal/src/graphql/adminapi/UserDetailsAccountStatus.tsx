@@ -35,6 +35,10 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import styles from "./UserDetailsAccountStatus.module.css";
 import DateTimePicker from "../../DateTimePicker";
+import {
+  ErrorParseRule,
+  makeInvalidAccountStatusTransitionErrorParseRule,
+} from "../../error/parse";
 
 const disableReasonTextStyle: IStyle = {
   lineHeight: "20px",
@@ -1590,6 +1594,19 @@ export function AccountStatusDialog(
     themes.main,
   ]);
 
+  const accountStatusErrorRules: ErrorParseRule[] = useMemo(() => {
+    return [
+      makeInvalidAccountStatusTransitionErrorParseRule(
+        "AccountValidFromShouldBeBeforeTemporarilyDisabledFrom",
+        "UserDetailsAccountStatus.error.temporary-disable-until-later-than-valid-period"
+      ),
+      makeInvalidAccountStatusTransitionErrorParseRule(
+        "TemporarilyDisabledUntilShouldBeBeforeAccountValidUntil",
+        "UserDetailsAccountStatus.error.temporary-disable-until-later-than-valid-period"
+      ),
+    ];
+  }, []);
+
   return (
     <>
       <Dialog
@@ -1611,7 +1628,11 @@ export function AccountStatusDialog(
           />
         </DialogFooter>
       </Dialog>
-      <ErrorDialog error={error} />
+      <ErrorDialog
+        error={error}
+        rules={accountStatusErrorRules}
+        titleMessageID="UserDetailsAccountStatus.error.title"
+      />
     </>
   );
 }

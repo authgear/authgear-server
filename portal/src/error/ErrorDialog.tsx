@@ -7,6 +7,7 @@ import PrimaryButton from "../PrimaryButton";
 import ErrorRenderer from "../ErrorRenderer";
 
 interface ErrorDialogProps {
+  titleMessageID?: string;
   error: unknown;
   rules?: ErrorParseRule[];
   fallbackErrorMessageID?: string;
@@ -15,7 +16,7 @@ interface ErrorDialogProps {
 const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
-  const { error, rules, fallbackErrorMessageID } = props;
+  const { titleMessageID, error, rules, fallbackErrorMessageID } = props;
 
   const { topErrors } = useMemo(() => {
     const apiErrors = parseRawError(error);
@@ -33,10 +34,10 @@ const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
   // @ts-expect-error
   const errorDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
-      title: <FormattedMessage id="error" />,
+      title: <FormattedMessage id={titleMessageID ?? "error"} />,
       subText: <ErrorRenderer errors={topErrors} />,
     };
-  }, [topErrors]);
+  }, [titleMessageID, topErrors]);
 
   const onDismiss = useCallback(() => {
     setVisible(false);
