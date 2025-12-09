@@ -253,6 +253,7 @@ export enum AuditLogActivityType {
   ProjectDomainCreated = 'PROJECT_DOMAIN_CREATED',
   ProjectDomainDeleted = 'PROJECT_DOMAIN_DELETED',
   ProjectDomainVerified = 'PROJECT_DOMAIN_VERIFIED',
+  RateLimitBlocked = 'RATE_LIMIT_BLOCKED',
   SmsError = 'SMS_ERROR',
   SmsSent = 'SMS_SENT',
   SmsSuppressed = 'SMS_SUPPRESSED',
