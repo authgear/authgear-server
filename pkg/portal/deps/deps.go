@@ -25,6 +25,10 @@ func ProvideHTTPProto(r *http.Request, trustProxy config.TrustProxy) httputil.HT
 	return httputil.HTTPProto(httputil.GetProto(r, bool(trustProxy)))
 }
 
+func ProvideRequestURL(r *http.Request, proto httputil.HTTPProto, host httputil.HTTPHost) httputil.HTTPRequestURL {
+	return httputil.GetRequestURL(r, proto, host)
+}
+
 func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
 	return httputil.UserAgentString(r.UserAgent())
 }
@@ -92,6 +96,7 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	ProvideRequestURL,
 	ProvideConfigSource,
 	ProvideAppBaseResources,
 	ProvideAuditDatabaseCredentials,
