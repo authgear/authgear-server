@@ -41,6 +41,7 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -373,6 +374,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
               </WidgetDescription>
               <div>
                 <DefaultButton
+                  {...DEFAULT_EXTERNAL_LINK_PROPS}
                   href={graphqlEndpoint}
                   text={
                     <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.open" />
