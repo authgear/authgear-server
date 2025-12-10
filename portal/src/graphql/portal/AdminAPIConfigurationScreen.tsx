@@ -30,9 +30,7 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.css";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
 import DefaultButton from "../../DefaultButton";
@@ -42,6 +40,7 @@ import { useProvideError } from "../../hook/error";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -112,10 +111,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
       publicOrigin != null ? publicOrigin + "/_api/admin/graphql" : "";
-
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: adminAPIEndpoint,
-    });
+    const rawAppID = effectiveAppConfig?.id;
 
     const graphqlEndpoint = useMemo(() => {
       const base = makeGraphQLEndpoint(appID);
@@ -304,39 +300,25 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
             </ScreenDescription>
             <Widget className={styles.widget}>
               <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
+                <FormattedMessage id="AdminAPIConfigurationScreen.details.title" />
               </WidgetTitle>
+              <TextFieldWithCopyButton
+                label={renderToString(
+                  "AdminAPIConfigurationScreen.api-endpoint.title"
+                )}
+                value={adminAPIEndpoint}
+                readOnly={true}
+              />
+              <TextFieldWithCopyButton
+                label={renderToString(
+                  "AdminAPIConfigurationScreen.project-id.title"
+                )}
+                value={rawAppID}
+                readOnly={true}
+              />
               <WidgetDescription>
-                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
+                <FormattedMessage id="AdminAPIConfigurationScreen.details.description" />
               </WidgetDescription>
-              <div className={styles.copyButtonGroup}>
-                <TextField
-                  type="text"
-                  readOnly={true}
-                  value={adminAPIEndpoint}
-                  className={styles.copyTextField}
-                />
-                <PrimaryButton {...copyButtonProps} iconProps={undefined} />
-                <Feedback />
-              </div>
-            </Widget>
-            <HorizontalDivider className={styles.separator} />
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage
-                  id="AdminAPIConfigurationScreen.graphiql.description"
-                  values={{ graphqlEndpoint }}
-                />
-              </WidgetDescription>
-              <MessageBar
-                messageBarType={MessageBarType.warning}
-                styles={messageBarStyles}
-              >
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
-              </MessageBar>
             </Widget>
             <HorizontalDivider className={styles.separator} />
             <Widget className={styles.widget}>
@@ -371,6 +353,32 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   }
                 />
               )}
+            </Widget>
+            <HorizontalDivider className={styles.separator} />
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+              </WidgetTitle>
+              <MessageBar
+                messageBarType={MessageBarType.warning}
+                styles={messageBarStyles}
+              >
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+              </MessageBar>
+              <WidgetDescription>
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.graphiql.description"
+                  values={{ graphqlEndpoint }}
+                />
+              </WidgetDescription>
+              <div>
+                <DefaultButton
+                  href={graphqlEndpoint}
+                  text={
+                    <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.open" />
+                  }
+                />
+              </div>
             </Widget>
           </ScreenContent>
         </ScreenLayoutScrollView>

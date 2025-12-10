@@ -14,13 +14,3 @@
   font-weight: 600;
   height: auto;
 }
-
-.copyButtonGroup {
-  display: flex;
-  flex-direction: row;
-  column-gap: 10px;
-}
-
-.copyTextField {
-  flex: 1;
-}
