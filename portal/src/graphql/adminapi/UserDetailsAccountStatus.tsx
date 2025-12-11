@@ -35,6 +35,10 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import styles from "./UserDetailsAccountStatus.module.css";
 import DateTimePicker from "../../DateTimePicker";
+import {
+  ErrorParseRule,
+  makeInvalidAccountStatusTransitionErrorParseRule,
+} from "../../error/parse";
 
 const disableReasonTextStyle: IStyle = {
   lineHeight: "20px",
@@ -325,6 +329,12 @@ export function AccountValidPeriodForm(
   const { themes } = useSystemConfig();
   const { locale } = useContext(Context);
   const formattedZone = formatSystemZone(new Date(), locale);
+  const showEndAtWarning = useMemo(
+    () =>
+      accountValidUntil != null &&
+      accountValidUntil.getTime() < new Date().getTime(),
+    [accountValidUntil]
+  );
   return (
     <div className={cn(className, "flex flex-col gap-2")}>
       <MessageBar
@@ -388,6 +398,11 @@ export function AccountValidPeriodForm(
           </Text>
         }
       />
+      {showEndAtWarning ? (
+        <MessageBar messageBarType={MessageBarType.warning}>
+          <FormattedMessage id="AccountValidPeriodForm.end-at-warning" />
+        </MessageBar>
+      ) : null}
     </div>
   );
 }
@@ -1579,6 +1594,19 @@ export function AccountStatusDialog(
     themes.main,
   ]);
 
+  const accountStatusErrorRules: ErrorParseRule[] = useMemo(() => {
+    return [
+      makeInvalidAccountStatusTransitionErrorParseRule(
+        "AccountValidFromShouldBeBeforeTemporarilyDisabledFrom",
+        "UserDetailsAccountStatus.error.temporary-disable-until-later-than-valid-period"
+      ),
+      makeInvalidAccountStatusTransitionErrorParseRule(
+        "TemporarilyDisabledUntilShouldBeBeforeAccountValidUntil",
+        "UserDetailsAccountStatus.error.temporary-disable-until-later-than-valid-period"
+      ),
+    ];
+  }, []);
+
   return (
     <>
       <Dialog
@@ -1600,7 +1628,11 @@ export function AccountStatusDialog(
           />
         </DialogFooter>
       </Dialog>
-      <ErrorDialog error={error} />
+      <ErrorDialog
+        error={error}
+        rules={accountStatusErrorRules}
+        titleMessageID="UserDetailsAccountStatus.error.title"
+      />
     </>
   );
 }
@@ -1718,7 +1750,7 @@ export function AccountStatusMessageBar(
       );
       break;
     case "disabled":
-      if (accountState.temporarilyDisabledUntil == null) {
+      if (accountState.temporarilyDisabledUntil != null) {
         message = (
           <FormattedMessage
             id="AccountStatusMessageBar.disabled-tempoararily"

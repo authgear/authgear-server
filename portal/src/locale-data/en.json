@@ -453,6 +453,8 @@
   "UserDetailsAccountStatus.remove-user.action.remove": "Remove user",
   "UserDetailsAccountStatus.remove-user.action.remove-now": "Remove now",
   "UserDetailsAccountStatus.remove-user.action.cancel": "Cancel removal",
+  "UserDetailsAccountStatus.error.title": "Account status conflict",
+  "UserDetailsAccountStatus.error.temporary-disable-until-later-than-valid-period": "Temporary disable until date cannot be later than valid period.",
 
   "AccountStatusDialog.disable-user.title": "Disable User",
   "AccountStatusDialog.disable-user.description": "Are you sure you want to disable user {strong, react, children{{username}}}? {br, react} While disabled, the user cannot log in and all active sessions will be terminated.",
@@ -505,6 +507,7 @@
   "AccountValidPeriodForm.start-at": "Start at",
   "AccountValidPeriodForm.end-at": "End at",
   "AccountValidPeriodForm.hint": "Leave blank for no limit",
+  "AccountValidPeriodForm.end-at-warning": "The end time is earlier than the current time, user will not be able to login immediately.",
 
   "DateTimePicker.clear": "Clear",
   "DateTimePicker.fluent.isResetStatusMessage": "'{'0'}' is invalid, reset to '{'1'}'",

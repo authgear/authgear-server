@@ -1,5 +1,6 @@
 import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
+import { APIInvalidAccountStatusTransitionError } from "./accountStatus";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIForbiddenError } from "./forbidden";
 import {
@@ -160,6 +161,7 @@ export type APIError = { message?: string } & (
   | APISMSGatewayError
   | APISMTPTestFailedError
   | APIResourceDuplicateURIError
+  | APIInvalidAccountStatusTransitionError
 );
 
 export function isAPIError(value: unknown): value is APIError {
