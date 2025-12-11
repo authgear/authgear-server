@@ -402,6 +402,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const showDPoPSettings = useMemo(() => {
+      if (!showRefreshTokenSettings) {
+        return false;
+      }
+      return clientConfig.x_application_type === "native";
+    }, [clientConfig.x_application_type, showRefreshTokenSettings]);
+
     const showAccessTokenSettings = useMemo(() => {
       if (showRefreshTokenSettings) {
         return true;
@@ -925,21 +932,23 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             </div>
           </Widget>
         ) : null}
-        <Widget className={className}>
-          <WidgetTitle>
-            <FormattedMessage id="EditOAuthClientForm.sender-constraining.title" />
-          </WidgetTitle>
-          <Toggle
-            checked={!(clientConfig.x_dpop_disabled ?? false)}
-            onChange={onChangeSenderConstraining}
-            label={renderToString(
-              "EditOAuthClientForm.sender-constraining.require.label"
-            )}
-            description={
-              <FormattedMessage id="EditOAuthClientForm.sender-constraining.description" />
-            }
-          />
-        </Widget>
+        {showDPoPSettings ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.sender-constraining.title" />
+            </WidgetTitle>
+            <Toggle
+              checked={!(clientConfig.x_dpop_disabled ?? false)}
+              onChange={onChangeSenderConstraining}
+              label={renderToString(
+                "EditOAuthClientForm.sender-constraining.require.label"
+              )}
+              description={
+                <FormattedMessage id="EditOAuthClientForm.sender-constraining.description" />
+              }
+            />
+          </Widget>
+        ) : null}
         {showCookieSettings ? (
           <Widget className={className}>
             <WidgetTitle>
