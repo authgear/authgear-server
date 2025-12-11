@@ -1135,8 +1135,8 @@ Payload:
 ```json5
 {
   "payload": {
-    "rate_limit": "authentication.general",
-    "bucket": "VerifyPasswordPerIP"
+    "rate_limit_group": "authentication.password",
+    "rate_limit_name": "authentication.password.per_ip",
   }
 }
 ```
