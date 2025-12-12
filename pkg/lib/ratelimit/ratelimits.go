@@ -13,38 +13,38 @@ type RateLimitGroup string
 
 const (
 	// Authentication rate limits
-	RateLimitAuthenticationGeneral             RateLimitGroup = "authentication.general"
-	RateLimitAuthenticationPassword            RateLimitGroup = "authentication.password"
-	RateLimitAuthenticationOOBOTPEmailTrigger  RateLimitGroup = "authentication.oob_otp.email.trigger"
-	RateLimitAuthenticationOOBOTPEmailValidate RateLimitGroup = "authentication.oob_otp.email.validate"
-	RateLimitAuthenticationOOBOTPSMSTrigger    RateLimitGroup = "authentication.oob_otp.sms.trigger"
-	RateLimitAuthenticationOOBOTPSMSValidate   RateLimitGroup = "authentication.oob_otp.sms.validate"
-	RateLimitAuthenticationTOTP                RateLimitGroup = "authentication.totp"
-	RateLimitAuthenticationRecoveryCode        RateLimitGroup = "authentication.recovery_code"
-	RateLimitAuthenticationDeviceToken         RateLimitGroup = "authentication.device_token"
-	RateLimitAuthenticationPasskey             RateLimitGroup = "authentication.passkey"
-	RateLimitAuthenticationSIWE                RateLimitGroup = "authentication.siwe"
-	RateLimitAuthenticationSignup              RateLimitGroup = "authentication.signup"
-	RateLimitAuthenticationSignupAnonymous     RateLimitGroup = "authentication.signup_anonymous"
-	RateLimitAuthenticationAccountEnumeration  RateLimitGroup = "authentication.account_enumeration"
+	RateLimitGroupAuthenticationGeneral             RateLimitGroup = "authentication.general"
+	RateLimitGroupAuthenticationPassword            RateLimitGroup = "authentication.password"
+	RateLimitGroupAuthenticationOOBOTPEmailTrigger  RateLimitGroup = "authentication.oob_otp.email.trigger"
+	RateLimitGroupAuthenticationOOBOTPEmailValidate RateLimitGroup = "authentication.oob_otp.email.validate"
+	RateLimitGroupAuthenticationOOBOTPSMSTrigger    RateLimitGroup = "authentication.oob_otp.sms.trigger"
+	RateLimitGroupAuthenticationOOBOTPSMSValidate   RateLimitGroup = "authentication.oob_otp.sms.validate"
+	RateLimitGroupAuthenticationTOTP                RateLimitGroup = "authentication.totp"
+	RateLimitGroupAuthenticationRecoveryCode        RateLimitGroup = "authentication.recovery_code"
+	RateLimitGroupAuthenticationDeviceToken         RateLimitGroup = "authentication.device_token"
+	RateLimitGroupAuthenticationPasskey             RateLimitGroup = "authentication.passkey"
+	RateLimitGroupAuthenticationSIWE                RateLimitGroup = "authentication.siwe"
+	RateLimitGroupAuthenticationSignup              RateLimitGroup = "authentication.signup"
+	RateLimitGroupAuthenticationSignupAnonymous     RateLimitGroup = "authentication.signup_anonymous"
+	RateLimitGroupAuthenticationAccountEnumeration  RateLimitGroup = "authentication.account_enumeration"
 
 	// Features rate limits
-	RateLimitVerificationEmailTrigger    RateLimitGroup = "verification.email.trigger"
-	RateLimitVerificationEmailValidate   RateLimitGroup = "verification.email.validate"
-	RateLimitVerificationSMSTrigger      RateLimitGroup = "verification.sms.trigger"
-	RateLimitVerificationSMSValidate     RateLimitGroup = "verification.sms.validate"
-	RateLimitForgotPasswordEmailTrigger  RateLimitGroup = "forgot_password.email.trigger"
-	RateLimitForgotPasswordEmailValidate RateLimitGroup = "forgot_password.email.validate"
-	RateLimitForgotPasswordSMSTrigger    RateLimitGroup = "forgot_password.sms.trigger"
-	RateLimitForgotPasswordSMSValidate   RateLimitGroup = "forgot_password.sms.validate"
+	RateLimitGroupVerificationEmailTrigger    RateLimitGroup = "verification.email.trigger"
+	RateLimitGroupVerificationEmailValidate   RateLimitGroup = "verification.email.validate"
+	RateLimitGroupVerificationSMSTrigger      RateLimitGroup = "verification.sms.trigger"
+	RateLimitGroupVerificationSMSValidate     RateLimitGroup = "verification.sms.validate"
+	RateLimitGroupForgotPasswordEmailTrigger  RateLimitGroup = "forgot_password.email.trigger"
+	RateLimitGroupForgotPasswordEmailValidate RateLimitGroup = "forgot_password.email.validate"
+	RateLimitGroupForgotPasswordSMSTrigger    RateLimitGroup = "forgot_password.sms.trigger"
+	RateLimitGroupForgotPasswordSMSValidate   RateLimitGroup = "forgot_password.sms.validate"
 
 	// Messaging rate limits
-	RateLimitMessagingSMS   RateLimitGroup = "messaging.sms"
-	RateLimitMessagingEmail RateLimitGroup = "messaging.email"
+	RateLimitGroupMessagingSMS   RateLimitGroup = "messaging.sms"
+	RateLimitGroupMessagingEmail RateLimitGroup = "messaging.email"
 
 	// Token endpoint rate limits
-	RateLimitOAuthTokenGeneral           RateLimitGroup = "oauth.token.general"            // #nosec G101
-	RateLimitOAuthTokenClientCredentials RateLimitGroup = "oauth.token.client_credentials" // #nosec G101
+	RateLimitGroupOAuthTokenGeneral           RateLimitGroup = "oauth.token.general"            // #nosec G101
+	RateLimitGroupOAuthTokenClientCredentials RateLimitGroup = "oauth.token.client_credentials" // #nosec G101
 )
 
 const (
@@ -91,8 +91,8 @@ const (
 	RateLimitMessagingEmailPerIP     RateLimitName = "messaging.email.per_ip"
 	RateLimitMessagingEmailPerTarget RateLimitName = "messaging.email.per_target"
 	// Top-level messaging rate limit names (per project)
-	RateLimitMessagingSMSName   RateLimitName = "messaging.sms.per_project"
-	RateLimitMessagingEmailName RateLimitName = "messaging.email.per_project"
+	RateLimitMessagingSMSPerProject   RateLimitName = "messaging.sms.per_project"
+	RateLimitMessagingEmailPerProject RateLimitName = "messaging.email.per_project"
 	// Global rate limit names
 	RateLimitGlobalMessagingSMS            RateLimitName = "global.messaging.sms"
 	RateLimitGlobalMessagingSMSPerIP       RateLimitName = "global.messaging.sms.per_ip"
@@ -186,57 +186,57 @@ const (
 func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
 	switch n {
 	// Authentication
-	case RateLimitAuthenticationGeneral:
+	case RateLimitGroupAuthenticationGeneral:
 		return resolveConfig(cfg.Authentication.RateLimits.General.PerIP, nil, nil)
-	case RateLimitAuthenticationPassword:
+	case RateLimitGroupAuthenticationPassword:
 		return resolveConfig(cfg.Authentication.RateLimits.Password.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationOOBOTPEmailTrigger:
+	case RateLimitGroupAuthenticationOOBOTPEmailTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP, nil, nil)
-	case RateLimitAuthenticationOOBOTPEmailValidate:
+	case RateLimitGroupAuthenticationOOBOTPEmailValidate:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationOOBOTPSMSTrigger:
+	case RateLimitGroupAuthenticationOOBOTPSMSTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP, nil, nil)
-	case RateLimitAuthenticationOOBOTPSMSValidate:
+	case RateLimitGroupAuthenticationOOBOTPSMSValidate:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationTOTP:
+	case RateLimitGroupAuthenticationTOTP:
 		return resolveConfig(cfg.Authentication.RateLimits.TOTP.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationRecoveryCode:
+	case RateLimitGroupAuthenticationRecoveryCode:
 		return resolveConfig(cfg.Authentication.RateLimits.RecoveryCode.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationDeviceToken:
+	case RateLimitGroupAuthenticationDeviceToken:
 		return resolveConfig(cfg.Authentication.RateLimits.DeviceToken.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationPasskey:
+	case RateLimitGroupAuthenticationPasskey:
 		return resolveConfig(cfg.Authentication.RateLimits.Passkey.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationSIWE:
+	case RateLimitGroupAuthenticationSIWE:
 		return resolveConfig(cfg.Authentication.RateLimits.SIWE.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
-	case RateLimitAuthenticationSignup:
+	case RateLimitGroupAuthenticationSignup:
 		return resolveConfig(cfg.Authentication.RateLimits.Signup.PerIP, nil, nil)
-	case RateLimitAuthenticationSignupAnonymous:
+	case RateLimitGroupAuthenticationSignupAnonymous:
 		return resolveConfig(cfg.Authentication.RateLimits.SignupAnonymous.PerIP, nil, nil)
-	case RateLimitAuthenticationAccountEnumeration:
+	case RateLimitGroupAuthenticationAccountEnumeration:
 		return resolveConfig(cfg.Authentication.RateLimits.AccountEnumeration.PerIP, nil, nil)
 
 	// Features
-	case RateLimitVerificationEmailTrigger:
+	case RateLimitGroupVerificationEmailTrigger:
 		return resolveConfig(cfg.Verification.RateLimits.Email.TriggerPerIP, nil, nil)
-	case RateLimitVerificationEmailValidate:
+	case RateLimitGroupVerificationEmailValidate:
 		return resolveConfig(cfg.Verification.RateLimits.Email.ValidatePerIP, nil, nil)
-	case RateLimitVerificationSMSTrigger:
+	case RateLimitGroupVerificationSMSTrigger:
 		return resolveConfig(cfg.Verification.RateLimits.SMS.TriggerPerIP, nil, nil)
-	case RateLimitVerificationSMSValidate:
+	case RateLimitGroupVerificationSMSValidate:
 		return resolveConfig(cfg.Verification.RateLimits.SMS.ValidatePerIP, nil, nil)
-	case RateLimitForgotPasswordEmailTrigger:
+	case RateLimitGroupForgotPasswordEmailTrigger:
 		return resolveConfig(cfg.ForgotPassword.RateLimits.Email.TriggerPerIP, nil, nil)
-	case RateLimitForgotPasswordEmailValidate:
+	case RateLimitGroupForgotPasswordEmailValidate:
 		return resolveConfig(cfg.ForgotPassword.RateLimits.Email.ValidatePerIP, nil, nil)
-	case RateLimitForgotPasswordSMSTrigger:
+	case RateLimitGroupForgotPasswordSMSTrigger:
 		return resolveConfig(cfg.ForgotPassword.RateLimits.SMS.TriggerPerIP, nil, nil)
-	case RateLimitForgotPasswordSMSValidate:
+	case RateLimitGroupForgotPasswordSMSValidate:
 		return resolveConfig(cfg.ForgotPassword.RateLimits.SMS.ValidatePerIP, nil, nil)
 
 	// Messaging
-	case RateLimitMessagingSMS:
+	case RateLimitGroupMessagingSMS:
 		return resolveConfig(cfg.Messaging.RateLimits.SMSPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
-	case RateLimitMessagingEmail:
+	case RateLimitGroupMessagingEmail:
 		return resolveConfig(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.EmailPerIP)
 
 	}
@@ -245,13 +245,13 @@ func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.F
 
 func (n RateLimitGroup) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
-	case RateLimitAuthenticationOOBOTPEmailTrigger:
+	case RateLimitGroupAuthenticationOOBOTPEmailTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser, nil, nil)
-	case RateLimitAuthenticationOOBOTPSMSTrigger:
+	case RateLimitGroupAuthenticationOOBOTPSMSTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser, nil, nil)
-	case RateLimitVerificationEmailTrigger:
+	case RateLimitGroupVerificationEmailTrigger:
 		return resolveConfig(cfg.Verification.RateLimits.Email.TriggerPerUser, nil, nil)
-	case RateLimitVerificationSMSTrigger:
+	case RateLimitGroupVerificationSMSTrigger:
 		return resolveConfig(cfg.Verification.RateLimits.SMS.TriggerPerUser, nil, nil)
 
 	}
@@ -260,9 +260,9 @@ func (n RateLimitGroup) resolvePerUser(cfg *config.AppConfig) *config.RateLimitC
 
 func (n RateLimitGroup) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
 	switch n {
-	case RateLimitMessagingEmail:
+	case RateLimitGroupMessagingEmail:
 		return resolveConfig(cfg.Messaging.RateLimits.EmailPerTarget, nil, featureCfg.Messaging.RateLimits.EmailPerTarget)
-	case RateLimitMessagingSMS:
+	case RateLimitGroupMessagingSMS:
 		return resolveConfig(cfg.Messaging.RateLimits.SMSPerTarget, nil, featureCfg.Messaging.RateLimits.SMSPerTarget)
 	}
 	return nil
@@ -270,19 +270,19 @@ func (n RateLimitGroup) resolvePerTarget(cfg *config.AppConfig, featureCfg *conf
 
 func (n RateLimitGroup) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
-	case RateLimitAuthenticationGeneral:
+	case RateLimitGroupAuthenticationGeneral:
 		return resolveConfig(cfg.Authentication.RateLimits.General.PerUserPerIP, nil, nil)
-	case RateLimitAuthenticationPassword:
+	case RateLimitGroupAuthenticationPassword:
 		return resolveConfig(cfg.Authentication.RateLimits.Password.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
-	case RateLimitAuthenticationOOBOTPEmailValidate:
+	case RateLimitGroupAuthenticationOOBOTPEmailValidate:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
-	case RateLimitAuthenticationOOBOTPSMSValidate:
+	case RateLimitGroupAuthenticationOOBOTPSMSValidate:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
-	case RateLimitAuthenticationTOTP:
+	case RateLimitGroupAuthenticationTOTP:
 		return resolveConfig(cfg.Authentication.RateLimits.TOTP.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
-	case RateLimitAuthenticationRecoveryCode:
+	case RateLimitGroupAuthenticationRecoveryCode:
 		return resolveConfig(cfg.Authentication.RateLimits.RecoveryCode.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
-	case RateLimitAuthenticationDeviceToken:
+	case RateLimitGroupAuthenticationDeviceToken:
 		return resolveConfig(cfg.Authentication.RateLimits.DeviceToken.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	}
 	return nil
@@ -290,7 +290,7 @@ func (n RateLimitGroup) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateL
 
 func (n RateLimitGroup) resolvePerProject(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
-	case RateLimitOAuthTokenClientCredentials:
+	case RateLimitGroupOAuthTokenClientCredentials:
 		return resolveConfig(&config.RateLimitConfig{
 			Enabled: func() *bool { var t = true; return &t }(),
 			Period:  "1m",
@@ -302,7 +302,7 @@ func (n RateLimitGroup) resolvePerProject(cfg *config.AppConfig) *config.RateLim
 
 func (n RateLimitGroup) resolvePerClient(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
-	case RateLimitOAuthTokenClientCredentials:
+	case RateLimitGroupOAuthTokenClientCredentials:
 		return resolveConfig(&config.RateLimitConfig{
 			Enabled: func() *bool { var t = true; return &t }(),
 			Period:  "1m",
@@ -404,14 +404,14 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 	}
 
 	switch r {
-	case RateLimitAuthenticationGeneral:
+	case RateLimitGroupAuthenticationGeneral:
 		// This rate limit is for fallback, so it should not be used directly
 		panic(fmt.Errorf("%s has no buckets", r))
-	case RateLimitAuthenticationPassword:
+	case RateLimitGroupAuthenticationPassword:
 		specs = append(specs, resolvePerIPBucket(VerifyPasswordPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerUserPerIPBucket(VerifyPasswordPerUserPerIP, opts.UserID, opts.IPAddress))
 
-	case RateLimitAuthenticationOOBOTPEmailTrigger:
+	case RateLimitGroupAuthenticationOOBOTPEmailTrigger:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			OOBOTPTriggerEmailPerIP,
 			OOBOTPTriggerSMSPerIP,
@@ -426,7 +426,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID, opts.Purpose))
 
-	case RateLimitAuthenticationOOBOTPEmailValidate:
+	case RateLimitGroupAuthenticationOOBOTPEmailValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			OOBOTPValidateEmailPerIP,
 			OOBOTPValidateSMSPerIP,
@@ -441,7 +441,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.UserID, opts.IPAddress, opts.Purpose))
 
-	case RateLimitAuthenticationOOBOTPSMSTrigger:
+	case RateLimitGroupAuthenticationOOBOTPSMSTrigger:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			OOBOTPTriggerEmailPerIP,
 			OOBOTPTriggerSMSPerIP,
@@ -456,7 +456,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID, opts.Purpose))
 
-	case RateLimitAuthenticationOOBOTPSMSValidate:
+	case RateLimitGroupAuthenticationOOBOTPSMSValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			OOBOTPValidateEmailPerIP,
 			OOBOTPValidateSMSPerIP,
@@ -471,34 +471,34 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.UserID, opts.IPAddress, opts.Purpose))
 
-	case RateLimitAuthenticationTOTP:
+	case RateLimitGroupAuthenticationTOTP:
 		specs = append(specs, resolvePerIPBucket(VerifyTOTPPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerUserPerIPBucket(VerifyTOTPPerUserPerIP, opts.UserID, opts.IPAddress))
 
-	case RateLimitAuthenticationRecoveryCode:
+	case RateLimitGroupAuthenticationRecoveryCode:
 		specs = append(specs, resolvePerIPBucket(VerifyRecoveryCodePerIP, opts.IPAddress))
 		specs = append(specs, resolvePerUserPerIPBucket(VerifyRecoveryCodePerUserPerIP, opts.UserID, opts.IPAddress))
 
-	case RateLimitAuthenticationDeviceToken:
+	case RateLimitGroupAuthenticationDeviceToken:
 		specs = append(specs, resolvePerIPBucket(VerifyDeviceTokenPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerUserPerIPBucket(VerifyDeviceTokenPerUserPerIP, opts.UserID, opts.IPAddress))
 
-	case RateLimitAuthenticationPasskey:
+	case RateLimitGroupAuthenticationPasskey:
 		specs = append(specs, resolvePerIPBucket(VerifyPasskeyPerIP, opts.IPAddress))
 
-	case RateLimitAuthenticationSIWE:
+	case RateLimitGroupAuthenticationSIWE:
 		specs = append(specs, resolvePerIPBucket(VerifySIWEPerIP, opts.IPAddress))
 
-	case RateLimitAuthenticationSignup:
+	case RateLimitGroupAuthenticationSignup:
 		specs = append(specs, resolvePerIPBucket(SignupPerIP, opts.IPAddress))
 
-	case RateLimitAuthenticationSignupAnonymous:
+	case RateLimitGroupAuthenticationSignupAnonymous:
 		specs = append(specs, resolvePerIPBucket(SignupAnonymousPerIP, opts.IPAddress))
 
-	case RateLimitAuthenticationAccountEnumeration:
+	case RateLimitGroupAuthenticationAccountEnumeration:
 		specs = append(specs, resolvePerIPBucket(AccountEnumerationPerIP, opts.IPAddress))
 
-	case RateLimitVerificationEmailTrigger:
+	case RateLimitGroupVerificationEmailTrigger:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			VerificationTriggerEmailPerIP,
 			VerificationTriggerSMSPerIP,
@@ -513,7 +513,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID))
 
-	case RateLimitVerificationEmailValidate:
+	case RateLimitGroupVerificationEmailValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			VerificationValidateEmailPerIP,
 			VerificationValidateSMSPerIP,
@@ -521,7 +521,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketNamePerIP, opts.IPAddress))
 
-	case RateLimitVerificationSMSTrigger:
+	case RateLimitGroupVerificationSMSTrigger:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			VerificationTriggerEmailPerIP,
 			VerificationTriggerSMSPerIP,
@@ -536,7 +536,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID))
 
-	case RateLimitVerificationSMSValidate:
+	case RateLimitGroupVerificationSMSValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
 			VerificationValidateEmailPerIP,
 			VerificationValidateSMSPerIP,
@@ -544,7 +544,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketNamePerIP, opts.IPAddress))
 
-	case RateLimitForgotPasswordEmailTrigger:
+	case RateLimitGroupForgotPasswordEmailTrigger:
 		bucketName := selectByChannel(opts.Channel,
 			ForgotPasswordTriggerEmailPerIP,
 			ForgotPasswordTriggerSMSPerIP,
@@ -552,7 +552,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketName, opts.IPAddress))
 
-	case RateLimitForgotPasswordEmailValidate:
+	case RateLimitGroupForgotPasswordEmailValidate:
 		bucketName := selectByChannel(opts.Channel,
 			ForgotPasswordValidateEmailPerIP,
 			ForgotPasswordValidateSMSPerIP,
@@ -560,7 +560,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketName, opts.IPAddress))
 
-	case RateLimitForgotPasswordSMSTrigger:
+	case RateLimitGroupForgotPasswordSMSTrigger:
 		bucketName := selectByChannel(opts.Channel,
 			ForgotPasswordTriggerEmailPerIP,
 			ForgotPasswordTriggerSMSPerIP,
@@ -568,7 +568,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketName, opts.IPAddress))
 
-	case RateLimitForgotPasswordSMSValidate:
+	case RateLimitGroupForgotPasswordSMSValidate:
 		bucketName := selectByChannel(opts.Channel,
 			ForgotPasswordValidateEmailPerIP,
 			ForgotPasswordValidateSMSPerIP,
@@ -576,7 +576,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		)
 		specs = append(specs, resolvePerIPBucket(bucketName, opts.IPAddress))
 
-	case RateLimitMessagingSMS:
+	case RateLimitGroupMessagingSMS:
 		specs = append(specs, resolvePerProjectBucketWithConfig(cfg.Messaging.RateLimits.SMS, featureCfg.Messaging.RateLimits.SMS, MessagingSMS))
 		specs = append(specs, resolveGlobalBucket(globalCfg.SMS, RateLimitGlobalMessagingSMS, MessagingSMS))
 		specs = append(specs, resolvePerIPBucket(MessagingSMSPerIP, opts.IPAddress))
@@ -584,7 +584,7 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		specs = append(specs, resolvePerTargetBucket(MessagingSMSPerTarget, opts.Target))
 		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerTarget, RateLimitGlobalMessagingSMSPerTarget, MessagingSMSPerTarget, opts.Target))
 
-	case RateLimitMessagingEmail:
+	case RateLimitGroupMessagingEmail:
 		specs = append(specs, resolvePerProjectBucketWithConfig(cfg.Messaging.RateLimits.Email, featureCfg.Messaging.RateLimits.Email, MessagingEmail))
 		specs = append(specs, resolveGlobalBucket(globalCfg.Email, RateLimitGlobalMessagingEmail, MessagingEmail))
 		specs = append(specs, resolvePerIPBucket(MessagingEmailPerIP, opts.IPAddress))
@@ -592,12 +592,12 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		specs = append(specs, resolvePerTargetBucket(MessagingEmailPerTarget, opts.Target))
 		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerTarget, RateLimitGlobalMessagingEmailPerTarget, MessagingEmailPerTarget, opts.Target))
 
-	case RateLimitOAuthTokenClientCredentials:
+	case RateLimitGroupOAuthTokenClientCredentials:
 		specs = append(specs, resolvePerClientBucket(OAuthTokenClientCredentialsPerClient, opts.ClientID))
 		specs = append(specs, resolvePerProjectBucket(OAuthTokenClientCredentialsPerProject))
 
-	case RateLimitOAuthTokenGeneral:
-		panic(fmt.Errorf("ResolveBucketSpecs not supported for %s", RateLimitOAuthTokenGeneral))
+	case RateLimitGroupOAuthTokenGeneral:
+		panic(fmt.Errorf("ResolveBucketSpecs not supported for %s", RateLimitGroupOAuthTokenGeneral))
 	}
 
 	return specs
@@ -630,15 +630,15 @@ func (r RateLimitGroup) ResolveWeight(
 	case "":
 		// Handle unspecified rate limits
 		return defaultWeight
-	case RateLimitAuthenticationPassword,
-		RateLimitAuthenticationOOBOTPEmailValidate,
-		RateLimitAuthenticationOOBOTPSMSValidate,
-		RateLimitAuthenticationTOTP,
-		RateLimitAuthenticationRecoveryCode,
-		RateLimitAuthenticationDeviceToken,
-		RateLimitAuthenticationPasskey,
-		RateLimitAuthenticationSIWE:
-		weight = resolveWeight(r, RateLimitAuthenticationGeneral)
+	case RateLimitGroupAuthenticationPassword,
+		RateLimitGroupAuthenticationOOBOTPEmailValidate,
+		RateLimitGroupAuthenticationOOBOTPSMSValidate,
+		RateLimitGroupAuthenticationTOTP,
+		RateLimitGroupAuthenticationRecoveryCode,
+		RateLimitGroupAuthenticationDeviceToken,
+		RateLimitGroupAuthenticationPasskey,
+		RateLimitGroupAuthenticationSIWE:
+		weight = resolveWeight(r, RateLimitGroupAuthenticationGeneral)
 	default:
 		weight = resolveWeight(r, "")
 	}
@@ -681,53 +681,53 @@ func resolveConfig(c *config.RateLimitConfig, fallback *config.RateLimitConfig, 
 // RateLimitName helpers for different bucket types.
 func (n RateLimitGroup) perIPName() RateLimitName {
 	switch n {
-	case RateLimitAuthenticationPassword:
+	case RateLimitGroupAuthenticationPassword:
 		return RateLimitAuthenticationPasswordPerIP
-	case RateLimitAuthenticationOOBOTPEmailTrigger:
+	case RateLimitGroupAuthenticationOOBOTPEmailTrigger:
 		return RateLimitAuthenticationOOBOTPEmailTriggerPerIP
-	case RateLimitAuthenticationOOBOTPEmailValidate:
+	case RateLimitGroupAuthenticationOOBOTPEmailValidate:
 		return RateLimitAuthenticationOOBOTPEmailValidatePerIP
-	case RateLimitAuthenticationOOBOTPSMSTrigger:
+	case RateLimitGroupAuthenticationOOBOTPSMSTrigger:
 		return RateLimitAuthenticationOOBOTPSMSTriggerPerIP
-	case RateLimitAuthenticationOOBOTPSMSValidate:
+	case RateLimitGroupAuthenticationOOBOTPSMSValidate:
 		return RateLimitAuthenticationOOBOTPSMSValidatePerIP
-	case RateLimitAuthenticationTOTP:
+	case RateLimitGroupAuthenticationTOTP:
 		return RateLimitAuthenticationTOTPPerIP
-	case RateLimitAuthenticationRecoveryCode:
+	case RateLimitGroupAuthenticationRecoveryCode:
 		return RateLimitAuthenticationRecoveryCodePerIP
-	case RateLimitAuthenticationDeviceToken:
+	case RateLimitGroupAuthenticationDeviceToken:
 		return RateLimitAuthenticationDeviceTokenPerIP
-	case RateLimitAuthenticationPasskey:
+	case RateLimitGroupAuthenticationPasskey:
 		return RateLimitAuthenticationPasskeyPerIP
-	case RateLimitAuthenticationSIWE:
+	case RateLimitGroupAuthenticationSIWE:
 		return RateLimitAuthenticationSIWEPerIP
-	case RateLimitAuthenticationSignup:
+	case RateLimitGroupAuthenticationSignup:
 		return RateLimitAuthenticationSignupPerIP
-	case RateLimitAuthenticationSignupAnonymous:
+	case RateLimitGroupAuthenticationSignupAnonymous:
 		return RateLimitAuthenticationSignupAnonymousPerIP
-	case RateLimitAuthenticationAccountEnumeration:
+	case RateLimitGroupAuthenticationAccountEnumeration:
 		return RateLimitAuthenticationAccountEnumerationPerIP
-	case RateLimitVerificationEmailTrigger:
+	case RateLimitGroupVerificationEmailTrigger:
 		return RateLimitVerificationEmailTriggerPerIP
-	case RateLimitVerificationEmailValidate:
+	case RateLimitGroupVerificationEmailValidate:
 		return RateLimitVerificationEmailValidatePerIP
-	case RateLimitVerificationSMSTrigger:
+	case RateLimitGroupVerificationSMSTrigger:
 		return RateLimitVerificationSMSTriggerPerIP
-	case RateLimitVerificationSMSValidate:
+	case RateLimitGroupVerificationSMSValidate:
 		return RateLimitVerificationSMSValidatePerIP
-	case RateLimitForgotPasswordEmailTrigger:
+	case RateLimitGroupForgotPasswordEmailTrigger:
 		return RateLimitForgotPasswordEmailTriggerPerIP
-	case RateLimitForgotPasswordEmailValidate:
+	case RateLimitGroupForgotPasswordEmailValidate:
 		return RateLimitForgotPasswordEmailValidatePerIP
-	case RateLimitForgotPasswordSMSTrigger:
+	case RateLimitGroupForgotPasswordSMSTrigger:
 		return RateLimitForgotPasswordSMSTriggerPerIP
-	case RateLimitForgotPasswordSMSValidate:
+	case RateLimitGroupForgotPasswordSMSValidate:
 		return RateLimitForgotPasswordSMSValidatePerIP
-	case RateLimitMessagingSMS:
+	case RateLimitGroupMessagingSMS:
 		return RateLimitMessagingSMSPerIP
-	case RateLimitMessagingEmail:
+	case RateLimitGroupMessagingEmail:
 		return RateLimitMessagingEmailPerIP
-	case RateLimitOAuthTokenGeneral:
+	case RateLimitGroupOAuthTokenGeneral:
 		return RateLimitOAuthTokenGeneralPerIP
 	}
 	return ""
@@ -735,13 +735,13 @@ func (n RateLimitGroup) perIPName() RateLimitName {
 
 func (n RateLimitGroup) perUserName() RateLimitName {
 	switch n {
-	case RateLimitAuthenticationOOBOTPEmailTrigger:
+	case RateLimitGroupAuthenticationOOBOTPEmailTrigger:
 		return RateLimitAuthenticationOOBOTPEmailTriggerPerUser
-	case RateLimitAuthenticationOOBOTPSMSTrigger:
+	case RateLimitGroupAuthenticationOOBOTPSMSTrigger:
 		return RateLimitAuthenticationOOBOTPSMSTriggerPerUser
-	case RateLimitVerificationEmailTrigger:
+	case RateLimitGroupVerificationEmailTrigger:
 		return RateLimitVerificationEmailTriggerPerUser
-	case RateLimitVerificationSMSTrigger:
+	case RateLimitGroupVerificationSMSTrigger:
 		return RateLimitVerificationSMSTriggerPerUser
 	}
 	return ""
@@ -749,17 +749,17 @@ func (n RateLimitGroup) perUserName() RateLimitName {
 
 func (n RateLimitGroup) perUserPerIPName() RateLimitName {
 	switch n {
-	case RateLimitAuthenticationPassword:
+	case RateLimitGroupAuthenticationPassword:
 		return RateLimitAuthenticationPasswordPerUserPerIP
-	case RateLimitAuthenticationOOBOTPEmailValidate:
+	case RateLimitGroupAuthenticationOOBOTPEmailValidate:
 		return RateLimitAuthenticationOOBOTPEmailValidatePerUserPerIP
-	case RateLimitAuthenticationOOBOTPSMSValidate:
+	case RateLimitGroupAuthenticationOOBOTPSMSValidate:
 		return RateLimitAuthenticationOOBOTPSMSValidatePerUserPerIP
-	case RateLimitAuthenticationTOTP:
+	case RateLimitGroupAuthenticationTOTP:
 		return RateLimitAuthenticationTOTPPerUserPerIP
-	case RateLimitAuthenticationRecoveryCode:
+	case RateLimitGroupAuthenticationRecoveryCode:
 		return RateLimitAuthenticationRecoveryCodePerUserPerIP
-	case RateLimitAuthenticationDeviceToken:
+	case RateLimitGroupAuthenticationDeviceToken:
 		return RateLimitAuthenticationDeviceTokenPerUserPerIP
 	}
 	return ""
@@ -767,9 +767,9 @@ func (n RateLimitGroup) perUserPerIPName() RateLimitName {
 
 func (n RateLimitGroup) perTargetName() RateLimitName {
 	switch n {
-	case RateLimitMessagingEmail:
+	case RateLimitGroupMessagingEmail:
 		return RateLimitMessagingEmailPerTarget
-	case RateLimitMessagingSMS:
+	case RateLimitGroupMessagingSMS:
 		return RateLimitMessagingSMSPerTarget
 	}
 	return ""
@@ -777,7 +777,7 @@ func (n RateLimitGroup) perTargetName() RateLimitName {
 
 func (n RateLimitGroup) perClientName() RateLimitName {
 	switch n {
-	case RateLimitOAuthTokenClientCredentials:
+	case RateLimitGroupOAuthTokenClientCredentials:
 		return RateLimitOAuthTokenClientCredentialsPerClient
 	}
 	return ""
@@ -785,12 +785,12 @@ func (n RateLimitGroup) perClientName() RateLimitName {
 
 func (n RateLimitGroup) perProjectName() RateLimitName {
 	switch n {
-	case RateLimitOAuthTokenClientCredentials:
+	case RateLimitGroupOAuthTokenClientCredentials:
 		return RateLimitOAuthTokenClientCredentialsPerProject
-	case RateLimitMessagingSMS:
-		return RateLimitMessagingSMSName
-	case RateLimitMessagingEmail:
-		return RateLimitMessagingEmailName
+	case RateLimitGroupMessagingSMS:
+		return RateLimitMessagingSMSPerProject
+	case RateLimitGroupMessagingEmail:
+		return RateLimitMessagingEmailPerProject
 		// For other groups where no explicit rate limit name exists,
 		// return empty so the bucket will not include a rate_limit_name.
 	}

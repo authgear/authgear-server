@@ -44,17 +44,17 @@ func (l *RateLimits) specs(authType model.AuthenticatorType, userID string) []*r
 
 	switch authType {
 	case model.AuthenticatorTypePassword:
-		return ratelimit.RateLimitAuthenticationPassword.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationPassword.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
 
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 		// OOB rate limits are handled by OTP mechanism.
 		return []*ratelimit.BucketSpec{}
 
 	case model.AuthenticatorTypeTOTP:
-		return ratelimit.RateLimitAuthenticationTOTP.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationTOTP.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
 
 	case model.AuthenticatorTypePasskey:
-		return ratelimit.RateLimitAuthenticationPasskey.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationPasskey.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
 
 	default:
 		panic("authenticator: unknown type: " + authType)
