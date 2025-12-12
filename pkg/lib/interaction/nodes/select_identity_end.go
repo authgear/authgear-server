@@ -30,7 +30,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 
 	var reservations []*ratelimit.Reservation
 	if !bypassRateLimit {
-		specs := ratelimit.RateLimitAuthenticationAccountEnumeration.ResolveBucketSpecs(ctx.Config, ctx.FeatureConfig, ctx.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+		specs := ratelimit.RateLimitGroupAuthenticationAccountEnumeration.ResolveBucketSpecs(ctx.Config, ctx.FeatureConfig, ctx.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
 			IPAddress: string(ctx.RemoteIP),
 		})
 		for _, spec := range specs {

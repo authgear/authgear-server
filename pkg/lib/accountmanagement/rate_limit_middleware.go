@@ -34,7 +34,7 @@ var accountManagementAPIPerIPConfig *config.RateLimitConfig = &config.RateLimitC
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		spec := ratelimit.NewBucketSpec("", accountManagementAPIPerIPConfig, AccountManagementAPIPerIP, string(m.RemoteIP))
+		spec := ratelimit.NewBucketSpec("", "", accountManagementAPIPerIPConfig, AccountManagementAPIPerIP, string(m.RemoteIP))
 		failed, err := m.RateLimiter.Allow(ctx, spec)
 		if err != nil {
 			panic(err)

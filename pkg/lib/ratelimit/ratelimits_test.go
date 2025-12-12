@@ -25,7 +25,7 @@ func TestRateLimits(t *testing.T) {
 		purpose := "testpurpose"
 		clientID := "testclient"
 		Convey("authentication.password", func() {
-			rl := RateLimitAuthenticationPassword
+			rl := RateLimitGroupAuthenticationPassword
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -58,21 +58,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasswordPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationPasswordPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyPasswordPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationPasswordPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -99,21 +101,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasswordPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationPasswordPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyPasswordPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationPasswordPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -144,27 +148,29 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasswordPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationPasswordPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyPasswordPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationPasswordPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasswordPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.oob_otp.email.trigger", func() {
-			rl := RateLimitAuthenticationOOBOTPEmailTrigger
+			rl := RateLimitGroupAuthenticationOOBOTPEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -192,27 +198,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPTriggerEmailPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPTriggerEmailPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPTriggerEmailPerUser,
-					Arguments: []string{userID, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailTriggerPerUser,
+					RateLimitGroup: rl,
+					Name:           OOBOTPTriggerEmailPerUser,
+					Arguments:      []string{userID, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 		})
 
 		Convey("authentication.oob_otp.email.validate", func() {
-			rl := RateLimitAuthenticationOOBOTPEmailValidate
+			rl := RateLimitGroupAuthenticationOOBOTPEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -249,21 +257,23 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -293,21 +303,23 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -342,27 +354,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateEmailPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationOOBOTPEmailValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateEmailPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.oob_otp.sms.trigger", func() {
-			rl := RateLimitAuthenticationOOBOTPSMSTrigger
+			rl := RateLimitGroupAuthenticationOOBOTPSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -390,27 +404,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPTriggerSMSPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPTriggerSMSPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPTriggerSMSPerUser,
-					Arguments: []string{userID, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSTriggerPerUser,
+					RateLimitGroup: rl,
+					Name:           OOBOTPTriggerSMSPerUser,
+					Arguments:      []string{userID, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 		})
 
 		Convey("authentication.oob_otp.sms.validate", func() {
-			rl := RateLimitAuthenticationOOBOTPSMSValidate
+			rl := RateLimitGroupAuthenticationOOBOTPSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -447,21 +463,23 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -491,21 +509,23 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -540,27 +560,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerIP,
-					Arguments: []string{purpose, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerIP,
+					Arguments:      []string{purpose, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      OOBOTPValidateSMSPerUserPerIP,
-					Arguments: []string{userID, ipAddress, purpose},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationOOBOTPSMSValidatePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           OOBOTPValidateSMSPerUserPerIP,
+					Arguments:      []string{userID, ipAddress, purpose},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.totp", func() {
-			rl := RateLimitAuthenticationTOTP
+			rl := RateLimitGroupAuthenticationTOTP
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -593,21 +615,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyTOTPPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationTOTPPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyTOTPPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationTOTPPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -634,21 +658,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyTOTPPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationTOTPPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyTOTPPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationTOTPPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -679,27 +705,29 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyTOTPPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationTOTPPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyTOTPPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationTOTPPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyTOTPPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.recovery_code", func() {
-			rl := RateLimitAuthenticationRecoveryCode
+			rl := RateLimitGroupAuthenticationRecoveryCode
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -732,21 +760,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -773,21 +803,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -818,27 +850,29 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyRecoveryCodePerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationRecoveryCodePerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyRecoveryCodePerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.device_token", func() {
-			rl := RateLimitAuthenticationDeviceToken
+			rl := RateLimitGroupAuthenticationDeviceToken
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -871,21 +905,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 
@@ -912,21 +948,23 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("4m").Duration(),
-					Burst:     4,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("4m").Duration(),
+					Burst:          4,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -957,27 +995,29 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}, {
-					RateLimit: rl,
-					Name:      VerifyDeviceTokenPerUserPerIP,
-					Arguments: []string{userID, ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationDeviceTokenPerUserPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyDeviceTokenPerUserPerIP,
+					Arguments:      []string{userID, ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.passkey", func() {
-			rl := RateLimitAuthenticationPasskey
+			rl := RateLimitGroupAuthenticationPasskey
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1001,13 +1041,14 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasskeyPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationPasskeyPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasskeyPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 
@@ -1029,13 +1070,14 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasskeyPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationPasskeyPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasskeyPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -1059,19 +1101,20 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifyPasskeyPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationPasskeyPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifyPasskeyPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.siwe", func() {
-			rl := RateLimitAuthenticationSIWE
+			rl := RateLimitGroupAuthenticationSIWE
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1095,13 +1138,14 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifySIWEPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationSIWEPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifySIWEPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 
@@ -1123,13 +1167,14 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifySIWEPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("3m").Duration(),
-					Burst:     3,
+					RateLimitName:  RateLimitAuthenticationSIWEPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifySIWEPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("3m").Duration(),
+					Burst:          3,
 				}})
 			})
 			Convey("disabled in config should not fallback", func() {
@@ -1153,19 +1198,20 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerifySIWEPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   false,
-					Period:    time.Duration(0),
-					Burst:     0,
+					RateLimitName:  RateLimitAuthenticationSIWEPerIP,
+					RateLimitGroup: rl,
+					Name:           VerifySIWEPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        false,
+					Period:         time.Duration(0),
+					Burst:          0,
 				}})
 			})
 		})
 
 		Convey("authentication.signup", func() {
-			rl := RateLimitAuthenticationSignup
+			rl := RateLimitGroupAuthenticationSignup
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1184,19 +1230,20 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      SignupPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationSignupPerIP,
+					RateLimitGroup: rl,
+					Name:           SignupPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("authentication.signup_anonymous", func() {
-			rl := RateLimitAuthenticationSignupAnonymous
+			rl := RateLimitGroupAuthenticationSignupAnonymous
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1215,19 +1262,20 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      SignupAnonymousPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationSignupAnonymousPerIP,
+					RateLimitGroup: rl,
+					Name:           SignupAnonymousPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("authentication.account_enumeration", func() {
-			rl := RateLimitAuthenticationAccountEnumeration
+			rl := RateLimitGroupAuthenticationAccountEnumeration
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1246,19 +1294,20 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      AccountEnumerationPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitAuthenticationAccountEnumerationPerIP,
+					RateLimitGroup: rl,
+					Name:           AccountEnumerationPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("verification.email.trigger", func() {
-			rl := RateLimitVerificationEmailTrigger
+			rl := RateLimitGroupVerificationEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1283,27 +1332,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerificationTriggerEmailPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitVerificationEmailTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           VerificationTriggerEmailPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerificationTriggerEmailPerUser,
-					Arguments: []string{userID},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitVerificationEmailTriggerPerUser,
+					RateLimitGroup: rl,
+					Name:           VerificationTriggerEmailPerUser,
+					Arguments:      []string{userID},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 		})
 
 		Convey("verification.email.validate", func() {
-			rl := RateLimitVerificationEmailValidate
+			rl := RateLimitGroupVerificationEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1323,19 +1374,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerificationValidateEmailPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitVerificationEmailValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           VerificationValidateEmailPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("verification.sms.trigger", func() {
-			rl := RateLimitVerificationSMSTrigger
+			rl := RateLimitGroupVerificationSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1360,27 +1412,29 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerificationTriggerSMSPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitVerificationSMSTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           VerificationTriggerSMSPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}, {
-					RateLimit: rl,
-					Name:      VerificationTriggerSMSPerUser,
-					Arguments: []string{userID},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("2m").Duration(),
-					Burst:     2,
+					RateLimitName:  RateLimitVerificationSMSTriggerPerUser,
+					RateLimitGroup: rl,
+					Name:           VerificationTriggerSMSPerUser,
+					Arguments:      []string{userID},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("2m").Duration(),
+					Burst:          2,
 				}})
 			})
 		})
 
 		Convey("verification.sms.validate", func() {
-			rl := RateLimitVerificationSMSValidate
+			rl := RateLimitGroupVerificationSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1400,19 +1454,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      VerificationValidateSMSPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitVerificationSMSValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           VerificationValidateSMSPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("forgot_password.email.trigger", func() {
-			rl := RateLimitForgotPasswordEmailTrigger
+			rl := RateLimitGroupForgotPasswordEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1432,19 +1487,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      ForgotPasswordTriggerEmailPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitForgotPasswordEmailTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           ForgotPasswordTriggerEmailPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("forgot_password.email.validate", func() {
-			rl := RateLimitForgotPasswordEmailValidate
+			rl := RateLimitGroupForgotPasswordEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1464,19 +1520,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      ForgotPasswordValidateEmailPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitForgotPasswordEmailValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           ForgotPasswordValidateEmailPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("forgot_password.sms.trigger", func() {
-			rl := RateLimitForgotPasswordSMSTrigger
+			rl := RateLimitGroupForgotPasswordSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1496,19 +1553,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      ForgotPasswordTriggerSMSPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitForgotPasswordSMSTriggerPerIP,
+					RateLimitGroup: rl,
+					Name:           ForgotPasswordTriggerSMSPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("forgot_password.sms.validate", func() {
-			rl := RateLimitForgotPasswordSMSValidate
+			rl := RateLimitGroupForgotPasswordSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1528,19 +1586,20 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      ForgotPasswordValidateSMSPerIP,
-					Arguments: []string{ipAddress},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     1,
+					RateLimitName:  RateLimitForgotPasswordSMSValidatePerIP,
+					RateLimitGroup: rl,
+					Name:           ForgotPasswordValidateSMSPerIP,
+					Arguments:      []string{ipAddress},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          1,
 				}})
 			})
 		})
 
 		Convey("messaging.sms", func() {
-			rl := RateLimitMessagingSMS
+			rl := RateLimitGroupMessagingSMS
 			Convey("set in all configs", func() {
 				appCfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1585,58 +1644,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     1,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          1,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingSMS,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     2,
+						RateLimitName:  RateLimitMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          2,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     3,
+						RateLimitName:  RateLimitMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          3,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -1684,58 +1749,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     10,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          10,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingSMS,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     20,
+						RateLimitName:  RateLimitMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          20,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     30,
+						RateLimitName:  RateLimitMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          30,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -1782,58 +1853,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     10,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          10,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingSMS,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     20,
+						RateLimitName:  RateLimitMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          20,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     30,
+						RateLimitName:  RateLimitMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          30,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -1874,65 +1951,71 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     1,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          1,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMS,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingSMS,
+						RateLimitGroup: rl,
+						Name:           MessagingSMS,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     2,
+						RateLimitName:  RateLimitMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          2,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     3,
+						RateLimitName:  RateLimitMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          3,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingSMSPerTarget,
-						Arguments: []string{phone},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingSMSPerTarget,
+						Arguments:      []string{phone},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
 		})
 
 		Convey("messaging.email", func() {
-			rl := RateLimitMessagingEmail
+			rl := RateLimitGroupMessagingEmail
 			Convey("set in all configs", func() {
 				appCfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1977,58 +2060,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     1,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          1,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingEmail,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     2,
+						RateLimitName:  RateLimitMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          2,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     3,
+						RateLimitName:  RateLimitMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          3,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -2076,58 +2165,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     10,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          10,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingEmail,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     20,
+						RateLimitName:  RateLimitMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          20,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     30,
+						RateLimitName:  RateLimitMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          30,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -2174,58 +2269,64 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     10,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          10,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingEmail,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     20,
+						RateLimitName:  RateLimitMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          20,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     30,
+						RateLimitName:  RateLimitMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          30,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
@@ -2266,85 +2367,93 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     1,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          1,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmail,
-						Arguments: nil,
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     4,
+						RateLimitName:  RateLimitGlobalMessagingEmail,
+						RateLimitGroup: rl,
+						Name:           MessagingEmail,
+						Arguments:      nil,
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          4,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     2,
+						RateLimitName:  RateLimitMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          2,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerIP,
-						Arguments: []string{ipAddress},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     5,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerIP,
+						Arguments:      []string{ipAddress},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          5,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  false,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     3,
+						RateLimitName:  RateLimitMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       false,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          3,
 					},
 					{
-						RateLimit: rl,
-						Name:      MessagingEmailPerTarget,
-						Arguments: []string{target},
-						IsGlobal:  true,
-						Enabled:   true,
-						Period:    config.DurationString("1m").Duration(),
-						Burst:     6,
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
+						RateLimitGroup: rl,
+						Name:           MessagingEmailPerTarget,
+						Arguments:      []string{target},
+						IsGlobal:       true,
+						Enabled:        true,
+						Period:         config.DurationString("1m").Duration(),
+						Burst:          6,
 					},
 				})
 			})
 		})
 
 		Convey("oauth.token.client_credentials", func() {
-			rl := RateLimitOAuthTokenClientCredentials
+			rl := RateLimitGroupOAuthTokenClientCredentials
 			Convey("is enabled", func() {
 				specs := rl.ResolveBucketSpecs(nil, nil, nil, &ResolveBucketSpecOptions{
 					ClientID: clientID,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
-					RateLimit: rl,
-					Name:      OAuthTokenClientCredentialsPerClient,
-					Arguments: []string{clientID},
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     5,
+					RateLimitName:  RateLimitOAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: rl,
+					Name:           OAuthTokenClientCredentialsPerClient,
+					Arguments:      []string{clientID},
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          5,
 				}, {
-					RateLimit: rl,
-					Name:      OAuthTokenClientCredentialsPerProject,
-					Arguments: nil,
-					IsGlobal:  false,
-					Enabled:   true,
-					Period:    config.DurationString("1m").Duration(),
-					Burst:     20,
+					RateLimitName:  RateLimitOAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: rl,
+					Name:           OAuthTokenClientCredentialsPerProject,
+					Arguments:      nil,
+					IsGlobal:       false,
+					Enabled:        true,
+					Period:         config.DurationString("1m").Duration(),
+					Burst:          20,
 				}})
 			})
 		})
@@ -2353,112 +2462,112 @@ func TestRateLimits(t *testing.T) {
 	Convey("RateLimit.ResolveWeight", t, func() {
 		Convey("should return default weight when no weights are in context", func() {
 			ctx := context.Background()
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 1.0)
 		})
 
 		Convey("should return default weight for unnamed rate limit", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationPassword: 2.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			var r RateLimit = ""
+			var r RateLimitGroup = ""
 			weight := r.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 1.0)
 		})
 
 		Convey("should return specific weight if defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationPassword: 2.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 2.0)
 		})
 
 		Convey("should return fallback weight if specific not defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationGeneral: 3.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationGeneral: 3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			// RateLimitAuthenticationPassword falls back to RateLimitAuthenticationGeneral
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			// RateLimitGroupAuthenticationPassword falls back to RateLimitGroupAuthenticationGeneral
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 3.0)
 		})
 
 		Convey("should return specific weight even if fallback is defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationGeneral:  3.0,
-				RateLimitAuthenticationPassword: 2.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationGeneral:  3.0,
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 2.0)
 		})
 
 		Convey("should return default weight without specific weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationGeneral: 3.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationGeneral: 3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
 			// This one has no fallback
-			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			weight := RateLimitGroupVerificationEmailTrigger.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 1.0)
 		})
 
 		Convey("should return specific weight for rate limits without fallback", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitVerificationEmailTrigger: 5.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupVerificationEmailTrigger: 5.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			weight := RateLimitGroupVerificationEmailTrigger.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 5.0)
 		})
 
 		Convey("should return 0 for negative weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationPassword: -2.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationPassword: -2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 0)
 		})
 
 		Convey("should return 0 for negative fallback weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
-			weights := map[RateLimit]float64{
-				RateLimitAuthenticationGeneral: -3.0,
+			weights := map[RateLimitGroup]float64{
+				RateLimitGroupAuthenticationGeneral: -3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 0)
 		})
 
 		Convey("should return fallback weight for all applicable rate limits", func() {
-			limitsWithFallback := []RateLimit{
-				RateLimitAuthenticationPassword,
-				RateLimitAuthenticationOOBOTPEmailValidate,
-				RateLimitAuthenticationOOBOTPSMSValidate,
-				RateLimitAuthenticationTOTP,
-				RateLimitAuthenticationRecoveryCode,
-				RateLimitAuthenticationDeviceToken,
-				RateLimitAuthenticationPasskey,
-				RateLimitAuthenticationSIWE,
+			limitsWithFallback := []RateLimitGroup{
+				RateLimitGroupAuthenticationPassword,
+				RateLimitGroupAuthenticationOOBOTPEmailValidate,
+				RateLimitGroupAuthenticationOOBOTPSMSValidate,
+				RateLimitGroupAuthenticationTOTP,
+				RateLimitGroupAuthenticationRecoveryCode,
+				RateLimitGroupAuthenticationDeviceToken,
+				RateLimitGroupAuthenticationPasskey,
+				RateLimitGroupAuthenticationSIWE,
 			}
 
 			for _, limit := range limitsWithFallback {
 				limit := limit
 				Convey(string(limit), func() {
 					ctx := WithRateLimitWeights(context.Background())
-					weights := map[RateLimit]float64{
-						RateLimitAuthenticationGeneral: 3.0,
+					weights := map[RateLimitGroup]float64{
+						RateLimitGroupAuthenticationGeneral: 3.0,
 					}
 					SetRateLimitWeights(ctx, weights)
 					weight := limit.ResolveWeight(ctx)

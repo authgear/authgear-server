@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type AuthzAdder interface {
@@ -43,6 +45,16 @@ type PortalAdminAPIAuthContext struct {
 	Usage       Usage  `json:"usage"`
 	ActorUserID string `json:"actor_user_id,omitempty"`
 	HTTPReferer string `json:"http_referer,omitempty"`
+}
+
+func (c *PortalAdminAPIAuthContext) ToAuditContext(requestURL httputil.HTTPRequestURL) event.AuditContext {
+	info := map[string]any{
+		"usage":         c.Usage,
+		"actor_user_id": c.ActorUserID,
+		"http_referer":  c.HTTPReferer,
+	}
+
+	return event.NewAuditContext(string(requestURL), info)
 }
 
 func (s *AdminAPIService) ResolveConfig(ctx context.Context, appID string) (cfg *config.Config, err error) {

@@ -6,7 +6,7 @@ import (
 )
 
 func NewBucketSpecOAuthTokenPerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(ratelimit.RateLimitOAuthTokenGeneral, &config.RateLimitConfig{
+	return ratelimit.NewBucketSpec(ratelimit.RateLimitOAuthTokenGeneralPerIP, ratelimit.RateLimitGroupOAuthTokenGeneral, &config.RateLimitConfig{
 		Enabled: func() *bool { var t = true; return &t }(),
 		Period:  "1m",
 		Burst:   120,
@@ -14,7 +14,7 @@ func NewBucketSpecOAuthTokenPerIP(ip string) ratelimit.BucketSpec {
 }
 
 func NewBucketSpecOAuthTokenPerUser(userID string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(ratelimit.RateLimitOAuthTokenGeneral, &config.RateLimitConfig{
+	return ratelimit.NewBucketSpec(ratelimit.RateLimitOAuthTokenGeneralPerUser, ratelimit.RateLimitGroupOAuthTokenGeneral, &config.RateLimitConfig{
 		Enabled: func() *bool { var t = true; return &t }(),
 		Period:  "1m",
 		Burst:   60,

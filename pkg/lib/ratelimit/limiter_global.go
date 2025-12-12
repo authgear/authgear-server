@@ -38,7 +38,7 @@ func (l *LimiterGlobal) Allow(ctx context.Context, spec BucketSpec) (*FailedRese
 // Reserve is reserveN(weight).
 // weight default is 1, but it can be modified by user.
 func (l *LimiterGlobal) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *FailedReservation, error) {
-	weight := spec.RateLimit.ResolveWeight(ctx)
+	weight := spec.RateLimitGroup.ResolveWeight(ctx)
 	return l.reserveN(ctx, spec, weight)
 }
 
@@ -72,7 +72,7 @@ func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float
 	logger.With(
 		slog.String("key", spec.Key()),
 		slog.String("bucket", string(spec.Name)),
-		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("ratelimit", string(spec.RateLimitGroup)),
 		slog.Bool("ok", ok),
 		slog.Time("timeToAct", timeToAct),
 	).Debug(ctx, "check global rate limit")

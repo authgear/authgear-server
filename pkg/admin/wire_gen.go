@@ -410,6 +410,72 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs2.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     readOnlyService,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     queries,
+		Clock:              clockClock,
+	}
+	userLoader := loader.NewUserLoader(userQueries)
+	identityLoader := loader.NewIdentityLoader(serviceService)
+	serviceReadOnlyService := service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -430,10 +496,136 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	resolverImpl := &event.ResolverImpl{
+		Users: userQueries,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
+	sink := &hook.Sink{
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
+	}
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	searchConfig := appConfig.Search
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		Clock:           clockClock,
+		Database:        handle,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
+	reindexer := &reindex.Reindexer{
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   handle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
+	}
+	reindexSink := &reindex.Sink{
+		Reindexer: reindexer,
+		Database:  handle,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaReadOnlyService := &mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	limiter := &ratelimit.Limiter{
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
+		Database:     handle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
 	}
 	messagingConfig := appConfig.Messaging
 	whatsappConfig := messagingConfig.Whatsapp
@@ -503,74 +695,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Provider: lockoutService,
 	}
 	service4 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		ReadOnlyService: serviceReadOnlyService,
+		Store:           store3,
+		Config:          appConfig,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
-	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
-	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	verificationService := &verification.Service{
-		Config:            verificationConfig,
-		UserProfileConfig: userProfileConfig,
-		Clock:             clockClock,
-		ClaimStore:        storePQ,
-	}
-	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs2.PictureTransformer{
-		HTTPProto:     httpProto,
-		HTTPHost:      httpHost,
-		ImagesCDNHost: imagesCDNHost,
-	}
-	serviceNoEvent := &stdattrs2.ServiceNoEvent{
-		UserProfileConfig: userProfileConfig,
-		Identities:        serviceService,
-		UserQueries:       rawQueries,
-		UserStore:         store,
-		ClaimStore:        storePQ,
-		Transformer:       pictureTransformer,
-	}
-	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
-		Config:      userProfileConfig,
-		UserQueries: rawQueries,
-		UserStore:   store,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	queries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
-	userQueries := &user.Queries{
-		RawQueries:         rawQueries,
-		Store:              store,
-		Identities:         serviceService,
-		Authenticators:     service4,
-		Verification:       verificationService,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
-		Clock:              clockClock,
-	}
-	userLoader := loader.NewUserLoader(userQueries)
-	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	roleLoader := loader.NewRoleLoader(queries)
 	groupLoader := loader.NewGroupLoader(queries)
 	readHandle := appProvider.AuditReadDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
@@ -592,31 +727,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
 	resourceClientLoader := loader.NewResourceClientLoader(resourcescopeQueries)
 	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
-	searchConfig := appConfig.Search
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	elasticsearchService := &elasticsearch.Service{
-		Clock:           clockClock,
-		Database:        handle,
-		AppID:           appID,
-		Client:          client,
-		Users:           userQueries,
-		UserStore:       store,
-		IdentityService: serviceService,
-		RolesGroups:     rolesgroupsStore,
-	}
-	configAppID := &appConfig.ID
-	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
-	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
-	searchdbHandle := appProvider.SearchDatabase
-	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
-	pgsearchStore := pgsearch.NewStore(appID, sqlBuilder, searchdbSQLExecutor)
-	pgsearchService := &pgsearch.Service{
-		AppID:    configAppID,
-		Store:    pgsearchStore,
-		Database: searchdbHandle,
-	}
-	globalSearchImplementation := environmentConfig.SearchImplementation
 	searchService := &search.Service{
 		SearchConfig:               searchConfig,
 		ElasticsearchService:       elasticsearchService,
@@ -627,120 +737,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(appdbSQLBuilder, sqlExecutor)
-	resolverImpl := &event.ResolverImpl{
-		Users: userQueries,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	webHookImpl := hook.WebHookImpl{
-		Secret: webhookKeyMaterials,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	eventWebHookImpl := &hook.EventWebHookImpl{
-		WebHookImpl: webHookImpl,
-		SyncHTTP:    syncHTTPClient,
-		AsyncHTTP:   asyncHTTPClient,
-	}
-	denoHook := hook.DenoHook{
-		ResourceManager: manager,
-	}
-	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
-	eventDenoHookImpl := &hook.EventDenoHookImpl{
-		DenoHook:        denoHook,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-	}
-	commands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
-	}
-	sink := &hook.Sink{
-		Config:             hookConfig,
-		Clock:              clockClock,
-		EventWebHook:       eventWebHookImpl,
-		EventDenoHook:      eventDenoHookImpl,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     commands,
-	}
-	writeHandle := appProvider.AuditWriteDatabase
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
-	sourceProvider := &reindex.SourceProvider{
-		AppID:           appID,
-		Users:           userQueries,
-		UserStore:       store,
-		IdentityService: serviceService,
-		RolesGroups:     rolesgroupsStore,
-	}
-	reindexer := &reindex.Reindexer{
-		AppID:                      appID,
-		SearchConfig:               searchConfig,
-		Clock:                      clockClock,
-		Database:                   handle,
-		UserStore:                  store,
-		Producer:                   userReindexProducer,
-		SourceProvider:             sourceProvider,
-		ElasticsearchReindexer:     elasticsearchService,
-		PostgresqlReindexer:        pgsearchService,
-		GlobalSearchImplementation: globalSearchImplementation,
-	}
-	reindexSink := &reindex.Sink{
-		Reindexer: reindexer,
-		Database:  handle,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaLockout := mfa.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	mfaService := &mfa.Service{
-		IP:            remoteIP,
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-		Lockout:       mfaLockout,
-	}
-	userInfoService := &userinfo.UserInfoService{
-		Redis:                 appredisHandle,
-		Clock:                 clockClock,
-		AppID:                 appID,
-		AuthenticationConfig:  authenticationConfig,
-		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
-		AuthenticatorService:  service4,
-		MFAService:            mfaService,
-	}
-	userinfoSink := &userinfo.Sink{
-		UserInfoService: userInfoService,
-	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -754,6 +750,31 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userProvider := &user.Provider{
 		Commands: userCommands,
 		Queries:  userQueries,
+	}
+	readOnlyService2 := mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		ReadOnlyService: readOnlyService2,
+		IP:              remoteIP,
+		DeviceTokens:    storeDeviceTokenRedis,
+		RecoveryCodes:   storeRecoveryCodePQ,
+		Clock:           clockClock,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		EnvConfig:       rateLimitsEnvironmentConfig,
+		RateLimiter:     limiter,
+		Lockout:         mfaLockout,
 	}
 	usageLimiter := &usage.Limiter{
 		Clock: clockClock,
@@ -1648,108 +1669,12 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
-	testModeConfig := appConfig.TestMode
-	testModeFeatureConfig := featureConfig.TestMode
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storageRedis := ratelimit.NewAppStorageRedis(handle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	ratelimitLimiter := &ratelimit.Limiter{
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	whatsappConfig := messagingConfig.Whatsapp
-	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
-	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	appHostSuffixes := environmentConfig.AppHostSuffixes
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
-	messageStore := &whatsapp.MessageStore{
-		Redis:       globalredisHandle,
-		Credentials: whatsappCloudAPICredentials,
-	}
-	whatsappService := &whatsapp.Service{
-		Clock:                 clockClock,
-		WhatsappConfig:        whatsappConfig,
-		LocalizationConfig:    localizationConfig,
-		GlobalWhatsappAPIType: globalWhatsappAPIType,
-		OnPremisesClient:      onPremisesClient,
-		CloudAPIClient:        cloudAPIClient,
-		MessageStore:          messageStore,
-		Credentials:           whatsappCloudAPICredentials,
-	}
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	otpService := &otp.Service{
-		Clock:                 clockClock,
-		AppID:                 appID,
-		TestModeConfig:        testModeConfig,
-		TestModeFeatureConfig: testModeFeatureConfig,
-		RemoteIP:              remoteIP,
-		CodeStore:             codeStoreRedis,
-		LookupStore:           lookupStoreRedis,
-		AttemptTracker:        attemptTrackerRedis,
-		RateLimiter:           ratelimitLimiter,
-		WhatsappService:       whatsappService,
-		FeatureConfig:         featureConfig,
-		EnvConfig:             rateLimitsEnvironmentConfig,
-	}
-	rateLimits := service2.RateLimits{
-		IP:            remoteIP,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   ratelimitLimiter,
-	}
-	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutStorageRedis := &lockout.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	lockoutService := &lockout.Service{
-		Storage: lockoutStorageRedis,
-	}
-	serviceLockout := service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	service4 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationConfig := appConfig.Verification
 	storePQ := &verification.StorePQ{
@@ -1793,20 +1718,20 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
-		Authenticators:     service4,
+		Authenticators:     readOnlyService,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 		Clock:              clockClock,
 	}
-	userexportHTTPClient := userexport.NewHTTPClient()
+	httpClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		HTTPOrigin:   httpOrigin,
-		HTTPClient:   userexportHTTPClient,
+		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}

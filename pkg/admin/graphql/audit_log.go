@@ -65,6 +65,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"AUTHENTICATION_BLOCKED": &graphql.EnumValueConfig{
 			Value: "authentication.blocked",
 		},
+		"RATE_LIMIT_BLOCKED": &graphql.EnumValueConfig{
+			Value: "rate_limit.blocked",
+		},
 		"AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED": &graphql.EnumValueConfig{
 			Value: "authentication.identity.login_id.failed",
 		},

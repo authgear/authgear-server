@@ -68,11 +68,11 @@ func (k kindOOBOTP) RateLimitTrigger(
 	}
 	switch k.channel {
 	case model.AuthenticatorOOBChannelEmail:
-		return ratelimit.RateLimitAuthenticationOOBOTPEmailTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationOOBOTPEmailTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
 	case model.AuthenticatorOOBChannelSMS:
 		fallthrough
 	case model.AuthenticatorOOBChannelWhatsapp:
-		return ratelimit.RateLimitAuthenticationOOBOTPSMSTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationOOBOTPSMSTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
 	}
 	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
@@ -106,11 +106,11 @@ func (k kindOOBOTP) RateLimitValidate(
 	}
 	switch k.channel {
 	case model.AuthenticatorOOBChannelEmail:
-		return ratelimit.RateLimitAuthenticationOOBOTPEmailValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationOOBOTPEmailValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
 	case model.AuthenticatorOOBChannelSMS:
 		fallthrough
 	case model.AuthenticatorOOBChannelWhatsapp:
-		return ratelimit.RateLimitAuthenticationOOBOTPSMSValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+		return ratelimit.RateLimitGroupAuthenticationOOBOTPSMSValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
 	}
 	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }

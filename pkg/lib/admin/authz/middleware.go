@@ -76,8 +76,12 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 
 			auditCtx, ok := token.Get(JWTKeyAuditContext)
 			if ok {
-				ctx = WithAdminAuthzAudit(ctx, auditCtx)
-				r = r.WithContext(ctx)
+				if auditCtx, ok := auditCtx.(map[string]any); ok {
+					ctx = WithAdminAuthzAudit(ctx, auditCtx)
+					r = r.WithContext(ctx)
+				} else {
+					logger.WithError(err).Error(ctx, "invalid audit_context, ignoring")
+				}
 			}
 		}
 

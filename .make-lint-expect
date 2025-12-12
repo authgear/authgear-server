@@ -5,7 +5,6 @@ pkg/api/apierrors/tags.go cannot import github.com/authgear/authgear-server/pkg/
 pkg/api/event/blocking/util.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol
 pkg/api/event/event.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol
 pkg/api/event/hook_response.go cannot import github.com/authgear/authgear-server/pkg/util/validation
-pkg/api/event/hook_response_test.go cannot import github.com/authgear/authgear-server/pkg/lib/ratelimit
 
 exit status 1
 pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification

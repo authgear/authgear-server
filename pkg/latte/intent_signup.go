@@ -119,7 +119,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
-			specs := ratelimit.RateLimitAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+			specs := ratelimit.RateLimitGroupAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
 				IPAddress: string(deps.RemoteIP),
 			})
 			for _, spec := range specs {

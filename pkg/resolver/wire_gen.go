@@ -441,107 +441,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
-	testModeConfig := appConfig.TestMode
-	testModeFeatureConfig := featureConfig.TestMode
-	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	storageRedis := ratelimit.NewAppStorageRedis(handle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	whatsappConfig := messagingConfig.Whatsapp
-	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
-	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	appHostSuffixes := environmentConfig.AppHostSuffixes
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
-	messageStore := &whatsapp.MessageStore{
-		Redis:       globalredisHandle,
-		Credentials: whatsappCloudAPICredentials,
-	}
-	whatsappService := &whatsapp.Service{
-		Clock:                 clock,
-		WhatsappConfig:        whatsappConfig,
-		LocalizationConfig:    localizationConfig,
-		GlobalWhatsappAPIType: globalWhatsappAPIType,
-		OnPremisesClient:      onPremisesClient,
-		CloudAPIClient:        cloudAPIClient,
-		MessageStore:          messageStore,
-		Credentials:           whatsappCloudAPICredentials,
-	}
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	otpService := &otp.Service{
-		Clock:                 clock,
-		AppID:                 appID,
-		TestModeConfig:        testModeConfig,
-		TestModeFeatureConfig: testModeFeatureConfig,
-		RemoteIP:              remoteIP,
-		CodeStore:             codeStoreRedis,
-		LookupStore:           lookupStoreRedis,
-		AttemptTracker:        attemptTrackerRedis,
-		RateLimiter:           limiter,
-		WhatsappService:       whatsappService,
-		FeatureConfig:         featureConfig,
-		EnvConfig:             rateLimitsEnvironmentConfig,
-	}
-	rateLimits := service2.RateLimits{
-		IP:            remoteIP,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-	}
-	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutStorageRedis := &lockout.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	lockoutService := &lockout.Service{
-		Storage: lockoutStorageRedis,
-	}
-	serviceLockout := service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -586,37 +491,19 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
-		Authenticators:     service3,
+		Authenticators:     readOnlyService,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 		Clock:              clock,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	mfaLockout := mfa.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	mfaService := &mfa.Service{
-		IP:            remoteIP,
-		DeviceTokens:  storeDeviceTokenRedis,
+	mfaReadOnlyService := &mfa.ReadOnlyService{
 		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clock,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-		Lockout:       mfaLockout,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 handle,
@@ -625,9 +512,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
-		AuthenticatorService:  service3,
-		MFAService:            mfaService,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
 	}
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
@@ -732,7 +620,140 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	serviceReadOnlyService := service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	testModeConfig := appConfig.TestMode
+	testModeFeatureConfig := featureConfig.TestMode
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Database:     appdbHandle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
+	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	otpService := &otp.Service{
+		Clock:                 clock,
+		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
+	}
+	rateLimits := service2.RateLimits{
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
+	}
+	authenticationLockoutConfig := authenticationConfig.Lockout
+	lockoutStorageRedis := &lockout.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	lockoutService := &lockout.Service{
+		Storage: lockoutStorageRedis,
+	}
+	serviceLockout := service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	service3 := &service2.Service{
+		ReadOnlyService: serviceReadOnlyService,
+		Store:           store3,
+		Config:          appConfig,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
+	}
+	readOnlyService2 := mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		ReadOnlyService: readOnlyService2,
+		IP:              remoteIP,
+		DeviceTokens:    storeDeviceTokenRedis,
+		RecoveryCodes:   storeRecoveryCodePQ,
+		Clock:           clock,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		EnvConfig:       rateLimitsEnvironmentConfig,
+		RateLimiter:     limiter,
+		Lockout:         mfaLockout,
+	}
 	usageLimiter := &usage.Limiter{
 		Clock: clock,
 		AppID: appID,
@@ -1203,108 +1224,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
-	testModeConfig := appConfig.TestMode
-	testModeFeatureConfig := featureConfig.TestMode
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	whatsappConfig := messagingConfig.Whatsapp
-	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
-	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	appHostSuffixes := environmentConfig.AppHostSuffixes
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
-	messageStore := &whatsapp.MessageStore{
-		Redis:       globalredisHandle,
-		Credentials: whatsappCloudAPICredentials,
-	}
-	whatsappService := &whatsapp.Service{
-		Clock:                 clockClock,
-		WhatsappConfig:        whatsappConfig,
-		LocalizationConfig:    localizationConfig,
-		GlobalWhatsappAPIType: globalWhatsappAPIType,
-		OnPremisesClient:      onPremisesClient,
-		CloudAPIClient:        cloudAPIClient,
-		MessageStore:          messageStore,
-		Credentials:           whatsappCloudAPICredentials,
-	}
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	otpService := &otp.Service{
-		Clock:                 clockClock,
-		AppID:                 appID,
-		TestModeConfig:        testModeConfig,
-		TestModeFeatureConfig: testModeFeatureConfig,
-		RemoteIP:              remoteIP,
-		CodeStore:             codeStoreRedis,
-		LookupStore:           lookupStoreRedis,
-		AttemptTracker:        attemptTrackerRedis,
-		RateLimiter:           limiter,
-		WhatsappService:       whatsappService,
-		FeatureConfig:         featureConfig,
-		EnvConfig:             rateLimitsEnvironmentConfig,
-	}
-	rateLimits := service2.RateLimits{
-		IP:            remoteIP,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-	}
-	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutStorageRedis := &lockout.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	lockoutService := &lockout.Service{
-		Storage: lockoutStorageRedis,
-	}
-	serviceLockout := service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -1349,37 +1274,19 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
-		Authenticators:     service3,
+		Authenticators:     readOnlyService,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 		Clock:              clockClock,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	mfaLockout := mfa.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	mfaService := &mfa.Service{
-		IP:            remoteIP,
-		DeviceTokens:  storeDeviceTokenRedis,
+	mfaReadOnlyService := &mfa.ReadOnlyService{
 		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-		Lockout:       mfaLockout,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
@@ -1388,8 +1295,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
-		AuthenticatorService:  service3,
-		MFAService:            mfaService,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,

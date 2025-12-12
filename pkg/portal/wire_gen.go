@@ -336,9 +336,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
 	auditService := &service.AuditService{
 		RemoteIP:                  remoteIP,
 		UserAgentString:           userAgentString,
+		HTTPRequestURL:            httpRequestURL,
 		Request:                   request,
 		Apps:                      appService,
 		Authgear:                  authgearConfig,
