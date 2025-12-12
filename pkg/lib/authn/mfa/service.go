@@ -94,7 +94,7 @@ func (s *Service) CreateDeviceToken(ctx context.Context, userID string, token st
 func (s *Service) VerifyDeviceToken(ctx context.Context, userID string, token string) error {
 	resvs, err := s.reserveRateLimit(
 		ctx,
-		ratelimit.RateLimitAuthenticationDeviceToken,
+		ratelimit.RateLimitGroupAuthenticationDeviceToken,
 		userID,
 	)
 	if err != nil {
@@ -167,7 +167,7 @@ func (s *Service) ReplaceRecoveryCodes(ctx context.Context, userID string, codes
 func (s *Service) VerifyRecoveryCode(ctx context.Context, userID string, code string) (*RecoveryCode, error) {
 	resvs, err := s.reserveRateLimit(
 		ctx,
-		ratelimit.RateLimitAuthenticationRecoveryCode,
+		ratelimit.RateLimitGroupAuthenticationRecoveryCode,
 		userID,
 	)
 	if err != nil {

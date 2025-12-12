@@ -115,7 +115,7 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// Apply rate limit on sign up.
-			specs := ratelimit.RateLimitAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+			specs := ratelimit.RateLimitGroupAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
 				IPAddress: string(deps.RemoteIP),
 			})
 			for _, spec := range specs {

@@ -25,7 +25,7 @@ func TestRateLimits(t *testing.T) {
 		purpose := "testpurpose"
 		clientID := "testclient"
 		Convey("authentication.password", func() {
-			rl := RateLimitAuthenticationPassword
+			rl := RateLimitGroupAuthenticationPassword
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -170,7 +170,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.oob_otp.email.trigger", func() {
-			rl := RateLimitAuthenticationOOBOTPEmailTrigger
+			rl := RateLimitGroupAuthenticationOOBOTPEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -220,7 +220,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.oob_otp.email.validate", func() {
-			rl := RateLimitAuthenticationOOBOTPEmailValidate
+			rl := RateLimitGroupAuthenticationOOBOTPEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -376,7 +376,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.oob_otp.sms.trigger", func() {
-			rl := RateLimitAuthenticationOOBOTPSMSTrigger
+			rl := RateLimitGroupAuthenticationOOBOTPSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -426,7 +426,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.oob_otp.sms.validate", func() {
-			rl := RateLimitAuthenticationOOBOTPSMSValidate
+			rl := RateLimitGroupAuthenticationOOBOTPSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -582,7 +582,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.totp", func() {
-			rl := RateLimitAuthenticationTOTP
+			rl := RateLimitGroupAuthenticationTOTP
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -727,7 +727,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.recovery_code", func() {
-			rl := RateLimitAuthenticationRecoveryCode
+			rl := RateLimitGroupAuthenticationRecoveryCode
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -872,7 +872,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.device_token", func() {
-			rl := RateLimitAuthenticationDeviceToken
+			rl := RateLimitGroupAuthenticationDeviceToken
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1017,7 +1017,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.passkey", func() {
-			rl := RateLimitAuthenticationPasskey
+			rl := RateLimitGroupAuthenticationPasskey
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1114,7 +1114,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.siwe", func() {
-			rl := RateLimitAuthenticationSIWE
+			rl := RateLimitGroupAuthenticationSIWE
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1211,7 +1211,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.signup", func() {
-			rl := RateLimitAuthenticationSignup
+			rl := RateLimitGroupAuthenticationSignup
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1243,7 +1243,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.signup_anonymous", func() {
-			rl := RateLimitAuthenticationSignupAnonymous
+			rl := RateLimitGroupAuthenticationSignupAnonymous
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1275,7 +1275,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("authentication.account_enumeration", func() {
-			rl := RateLimitAuthenticationAccountEnumeration
+			rl := RateLimitGroupAuthenticationAccountEnumeration
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1307,7 +1307,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("verification.email.trigger", func() {
-			rl := RateLimitVerificationEmailTrigger
+			rl := RateLimitGroupVerificationEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1354,7 +1354,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("verification.email.validate", func() {
-			rl := RateLimitVerificationEmailValidate
+			rl := RateLimitGroupVerificationEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1387,7 +1387,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("verification.sms.trigger", func() {
-			rl := RateLimitVerificationSMSTrigger
+			rl := RateLimitGroupVerificationSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1434,7 +1434,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("verification.sms.validate", func() {
-			rl := RateLimitVerificationSMSValidate
+			rl := RateLimitGroupVerificationSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1467,7 +1467,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("forgot_password.email.trigger", func() {
-			rl := RateLimitForgotPasswordEmailTrigger
+			rl := RateLimitGroupForgotPasswordEmailTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1500,7 +1500,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("forgot_password.email.validate", func() {
-			rl := RateLimitForgotPasswordEmailValidate
+			rl := RateLimitGroupForgotPasswordEmailValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1533,7 +1533,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("forgot_password.sms.trigger", func() {
-			rl := RateLimitForgotPasswordSMSTrigger
+			rl := RateLimitGroupForgotPasswordSMSTrigger
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1566,7 +1566,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("forgot_password.sms.validate", func() {
-			rl := RateLimitForgotPasswordSMSValidate
+			rl := RateLimitGroupForgotPasswordSMSValidate
 			Convey("set in config", func() {
 				cfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1599,7 +1599,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("messaging.sms", func() {
-			rl := RateLimitMessagingSMS
+			rl := RateLimitGroupMessagingSMS
 			Convey("set in all configs", func() {
 				appCfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -1644,7 +1644,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingSMSName,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1749,7 +1749,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingSMSName,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1853,7 +1853,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingSMSName,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1951,7 +1951,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingSMSName,
+						RateLimitName:  RateLimitMessagingSMSPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -2015,7 +2015,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("messaging.email", func() {
-			rl := RateLimitMessagingEmail
+			rl := RateLimitGroupMessagingEmail
 			Convey("set in all configs", func() {
 				appCfg, err := config.Parse(ctx, []byte(`
           id: test
@@ -2060,7 +2060,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingEmailName,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2165,7 +2165,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingEmailName,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2269,7 +2269,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingEmailName,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2367,7 +2367,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  RateLimitMessagingEmailName,
+						RateLimitName:  RateLimitMessagingEmailPerProject,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2431,7 +2431,7 @@ func TestRateLimits(t *testing.T) {
 		})
 
 		Convey("oauth.token.client_credentials", func() {
-			rl := RateLimitOAuthTokenClientCredentials
+			rl := RateLimitGroupOAuthTokenClientCredentials
 			Convey("is enabled", func() {
 				specs := rl.ResolveBucketSpecs(nil, nil, nil, &ResolveBucketSpecOptions{
 					ClientID: clientID,
@@ -2462,14 +2462,14 @@ func TestRateLimits(t *testing.T) {
 	Convey("RateLimit.ResolveWeight", t, func() {
 		Convey("should return default weight when no weights are in context", func() {
 			ctx := context.Background()
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 1.0)
 		})
 
 		Convey("should return default weight for unnamed rate limit", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationPassword: 2.0,
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
 			var r RateLimitGroup = ""
@@ -2480,86 +2480,86 @@ func TestRateLimits(t *testing.T) {
 		Convey("should return specific weight if defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationPassword: 2.0,
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 2.0)
 		})
 
 		Convey("should return fallback weight if specific not defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationGeneral: 3.0,
+				RateLimitGroupAuthenticationGeneral: 3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			// RateLimitAuthenticationPassword falls back to RateLimitAuthenticationGeneral
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			// RateLimitGroupAuthenticationPassword falls back to RateLimitGroupAuthenticationGeneral
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 3.0)
 		})
 
 		Convey("should return specific weight even if fallback is defined", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationGeneral:  3.0,
-				RateLimitAuthenticationPassword: 2.0,
+				RateLimitGroupAuthenticationGeneral:  3.0,
+				RateLimitGroupAuthenticationPassword: 2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 2.0)
 		})
 
 		Convey("should return default weight without specific weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationGeneral: 3.0,
+				RateLimitGroupAuthenticationGeneral: 3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
 			// This one has no fallback
-			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			weight := RateLimitGroupVerificationEmailTrigger.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 1.0)
 		})
 
 		Convey("should return specific weight for rate limits without fallback", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitVerificationEmailTrigger: 5.0,
+				RateLimitGroupVerificationEmailTrigger: 5.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			weight := RateLimitGroupVerificationEmailTrigger.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 5.0)
 		})
 
 		Convey("should return 0 for negative weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationPassword: -2.0,
+				RateLimitGroupAuthenticationPassword: -2.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 0)
 		})
 
 		Convey("should return 0 for negative fallback weight", func() {
 			ctx := WithRateLimitWeights(context.Background())
 			weights := map[RateLimitGroup]float64{
-				RateLimitAuthenticationGeneral: -3.0,
+				RateLimitGroupAuthenticationGeneral: -3.0,
 			}
 			SetRateLimitWeights(ctx, weights)
-			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			weight := RateLimitGroupAuthenticationPassword.ResolveWeight(ctx)
 			So(weight, ShouldEqual, 0)
 		})
 
 		Convey("should return fallback weight for all applicable rate limits", func() {
 			limitsWithFallback := []RateLimitGroup{
-				RateLimitAuthenticationPassword,
-				RateLimitAuthenticationOOBOTPEmailValidate,
-				RateLimitAuthenticationOOBOTPSMSValidate,
-				RateLimitAuthenticationTOTP,
-				RateLimitAuthenticationRecoveryCode,
-				RateLimitAuthenticationDeviceToken,
-				RateLimitAuthenticationPasskey,
-				RateLimitAuthenticationSIWE,
+				RateLimitGroupAuthenticationPassword,
+				RateLimitGroupAuthenticationOOBOTPEmailValidate,
+				RateLimitGroupAuthenticationOOBOTPSMSValidate,
+				RateLimitGroupAuthenticationTOTP,
+				RateLimitGroupAuthenticationRecoveryCode,
+				RateLimitGroupAuthenticationDeviceToken,
+				RateLimitGroupAuthenticationPasskey,
+				RateLimitGroupAuthenticationSIWE,
 			}
 
 			for _, limit := range limitsWithFallback {
@@ -2567,7 +2567,7 @@ func TestRateLimits(t *testing.T) {
 				Convey(string(limit), func() {
 					ctx := WithRateLimitWeights(context.Background())
 					weights := map[RateLimitGroup]float64{
-						RateLimitAuthenticationGeneral: 3.0,
+						RateLimitGroupAuthenticationGeneral: 3.0,
 					}
 					SetRateLimitWeights(ctx, weights)
 					weight := limit.ResolveWeight(ctx)

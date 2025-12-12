@@ -2174,7 +2174,7 @@ func (h *TokenHandler) handleClientCredentials(
 	ratelimitOpts := ratelimit.ResolveBucketSpecOptions{
 		ClientID: client.ClientID,
 	}
-	specs := ratelimit.RateLimitOAuthTokenClientCredentials.ResolveBucketSpecs(nil, nil, nil, &ratelimitOpts)
+	specs := ratelimit.RateLimitGroupOAuthTokenClientCredentials.ResolveBucketSpecs(nil, nil, nil, &ratelimitOpts)
 	for _, spec := range specs {
 		spec := *spec
 		if err := h.checkRateLimit(ctx, spec); err != nil {
