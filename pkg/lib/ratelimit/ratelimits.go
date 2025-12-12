@@ -102,12 +102,12 @@ const (
 	RateLimitGlobalMessagingEmailPerTarget RateLimitName = "global.messaging.email.per_target"
 
 	// OAuth token client credentials rate limit names
-	RateLimitOAuthTokenClientCredentialsPerClient  RateLimitName = "oauth.token.client_credentials.per_client"
-	RateLimitOAuthTokenClientCredentialsPerProject RateLimitName = "oauth.token.client_credentials.per_project"
+	RateLimitOAuthTokenClientCredentialsPerClient  RateLimitName = "oauth.token.client_credentials.per_client"  // #nosec G101
+	RateLimitOAuthTokenClientCredentialsPerProject RateLimitName = "oauth.token.client_credentials.per_project" // #nosec G101
 
 	// OAuth Token
-	RateLimitOAuthTokenGeneralPerIP   RateLimitName = "oauth.token.general.per_ip"
-	RateLimitOAuthTokenGeneralPerUser RateLimitName = "oauth.token.general.per_user"
+	RateLimitOAuthTokenGeneralPerIP   RateLimitName = "oauth.token.general.per_ip"   // #nosec G101
+	RateLimitOAuthTokenGeneralPerUser RateLimitName = "oauth.token.general.per_user" // #nosec G101
 )
 
 const (
