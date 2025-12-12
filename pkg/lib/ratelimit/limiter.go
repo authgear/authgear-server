@@ -53,7 +53,7 @@ func (l *Limiter) Allow(ctx context.Context, spec BucketSpec) (*FailedReservatio
 // Reserve is reserveN(weight).
 // weight default is 1, but it can be modified by user.
 func (l *Limiter) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *FailedReservation, error) {
-	weight := spec.RateLimit.ResolveWeight(ctx)
+	weight := spec.RateLimitGroup.ResolveWeight(ctx)
 	return l.reserveN(ctx, spec, weight)
 }
 
@@ -89,7 +89,7 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("key", key),
 		slog.String("bucket", string(spec.Name)),
-		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("ratelimit", string(spec.RateLimitGroup)),
 		slog.Bool("ok", ok),
 		slog.Time("timeToAct", timeToAct),
 	)
@@ -105,17 +105,17 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 	logger.WithSkipStackTrace().WithSkipLogging().Error(ctx, "rate limited",
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("bucket", string(spec.Name)),
-		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("ratelimit", string(spec.RateLimitGroup)),
 		slog.String("key", key),
 		slog.Bool("ok", ok),
 		slog.Bool("ratelimit_logging", true),
 		slog.Time("timeToAct", timeToAct),
 	)
 
-	if spec.RateLimit != "" {
+	if spec.RateLimitGroup != "" {
 		// Create audit log only if the rate limit is part of the public api
 		ev := nonblocking.RateLimitBlockedEventPayload{
-			RateLimit: string(spec.RateLimit),
+			RateLimit: string(spec.RateLimitGroup),
 			Bucket:    string(spec.Name),
 		}
 		var logErr error

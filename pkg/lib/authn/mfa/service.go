@@ -52,7 +52,7 @@ func (s *Service) GenerateDeviceToken(ctx context.Context) string {
 
 func (s *Service) reserveRateLimit(
 	ctx context.Context,
-	rl ratelimit.RateLimit,
+	rl ratelimit.RateLimitGroup,
 	userID string,
 ) (reservations []*ratelimit.Reservation, err error) {
 	specs := rl.ResolveBucketSpecs(s.Config, s.FeatureConfig, s.EnvConfig, &ratelimit.ResolveBucketSpecOptions{

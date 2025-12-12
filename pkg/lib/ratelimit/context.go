@@ -7,7 +7,7 @@ import (
 
 type ratelimitWeightsContextKeyType struct{}
 
-type Weights map[RateLimit]float64
+type Weights map[RateLimitGroup]float64
 
 var ratelimitWeightsContextKey = ratelimitWeightsContextKeyType{}
 

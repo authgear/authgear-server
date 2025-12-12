@@ -8,42 +8,42 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type RateLimit string
+type RateLimitGroup string
 
 const (
 	// Authentication rate limits
-	RateLimitAuthenticationGeneral             RateLimit = "authentication.general"
-	RateLimitAuthenticationPassword            RateLimit = "authentication.password"
-	RateLimitAuthenticationOOBOTPEmailTrigger  RateLimit = "authentication.oob_otp.email.trigger"
-	RateLimitAuthenticationOOBOTPEmailValidate RateLimit = "authentication.oob_otp.email.validate"
-	RateLimitAuthenticationOOBOTPSMSTrigger    RateLimit = "authentication.oob_otp.sms.trigger"
-	RateLimitAuthenticationOOBOTPSMSValidate   RateLimit = "authentication.oob_otp.sms.validate"
-	RateLimitAuthenticationTOTP                RateLimit = "authentication.totp"
-	RateLimitAuthenticationRecoveryCode        RateLimit = "authentication.recovery_code"
-	RateLimitAuthenticationDeviceToken         RateLimit = "authentication.device_token"
-	RateLimitAuthenticationPasskey             RateLimit = "authentication.passkey"
-	RateLimitAuthenticationSIWE                RateLimit = "authentication.siwe"
-	RateLimitAuthenticationSignup              RateLimit = "authentication.signup"
-	RateLimitAuthenticationSignupAnonymous     RateLimit = "authentication.signup_anonymous"
-	RateLimitAuthenticationAccountEnumeration  RateLimit = "authentication.account_enumeration"
+	RateLimitAuthenticationGeneral             RateLimitGroup = "authentication.general"
+	RateLimitAuthenticationPassword            RateLimitGroup = "authentication.password"
+	RateLimitAuthenticationOOBOTPEmailTrigger  RateLimitGroup = "authentication.oob_otp.email.trigger"
+	RateLimitAuthenticationOOBOTPEmailValidate RateLimitGroup = "authentication.oob_otp.email.validate"
+	RateLimitAuthenticationOOBOTPSMSTrigger    RateLimitGroup = "authentication.oob_otp.sms.trigger"
+	RateLimitAuthenticationOOBOTPSMSValidate   RateLimitGroup = "authentication.oob_otp.sms.validate"
+	RateLimitAuthenticationTOTP                RateLimitGroup = "authentication.totp"
+	RateLimitAuthenticationRecoveryCode        RateLimitGroup = "authentication.recovery_code"
+	RateLimitAuthenticationDeviceToken         RateLimitGroup = "authentication.device_token"
+	RateLimitAuthenticationPasskey             RateLimitGroup = "authentication.passkey"
+	RateLimitAuthenticationSIWE                RateLimitGroup = "authentication.siwe"
+	RateLimitAuthenticationSignup              RateLimitGroup = "authentication.signup"
+	RateLimitAuthenticationSignupAnonymous     RateLimitGroup = "authentication.signup_anonymous"
+	RateLimitAuthenticationAccountEnumeration  RateLimitGroup = "authentication.account_enumeration"
 
 	// Features rate limits
-	RateLimitVerificationEmailTrigger    RateLimit = "verification.email.trigger"
-	RateLimitVerificationEmailValidate   RateLimit = "verification.email.validate"
-	RateLimitVerificationSMSTrigger      RateLimit = "verification.sms.trigger"
-	RateLimitVerificationSMSValidate     RateLimit = "verification.sms.validate"
-	RateLimitForgotPasswordEmailTrigger  RateLimit = "forgot_password.email.trigger"
-	RateLimitForgotPasswordEmailValidate RateLimit = "forgot_password.email.validate"
-	RateLimitForgotPasswordSMSTrigger    RateLimit = "forgot_password.sms.trigger"
-	RateLimitForgotPasswordSMSValidate   RateLimit = "forgot_password.sms.validate"
+	RateLimitVerificationEmailTrigger    RateLimitGroup = "verification.email.trigger"
+	RateLimitVerificationEmailValidate   RateLimitGroup = "verification.email.validate"
+	RateLimitVerificationSMSTrigger      RateLimitGroup = "verification.sms.trigger"
+	RateLimitVerificationSMSValidate     RateLimitGroup = "verification.sms.validate"
+	RateLimitForgotPasswordEmailTrigger  RateLimitGroup = "forgot_password.email.trigger"
+	RateLimitForgotPasswordEmailValidate RateLimitGroup = "forgot_password.email.validate"
+	RateLimitForgotPasswordSMSTrigger    RateLimitGroup = "forgot_password.sms.trigger"
+	RateLimitForgotPasswordSMSValidate   RateLimitGroup = "forgot_password.sms.validate"
 
 	// Messaging rate limits
-	RateLimitMessagingSMS   RateLimit = "messaging.sms"
-	RateLimitMessagingEmail RateLimit = "messaging.email"
+	RateLimitMessagingSMS   RateLimitGroup = "messaging.sms"
+	RateLimitMessagingEmail RateLimitGroup = "messaging.email"
 
 	// Token endpoint rate limits
-	RateLimitOAuthTokenGeneral           RateLimit = "oauth.token.general"            // #nosec G101
-	RateLimitOAuthTokenClientCredentials RateLimit = "oauth.token.client_credentials" // #nosec G101
+	RateLimitOAuthTokenGeneral           RateLimitGroup = "oauth.token.general"            // #nosec G101
+	RateLimitOAuthTokenClientCredentials RateLimitGroup = "oauth.token.client_credentials" // #nosec G101
 )
 
 const (
@@ -119,7 +119,7 @@ const (
 	OAuthTokenClientCredentialsPerProject BucketName = "OAuthTokenClientCredentialsPerProject"
 )
 
-func (n RateLimit) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
 	switch n {
 	// Authentication
 	case RateLimitAuthenticationGeneral:
@@ -179,7 +179,7 @@ func (n RateLimit) resolvePerIP(cfg *config.AppConfig, featureCfg *config.Featur
 	return nil
 }
 
-func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitAuthenticationOOBOTPEmailTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser, nil, nil)
@@ -194,7 +194,7 @@ func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig
 	return nil
 }
 
-func (n RateLimit) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitMessagingEmail:
 		return resolveConfig(cfg.Messaging.RateLimits.EmailPerTarget, nil, featureCfg.Messaging.RateLimits.EmailPerTarget)
@@ -204,7 +204,7 @@ func (n RateLimit) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.Fe
 	return nil
 }
 
-func (n RateLimit) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitAuthenticationGeneral:
 		return resolveConfig(cfg.Authentication.RateLimits.General.PerUserPerIP, nil, nil)
@@ -224,7 +224,7 @@ func (n RateLimit) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateLimitC
 	return nil
 }
 
-func (n RateLimit) resolvePerProject(cfg *config.AppConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerProject(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitOAuthTokenClientCredentials:
 		return resolveConfig(&config.RateLimitConfig{
@@ -236,7 +236,7 @@ func (n RateLimit) resolvePerProject(cfg *config.AppConfig) *config.RateLimitCon
 	return nil
 }
 
-func (n RateLimit) resolvePerClient(cfg *config.AppConfig) *config.RateLimitConfig {
+func (n RateLimitGroup) resolvePerClient(cfg *config.AppConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitOAuthTokenClientCredentials:
 		return resolveConfig(&config.RateLimitConfig{
@@ -257,7 +257,7 @@ type ResolveBucketSpecOptions struct {
 	ClientID  string
 }
 
-func (r RateLimit) ResolveBucketSpecs(
+func (r RateLimitGroup) ResolveBucketSpecs(
 	cfg *config.AppConfig,
 	featureCfg *config.FeatureConfig,
 	globalCfg *config.RateLimitsEnvironmentConfig,
@@ -539,7 +539,7 @@ func (r RateLimit) ResolveBucketSpecs(
 	return specs
 }
 
-func (r RateLimit) ResolveWeight(
+func (r RateLimitGroup) ResolveWeight(
 	ctx context.Context,
 ) float64 {
 	var defaultWeight float64 = 1
@@ -547,7 +547,7 @@ func (r RateLimit) ResolveWeight(
 	if weights == nil {
 		return defaultWeight
 	}
-	resolveWeight := func(selfWeightKey RateLimit, fallbackKey RateLimit) float64 {
+	resolveWeight := func(selfWeightKey RateLimitGroup, fallbackKey RateLimitGroup) float64 {
 		if selfWeight, ok := weights[selfWeightKey]; ok {
 			return selfWeight
 		}
