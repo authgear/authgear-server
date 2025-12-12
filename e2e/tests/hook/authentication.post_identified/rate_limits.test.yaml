@@ -76,6 +76,7 @@ steps:
           "info": {
             "FlowType": "login",
             "bucket_name": "VerifyPasswordPerIP",
-            "rate_limit_name": "authentication.password"
+            "rate_limit_name": "authentication.password.per_ip",
+            "rate_limit_group": "authentication.password"
           }
         }
