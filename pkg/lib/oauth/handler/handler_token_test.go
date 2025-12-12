@@ -742,6 +742,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
 					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerClient,
 					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
 					Arguments:      []string{clientID},
 					Period:         time.Minute,
@@ -750,6 +751,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
 					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerProject,
 					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
 					Period:         time.Minute,
 					Burst:          20,
@@ -787,6 +789,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
 					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerClient,
 					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
 					Arguments:      []string{clientID},
 					Period:         time.Minute,
@@ -795,6 +798,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
 					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerProject,
 					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
 					Period:         time.Minute,
 					Burst:          20,
