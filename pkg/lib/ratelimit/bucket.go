@@ -52,10 +52,11 @@ func NewCooldownSpec(name BucketName, period time.Duration, args ...string) Buck
 	}
 }
 
-func NewGlobalBucketSpec(rl RateLimitGroup, e config.RateLimitsEnvironmentConfigEntry, name BucketName, args ...string) BucketSpec {
+func NewGlobalBucketSpec(rlName RateLimitName, group RateLimitGroup, e config.RateLimitsEnvironmentConfigEntry, name BucketName, args ...string) BucketSpec {
 	return BucketSpec{
 		Name:           name,
-		RateLimitGroup: rl,
+		RateLimitName:  rlName,
+		RateLimitGroup: group,
 		Arguments:      args,
 		IsGlobal:       true,
 
