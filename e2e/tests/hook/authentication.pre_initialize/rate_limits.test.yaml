@@ -60,6 +60,7 @@ steps:
           "info": {
             "FlowType": "login",
             "bucket_name": "AccountEnumerationPerIP",
-            "rate_limit_name": "authentication.account_enumeration"
+            "rate_limit_name": "authentication.account_enumeration.per_ip",
+            "rate_limit_group": "authentication.account_enumeration"
           }
         }
