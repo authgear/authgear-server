@@ -90,6 +90,16 @@ const (
 	RateLimitMessagingSMSPerTarget   RateLimitName = "messaging.sms.per_target"
 	RateLimitMessagingEmailPerIP     RateLimitName = "messaging.email.per_ip"
 	RateLimitMessagingEmailPerTarget RateLimitName = "messaging.email.per_target"
+	// Top-level messaging rate limit names (per project)
+	RateLimitMessagingSMSName   RateLimitName = "messaging.sms.per_project"
+	RateLimitMessagingEmailName RateLimitName = "messaging.email.per_project"
+	// Global rate limit names
+	RateLimitGlobalMessagingSMS            RateLimitName = "global.messaging.sms"
+	RateLimitGlobalMessagingSMSPerIP       RateLimitName = "global.messaging.sms.per_ip"
+	RateLimitGlobalMessagingSMSPerTarget   RateLimitName = "global.messaging.sms.per_target"
+	RateLimitGlobalMessagingEmail          RateLimitName = "global.messaging.email"
+	RateLimitGlobalMessagingEmailPerIP     RateLimitName = "global.messaging.email.per_ip"
+	RateLimitGlobalMessagingEmailPerTarget RateLimitName = "global.messaging.email.per_target"
 
 	// OAuth token client credentials rate limit names
 	RateLimitOAuthTokenClientCredentialsPerClient  RateLimitName = "oauth.token.client_credentials.per_client"
@@ -388,8 +398,8 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 		return &spec
 	}
 
-	resolveGlobalBucket := func(globalEntry config.RateLimitsEnvironmentConfigEntry, bucketName BucketName, args ...string) *BucketSpec {
-		globalLimit := NewGlobalBucketSpec(r, globalEntry, bucketName, args...)
+	resolveGlobalBucket := func(globalEntry config.RateLimitsEnvironmentConfigEntry, rlName RateLimitName, bucketName BucketName, args ...string) *BucketSpec {
+		globalLimit := NewGlobalBucketSpec(rlName, r, globalEntry, bucketName, args...)
 		return &globalLimit
 	}
 
@@ -568,19 +578,19 @@ func (r RateLimitGroup) ResolveBucketSpecs(
 
 	case RateLimitMessagingSMS:
 		specs = append(specs, resolvePerProjectBucketWithConfig(cfg.Messaging.RateLimits.SMS, featureCfg.Messaging.RateLimits.SMS, MessagingSMS))
-		specs = append(specs, resolveGlobalBucket(globalCfg.SMS, MessagingSMS))
+		specs = append(specs, resolveGlobalBucket(globalCfg.SMS, RateLimitGlobalMessagingSMS, MessagingSMS))
 		specs = append(specs, resolvePerIPBucket(MessagingSMSPerIP, opts.IPAddress))
-		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerIP, MessagingSMSPerIP, opts.IPAddress))
+		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerIP, RateLimitGlobalMessagingSMSPerIP, MessagingSMSPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerTargetBucket(MessagingSMSPerTarget, opts.Target))
-		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerTarget, MessagingSMSPerTarget, opts.Target))
+		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerTarget, RateLimitGlobalMessagingSMSPerTarget, MessagingSMSPerTarget, opts.Target))
 
 	case RateLimitMessagingEmail:
 		specs = append(specs, resolvePerProjectBucketWithConfig(cfg.Messaging.RateLimits.Email, featureCfg.Messaging.RateLimits.Email, MessagingEmail))
-		specs = append(specs, resolveGlobalBucket(globalCfg.Email, MessagingEmail))
+		specs = append(specs, resolveGlobalBucket(globalCfg.Email, RateLimitGlobalMessagingEmail, MessagingEmail))
 		specs = append(specs, resolvePerIPBucket(MessagingEmailPerIP, opts.IPAddress))
-		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerIP, MessagingEmailPerIP, opts.IPAddress))
+		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerIP, RateLimitGlobalMessagingEmailPerIP, MessagingEmailPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerTargetBucket(MessagingEmailPerTarget, opts.Target))
-		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerTarget, MessagingEmailPerTarget, opts.Target))
+		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerTarget, RateLimitGlobalMessagingEmailPerTarget, MessagingEmailPerTarget, opts.Target))
 
 	case RateLimitOAuthTokenClientCredentials:
 		specs = append(specs, resolvePerClientBucket(OAuthTokenClientCredentialsPerClient, opts.ClientID))
@@ -777,7 +787,11 @@ func (n RateLimitGroup) perProjectName() RateLimitName {
 	switch n {
 	case RateLimitOAuthTokenClientCredentials:
 		return RateLimitOAuthTokenClientCredentialsPerProject
-		// For messaging and other groups where no explicit rate limit name exists,
+	case RateLimitMessagingSMS:
+		return RateLimitMessagingSMSName
+	case RateLimitMessagingEmail:
+		return RateLimitMessagingEmailName
+		// For other groups where no explicit rate limit name exists,
 		// return empty so the bucket will not include a rate_limit_name.
 	}
 	return ""

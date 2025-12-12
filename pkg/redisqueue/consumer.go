@@ -78,7 +78,7 @@ func NewConsumer(ctx context.Context, queueName redisqueue.QueueName, rateLimitC
 			Interval:    time.Millisecond * 500,
 			MaxInterval: time.Second * 10,
 		},
-		limitBucket: ratelimit.NewGlobalBucketSpec("", rateLimitConfig, taskQueueBucket, string(queueName)),
+		limitBucket: ratelimit.NewGlobalBucketSpec("", "", rateLimitConfig, taskQueueBucket, string(queueName)),
 		limiter: &ratelimit.LimiterGlobal{
 			Storage: ratelimit.NewGlobalStorageRedis(redis),
 		},

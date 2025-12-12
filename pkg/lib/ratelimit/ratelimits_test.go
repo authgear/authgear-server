@@ -1644,7 +1644,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingSMSName,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1654,7 +1654,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          1,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMS,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1674,7 +1674,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          2,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerIP,
 						Arguments:      []string{ipAddress},
@@ -1694,7 +1694,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          3,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerTarget,
 						Arguments:      []string{phone},
@@ -1749,7 +1749,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingSMSName,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1759,7 +1759,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          10,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMS,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1779,7 +1779,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          20,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerIP,
 						Arguments:      []string{ipAddress},
@@ -1799,7 +1799,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          30,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerTarget,
 						Arguments:      []string{phone},
@@ -1853,7 +1853,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingSMSName,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1863,7 +1863,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          10,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMS,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1883,7 +1883,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          20,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerIP,
 						Arguments:      []string{ipAddress},
@@ -1903,7 +1903,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          30,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerTarget,
 						Arguments:      []string{phone},
@@ -1951,7 +1951,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingSMSName,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1961,7 +1961,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          1,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMS,
 						RateLimitGroup: rl,
 						Name:           MessagingSMS,
 						Arguments:      nil,
@@ -1981,7 +1981,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          2,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerIP,
 						Arguments:      []string{ipAddress},
@@ -2001,7 +2001,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          3,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingSMSPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingSMSPerTarget,
 						Arguments:      []string{phone},
@@ -2060,7 +2060,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingEmailName,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2070,7 +2070,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          1,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmail,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2090,7 +2090,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          2,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerIP,
 						Arguments:      []string{ipAddress},
@@ -2110,7 +2110,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          3,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerTarget,
 						Arguments:      []string{target},
@@ -2165,7 +2165,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingEmailName,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2175,7 +2175,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          10,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmail,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2195,7 +2195,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          20,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerIP,
 						Arguments:      []string{ipAddress},
@@ -2215,7 +2215,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          30,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerTarget,
 						Arguments:      []string{target},
@@ -2269,7 +2269,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingEmailName,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2279,7 +2279,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          10,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmail,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2299,7 +2299,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          20,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerIP,
 						Arguments:      []string{ipAddress},
@@ -2319,7 +2319,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          30,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerTarget,
 						Arguments:      []string{target},
@@ -2367,7 +2367,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitMessagingEmailName,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2377,7 +2377,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          1,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmail,
 						RateLimitGroup: rl,
 						Name:           MessagingEmail,
 						Arguments:      nil,
@@ -2397,7 +2397,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          2,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerIP,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerIP,
 						Arguments:      []string{ipAddress},
@@ -2417,7 +2417,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:          3,
 					},
 					{
-						RateLimitName:  "",
+						RateLimitName:  RateLimitGlobalMessagingEmailPerTarget,
 						RateLimitGroup: rl,
 						Name:           MessagingEmailPerTarget,
 						Arguments:      []string{target},
