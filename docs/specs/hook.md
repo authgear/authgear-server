@@ -221,7 +221,7 @@ The constraints are enforced based on the authentication flow type:
 
 ## Using Blocking Event with Rate Limits
 
-The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit names. For a list of available rate limit names, see [the rate limit spec](./rate-limit.md).
+The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit group names. For a list of available rate limit groups, see [the rate limit spec](./rate-limit.md).
 
 Each rate limit key maps to an object with the following property:
 
@@ -263,7 +263,7 @@ For example, overriding `authentication.general` also affects other rate limits 
 
 The hook response above also applies the `weight` to `authentication.password`, `authentication.oob_otp.email.validate`, etc., because they use `authentication.general` as a fallback.
 
-At the moment, the following rate limits are supported:
+At the moment, the following rate limits groups are supported:
 - `authentication.general`
 - `authentication.account_enumeration`
 
