@@ -35,7 +35,7 @@ func (r *FailedReservation) Error() error {
 	if r == nil {
 		return nil
 	}
-	return ErrRateLimited(r.spec.RateLimitGroup, r.spec.Name)
+	return ErrRateLimited(r.spec.RateLimitName, r.spec.RateLimitGroup, r.spec.Name)
 }
 
 func (r *FailedReservation) GetTimeToAct() time.Time {

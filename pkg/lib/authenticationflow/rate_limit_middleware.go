@@ -23,7 +23,7 @@ const (
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		spec := ratelimit.NewBucketSpec("", m.Config.AuthenticationFlow.RateLimits.PerIP, AuthowAPIPerIP, string(m.RemoteIP))
+		spec := ratelimit.NewBucketSpec("", "", m.Config.AuthenticationFlow.RateLimits.PerIP, AuthowAPIPerIP, string(m.RemoteIP))
 		failedReservation, err := m.RateLimiter.Allow(ctx, spec)
 		if err != nil {
 			panic(err)
