@@ -9,7 +9,7 @@ const bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
 
-func ErrRateLimited(rl RateLimit, bucketName BucketName) error {
+func ErrRateLimited(rl RateLimitGroup, bucketName BucketName) error {
 	details := apierrors.Details{
 		bucketNameKey: bucketName,
 	}

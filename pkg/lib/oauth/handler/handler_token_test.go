@@ -129,20 +129,20 @@ func TestTokenHandler(t *testing.T) {
 					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerUser,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"user-id"},
-					Period:    time.Minute,
-					Burst:     60,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerUser,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"user-id"},
+					Period:         time.Minute,
+					Burst:          60,
+					Enabled:        true,
 				}).Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 
@@ -323,12 +323,12 @@ func TestTokenHandler(t *testing.T) {
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Times(0)
 
 				spec := ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}
 				rateLimiter.EXPECT().Allow(gomock.Any(), spec).Return(ratelimit.NewFailedReservation(spec), nil)
 
@@ -378,20 +378,20 @@ func TestTokenHandler(t *testing.T) {
 				}},
 			}
 			rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-				Name:      ratelimit.OAuthTokenPerIP,
-				RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-				Arguments: []string{"1.2.3.4"},
-				Period:    time.Minute,
-				Burst:     120,
-				Enabled:   true,
+				Name:           ratelimit.OAuthTokenPerIP,
+				RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+				Arguments:      []string{"1.2.3.4"},
+				Period:         time.Minute,
+				Burst:          120,
+				Enabled:        true,
 			}).Return(nil, nil)
 			rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-				Name:      ratelimit.OAuthTokenPerUser,
-				RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-				Arguments: []string{testUserId},
-				Period:    time.Minute,
-				Burst:     60,
-				Enabled:   true,
+				Name:           ratelimit.OAuthTokenPerUser,
+				RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+				Arguments:      []string{testUserId},
+				Period:         time.Minute,
+				Burst:          60,
+				Enabled:        true,
 			}).Return(nil, nil)
 			offlineGrantService.EXPECT().GetOfflineGrant(gomock.Any(), testOfflineGrantID).
 				AnyTimes().
@@ -508,27 +508,27 @@ func TestTokenHandler(t *testing.T) {
 			}
 			Convey("success", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
@@ -566,27 +566,27 @@ func TestTokenHandler(t *testing.T) {
 
 			Convey("request for subset of scopes", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
@@ -625,27 +625,27 @@ func TestTokenHandler(t *testing.T) {
 
 			Convey("request for invalid scopes", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
@@ -671,27 +671,27 @@ func TestTokenHandler(t *testing.T) {
 
 			Convey("request for invalid resource", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(nil, resourcescope.ErrResourceNotFound)
 
@@ -715,27 +715,27 @@ func TestTokenHandler(t *testing.T) {
 
 			Convey("request for resource not associated with client", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, resourcescope.ErrResourceNotAssociatedWithClient)
 
@@ -759,27 +759,27 @@ func TestTokenHandler(t *testing.T) {
 
 			Convey("resource uri prefixed with public origin is blocked", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenPerIP,
-					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
-					Arguments: []string{"1.2.3.4"},
-					Period:    time.Minute,
-					Burst:     120,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerClient,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Arguments: []string{clientID},
-					Period:    time.Minute,
-					Burst:     5,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
 				}).Return(nil, nil)
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
-					Name:      ratelimit.OAuthTokenClientCredentialsPerProject,
-					RateLimit: ratelimit.RateLimitOAuthTokenClientCredentials,
-					Period:    time.Minute,
-					Burst:     20,
-					Enabled:   true,
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
 				}).Return(nil, nil)
 				issuerResourceURI := origin + "/some-resource"
 				req, _ := http.NewRequest("POST", "/token", nil)

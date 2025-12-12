@@ -50,7 +50,7 @@ func (l *Limits) cancel(ctx context.Context, reservation *Reservation) {
 func (l *Limits) check(
 	ctx context.Context,
 	reservation *Reservation,
-	rl ratelimit.RateLimit,
+	rl ratelimit.RateLimitGroup,
 	opts *ratelimit.ResolveBucketSpecOptions,
 ) (err error) {
 	specs := rl.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
