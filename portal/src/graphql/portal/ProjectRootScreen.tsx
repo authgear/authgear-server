@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
@@ -13,6 +13,7 @@ const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const { appID } = useParams() as { appID: string };
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
+  const location = useLocation();
   const client = usePortalClient();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
@@ -33,9 +34,12 @@ const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
 
   useEffect(() => {
     if (!loading && app != null) {
-      navigate(path, { replace: true });
+      navigate(
+        { pathname: path, search: location.search.toString() },
+        { replace: true }
+      );
     }
-  }, [loading, app, path, navigate]);
+  }, [loading, app, path, navigate, location.search]);
 
   return <ShowLoading />;
 };

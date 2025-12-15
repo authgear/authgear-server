@@ -494,7 +494,7 @@ export function useProjectWizardForm(
           await reloadScreenNavQuery();
           setDefaultState(updatedState);
 
-          return `/project/${existingAppNodeID}`;
+          return `/project/${existingAppNodeID}?showApplyMessagingDialog=true`;
         }
       }
     },
