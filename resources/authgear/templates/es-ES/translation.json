@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "Parece que has iniciado sesi??n con una cuenta diferente. Int??ntalo de nuevo.",
   "v2.error.unknown": "Ocurrió un error desconocido. Si el problema persiste, busca asistencia en nuestro <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Foro de la comunidad</a> o contáctanos en <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "La URL que ingresaste no tiene el formato correcto. Las URL generalmente comienzan con https://, por ejemplo, https://ejemplo.com/",
-  "v2.error.usage-limit-exceeded": "[Para el desarrollador] Su proyecto ha superado el límite de uso. Revise su suscripción.",
+  "v2.error.usage-limit-exceeded": "[Al Desarrollador] Tu proyecto ha excedido el límite de uso de mensajes. Por favor, revisa tu suscripción.",
   "v2.error.username-not-allowed": "El nombre de usuario que ingresaste no está permitido. Evita usar nombres de usuario reservados como `admin`.",
   "v2.error.verification-code-format": "El código de verificación que ingresaste no tiene el formato correcto. Asegúrate de que sea un código de 6 dígitos.",
   "v2.error.verification-code-invalid": "El código de verificación es incorrecto.",

@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "Φαίνεται ότι συνδεθήκατε με διαφορετικό λογαριασμό. Παρακαλώ δοκιμάστε ξανά.",
   "v2.error.unknown": "Παρουσιάστηκε ένα άγνωστο σφάλμα. Αν το πρόβλημα επιμένει, παρακαλούμε ζητήστε βοήθεια στο <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> μας ή επικοινωνήστε μαζί μας στο <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "Η διεύθυνση URL που εισάγατε δεν είναι σε σωστή μορφή. Οι URL συνήθως ξεκινούν με https://, π.χ. https://example.com/",
-  "v2.error.usage-limit-exceeded": "[Για τον Προγραμματιστή] Το έργο σας έχει υπερβεί το όριο χρήσης. Παρακαλούμε ελέγξτε την συνδρομή σας.",
+  "v2.error.usage-limit-exceeded": "[Προς τον Προγραμματιστή] Το έργο σας έχει υπερβεί το όριο χρήσης μηνυμάτων. Παρακαλώ ελέγξτε τη συνδρομή σας.",
   "v2.error.username-not-allowed": "Το όνομα χρήστη που εισάγατε δεν επιτρέπεται. Παρακαλούμε αποφύγετε τη χρήση επιφυλασσόμενων ονομάτων χρηστών όπως `admin`.",
   "v2.error.verification-code-format": "Ο κωδικός επαλήθευσης που εισάγατε δεν είναι σε σωστή μορφή. Παρακαλούμε βεβαιωθείτε ότι είναι ένας κωδικός 6 ψηφίων.",
   "v2.error.verification-code-invalid": "Ο κωδικός επαλήθευσης είναι λανθασμένος.",

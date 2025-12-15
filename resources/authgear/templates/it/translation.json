@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "Sembra che tu abbia effettuato l''accesso con un account diverso. Per favore riprova.",
   "v2.error.unknown": "Si è verificato un errore sconosciuto. Se il problema persiste, cerca assistenza nel nostro <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum della Comunità</a> o contattaci all''indirizzo <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "L''URL inserito non è in un formato corretto. Gli URL in genere iniziano con https://, ad esempio https://example.com/",
-  "v2.error.usage-limit-exceeded": "[Allo sviluppatore] Il tuo progetto ha superato il limite di utilizzo. Per favore, rivedi il tuo abbonamento.",
+  "v2.error.usage-limit-exceeded": "[Al Sviluppatore] Il tuo progetto ha superato il limite di utilizzo dei messaggi. Si prega di rivedere il tuo abbonamento.",
   "v2.error.username-not-allowed": "Il nome utente inserito non è consentito. Evita di utilizzare nomi utente riservati come ''admin''.",
   "v2.error.verification-code-format": "Il codice di verifica inserito non è in un formato corretto. Assicurati che sia un codice a 6 cifre.",
   "v2.error.verification-code-invalid": "Il codice di verifica non è corretto.",
