@@ -16,7 +16,7 @@ func TestIPString(t *testing.T) {
 		//nolint:gosec // G115
 		sec := int64(metadata.BuildEpoch)
 		build := time.Unix(sec, 0).UTC().Format(time.RFC3339)
-		So(build, ShouldEqual, "2023-11-10T19:42:22Z")
+		So(build, ShouldEqual, "2025-12-12T09:02:25Z")
 
 		info, ok := IPString(ipStr)
 		So(ok, ShouldBeTrue)
