@@ -149,3 +149,13 @@ network_protection:
 ```
 
 This denies requests from Google, except `8.8.4.33` which allowed by the first rule.
+
+### Portal behavior
+
+The web portal may present a simplified UI for managing network protection, but it has limited capabilities and strict constraints:
+
+1. The portal will only modify a single rule named `__portal`. The portal never creates or edits other rules.
+
+2. The `default_action` field is not editable through the portal and cannot be modified by portal.
+
+3. If the portal detects that there are multiple rules present, or the single existing rule is not named `__portal`, the portal UI will be disabled and no changes will be allowed. This is to prevent overwritting existing config accidentally.
