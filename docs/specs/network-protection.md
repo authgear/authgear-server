@@ -2,10 +2,11 @@
 
 This document specifies project-level network protection configurations.
 
-- [IP Blocklist](#ip-blocklist)
+ - [IP Filter](#ip-filter)
   - [authgear.yaml](#authgearyaml)
   - [Error response](#error-response)
   - [Use cases](#use-cases)
+  - [Portal behavior](#portal-behavior)
 
 ## IP Filter
 
@@ -156,6 +157,6 @@ The web portal may present a simplified UI for managing network protection, but 
 
 1. The portal will only modify a single rule named `__portal`. The portal never creates or edits other rules.
 
-2. The `default_action` field is not editable through the portal and cannot be modified by portal.
+2. The `default_action` field is not editable through the portal and cannot be modified by the portal.
 
-3. If the portal detects that there are multiple rules present, or the single existing rule is not named `__portal`, the portal UI will be disabled and no changes will be allowed. This is to prevent overwritting existing config accidentally.
+3. If the portal detects that there are multiple rules present, or the single existing rule is not named `__portal`, the portal UI will be disabled and no portal-managed changes will be allowed to prevent accidentally overwriting existing configuration.
