@@ -39,6 +39,7 @@ interface NavLinkGroup {
   type: "group";
   textKey: string;
   urlPrefix: string;
+  url?: string;
   children: NavLink[];
 }
 
@@ -297,9 +298,17 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         ],
       },
       {
-        type: "link" as const,
-        textKey: "ScreenNav.bot-protection",
-        url: `/project/${appID}/bot-protection`,
+        type: "group" as const,
+        textKey: "ScreenNav.attack-protection",
+        urlPrefix: `/project/${appID}/attack-protection`,
+        url: `/project/${appID}/attack-protection`,
+        children: [
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.bot-protection",
+            url: `/project/${appID}/attack-protection/bot-protection`,
+          },
+        ],
       },
       ...(showIntegrations
         ? [
@@ -437,7 +446,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               pathname.startsWith(item.urlPrefix),
             key: item.urlPrefix,
             name: renderToString(item.textKey),
-            url: "",
+            url: item.url ?? "",
             links: item.children.map(navItem),
           };
         }
