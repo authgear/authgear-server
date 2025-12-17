@@ -250,11 +250,8 @@ function getButtonStates(data: AccountStatus): ButtonStates {
   const accountValidUntil =
     data.accountValidUntil != null ? new Date(data.accountValidUntil) : null;
   const outsideValidPeriod =
-    accountValidFrom != null
-      ? now.getTime() < accountValidFrom.getTime()
-      : accountValidUntil != null
-      ? now.getTime() >= accountValidUntil.getTime()
-      : false;
+    (accountValidFrom != null && now.getTime() < accountValidFrom.getTime()) ||
+    (accountValidUntil != null && now.getTime() >= accountValidUntil.getTime());
   const insideValidPeriod = !outsideValidPeriod;
 
   const temporarilyDisabledFrom =
