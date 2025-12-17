@@ -56,8 +56,7 @@
 /pkg/auth/handler/saml/logout.go:622:31: requestcontext
 /pkg/auth/handler/webapp/account_status.go:48:27: requestcontext
 /pkg/auth/handler/webapp/app_static_assets.go:39:33: requestcontext
-/pkg/auth/handler/webapp/auth_entry_point_middleware.go:31:31: requestcontext
-/pkg/auth/handler/webapp/auth_entry_point_middleware.go:32:35: requestcontext
+/pkg/auth/handler/webapp/auth_entry_point_middleware.go:35:10: requestcontext
 /pkg/auth/handler/webapp/authflow_change_password.go:96:26: requestcontext
 /pkg/auth/handler/webapp/authflow_controller.go:1034:30: requestcontext
 /pkg/auth/handler/webapp/authflow_controller.go:1039:24: requestcontext
