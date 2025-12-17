@@ -811,15 +811,18 @@ const AppRoot: React.VFC = function AppRoot() {
               </Route>
             </Route>
           </Route>
-          <Route path="bot-protection">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <BotProtectionConfigurationScreen />
-                </Suspense>
-              }
-            />
+
+          <Route path="attack-protection">
+            <Route path="bot-protection">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <BotProtectionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
 
           <Route path="integrations">
