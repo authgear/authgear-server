@@ -1372,7 +1372,7 @@
 
   "AdminAPIConfigurationScreen.title": "Admin API",
   "AdminAPIConfigurationScreen.description": "The Admin API allows your server to manage your project and users via a GraphQL endpoint.",
-  "AdminAPIConfigurationScreen.keys.title": "List of Admin API keys",
+  "AdminAPIConfigurationScreen.keys.title": "Admin API keys",
   "AdminAPIConfigurationScreen.keys.generate.label": "Generate new key pair",
   "AdminAPIConfigurationScreen.keys.generate.warning": "Max. 2 keys per project",
   "AdminAPIConfigurationScreen.keys.delete.tooltip": "At least 1 key per project",
@@ -1382,10 +1382,13 @@
   "AdminAPIConfigurationScreen.column.key-id": "Key ID",
   "AdminAPIConfigurationScreen.column.created-at": "Created At",
   "AdminAPIConfigurationScreen.graphiql.title": "GraphiQL Explorer",
-  "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL}}.{br, react}On your server you should always use the Admin API endpoint and the API keys.",
+  "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with GraphiQL.{br, react}On your server you should always use the Admin API endpoint and the API keys.",
   "AdminAPIConfigurationScreen.graphiql.warning": "Please beware this is {strong, react, children{NOT}} a sandbox environment, changes are made to {strong, react, children{REAL DATA}}.",
+  "AdminAPIConfigurationScreen.graphiql.open": "Open GraphiQL Explorer",
+  "AdminAPIConfigurationScreen.details.title": "Details",
+  "AdminAPIConfigurationScreen.details.description": "Accessing the Admin API GraphQL endpoint requires your server to generate a valid JWT and include it as {code, react, children{Authorization}} HTTP header. Read the {DocLink, react, href{https://docs.authgear.com/reference/apis/admin-api} children{Admin API documentation}} for more details.",
   "AdminAPIConfigurationScreen.api-endpoint.title": "API Endpoint",
-  "AdminAPIConfigurationScreen.api-endpoint.description": "Accessing the Admin API GraphQL endpoint requires your server to generate a valid JWT and include it as {code, react, children{Authorization}} HTTP header. Read {DocLink, react, href{https://docs.authgear.com/reference/apis/admin-api} children{the doc}} for more details.",
+  "AdminAPIConfigurationScreen.project-id.title": "Project ID",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

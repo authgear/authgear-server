@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogFooter,
 } from "@fluentui/react";
+import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
@@ -30,9 +31,7 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.css";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
 import DefaultButton from "../../DefaultButton";
@@ -42,6 +41,9 @@ import { useProvideError } from "../../hook/error";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
+import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -112,10 +114,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
       publicOrigin != null ? publicOrigin + "/_api/admin/graphql" : "";
-
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: adminAPIEndpoint,
-    });
+    const rawAppID = effectiveAppConfig?.id;
 
     const graphqlEndpoint = useMemo(() => {
       const base = makeGraphQLEndpoint(appID);
@@ -207,6 +206,22 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         .finally(dismissDialogAndResetDeleteKeyID);
     }, [deleteKey, deleteKeyID, dismissDialogAndResetDeleteKeyID]);
 
+    const keyIDColumnOnRender = useCallback((item?: Item) => {
+      return (
+        <span className={cn("flex", "items-center", "h-full")}>
+          <TextWithCopyButton text={item?.keyID ?? ""} />
+        </span>
+      );
+    }, []);
+
+    const createdAtColumnOnRender = useCallback((item?: Item) => {
+      return (
+        <span className={cn("flex", "items-center", "h-full")}>
+          {item?.createdAt ?? ""}
+        </span>
+      );
+    }, []);
+
     const actionColumnOnRender = useCallback(
       (item?: Item, index?: number) => {
         const deleteButtonID = `delete-button-${index}`;
@@ -214,7 +229,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           target: `#${deleteButtonID}`,
         };
         return (
-          <section>
+          <section className={cn("flex", "items-center", "h-full")}>
             <ActionButton
               className={styles.actionButton}
               theme={themes.actionButton}
@@ -276,12 +291,14 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           fieldName: "keyID",
           name: renderToString("AdminAPIConfigurationScreen.column.key-id"),
           minWidth: 150,
+          onRender: keyIDColumnOnRender,
         },
         {
           key: "createdAt",
           fieldName: "createdAt",
           name: renderToString("AdminAPIConfigurationScreen.column.created-at"),
           minWidth: 220,
+          onRender: createdAtColumnOnRender,
         },
         {
           key: "action",
@@ -290,7 +307,12 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           onRender: actionColumnOnRender,
         },
       ];
-    }, [renderToString, actionColumnOnRender]);
+    }, [
+      renderToString,
+      keyIDColumnOnRender,
+      createdAtColumnOnRender,
+      actionColumnOnRender,
+    ]);
 
     return (
       <>
@@ -304,39 +326,25 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
             </ScreenDescription>
             <Widget className={styles.widget}>
               <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
+                <FormattedMessage id="AdminAPIConfigurationScreen.details.title" />
               </WidgetTitle>
+              <TextFieldWithCopyButton
+                label={renderToString(
+                  "AdminAPIConfigurationScreen.api-endpoint.title"
+                )}
+                value={adminAPIEndpoint}
+                readOnly={true}
+              />
+              <TextFieldWithCopyButton
+                label={renderToString(
+                  "AdminAPIConfigurationScreen.project-id.title"
+                )}
+                value={rawAppID}
+                readOnly={true}
+              />
               <WidgetDescription>
-                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
+                <FormattedMessage id="AdminAPIConfigurationScreen.details.description" />
               </WidgetDescription>
-              <div className={styles.copyButtonGroup}>
-                <TextField
-                  type="text"
-                  readOnly={true}
-                  value={adminAPIEndpoint}
-                  className={styles.copyTextField}
-                />
-                <PrimaryButton {...copyButtonProps} iconProps={undefined} />
-                <Feedback />
-              </div>
-            </Widget>
-            <HorizontalDivider className={styles.separator} />
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage
-                  id="AdminAPIConfigurationScreen.graphiql.description"
-                  values={{ graphqlEndpoint }}
-                />
-              </WidgetDescription>
-              <MessageBar
-                messageBarType={MessageBarType.warning}
-                styles={messageBarStyles}
-              >
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
-              </MessageBar>
             </Widget>
             <HorizontalDivider className={styles.separator} />
             <Widget className={styles.widget}>
@@ -371,6 +379,33 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   }
                 />
               )}
+            </Widget>
+            <HorizontalDivider className={styles.separator} />
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+              </WidgetTitle>
+              <MessageBar
+                messageBarType={MessageBarType.warning}
+                styles={messageBarStyles}
+              >
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+              </MessageBar>
+              <WidgetDescription>
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.graphiql.description"
+                  values={{ graphqlEndpoint }}
+                />
+              </WidgetDescription>
+              <div>
+                <DefaultButton
+                  {...DEFAULT_EXTERNAL_LINK_PROPS}
+                  href={graphqlEndpoint}
+                  text={
+                    <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.open" />
+                  }
+                />
+              </div>
             </Widget>
           </ScreenContent>
         </ScreenLayoutScrollView>
