@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogFooter,
 } from "@fluentui/react";
+import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
@@ -42,6 +43,7 @@ import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenM
 import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
+import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -204,6 +206,22 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         .finally(dismissDialogAndResetDeleteKeyID);
     }, [deleteKey, deleteKeyID, dismissDialogAndResetDeleteKeyID]);
 
+    const keyIDColumnOnRender = useCallback((item?: Item) => {
+      return (
+        <span className={cn("flex", "items-center", "h-full")}>
+          <TextWithCopyButton text={item?.keyID ?? ""} />
+        </span>
+      );
+    }, []);
+
+    const createdAtColumnOnRender = useCallback((item?: Item) => {
+      return (
+        <span className={cn("flex", "items-center", "h-full")}>
+          {item?.createdAt ?? ""}
+        </span>
+      );
+    }, []);
+
     const actionColumnOnRender = useCallback(
       (item?: Item, index?: number) => {
         const deleteButtonID = `delete-button-${index}`;
@@ -211,7 +229,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           target: `#${deleteButtonID}`,
         };
         return (
-          <section>
+          <section className={cn("flex", "items-center", "h-full")}>
             <ActionButton
               className={styles.actionButton}
               theme={themes.actionButton}
@@ -273,12 +291,14 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           fieldName: "keyID",
           name: renderToString("AdminAPIConfigurationScreen.column.key-id"),
           minWidth: 150,
+          onRender: keyIDColumnOnRender,
         },
         {
           key: "createdAt",
           fieldName: "createdAt",
           name: renderToString("AdminAPIConfigurationScreen.column.created-at"),
           minWidth: 220,
+          onRender: createdAtColumnOnRender,
         },
         {
           key: "action",
@@ -287,7 +307,12 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           onRender: actionColumnOnRender,
         },
       ];
-    }, [renderToString, actionColumnOnRender]);
+    }, [
+      renderToString,
+      keyIDColumnOnRender,
+      createdAtColumnOnRender,
+      actionColumnOnRender,
+    ]);
 
     return (
       <>
