@@ -1,4 +1,4 @@
-import { visit, cache } from "@hotwired/turbo";
+import { visit, cache, session, PageSnapshot } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios from "axios";
 import { progressEventHandler } from "../loading";
@@ -83,6 +83,16 @@ export class TurboFormController extends Controller {
         onUploadProgress: progressEventHandler,
         onDownloadProgress: progressEventHandler,
       });
+
+      if (typeof resp.data === "string") {
+        // Not a json, it could be an error page.
+        // Display it.
+        // Ref: https://github.com/hotwired/turbo/blob/main/src/core/drive/navigator.js#L92-L107
+        const snapshot = PageSnapshot.fromHTMLString(resp.data);
+        await session.view.renderPage(snapshot, false, true);
+        session.view.clearSnapshotCache();
+        return;
+      }
 
       const { redirect_uri, action } = resp.data;
 
