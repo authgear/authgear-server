@@ -933,6 +933,8 @@ export function AccountStatusDialog(
       } else if (date.getTime() > accountValidUntil.getTime()) {
         setAccountValidFrom(accountValidUntil);
         setAccountValidUntil(date);
+      } else if (date.getTime() === accountValidUntil.getTime()) {
+        setAccountValidFrom(new Date(date.getTime() - 60 * 60 * 1000));
       } else {
         setAccountValidFrom(date);
       }
@@ -948,6 +950,8 @@ export function AccountStatusDialog(
       } else if (date.getTime() < accountValidFrom.getTime()) {
         setAccountValidFrom(date);
         setAccountValidUntil(accountValidFrom);
+      } else if (date.getTime() === accountValidFrom.getTime()) {
+        setAccountValidUntil(new Date(date.getTime() + 60 * 60 * 1000));
       } else {
         setAccountValidUntil(date);
       }
