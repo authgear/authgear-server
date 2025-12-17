@@ -328,6 +328,11 @@ export type GenerateAppSecretVisitTokenPayloadPayload = {
   token: Scalars['String']['output'];
 };
 
+export type GenerateShortLivedAdminApiTokenPayload = {
+  __typename?: 'GenerateShortLivedAdminAPITokenPayload';
+  token: Scalars['String']['output'];
+};
+
 export type GenerateStripeCustomerPortalSessionInput = {
   /** Target app ID. */
   appID: Scalars['ID']['input'];
@@ -375,6 +380,8 @@ export type Mutation = {
   deleteDomain: DeleteDomainPayload;
   /** Generate a token for visiting app secrets */
   generateAppSecretVisitToken: GenerateAppSecretVisitTokenPayloadPayload;
+  /** Generate short-lived admin API token */
+  generateShortLivedAdminAPIToken?: Maybe<GenerateShortLivedAdminApiTokenPayload>;
   /** Generate Stripe customer portal session */
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
   /** Generate a token for tester */
@@ -458,6 +465,11 @@ export type MutationDeleteDomainArgs = {
 
 export type MutationGenerateAppSecretVisitTokenArgs = {
   input: GenerateAppSecretVisitTokenInput;
+};
+
+
+export type MutationGenerateShortLivedAdminApiTokenArgs = {
+  input: GenerateShortLivedAdminApiTokenInput;
 };
 
 
@@ -1080,6 +1092,13 @@ export type WebhookSecret = {
 export type CancelFailedSubscriptionInput = {
   /** Target app ID. */
   appID: Scalars['ID']['input'];
+};
+
+export type GenerateShortLivedAdminApiTokenInput = {
+  /** App ID to generate token for. */
+  appID: Scalars['ID']['input'];
+  /** App secret visit token. */
+  appSecretVisitToken: Scalars['String']['input'];
 };
 
 /** OAuth client secret item */
