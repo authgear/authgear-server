@@ -251,6 +251,25 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
+
+		if len(step.HTTPRequestQuery) > 0 {
+			u, err := url.Parse(requesturl)
+			if err != nil {
+				t.Errorf("failed to parse http_request_url: %v", err)
+				return nil, state, false
+			}
+			q := u.Query()
+			for k, v := range step.HTTPRequestQuery {
+				renderedValue, templateOk := renderTemplateString(t, cmd, prevSteps, v)
+				if !templateOk {
+					return nil, state, false
+				}
+				q.Set(k, renderedValue)
+			}
+			u.RawQuery = q.Encode()
+			requesturl = u.String()
+		}
+
 		if step.HTTPRequestSessionCookie != nil {
 			client.InjectSession(
 				step.HTTPRequestSessionCookie.IDPSessionID,

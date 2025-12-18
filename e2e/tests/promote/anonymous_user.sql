@@ -14,7 +14,7 @@ INSERT INTO _auth_user (
   NOW(),
   NOW(),
   FALSE,
-  '{}'
+  '{"testuserid": "1"}'
 );
 
 INSERT INTO _auth_identity (

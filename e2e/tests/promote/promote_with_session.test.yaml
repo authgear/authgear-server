@@ -1,0 +1,48 @@
+name: Promote with session
+before:
+  - type: custom_sql
+    custom_sql:
+      path: anonymous_user.sql
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-idp-session-1
+      token: e2eidpsessiontoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'testuserid' = '1';
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/promotion_code
+    http_request_headers:
+      content-type: application/json
+      Cookie: session=e2e-idp-session-1.e2eidpsessiontoken1;
+    http_request_body: '{"session_type": "cookie"}'
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "expire_at": "[[string]]",
+            "promotion_code": "[[string]]"
+          }
+        }
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_headers:
+      Cookie: session=e2e-idp-session-1.e2eidpsessiontoken1;
+    http_request_query:
+      response_type: none
+      scope: openid https://authgear.com/scopes/full-access
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      state: promote
+      prompt: login
+      login_hint: https://authgear.com/login_hint?type=anonymous&promotion_code={{.prev.result.promotion_code}}
+      x_sso_enabled: "true"
+    http_output:
+      http_status: 200
+  
