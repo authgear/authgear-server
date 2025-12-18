@@ -155,7 +155,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			}
 		}
 
-		if loginHint != nil && session != nil {
+		if loginHint != nil && session != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
 			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
 			if err != nil {
 				return err

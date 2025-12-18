@@ -145,7 +145,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 	// Ignore any session that does not match login_hint
 	ctrl.BeforeHandle(func(ctx context.Context) error {
-		if loginHint != nil && session != nil {
+		if loginHint != nil && session != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
 			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
