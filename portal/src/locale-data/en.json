@@ -177,6 +177,7 @@
   "ScreenNav.custom-attributes": "Custom Attributes",
   "ScreenNav.attack-protection": "Attack Protection",
   "ScreenNav.bot-protection": "Bot Protection",
+  "ScreenNav.ip-blocklist": "IP Blocklist",
   "ScreenNav.hooks": "Hooks",
   "ScreenNav.billing": "Billing",
   "ScreenNav.license": "License",
@@ -1922,6 +1923,9 @@
   "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
   "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
+
+  "IPBlocklistScreen.title": "IP Blocklist",
+  "AttackProtectionScreen.title": "Attack Protection",
 
   "BotProtectionConfigurationScreen.title": "Bot Protection",
   "BotProtectionConfigurationScreen.description": "Detect automation tool attacks and block with CAPTCHA challenges.",
