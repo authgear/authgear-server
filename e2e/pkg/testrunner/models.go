@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -614,6 +615,7 @@ type StepResult struct {
 
 type ResultHTTPResponse struct {
 	HTTPResponseHeaders map[string]string `json:"http_response_headers"`
+	HTTPJSONBody        map[string]any    `json:"http_json_body"`
 	SAMLRelayState      string            `json:"saml_relay_state"`
 }
 
@@ -625,8 +627,18 @@ func NewResultHTTPResponse(r *http.Response) *ResultHTTPResponse {
 
 	samlRelayState := extractRelayState(r)
 
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err == nil {
+		r.Body.Close()
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+	var jsonBodyMap map[string]any
+	// Just ignore the error if it is not a json
+	_ = json.Unmarshal(bodyBytes, &jsonBodyMap)
+
 	return &ResultHTTPResponse{
 		HTTPResponseHeaders: headers,
+		HTTPJSONBody:        jsonBodyMap,
 		SAMLRelayState:      samlRelayState,
 	}
 }
