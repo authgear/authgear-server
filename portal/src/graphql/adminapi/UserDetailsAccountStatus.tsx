@@ -250,11 +250,8 @@ function getButtonStates(data: AccountStatus): ButtonStates {
   const accountValidUntil =
     data.accountValidUntil != null ? new Date(data.accountValidUntil) : null;
   const outsideValidPeriod =
-    accountValidFrom != null
-      ? now.getTime() < accountValidFrom.getTime()
-      : accountValidUntil != null
-      ? now.getTime() >= accountValidUntil.getTime()
-      : false;
+    (accountValidFrom != null && now.getTime() < accountValidFrom.getTime()) ||
+    (accountValidUntil != null && now.getTime() >= accountValidUntil.getTime());
   const insideValidPeriod = !outsideValidPeriod;
 
   const temporarilyDisabledFrom =
@@ -936,6 +933,8 @@ export function AccountStatusDialog(
       } else if (date.getTime() > accountValidUntil.getTime()) {
         setAccountValidFrom(accountValidUntil);
         setAccountValidUntil(date);
+      } else if (date.getTime() === accountValidUntil.getTime()) {
+        setAccountValidFrom(new Date(date.getTime() - 60 * 60 * 1000));
       } else {
         setAccountValidFrom(date);
       }
@@ -951,6 +950,8 @@ export function AccountStatusDialog(
       } else if (date.getTime() < accountValidFrom.getTime()) {
         setAccountValidFrom(date);
         setAccountValidUntil(accountValidFrom);
+      } else if (date.getTime() === accountValidFrom.getTime()) {
+        setAccountValidUntil(new Date(date.getTime() + 60 * 60 * 1000));
       } else {
         setAccountValidUntil(date);
       }
