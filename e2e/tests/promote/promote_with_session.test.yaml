@@ -45,4 +45,5 @@ steps:
       x_sso_enabled: "true"
     http_output:
       http_status: 200
+      redirect_path: /flows/promote_user
   

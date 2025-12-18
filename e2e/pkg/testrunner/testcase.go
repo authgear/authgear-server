@@ -716,6 +716,18 @@ func validateRedirectLocation(t *testing.T, expectedPath string, response *http.
 	return ok
 }
 
+func validateRedirectInLastRequest(t *testing.T, expectedPath string, response *http.Response) (ok bool) {
+	ok = true
+	if response.Request.URL.Path != expectedPath {
+		ok = false
+		t.Errorf("redirect path unmatch. expected: %s, actual: %s",
+			expectedPath,
+			response.Request.URL.Path,
+		)
+	}
+	return ok
+}
+
 func validateSAMLElement(t *testing.T, expected *OuputSAMLElement, httpResponse *http.Response) (ok bool) {
 	ok = true
 
@@ -900,7 +912,7 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		}
 	}
 	if httpOutput.RedirectPath != nil {
-		if !validateRedirectLocation(t,
+		if !validateRedirectInLastRequest(t,
 			*httpOutput.RedirectPath,
 			response,
 		) {
