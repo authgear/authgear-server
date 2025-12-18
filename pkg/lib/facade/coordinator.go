@@ -1765,7 +1765,7 @@ func (c *Coordinator) GetUserByOAuth(ctx context.Context, oauthProviderAlias str
 	return info.UserID, nil
 }
 
-func (c *Coordinator) GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
+func (c *Coordinator) GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
 	if hint.Type != oauth.LoginHintTypeLoginID {
 		panic("Only login_hint with type login_id is supported")
 	}

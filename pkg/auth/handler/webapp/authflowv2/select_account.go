@@ -36,7 +36,7 @@ type SelectAccountUserService interface {
 }
 
 type SelectAccountUserFacade interface {
-	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type SelectAccountIdentityService interface {
@@ -156,7 +156,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		}
 
 		if loginHint != nil && session != nil {
-			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(ctx, loginHint)
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
 			}

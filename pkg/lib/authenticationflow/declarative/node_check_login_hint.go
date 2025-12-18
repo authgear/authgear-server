@@ -60,7 +60,7 @@ func (n *NodeCheckLoginHint) check(ctx context.Context, deps *authflow.Dependenc
 }
 
 func (n *NodeCheckLoginHint) checkEnforcedLoginID(ctx context.Context, deps *authflow.Dependencies, hint *oauth.LoginHint) error {
-	userIDs, err := deps.UserFacade.GetUserIDsByLoginHint(ctx, hint)
+	userIDs, err := deps.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, hint)
 	if err != nil {
 		return err
 	}

@@ -244,7 +244,7 @@ type LDAPClientFactory interface {
 }
 
 type UserFacade interface {
-	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type Dependencies struct {

@@ -35,7 +35,7 @@ type SelectAccountUserService interface {
 }
 
 type SelectAccountUserFacade interface {
-	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type SelectAccountIdentityService interface {
@@ -146,7 +146,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	// Ignore any session that does not match login_hint
 	ctrl.BeforeHandle(func(ctx context.Context) error {
 		if loginHint != nil && session != nil {
-			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(ctx, loginHint)
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
 			}

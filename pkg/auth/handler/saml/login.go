@@ -329,7 +329,7 @@ func (h *LoginHandler) finishWithoutUI(
 	// Ignore any session that does not match login_hint
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		if loginHint != nil && resolvedSession != nil {
-			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(ctx, loginHint)
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
 			}
