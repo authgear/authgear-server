@@ -64,7 +64,7 @@
     "node-html-parser": "^7.0.1",
     "playwright": "^1.56.1",
     "prettier": "^2.8.8",
-    "storybook": "^9.1.16",
+    "storybook": "^9.1.17",
     "storybook-addon-pseudo-states": "^9.1.16",
     "stylelint": "^16.25.0",
     "tailwindcss": "^3.4.18",
