@@ -39,12 +39,15 @@ export function IPBlocklistForm({
           name: opt.text,
         }));
       }
-      return [
-        {
-          key: filter.toUpperCase(),
-          name: filter.toUpperCase(),
-        },
-      ];
+      if (filter.length === 2) {
+        return [
+          {
+            key: filter.toUpperCase(),
+            name: filter.toUpperCase(),
+          },
+        ];
+      }
+      return [];
     },
     [alpha2Options]
   );
@@ -128,7 +131,9 @@ export function IPBlocklistForm({
               className="flex-1"
               label={renderToString("IPBlocklistForm.check-ip-address.label")}
             />
-            <PrimaryButton text={renderToString("IPBlocklistForm.check-ip-address.button")} />
+            <PrimaryButton
+              text={renderToString("IPBlocklistForm.check-ip-address.button")}
+            />
           </div>
         </>
       ) : null}
