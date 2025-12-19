@@ -1,0 +1,15 @@
+mutation CheckIPMutation(
+  $appID: ID!
+  $ipAddress: String!
+  $cidrs: [String!]!
+  $countryCodes: [String!]!
+) {
+  checkIP(
+    input: {
+      appID: $appID
+      ipAddress: $ipAddress
+      cidrs: $cidrs
+      countryCodes: $countryCodes
+    }
+  )
+}
