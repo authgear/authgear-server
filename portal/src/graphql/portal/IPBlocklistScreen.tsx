@@ -8,12 +8,19 @@ import FormContainer from "../../FormContainer";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { useParams } from "react-router-dom";
 import { PortalAPIAppConfig } from "../../types";
-import { IPBlocklistForm } from "../../components/ipblocklist/IPBlocklistForm";
+import {
+  IPBlocklistForm,
+  IPBlocklistFormState,
+} from "../../components/ipblocklist/IPBlocklistForm";
 
-interface FormState {}
+interface FormState extends IPBlocklistFormState {}
 
 function constructFormState(_config: PortalAPIAppConfig): FormState {
-  return {};
+  return {
+    isEnabled: false,
+    blockedIPCIDRs: "",
+    blockedCountryAlpha2s: [],
+  };
 }
 
 function constructConfig(
@@ -60,7 +67,10 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
         </ScreenDescription>
       </ScreenContent>
       <div className={styles.widget}>
-        <IPBlocklistForm />
+        <IPBlocklistForm
+          state={appConfigForm.state}
+          setState={appConfigForm.setState}
+        />
       </div>
     </FormContainer>
   );
