@@ -1,12 +1,43 @@
 package graphql
 
 import (
+	"context"
+
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
+
+var checkIPInputSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"ipAddress": {
+				"type": "string",
+				"format": "x_ip"
+			},
+			"cidrs": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"format": "x_cidr"
+				}
+			},
+			"countryCodes": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"minLength": 2,
+					"maxLength": 2
+				}
+			}
+		},
+		"required": ["ipAddress", "cidrs", "countryCodes"]
+	}
+`)
 
 var checkIPInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "CheckIPInput",
@@ -42,6 +73,12 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
+
+			err := checkIPInputSchema.Validator().ValidateValue(context.Background(), input)
+			if err != nil {
+				return nil, err
+			}
+
 			appNodeID := input["appID"].(string)
 			ipAddress := input["ipAddress"].(string)
 			cidrs := input["cidrs"].([]interface{})
@@ -57,7 +94,7 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -72,10 +109,7 @@ var _ = registerMutationField(
 				countryCodesStr[i] = v.(string)
 			}
 
-			ok, err := gqlCtx.IPBlocklistService.CheckIP(ctx, ipAddress, cidrsStr, countryCodesStr)
-			if err != nil {
-				return false, err
-			}
+			ok := gqlCtx.IPBlocklistService.CheckIP(ctx, ipAddress, cidrsStr, countryCodesStr)
 			return ok, nil
 		},
 	},

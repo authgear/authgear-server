@@ -64,6 +64,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
 	jsonschemaformat.DefaultChecker["x_public_https_url"] = FormatPublicHTTPSURL{}
 	jsonschemaformat.DefaultChecker["x_cidr"] = FormatCIDR{}
+	jsonschemaformat.DefaultChecker["x_ip"] = FormatIP{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -699,4 +700,18 @@ func (FormatPublicHTTPSURL) CheckFormat(ctx context.Context, value interface{}) 
 	}
 
 	return urlutil.ValidateHTTPSStrict(str)
+}
+
+// FormatIP checks if input is a valid IP address.
+type FormatIP struct{}
+
+func (f FormatIP) CheckFormat(ctx context.Context, value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+	if ip := net.ParseIP(str); ip == nil {
+		return fmt.Errorf("invalid IP address: %v", str)
+	}
+	return nil
 }
