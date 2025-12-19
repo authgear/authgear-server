@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"context"
-
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
@@ -74,7 +72,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			err := checkIPInputSchema.Validator().ValidateValue(context.Background(), input)
+			err := checkIPInputSchema.Validator().ValidateValue(p.Context, input)
 			if err != nil {
 				return nil, err
 			}
