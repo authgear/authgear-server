@@ -2,6 +2,7 @@ package nonblocking
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 const (
@@ -9,8 +10,7 @@ const (
 )
 
 type RateLimitBlockedEventPayload struct {
-	RateLimit string `json:"rate_limit"`
-	Bucket    string `json:"bucket"`
+	RateLimit model.RateLimit `json:"rate_limit"`
 }
 
 func (e *RateLimitBlockedEventPayload) NonBlockingEventType() event.Type {

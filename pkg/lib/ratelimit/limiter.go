@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -115,8 +116,10 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 	if spec.RateLimitGroup != "" {
 		// Create audit log only if the rate limit is part of the public api
 		ev := nonblocking.RateLimitBlockedEventPayload{
-			RateLimit: string(spec.RateLimitGroup),
-			Bucket:    string(spec.Name),
+			RateLimit: model.RateLimit{
+				Name:  string(spec.RateLimitName),
+				Group: string(spec.RateLimitGroup),
+			},
 		}
 		var logErr error
 		// Limiter might be used outside transaction, so we need to check if there is an open transaction first.
