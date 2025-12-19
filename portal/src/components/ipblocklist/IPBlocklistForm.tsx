@@ -1,11 +1,13 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context as MessageContext } from "@oursky/react-messageformat";
+import { useParams } from "react-router-dom";
 import Toggle from "../../Toggle";
 import TextField from "../../TextField";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
-import { ITag } from "@fluentui/react";
-import PrimaryButton from "../../PrimaryButton";
+import { ITag, Label } from "@fluentui/react";
+import { useCheckIPMutation } from "../../graphql/portal/mutations/checkIPMutation";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 export interface IPBlocklistFormState {
   isEnabled: boolean;
@@ -16,6 +18,11 @@ export interface IPBlocklistFormState {
 export interface IPBlocklistFormProps {
   state: IPBlocklistFormState;
   setState: (fn: (state: IPBlocklistFormState) => IPBlocklistFormState) => void;
+}
+
+interface IPCheckResult {
+  ipAddress: string;
+  result: boolean;
 }
 
 export function IPBlocklistForm({
@@ -90,6 +97,42 @@ export function IPBlocklistForm({
     });
   }, [state.blockedCountryAlpha2s, alpha2Options]);
 
+  const { appID } = useParams() as { appID: string };
+  const {
+    checkIP,
+    loading: checkingIP,
+    error: checkIPError,
+  } = useCheckIPMutation(appID);
+  const [ipToCheck, setIPToCheck] = useState("");
+  const [checkIPResult, setCheckIPResult] = useState<IPCheckResult | null>(
+    null
+  );
+
+  const onIPToCheckChange = useCallback(
+    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setIPToCheck(e.currentTarget.value);
+    },
+    []
+  );
+
+  const onCheckIP = useCallback(() => {
+    checkIP(
+      ipToCheck,
+      state.blockedIPCIDRs
+        .split(",")
+        .map((cidr) => cidr.trim())
+        .filter((cidr) => cidr !== ""),
+      state.blockedCountryAlpha2s
+    )
+      .then((result) => {
+        setCheckIPResult({
+          ipAddress: ipToCheck,
+          result: Boolean(result),
+        });
+      })
+      .catch(() => {});
+  }, [checkIP, ipToCheck, state.blockedIPCIDRs, state.blockedCountryAlpha2s]);
+
   return (
     <div className="p-6 max-w-180">
       <Toggle
@@ -126,14 +169,27 @@ export function IPBlocklistForm({
               onChange={onCountryItemChange}
             />
           </div>
-          <div className="mt-6 flex items-end gap-x-4">
-            <TextField
-              className="flex-1"
-              label={renderToString("IPBlocklistForm.check-ip-address.label")}
-            />
-            <PrimaryButton
-              text={renderToString("IPBlocklistForm.check-ip-address.button")}
-            />
+          <div className="mt-6 flex flex-col gap-y-4">
+            <div className="flex items-start gap-x-4">
+              <TextField
+                className="flex-1"
+                label={renderToString("IPBlocklistForm.check-ip-address.label")}
+                value={ipToCheck}
+                onChange={onIPToCheckChange}
+                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                errorMessage={checkIPError ? String(checkIPError) : undefined}
+              />
+              <div>
+                {/* Add a empty label to align the button */}
+                <Label>&nbsp;</Label>
+                <ButtonWithLoading
+                  labelId="IPBlocklistForm.check-ip-address.button"
+                  onClick={onCheckIP}
+                  loading={checkingIP}
+                />
+              </div>
+            </div>
+            {JSON.stringify(checkIPResult)}
           </div>
         </>
       ) : null}
