@@ -230,6 +230,21 @@ type CheckCollaboratorInvitationPayload {
   isInvitee: Boolean!
 }
 
+""""""
+input CheckIPInput {
+  """App ID."""
+  appID: ID!
+
+  """List of CIDRs to check against."""
+  cidrs: [String!]!
+
+  """List of alpha-2 country codes to check against."""
+  countryCodes: [String!]!
+
+  """The IP address to check."""
+  ipAddress: String!
+}
+
 """Collaborator of an app"""
 type Collaborator {
   """"""
@@ -495,6 +510,9 @@ type Mutation {
 
   """Check Deno Hook"""
   checkDenoHook(input: sendDenoHookInput!): Boolean
+
+  """Check an IP address against blocklists."""
+  checkIP(input: CheckIPInput!): Boolean
 
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!

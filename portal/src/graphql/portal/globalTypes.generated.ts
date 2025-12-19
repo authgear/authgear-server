@@ -179,6 +179,17 @@ export type CheckCollaboratorInvitationPayload = {
   isInvitee: Scalars['Boolean']['output'];
 };
 
+export type CheckIpInput = {
+  /** App ID. */
+  appID: Scalars['ID']['input'];
+  /** List of CIDRs to check against. */
+  cidrs: Array<Scalars['String']['input']>;
+  /** List of alpha-2 country codes to check against. */
+  countryCodes: Array<Scalars['String']['input']>;
+  /** The IP address to check. */
+  ipAddress: Scalars['String']['input'];
+};
+
 /** Collaborator of an app */
 export type Collaborator = {
   __typename?: 'Collaborator';
@@ -359,6 +370,8 @@ export type Mutation = {
   cancelFailedSubscription: CancelFailedSubscriptionPayload;
   /** Check Deno Hook */
   checkDenoHook?: Maybe<Scalars['Boolean']['output']>;
+  /** Check an IP address against blocklists. */
+  checkIP?: Maybe<Scalars['Boolean']['output']>;
   /** Create new app */
   createApp: CreateAppPayload;
   /** Create stripe checkout session */
@@ -418,6 +431,11 @@ export type MutationCancelFailedSubscriptionArgs = {
 
 export type MutationCheckDenoHookArgs = {
   input: SendDenoHookInput;
+};
+
+
+export type MutationCheckIpArgs = {
+  input: CheckIpInput;
 };
 
 
