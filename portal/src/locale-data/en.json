@@ -1932,6 +1932,8 @@
   "IPBlocklistForm.block-country.label": "Block the following countries based on Geo IP",
   "IPBlocklistForm.check-ip-address.label": "Check the following IP address",
   "IPBlocklistForm.check-ip-address.button": "Check",
+  "IPBlocklistForm.check-ip-address.result.is-blocked": "{ipAddress} is {strong, react, children{blocked}} by the rules above",
+  "IPBlocklistForm.check-ip-address.result.is-not-blocked": "{ipAddress} is {strong, react, children{not blocked}} by any rules above",
   "AttackProtectionScreen.title": "Attack Protection",
 
   "BotProtectionConfigurationScreen.title": "Bot Protection",
