@@ -181,9 +181,6 @@ const BotProtectionConfigurationScreen = lazy(
 const IPBlocklistScreen = lazy(
   async () => import("./graphql/portal/IPBlocklistScreen")
 );
-const AttackProtectionScreen = lazy(
-  async () => import("./graphql/portal/AttackProtectionScreen")
-);
 const SubscriptionRedirect = lazy(
   async () => import("./graphql/portal/SubscriptionRedirect")
 );
@@ -819,14 +816,6 @@ const AppRoot: React.VFC = function AppRoot() {
           </Route>
 
           <Route path="attack-protection">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AttackProtectionScreen />
-                </Suspense>
-              }
-            />
             <Route path="bot-protection">
               <Route
                 index={true}
