@@ -1,0 +1,10 @@
+mutation generateShortLivedAdminAPIToken(
+  $appID: ID!
+  $appSecretVisitToken: String!
+) {
+  generateShortLivedAdminAPIToken(
+    input: { appID: $appID, appSecretVisitToken: $appSecretVisitToken }
+  ) {
+    token
+  }
+}

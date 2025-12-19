@@ -9,6 +9,8 @@ import {
   TooltipHost,
   Dialog,
   DialogFooter,
+  IconButton,
+  useTheme,
 } from "@fluentui/react";
 import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -44,9 +46,13 @@ import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
 import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
+import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import TextField from "../../TextField";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
+  secretToken: string | null;
   queryResult: AppAndSecretConfigQueryResult;
   generateKey: () => Promise<void>;
   deleteKey: (keyID: string) => Promise<void>;
@@ -62,6 +68,7 @@ interface Item {
 interface LocationState {
   keyID: string;
   shouldRefreshSecretToken: boolean;
+  shouldGenerateShortLivedAdminAPIToken: boolean;
 }
 
 function isLocationState(raw: unknown): raw is LocationState {
@@ -70,7 +77,9 @@ function isLocationState(raw: unknown): raw is LocationState {
     typeof raw === "object" &&
     typeof (raw as Partial<LocationState>).keyID === "string" &&
     typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
-      "boolean"
+      "boolean" &&
+    typeof (raw as Partial<LocationState>)
+      .shouldGenerateShortLivedAdminAPIToken === "boolean"
   );
 }
 
@@ -103,13 +112,25 @@ query {
 
 const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
-    const { appID, queryResult, generateKey, deleteKey } = props;
+    const { appID, secretToken, queryResult, generateKey, deleteKey } = props;
     const { locale, renderToString } = useContext(Context);
     const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
     const { themes } = useSystemConfig();
     const isLoading = useIsLoading();
     const [deleteKeyID, setDeleteKeyID] = useState<string | null>(null);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+    const [shortLivedAdminAPIToken, setShortLivedAdminAPIToken] = useState<
+      string | null
+    >(null);
+    const theme = useTheme();
+
+    const {
+      generateShortLivedAdminAPIToken,
+      loading: generatingShortLivedAdminAPITokenLoading,
+    } = useGenerateShortLivedAdminAPITokenMutation(appID);
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: shortLivedAdminAPIToken ?? "",
+    });
 
     const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
@@ -158,6 +179,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         const state: LocationState = {
           keyID,
           shouldRefreshSecretToken: true,
+          shouldGenerateShortLivedAdminAPIToken: false,
         };
 
         startReauthentication(navigate, state).catch((e) => {
@@ -167,8 +189,51 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       [navigate, items]
     );
 
+    const generateShortLivedAdminAPITokenHandle = useCallback(async () => {
+      if (secretToken == null) {
+        // generateShortLivedAdminAPITokenHandle should be called only
+        // when there is a secret token
+        console.error("secret token should not be null");
+        return;
+      }
+      const token = await generateShortLivedAdminAPIToken(secretToken);
+      setShortLivedAdminAPIToken(token);
+    }, [generateShortLivedAdminAPIToken, secretToken]);
+
+    const onClickGenerateShortLivedAdminAPIToken = useCallback(() => {
+      setShortLivedAdminAPIToken(null);
+
+      const reauthentication = () => {
+        const state: LocationState = {
+          keyID: "",
+          shouldRefreshSecretToken: true,
+          shouldGenerateShortLivedAdminAPIToken: true,
+        };
+
+        startReauthentication(navigate, state).catch((e) => {
+          console.error(e);
+        });
+      };
+      // There are two possible cases:
+      // 1. secretToken is null
+      // 2. secretToken is not null but failed to generate short-lived admin API token
+      // in both cases, reauthentication is needed
+      if (secretToken != null) {
+        generateShortLivedAdminAPITokenHandle().catch(() => {
+          reauthentication();
+        });
+      } else {
+        reauthentication();
+      }
+    }, [navigate, secretToken, generateShortLivedAdminAPITokenHandle]);
+
     useLocationEffect((state: LocationState) => {
-      downloadItem(state.keyID);
+      if (state.keyID !== "") {
+        downloadItem(state.keyID);
+      }
+      if (state.shouldGenerateShortLivedAdminAPIToken) {
+        generateShortLivedAdminAPITokenHandle();
+      }
     });
 
     const dialogContentProps = useMemo(() => {
@@ -379,6 +444,50 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   }
                 />
               )}
+              <div className={cn("flex", "flex-col", "gap-2")}>
+                <div className={cn("flex", "flex-row", "gap-2")}>
+                  <div className={cn("flex", "flex-row", "flex-1")}>
+                    <TextField
+                      className={cn("flex-1")}
+                      type="text"
+                      label={renderToString(
+                        "AdminAPIConfigurationScreen.short-lived-admin-api-token.label"
+                      )}
+                      value={shortLivedAdminAPIToken ?? ""}
+                      placeholder={renderToString(
+                        "AdminAPIConfigurationScreen.short-lived-admin-api-token.generate.placeholder"
+                      )}
+                      readOnly={true}
+                    />
+                    {shortLivedAdminAPIToken ? (
+                      <>
+                        <IconButton
+                          {...copyButtonProps}
+                          styles={{
+                            root: {
+                              backgroundColor: theme.palette.neutralLight,
+                            },
+                          }}
+                          className={cn("self-end")}
+                          theme={themes.actionButton}
+                        />
+                        <Feedback />
+                      </>
+                    ) : null}
+                  </div>
+                  <PrimaryButton
+                    className={cn("self-end")}
+                    onClick={onClickGenerateShortLivedAdminAPIToken}
+                    text={
+                      <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.generate" />
+                    }
+                    disabled={generatingShortLivedAdminAPITokenLoading}
+                  />
+                </div>
+                <WidgetDescription>
+                  <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
+                </WidgetDescription>
+              </div>
             </Widget>
             <HorizontalDivider className={styles.separator} />
             <Widget className={styles.widget}>
@@ -499,6 +608,7 @@ const AdminAPIConfigurationScreen1: React.VFC<{
   return (
     <AdminAPIConfigurationScreenContent
       appID={appID}
+      secretToken={secretToken}
       queryResult={queryResult}
       generateKey={generateKey}
       deleteKey={deleteKey}
