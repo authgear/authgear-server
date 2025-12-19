@@ -1925,6 +1925,12 @@
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
 
   "IPBlocklistScreen.title": "IP Blocklist",
+  "IPBlocklistScreen.description": "Block traffic by IP address or geographic region to prevent unwanted access and reduce automated threats.",
+  "IPBlocklistForm.enable.label": "Enable IP Blocklist",
+  "IPBlocklistForm.ip-address.label": "Blocked IP Addresses",
+  "IPBlocklistForm.ip-address.description": "Enter a comma-separated list of IP addresses to block. IPv4, IPv6, and CIDR notation for ranges are supported.",
+  "IPBlocklistForm.block-country.label": "Block the following countries based on Geo IP",
+  "IPBlocklistForm.check-ip-address.label": "Check the following IP address",
   "AttackProtectionScreen.title": "Attack Protection",
 
   "BotProtectionConfigurationScreen.title": "Bot Protection",
