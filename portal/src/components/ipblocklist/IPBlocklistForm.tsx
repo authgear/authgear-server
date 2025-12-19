@@ -5,6 +5,7 @@ import TextField from "../../TextField";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
 import { ITag } from "@fluentui/react";
+import PrimaryButton from "../../PrimaryButton";
 
 export interface IPBlocklistFormState {
   isEnabled: boolean;
@@ -122,10 +123,12 @@ export function IPBlocklistForm({
               onChange={onCountryItemChange}
             />
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex items-end gap-x-4">
             <TextField
+              className="flex-1"
               label={renderToString("IPBlocklistForm.check-ip-address.label")}
             />
+            <PrimaryButton text={renderToString("IPBlocklistForm.check-ip-address.button")} />
           </div>
         </>
       ) : null}
