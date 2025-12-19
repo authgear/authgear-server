@@ -180,7 +180,7 @@ type AuditService interface {
 }
 
 type IPBlocklistService interface {
-	CheckIP(ctx context.Context, ipAddress string, cidrs []string, countryCodes []string) (bool, error)
+	CheckIP(ctx context.Context, ipAddress string, cidrs []string, countryCodes []string) bool
 }
 
 type Context struct {
