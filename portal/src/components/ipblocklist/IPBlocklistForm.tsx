@@ -1,11 +1,14 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import {
+  Context as MessageContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 import Toggle from "../../Toggle";
 import TextField from "../../TextField";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
-import { ITag, Label } from "@fluentui/react";
+import { ITag, Label, MessageBar, MessageBarType } from "@fluentui/react";
 import { useCheckIPMutation } from "../../graphql/portal/mutations/checkIPMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
 
@@ -189,7 +192,27 @@ export function IPBlocklistForm({
                 />
               </div>
             </div>
-            {JSON.stringify(checkIPResult)}
+            {checkIPResult != null ? (
+              checkIPResult.result ? (
+                <MessageBar messageBarType={MessageBarType.error}>
+                  <FormattedMessage
+                    id="IPBlocklistForm.check-ip-address.result.is-blocked"
+                    values={{
+                      ipAddress: checkIPResult.ipAddress,
+                    }}
+                  />
+                </MessageBar>
+              ) : (
+                <MessageBar messageBarType={MessageBarType.info}>
+                  <FormattedMessage
+                    id="IPBlocklistForm.check-ip-address.result.is-not-blocked"
+                    values={{
+                      ipAddress: checkIPResult.ipAddress,
+                    }}
+                  />
+                </MessageBar>
+              )
+            ) : null}
           </div>
         </>
       ) : null}
