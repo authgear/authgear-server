@@ -1135,8 +1135,10 @@ Payload:
 ```json5
 {
   "payload": {
-    "rate_limit_group": "authentication.password",
-    "rate_limit_name": "authentication.password.per_ip",
+    "rate_limit": {
+      "group": "authentication.password",
+      "name":"authentication.password.per_ip"
+    }
   }
 }
 ```
