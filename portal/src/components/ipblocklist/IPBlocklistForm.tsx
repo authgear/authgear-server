@@ -11,6 +11,8 @@ import { useMakeAlpha2Options } from "../../util/alpha2";
 import { ITag, Label, MessageBar, MessageBarType } from "@fluentui/react";
 import { useCheckIPMutation } from "../../graphql/portal/mutations/checkIPMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ErrorRenderer from "../../ErrorRenderer";
+import { parseAPIErrors, parseRawError } from "../../error/parse";
 
 export interface IPBlocklistFormState {
   isEnabled: boolean;
@@ -136,6 +138,15 @@ export function IPBlocklistForm({
       .catch(() => {});
   }, [checkIP, ipToCheck, state.blockedIPCIDRs, state.blockedCountryAlpha2s]);
 
+  const checkIPFieldError = useMemo(() => {
+    if (checkIPError == null) {
+      return undefined;
+    }
+    const apiErrors = parseRawError(checkIPError);
+    const { topErrors } = parseAPIErrors(apiErrors, [], []);
+    return <ErrorRenderer errors={topErrors} />;
+  }, [checkIPError]);
+
   return (
     <div className="p-6 max-w-180">
       <Toggle
@@ -179,8 +190,7 @@ export function IPBlocklistForm({
                 label={renderToString("IPBlocklistForm.check-ip-address.label")}
                 value={ipToCheck}
                 onChange={onIPToCheckChange}
-                // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                errorMessage={checkIPError ? String(checkIPError) : undefined}
+                errorMessage={checkIPFieldError}
               />
               <div>
                 {/* Add a empty label to align the button */}
