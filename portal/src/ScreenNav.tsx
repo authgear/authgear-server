@@ -301,7 +301,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.attack-protection",
         urlPrefix: `/project/${appID}/attack-protection`,
-        url: `/project/${appID}/attack-protection`,
         children: [
           {
             type: "link" as const,
