@@ -229,9 +229,17 @@ export function IPBlocklistForm({
 
   return (
     <div className="p-6 max-w-180">
+      {!state.isEditAllowed ? (
+        <div className="mb-6">
+          <MessageBar messageBarType={MessageBarType.info}>
+            <FormattedMessage id="IPBlocklistForm.error.edit-disabled" />
+          </MessageBar>
+        </div>
+      ) : null}
       <Toggle
         label={renderToString("IPBlocklistForm.enable.label")}
         inlineLabel={false}
+        disabled={!state.isEditAllowed}
         checked={state.isEnabled}
         onChange={useCallback(
           (_, checked) => {
@@ -240,7 +248,7 @@ export function IPBlocklistForm({
           [setState]
         )}
       />
-      {state.isEnabled ? (
+      {state.isEnabled && state.isEditAllowed ? (
         <>
           <div className="mt-12">
             <FormTextField

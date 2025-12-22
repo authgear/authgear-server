@@ -1936,6 +1936,7 @@
   "IPBlocklistForm.check-ip-address.result.is-blocked": "{ipAddress} is {strong, react, children{blocked}} by the rules above",
   "IPBlocklistForm.check-ip-address.result.is-not-blocked": "{ipAddress} is {strong, react, children{not blocked}} by any rules above",
   "IPBlocklistForm.error.invalid-ip": "Invalid IP Address: {ipAddress}",
+  "IPBlocklistForm.error.edit-disabled": "This IP blocklist configuration is currently managed through advanced settings. To make changes, please go to Advanced > Edit Config.",
 
   "AttackProtectionScreen.title": "Attack Protection",
 
