@@ -54,7 +54,7 @@ interface FormModel {
 const CustomTextConfigurationScreen: React.VFC =
   function CustomTextConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const { gitCommitHash } = useSystemConfig();
+    const { gitCommitHash, builtinLanguages } = useSystemConfig();
     const config = useAppAndSecretConfigQuery(appID);
 
     const initialSupportedLanguages = useMemo(() => {
@@ -221,6 +221,13 @@ const CustomTextConfigurationScreen: React.VFC =
       [form]
     );
 
+    const translationSheetLanguage = useMemo(() => {
+      if (builtinLanguages.includes(state.selectedLanguage)) {
+        return state.selectedLanguage;
+      }
+      return state.fallbackLanguage;
+    }, [builtinLanguages, state.fallbackLanguage, state.selectedLanguage]);
+
     const sectionsTranslationJSON: [EditTemplatesWidgetSection] = [
       {
         key: "translation.json",
@@ -235,6 +242,7 @@ const CustomTextConfigurationScreen: React.VFC =
                 id="EditTemplatesWidget.translationjson.subtitle"
                 values={{
                   COMMIT: gitCommitHash,
+                  language: translationSheetLanguage,
                 }}
               />
             ),

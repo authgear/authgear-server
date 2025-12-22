@@ -1241,7 +1241,7 @@
   "EditTemplatesWidget.sms-body": "SMS Body",
 
   "EditTemplatesWidget.translationjson.title": "translation.json",
-  "EditTemplatesWidget.translationjson.subtitle": "You can override the translation of the text by providing the key-value pairs in the box below.{br, react}The latest list of text can be found {ExternalLink, react, href{https://github.com/authgear/authgear-server/blob/{COMMIT}/resources/authgear/templates/en/translation.json} children{here}}. See {DocLink, react, href{https://docs.authgear.com/customization/ui-customization/built-in-ui/localization} children{the docs}} for more instructions",
+  "EditTemplatesWidget.translationjson.subtitle": "You can override the translation of the text by providing the key-value pairs in the box below.{br, react}The latest list of text can be found {ExternalLink, react, href{https://github.com/authgear/authgear-server/blob/{COMMIT}/resources/authgear/templates/{language}/translation.json} children{here}}. See {DocLink, react, href{https://docs.authgear.com/customization/ui-customization/built-in-ui/localization} children{the docs}} for more instructions",
 
   "EditTemplatesWidget.custom-css.title": "Custom CSS",
   "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
