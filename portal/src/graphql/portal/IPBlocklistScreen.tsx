@@ -11,9 +11,9 @@ import { PortalAPIAppConfig } from "../../types";
 import {
   IPBlocklistForm,
   IPBlocklistFormState,
+  toCIDRs,
 } from "../../components/ipblocklist/IPBlocklistForm";
 import { produce } from "immer";
-import { Address4, Address6 } from "ip-address";
 
 const IP_FILTER_PORTAL_RULE_NAME = "__portal";
 
@@ -81,33 +81,7 @@ function constructConfig(
         name: IP_FILTER_PORTAL_RULE_NAME,
         action: "deny",
         source: {
-          cidrs: currentState.blockedIPCIDRs
-            .split(",")
-            .map((s) => {
-              const trimmed = s.trim();
-              if (trimmed === "") {
-                return "";
-              }
-
-              const hasSubnet = trimmed.includes("/");
-
-              if (Address4.isValid(trimmed)) {
-                if (!hasSubnet) {
-                  return `${trimmed}/32`;
-                }
-                return trimmed;
-              }
-
-              if (Address6.isValid(trimmed)) {
-                if (!hasSubnet) {
-                  return `${trimmed}/128`;
-                }
-                return trimmed;
-              }
-
-              return trimmed;
-            })
-            .filter((s) => s !== ""),
+          cidrs: toCIDRs(currentState.blockedIPCIDRs),
           geo_location_codes: currentState.blockedCountryAlpha2s,
         },
       },

@@ -12,7 +12,15 @@ import { ITag, Label, MessageBar, MessageBarType } from "@fluentui/react";
 import { useCheckIPMutation } from "../../graphql/portal/mutations/checkIPMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorRenderer from "../../ErrorRenderer";
-import { parseAPIErrors, parseRawError } from "../../error/parse";
+import {
+  ErrorParseRuleResult,
+  parseAPIErrors,
+  ParsedAPIError,
+  parseRawError,
+} from "../../error/parse";
+import FormTextField from "../../FormTextField";
+import { APIError } from "../../error/error";
+import { Address4, Address6 } from "ip-address";
 
 export interface IPBlocklistFormState {
   isEditAllowed: boolean;
@@ -31,6 +39,35 @@ interface IPCheckResult {
   result: boolean;
 }
 
+export function toCIDRs(blockedIPCIDRsStr: string): string[] {
+  return blockedIPCIDRsStr
+    .split(",")
+    .map((s) => {
+      const trimmed = s.trim();
+      if (trimmed === "") {
+        return "";
+      }
+
+      const hasSubnet = trimmed.includes("/");
+
+      if (Address4.isValid(trimmed)) {
+        if (!hasSubnet) {
+          return `${trimmed}/32`;
+        }
+        return trimmed;
+      }
+
+      if (Address6.isValid(trimmed)) {
+        if (!hasSubnet) {
+          return `${trimmed}/128`;
+        }
+        return trimmed;
+      }
+
+      return trimmed;
+    })
+    .filter((s) => s !== "");
+}
 export function IPBlocklistForm({
   state,
   setState,
@@ -148,6 +185,48 @@ export function IPBlocklistForm({
     return <ErrorRenderer errors={topErrors} />;
   }, [checkIPError]);
 
+  const cidrsFieldErrorRules = useMemo(
+    () => [
+      (apiError: APIError): ErrorParseRuleResult => {
+        const parsedAPIErrors: ParsedAPIError[] = [];
+        if (apiError.reason === "ValidationFailed") {
+          for (const cause of apiError.info.causes) {
+            if (
+              cause.location.startsWith(
+                "/network_protection/ip_filter/rules/0/source/cidrs/"
+              ) &&
+              cause.kind === "format" &&
+              cause.details.format === "x_cidr"
+            ) {
+              const itemIndex = Number(
+                cause.location.replace(
+                  "/network_protection/ip_filter/rules/0/source/cidrs/",
+                  ""
+                )
+              );
+              parsedAPIErrors.push({
+                messageID: "IPBlocklistForm.error.invalid-ip",
+                arguments: {
+                  ipAddress: toCIDRs(state.blockedIPCIDRs)[itemIndex],
+                },
+              });
+            }
+          }
+          return {
+            parsedAPIErrors: parsedAPIErrors,
+            fullyHandled:
+              parsedAPIErrors.length === apiError.info.causes.length,
+          };
+        }
+        return {
+          parsedAPIErrors: [],
+          fullyHandled: false,
+        };
+      },
+    ],
+    [state.blockedIPCIDRs]
+  );
+
   return (
     <div className="p-6 max-w-180">
       <Toggle
@@ -164,7 +243,9 @@ export function IPBlocklistForm({
       {state.isEnabled ? (
         <>
           <div className="mt-12">
-            <TextField
+            <FormTextField
+              parentJSONPointer="/network_protection/ip_filter/rules/0/source"
+              fieldName="cidrs"
               className="h-37"
               label={renderToString("IPBlocklistForm.ip-address.label")}
               multiline={true}
@@ -174,6 +255,7 @@ export function IPBlocklistForm({
               )}
               value={state.blockedIPCIDRs}
               onChange={onBlockedIPCIDRsChange}
+              errorRules={cidrsFieldErrorRules}
             />
           </div>
           <div className="mt-6">

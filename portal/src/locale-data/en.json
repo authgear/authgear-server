@@ -1935,6 +1935,8 @@
   "IPBlocklistForm.check-ip-address.button": "Check",
   "IPBlocklistForm.check-ip-address.result.is-blocked": "{ipAddress} is {strong, react, children{blocked}} by the rules above",
   "IPBlocklistForm.check-ip-address.result.is-not-blocked": "{ipAddress} is {strong, react, children{not blocked}} by any rules above",
+  "IPBlocklistForm.error.invalid-ip": "Invalid IP Address: {ipAddress}",
+
   "AttackProtectionScreen.title": "Attack Protection",
 
   "BotProtectionConfigurationScreen.title": "Bot Protection",
