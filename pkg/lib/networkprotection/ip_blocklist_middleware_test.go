@@ -11,23 +11,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func TestIPBlocklistMiddleware(t *testing.T) {
-	hkGoogleIP := "172.253.5.0"
+func TestIPFilterMiddleware(t *testing.T) {
+	usIP := "64.233.160.0"
+	hkIP := "172.253.5.0"
 
-	Convey("IP inside blocklist CIDR should be forbidden", t, func() {
-		cfg := &config.NetworkProtectionConfig{
-			IPBlocklist: &config.NetworkIPBlocklistConfig{
-				CIDRs: []string{"203.0.113.0/24"},
-			},
-		}
-
-		mw := &IPBlocklistMiddleware{
-			RemoteIP: httputil.RemoteIP("203.0.113.5"),
-			Config:   cfg,
-		}
-
+	runTest := func(ip string, cfg *config.NetworkProtectionConfig, expectedStatus int) {
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
+
+		mw := &IPFilterMiddleware{
+			RemoteIP: httputil.RemoteIP(ip),
+			Config:   cfg,
+		}
+		// The default action in config must be explicitly set for predictable testing.
+		// The real application parsing would call SetDefaults(), but here we construct the config manually.
+		if mw.Config.IPFilter != nil && mw.Config.IPFilter.DefaultAction == "" {
+			mw.Config.IPFilter.SetDefaults()
+		}
 
 		called := false
 		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -38,119 +38,192 @@ func TestIPBlocklistMiddleware(t *testing.T) {
 		handler := mw.Handle(next)
 		handler.ServeHTTP(rec, req)
 
-		So(rec.Code, ShouldEqual, http.StatusForbidden)
-		So(called, ShouldBeFalse)
-	})
+		So(rec.Code, ShouldEqual, expectedStatus)
+		So(called, ShouldEqual, expectedStatus == http.StatusOK)
+	}
 
-	Convey("IP outside blocklist CIDR should pass through", t, func() {
-		cfg := &config.NetworkProtectionConfig{
-			IPBlocklist: &config.NetworkIPBlocklistConfig{
-				CIDRs: []string{"203.0.113.0/24"},
-			},
-		}
-
-		mw := &IPBlocklistMiddleware{
-			RemoteIP: httputil.RemoteIP("198.51.100.10"),
-			Config:   cfg,
-		}
-
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
-
-		called := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			w.WriteHeader(http.StatusOK)
+	Convey("IP filter middleware", t, func() {
+		Convey("should allow by default when no rules match", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionAllow,
+				},
+			}
+			runTest(usIP, cfg, http.StatusOK)
 		})
 
-		handler := mw.Handle(next)
-		handler.ServeHTTP(rec, req)
-
-		So(rec.Code, ShouldEqual, http.StatusOK)
-		So(called, ShouldBeTrue)
-	})
-
-	Convey("Country code matching should be forbidden (case-insensitive)", t, func() {
-		cfg := &config.NetworkProtectionConfig{
-			IPBlocklist: &config.NetworkIPBlocklistConfig{
-				CountryCodes: []string{"HK"},
-			},
-		}
-
-		mw := &IPBlocklistMiddleware{
-			RemoteIP: httputil.RemoteIP(hkGoogleIP),
-			Config:   cfg,
-		}
-
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
-
-		called := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			w.WriteHeader(http.StatusOK)
+		Convey("should deny by default when no rules match", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+				},
+			}
+			runTest(usIP, cfg, http.StatusForbidden)
 		})
 
-		handler := mw.Handle(next)
-		handler.ServeHTTP(rec, req)
-
-		So(rec.Code, ShouldEqual, http.StatusForbidden)
-		So(called, ShouldBeFalse)
-	})
-
-	Convey("Country code non-matching should pass through", t, func() {
-		cfg := &config.NetworkProtectionConfig{
-			IPBlocklist: &config.NetworkIPBlocklistConfig{
-				CountryCodes: []string{"US"},
-			},
-		}
-
-		mw := &IPBlocklistMiddleware{
-			RemoteIP: httputil.RemoteIP(hkGoogleIP),
-			Config:   cfg,
-		}
-
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
-
-		called := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			w.WriteHeader(http.StatusOK)
+		Convey("should allow by CIDR rule, overriding deny default", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+					},
+				},
+			}
+			runTest(usIP, cfg, http.StatusOK)
 		})
 
-		handler := mw.Handle(next)
-		handler.ServeHTTP(rec, req)
-
-		So(rec.Code, ShouldEqual, http.StatusOK)
-		So(called, ShouldBeTrue)
-	})
-
-	Convey("Invalid IP should skip geoip lookup and pass through", t, func() {
-		cfg := &config.NetworkProtectionConfig{
-			IPBlocklist: &config.NetworkIPBlocklistConfig{
-				CountryCodes: []string{"US"},
-			},
-		}
-
-		mw := &IPBlocklistMiddleware{
-			RemoteIP: httputil.RemoteIP("not-an-ip"),
-			Config:   cfg,
-		}
-
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
-
-		called := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			w.WriteHeader(http.StatusOK)
+		Convey("should deny by CIDR rule, overriding allow default", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionAllow,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+					},
+				},
+			}
+			runTest(usIP, cfg, http.StatusForbidden)
 		})
 
-		handler := mw.Handle(next)
-		handler.ServeHTTP(rec, req)
+		Convey("should allow by GeoIP rule, overriding deny default", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"HK"}},
+						},
+					},
+				},
+			}
+			runTest(hkIP, cfg, http.StatusOK)
+		})
 
-		So(rec.Code, ShouldEqual, http.StatusOK)
-		So(called, ShouldBeTrue)
+		Convey("should deny by GeoIP rule, overriding allow default", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionAllow,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"HK"}},
+						},
+					},
+				},
+			}
+			runTest(hkIP, cfg, http.StatusForbidden)
+		})
+
+		Convey("should match with OR logic for combined rules", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{
+								CIDRs:            []string{"1.1.1.1/32"}, // Doesn't match
+								GeoLocationCodes: []string{"HK"},         // Matches
+							},
+						},
+					},
+				},
+			}
+			// Should allow because GeoIP matches
+			runTest(hkIP, cfg, http.StatusOK)
+		})
+
+		Convey("should fall back to default when no part of a rule matches", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"US"}},
+						},
+					},
+				},
+			}
+			// IP from HK does not match rule, should be denied by default.
+			runTest(hkIP, cfg, http.StatusForbidden)
+		})
+
+		Convey("should apply the first matched rule when multiple rules exist", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+					},
+				},
+			}
+			runTest(usIP, cfg, http.StatusOK)
+		})
+
+		Convey("should deny if the first matched rule is deny", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionAllow,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{CIDRs: []string{usIP + "/32"}},
+						},
+					},
+				},
+			}
+			runTest(usIP, cfg, http.StatusForbidden)
+		})
+
+		Convey("should match a rule in the middle of the list", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"JP"}},
+						},
+						{
+							Action: config.IPFilterActionAllow,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"HK"}},
+						},
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{GeoLocationCodes: []string{"HK"}},
+						},
+					},
+				},
+			}
+			runTest(hkIP, cfg, http.StatusOK)
+		})
+
+		Convey("should pass through for invalid IP", func() {
+			cfg := &config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionDeny,
+				},
+			}
+			runTest("not-an-ip", cfg, http.StatusOK)
+		})
 	})
 }
