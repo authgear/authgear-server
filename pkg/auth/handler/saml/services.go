@@ -73,7 +73,7 @@ type SAMLAuthenticationInfoService interface {
 }
 
 type SAMLUserFacade interface {
-	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type BindingHTTPPostWriter interface {

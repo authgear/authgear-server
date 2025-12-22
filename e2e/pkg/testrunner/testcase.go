@@ -251,6 +251,25 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
+
+		if len(step.HTTPRequestQuery) > 0 {
+			u, err := url.Parse(requesturl)
+			if err != nil {
+				t.Errorf("failed to parse http_request_url: %v", err)
+				return nil, state, false
+			}
+			q := u.Query()
+			for k, v := range step.HTTPRequestQuery {
+				renderedValue, templateOk := renderTemplateString(t, cmd, prevSteps, v)
+				if !templateOk {
+					return nil, state, false
+				}
+				q.Set(k, renderedValue)
+			}
+			u.RawQuery = q.Encode()
+			requesturl = u.String()
+		}
+
 		if step.HTTPRequestSessionCookie != nil {
 			client.InjectSession(
 				step.HTTPRequestSessionCookie.IDPSessionID,
@@ -697,6 +716,18 @@ func validateRedirectLocation(t *testing.T, expectedPath string, response *http.
 	return ok
 }
 
+func validateRedirectInLastRequest(t *testing.T, expectedPath string, response *http.Response) (ok bool) {
+	ok = true
+	if response.Request.URL.Path != expectedPath {
+		ok = false
+		t.Errorf("redirect path unmatch. expected: %s, actual: %s",
+			expectedPath,
+			response.Request.URL.Path,
+		)
+	}
+	return ok
+}
+
 func validateSAMLElement(t *testing.T, expected *OuputSAMLElement, httpResponse *http.Response) (ok bool) {
 	ok = true
 
@@ -881,7 +912,7 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		}
 	}
 	if httpOutput.RedirectPath != nil {
-		if !validateRedirectLocation(t,
+		if !validateRedirectInLastRequest(t,
 			*httpOutput.RedirectPath,
 			response,
 		) {

@@ -125,6 +125,6 @@ func (u UserFacade) GetUserByOAuth(ctx context.Context, oauthProviderAlias strin
 	return u.Coordinator.GetUserByOAuth(ctx, oauthProviderAlias, oauthProviderUserID)
 }
 
-func (u UserFacade) GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
-	return u.Coordinator.GetUserIDsByLoginHint(ctx, hint)
+func (u UserFacade) GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
+	return u.Coordinator.GetUserIDsByLoginIDLoginHint(ctx, hint)
 }

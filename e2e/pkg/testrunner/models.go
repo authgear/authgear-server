@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -245,6 +246,10 @@ var _ = TestCaseSchema.Add("Step", `
 		"saml_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_request_method": { "type": "string" },
 		"http_request_url": { "type": "string" },
+		"http_request_query": {
+			"type": "object",
+			"additionalProperties": { "type": "string" }
+		},
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
 		"http_request_form_urlencoded_body": { "type": "object" },
@@ -437,6 +442,7 @@ type Step struct {
 	// `action` == "http_request"
 	HTTPRequestMethod             string            `json:"http_request_method"`
 	HTTPRequestURL                string            `json:"http_request_url"`
+	HTTPRequestQuery              map[string]string `json:"http_request_query"`
 	HTTPRequestHeaders            map[string]string `json:"http_request_headers"`
 	HTTPRequestBody               string            `json:"http_request_body"`
 	HTTPRequestFormURLEncodedBody map[string]string `json:"http_request_form_urlencoded_body"`
@@ -609,6 +615,7 @@ type StepResult struct {
 
 type ResultHTTPResponse struct {
 	HTTPResponseHeaders map[string]string `json:"http_response_headers"`
+	HTTPJSONBody        map[string]any    `json:"http_json_body"`
 	SAMLRelayState      string            `json:"saml_relay_state"`
 }
 
@@ -620,8 +627,18 @@ func NewResultHTTPResponse(r *http.Response) *ResultHTTPResponse {
 
 	samlRelayState := extractRelayState(r)
 
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err == nil {
+		r.Body.Close()
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+	var jsonBodyMap map[string]any
+	// Just ignore the error if it is not a json
+	_ = json.Unmarshal(bodyBytes, &jsonBodyMap)
+
 	return &ResultHTTPResponse{
 		HTTPResponseHeaders: headers,
+		HTTPJSONBody:        jsonBodyMap,
 		SAMLRelayState:      samlRelayState,
 	}
 }
