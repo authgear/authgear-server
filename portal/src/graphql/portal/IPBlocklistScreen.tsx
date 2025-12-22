@@ -12,26 +12,107 @@ import {
   IPBlocklistForm,
   IPBlocklistFormState,
 } from "../../components/ipblocklist/IPBlocklistForm";
+import { produce } from "immer";
+import { Address4, Address6 } from "ip-address";
+
+const IP_FILTER_PORTAL_RULE_NAME = "__portal";
 
 interface FormState extends IPBlocklistFormState {}
 
-function constructFormState(_config: PortalAPIAppConfig): FormState {
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  const ipFilter = config.network_protection?.ip_filter;
+
+  if (ipFilter?.rules == null || ipFilter.rules.length === 0) {
+    return {
+      isEditAllowed: true,
+      isEnabled: false,
+      blockedIPCIDRs: "",
+      blockedCountryAlpha2s: [],
+    };
+  }
+
+  const portalRule = ipFilter.rules.find(
+    (rule) => rule.name === IP_FILTER_PORTAL_RULE_NAME
+  );
+
+  if (ipFilter.rules.length > 1 || portalRule?.action !== "deny") {
+    return {
+      isEditAllowed: false,
+      isEnabled: false,
+      blockedIPCIDRs: "",
+      blockedCountryAlpha2s: [],
+    };
+  }
+
+  const isEnabled = true;
+  const blockedIPCIDRs = portalRule.source.cidrs?.join(",") ?? "";
+  const blockedCountryAlpha2s = portalRule.source.geo_location_codes ?? [];
+
   return {
-    isEnabled: false,
-    blockedIPCIDRs: "",
-    blockedCountryAlpha2s: [],
+    isEditAllowed: true,
+    isEnabled,
+    blockedIPCIDRs,
+    blockedCountryAlpha2s,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
-  _currentState: FormState,
+  currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  return {
-    ...config,
-  };
+  if (!currentState.isEditAllowed) {
+    return config;
+  }
+  if (!currentState.isEnabled) {
+    return produce(config, (draft) => {
+      draft.network_protection ??= {};
+      draft.network_protection.ip_filter = {};
+    });
+  }
+
+  return produce(config, (draft) => {
+    draft.network_protection ??= {};
+    draft.network_protection.ip_filter ??= {};
+    draft.network_protection.ip_filter.default_action = "allow";
+    draft.network_protection.ip_filter.rules = [
+      {
+        name: IP_FILTER_PORTAL_RULE_NAME,
+        action: "deny",
+        source: {
+          cidrs: currentState.blockedIPCIDRs
+            .split(",")
+            .map((s) => {
+              const trimmed = s.trim();
+              if (trimmed === "") {
+                return "";
+              }
+
+              const hasSubnet = trimmed.includes("/");
+
+              if (Address4.isValid(trimmed)) {
+                if (!hasSubnet) {
+                  return `${trimmed}/32`;
+                }
+                return trimmed;
+              }
+
+              if (Address6.isValid(trimmed)) {
+                if (!hasSubnet) {
+                  return `${trimmed}/128`;
+                }
+                return trimmed;
+              }
+
+              return trimmed;
+            })
+            .filter((s) => s !== ""),
+          geo_location_codes: currentState.blockedCountryAlpha2s,
+        },
+      },
+    ];
+  });
 }
 
 const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
