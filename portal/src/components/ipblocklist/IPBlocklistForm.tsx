@@ -15,6 +15,7 @@ import ErrorRenderer from "../../ErrorRenderer";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 
 export interface IPBlocklistFormState {
+  isEditAllowed: boolean;
   isEnabled: boolean;
   blockedIPCIDRs: string;
   blockedCountryAlpha2s: string[];
