@@ -1938,8 +1938,6 @@
   "IPBlocklistForm.error.invalid-ip": "Invalid IP Address: {ipAddress}",
   "IPBlocklistForm.error.edit-disabled": "This IP blocklist configuration is currently managed through advanced settings. To make changes, please go to Advanced > Edit Config.",
 
-  "AttackProtectionScreen.title": "Attack Protection",
-
   "BotProtectionConfigurationScreen.title": "Bot Protection",
   "BotProtectionConfigurationScreen.description": "Detect automation tool attacks and block with CAPTCHA challenges.",
   "BotProtectionConfigurationScreen.enable.label": "Enable Bot Protection",

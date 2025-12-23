@@ -92,10 +92,6 @@ function constructConfig(
 const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
-      {
-        to: "~/attack-protection",
-        label: <FormattedMessage id="AttackProtectionScreen.title" />,
-      },
       { to: ".", label: <FormattedMessage id="IPBlocklistScreen.title" /> },
     ];
   }, []);
