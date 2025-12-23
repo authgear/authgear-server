@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Context as MessageContext,
   FormattedMessage,
@@ -161,10 +167,7 @@ export function IPBlocklistForm({
   const onCheckIP = useCallback(() => {
     checkIP(
       ipToCheck,
-      state.blockedIPCIDRs
-        .split(",")
-        .map((cidr) => cidr.trim())
-        .filter((cidr) => cidr !== ""),
+      toCIDRs(state.blockedIPCIDRs),
       state.blockedCountryAlpha2s
     )
       .then((result) => {
@@ -226,6 +229,10 @@ export function IPBlocklistForm({
     ],
     [state.blockedIPCIDRs]
   );
+
+  useEffect(() => {
+    setCheckIPResult(null);
+  }, [state.blockedCountryAlpha2s, state.blockedIPCIDRs]);
 
   return (
     <div className="p-6 max-w-180">
