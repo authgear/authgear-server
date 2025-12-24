@@ -49,6 +49,9 @@ import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import TextField from "../../TextField";
+import { parseAPIErrors, parseRawError } from "../../error/parse";
+import { APIError } from "../../error/error";
+import ErrorRenderer from "../../ErrorRenderer";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -123,6 +126,8 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       string | null
     >(null);
     const theme = useTheme();
+    const [shortLivedAdminAPITokenError, setShortLivedAdminAPITokenError] =
+      useState<APIError[]>([]);
 
     const {
       generateShortLivedAdminAPIToken,
@@ -202,6 +207,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 
     const onClickGenerateShortLivedAdminAPIToken = useCallback(() => {
       setShortLivedAdminAPIToken(null);
+      setShortLivedAdminAPITokenError([]);
 
       const reauthentication = () => {
         const state: LocationState = {
@@ -219,13 +225,29 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       // 2. secretToken is not null but failed to generate short-lived admin API token
       // in both cases, reauthentication is needed
       if (secretToken != null) {
-        generateShortLivedAdminAPITokenHandle().catch(() => {
-          reauthentication();
+        generateShortLivedAdminAPITokenHandle().catch((e) => {
+          const apiErrors = parseRawError(e);
+          if (apiErrors.length > 0) {
+            if (apiErrors[0].reason === "Forbidden") {
+              reauthentication();
+            } else {
+              setShortLivedAdminAPITokenError(apiErrors);
+            }
+          }
         });
       } else {
         reauthentication();
       }
     }, [navigate, secretToken, generateShortLivedAdminAPITokenHandle]);
+
+    const shortLivedAdminAPITokenFieldErrors = useMemo(() => {
+      const { topErrors } = parseAPIErrors(
+        shortLivedAdminAPITokenError,
+        [],
+        []
+      );
+      return topErrors.length > 0 ? <ErrorRenderer errors={topErrors} /> : null;
+    }, [shortLivedAdminAPITokenError]);
 
     useLocationEffect((state: LocationState) => {
       if (state.keyID !== "") {
@@ -484,6 +506,11 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                     disabled={generatingShortLivedAdminAPITokenLoading}
                   />
                 </div>
+                {shortLivedAdminAPITokenFieldErrors ? (
+                  <MessageBar messageBarType={MessageBarType.error}>
+                    {shortLivedAdminAPITokenFieldErrors}
+                  </MessageBar>
+                ) : null}
                 <WidgetDescription>
                   <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
                 </WidgetDescription>

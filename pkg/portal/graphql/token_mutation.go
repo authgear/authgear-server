@@ -88,7 +88,7 @@ var _ = registerMutationField(
 			keyID := secretConfig.AdminAPISecrets[0].KeyID
 			privateKeyPEM := secretConfig.AdminAPISecrets[0].PrivateKeyPEM
 			if privateKeyPEM == nil {
-				return nil, apierrors.NewInvalid("invalid secret token")
+				return nil, apierrors.NewForbidden("invalid secret token")
 			}
 
 			logger := tokenMutationLogger.GetLogger(ctx)
