@@ -221,7 +221,7 @@ The constraints are enforced based on the authentication flow type:
 
 ## Using Blocking Event with Rate Limits
 
-The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit group names. For a list of available rate limit groups, see [the rate limit spec](./rate-limit.md).
+The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit group. For a list of available rate limit groups, see [the rate limit spec](./rate-limit.md).
 
 Each rate limit key maps to an object with the following property:
 
