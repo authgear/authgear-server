@@ -42,10 +42,10 @@
     "Disclaimer": "この設定をリクエストしていない場合は、このメールを無視してください。"
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "{{ template \"app.name\" }}にサインアップする",
-    "Body": "サインアッププロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Title": "メール確認コード",
+    "Body": "こんにちは、<br/> 以下のコードを使用してメールアドレスを確認し、{{ template \"app.name\" }}で続行してください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "誰にも教えないでください。サインアップしていない場合は、このメールを無視してください。"
+    "Disclaimer": "このメールは、{{ template \"app.name\" }}からサインアップまたはログインしたため受信しました。理由がわからない場合は、安全に無視することができます。"
   },
   "SetupSecondaryLoginLink": {
     "Title": "{{ template \"app.name\" }}で2段階認証を設定する",

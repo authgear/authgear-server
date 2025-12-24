@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">註冊 {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">電子郵件驗證碼</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        請用以下一次性密碼完成註冊
+        您好，<br/> 請使用以下驗證碼確認您的電子郵件地址並繼續使用 {{ template "app.name" }}。
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">切勿分享給任何人。如你未曾註冊，則無需理會此電郵。</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">您收到此電子郵件是因為您在 {{ template "app.name" }} 註冊或登入。如果您不確定原因，可以安全地忽略它。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

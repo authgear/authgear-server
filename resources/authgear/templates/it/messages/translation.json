@@ -42,10 +42,10 @@
     "Disclaimer": "Se non hai richiesto questa configurazione, ignora questa email."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Registrati su {{ template \"app.name\" }}",
-    "Body": "Per favore usa la seguente password monouso per completare il processo di registrazione.",
+    "Title": "Codice di Verifica Email",
+    "Body": "Ciao, <br/> Utilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non ti sei registrato, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché ti sei registrato o hai effettuato l''accesso da {{ template \"app.name\" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifica la tua email e configura la verifica in 2 passaggi su {{ template \"app.name\" }}",

@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">{{ template "app.name" }}에 가입</mj-text>
+      <mj-text font-weight="bold" font-size="24px">이메일 인증 코드</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        가입 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.
+        안녕하세요, <br/> 다음 코드를 사용하여 이메일 주소를 확인하고 {{ template "app.name" }}에서 계속 진행하세요.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">누구에게도 공유하지 마세요. 가입하지 않으셨다면 이 이메일을 무시해 주세요.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">{{ template "app.name" }}에서 가입하거나 로그인했기 때문에 이 이메일을 받았습니다. 이유가 확실하지 않은 경우 안전하게 무시하셔도 됩니다.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

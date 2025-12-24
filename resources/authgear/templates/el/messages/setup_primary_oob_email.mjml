@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Εγγραφείτε στο {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Κωδικός Επαλήθευσης Email</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Παρακαλώ χρησιμοποιήστε τον ακόλουθο μοναδικό κωδικό πρόσβασης για να ολοκληρώσετε τη διαδικασία εγγραφής.
+        Γεια σας, <br/> Παρακαλώ χρησιμοποιήστε τον παρακάτω κωδικό για να επιβεβαιώσετε τη διεύθυνση email σας και να συνεχίσετε στο {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Μην τον μοιραστείτε με κανέναν. Αν δεν εγγραφήκατε εσείς, παρακαλώ αγνοήστε αυτό το email.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Λάβατε αυτό το email επειδή εγγραφήκατε ή συνδεθήκατε από το {{ template "app.name" }}. Εάν δεν είστε σίγουροι γιατί, μπορείτε να το αγνοήσετε με ασφάλεια.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">{{ template "app.name" }}にサインアップする</mj-text>
+      <mj-text font-weight="bold" font-size="24px">メール確認コード</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        サインアッププロセスを完了するには、以下の一回限りのパスワードを使用してください。
+        こんにちは、<br/> 以下のコードを使用してメールアドレスを確認し、{{ template "app.name" }}で続行してください。
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">誰にも教えないでください。サインアップしていない場合は、このメールを無視してください。</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">このメールは、{{ template "app.name" }}からサインアップまたはログインしたため受信しました。理由がわからない場合は、安全に無視することができます。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

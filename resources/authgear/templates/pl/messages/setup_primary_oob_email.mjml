@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Zarejestruj się na {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Kod weryfikacyjny e-mail</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Użyj poniższego jednorazowego hasła, aby ukończyć proces rejestracji.
+        Cześć, <br/> Użyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować w {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Nie udostępniaj go nikomu. Jeśli nie zarejestrowałeś się, zignoruj ten e-mail.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Otrzymałeś tę wiadomość e-mail, ponieważ zarejestrowałeś się lub zalogowałeś z {{ template "app.name" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

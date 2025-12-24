@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Mag-sign up sa {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Code ng Pag-verify sa Email</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-sign up.
+        Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign up, pakiignore na lang ang email na ito.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Natanggap mo ang email na ito dahil nag-sign up o nag-log in ka mula sa {{ template "app.name" }}. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

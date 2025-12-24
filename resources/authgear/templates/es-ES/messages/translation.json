@@ -42,10 +42,10 @@
     "Disclaimer": "Si no has iniciado este proceso, por favor ignora este correo electrónico."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Regístrate en {{ template \"app.name\" }}",
-    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de registro.",
+    "Title": "Código de Verificación de Correo Electrónico",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la compartas con nadie. Si no te has registrado, por favor ignora este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque te registraste o iniciaste sesión desde {{ template \"app.name\" }}. Si no estás seguro del motivo, puedes ignorarlo de forma segura."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifica tu correo electrónico y configura la verificación en dos pasos en {{ template \"app.name\" }}",

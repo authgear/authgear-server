@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Daftar di {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Kode Verifikasi Email</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses pendaftaran.
+        Halo, <br/> Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Jangan bagikan dengan siapa pun. Jika Anda tidak mendaftar, abaikan email ini.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Anda menerima email ini karena Anda mendaftar atau masuk dari {{ template "app.name" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

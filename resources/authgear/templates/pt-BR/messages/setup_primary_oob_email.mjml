@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Cadastre-se no {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Código de Verificação de Email</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Por favor, use a seguinte senha única para concluir o processo de cadastro.
+        Olá, <br/> Por favor, use o seguinte código para confirmar seu endereço de email e continuar no {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Não compartilhe com ninguém. Se você não se cadastrou, por favor ignore este e-mail.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Você recebeu este email porque se cadastrou ou fez login no {{ template "app.name" }}. Se você não tem certeza do motivo, pode ignorá-lo com segurança.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

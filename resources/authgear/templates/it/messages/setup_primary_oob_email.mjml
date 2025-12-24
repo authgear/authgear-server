@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Registrati su {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Codice di Verifica Email</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Per favore usa la seguente password monouso per completare il processo di registrazione.
+        Ciao, <br/> Utilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Non condividerla con nessuno. Se non ti sei registrato, ignora questa email.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Hai ricevuto questa email perché ti sei registrato o hai effettuato l''accesso da {{ template "app.name" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

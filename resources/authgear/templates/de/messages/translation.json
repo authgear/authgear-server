@@ -42,10 +42,10 @@
     "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Registrieren Sie sich bei {{ template \"app.name\" }}",
-    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Registrierungsprozess abzuschließen.",
+    "Title": "E-Mail-Bestätigungscode",
+    "Body": "Hallo, <br/> Bitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse zu bestätigen und mit {{ template \"app.name\" }} fortzufahren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht registriert haben, ignorieren Sie bitte diese E-Mail."
+    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie sich bei {{ template \"app.name\" }} angemeldet oder eingeloggt haben. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail bedenkenlos ignorieren."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifizieren Sie Ihre E-Mail-Adresse und richten Sie die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",

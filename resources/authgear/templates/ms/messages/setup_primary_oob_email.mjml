@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Daftar di {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Kod Pengesahan E-mel</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses pendaftaran.
+        Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Jangan kongsi dengan sesiapa. Jika anda tidak mendaftar, sila abaikan e-mel ini.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Anda menerima e-mel ini kerana anda mendaftar atau log masuk dari {{ template "app.name" }}. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

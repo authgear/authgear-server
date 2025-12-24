@@ -42,10 +42,10 @@
     "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Inscrivez-vous sur {{ template \"app.name\" }}",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus d'inscription.",
+    "Title": "Code de vérification par e-mail",
+    "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour confirmer votre adresse e-mail et continuer sur {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas inscrit, veuillez ignorer cet e-mail."
+    "Disclaimer": "Vous avez reçu cet e-mail car vous vous êtes inscrit ou connecté depuis {{ template \"app.name\" }}. Si vous n''êtes pas sûr pourquoi, vous pouvez l''ignorer en toute sécurité."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Vérifiez votre e-mail et configurez la vérification en deux étapes sur {{ template \"app.name\" }}",

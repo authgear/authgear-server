@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Sign up on {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Email Verification Code</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Please use the following one-time password to complete the sign up process.
+        Hi there, <br/> Please use the following code to confirm your email address and continue on {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Don't share it with anyone. If you didn't sign up, please ignore this email.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">You received this email because you signed up or logged in from {{ template "app.name" }}. If you are not sure why, you can safely ignore it.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
