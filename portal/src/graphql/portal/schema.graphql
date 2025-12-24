@@ -459,6 +459,12 @@ type GenerateAppSecretVisitTokenPayloadPayload {
 }
 
 """"""
+type GenerateShortLivedAdminAPITokenPayload {
+  """"""
+  token: String!
+}
+
+""""""
 input GenerateStripeCustomerPortalSessionInput {
   """Target app ID."""
   appID: ID!
@@ -519,6 +525,9 @@ type Mutation {
 
   """Generate a token for visiting app secrets"""
   generateAppSecretVisitToken(input: GenerateAppSecretVisitTokenInput!): GenerateAppSecretVisitTokenPayloadPayload!
+
+  """Generate short-lived admin API token"""
+  generateShortLivedAdminAPIToken(input: generateShortLivedAdminAPITokenInput!): GenerateShortLivedAdminAPITokenPayload
 
   """Generate Stripe customer portal session"""
   generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
@@ -1458,6 +1467,15 @@ type WebhookSecret {
 input cancelFailedSubscriptionInput {
   """Target app ID."""
   appID: ID!
+}
+
+""""""
+input generateShortLivedAdminAPITokenInput {
+  """App ID to generate token for."""
+  appID: ID!
+
+  """App secret visit token."""
+  appSecretVisitToken: String!
 }
 
 """OAuth client secret item"""

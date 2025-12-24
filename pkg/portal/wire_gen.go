@@ -364,6 +364,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:       adminAPIService,
 		PosthogService: posthogService,
 	}
+	tokenService := &service.TokenService{
+		Clock: clockClock,
+	}
 	context := &graphql.Context{
 		Request:                 request,
 		GlobalDatabase:          handle,
@@ -388,6 +391,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DenoService:             denoClientImpl,
 		AuditService:            auditService,
 		OnboardService:          onboardService,
+		TokenService:            tokenService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: context,

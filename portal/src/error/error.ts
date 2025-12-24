@@ -47,6 +47,11 @@ export interface RequestEntityTooLargeError {
   reason: "RequestEntityTooLarge";
 }
 
+export interface ForbiddenError {
+  errorName: "Forbidden";
+  reason: "Forbidden";
+}
+
 export interface TooManyRequestError {
   errorName: "TooManyRequest";
   reason: "TooManyRequest";
@@ -122,6 +127,7 @@ export interface APISMTPTestFailedError {
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
+  | ForbiddenError
   | UnknownError
   | LocalError
   | TooManyRequestError

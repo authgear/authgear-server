@@ -179,6 +179,10 @@ type AuditService interface {
 	Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) error
 }
 
+type TokenService interface {
+	GenerateShortLivedAdminAPIToken(appID string, keyID string, privateKeyPEM string) (string, error)
+}
+
 type Context struct {
 	Request *http.Request
 
@@ -206,6 +210,7 @@ type Context struct {
 	DenoService          DenoService
 	AuditService         AuditService
 	OnboardService       OnboardService
+	TokenService         TokenService
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {
