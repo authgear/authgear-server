@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -200,7 +199,9 @@ type BotProtectionRequirements struct {
 	Mode config.BotProtectionRiskMode `json:"mode,omitempty"`
 }
 
-type RateLimits map[ratelimit.RateLimit]RateLimitRequirements
+// This should be map[ratelimit.RateLimit]RateLimitRequirements,
+// but this will cause import cycle. So use string.
+type RateLimits map[string]RateLimitRequirements
 
 type RateLimitRequirements struct {
 	Weight float64 `json:"weight,omitempty"`

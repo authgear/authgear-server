@@ -469,6 +469,9 @@ enum AuditLogActivityType {
   PROJECT_DOMAIN_VERIFIED
 
   """"""
+  RATE_LIMIT_BLOCKED
+
+  """"""
   SMS_ERROR
 
   """"""

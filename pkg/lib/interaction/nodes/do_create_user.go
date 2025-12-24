@@ -85,9 +85,9 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 				// to ensure all nodes are run.
 
 				// check the rate limit only before running the effects
-				rl := ratelimit.RateLimitAuthenticationSignup
+				rl := ratelimit.RateLimitGroupAuthenticationSignup
 				if isAnonymous {
-					rl = ratelimit.RateLimitAuthenticationSignupAnonymous
+					rl = ratelimit.RateLimitGroupAuthenticationSignupAnonymous
 				}
 				specs := rl.ResolveBucketSpecs(ctx.Config, ctx.FeatureConfig, ctx.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
 					IPAddress: ip,

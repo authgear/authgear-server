@@ -725,7 +725,7 @@ func newIdentityInfo(ctx context.Context, deps *authflow.Dependencies, newUserID
 func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
 
 	reservations := []*ratelimit.Reservation{}
-	specs := ratelimit.RateLimitAuthenticationAccountEnumeration.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+	specs := ratelimit.RateLimitGroupAuthenticationAccountEnumeration.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
 		IPAddress: string(deps.RemoteIP),
 	})
 	for _, spec := range specs {

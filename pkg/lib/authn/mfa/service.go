@@ -34,6 +34,7 @@ type RateLimiter interface {
 }
 
 type Service struct {
+	ReadOnlyService
 	IP            httputil.RemoteIP
 	DeviceTokens  StoreDeviceToken
 	RecoveryCodes StoreRecoveryCode
@@ -51,7 +52,7 @@ func (s *Service) GenerateDeviceToken(ctx context.Context) string {
 
 func (s *Service) reserveRateLimit(
 	ctx context.Context,
-	rl ratelimit.RateLimit,
+	rl ratelimit.RateLimitGroup,
 	userID string,
 ) (reservations []*ratelimit.Reservation, err error) {
 	specs := rl.ResolveBucketSpecs(s.Config, s.FeatureConfig, s.EnvConfig, &ratelimit.ResolveBucketSpecOptions{
@@ -93,7 +94,7 @@ func (s *Service) CreateDeviceToken(ctx context.Context, userID string, token st
 func (s *Service) VerifyDeviceToken(ctx context.Context, userID string, token string) error {
 	resvs, err := s.reserveRateLimit(
 		ctx,
-		ratelimit.RateLimitAuthenticationDeviceToken,
+		ratelimit.RateLimitGroupAuthenticationDeviceToken,
 		userID,
 	)
 	if err != nil {
@@ -166,7 +167,7 @@ func (s *Service) ReplaceRecoveryCodes(ctx context.Context, userID string, codes
 func (s *Service) VerifyRecoveryCode(ctx context.Context, userID string, code string) (*RecoveryCode, error) {
 	resvs, err := s.reserveRateLimit(
 		ctx,
-		ratelimit.RateLimitAuthenticationRecoveryCode,
+		ratelimit.RateLimitGroupAuthenticationRecoveryCode,
 		userID,
 	)
 	if err != nil {
@@ -221,8 +222,4 @@ func (s *Service) ConsumeRecoveryCode(ctx context.Context, rc *RecoveryCode) err
 	}
 
 	return nil
-}
-
-func (s *Service) ListRecoveryCodes(ctx context.Context, userID string) ([]*RecoveryCode, error) {
-	return s.RecoveryCodes.List(ctx, userID)
 }

@@ -91,6 +91,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					Language:           fallbackLanguage,
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
+					AuditContext:       event.NewAuditContext("", nil),
 				},
 			}).Times(1).Return(nil)
 
@@ -133,6 +134,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 						Language:           fallbackLanguage,
 						PreferredLanguages: []string{},
 						TriggeredBy:        event.TriggeredByTypeUser,
+						AuditContext:       event.NewAuditContext("", nil),
 					},
 				},
 			).Return(nil)
@@ -205,6 +207,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					Language:           fallbackLanguage,
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
+					AuditContext:       event.NewAuditContext("", nil),
 				},
 				IsNonBlocking: true,
 			})
@@ -242,6 +245,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					Language:           fallbackLanguage,
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
+					AuditContext:       event.NewAuditContext("", nil),
 				},
 			}).Return(fmt.Errorf("e"))
 			sink.EXPECT().ReceiveNonBlockingEvent(ctx, gomock.Any()).Times(0)

@@ -29,7 +29,7 @@ type Context struct {
 	Timestamp          int64           `json:"timestamp"`
 	UserID             *string         `json:"user_id"`
 	TriggeredBy        TriggeredByType `json:"triggered_by"`
-	AuditContext       interface{}     `json:"audit_context"`
+	AuditContext       AuditContext    `json:"audit_context"`
 	PreferredLanguages []string        `json:"preferred_languages"`
 	Language           string          `json:"language"`
 
@@ -44,4 +44,15 @@ type Context struct {
 type OAuthContext struct {
 	State  string `json:"state,omitempty"`
 	XState string `json:"x_state,omitempty"`
+}
+
+type AuditContext map[string]any
+
+func NewAuditContext(httpURL string, info map[string]any) AuditContext {
+	auditCtx := AuditContext{}
+	for k, v := range info {
+		auditCtx[k] = v
+	}
+	auditCtx["http_url"] = httpURL
+	return auditCtx
 }

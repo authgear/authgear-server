@@ -50,7 +50,7 @@ func (l *Limits) cancel(ctx context.Context, reservation *Reservation) {
 func (l *Limits) check(
 	ctx context.Context,
 	reservation *Reservation,
-	rl ratelimit.RateLimit,
+	rl ratelimit.RateLimitGroup,
 	opts *ratelimit.ResolveBucketSpecOptions,
 ) (err error) {
 	specs := rl.ResolveBucketSpecs(l.Config, l.FeatureConfig, l.EnvConfig, opts)
@@ -93,7 +93,7 @@ func (l *Limits) checkEmail(ctx context.Context, email string) (err error) {
 	}
 
 	err = l.check(ctx, r,
-		ratelimit.RateLimitMessagingEmail,
+		ratelimit.RateLimitGroupMessagingEmail,
 		&opts,
 	)
 	if err != nil {
@@ -124,7 +124,7 @@ func (l *Limits) checkSMS(ctx context.Context, phoneNumber string) (err error) {
 	}
 
 	err = l.check(ctx, r,
-		ratelimit.RateLimitMessagingSMS,
+		ratelimit.RateLimitGroupMessagingSMS,
 		&opts,
 	)
 	if err != nil {
@@ -156,7 +156,7 @@ func (l *Limits) checkWhatsapp(ctx context.Context, phoneNumber string) (err err
 
 	// TODO: Use whatsapp specific rate limits
 	err = l.check(ctx, r,
-		ratelimit.RateLimitMessagingSMS,
+		ratelimit.RateLimitGroupMessagingSMS,
 		&opts,
 	)
 	if err != nil {

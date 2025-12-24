@@ -11,10 +11,10 @@ const (
 )
 
 type T struct {
-	AuditContext interface{}
+	AuditContext map[string]any
 }
 
-func WithAdminAuthzAudit(ctx context.Context, content interface{}) context.Context {
+func WithAdminAuthzAudit(ctx context.Context, content map[string]any) context.Context {
 	v, ok := ctx.Value(auditContextKey).(*T)
 	if ok {
 		v.AuditContext = content
@@ -24,7 +24,7 @@ func WithAdminAuthzAudit(ctx context.Context, content interface{}) context.Conte
 	return context.WithValue(ctx, auditContextKey, t)
 }
 
-func GetAdminAuthzAudit(ctx context.Context) interface{} {
+func GetAdminAuthzAudit(ctx context.Context) map[string]any {
 	v, ok := ctx.Value(auditContextKey).(*T)
 	if ok {
 		return v.AuditContext

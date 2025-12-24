@@ -6,19 +6,29 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var LimiterLogger = slogutil.NewLogger("rate-limit")
 
+type LimiterEventService interface {
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error)
+}
+
 // Limiter implements rate limiting using a simple token bucket algorithm.
 // Consumers take token from a bucket every operation, and tokens are refilled
 // periodically.
 type Limiter struct {
-	Storage Storage
-	AppID   config.AppID
-	Config  *config.RateLimitsFeatureConfig
+	Database     *appdb.Handle
+	Storage      Storage
+	AppID        config.AppID
+	Config       *config.RateLimitsFeatureConfig
+	EventService LimiterEventService
 }
 
 // GetTimeToAct allows you to check what is the earliest time you can retry.
@@ -44,7 +54,7 @@ func (l *Limiter) Allow(ctx context.Context, spec BucketSpec) (*FailedReservatio
 // Reserve is reserveN(weight).
 // weight default is 1, but it can be modified by user.
 func (l *Limiter) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *FailedReservation, error) {
-	weight := spec.RateLimit.ResolveWeight(ctx)
+	weight := spec.RateLimitGroup.ResolveWeight(ctx)
 	return l.reserveN(ctx, spec, weight)
 }
 
@@ -80,7 +90,7 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("key", key),
 		slog.String("bucket", string(spec.Name)),
-		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("ratelimit", string(spec.RateLimitGroup)),
 		slog.Bool("ok", ok),
 		slog.Time("timeToAct", timeToAct),
 	)
@@ -96,12 +106,35 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 	logger.WithSkipStackTrace().WithSkipLogging().Error(ctx, "rate limited",
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("bucket", string(spec.Name)),
-		slog.String("ratelimit", string(spec.RateLimit)),
+		slog.String("ratelimit", string(spec.RateLimitGroup)),
 		slog.String("key", key),
 		slog.Bool("ok", ok),
 		slog.Bool("ratelimit_logging", true),
 		slog.Time("timeToAct", timeToAct),
 	)
+
+	if spec.RateLimitGroup != "" {
+		// Create audit log only if the rate limit is part of the public api
+		ev := nonblocking.RateLimitBlockedEventPayload{
+			RateLimit: model.RateLimit{
+				Name:  string(spec.RateLimitName),
+				Group: string(spec.RateLimitGroup),
+			},
+		}
+		var logErr error
+		// Limiter might be used outside transaction, so we need to check if there is an open transaction first.
+		if l.Database.IsInTx(ctx) {
+			logErr = l.EventService.DispatchEventImmediately(ctx, &ev)
+		} else {
+			logErr = l.Database.WithTx(ctx, func(ctx context.Context) error {
+				return l.EventService.DispatchEventImmediately(ctx, &ev)
+			})
+		}
+		if logErr != nil {
+			// Log the error and continue to ensure the api returns a RateLimited error
+			logger.WithError(logErr).Error(ctx, "failed to dispatch rate_limit.blocked")
+		}
+	}
 
 	return nil, &FailedReservation{
 		key:       key,
