@@ -42,10 +42,9 @@
     "Disclaimer": "如你未曾註冊，則無需理會此電郵。"
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "電郵驗證碼",
-    "Body": "您好，<br/> 請使用以下驗證碼確認您的電郵地址並繼續使用 {{ template \"app.name\" }}。",
+    "Body": "您好，<br/> 請使用以下驗證碼確認您的電子郵件地址並繼續使用 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "您收到此電郵是因為您在 {{ template \"app.name\" }} 註冊或登入。如果您不確定原因，可以安全地忽略它。"
+    "Disclaimer": "您收到此電子郵件是因為您在 <b>{{ template \"app.name\" }}</b> 註冊或登入。如果您不確定原因，可以安全地忽略它。"
   },
   "SetupSecondaryLoginLink": {
     "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",

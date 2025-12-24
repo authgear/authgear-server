@@ -42,10 +42,9 @@
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Kod Pengesahan E-mel",
-    "Body": "Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di {{ template \"app.name\" }}.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Anda menerima e-mel ini kerana anda mendaftar atau log masuk dari {{ template \"app.name\" }}. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda mendaftar atau log masuk dari <b>{{ template \"app.name\" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template \"app.name\" }}",

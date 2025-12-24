@@ -42,10 +42,9 @@
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Kode Verifikasi Email",
-    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template \"app.name\" }}.",
+    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Anda menerima email ini karena Anda mendaftar atau masuk dari {{ template \"app.name\" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
+    "Disclaimer": "Anda menerima email ini karena Anda mendaftar atau masuk dari <b>{{ template \"app.name\" }}</b>. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifikasi email Anda dan siapkan verifikasi 2 langkah di {{ template \"app.name\" }}",

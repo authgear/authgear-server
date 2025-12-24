@@ -5,22 +5,33 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding="32px 0px 0px 0px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">电子邮件验证码</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        您好，<br/> 请使用以下验证码确认您的电子邮件地址并继续使用 {{ template "app.name" }}。
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        您好，<br/> 请使用以下验证码确认您的电子邮件地址并继续使用 <b>{{ template "app.name" }}</b>。
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
-    <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">您收到此电子邮件是因为您在 {{ template "app.name" }} 注册或登录。如果您不确定原因，可以安全地忽略它。</mj-text>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">您收到此电子邮件是因为您在 <b>{{ template "app.name" }}</b> 注册或登录。如果您不确定原因，可以安全地忽略它。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

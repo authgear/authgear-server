@@ -42,10 +42,9 @@
     "Disclaimer": "Se você não iniciou esta configuração, por favor ignore este e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Código de Verificação de Email",
-    "Body": "Olá, <br/> Por favor, use o seguinte código para confirmar seu endereço de email e continuar no {{ template \"app.name\" }}.",
+    "Body": "Olá, <br/> Por favor, use o seguinte código para confirmar seu endereço de e-mail e continuar no <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Você recebeu este email porque se cadastrou ou fez login no {{ template \"app.name\" }}. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
+    "Disclaimer": "Você recebeu este e-mail porque se cadastrou ou fez login no <b>{{ template \"app.name\" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifique seu e-mail e configure a verificação em duas etapas no {{ template \"app.name\" }}",

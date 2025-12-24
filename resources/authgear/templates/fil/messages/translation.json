@@ -42,10 +42,9 @@
     "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Code ng Pag-verify sa Email",
-    "Body": "Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa {{ template \"app.name\" }}.",
+    "Body": "Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Natanggap mo ang email na ito dahil nag-sign up o nag-log in ka mula sa {{ template \"app.name\" }}. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil nag-sign up o nag-log in ka mula sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "SetupSecondaryLoginLink": {
     "Title": "I-verify ang iyong email at i-setup ang 2-step verification sa {{ template \"app.name\" }}",

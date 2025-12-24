@@ -42,10 +42,9 @@
     "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "E-mailverificatiecode",
-    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres te bevestigen en verder te gaan op {{ template \"app.name\" }}.",
+    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres te bevestigen en verder te gaan op <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je je hebt aangemeld of ingelogd bij {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze e-mail veilig negeren."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je je hebt aangemeld of ingelogd bij <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifieer uw e-mail en stel 2-staps verificatie in op {{ template \"app.name\" }}",

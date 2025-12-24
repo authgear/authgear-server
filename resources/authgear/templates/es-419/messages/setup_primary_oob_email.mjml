@@ -5,22 +5,33 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding="32px 0px 0px 0px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Código de Verificación de Correo Electrónico</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Hola, <br/> Por favor utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template "app.name" }}.
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        Hola, <br/> Por favor utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
-    <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Recibiste este correo electrónico porque te registraste o iniciaste sesión desde {{ template "app.name" }}. Si no estás seguro por qué, puedes ignorarlo con seguridad.</mj-text>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Recibiste este correo electrónico porque te registraste o iniciaste sesión desde <b>{{ template "app.name" }}</b>. Si no estás seguro por qué, puedes ignorarlo con seguridad.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
