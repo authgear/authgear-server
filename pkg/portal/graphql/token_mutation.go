@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"fmt"
+
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -80,7 +82,7 @@ var _ = registerMutationField(
 			}
 
 			if len(secretConfig.AdminAPISecrets) == 0 {
-				return nil, apierrors.NewInvalid("no admin API auth key found")
+				panic(fmt.Sprintf("no admin API secret found for app: %s", appID))
 			}
 
 			keyID := secretConfig.AdminAPISecrets[0].KeyID
