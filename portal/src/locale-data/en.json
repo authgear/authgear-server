@@ -143,7 +143,7 @@
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
   "errors.input-file-media-type": "The file you selected is not of supported type. Please select another one.",
 
-  "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
+  "warnings.free-plan": "To avoid spam, SMS and WhatsApp messages are disabled by default. To unlock your free SMS/WhatsApp messages, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
@@ -2096,6 +2096,10 @@
   "GetStartedScreen.card.description.invite": "Add your team members and admin to help with your integration.",
   "GetStartedScreen.card.action-label.invite": "Invite members",
   "GetStartedScreen.card.skip-button.label": "Skip this",
+  "GetStartedScreen.applyMessagingDialog.title": "Enable SMS and WhatsApp",
+  "GetStartedScreen.applyMessagingDialog.message": "To prevent spam, SMS and WhatsApp messaging is disabled by default. Apply once to unlock your 100 free SMS/WhatsApp messages.",
+  "GetStartedScreen.applyMessagingDialog.apply": "Apply now",
+  "GetStartedScreen.applyMessagingDialog.later": "Maybe later",
 
   "MFAConfigurationScreen.title": "2-Factor Authentication",
   "MFAConfigurationScreen.description": "Enhance your users' security during login to prevent unauthorized access.",

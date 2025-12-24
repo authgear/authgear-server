@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "Sepertinya anda log masuk dengan akaun yang berbeza. Sila cuba lagi.",
   "v2.error.unknown": "Ralat yang tidak diketahui telah berlaku. Jika masalah ini berterusan, sila dapatkan bantuan di <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum Komuniti</a> kami atau hubungi kami di <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "URL yang anda masukkan tidak dalam format yang betul. URL biasanya bermula dengan https://, cth. https://example.com/",
-  "v2.error.usage-limit-exceeded": "[Untuk Pembangun] Projek anda telah melebihi had penggunaan. Sila semak langganan anda.",
+  "v2.error.usage-limit-exceeded": "[Kepada Pembangun] Projek anda telah melebihi had penggunaan mesej. Sila semak langganan anda.",
   "v2.error.username-not-allowed": "Nama pengguna yang anda masukkan tidak dibenarkan. Sila elakkan menggunakan nama pengguna yang ditempah seperti `admin`.",
   "v2.error.verification-code-format": "Kod pengesahan yang anda masukkan tidak dalam format yang betul. Sila pastikan ia adalah kod 6 digit.",
   "v2.error.verification-code-invalid": "Kod pengesahan tidak betul.",

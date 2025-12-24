@@ -68,6 +68,7 @@ import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutati
 import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
 import { extractRawID } from "../../util/graphql";
 import { CancelSubscriptionSurveyDialog } from "../../components/billing/CancelSubscriptionSurveyDialog";
+import BlueMessageBar from "../../BlueMessageBar";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -642,6 +643,11 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.description" />
           </ScreenDescription>
         </div>
+        {planName === "free" ? (
+          <BlueMessageBar>
+            <FormattedMessage id="warnings.free-plan" />
+          </BlueMessageBar>
+        ) : null}
         <AGPivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
           <PivotItem
             itemKey={Tab.Subscription}

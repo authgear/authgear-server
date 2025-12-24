@@ -218,7 +218,7 @@
       {{ end }}
     {{ else if eq .Error.reason "AccountLockout" }}
       <!-- We need to render a full-screen modal for this case, done in __lockout.html instead -->
-    {{ else if eq .Error.reason "UsageLimitExceeded" }}
+    {{ else if and (eq .Error.reason "UsageLimitExceeded") (or (eq .Error.info.name "Email") (eq .Error.info.name "SMS") (eq .Error.info.name "Whatsapp"))}}
       <span>{{ include "v2.error.usage-limit-exceeded" nil }}</span>
     {{ else if eq .Error.reason "SMSNotSupported" }}
       <span>

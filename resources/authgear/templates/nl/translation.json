@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "Het lijkt erop dat u bent ingelogd met een ander account. Probeer het opnieuw.",
   "v2.error.unknown": "Er is een onbekende fout opgetreden. Als het probleem aanhoudt, vraag dan om hulp in ons <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> of neem contact met ons op via <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "De URL die u heeft ingevoerd, heeft niet het juiste formaat. URL''s beginnen meestal met https://, bijvoorbeeld https://example.com/",
-  "v2.error.usage-limit-exceeded": "[Voor ontwikkelaar] Uw project heeft de gebruikslimiet overschreden. Bekijk uw abonnement.",
+  "v2.error.usage-limit-exceeded": "[Aan Ontwikkelaar] Uw project heeft de limiet voor berichtgebruik overschreden. Controleer alstublieft uw abonnement.",
   "v2.error.username-not-allowed": "De gebruikersnaam die u heeft ingevoerd, is niet toegestaan. Vermijd het gebruik van gereserveerde gebruikersnamen zoals `admin`.",
   "v2.error.verification-code-format": "De verificatiecode die u heeft ingevoerd, heeft niet het juiste formaat. Zorg ervoor dat het een 6-cijferige code is.",
   "v2.error.verification-code-invalid": "Verificatiecode is onjuist.",

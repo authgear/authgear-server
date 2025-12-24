@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "別のアカウントでログインしたようです。もう一度お試しください。",
   "v2.error.unknown": "不明なエラーが発生しました。問題が解決しない場合は、<a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">コミュニティフォーラム</a>でサポートを求めるか、<a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>までご連絡ください。",
   "v2.error.uri-format": "入力されたURLの形式が正しくありません。URLはhttps://から始まる必要があります(例: https://example.com/)。",
-  "v2.error.usage-limit-exceeded": "[To Developer] プロジェクトの使用量が上限を超えています。サブスクリプションを確認してください。",
+  "v2.error.usage-limit-exceeded": "[開発者へ] あなたのプロジェクトはメッセージ使用制限を超えています。サブスクリプションを確認してください。",
   "v2.error.username-not-allowed": "入力されたユーザー名は許可されていません。`admin`などの予約済みユーザー名は使用しないでください。",
   "v2.error.verification-code-format": "入力された確認コードの形式が正しくありません。6桁のコードを入力してください。",
   "v2.error.verification-code-invalid": "確認コードが正しくありません。",

@@ -1028,7 +1028,7 @@
   "v2.error.unexpected-user": "ดูเหมือนว่าคุณได้เข้าสู่ระบบด้วยบัญชีอื่น โปรดลองอีกครั้ง",
   "v2.error.unknown": "เกิดข้อผิดพลาดที่ไม่รู้จัก หากปัญหายังคงเกิดขึ้น โปรดขอความช่วยเหลือในชุมชนของเรา <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> หรือติดต่อเราที่ <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "URL ที่คุณป้อนไม่อยู่ในรูปแบบที่ถูกต้อง URL โดยทั่วไปจะเริ่มต้นด้วย https://, เช่น https://example.com/",
-  "v2.error.usage-limit-exceeded": "[To Developer] โครงการของคุณใช้งานเกินจำนวนที่กำหนด กรุณาตรวจสอบการสมัครสมาชิกของคุณ",
+  "v2.error.usage-limit-exceeded": "[ถึงนักพัฒนา] โปรเจกต์ของคุณได้เกินขีดจำกัดการใช้งานข้อความแล้ว โปรดตรวจสอบการสมัครสมาชิกของคุณ",
   "v2.error.username-not-allowed": "ชื่อผู้ใช้ที่คุณป้อนไม่ได้รับอนุญาต โปรดหลีกเลี่ยงการใช้ชื่อผู้ใช้ที่สงวนไว้ เช่น `admin`",
   "v2.error.verification-code-format": "รหัสยืนยันที่คุณป้อนไม่อยู่ในรูปแบบที่ถูกต้อง โปรดตรวจสอบให้แน่ใจว่าเป็นรหัส 6 หลัก",
   "v2.error.verification-code-invalid": "รหัสยืนยันไม่ถูกต้อง.",
