@@ -42,10 +42,10 @@
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Sign up on {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the sign up process.",
+    "Title": "Email Verification Code",
+    "Body": "Hi there, <br/> Please use the following code to confirm your email address and continue on {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't sign up, please ignore this email."
+    "Disclaimer": "You received this email because you signed up or logged in from {{ template \"app.name\" }}. If you are not sure why, you can safely ignore it."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verify your email and setup 2-step verification on {{ template \"app.name\" }}",
