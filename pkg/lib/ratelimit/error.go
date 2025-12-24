@@ -7,7 +7,7 @@ import (
 
 const rateLimitKey = "rate_limit"
 const DEPRECATED_rateLimitNameKey = "rate_limit_name"
-const bucketNameKey = "bucket_name"
+const DEPRECATED_bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
 
@@ -15,7 +15,7 @@ func ErrRateLimited(rl RateLimitName, rlgroup RateLimitGroup, bucketName BucketN
 	details := apierrors.Details{
 		// Deprecated field. Do not use.
 		// Use rate_limit_name instead.
-		bucketNameKey: bucketName,
+		DEPRECATED_bucketNameKey: bucketName,
 	}
 	// Some buckets do not have a rate limit name, so do not add the key if it is empty
 	if rl != "" {
@@ -38,5 +38,5 @@ func IsRateLimitErrorWithBucketName(err error, bucketName BucketName) bool {
 		return false
 	}
 
-	return apiError.Info_ReadOnly[bucketNameKey] == bucketName
+	return apiError.Info_ReadOnly[DEPRECATED_bucketNameKey] == bucketName
 }
