@@ -6,10 +6,9 @@
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBEmail": {
-    "Title": "Log in to {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the log in process.",
+    "Body": "Hi there, <br> Please use the following code to log in to <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't trigger a login, please ignore this email."
+    "Disclaimer": "You received this email because you logged in from <b>{{ template \"app.name\" }}</b>. If you are not sure why, you can safely ignore it."
   },
   "SecondaryLoginLink": {
     "Title": "Use this link to sign in {{ template \"app.name\" }}",
