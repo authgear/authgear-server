@@ -6,10 +6,9 @@
     "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
   },
   "PrimaryOOBEmail": {
-    "Title": "{{ template \"app.name\" }}にログイン",
-    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Body": "こんにちは、<br> 以下のコードを使用して <b>{{ template \"app.name\" }}</b> にログインしてください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "誰にも教えないでください。ログインをリクエストしていない場合は、このメールを無視してください。"
+    "Disclaimer": "このメールは <b>{{ template \"app.name\" }}</b> からログインしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
   "SecondaryLoginLink": {
     "Title": "{{ template \"app.name\" }}にサインインするためのリンク",

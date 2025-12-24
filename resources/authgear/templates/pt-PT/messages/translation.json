@@ -6,10 +6,9 @@
     "Disclaimer": "Se não iniciou uma sessão, ignore este email."
   },
   "PrimaryOOBEmail": {
-    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
-    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Body": "Olá, <br> Por favor, utilize o seguinte código para iniciar sessão em <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+    "Disclaimer": "Recebeu este email porque iniciou sessão a partir de <b>{{ template \"app.name\" }}</b>. Se não tem a certeza do motivo, pode ignorá-lo com segurança."
   },
   "SecondaryLoginLink": {
     "Title": "Use this link to sign in {{ template \"app.name\" }}",

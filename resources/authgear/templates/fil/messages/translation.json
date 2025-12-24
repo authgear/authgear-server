@@ -6,10 +6,9 @@
     "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
   },
   "PrimaryOOBEmail": {
-    "Title": "Mag-log in sa {{ template \"app.name\" }}",
-    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Body": "Kumusta, <br> Mangyaring gamitin ang sumusunod na code para mag-log in sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil nag-log in ka mula sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "SecondaryLoginLink": {
     "Title": "Gamitin ang link na ito para mag-sign in sa {{ template \"app.name\" }}",

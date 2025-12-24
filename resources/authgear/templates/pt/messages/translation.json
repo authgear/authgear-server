@@ -6,10 +6,9 @@
     "Disclaimer": "Se você não acionou um login, ignore este e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Entrar em {{ template \"app.name\" }}",
-    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de login.",
+    "Body": "Olá, <br> Por favor, use o seguinte código para entrar no <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não compartilhe com ninguém. Se você não acionou um login, ignore este e-mail."
+    "Disclaimer": "Você recebeu este e-mail porque fez login no <b>{{ template \"app.name\" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },
   "SecondaryLoginLink": {
     "Title": "Use este link para entrar em {{ template \"app.name\" }}",

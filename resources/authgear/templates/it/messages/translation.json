@@ -6,10 +6,9 @@
     "Disclaimer": "Se non hai richiesto l''accesso, ignora questa email."
   },
   "PrimaryOOBEmail": {
-    "Title": "Accedi a {{ template \"app.name\" }}",
-    "Body": "Per favore usa la seguente password monouso per completare il processo di accesso.",
+    "Body": "Ciao, <br> Per favore utilizza il seguente codice per accedere a <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai richiesto l''accesso, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché hai effettuato l''accesso da <b>{{ template \"app.name\" }}</b>. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
   },
   "SecondaryLoginLink": {
     "Title": "Usa questo link per accedere a {{ template \"app.name\" }}",

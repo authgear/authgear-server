@@ -6,10 +6,9 @@
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "PrimaryOOBEmail": {
-    "Title": "登入至 {{ template \"app.name\" }}",
-    "Body": "請用以下一次性密碼完成登入。",
+    "Body": "您好，<br> 請使用以下驗證碼登入 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+    "Disclaimer": "您收到此電郵是因為您從 <b>{{ template \"app.name\" }}</b> 登入。如果您不確定原因，可以安全地忽略它。"
   },
   "SecondaryLoginLink": {
     "Title": "登入至 {{ template \"app.name\" }}",

@@ -6,10 +6,9 @@
     "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Log in op {{ template \"app.name\" }}",
-    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Body": "Hallo, <br> Gebruik de volgende code om in te loggen bij <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+    "Disclaimer": "U heeft deze e-mail ontvangen omdat u heeft ingelogd bij <b>{{ template \"app.name\" }}</b>. Als u niet zeker weet waarom, kunt u deze veilig negeren."
   },
   "SecondaryLoginLink": {
     "Title": "Gebruik deze link om in te loggen op {{ template \"app.name\" }}",

@@ -6,10 +6,9 @@
     "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Connectez-vous à {{ template \"app.name\" }}",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Body": "Bonjour, <br> Veuillez utiliser le code suivant pour vous connecter à <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+    "Disclaimer": "Vous avez reçu cet e-mail car vous vous êtes connecté depuis <b>{{ template \"app.name\" }}</b>. Si vous n''êtes pas sûr pourquoi, vous pouvez l''ignorer en toute sécurité."
   },
   "SecondaryLoginLink": {
     "Title": "Utilisez ce lien pour vous connecter à {{ template \"app.name\" }}",

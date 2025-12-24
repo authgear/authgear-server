@@ -6,10 +6,9 @@
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "PrimaryOOBEmail": {
-    "Title": "Masuk ke {{ template \"app.name\" }}",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.",
+    "Body": "Halo, <br> Silakan gunakan kode berikut untuk masuk ke <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memicu login, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda masuk dari <b>{{ template \"app.name\" }}</b>. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
   "SecondaryLoginLink": {
     "Title": "Gunakan tautan ini untuk masuk {{ template \"app.name\" }}",
