@@ -2,10 +2,10 @@ package ratelimit
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-const rateLimitNameKey = "rate_limit_name"
-const rateLimitGroupKey = "rate_limit_group"
+const rateLimitKey = "rate_limit"
 const bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
@@ -18,8 +18,10 @@ func ErrRateLimited(rl RateLimitName, rlgroup RateLimitGroup, bucketName BucketN
 	}
 	// Some buckets do not have a rate limit name, so do not add the key if it is empty
 	if rl != "" {
-		details[rateLimitNameKey] = rl
-		details[rateLimitGroupKey] = rlgroup
+		details[rateLimitKey] = model.RateLimit{
+			Name:  string(rl),
+			Group: string(rlgroup),
+		}
 	}
 	return RateLimited.NewWithInfo("request rate limited", details)
 }
