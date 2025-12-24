@@ -45,7 +45,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   }
 
   const isEnabled = true;
-  const blockedIPCIDRs = portalRule.source.cidrs?.join(",") ?? "";
+  const blockedIPCIDRs = portalRule.source.cidrs?.join("\n") ?? "";
   const blockedCountryAlpha2s = portalRule.source.geo_location_codes ?? [];
 
   return {

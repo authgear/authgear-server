@@ -47,7 +47,7 @@ interface IPCheckResult {
 
 export function toCIDRs(blockedIPCIDRsStr: string): string[] {
   return blockedIPCIDRsStr
-    .split(",")
+    .split(/,|\n/)
     .map((s) => {
       const trimmed = s.trim();
       if (trimmed === "") {
