@@ -6,6 +6,7 @@ import (
 )
 
 const rateLimitKey = "rate_limit"
+const DEPRECATED_rateLimitNameKey = "rate_limit_name"
 const bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
@@ -22,6 +23,7 @@ func ErrRateLimited(rl RateLimitName, rlgroup RateLimitGroup, bucketName BucketN
 			Name:  string(rl),
 			Group: string(rlgroup),
 		}
+		details[DEPRECATED_rateLimitNameKey] = rlgroup
 	}
 	return RateLimited.NewWithInfo("request rate limited", details)
 }
