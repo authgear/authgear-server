@@ -659,7 +659,8 @@ account_migration:
 captcha: {}
 bot_protection: {}
 network_protection:
-  ip_blocklist: {}
+  ip_filter:
+    default_action: allow
 test_mode:
   oob_otp:
     enabled: false

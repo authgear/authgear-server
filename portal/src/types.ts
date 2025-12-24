@@ -675,6 +675,28 @@ export interface UserProfileConfig {
   custom_attributes?: CustomAttributesConfig;
 }
 
+export interface NetworkProtectionConfig {
+  ip_filter?: IPFilterConfig;
+}
+
+export interface IPFilterConfig {
+  default_action?: IPFilterAction;
+  rules?: IPFilterRule[];
+}
+
+export type IPFilterAction = "allow" | "deny";
+
+export interface IPFilterRule {
+  name?: string;
+  action: IPFilterAction;
+  source: IPFilterSource;
+}
+
+export interface IPFilterSource {
+  cidrs?: string[];
+  geo_location_codes?: string[];
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   id: string;
@@ -696,6 +718,7 @@ export interface PortalAPIAppConfig {
   google_tag_manager?: GoogleTagManagerConfig;
   bot_protection?: BotProtectionConfig;
   saml?: SAMLConfig;
+  network_protection?: NetworkProtectionConfig;
 }
 
 export interface OAuthSSOProviderClientSecret {

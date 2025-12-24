@@ -407,3 +407,25 @@ func TestFormatPublicHTTPSURL(t *testing.T) {
 		So(f(backgroundCtx(), "https://realdomain.com/image.png"), ShouldBeNil)
 	})
 }
+
+func TestFormatIP(t *testing.T) {
+	Convey("FormatIP", t, func() {
+		f := FormatIP{}.CheckFormat
+
+		So(f(backgroundCtx(), 1), ShouldBeNil)
+
+		So(f(backgroundCtx(), ""), ShouldBeError, "invalid IP address: ")
+		So(f(backgroundCtx(), "not.an.ip"), ShouldBeError, "invalid IP address: not.an.ip")
+		So(f(backgroundCtx(), "192.168.1.256"), ShouldBeError, "invalid IP address: 192.168.1.256")
+		So(f(backgroundCtx(), "2001:db8::zzz"), ShouldBeError, "invalid IP address: 2001:db8::zzz")
+
+		So(f(backgroundCtx(), "192.168.1.1"), ShouldBeNil)
+		So(f(backgroundCtx(), "127.0.0.1"), ShouldBeNil)
+		So(f(backgroundCtx(), "0.0.0.0"), ShouldBeNil)
+		So(f(backgroundCtx(), "255.255.255.255"), ShouldBeNil)
+
+		So(f(backgroundCtx(), "::1"), ShouldBeNil)
+		So(f(backgroundCtx(), "2001:0db8:85a3:0000:0000:8a2e:0370:7334"), ShouldBeNil)
+		So(f(backgroundCtx(), "2001:db8::8a2e:370:7334"), ShouldBeNil)
+	})
+}

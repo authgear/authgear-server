@@ -22,6 +22,7 @@ pkg/portal/graphql/chart.go cannot import github.com/authgear/authgear-server/pk
 pkg/portal/graphql/collaborator_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/domain_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/hook_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/ip_blocklist_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/nodes.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/sms_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/smtp_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay

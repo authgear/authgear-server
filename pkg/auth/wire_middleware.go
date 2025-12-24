@@ -262,9 +262,9 @@ func newDPoPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newIPBlocklistMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newIPFilterMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*networkprotection.IPBlocklistMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*networkprotection.IPFilterMiddleware)),
 	))
 }

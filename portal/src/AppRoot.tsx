@@ -178,6 +178,9 @@ const GoogleTagManagerConfigurationScreen = lazy(
 const BotProtectionConfigurationScreen = lazy(
   async () => import("./graphql/portal/BotProtectionConfigurationScreen")
 );
+const IPBlocklistScreen = lazy(
+  async () => import("./graphql/portal/IPBlocklistScreen")
+);
 const SubscriptionRedirect = lazy(
   async () => import("./graphql/portal/SubscriptionRedirect")
 );
@@ -811,15 +814,28 @@ const AppRoot: React.VFC = function AppRoot() {
               </Route>
             </Route>
           </Route>
-          <Route path="bot-protection">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <BotProtectionConfigurationScreen />
-                </Suspense>
-              }
-            />
+
+          <Route path="attack-protection">
+            <Route path="bot-protection">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <BotProtectionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+            <Route path="ip-blocklist">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <IPBlocklistScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
 
           <Route path="integrations">

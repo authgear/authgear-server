@@ -134,6 +134,7 @@ export function useAppConfigForm<State>(
           appConfigChecksum: rawAppConfigChecksum,
           ignoreConflict: ignoreConflict,
         });
+        await reload();
         setCurrentState(null);
         setIsSubmitted(true);
       } catch (e: unknown) {
@@ -144,18 +145,19 @@ export function useAppConfigForm<State>(
       }
     },
     [
-      isDirty,
-      isUpdating,
-      constructConfig,
-      rawConfig,
-      rawAppConfigChecksum,
-      effectiveConfig,
-      initialState,
-      currentState,
-      updateConfig,
-      secretConfig,
-      validate,
       canSave,
+      isDirty,
+      rawConfig,
+      initialState,
+      secretConfig,
+      isUpdating,
+      validate,
+      currentState,
+      constructConfig,
+      effectiveConfig,
+      updateConfig,
+      rawAppConfigChecksum,
+      reload,
     ]
   );
 
