@@ -179,10 +179,6 @@ type AuditService interface {
 	Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) error
 }
 
-type IPBlocklistService interface {
-	CheckIP(ctx context.Context, ipAddress string, cidrs []string, countryCodes []string) bool
-}
-
 type Context struct {
 	Request *http.Request
 
@@ -210,7 +206,6 @@ type Context struct {
 	DenoService          DenoService
 	AuditService         AuditService
 	OnboardService       OnboardService
-	IPBlocklistService   IPBlocklistService
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {
