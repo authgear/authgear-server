@@ -1,29 +1,14 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   Context as MessageContext,
   FormattedMessage,
 } from "@oursky/react-messageformat";
-import { useParams } from "react-router-dom";
 import Toggle from "../../Toggle";
-import TextField from "../../TextField";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
 import { ITag, Label, MessageBar, MessageBarType } from "@fluentui/react";
-import { useCheckIPMutation } from "../../graphql/portal/mutations/checkIPMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import ErrorRenderer from "../../ErrorRenderer";
-import {
-  ErrorParseRuleResult,
-  parseAPIErrors,
-  ParsedAPIError,
-  parseRawError,
-} from "../../error/parse";
+import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
 import FormTextField from "../../FormTextField";
 import { APIError } from "../../error/error";
 import { Address4, Address6 } from "ip-address";
@@ -35,14 +20,21 @@ export interface IPBlocklistFormState {
   blockedCountryAlpha2s: string[];
 }
 
+export interface IPCheckResult {
+  ipAddress: string;
+  result: boolean;
+}
+
 export interface IPBlocklistFormProps {
   state: IPBlocklistFormState;
   setState: (fn: (state: IPBlocklistFormState) => IPBlocklistFormState) => void;
-}
-
-interface IPCheckResult {
-  ipAddress: string;
-  result: boolean;
+  ipToCheck: string;
+  onIPToCheckChange: (
+    e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  onCheckIP: () => void;
+  checkingIP: boolean;
+  checkIPResult: IPCheckResult | null;
 }
 
 export function toCIDRs(blockedIPCIDRsStr: string): string[] {
@@ -77,6 +69,11 @@ export function toCIDRs(blockedIPCIDRsStr: string): string[] {
 export function IPBlocklistForm({
   state,
   setState,
+  ipToCheck,
+  onIPToCheckChange,
+  onCheckIP,
+  checkingIP,
+  checkIPResult,
 }: IPBlocklistFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
 
@@ -146,67 +143,20 @@ export function IPBlocklistForm({
     });
   }, [state.blockedCountryAlpha2s, alpha2Options]);
 
-  const { appID } = useParams() as { appID: string };
-  const {
-    checkIP,
-    loading: checkingIP,
-    error: checkIPError,
-  } = useCheckIPMutation(appID);
-  const [ipToCheck, setIPToCheck] = useState("");
-  const [checkIPResult, setCheckIPResult] = useState<IPCheckResult | null>(
-    null
-  );
-
-  const onIPToCheckChange = useCallback(
-    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setIPToCheck(e.currentTarget.value);
-    },
-    []
-  );
-
-  const onCheckIP = useCallback(() => {
-    checkIP(
-      ipToCheck,
-      toCIDRs(state.blockedIPCIDRs),
-      state.blockedCountryAlpha2s
-    )
-      .then((result) => {
-        setCheckIPResult({
-          ipAddress: ipToCheck,
-          result: Boolean(result),
-        });
-      })
-      .catch(() => {});
-  }, [checkIP, ipToCheck, state.blockedIPCIDRs, state.blockedCountryAlpha2s]);
-
-  const checkIPFieldError = useMemo(() => {
-    if (checkIPError == null) {
-      return undefined;
-    }
-    const apiErrors = parseRawError(checkIPError);
-    const { topErrors } = parseAPIErrors(apiErrors, [], []);
-    return <ErrorRenderer errors={topErrors} />;
-  }, [checkIPError]);
-
   const cidrsFieldErrorRules = useMemo(
     () => [
       (apiError: APIError): ErrorParseRuleResult => {
         const parsedAPIErrors: ParsedAPIError[] = [];
         if (apiError.reason === "ValidationFailed") {
           for (const cause of apiError.info.causes) {
+            const regex = /\/cidrs\/(\d+)/;
+            const match = regex.exec(cause.location);
             if (
-              cause.location.startsWith(
-                "/network_protection/ip_filter/rules/0/source/cidrs/"
-              ) &&
+              match?.[1] &&
               cause.kind === "format" &&
               cause.details.format === "x_cidr"
             ) {
-              const itemIndex = Number(
-                cause.location.replace(
-                  "/network_protection/ip_filter/rules/0/source/cidrs/",
-                  ""
-                )
-              );
+              const itemIndex = Number(match[1]);
               parsedAPIErrors.push({
                 messageID: "IPBlocklistForm.error.invalid-ip",
                 arguments: {
@@ -229,10 +179,6 @@ export function IPBlocklistForm({
     ],
     [state.blockedIPCIDRs]
   );
-
-  useEffect(() => {
-    setCheckIPResult(null);
-  }, [state.blockedCountryAlpha2s, state.blockedIPCIDRs]);
 
   return (
     <div className="p-6 max-w-180">
@@ -283,12 +229,13 @@ export function IPBlocklistForm({
           </div>
           <div className="mt-6 flex flex-col gap-y-4">
             <div className="flex items-start gap-x-4">
-              <TextField
+              <FormTextField
+                parentJSONPointer=""
+                fieldName="ipAddress"
                 className="flex-1"
                 label={renderToString("IPBlocklistForm.check-ip-address.label")}
                 value={ipToCheck}
                 onChange={onIPToCheckChange}
-                errorMessage={checkIPFieldError}
               />
               <div>
                 {/* Add a empty label to align the button */}

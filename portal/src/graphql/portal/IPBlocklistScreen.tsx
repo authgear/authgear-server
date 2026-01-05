@@ -1,10 +1,11 @@
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import ScreenContent from "../../ScreenContent";
 import styles from "./IPBlocklistScreen.module.css";
 import ScreenDescription from "../../ScreenDescription";
 import FormContainer from "../../FormContainer";
+import { useCheckIPMutation } from "./mutations/checkIPMutation";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { useParams } from "react-router-dom";
 import { PortalAPIAppConfig } from "../../types";
@@ -12,6 +13,7 @@ import {
   IPBlocklistForm,
   IPBlocklistFormState,
   toCIDRs,
+  IPCheckResult,
 } from "../../components/ipblocklist/IPBlocklistForm";
 import { produce } from "immer";
 
@@ -104,12 +106,69 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
     constructConfig,
   });
 
+  const {
+    checkIP,
+    loading: checkingIP,
+    error: checkIPMutationError,
+  } = useCheckIPMutation(appID);
+  const [ipToCheck, setIPToCheck] = useState("");
+  const [checkIPError, setCheckIPError] = useState<unknown>(null);
+  const [checkIPResult, setCheckIPResult] = useState<IPCheckResult | null>(
+    null
+  );
+
+  useEffect(() => {
+    setCheckIPError(checkIPMutationError);
+  }, [checkIPMutationError]);
+  const clearCheckIPError = useCallback(async () => {
+    setCheckIPError(null);
+  }, []);
+
+  const onIPToCheckChange = useCallback(
+    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setIPToCheck(e.currentTarget.value);
+    },
+    []
+  );
+
+  const onCheckIP = useCallback(() => {
+    setCheckIPError(null);
+    checkIP(
+      ipToCheck,
+      toCIDRs(appConfigForm.state.blockedIPCIDRs),
+      appConfigForm.state.blockedCountryAlpha2s
+    )
+      .then((result) => {
+        setCheckIPResult({
+          ipAddress: ipToCheck,
+          result: Boolean(result),
+        });
+      })
+      .catch(() => {
+        // Error is handled by the form
+      });
+  }, [
+    checkIP,
+    ipToCheck,
+    appConfigForm.state.blockedIPCIDRs,
+    appConfigForm.state.blockedCountryAlpha2s,
+  ]);
+
+  useEffect(() => {
+    setCheckIPResult(null);
+  }, [
+    appConfigForm.state.blockedCountryAlpha2s,
+    appConfigForm.state.blockedIPCIDRs,
+  ]);
+
   return (
     <FormContainer
       form={appConfigForm}
       canSave={true}
       stickyFooterComponent={true}
       showDiscardButton={true}
+      localError={checkIPError}
+      beforeSave={clearCheckIPError}
     >
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
@@ -121,6 +180,11 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
         <IPBlocklistForm
           state={appConfigForm.state}
           setState={appConfigForm.setState}
+          ipToCheck={ipToCheck}
+          onIPToCheckChange={onIPToCheckChange}
+          onCheckIP={onCheckIP}
+          checkingIP={checkingIP}
+          checkIPResult={checkIPResult}
         />
       </div>
     </FormContainer>
