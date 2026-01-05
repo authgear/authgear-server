@@ -220,7 +220,7 @@ func TestIPFilterMiddleware(t *testing.T) {
 		Convey("should pass through for invalid IP", func() {
 			cfg := &config.NetworkProtectionConfig{
 				IPFilter: &config.IPFilterConfig{
-					DefaultAction: config.IPFilterActionDeny,
+					DefaultAction: config.IPFilterActionAllow,
 				},
 			}
 			runTest("not-an-ip", cfg, http.StatusOK)

@@ -1,12 +1,15 @@
 package graphql
 
 import (
+	"net"
+
 	"github.com/graphql-go/graphql"
 
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
-	"github.com/authgear/authgear-server/pkg/util/validation"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/networkprotection"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var checkIPInputSchema = validation.NewSimpleSchema(`
@@ -107,8 +110,22 @@ var _ = registerMutationField(
 				countryCodesStr[i] = v.(string)
 			}
 
-			ok := gqlCtx.IPBlocklistService.CheckIP(ctx, ipAddress, cidrsStr, countryCodesStr)
-			return ok, nil
+			action := networkprotection.Evaluate(&config.NetworkProtectionConfig{
+				IPFilter: &config.IPFilterConfig{
+					DefaultAction: config.IPFilterActionAllow,
+					Rules: []*config.IPFilterRule{
+						{
+							Action: config.IPFilterActionDeny,
+							Source: config.IPFilterSource{
+								CIDRs:            cidrsStr,
+								GeoLocationCodes: countryCodesStr,
+							},
+						},
+					},
+				},
+			}, net.ParseIP(ipAddress))
+
+			return action == config.IPFilterActionDeny, nil
 		},
 	},
 )
