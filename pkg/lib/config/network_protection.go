@@ -28,7 +28,7 @@ var _ = Schema.Add("IPFilterSource", `
 		},
 		"geo_location_codes": {
 			"type": "array",
-			"items": { "type": "string" }
+			"items": { "type": "string", "minLength": 2, "maxLength": 2 }
 		}
 	}
 }
