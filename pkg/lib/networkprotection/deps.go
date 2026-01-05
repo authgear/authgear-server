@@ -5,5 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(IPBlocklistMiddleware), "*"),
+	wire.Struct(new(IPFilterMiddleware), "*"),
 )

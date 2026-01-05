@@ -1542,32 +1542,95 @@ config:
         logo_uri: http://example.com/logo.png
 
 ---
-name: protection-config
+name: network-protection-config-valid
 error: null
 config:
   id: test
   http:
     public_origin: http://test
   network_protection:
-    ip_blocklist:
-      cidrs:
-        - 2.2.2.2/32
-        - 2001:db8::/32
-      country_codes:
-        - HK
-        - GB
+    ip_filter:
+      default_action: deny
+      rules:
+        - name: allow-office-us
+          action: allow
+          source:
+            cidrs: ["192.168.1.0/24", "2001:db8::/32"]
+            geo_location_codes: ["US"]
+        - name: block-countries
+          action: deny
+          source:
+            geo_location_codes: ["KP", "IR"]
 
 ---
-name: protection-config-invalid-cidr
+name: network-protection-config-invalid-cidr
 error: |-
   invalid configuration:
-  /network_protection/ip_blocklist/cidrs/0: format
+  /network_protection/ip_filter/rules/0/source/cidrs/0: format
     map[error:invalid CIDR: invalid CIDR address: 192.168.1.1 format:x_cidr]
 config:
   id: test
   http:
     public_origin: http://test
   network_protection:
-    ip_blocklist:
-      cidrs:
-        - 192.168.1.1
+    ip_filter:
+      default_action: allow
+      rules:
+        - name: invalid-cidr-rule
+          action: deny
+          source:
+            cidrs:
+              - 192.168.1.1
+---
+name: network-protection-config-invalid-action
+error: |-
+  invalid configuration:
+  /network_protection/ip_filter/rules/0/action: enum
+    map[actual:invalid expected:[allow deny]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  network_protection:
+    ip_filter:
+      default_action: allow
+      rules:
+        - name: invalid-action-rule
+          action: invalid
+          source:
+            cidrs: ["1.2.3.4/32"]
+---
+name: network-protection-config-missing-rule-fields
+error: |-
+  invalid configuration:
+  /network_protection/ip_filter/rules/0: required
+    map[actual:[name] expected:[action source] missing:[action source]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  network_protection:
+    ip_filter:
+      default_action: allow
+      rules:
+        - name: missing-fields
+
+---
+name: network-protection-config-invalid-geo-location-code
+error: |-
+  invalid configuration:
+  /network_protection/ip_filter/rules/0/source/geo_location_codes/0: maxLength
+    map[actual:3 expected:2]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  network_protection:
+    ip_filter:
+      default_action: allow
+      rules:
+        - name: invalid-geo-code-rule
+          action: deny
+          source:
+            geo_location_codes: ["USA"]
+
