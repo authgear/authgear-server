@@ -25,6 +25,7 @@ pkg/portal/graphql/hook_mutation.go cannot import github.com/authgear/authgear-s
 pkg/portal/graphql/nodes.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/sms_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/smtp_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/token_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/graphql/viewer.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/libstripe/service.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
