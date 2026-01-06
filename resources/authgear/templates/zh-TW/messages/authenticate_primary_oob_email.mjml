@@ -5,22 +5,34 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding="32px 0px 0px 0px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">登入至 {{ template "app.name" }}</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        請用以下一次性密碼完成登入。
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        您好，<br> 請使用以下驗證碼登入 <b>{{ template "app.name" }}</b>。
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-    </mj-column>
-  </mj-section>
-  <mj-section>
+  <mj-section text-align="left" padding="24px 0px">
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">切勿分享給任何人。如你未曾登入，則無需理會此電郵。</mj-text>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">您收到此電子郵件是因為您從 <b>{{ template "app.name" }}</b> 登入。如果您不確定原因，可以安全地忽略它。</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
 </mjml>

@@ -6,10 +6,9 @@
     "Disclaimer": "Se não iniciou uma sessão, ignore este email."
   },
   "PrimaryOOBEmail": {
-    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
-    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Body": "Olá, <br> Por favor, utilize o seguinte código para iniciar sessão em <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+    "Disclaimer": "Recebeu este email porque iniciou sessão a partir de <b>{{ template \"app.name\" }}</b>. Se não tem a certeza do motivo, pode ignorá-lo com segurança."
   },
   "SecondaryLoginLink": {
     "Title": "Use this link to sign in {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Se não iniciou esta configuração, ignore este email."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Registar-se em {{ template \"app.name\" }}",
-    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de registo.",
+    "Body": "Olá, <br/> Por favor, utilize o seguinte código para confirmar o seu endereço de email e continuar em <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não a partilhe com ninguém. Se não se registou, ignore este email."
+    "Disclaimer": "Recebeu este email porque se registou ou iniciou sessão em <b>{{ template \"app.name\" }}</b>. Se não tem a certeza do motivo, pode ignorá-lo com segurança."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verificar o seu email e configurar a verificação em 2 passos em {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Não a partilhe com ninguém. Se não iniciou esta configuração, ignore este email."
   },
   "VerificationEmail": {
-    "Title": "Verificação de email",
-    "Body": "Este email é enviado para verificar {{ .Email }} em {{ template \"app.name\" }}. Utilize este código na página de verificação.",
+    "Body": "Olá, <br/> Por favor, utilize o seguinte código para verificar o seu endereço de email {{ .Email }} em <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não o partilhe com ninguém. Se não iniciou sessão ou não se registou, ignore este email."
+    "Disclaimer": "Recebeu este email porque tentou verificar um endereço de email em <b>{{ template \"app.name\" }}</b>. Se não tem a certeza do motivo, pode ignorá-lo com segurança."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Iniciar sessão em {{ template \"app.name\" }}",

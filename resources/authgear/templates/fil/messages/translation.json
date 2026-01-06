@@ -6,10 +6,9 @@
     "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
   },
   "PrimaryOOBEmail": {
-    "Title": "Mag-log in sa {{ template \"app.name\" }}",
-    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Body": "Kumusta, <br> Mangyaring gamitin ang sumusunod na code para mag-log in sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil nag-log in ka mula sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "SecondaryLoginLink": {
     "Title": "Gamitin ang link na ito para mag-sign in sa {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Mag-sign up sa {{ template \"app.name\" }}",
-    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-sign up.",
+    "Body": "Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign up, pakiignore na lang ang email na ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil nag-sign up o nag-log in ka mula sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "SetupSecondaryLoginLink": {
     "Title": "I-verify ang iyong email at i-setup ang 2-step verification sa {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "VerificationEmail": {
-    "Title": "Pag-verify ng Email",
-    "Body": "Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template \"app.name\" }}. Gamitin ang code na ito sa pahina ng pag-verify.",
+    "Body": "Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang i-verify ang iyong email address {{ .Email }} sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil sinubukan mong i-verify ang isang email address sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Mag-log in sa {{ template \"app.name\" }}",

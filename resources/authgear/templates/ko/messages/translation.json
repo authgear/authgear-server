@@ -6,10 +6,9 @@
     "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "PrimaryOOBEmail": {
-    "Title": "{{ template \"app.name\" }}에 로그인",
-    "Body": "로그인 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Body": "안녕하세요, <br> 다음 코드를 사용하여 <b>{{ template \"app.name\" }}</b>에 로그인하세요.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "누구에게도 공유하지 마세요. 로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+    "Disclaimer": "<b>{{ template \"app.name\" }}</b>에서 로그인했기 때문에 이 이메일을 받았습니다. 왜 받았는지 확실하지 않다면, 안전하게 무시하셔도 됩니다."
   },
   "SecondaryLoginLink": {
     "Title": "{{ template \"app.name\" }}에 로그인하려면 이 링크를 사용하세요",
@@ -42,10 +41,9 @@
     "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "{{ template \"app.name\" }}에 가입",
-    "Body": "가입 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Body": "안녕하세요, <br/> 다음 코드를 사용하여 이메일 주소를 확인하고 <b>{{ template \"app.name\" }}</b>에서 계속 진행하세요.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "누구에게도 공유하지 마세요. 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+    "Disclaimer": "귀하는 <b>{{ template \"app.name\" }}</b>에서 가입하거나 로그인했기 때문에 이 이메일을 받았습니다. 이유가 확실하지 않은 경우 안전하게 무시하셔도 됩니다."
   },
   "SetupSecondaryLoginLink": {
     "Title": "{{ template \"app.name\" }}에서 이메일을 확인하고 2단계 인증을 설정하세요",
@@ -60,10 +58,9 @@
     "Disclaimer": "누구에게도 공유하지 마세요. 이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "VerificationEmail": {
-    "Title": "이메일 확인",
-    "Body": "이 이메일은 {{ template \"app.name\" }}의 {{ .Email }}을 확인하기 위해 보내졌습니다. 확인 페이지에서 이 코드를 사용하세요.",
+    "Body": "안녕하세요, <br/> <b>{{ template \"app.name\" }}</b>에서 이메일 주소 {{ .Email }}를 확인하기 위해 다음 코드를 사용해 주세요.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "누구에게도 공유하지 마세요. 로그인 또는 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+    "Disclaimer": "귀하는 <b>{{ template \"app.name\" }}</b>에서 이메일 주소를 확인하려고 시도했기 때문에 이 이메일을 받았습니다. 이유를 모르시겠다면, 안전하게 무시하셔도 됩니다."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "{{ template \"app.name\" }}에 로그인",

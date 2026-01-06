@@ -6,10 +6,9 @@
     "Disclaimer": "Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Zaloguj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces logowania.",
+    "Body": "Cześć, <br> Proszę użyj następującego kodu, aby zalogować się do <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś ten e-mail, ponieważ zalogowałeś się z <b>{{ template \"app.name\" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie go zignorować."
   },
   "SecondaryLoginLink": {
     "Title": "Użyj tego linku, aby zalogować się na {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Zarejestruj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces rejestracji.",
+    "Body": "Cześć, <br/> Użyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować na <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zarejestrowałeś się, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ zarejestrowałeś się lub zalogowałeś z <b>{{ template \"app.name\" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Zweryfikuj swój e-mail i skonfiguruj weryfikację dwuetapową na {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
   },
   "VerificationEmail": {
-    "Title": "Weryfikacja e-mail",
-    "Body": "Ten e-mail został wysłany, aby zweryfikować {{ .Email }} na {{ template \"app.name\" }}. Użyj tego kodu na stronie weryfikacji.",
+    "Body": "Cześć, <br/> Proszę użyj następującego kodu, aby zweryfikować swój adres e-mail {{ .Email }} w <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zalogowałeś się lub nie zarejestrowałeś, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail w <b>{{ template \"app.name\" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Zaloguj się na {{ template \"app.name\" }}",

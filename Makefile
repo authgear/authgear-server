@@ -216,6 +216,15 @@ translation-json-del-key: KEY=
 translation-json-del-key:
 	find . -path './resources/authgear/templates/*/translation.json' -not -path './resources/authgear/templates/*/messages/translation.json' -not -path './resources/authgear/templates/en/translation.json' -exec sh -c "jq <\$$1 'del(.[\"$(KEY)\"])' > \$$1.tmp; mv \$$1.tmp \$$1" _ '{}' \;
 
+.PHONY: templates-translation-json-del-key
+templates-translation-json-del-key:
+	@if [ -z "$(KEY)" ]; then echo "Error: KEY is required. Usage: make templates-translation-json-del-key KEY=my.key"; exit 1; fi
+	find resources/authgear/templates -type f -path "*/messages/translation.json" ! -path "*/en/messages/*" -exec sh -c ' \
+		if [ -s "$$1" ]; then \
+			jq "del(.$(KEY))" "$$1" > "$$1.tmp" && mv "$$1.tmp" "$$1"; \
+		fi \
+	' _ {} \;
+
 .PHONY: logs-summary
 logs-summary:
 	git log --first-parent --format='%as (%h) %s' $(A)..$(B)

@@ -6,10 +6,9 @@
     "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Log in op {{ template \"app.name\" }}",
-    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Body": "Hallo, <br> Gebruik de volgende code om in te loggen bij <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+    "Disclaimer": "U heeft deze e-mail ontvangen omdat u heeft ingelogd bij <b>{{ template \"app.name\" }}</b>. Als u niet zeker weet waarom, kunt u deze veilig negeren."
   },
   "SecondaryLoginLink": {
     "Title": "Gebruik deze link om in te loggen op {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Meld u aan op {{ template \"app.name\" }}",
-    "Body": "Gebruik het volgende eenmalige wachtwoord om het aanmeldproces te voltooien.",
+    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres te bevestigen en verder te gaan op <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u zich niet heeft aangemeld, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je je hebt aangemeld of ingelogd bij <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifieer uw e-mail en stel 2-staps verificatie in op {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "VerificationEmail": {
-    "Title": "E-mail Verificatie",
-    "Body": "Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template \"app.name\" }}. Gebruik deze code op de verificatiepagina.",
+    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres {{ .Email }} te verifiëren op <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze e-mail veilig negeren."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log in op {{ template \"app.name\" }}",

@@ -6,10 +6,9 @@
     "Disclaimer": "Se você não iniciou um login, por favor ignore este e-mail."
   },
   "PrimaryOOBEmail": {
-    "Title": "Faça login no {{ template \"app.name\" }}",
-    "Body": "Por favor, use a seguinte senha única para concluir o processo de login.",
+    "Body": "Olá, <br> Por favor, use o código a seguir para entrar no <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não compartilhe com ninguém. Se você não iniciou um login, por favor ignore este e-mail."
+    "Disclaimer": "Você recebeu este e-mail porque você fez login no <b>{{ template \"app.name\" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },
   "SecondaryLoginLink": {
     "Title": "Use this link to sign in {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Se você não iniciou esta configuração, por favor ignore este e-mail."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Cadastre-se no {{ template \"app.name\" }}",
-    "Body": "Por favor, use a seguinte senha única para concluir o processo de cadastro.",
+    "Body": "Olá, <br/> Por favor, use o seguinte código para confirmar seu endereço de e-mail e continuar no <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não compartilhe com ninguém. Se você não se cadastrou, por favor ignore este e-mail."
+    "Disclaimer": "Você recebeu este e-mail porque se cadastrou ou fez login no <b>{{ template \"app.name\" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Verifique seu e-mail e configure a verificação em duas etapas no {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Não compartilhe com ninguém. Se você não iniciou esta configuração, por favor ignore este e-mail."
   },
   "VerificationEmail": {
-    "Title": "Verificação de E-mail",
-    "Body": "Este e-mail é enviado para verificar {{ .Email }} no {{ template \"app.name\" }}. Use este código na página de verificação.",
+    "Body": "Olá, <br/> Por favor, use o seguinte código para verificar seu endereço de e-mail {{ .Email }} no <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Não compartilhe com ninguém. Se você não fez login ou não se cadastrou, por favor ignore este e-mail."
+    "Disclaimer": "Você recebeu este e-mail porque tentou verificar um endereço de e-mail no <b>{{ template \"app.name\" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Faça login no {{ template \"app.name\" }}",

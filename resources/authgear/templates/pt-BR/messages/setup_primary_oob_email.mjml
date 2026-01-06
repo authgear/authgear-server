@@ -5,22 +5,33 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding="32px 0px 0px 0px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Cadastre-se no {{ template "app.name" }}</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Por favor, use a seguinte senha única para concluir o processo de cadastro.
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        Olá, <br/> Por favor, use o seguinte código para confirmar seu endereço de e-mail e continuar no <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
-    <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Não compartilhe com ninguém. Se você não se cadastrou, por favor ignore este e-mail.</mj-text>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Você recebeu este e-mail porque se cadastrou ou fez login no <b>{{ template "app.name" }}</b>. Se você não tem certeza do motivo, pode ignorá-lo com segurança.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

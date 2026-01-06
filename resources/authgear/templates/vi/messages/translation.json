@@ -6,10 +6,9 @@
     "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
   },
   "PrimaryOOBEmail": {
-    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
-    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.",
+    "Body": "Xin chào, <br> Vui lòng sử dụng mã sau để đăng nhập vào <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+    "Disclaimer": "Bạn nhận được email này vì bạn đã đăng nhập từ <b>{{ template \"app.name\" }}</b>. Nếu bạn không chắc chắn tại sao, bạn có thể bỏ qua nó một cách an toàn."
   },
   "SecondaryLoginLink": {
     "Title": "Sử dụng liên kết này để đăng nhập vào {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Đăng ký trên {{ template \"app.name\" }}",
-    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng ký.",
+    "Body": "Xin chào, <br/> Vui lòng sử dụng mã sau đây để xác nhận địa chỉ email của bạn và tiếp tục trên <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng ký, vui lòng bỏ qua email này."
+    "Disclaimer": "Bạn nhận được email này vì bạn đã đăng ký hoặc đăng nhập từ <b>{{ template \"app.name\" }}</b>. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Xác minh email của bạn và thiết lập xác minh 2 bước trên {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
   },
   "VerificationEmail": {
-    "Title": "Xác minh email",
-    "Body": "Email này được gửi để xác minh {{ .Email }} trên {{ template \"app.name\" }}. Sử dụng mã này trên trang xác minh.",
+    "Body": "Xin chào, <br/> Vui lòng sử dụng mã sau đây để xác minh địa chỉ email của bạn {{ .Email }} trên <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập hoặc đăng ký, vui lòng bỏ qua email này."
+    "Disclaimer": "Bạn nhận được email này vì bạn đã cố gắng xác minh một địa chỉ email trên <b>{{ template \"app.name\" }}</b>. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Đăng nhập vào {{ template \"app.name\" }}",

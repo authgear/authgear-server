@@ -1,20 +1,37 @@
 <mjml lang="ko" dir="ltr">
 <mj-head>
   <mj-attributes>
-    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
-    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+    <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
   </mj-attributes>
 </mj-head>
-<mj-body background-color="#f3f3f3">
-  <mj-section>
-    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="24px" align="left">이메일 확인</mj-text>
-      <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="16px" align="left" line-height="24px">
-        이 이메일은 {{ template "app.name" }}의 {{ .Email }}을 확인하기 위해 보내졌습니다. 확인 페이지에서 이 코드를 사용하세요.
+<mj-body background-color="#ffffff">
+  <mj-section padding="32px 0px 0px 0px">
+    <mj-column>
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        안녕하세요, <br/> <b>{{ template "app.name" }}</b>에서 이메일 주소 {{ .Email }}를 확인하기 위해 다음 코드를 사용해 주세요.
       </mj-text>
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">누구에게도 공유하지 마세요. 로그인 또는 가입하지 않으셨다면 이 이메일을 무시해 주세요.</mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">귀하는 <b>{{ template "app.name" }}</b>에서 이메일 주소를 확인하려고 시도했기 때문에 이 이메일을 받았습니다. 이유를 모르시겠다면, 안전하게 무시하셔도 됩니다.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

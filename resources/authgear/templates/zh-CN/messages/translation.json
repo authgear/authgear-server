@@ -6,10 +6,9 @@
     "Disclaimer": "如果您没有触发登录,请忽略此电子邮件。"
   },
   "PrimaryOOBEmail": {
-    "Title": "登录 {{ template \"app.name\" }}",
-    "Body": "请使用以下一次性密码完成登录过程。",
+    "Body": "您好，<br> 请使用以下验证码登录 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有触发登录,请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您从 <b>{{ template \"app.name\" }}</b> 登录。如果您不确定原因，可以安全地忽略它。"
   },
   "SecondaryLoginLink": {
     "Title": "使用此链接登录 {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "在 {{ template \"app.name\" }} 上注册",
-    "Body": "请使用以下一次性密码完成注册过程。",
+    "Body": "您好，<br/> 请使用以下验证码确认您的电子邮件地址并继续使用 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有注册,请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您在 <b>{{ template \"app.name\" }}</b> 注册或登录。如果您不确定原因，可以安全地忽略它。"
   },
   "SetupSecondaryLoginLink": {
     "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮件并设置双步验证",
@@ -60,10 +58,9 @@
     "Disclaimer": "不要与任何人分享。如果您没有触发此设置,请忽略此电子邮件。"
   },
   "VerificationEmail": {
-    "Title": "电子邮件验证",
-    "Body": "此电子邮件用于验证 {{ .Email }} 在 {{ template \"app.name\" }} 上。请在验证页面使用此代码。",
+    "Body": "您好，<br/> 请使用以下验证码来验证您在 <b>{{ template \"app.name\" }}</b> 上的电子邮箱地址 {{ .Email }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "请勿与任何人分享。如果您没有登录或注册，请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您尝试在 <b>{{ template \"app.name\" }}</b> 上验证电子邮箱地址。如果您不确定原因，可以安全地忽略它。"
   },
   "PrimaryLoginLinkTXT": {
     "Title": "登录到 {{ template \"app.name\" }}",

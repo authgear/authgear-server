@@ -6,10 +6,9 @@
     "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
   },
   "PrimaryOOBEmail": {
-    "Title": "Log masuk ke {{ template \"app.name\" }}",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Body": "Hai, <br> Sila gunakan kod berikut untuk log masuk ke <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda log masuk dari <b>{{ template \"app.name\" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },
   "SecondaryLoginLink": {
     "Title": "Gunakan pautan ini untuk log masuk ke {{ template \"app.name\" }}",
@@ -42,10 +41,9 @@
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupPrimaryOOBEmail": {
-    "Title": "Daftar di {{ template \"app.name\" }}",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses pendaftaran.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak mendaftar, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda mendaftar atau log masuk dari <b>{{ template \"app.name\" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },
   "SetupSecondaryLoginLink": {
     "Title": "Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template \"app.name\" }}",
@@ -60,10 +58,9 @@
     "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "VerificationEmail": {
-    "Title": "Pengesahan E-mel",
-    "Body": "E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template \"app.name\" }}. Gunakan kod ini di halaman pengesahan.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} pada <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel pada <b>{{ template \"app.name\" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log masuk ke {{ template \"app.name\" }}",

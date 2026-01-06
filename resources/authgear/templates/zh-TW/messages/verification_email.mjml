@@ -1,20 +1,37 @@
 <mjml lang="zh-TW" dir="ltr">
 <mj-head>
   <mj-attributes>
-    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
-    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+    <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
   </mj-attributes>
 </mj-head>
-<mj-body background-color="#f3f3f3">
-  <mj-section>
-    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="24px" align="left">電郵驗證</mj-text>
-      <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="16px" align="left" line-height="24px">
-        請在 {{ template "app.name" }} 輸入以下驗證碼以驗證 {{.Email}}。
+<mj-body background-color="#ffffff">
+  <mj-section padding="32px 0px 0px 0px">
+    <mj-column>
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        您好，<br/> 請使用以下驗證碼來驗證您在 <b>{{ template "app.name" }}</b> 上的電子郵件地址 {{ .Email }}。
       </mj-text>
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">切勿分享給任何人。假如你未曾登入或註冊，則無需理會此電郵。</mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">您收到此電子郵件是因為您嘗試在 <b>{{ template "app.name" }}</b> 上驗證電子郵件地址。如果您不確定原因，可以安全地忽略它。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
