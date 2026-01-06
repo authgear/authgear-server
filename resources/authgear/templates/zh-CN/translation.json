@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] 重置密码说明",
   "email.forgot-password-oob.subject": "[{AppName}] 重置密码",
-  "email.verification.subject": "[{AppName}] 电子邮件验证说明",
+  "email.verification.subject": "电子邮件验证码",
   "email.setup-primary-oob.subject": "电子邮件验证码",
   "email.setup-primary-login-link.subject": "验证您的电子邮件以登录 {AppName}",
   "email.setup-secondary-oob.subject": "电子邮件验证码",

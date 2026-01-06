@@ -58,10 +58,9 @@
     "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "VerificationEmail": {
-    "Title": "Pag-verify ng Email",
-    "Body": "Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template \"app.name\" }}. Gamitin ang code na ito sa pahina ng pag-verify.",
+    "Body": "Kumusta, <br/> Mangyaring gamitin ang sumusunod na code upang i-verify ang iyong email address {{ .Email }} sa <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito."
+    "Disclaimer": "Natanggap mo ang email na ito dahil sinubukan mong i-verify ang isang email address sa <b>{{ template \"app.name\" }}</b>. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Mag-log in sa {{ template \"app.name\" }}",

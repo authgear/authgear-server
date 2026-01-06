@@ -58,10 +58,9 @@
     "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "VerificationEmail": {
-    "Title": "Vérification de l'e-mail",
-    "Body": "Cet e-mail est envoyé pour vérifier {{ .Email }} sur {{ template \"app.name\" }}. Utilisez ce code sur la page de vérification.",
+    "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour vérifier votre adresse e-mail {{ .Email }} sur <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté ou inscrit, veuillez ignorer cet e-mail."
+    "Disclaimer": "Vous avez reçu cet e-mail car vous avez essayé de vérifier une adresse e-mail sur <b>{{ template \"app.name\" }}</b>. Si vous n''êtes pas sûr pourquoi, vous pouvez l''ignorer en toute sécurité."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Connectez-vous à {{ template \"app.name\" }}",

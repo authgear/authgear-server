@@ -58,10 +58,9 @@
     "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
   },
   "VerificationEmail": {
-    "Title": "電郵驗證",
-    "Body": "請在 {{ template \"app.name\" }} 輸入以下驗證碼以驗證 {{.Email}}。",
+    "Body": "您好，<br/> 請使用以下代碼來驗證您在 <b>{{ template \"app.name\" }}</b> 上的電子郵件地址 {{ .Email }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。假如你未曾登入或註冊，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您嘗試在 <b>{{ template \"app.name\" }}</b> 上驗證電子郵件地址。如果您不確定原因，可以安全地忽略它。"
   },
   "PrimaryLoginLinkTXT": {
     "Title": "登入至 {{ template \"app.name\" }}",

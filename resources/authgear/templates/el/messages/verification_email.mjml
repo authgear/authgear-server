@@ -1,20 +1,37 @@
 <mjml lang="el" dir="ltr">
 <mj-head>
   <mj-attributes>
-    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
-    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+    <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
   </mj-attributes>
 </mj-head>
-<mj-body background-color="#f3f3f3">
-  <mj-section>
-    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="24px" align="left">Επαλήθευση Email</mj-text>
-      <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="16px" align="left" line-height="24px">
-        Αυτό το email στάλθηκε για να επαληθεύσετε το {{ .Email }} στο {{ template "app.name" }}. Χρησιμοποιήστε αυτόν τον κωδικό στη σελίδα επαλήθευσης.
+<mj-body background-color="#ffffff">
+  <mj-section padding="32px 0px 0px 0px">
+    <mj-column>
+      <mj-text padding="0px" font-size="14px" line-height="24px">
+        Γεια σας, <br/> Παρακαλώ χρησιμοποιήστε τον παρακάτω κωδικό για να επαληθεύσετε τη διεύθυνση ηλεκτρονικού ταχυδρομείου σας {{ .Email }} στο <b>{{ template "app.name" }}</b>.
       </mj-text>
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Μην το μοιραστείτε με κανέναν. Αν δεν κάνατε είσοδο ή εγγραφή, παρακαλούμε αγνοήστε αυτό το email.</mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section text-align="left" padding="24px 0px">
+    <mj-column>
+      <mj-text align="left" padding="0px">
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section padding="0px">
+    <mj-column padding="0px">
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Λάβατε αυτό το email επειδή προσπαθήσατε να επαληθεύσετε μια διεύθυνση ηλεκτρονικού ταχυδρομείου στο <b>{{ template "app.name" }}</b>. Εάν δεν είστε σίγουροι γιατί, μπορείτε με ασφάλεια να το αγνοήσετε.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

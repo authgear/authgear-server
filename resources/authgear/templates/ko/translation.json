@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] 비밀번호 재설정 안내",
   "email.forgot-password-oob.subject": "[{AppName}] 비밀번호 재설정",
-  "email.verification.subject": "[{AppName}] 이메일 인증 안내",
+  "email.verification.subject": "이메일 인증 코드",
   "email.setup-primary-oob.subject": "이메일 인증 코드",
   "email.setup-primary-login-link.subject": "{AppName}의 이메일 인증",
   "email.setup-secondary-oob.subject": "이메일 인증 코드",

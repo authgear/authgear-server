@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] パスワードリセット手順",
   "email.forgot-password-oob.subject": "[{AppName}] パスワードリセット",
-  "email.verification.subject": "[{AppName}] メールアドレス確認手順",
+  "email.verification.subject": "メール認証コード",
   "email.setup-primary-oob.subject": "メール確認コード",
   "email.setup-primary-login-link.subject": "{AppName}のメールアドレス確認",
   "email.setup-secondary-oob.subject": "メール確認コード",

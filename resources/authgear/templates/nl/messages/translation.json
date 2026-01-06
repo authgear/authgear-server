@@ -58,10 +58,9 @@
     "Disclaimer": "Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "VerificationEmail": {
-    "Title": "E-mail Verificatie",
-    "Body": "Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template \"app.name\" }}. Gebruik deze code op de verificatiepagina.",
+    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres {{ .Email }} te verifiëren op <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze e-mail veilig negeren."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log in op {{ template \"app.name\" }}",

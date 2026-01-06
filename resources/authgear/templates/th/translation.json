@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] คำแนะนำในการตั้งรหัสผ่านใหม่",
   "email.forgot-password-oob.subject": "[{AppName}] ตั้งรหัสผ่านใหม่",
-  "email.verification.subject": "[{AppName}] คำแนะนำในการยืนยันอีเมล",
+  "email.verification.subject": "รหัสยืนยันอีเมล",
   "email.setup-primary-oob.subject": "รหัสยืนยันอีเมล",
   "email.setup-primary-login-link.subject": "ยืนยันอีเมลของคุณสำหรับ {AppName}",
   "email.setup-secondary-oob.subject": "รหัสยืนยันอีเมล",

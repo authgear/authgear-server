@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Tagubilin sa pag-reset ng password",
   "email.forgot-password-oob.subject": "[{AppName}] Pag-reset ng password",
-  "email.verification.subject": "[{AppName}] Tagubilin sa pag-verify ng email",
+  "email.verification.subject": "Code ng Pag-verify ng Email",
   "email.setup-primary-oob.subject": "Code ng Pag-verify ng Email",
   "email.setup-primary-login-link.subject": "I-verify ang iyong email para sa {AppName}",
   "email.setup-secondary-oob.subject": "Code ng Pag-verify ng Email",

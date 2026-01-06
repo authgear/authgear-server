@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Hướng dẫn đặt lại mật khẩu",
   "email.forgot-password-oob.subject": "[{AppName}] Đặt lại mật khẩu",
-  "email.verification.subject": "[{AppName}] Hướng dẫn xác minh email",
+  "email.verification.subject": "Mã Xác Minh Email",
   "email.setup-primary-oob.subject": "Mã Xác Minh Email",
   "email.setup-primary-login-link.subject": "Xác minh email của bạn cho {AppName}",
   "email.setup-secondary-oob.subject": "Mã Xác Minh Email",

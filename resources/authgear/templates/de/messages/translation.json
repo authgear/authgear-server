@@ -58,10 +58,9 @@
     "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "VerificationEmail": {
-    "Title": "E-Mail-Verifizierung",
-    "Body": "Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template \"app.name\" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.",
+    "Body": "Hallo, <br/> Bitte verwende den folgenden Code, um deine E-Mail-Adresse {{ .Email }} auf <b>{{ template \"app.name\" }}</b> zu verifizieren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail."
+    "Disclaimer": "Du hast diese E-Mail erhalten, weil du versucht hast, eine E-Mail-Adresse auf <b>{{ template \"app.name\" }}</b> zu verifizieren. Wenn du dir nicht sicher bist warum, kannst du sie einfach ignorieren."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",

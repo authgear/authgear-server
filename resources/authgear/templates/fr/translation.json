@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Instructions pour la réinitialisation du mot de passe",
   "email.forgot-password-oob.subject": "[{AppName}] Réinitialisation du mot de passe",
-  "email.verification.subject": "[{AppName}] Instructions de vérification de l''e-mail",
+  "email.verification.subject": "Code de vérification d''e-mail",
   "email.setup-primary-oob.subject": "Code de vérification d''e-mail",
   "email.setup-primary-login-link.subject": "Vérifiez votre e-mail pour {AppName}",
   "email.setup-secondary-oob.subject": "Code de vérification d''e-mail",

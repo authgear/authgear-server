@@ -58,10 +58,9 @@
     "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "VerificationEmail": {
-    "Title": "Pengesahan E-mel",
-    "Body": "E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template \"app.name\" }}. Gunakan kod ini di halaman pengesahan.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} pada <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel pada <b>{{ template \"app.name\" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log masuk ke {{ template \"app.name\" }}",

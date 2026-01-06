@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Arahan menetapkan semula kata laluan",
   "email.forgot-password-oob.subject": "[{AppName}] Menetapkan semula kata laluan",
-  "email.verification.subject": "[{AppName}] Arahan Pengesahan Emel",
+  "email.verification.subject": "Kod Pengesahan E-mel",
   "email.setup-primary-oob.subject": "Kod Pengesahan E-mel",
   "email.setup-primary-login-link.subject": "Sahkan emel anda untuk {AppName}",
   "email.setup-secondary-oob.subject": "Kod Pengesahan E-mel",

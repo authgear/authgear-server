@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Instructies voor het resetten van het wachtwoord",
   "email.forgot-password-oob.subject": "[{AppName}] Wachtwoord resetten",
-  "email.verification.subject": "[{AppName}] Instructies voor e-mailverificatie",
+  "email.verification.subject": "E-mailverificatiecode",
   "email.setup-primary-oob.subject": "E-mailverificatiecode",
   "email.setup-primary-login-link.subject": "Verifieer uw e-mail voor {AppName}",
   "email.setup-secondary-oob.subject": "E-mailverificatiecode",

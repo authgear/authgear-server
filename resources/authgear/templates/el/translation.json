@@ -6,7 +6,7 @@
   "sms.default.sender": "Authgear",
   "email.forgot-password.subject": "[{AppName}] Οδηγίες επαναφοράς κωδικού πρόσβασης",
   "email.forgot-password-oob.subject": "[{AppName}] Επαναφορά κωδικού πρόσβασης",
-  "email.verification.subject": "[{AppName}] Οδηγίες επαλήθευσης email",
+  "email.verification.subject": "Κωδικός Επαλήθευσης Email",
   "email.setup-primary-oob.subject": "Κωδικός Επαλήθευσης Email",
   "email.setup-primary-login-link.subject": "Επαλήθευση email σας για το {AppName}",
   "email.setup-secondary-oob.subject": "Κωδικός Επαλήθευσης Email",

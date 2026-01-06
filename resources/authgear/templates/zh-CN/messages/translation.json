@@ -58,10 +58,9 @@
     "Disclaimer": "不要与任何人分享。如果您没有触发此设置,请忽略此电子邮件。"
   },
   "VerificationEmail": {
-    "Title": "电子邮件验证",
-    "Body": "此电子邮件用于验证 {{ .Email }} 在 {{ template \"app.name\" }} 上。请在验证页面使用此代码。",
+    "Body": "您好，<br/> 请使用以下验证码来验证您在 <b>{{ template \"app.name\" }}</b> 上的电子邮箱地址 {{ .Email }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "请勿与任何人分享。如果您没有登录或注册，请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您尝试在 <b>{{ template \"app.name\" }}</b> 上验证电子邮箱地址。如果您不确定原因，可以安全地忽略它。"
   },
   "PrimaryLoginLinkTXT": {
     "Title": "登录到 {{ template \"app.name\" }}",
