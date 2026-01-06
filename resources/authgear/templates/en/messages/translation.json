@@ -58,10 +58,9 @@
     "Disclaimer": "Don't share it with anyone. If you didn't trigger this setup, please ignore this email."
   },
   "VerificationEmail": {
-    "Title": "Email Verification",
-    "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.",
+    "Body": "Hi there, <br/> Please use the following code to verify your email address {{ .Email }} on <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't sign in or sign up, please ignore this email."
+    "Disclaimer": "You received this email because you tried to verify an email address on <b>{{ template \"app.name\" }}</b>. If you are not sure why, you can safely ignore it."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log in to {{ template \"app.name\" }}",
