@@ -1029,6 +1029,7 @@
   "v2.error.unknown": "Ocurrió un error desconocido. Si el problema persiste, busque ayuda en nuestro <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Foro Comunitario</a> o contáctenos en <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "La URL que ingresaste no tiene un formato correcto. Las URLs normalmente comienzan con https://, por ejemplo, https://ejemplo.com/",
   "v2.error.usage-limit-exceeded": "[Al Desarrollador] Tu proyecto ha excedido el límite de uso de mensajes. Por favor, revisa tu suscripción.",
+  "v2.error.user-outside-valid-period": "Esta cuenta está fuera de su período de acceso válido.",
   "v2.error.username-not-allowed": "El nombre de usuario que ingresaste no está permitido. Por favor, evita usar nombres de usuario reservados como `admin`.",
   "v2.error.verification-code-format": "El código de verificación que ingresaste no tiene un formato correcto. Por favor, asegúrate de que sea un código de 6 dígitos.",
   "v2.error.verification-code-invalid": "El código de verificación es incorrecto.",

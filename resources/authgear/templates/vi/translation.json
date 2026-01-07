@@ -1029,6 +1029,7 @@
   "v2.error.unknown": "Đã xảy ra lỗi không xác định. Nếu vấn đề vẫn tiếp tục, vui lòng tìm sự trợ giúp trong <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Diễn đàn Cộng đồng</a> của chúng tôi hoặc liên hệ với chúng tôi tại <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "URL bạn nhập không đúng định dạng. URL thường bắt đầu bằng https://, ví dụ: https://example.com/",
   "v2.error.usage-limit-exceeded": "[Gửi đến Nhà phát triển] Dự án của bạn đã vượt quá giới hạn sử dụng tin nhắn. Vui lòng xem xét lại gói đăng ký của bạn.",
+  "v2.error.user-outside-valid-period": "Tài khoản này nằm ngoài thời gian truy cập hợp lệ.",
   "v2.error.username-not-allowed": "Tên người dùng bạn nhập không được phép. Vui lòng tránh sử dụng các tên người dùng dành riêng như `admin`.",
   "v2.error.verification-code-format": "Mã xác minh bạn nhập không đúng định dạng. Vui lòng đảm bảo rằng nó là một mã 6 chữ số.",
   "v2.error.verification-code-invalid": "Mã xác minh không chính xác.",

@@ -1029,6 +1029,7 @@
   "v2.error.unknown": "發生未知錯誤。如果問題持續，請向我們的<a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">社群討論區</a>求助，或電郵至<a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "你所輸入的URL格式不正確。URL通常以https://作開始，例如https://example.com/",
   "v2.error.usage-limit-exceeded": "[致開發者] 您的項目已超出訊息使用限制。請檢查您的訂閱。",
+  "v2.error.user-outside-valid-period": "此帳戶目前不在有效的存取期間內。",
   "v2.error.username-not-allowed": "你所輸入的用戶名稱被禁用。請避免使用已保留的用戶名稱，例如「admin」",
   "v2.error.verification-code-format": "你所輸入的驗證碼格式不正確。請確保驗證碼為6位碼",
   "v2.error.verification-code-invalid": "驗證碼無效",
