@@ -1029,6 +1029,7 @@
   "v2.error.unknown": "Terjadi kesalahan yang tidak diketahui. Jika masalah ini terus berlanjut, silakan cari bantuan di <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum Komunitas</a> kami atau hubungi kami di <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "URL yang Anda masukkan tidak dalam format yang benar. URL biasanya dimulai dengan https://, misalnya https://example.com/",
   "v2.error.usage-limit-exceeded": "[Kepada Pengembang] Proyek Anda telah melebihi batas penggunaan pesan. Silakan tinjau langganan Anda.",
+  "v2.error.user-outside-valid-period": "Akun ini berada di luar periode akses yang valid.",
   "v2.error.username-not-allowed": "Nama pengguna yang Anda masukkan tidak diizinkan. Harap hindari menggunakan nama pengguna yang dicadangkan seperti `admin`.",
   "v2.error.verification-code-format": "Kode verifikasi yang Anda masukkan tidak dalam format yang benar. Pastikan itu adalah kode 6 digit.",
   "v2.error.verification-code-invalid": "Kode verifikasi salah.",

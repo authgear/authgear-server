@@ -1029,6 +1029,7 @@
   "v2.error.unknown": "Nagkaroon ng hindi kilalang error. Kung patuloy ang problema, mangyaring humingi ng tulong sa aming <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> o makipag-ugnayan sa amin sa <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "v2.error.uri-format": "Ang URL na iyong ipinasok ay hindi nasa tamang format. Karaniwang nagsisimula ang mga URL sa https://, hal. https://example.com/",
   "v2.error.usage-limit-exceeded": "[Sa Developer] Ang iyong proyekto ay lumampas na sa limitasyon ng paggamit ng mensahe. Mangyaring suriin ang iyong subscription.",
+  "v2.error.user-outside-valid-period": "Ang account na ito ay wala sa loob ng valid na panahon ng access.",
   "v2.error.username-not-allowed": "Ang username na iyong ipinasok ay hindi pinapayagan. Mangyaring iwasan ang paggamit ng mga nakatakdang username tulad ng `admin`.",
   "v2.error.verification-code-format": "Ang verification code na iyong ipinasok ay hindi nasa tamang format. Mangyaring tiyakin na ito ay isang 6-digit code.",
   "v2.error.verification-code-invalid": "Mali ang verification code.",
