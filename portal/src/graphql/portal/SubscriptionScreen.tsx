@@ -470,6 +470,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
+  const hasSubscription = useMemo(() => !!subscription, [subscription]);
+
   const subscriptionCancelled = useMemo(() => {
     return !!subscription?.endedAt;
   }, [subscription?.endedAt]);
@@ -684,6 +686,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             thisMonthUsage={thisMonthUsage}
             thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
             previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
+            hasSubscription={hasSubscription}
           />
         )}
       </div>
@@ -699,6 +702,7 @@ interface PlanDetailsTabProps {
   thisMonthUsage: Usage | undefined;
   thisMonthSubscriptionUsage: SubscriptionUsage | undefined;
   previousMonthSubscriptionUsage: SubscriptionUsage | undefined;
+  hasSubscription: boolean;
 }
 
 function PlanDetailsTab({
@@ -709,6 +713,7 @@ function PlanDetailsTab({
   thisMonthUsage,
   thisMonthSubscriptionUsage,
   previousMonthSubscriptionUsage,
+  hasSubscription,
 }: PlanDetailsTabProps) {
   const { locale } = useContext(Context);
   const formattedBillingDate = useMemo(
@@ -770,6 +775,7 @@ function PlanDetailsTab({
         thisMonthUsage={thisMonthUsage}
         thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
         previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
+        hasSubscription={hasSubscription}
       />
       {formattedBillingDate != null ? (
         <LinkButton
