@@ -42,6 +42,7 @@ interface CurrentPlanCardProps {
   thisMonthUsage: Usage | undefined;
   thisMonthSubscriptionUsage: SubscriptionUsage | undefined;
   previousMonthSubscriptionUsage: SubscriptionUsage | undefined;
+  hasSubscription: boolean;
 }
 
 export function CurrentPlanCard({
@@ -49,12 +50,16 @@ export function CurrentPlanCard({
   thisMonthUsage,
   thisMonthSubscriptionUsage,
   previousMonthSubscriptionUsage,
+  hasSubscription,
 }: CurrentPlanCardProps): React.ReactElement {
   const baseAmount = useMemo(() => {
     if (!isStripePlan(planName)) {
       return undefined;
     }
-
+    // show subscription fee only when subscription is active
+    if (!hasSubscription) {
+      return undefined;
+    }
     const amountCent =
       thisMonthSubscriptionUsage?.items.find(
         (a) => a.type === SubscriptionItemPriceType.Fixed
@@ -63,14 +68,18 @@ export function CurrentPlanCard({
       return undefined;
     }
     return amountCent / 100;
-  }, [planName, thisMonthSubscriptionUsage]);
+  }, [planName, thisMonthSubscriptionUsage, hasSubscription]);
 
   const smsCost = useMemo(() => {
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
+    // show sms cost only when subscription is active
+    if (!hasSubscription) {
+      return undefined;
+    }
     return getSMSCost(planName, thisMonthSubscriptionUsage);
-  }, [planName, thisMonthSubscriptionUsage]);
+  }, [planName, thisMonthSubscriptionUsage, hasSubscription]);
 
   const smsUsage = useMemo(() => {
     if (thisMonthUsage == null) {
@@ -83,8 +92,12 @@ export function CurrentPlanCard({
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
+    // show whatsapp cost only when subscription is active
+    if (!hasSubscription) {
+      return undefined;
+    }
     return getWhatsappCost(planName, thisMonthSubscriptionUsage);
-  }, [planName, thisMonthSubscriptionUsage]);
+  }, [planName, thisMonthSubscriptionUsage, hasSubscription]);
 
   const whatsappUsage = useMemo(() => {
     if (thisMonthUsage == null) {
