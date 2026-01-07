@@ -623,35 +623,37 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                     }
                   />
                 </div>
-                <FoldableDiv
-                  className={cn(styles.widget)}
-                  label={<FormattedMessage id="AdduserScreen.advanced" />}
-                  folded={advancedFolded}
-                  setFolded={setAdvancedFolded}
-                >
-                  <div className={styles.accountValidPeriodSection}>
-                    <WidgetTitle>
-                      <FormattedMessage id="AddUserScreen.valid-period.title" />
-                    </WidgetTitle>
-                    <WidgetDescription
-                      styles={{
-                        root: {
-                          color: themes.main.semanticColors.bodySubtext,
-                        },
-                      }}
-                    >
-                      <FormattedMessage id="AddUserScreen.valid-period.description" />
-                    </WidgetDescription>
-                    <AccountValidPeriodForm
-                      className={styles.accountValidPeriodForm}
-                      accountValidFrom={state.accountValidFrom}
-                      accountValidUntil={state.accountValidUntil}
-                      onPickAccountValidFrom={onPickAccountValidFrom}
-                      onPickAccountValidUntil={onPickAccountValidUntil}
-                    />
-                  </div>
-                </FoldableDiv>
               </>
+            ) : null}
+            {selectedLoginIDType ? (
+              <FoldableDiv
+                className={cn(styles.widget)}
+                label={<FormattedMessage id="AdduserScreen.advanced" />}
+                folded={advancedFolded}
+                setFolded={setAdvancedFolded}
+              >
+                <div className={styles.accountValidPeriodSection}>
+                  <WidgetTitle>
+                    <FormattedMessage id="AddUserScreen.valid-period.title" />
+                  </WidgetTitle>
+                  <WidgetDescription
+                    styles={{
+                      root: {
+                        color: themes.main.semanticColors.bodySubtext,
+                      },
+                    }}
+                  >
+                    <FormattedMessage id="AddUserScreen.valid-period.description" />
+                  </WidgetDescription>
+                  <AccountValidPeriodForm
+                    className={styles.accountValidPeriodForm}
+                    accountValidFrom={state.accountValidFrom}
+                    accountValidUntil={state.accountValidUntil}
+                    onPickAccountValidFrom={onPickAccountValidFrom}
+                    onPickAccountValidUntil={onPickAccountValidUntil}
+                  />
+                </div>
+              </FoldableDiv>
             ) : null}
           </>
         )}
