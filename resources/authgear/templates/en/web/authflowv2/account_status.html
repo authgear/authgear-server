@@ -30,6 +30,10 @@
           {{- if eq $.Error.reason "ScheduledDeletionByEndUser" }}
             {{ include "v2.error.scheduled-deletion-by-end-user" (dict "date" (ensureTime $.Error.info.delete_at) "rfc3339" (rfc3339 (ensureTime $.Error.info.delete_at))) }}
           {{- end }}
+
+          {{- if eq $.Error.reason "UserOutsideValidPeriod" }}
+            {{ include "v2.error.user-outside-valid-period" nil }}
+          {{- end }}
         </h2>
       {{- end }}
     </header>

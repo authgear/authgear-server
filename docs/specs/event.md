@@ -916,6 +916,7 @@ This event occurs in the following cases:
   - `ScheduledDeletionByAdmin`: The user account is scheduled for deletion by an administrator.
   - `ScheduledDeletionByEndUser`: The user account is scheduled for deletion by the end-user.
   - `ScheduledAnonymizationByAdmin`: The user account is scheduled for anonymization by an administrator.
+  - `UserOutsideValidPeriod`: The user account is outside its valid access period.
 
 2. The authentication flow was blocked by a webhook. In this case, the `error` object will have the following structure:
 
