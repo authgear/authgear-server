@@ -58,9 +58,9 @@
     "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "VerificationEmail": {
-    "Body": "Hallo, <br/> Bitte verwende den folgenden Code, um deine E-Mail-Adresse {{ .Email }} auf <b>{{ template \"app.name\" }}</b> zu verifizieren.",
+    "Body": "Hallo, <br/> Bitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse zu bestätigen und auf <b>{{ template \"app.name\" }}</b> fortzufahren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Du hast diese E-Mail erhalten, weil du versucht hast, eine E-Mail-Adresse auf <b>{{ template \"app.name\" }}</b> zu verifizieren. Wenn du dir nicht sicher bist warum, kannst du sie einfach ignorieren."
+    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie versucht haben, eine E-Mail-Adresse auf <b>{{ template \"app.name\" }}</b> zu verifizieren. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
@@ -69,10 +69,9 @@
     "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
-    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.",
+    "Body": "Hallo,\nBitte verwenden Sie den folgenden Code, um sich bei {{ template \"app.name\" }} anzumelden.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie sich bei {{ template \"app.name\" }} angemeldet haben. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Melden Sie sich mit diesem Einmal-Passwort {{ .Code }} bei {{ template \"app.name\" }} an.",
@@ -122,10 +121,9 @@
     "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Registrieren Sie sich bei {{ template \"app.name\" }}",
-    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Registrierungsprozess bei {{ template \"app.name\" }} abzuschließen.",
+    "Body": "Hallo,\nBitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse zu bestätigen und auf {{ template \"app.name\" }} fortzufahren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht registriert haben, ignorieren Sie bitte diese E-Mail."
+    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie sich registriert oder angemeldet haben bei {{ template \"app.name\" }}. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Registrieren Sie sich mit diesem Einmal-Passwort {{ .Code }} bei {{ template \"app.name\" }}.",
@@ -148,10 +146,9 @@
     "Disclaimer": "Geben Sie es niemandem weiter."
   },
   "VerificationEmailTXT": {
-    "Title": "E-Mail-Verifizierung",
-    "Body": "Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template \"app.name\" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.",
+    "Body": "Hallo,\nBitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse {{ .Email }} auf {{ template \"app.name\" }} zu verifizieren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail."
+    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie versucht haben, eine E-Mail-Adresse auf {{ template \"app.name\" }} zu verifizieren. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Verifizierungscode.",

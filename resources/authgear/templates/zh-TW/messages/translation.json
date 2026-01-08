@@ -58,7 +58,7 @@
     "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
   },
   "VerificationEmail": {
-    "Body": "您好，<br/> 請使用以下驗證碼來驗證您在 <b>{{ template \"app.name\" }}</b> 上的電子郵件地址 {{ .Email }}。",
+    "Body": "您好，<br/> 請使用以下驗證碼確認您的電子郵件地址並繼續使用 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
     "Disclaimer": "您收到此電子郵件是因為您嘗試在 <b>{{ template \"app.name\" }}</b> 上驗證電子郵件地址。如果您不確定原因，可以安全地忽略它。"
   },
@@ -69,10 +69,9 @@
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "登入至 {{ template \"app.name\" }}",
-    "Body": "請用以下一次性密碼完成登入。",
+    "Body": "您好，\n請使用以下驗證碼登入 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您從 {{ template \"app.name\" }} 登入。如果您不確定原因，可以安全地忽略它。"
   },
   "PrimaryOOBSMSTXT": {
     "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
@@ -122,10 +121,9 @@
     "Disclaimer": "如你未曾註冊，則無需理會此電郵。"
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "註冊 {{ template \"app.name\" }}",
-    "Body": "請用以下一次性密碼完成註冊",
+    "Body": "您好，\n請使用以下驗證碼確認您的電子郵件地址並繼續使用 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾註冊，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您在 {{ template \"app.name\" }} 註冊或登入。如果您不確定原因，可以安全地忽略它。"
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
@@ -148,10 +146,9 @@
     "Disclaimer": "切勿分享給任何人。"
   },
   "VerificationEmailTXT": {
-    "Title": "電郵驗證",
-    "Body": "請在 {{ template \"app.name\" }} 輸入以下驗證碼以驗證 {{.Email}}。",
+    "Body": "您好，\n請使用以下驗證碼在 {{ template \"app.name\" }} 上驗證您的電子郵件地址 {{ .Email }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾登入或註冊，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您嘗試在 {{ template \"app.name\" }} 上驗證電子郵件地址。如果您不確定原因，可以安全地忽略它。"
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} 是你的 {{ template \"app.name\" }} 驗證碼。",

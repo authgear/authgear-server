@@ -58,7 +58,7 @@
     "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "VerificationEmail": {
-    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk memverifikasi alamat email Anda {{ .Email }} di <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Anda menerima email ini karena Anda mencoba memverifikasi alamat email di <b>{{ template \"app.name\" }}</b>. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
@@ -69,10 +69,9 @@
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Masuk ke {{ template \"app.name\" }}",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk masuk ke {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memicu login, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda masuk dari {{ template \"app.name\" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Login ke {{ template \"app.name\" }} dengan sandi satu kali pakai ini {{ .Code }}.",
@@ -122,10 +121,9 @@
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Daftar di {{ template \"app.name\" }}",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses pendaftaran di {{ template \"app.name\" }}.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak mendaftar, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda mendaftar atau masuk dari {{ template \"app.name\" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Daftar di {{ template \"app.name\" }} dengan sandi satu kali pakai ini {{ .Code }}.",
@@ -148,10 +146,9 @@
     "Disclaimer": "Jangan bagikan dengan siapa pun."
   },
   "VerificationEmailTXT": {
-    "Title": "Verifikasi Email",
-    "Body": "Email ini dikirim untuk memverifikasi {{ .Email }} di {{ template \"app.name\" }}. Gunakan kode ini di halaman verifikasi.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk memverifikasi alamat email Anda {{ .Email }} di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak masuk atau mendaftar, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda mencoba memverifikasi alamat email di {{ template \"app.name\" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} adalah kode verifikasi Anda di {{ template \"app.name\" }}.",

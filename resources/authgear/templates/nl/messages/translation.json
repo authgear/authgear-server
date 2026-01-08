@@ -58,9 +58,9 @@
     "Disclaimer": "Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "VerificationEmail": {
-    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres {{ .Email }} te verifiëren op <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Hallo, <br/> Gebruik de volgende code om je e-mailadres te bevestigen en door te gaan op <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze e-mail veilig negeren."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op <b>{{ template \"app.name\" }}</b>. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log in op {{ template \"app.name\" }}",
@@ -69,10 +69,9 @@
     "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Log in op {{ template \"app.name\" }}",
-    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Body": "Hallo,\nGebruik de volgende code om in te loggen op {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je bent ingelogd vanaf {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Log in op {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
@@ -122,10 +121,9 @@
     "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Meld u aan op {{ template \"app.name\" }}",
-    "Body": "Gebruik het volgende eenmalige wachtwoord om het aanmeldproces op {{ template \"app.name\" }} te voltooien.",
+    "Body": "Hallo,\nGebruik de volgende code om je e-mailadres te bevestigen en door te gaan op {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u zich niet heeft aangemeld, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je je hebt aangemeld of bent ingelogd vanaf {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Meld u aan op {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
@@ -148,10 +146,9 @@
     "Disclaimer": "Deel het niet met iemand."
   },
   "VerificationEmailTXT": {
-    "Title": "E-mail Verificatie",
-    "Body": "Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template \"app.name\" }}. Gebruik deze code op de verificatiepagina.",
+    "Body": "Hallo,\nGebruik de volgende code om je e-mailadres {{ .Email }} te verifiëren op {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze veilig negeren."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} is uw {{ template \"app.name\" }} verificatiecode.",

@@ -58,7 +58,7 @@
     "Disclaimer": "No la compartas con nadie. Si no desencadenaste esta configuración, ignora este correo electrónico."
   },
   "VerificationEmail": {
-    "Body": "Hola, <br/> Por favor utiliza el siguiente código para verificar tu dirección de correo electrónico {{ .Email }} en <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Recibiste este correo electrónico porque intentaste verificar una dirección de correo electrónico en <b>{{ template \"app.name\" }}</b>. Si no estás seguro por qué, puedes ignorarlo con seguridad."
   },
@@ -69,10 +69,9 @@
     "Disclaimer": "Si no iniciaste un inicio de sesión, ignora este correo electrónico."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Inicia sesión en {{ template \"app.name\" }}",
-    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para iniciar sesión en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la compartas con nadie. Si no iniciaste un inicio de sesión, ignora este correo electrónico."
+    "Disclaimer": "Recibiste este correo electrónico porque iniciaste sesión desde {{ template \"app.name\" }}. Si no estás seguro por qué, puedes ignorarlo con seguridad."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Inicia sesión en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
@@ -122,10 +121,9 @@
     "Disclaimer": "Si no desencadenaste esta configuración, ignora este correo electrónico."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Regístrate en {{ template \"app.name\" }}",
-    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de registro en {{ template \"app.name\" }}.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la compartas con nadie. Si no te registraste, ignora este correo electrónico."
+    "Disclaimer": "Recibiste este correo electrónico porque te registraste o iniciaste sesión desde {{ template \"app.name\" }}. Si no estás seguro por qué, puedes ignorarlo con seguridad."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Regístrate en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
@@ -148,10 +146,9 @@
     "Disclaimer": "No la compartas con nadie."
   },
   "VerificationEmailTXT": {
-    "Title": "Verificación de correo electrónico",
-    "Body": "Este correo electrónico se envía para verificar {{ .Email }} en {{ template \"app.name\" }}. Usa este código en la página de verificación.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para verificar tu dirección de correo electrónico {{ .Email }} en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo compartas con nadie. Si no iniciaste sesión o no te registraste, ignora este correo electrónico."
+    "Disclaimer": "Recibiste este correo electrónico porque intentaste verificar una dirección de correo electrónico en {{ template \"app.name\" }}. Si no estás seguro por qué, puedes ignorarlo con seguridad."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} es tu código de verificación de {{ template \"app.name\" }}.",

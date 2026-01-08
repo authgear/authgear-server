@@ -58,7 +58,7 @@
     "Disclaimer": "誰にも教えないでください。この設定をリクエストしていない場合は、このメールを無視してください。"
   },
   "VerificationEmail": {
-    "Body": "こんにちは、<br/> 以下のコードを使用して、<b>{{ template \"app.name\" }}</b>であなたのメールアドレス{{ .Email }}を確認してください。",
+    "Body": "こんにちは、<br/> 以下のコードを使用してメールアドレスを確認し、<b>{{ template \"app.name\" }}</b>で続行してください。",
     "Code": "{{ .Code }}",
     "Disclaimer": "このメールは、<b>{{ template \"app.name\" }}</b>でメールアドレスを確認しようとしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
@@ -69,10 +69,9 @@
     "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "{{ template \"app.name\" }}にログイン",
-    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Body": "こんにちは、\n以下のコードを使用して{{ template \"app.name\" }}にログインしてください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "誰にも教えないでください。ログインをリクエストしていない場合は、このメールを無視してください。"
+    "Disclaimer": "このメールは、{{ template \"app.name\" }}からログインしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
   "PrimaryOOBSMSTXT": {
     "Title": "{{ template \"app.name\" }}にログインするには、この一回限りのパスワード{{ .Code }}を使用してください。",
@@ -122,10 +121,9 @@
     "Disclaimer": "この設定をリクエストしていない場合は、このメールを無視してください。"
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "{{ template \"app.name\" }}にサインアップする",
-    "Body": "{{ template \"app.name\" }}のサインアッププロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Body": "こんにちは、\n以下のコードを使用してメールアドレスを確認し、{{ template \"app.name\" }}で続行してください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "誰にも教えないでください。サインアップしていない場合は、このメールを無視してください。"
+    "Disclaimer": "このメールは、{{ template \"app.name\" }}でサインアップまたはログインしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "{{ template \"app.name\" }}に以下の一回限りのパスワード{{ .Code }}で登録してください。",
@@ -148,10 +146,9 @@
     "Disclaimer": "誰にも教えないでください。"
   },
   "VerificationEmailTXT": {
-    "Title": "メールアドレスの確認",
-    "Body": "{{ template \"app.name\" }}で{{ .Email }}を確認するためのメールです。以下のコードを確認ページで使用してください。",
+    "Body": "こんにちは、\n以下のコードを使用して{{ template \"app.name\" }}でメールアドレス{{ .Email }}を確認してください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "誰にも教えないでください。サインインやサインアップをしていない場合は、このメールを無視してください。"
+    "Disclaimer": "このメールは、{{ template \"app.name\" }}でメールアドレスを確認しようとしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }}は{{ template \"app.name\" }}の確認コードです。",
