@@ -202,8 +202,8 @@ export function IPBlocklistForm({
         )}
       />
       {state.isEnabled && state.isEditAllowed ? (
-        <>
-          <div className="mt-12">
+        <div className="mt-12 flex flex-col gap-y-6">
+          <div>
             <FormTextField
               parentJSONPointer="/network_protection/ip_filter/rules/0/source"
               fieldName="cidrs"
@@ -219,7 +219,7 @@ export function IPBlocklistForm({
               errorRules={cidrsFieldErrorRules}
             />
           </div>
-          <div className="mt-6">
+          <div>
             <CustomTagPicker
               label={renderToString("IPBlocklistForm.block-country.label")}
               onResolveSuggestions={onResolveCountryCodeSuggestions}
@@ -227,7 +227,8 @@ export function IPBlocklistForm({
               onChange={onCountryItemChange}
             />
           </div>
-          <div className="mt-6 flex flex-col gap-y-4">
+          <div className="h-px w-full bg-separator" />
+          <div className="flex flex-col gap-y-4 p-4 bg-[#FAF9F8]">
             <div className="flex items-start gap-x-4">
               <FormTextField
                 parentJSONPointer=""
@@ -269,7 +270,7 @@ export function IPBlocklistForm({
               )
             ) : null}
           </div>
-        </>
+        </div>
       ) : null}
     </div>
   );
