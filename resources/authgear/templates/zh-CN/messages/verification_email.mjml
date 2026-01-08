@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        您好，<br/> 请使用以下验证码来验证您在 <b>{{ template "app.name" }}</b> 上的电子邮箱地址 {{ .Email }}。
+        您好，<br/> 请使用以下验证码确认您的电子邮件地址并继续使用 <b>{{ template "app.name" }}</b>。
       </mj-text>
     </mj-column>
   </mj-section>
@@ -31,7 +31,7 @@
   </mj-section>
   <mj-section padding="0px">
     <mj-column padding="0px">
-      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">您收到此电子邮件是因为您尝试在 <b>{{ template "app.name" }}</b> 上验证电子邮箱地址。如果您不确定原因，可以安全地忽略它。</mj-text>
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">您收到此电子邮件是因为您尝试在 <b>{{ template "app.name" }}</b> 上验证电子邮件地址。如果您不确定原因，可以安全地忽略它。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

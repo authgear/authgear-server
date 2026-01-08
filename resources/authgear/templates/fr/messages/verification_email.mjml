@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        Bonjour, <br/> Veuillez utiliser le code suivant pour vérifier votre adresse e-mail {{ .Email }} sur <b>{{ template "app.name" }}</b>.
+        Bonjour, <br/> Veuillez utiliser le code suivant pour confirmer votre adresse e-mail et continuer sur <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>

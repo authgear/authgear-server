@@ -1,7 +1,6 @@
-Verifica email
-
-Questa email viene inviata per verificare {{ .Email }} su {{ template "app.name" }}. Usa questo codice nella pagina di verifica.
+Ciao,
+Utilizza il seguente codice per verificare il tuo indirizzo email {{ .Email }} su {{ template "app.name" }}.
 
 {{ .Code }}
 
-Non condividerlo con nessuno. Se non hai effettuato l''accesso o la registrazione, ignora questa email.
+Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su {{ template "app.name" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla.

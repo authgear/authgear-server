@@ -1,7 +1,6 @@
-Pengesahan E-mel
-
-E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template "app.name" }}. Gunakan kod ini di halaman pengesahan.
+Hai di sana,
+Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} di {{ template "app.name" }}.
 
 {{ .Code }}
 
-Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini.
+Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel di {{ template "app.name" }}. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat.

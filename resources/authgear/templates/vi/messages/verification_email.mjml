@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        Xin chào, <br/> Vui lòng sử dụng mã sau đây để xác minh địa chỉ email của bạn {{ .Email }} trên <b>{{ template "app.name" }}</b>.
+        Xin chào, <br/> Vui lòng sử dụng mã sau để xác nhận địa chỉ email của bạn và tiếp tục trên <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -31,7 +31,7 @@
   </mj-section>
   <mj-section padding="0px">
     <mj-column padding="0px">
-      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Bạn nhận được email này vì bạn đã cố gắng xác minh một địa chỉ email trên <b>{{ template "app.name" }}</b>. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn.</mj-text>
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Bạn nhận được email này vì bạn đã cố gắng xác minh địa chỉ email trên <b>{{ template "app.name" }}</b>. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

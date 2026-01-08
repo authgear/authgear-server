@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        Hai, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} pada <b>{{ template "app.name" }}</b>.
+        Hai di sana, <br/> Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -31,7 +31,7 @@
   </mj-section>
   <mj-section padding="0px">
     <mj-column padding="0px">
-      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel pada <b>{{ template "app.name" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat.</mj-text>
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel di <b>{{ template "app.name" }}</b>. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

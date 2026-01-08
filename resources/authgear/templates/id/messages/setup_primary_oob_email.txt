@@ -1,7 +1,6 @@
-Daftar di {{ template "app.name" }}
-
-Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses pendaftaran di {{ template "app.name" }}.
+Halo,
+Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template "app.name" }}.
 
 {{ .Code }}
 
-Jangan bagikan dengan siapa pun. Jika Anda tidak mendaftar, abaikan email ini.
+Anda menerima email ini karena Anda mendaftar atau masuk dari {{ template "app.name" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman.

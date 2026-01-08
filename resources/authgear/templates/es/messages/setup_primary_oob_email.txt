@@ -1,7 +1,6 @@
-Regístrate en {{ template "app.name" }}
-
-Por favor, utiliza el siguiente código de un solo uso para completar el proceso de registro en {{ template "app.name" }}.
+Hola,
+Por favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template "app.name" }}.
 
 {{ .Code }}
 
-No lo compartas con nadie. Si no te registraste, ignora este correo electrónico.
+Has recibido este correo electrónico porque te registraste o iniciaste sesión desde {{ template "app.name" }}. Si no estás seguro de por qué, puedes ignorarlo con seguridad.

@@ -1,7 +1,6 @@
-Email Verification
-
-This email is sent to verify {{ .Email }} on {{ template "app.name" }}. Use this code in the verification page.
+Hi there,
+Please use the following code to verify your email address {{ .Email }} on {{ template "app.name" }}.
 
 {{ .Code }}
 
-Don't share it with anyone. If you didn't sign in or sign up, please ignore this email.
+You received this email because you tried to verify an email address on {{ template "app.name" }}. If you are not sure why, you can safely ignore it.

@@ -1,7 +1,6 @@
-Pag-verify ng Email
-
-Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template "app.name" }}. Gamitin ang code na ito sa pahina ng pag-verify.
+Kumusta,
+Mangyaring gamitin ang sumusunod na code upang i-verify ang iyong email address {{ .Email }} sa {{ template "app.name" }}.
 
 {{ .Code }}
 
-Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito.
+Natanggap mo ang email na ito dahil sinubukan mong i-verify ang isang email address sa {{ template "app.name" }}. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito.
