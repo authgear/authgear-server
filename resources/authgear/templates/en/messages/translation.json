@@ -69,10 +69,9 @@
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Log in to {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the log in process.",
+    "Body": "Hi there,\nPlease use the following code to log in to {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't trigger a login, please ignore this email."
+    "Disclaimer": "You received this email because you logged in from {{ template \"app.name\" }}. If you are not sure why, you can safely ignore it."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Login to {{ template \"app.name\" }} with this one-time password {{ .Code }}.",
@@ -122,10 +121,9 @@
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Sign up on {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the sign up process on {{ template \"app.name\" }}.",
+    "Body": "Hi there,\nPlease use the following code to confirm your email address and continue on {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't sign up, please ignore this email."
+    "Disclaimer": "You received this email because you signed up or logged in from {{ template \"app.name\" }}. If you are not sure why, you can safely ignore it."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Sign up on {{ template \"app.name\" }} with this one-time password {{ .Code }}.",
@@ -148,10 +146,9 @@
     "Disclaimer": "Don't share it with anyone."
   },
   "VerificationEmailTXT": {
-    "Title": "Email Verification",
-    "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.",
+    "Body": "Hi there,\nPlease use the following code to verify your email address {{ .Email }} on {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't sign in or sign up, please ignore this email."
+    "Disclaimer": "You received this email because you tried to verify an email address on {{ template \"app.name\" }}. If you are not sure why, you can safely ignore it."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} is your {{ template \"app.name\" }} verification code.",
