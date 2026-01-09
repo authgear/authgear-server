@@ -1,7 +1,6 @@
-Đăng ký trên {{ template "app.name" }}
-
-Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng ký trên {{ template "app.name" }}.
+Xin chào,
+Vui lòng sử dụng mã sau để xác nhận địa chỉ email của bạn và tiếp tục trên {{ template "app.name" }}.
 
 {{ .Code }}
 
-Không chia sẻ với bất kỳ ai. Nếu bạn không đăng ký, vui lòng bỏ qua email này.
+Bạn nhận được email này vì bạn đã đăng ký hoặc đăng nhập từ {{ template "app.name" }}. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn.

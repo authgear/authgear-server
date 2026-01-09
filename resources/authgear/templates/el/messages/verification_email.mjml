@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        Γεια σας, <br/> Παρακαλώ χρησιμοποιήστε τον παρακάτω κωδικό για να επαληθεύσετε τη διεύθυνση ηλεκτρονικού ταχυδρομείου σας {{ .Email }} στο <b>{{ template "app.name" }}</b>.
+        Γεια σας, <br/> Παρακαλώ χρησιμοποιήστε τον ακόλουθο κωδικό για να επιβεβαιώσετε τη διεύθυνση email σας και να συνεχίσετε στο <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -31,7 +31,7 @@
   </mj-section>
   <mj-section padding="0px">
     <mj-column padding="0px">
-      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Λάβατε αυτό το email επειδή προσπαθήσατε να επαληθεύσετε μια διεύθυνση ηλεκτρονικού ταχυδρομείου στο <b>{{ template "app.name" }}</b>. Εάν δεν είστε σίγουροι γιατί, μπορείτε με ασφάλεια να το αγνοήσετε.</mj-text>
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Λάβατε αυτό το email επειδή προσπαθήσατε να επαληθεύσετε μια διεύθυνση email στο <b>{{ template "app.name" }}</b>. Εάν δεν είστε σίγουροι γιατί, μπορείτε να το αγνοήσετε με ασφάλεια.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

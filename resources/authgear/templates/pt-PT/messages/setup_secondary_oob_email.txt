@@ -1,7 +1,6 @@
-Configurar a Verificação em 2 Passos em {{ template "app.name" }}
-
-A caixa de texto abaixo contém uma palavra-passe única gerada para configurar a verificação em 2 passos em {{ template "app.name" }}.
+Olá,
+Por favor, utilize o seguinte código para configurar a verificação em dois passos em {{ template "app.name" }}.
 
 {{ .Code }}
 
-Não a partilhe com ninguém. Se não iniciou esta configuração, ignore este email.
+Não o partilhe com ninguém. Se não iniciou esta configuração, por favor ignore este e-mail.

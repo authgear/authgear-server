@@ -5,22 +5,35 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding-top="32px" padding-bottom="0">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">เข้าสู่ระบบ {{ template "app.name" }}</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        โปรดใช้รหัสผ่านใช้ครั้งเดียวต่อไปนี้เพื่อดำเนินการเข้าสู่ระบบ.
+      <mj-text font-size="14px" line-height="24px">
+        สวัสดี <br/> กรุณาใช้รหัสต่อไปนี้เพื่อเข้าสู่ระบบ <b>{{ template "app.name" }}</b>
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+  <mj-section padding-top="24px" padding-bottom="24px">
+    <mj-column>
+      <mj-text>
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
+  <mj-section padding-top="0" padding-bottom="32px">
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">อย่าแชร์กับใคร หากคุณไม่ได้เข้าสู่ระบบ โปรดละเว้นอีเมลนี้.</mj-text>
+      <mj-text font-size="14px" line-height="21px">
+        คุณได้รับอีเมลนี้เนื่องจากคุณเข้าสู่ระบบจาก <b>{{ template "app.name" }}</b> หากคุณไม่ได้เข้าสู่ระบบ โปรดเพิกเฉยต่ออีเมลนี้
+      </mj-text>
     </mj-column>
   </mj-section>
 </mjml>

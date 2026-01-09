@@ -1,7 +1,6 @@
-Meld u aan op {{ template "app.name" }}
-
-Gebruik het volgende eenmalige wachtwoord om het aanmeldproces op {{ template "app.name" }} te voltooien.
+Hallo,
+Gebruik de volgende code om je e-mailadres te bevestigen en door te gaan op {{ template "app.name" }}.
 
 {{ .Code }}
 
-Deel het niet met iemand. Als u zich niet heeft aangemeld, negeer dan deze e-mail.
+Je hebt deze e-mail ontvangen omdat je je hebt aangemeld of bent ingelogd vanaf {{ template "app.name" }}. Als je niet zeker weet waarom, kun je deze veilig negeren.

@@ -1,7 +1,6 @@
-Xác minh email
-
-Email này được gửi để xác minh {{ .Email }} trên {{ template "app.name" }}. Sử dụng mã này trên trang xác minh.
+Xin chào,
+Vui lòng sử dụng mã sau để xác minh địa chỉ email {{ .Email }} của bạn trên {{ template "app.name" }}.
 
 {{ .Code }}
 
-Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập hoặc đăng ký, vui lòng bỏ qua email này.
+Bạn nhận được email này vì bạn đã cố gắng xác minh địa chỉ email trên {{ template "app.name" }}. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn.

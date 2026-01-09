@@ -1,7 +1,6 @@
-Registrieren Sie sich bei {{ template "app.name" }}
-
-Bitte verwenden Sie das folgende Einmal-Passwort, um den Registrierungsprozess bei {{ template "app.name" }} abzuschließen.
+Hallo,
+Bitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse zu bestätigen und auf {{ template "app.name" }} fortzufahren.
 
 {{ .Code }}
 
-Geben Sie es niemandem weiter. Wenn Sie sich nicht registriert haben, ignorieren Sie bitte diese E-Mail.
+Sie haben diese E-Mail erhalten, weil Sie sich registriert oder angemeldet haben bei {{ template "app.name" }}. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren.

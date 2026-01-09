@@ -1,7 +1,6 @@
-Inicia sesión en {{ template "app.name" }}
-
-Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.
+Hola,
+Por favor, utiliza el siguiente código para iniciar sesión en {{ template "app.name" }}.
 
 {{ .Code }}
 
-No la compartas con nadie. Si no iniciaste sesión, ignora este correo electrónico.
+Recibiste este correo electrónico porque iniciaste sesión desde {{ template "app.name" }}. Si no iniciaste sesión, por favor ignora este correo.

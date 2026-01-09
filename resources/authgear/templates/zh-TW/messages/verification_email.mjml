@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        您好，<br/> 請使用以下驗證碼來驗證您在 <b>{{ template "app.name" }}</b> 上的電子郵件地址 {{ .Email }}。
+        您好，<br/> 請使用以下驗證碼確認您的電子郵件地址並繼續使用 <b>{{ template "app.name" }}</b>。
       </mj-text>
     </mj-column>
   </mj-section>

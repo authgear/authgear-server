@@ -8,7 +8,7 @@
   <mj-section padding="32px 0px 0px 0px">
     <mj-column>
       <mj-text padding="0px" font-size="14px" line-height="24px">
-        Cześć, <br/> Proszę użyj następującego kodu, aby zweryfikować swój adres e-mail {{ .Email }} w <b>{{ template "app.name" }}</b>.
+        Cześć, <br/> Użyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować na <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -31,7 +31,7 @@
   </mj-section>
   <mj-section padding="0px">
     <mj-column padding="0px">
-      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail w <b>{{ template "app.name" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować.</mj-text>
+      <mj-text line-height="21px" padding="0px" font-size="14px" align="left">Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail na <b>{{ template "app.name" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

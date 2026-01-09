@@ -1,7 +1,6 @@
-Zarejestruj się na {{ template "app.name" }}
-
-Użyj poniższego jednorazowego hasła, aby ukończyć proces rejestracji na {{ template "app.name" }}.
+Cześć,
+Użyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować na {{ template "app.name" }}.
 
 {{ .Code }}
 
-Nie udostępniaj go nikomu. Jeśli nie zarejestrowałeś się, zignoruj ten e-mail.
+Otrzymałeś tę wiadomość e-mail, ponieważ zarejestrowałeś się lub zalogowałeś z {{ template "app.name" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować.

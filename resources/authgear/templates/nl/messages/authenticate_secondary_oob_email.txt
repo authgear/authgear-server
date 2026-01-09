@@ -1,7 +1,6 @@
-Log in op {{ template "app.name" }}
-
-Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.
+Hallo,
+Gebruik de volgende code om in te loggen bij {{ template "app.name" }}.
 
 {{ .Code }}
 
-Deel het niet met iemand. Als u niet heeft ingelogd, negeer dan deze e-mail.
+U ontving deze e-mail omdat u heeft ingelogd bij {{ template "app.name" }}. Als u niet heeft ingelogd, negeer dan deze e-mail.

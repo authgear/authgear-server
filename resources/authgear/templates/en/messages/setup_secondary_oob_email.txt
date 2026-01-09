@@ -1,6 +1,5 @@
-Setup Two-Step Verification on {{ template "app.name" }}
-
-The textbox below contains a one-time password generated to setup two-step verification on {{ template "app.name" }}.
+Hi there,
+Please use the following code to setup two-step verification on {{ template "app.name" }}.
 
 {{ .Code }}
 
