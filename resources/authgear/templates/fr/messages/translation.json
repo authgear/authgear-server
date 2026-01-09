@@ -17,10 +17,9 @@
     "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
   },
   "SecondaryOOBEmail": {
-    "Title": "Connectez-vous à {{ template \"app.name\" }}",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour vous connecter à <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
+    "Disclaimer": "Vous avez reçu cet e-mail car vous vous êtes connecté depuis <b>{{ template \"app.name\" }}</b>. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
   },
   "ForgotPassword": {
     "Title": "Réinitialiser le mot de passe",
@@ -29,10 +28,9 @@
     "Disclaimer": "Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Réinitialiser le mot de passe",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}.",
+    "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour réinitialiser votre mot de passe sur <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+    "Disclaimer": "Ne le partagez avec personne. Si vous n''avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Vérifiez votre e-mail sur {{ template \"app.name\" }}",
@@ -52,10 +50,9 @@
     "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Configurer la vérification en deux étapes sur {{ template \"app.name\" }}",
-    "Body": "La zone de texte ci-dessous contient un mot de passe unique généré pour configurer la vérification en deux étapes.",
+    "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour configurer la vérification en deux étapes sur <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+    "Disclaimer": "Ne le partagez avec personne. Si vous n''avez pas initié cette configuration, veuillez ignorer cet e-mail."
   },
   "VerificationEmail": {
     "Body": "Bonjour, <br/> Veuillez utiliser le code suivant pour confirmer votre adresse e-mail et continuer sur <b>{{ template \"app.name\" }}</b>.",
@@ -84,10 +81,9 @@
     "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Connectez-vous à {{ template \"app.name\" }}",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Body": "Bonjour,\nVeuillez utiliser le code suivant pour vous connecter à {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
+    "Disclaimer": "Vous avez reçu cet e-mail car vous vous êtes connecté depuis {{ template \"app.name\" }}. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} est votre mot de passe unique {{ template \"app.name\" }}.",
@@ -105,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Réinitialiser le mot de passe",
-    "Body": "Veuillez utiliser le mot de passe unique suivant pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}.",
+    "Body": "Bonjour,\nVeuillez utiliser le code suivant pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+    "Disclaimer": "Ne le partagez avec personne. Si vous n''avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Réinitialisez votre mot de passe dans {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",
@@ -136,10 +131,9 @@
     "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Configurer la vérification en deux étapes sur {{ template \"app.name\" }}",
-    "Body": "La zone de texte ci-dessous contient un mot de passe unique généré pour configurer la vérification en deux étapes sur {{ template \"app.name\" }}.",
+    "Body": "Bonjour,\nVeuillez utiliser le code suivant pour configurer la vérification en deux étapes sur {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+    "Disclaimer": "Ne le partagez avec personne. Si vous n''avez pas initié cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "Configurez la vérification en deux étapes sur {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",

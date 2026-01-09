@@ -17,10 +17,9 @@
     "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
   },
   "SecondaryOOBEmail": {
-    "Title": "Log masuk ke {{ template \"app.name\" }}",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk log masuk ke <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda log masuk dari <b>{{ template \"app.name\" }}</b>. Jika anda tidak log masuk, sila abaikan e-mel ini."
   },
   "ForgotPassword": {
     "Title": "Tetapkan Semula Kata Laluan",
@@ -29,10 +28,9 @@
     "Disclaimer": "Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Tetapkan Semula Kata Laluan",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk menetapkan semula kata laluan anda pada <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta penetapan semula, sila abaikan e-mel ini."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Sahkan e-mel anda di {{ template \"app.name\" }}",
@@ -52,8 +50,7 @@
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Sediakan Pengesahan Dua Langkah di {{ template \"app.name\" }}",
-    "Body": "Kotak teks di bawah mengandungi kata laluan sekali sahaja yang dijana untuk menyediakan pengesahan dua langkah.",
+    "Body": "Hai, <br/> Sila gunakan kod berikut untuk menyediakan pengesahan dua langkah pada <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
@@ -84,10 +81,9 @@
     "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Log masuk ke {{ template \"app.name\" }}",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Body": "Hai,\nSila gunakan kod berikut untuk log masuk ke {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini."
+    "Disclaimer": "Anda menerima e-mel ini kerana anda log masuk dari {{ template \"app.name\" }}. Jika anda tidak log masuk, sila abaikan e-mel ini."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} ialah kata laluan sekali sahaja anda untuk {{ template \"app.name\" }}.",
@@ -105,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Tetapkan Semula Kata Laluan",
-    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}.",
+    "Body": "Hai,\nSila gunakan kod berikut untuk menetapkan semula kata laluan anda pada {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta penetapan semula, sila abaikan e-mel ini."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Tetapkan semula kata laluan anda di {{ template \"app.name\" }} dengan kata laluan sekali sahaja ini {{ .Code }}.",
@@ -136,8 +131,7 @@
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Sediakan Pengesahan Dua Langkah di {{ template \"app.name\" }}",
-    "Body": "Kotak teks di bawah mengandungi kata laluan sekali sahaja yang dijana untuk menyediakan pengesahan dua langkah di {{ template \"app.name\" }}.",
+    "Body": "Hai,\nSila gunakan kod berikut untuk menyediakan pengesahan dua langkah pada {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },

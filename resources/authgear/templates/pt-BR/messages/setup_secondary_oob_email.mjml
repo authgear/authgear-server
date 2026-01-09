@@ -5,23 +5,35 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding-top="32px" padding-bottom="0">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Configure a Verificação em Duas Etapas no {{ template "app.name" }}</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        A caixa de texto abaixo contém uma senha única gerada para configurar a verificação em duas etapas.
+      <mj-text font-size="14px" line-height="24px">
+        Olá, <br/> Por favor, use o seguinte código para configurar a verificação em duas etapas no <b>{{ template "app.name" }}</b>.
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-    </mj-column>
-  </mj-section>
-  <mj-section>
+  <mj-section padding-top="24px" padding-bottom="24px">
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Não compartilhe com ninguém. Se você não iniciou esta configuração, por favor ignore este e-mail.</mj-text>
+      <mj-text>
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-</mj-body>
+  <mj-section padding-top="0" padding-bottom="32px">
+    <mj-column>
+      <mj-text font-size="14px" line-height="21px">
+        Não compartilhe com ninguém. Se você não iniciou esta configuração, por favor ignore este e-mail.
+      </mj-text>
+    </mj-column>
+  </mj-section>
 </mjml>

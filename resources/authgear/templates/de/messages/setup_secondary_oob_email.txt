@@ -1,7 +1,6 @@
-Richten Sie die Zwei-Faktor-Authentifizierung bei {{ template "app.name" }} ein
-
-Das Textfeld unten enthält ein Einmal-Passwort, das zur Einrichtung der Zwei-Faktor-Authentifizierung bei {{ template "app.name" }} generiert wurde.
+Hallo,
+Bitte verwenden Sie den folgenden Code, um die Zwei-Schritt-Verifizierung bei {{ template "app.name" }} einzurichten.
 
 {{ .Code }}
 
-Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail.
+Teilen Sie ihn mit niemandem. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail.

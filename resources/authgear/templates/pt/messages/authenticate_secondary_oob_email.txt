@@ -1,7 +1,6 @@
-Faça login em {{ template "app.name" }}
-
-Por favor, use a seguinte senha de uso único para completar o processo de login.
+Olá,
+Por favor, use o seguinte código para entrar no {{ template "app.name" }}.
 
 {{ .Code }}
 
-Não compartilhe com ninguém. Se você não fez login, ignore este email.
+Você recebeu este e-mail porque fez login no {{ template "app.name" }}. Se você não fez login, por favor ignore este e-mail.

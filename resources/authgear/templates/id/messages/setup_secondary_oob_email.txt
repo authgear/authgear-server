@@ -1,7 +1,6 @@
-Siapkan Verifikasi Dua Langkah di {{ template "app.name" }}
-
-Kotak teks di bawah ini berisi sandi satu kali pakai yang dibuat untuk menyiapkan verifikasi dua langkah di {{ template "app.name" }}.
+Halo,
+Silakan gunakan kode berikut untuk mengatur verifikasi dua langkah di {{ template "app.name" }}.
 
 {{ .Code }}
 
-Jangan bagikan dengan siapa pun. Jika Anda tidak memicu penyiapan ini, abaikan email ini.
+Jangan bagikan dengan siapa pun. Jika Anda tidak memulai pengaturan ini, harap abaikan email ini.

@@ -1,7 +1,6 @@
-Stel Twee-Staps Verificatie in op {{ template "app.name" }}
-
-Het tekstvak hieronder bevat een eenmalig wachtwoord dat is gegenereerd om twee-staps verificatie in te stellen op {{ template "app.name" }}.
+Hallo,
+Gebruik de volgende code om tweestapsverificatie in te stellen op {{ template "app.name" }}.
 
 {{ .Code }}
 
-Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail.
+Deel deze met niemand. Als u deze instelling niet heeft geactiveerd, negeer dan deze e-mail.

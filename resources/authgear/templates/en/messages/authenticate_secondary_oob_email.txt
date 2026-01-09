@@ -1,7 +1,6 @@
-Log in to {{ template "app.name" }}
-
-Please use the following one-time password to complete the log in process.
+Hi there,
+Please use the following code to log in to {{ template "app.name" }}.
 
 {{ .Code }}
 
-Don't share it with anyone. If you didn't login, please ignore this email.
+You received this email because you logged in from {{ template "app.name" }}. If you didn't login, please ignore this email.

@@ -17,10 +17,9 @@
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "SecondaryOOBEmail": {
-    "Title": "登入至 {{ template \"app.name\" }}",
-    "Body": "請用以下一次性密碼完成登入。",
+    "Body": "您好，<br/> 請使用以下驗證碼登入 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您從 <b>{{ template \"app.name\" }}</b> 登入。如果您沒有登入，請忽略此電子郵件。"
   },
   "ForgotPassword": {
     "Title": "重設密碼",
@@ -29,10 +28,9 @@
     "Disclaimer": "如你未要求重設，則無需理會此電郵。"
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "重設密碼",
-    "Body": "請用以下一次性密碼重設 {{ template \"app.name\" }} 上的密碼。",
+    "Body": "您好，<br/> 請使用以下驗證碼在 <b>{{ template \"app.name\" }}</b> 重設您的密碼。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未要求重設，則無需理會此電郵。"
+    "Disclaimer": "請勿與任何人分享此驗證碼。如果您沒有要求重設密碼，請忽略此電子郵件。"
   },
   "SetupPrimaryLoginLink": {
     "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
@@ -52,10 +50,9 @@
     "Disclaimer": "如你未曾進行設定，則無需理會此電郵。"
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "設定{{ template \"app.name\" }} 雙重驗證",
-    "Body": "請用以下一次性密碼為設定雙重驗證",
+    "Body": "您好，<br/> 請使用以下驗證碼在 <b>{{ template \"app.name\" }}</b> 設定兩步驟驗證。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
+    "Disclaimer": "請勿與任何人分享此驗證碼。如果您沒有觸發此設定，請忽略此電子郵件。"
   },
   "VerificationEmail": {
     "Body": "您好，<br/> 請使用以下驗證碼確認您的電子郵件地址並繼續使用 <b>{{ template \"app.name\" }}</b>。",
@@ -84,10 +81,9 @@
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "登入至 {{ template \"app.name\" }}",
-    "Body": "請用以下一次性密碼完成登入。",
+    "Body": "您好，\n請使用以下驗證碼登入 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+    "Disclaimer": "您收到此電子郵件是因為您從 {{ template \"app.name\" }} 登入。如果您沒有登入，請忽略此電子郵件。"
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
@@ -105,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "重設密碼",
-    "Body": "請用以下一次性密碼重設 {{ template \"app.name\" }} 上的密碼。",
+    "Body": "您好，\n請使用以下驗證碼在 {{ template \"app.name\" }} 重設您的密碼。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未要求重設，則無需理會此電郵。"
+    "Disclaimer": "請勿與任何人分享此驗證碼。如果您沒有要求重設密碼，請忽略此電子郵件。"
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "以此一次性密碼：{{ .Code }} 重設 {{ template \"app.name\" }} 上的密碼。",
@@ -136,10 +131,9 @@
     "Disclaimer": "如你未曾進行設定，則無需理會此電郵。"
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "設定{{ template \"app.name\" }} 雙重驗證",
-    "Body": "請用以下一次性密碼為設定雙重驗證",
+    "Body": "您好，\n請使用以下驗證碼在 {{ template \"app.name\" }} 設定兩步驟驗證。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
+    "Disclaimer": "請勿與任何人分享此驗證碼。如果您沒有觸發此設定，請忽略此電子郵件。"
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "設定{{ template \"app.name\" }} 雙重驗證的一次性密碼為： {{ .Code }}。",

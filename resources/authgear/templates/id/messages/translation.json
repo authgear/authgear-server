@@ -17,10 +17,9 @@
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "SecondaryOOBEmail": {
-    "Title": "Masuk ke {{ template \"app.name\" }}",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.",
+    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk masuk ke <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak login, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda masuk dari <b>{{ template \"app.name\" }}</b>. Jika Anda tidak masuk, harap abaikan email ini."
   },
   "ForgotPassword": {
     "Title": "Atur Ulang Kata Sandi",
@@ -29,10 +28,9 @@
     "Disclaimer": "Jika Anda tidak meminta pengaturan ulang, abaikan email ini."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Atur Ulang Kata Sandi",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk mengatur ulang kata sandi Anda di {{ template \"app.name\" }}.",
+    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengatur ulang kata sandi Anda di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak meminta pengaturan ulang, abaikan email ini."
+    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak meminta pengaturan ulang, harap abaikan email ini."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Verifikasi email Anda di {{ template \"app.name\" }}",
@@ -52,10 +50,9 @@
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Siapkan Verifikasi Dua Langkah di {{ template \"app.name\" }}",
-    "Body": "Kotak teks di bawah ini berisi sandi satu kali pakai yang dibuat untuk menyiapkan verifikasi dua langkah.",
+    "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengatur verifikasi dua langkah di <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memicu penyiapan ini, abaikan email ini."
+    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memulai pengaturan ini, harap abaikan email ini."
   },
   "VerificationEmail": {
     "Body": "Halo, <br/> Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di <b>{{ template \"app.name\" }}</b>.",
@@ -84,10 +81,9 @@
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Masuk ke {{ template \"app.name\" }}",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk masuk ke {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak login, abaikan email ini."
+    "Disclaimer": "Anda menerima email ini karena Anda masuk dari {{ template \"app.name\" }}. Jika Anda tidak masuk, harap abaikan email ini."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} adalah sandi satu kali pakai Anda di {{ template \"app.name\" }}.",
@@ -105,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Atur Ulang Kata Sandi",
-    "Body": "Silakan gunakan sandi satu kali pakai berikut untuk mengatur ulang kata sandi Anda di {{ template \"app.name\" }}.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk mengatur ulang kata sandi Anda di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak meminta pengaturan ulang, abaikan email ini."
+    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak meminta pengaturan ulang, harap abaikan email ini."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Atur ulang kata sandi Anda di {{ template \"app.name\" }} dengan sandi satu kali pakai ini {{ .Code }}.",
@@ -136,10 +131,9 @@
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Siapkan Verifikasi Dua Langkah di {{ template \"app.name\" }}",
-    "Body": "Kotak teks di bawah ini berisi sandi satu kali pakai yang dibuat untuk menyiapkan verifikasi dua langkah di {{ template \"app.name\" }}.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk mengatur verifikasi dua langkah di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memicu penyiapan ini, abaikan email ini."
+    "Disclaimer": "Jangan bagikan dengan siapa pun. Jika Anda tidak memulai pengaturan ini, harap abaikan email ini."
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "Siapkan verifikasi dua langkah di {{ template \"app.name\" }} dengan sandi satu kali pakai ini {{ .Code }}.",

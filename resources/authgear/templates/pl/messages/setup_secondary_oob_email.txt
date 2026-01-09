@@ -1,7 +1,6 @@
-Skonfiguruj weryfikację dwuetapową na {{ template "app.name" }}
-
-Pole tekstowe poniżej zawiera jednorazowe hasło wygenerowane w celu skonfigurowania weryfikacji dwuetapowej na {{ template "app.name" }}.
+Cześć,
+Użyj poniższego kodu, aby skonfigurować weryfikację dwuetapową w {{ template "app.name" }}.
 
 {{ .Code }}
 
-Nie udostępniaj go nikomu. Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail.
+Nie udostępniaj go nikomu. Jeśli nie inicjowałeś tej konfiguracji, zignoruj tę wiadomość.
