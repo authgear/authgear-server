@@ -17,10 +17,9 @@
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "SecondaryOOBEmail": {
-    "Title": "Log in to {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the log in process.",
+    "Body": "Hi there, <br/> Please use the following code to log in to <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't login, please ignore this email."
+    "Disclaimer": "You received this email because you logged in from <b>{{ template \"app.name\" }}</b>. If you didn't login, please ignore this email."
   },
   "ForgotPassword": {
     "Title": "Reset Password",
@@ -29,8 +28,7 @@
     "Disclaimer": "If you didn't request a reset, please ignore this email."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Reset Password",
-    "Body": "Please use the following one-time password to reset your password on {{ template \"app.name\" }}.",
+    "Body": "Hi there, <br/> Please use the following code to reset your password on <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't request a reset, please ignore this email."
   },
@@ -52,8 +50,7 @@
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
-    "Body": "The textbox below contains a one-time password generated to setup two-step verification.",
+    "Body": "Hi there, <br/> Please use the following code to setup two-step verification on <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger this setup, please ignore this email."
   },
@@ -84,10 +81,9 @@
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Log in to {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time password to complete the log in process.",
+    "Body": "Hi there,\nPlease use the following code to log in to {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Don't share it with anyone. If you didn't login, please ignore this email."
+    "Disclaimer": "You received this email because you logged in from {{ template \"app.name\" }}. If you didn't login, please ignore this email."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} is your {{ template \"app.name\" }} one-time password.",
@@ -105,8 +101,7 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Reset Password",
-    "Body": "Please use the following one-time password to reset your password on {{ template \"app.name\" }}.",
+    "Body": "Hi there,\nPlease use the following code to reset your password on {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't request a reset, please ignore this email."
   },
@@ -136,8 +131,7 @@
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
-    "Body": "The textbox below contains a one-time password generated to setup two-step verification on {{ template \"app.name\" }}.",
+    "Body": "Hi there,\nPlease use the following code to setup two-step verification on {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger this setup, please ignore this email."
   },
