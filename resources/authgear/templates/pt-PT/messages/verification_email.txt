@@ -1,7 +1,6 @@
-Verificação de email
-
-Este email é enviado para verificar {{ .Email }} em {{ template "app.name" }}. Utilize este código na página de verificação.
+Olá,
+Por favor utilize o seguinte código para confirmar o seu endereço de email e continuar no {{ template "app.name" }}.
 
 {{ .Code }}
 
-Não o partilhe com ninguém. Se não iniciou sessão ou não se registou, ignore este email.
+Recebeu este email porque tentou verificar um endereço de email no {{ template "app.name" }}. Se não tem a certeza porquê, pode ignorá-lo com segurança.

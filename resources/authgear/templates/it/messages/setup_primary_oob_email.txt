@@ -1,7 +1,6 @@
-Registrati su {{ template "app.name" }}
-
-Per favore usa la seguente password monouso per completare il processo di registrazione su {{ template "app.name" }}.
+Ciao,
+Utilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template "app.name" }}.
 
 {{ .Code }}
 
-Non condividerla con nessuno. Se non ti sei registrato, ignora questa email.
+Hai ricevuto questa email perché ti sei registrato o hai effettuato l''accesso da {{ template "app.name" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla.

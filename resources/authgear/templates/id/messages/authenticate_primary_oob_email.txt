@@ -1,7 +1,6 @@
-Masuk ke {{ template "app.name" }}
-
-Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.
+Halo,
+Silakan gunakan kode berikut untuk masuk ke {{ template "app.name" }}.
 
 {{ .Code }}
 
-Jangan bagikan dengan siapa pun. Jika Anda tidak memicu login, abaikan email ini.
+Anda menerima email ini karena Anda masuk dari {{ template "app.name" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman.

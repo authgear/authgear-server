@@ -1,7 +1,6 @@
-Mag-log in sa {{ template "app.name" }}
-
-Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.
+Kumusta,
+Mangyaring gamitin ang sumusunod na code upang mag-log in sa {{ template "app.name" }}.
 
 {{ .Code }}
 
-Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito.
+Natanggap mo ang email na ito dahil nag-log in ka mula sa {{ template "app.name" }}. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito.

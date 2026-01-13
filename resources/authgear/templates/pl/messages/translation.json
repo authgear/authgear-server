@@ -17,10 +17,9 @@
     "Disclaimer": "Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
   },
   "SecondaryOOBEmail": {
-    "Title": "Zaloguj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces logowania.",
+    "Body": "Cześć, <br/> Użyj poniższego kodu, aby zalogować się do <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zalogowałeś się, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś ten e-mail, ponieważ zalogowałeś się z <b>{{ template \"app.name\" }}</b>. Jeśli nie logowałeś się, zignoruj tę wiadomość."
   },
   "ForgotPassword": {
     "Title": "Resetowanie hasła",
@@ -29,10 +28,9 @@
     "Disclaimer": "Jeśli nie zażądałeś resetu, zignoruj ten e-mail."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Resetowanie hasła",
-    "Body": "Użyj poniższego jednorazowego hasła, aby zresetować swoje hasło na {{ template \"app.name\" }}.",
+    "Body": "Cześć, <br/> Użyj poniższego kodu, aby zresetować swoje hasło w <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zażądałeś resetu, zignoruj ten e-mail."
+    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie prosiłeś o reset, zignoruj tę wiadomość."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Zweryfikuj swój e-mail na {{ template \"app.name\" }}",
@@ -52,15 +50,14 @@
     "Disclaimer": "Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Skonfiguruj weryfikację dwuetapową na {{ template \"app.name\" }}",
-    "Body": "Pole tekstowe poniżej zawiera jednorazowe hasło wygenerowane w celu skonfigurowania weryfikacji dwuetapowej.",
+    "Body": "Cześć, <br/> Użyj poniższego kodu, aby skonfigurować weryfikację dwuetapową w <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
+    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie inicjowałeś tej konfiguracji, zignoruj tę wiadomość."
   },
   "VerificationEmail": {
-    "Body": "Cześć, <br/> Proszę użyj następującego kodu, aby zweryfikować swój adres e-mail {{ .Email }} w <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Cześć, <br/> Użyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować na <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail w <b>{{ template \"app.name\" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail na <b>{{ template \"app.name\" }}</b>. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Zaloguj się na {{ template \"app.name\" }}",
@@ -69,10 +66,9 @@
     "Disclaimer": "Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Zaloguj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces logowania.",
+    "Body": "Cześć,\nUżyj poniższego kodu, aby zalogować się do {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ zalogowałeś się z {{ template \"app.name\" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Zaloguj się na {{ template \"app.name\" }} za pomocą tego jednorazowego hasła {{ .Code }}.",
@@ -85,10 +81,9 @@
     "Disclaimer": "Jeśli nie wywołałeś logowania, zignoruj ten e-mail."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Zaloguj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces logowania.",
+    "Body": "Cześć,\nUżyj poniższego kodu, aby zalogować się do {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zalogowałeś się, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś ten e-mail, ponieważ zalogowałeś się z {{ template \"app.name\" }}. Jeśli nie logowałeś się, zignoruj tę wiadomość."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} to twoje jednorazowe hasło na {{ template \"app.name\" }}.",
@@ -106,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Resetowanie hasła",
-    "Body": "Użyj poniższego jednorazowego hasła, aby zresetować swoje hasło na {{ template \"app.name\" }}.",
+    "Body": "Cześć,\nUżyj poniższego kodu, aby zresetować swoje hasło w {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zażądałeś resetu, zignoruj ten e-mail."
+    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie prosiłeś o reset, zignoruj tę wiadomość."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Zresetuj swoje hasło na {{ template \"app.name\" }} za pomocą tego jednorazowego hasła {{ .Code }}.",
@@ -122,10 +116,9 @@
     "Disclaimer": "Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Zarejestruj się na {{ template \"app.name\" }}",
-    "Body": "Użyj poniższego jednorazowego hasła, aby ukończyć proces rejestracji na {{ template \"app.name\" }}.",
+    "Body": "Cześć,\nUżyj poniższego kodu, aby potwierdzić swój adres e-mail i kontynuować na {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zarejestrowałeś się, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ zarejestrowałeś się lub zalogowałeś z {{ template \"app.name\" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Zarejestruj się na {{ template \"app.name\" }} za pomocą tego jednorazowego hasła {{ .Code }}.",
@@ -138,20 +131,18 @@
     "Disclaimer": "Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Skonfiguruj weryfikację dwuetapową na {{ template \"app.name\" }}",
-    "Body": "Pole tekstowe poniżej zawiera jednorazowe hasło wygenerowane w celu skonfigurowania weryfikacji dwuetapowej na {{ template \"app.name\" }}.",
+    "Body": "Cześć,\nUżyj poniższego kodu, aby skonfigurować weryfikację dwuetapową w {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail."
+    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie inicjowałeś tej konfiguracji, zignoruj tę wiadomość."
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "Skonfiguruj weryfikację dwuetapową na {{ template \"app.name\" }} za pomocą tego jednorazowego hasła {{ .Code }}.",
     "Disclaimer": "Nie udostępniaj go nikomu."
   },
   "VerificationEmailTXT": {
-    "Title": "Weryfikacja e-mail",
-    "Body": "Ten e-mail został wysłany, aby zweryfikować {{ .Email }} na {{ template \"app.name\" }}. Użyj tego kodu na stronie weryfikacji.",
+    "Body": "Cześć,\nProszę użyj następującego kodu, aby potwierdzić swój adres e-mail i kontynuować na {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Nie udostępniaj go nikomu. Jeśli nie zalogowałeś się lub nie zarejestrowałeś, zignoruj ten e-mail."
+    "Disclaimer": "Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail na {{ template \"app.name\" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} to twój kod weryfikacyjny na {{ template \"app.name\" }}.",

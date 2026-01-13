@@ -5,22 +5,35 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding-top="10px">
+  <mj-section padding-top="32px" padding-bottom="0">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">{{ template "app.name" }}にログイン</mj-text>
-      <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。
+      <mj-text font-size="14px" line-height="24px">
+        こんにちは、<br/> 以下のコードを使用して <b>{{ template "app.name" }}</b> にログインしてください。
       </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section padding="0 20px">
-    <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+  <mj-section padding-top="24px" padding-bottom="24px">
+    <mj-column>
+      <mj-text>
+        <span style="
+          background-color: #f9f9fB; 
+          display: inline-block;
+          padding: 8px 40px;
+          line-height: 40px; 
+          font-size: 28px; 
+          font-weight: 600; 
+          font-family: monospace; 
+          letter-spacing: 6px;
+          text-align: center;
+        ">{{ .Code }}</span>
+      </mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
+  <mj-section padding-top="0" padding-bottom="32px">
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">誰にも教えないでください。ログインしていない場合は、このメールを無視してください。</mj-text>
+      <mj-text font-size="14px" line-height="21px">
+        このメールは <b>{{ template "app.name" }}</b> からログインしたため受信しています。ログインしていない場合は、このメールを無視してください。
+      </mj-text>
     </mj-column>
   </mj-section>
 </mjml>

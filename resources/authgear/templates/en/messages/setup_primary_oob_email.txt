@@ -1,7 +1,6 @@
-Sign up on {{ template "app.name" }}
-
-Please use the following one-time password to complete the sign up process on {{ template "app.name" }}.
+Hi there,
+Please use the following code to confirm your email address and continue on {{ template "app.name" }}.
 
 {{ .Code }}
 
-Don't share it with anyone. If you didn't sign up, please ignore this email.
+You received this email because you signed up or logged in from {{ template "app.name" }}. If you are not sure why, you can safely ignore it.

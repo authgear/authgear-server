@@ -1,7 +1,6 @@
-Weryfikacja e-mail
-
-Ten e-mail został wysłany, aby zweryfikować {{ .Email }} na {{ template "app.name" }}. Użyj tego kodu na stronie weryfikacji.
+Cześć,
+Proszę użyj następującego kodu, aby potwierdzić swój adres e-mail i kontynuować na {{ template "app.name" }}.
 
 {{ .Code }}
 
-Nie udostępniaj go nikomu. Jeśli nie zalogowałeś się lub nie zarejestrowałeś, zignoruj ten e-mail.
+Otrzymałeś tę wiadomość e-mail, ponieważ próbowałeś zweryfikować adres e-mail na {{ template "app.name" }}. Jeśli nie jesteś pewien dlaczego, możesz bezpiecznie ją zignorować.

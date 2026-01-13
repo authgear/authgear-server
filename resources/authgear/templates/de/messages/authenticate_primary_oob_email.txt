@@ -1,7 +1,6 @@
-Melden Sie sich bei {{ template "app.name" }} an
-
-Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.
+Hallo,
+Bitte verwenden Sie den folgenden Code, um sich bei {{ template "app.name" }} anzumelden.
 
 {{ .Code }}
 
-Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail.
+Sie haben diese E-Mail erhalten, weil Sie sich bei {{ template "app.name" }} angemeldet haben. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren.

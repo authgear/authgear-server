@@ -1,7 +1,6 @@
-Log masuk ke {{ template "app.name" }}
-
-Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.
+Hai,
+Sila gunakan kod berikut untuk log masuk ke {{ template "app.name" }}.
 
 {{ .Code }}
 
-Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini.
+Anda menerima e-mel ini kerana anda log masuk dari {{ template "app.name" }}. Jika anda tidak log masuk, sila abaikan e-mel ini.

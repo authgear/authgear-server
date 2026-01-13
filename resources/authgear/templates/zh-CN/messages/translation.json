@@ -17,10 +17,9 @@
     "Disclaimer": "如果您没有触发登录,请忽略此电子邮件。"
   },
   "SecondaryOOBEmail": {
-    "Title": "登录 {{ template \"app.name\" }}",
-    "Body": "请使用以下一次性密码完成登录过程。",
+    "Body": "您好，<br/> 请使用以下验证码登录 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有登录,请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您从 <b>{{ template \"app.name\" }}</b> 登录。如果您没有登录，请忽略此电子邮件。"
   },
   "ForgotPassword": {
     "Title": "重置密码",
@@ -29,10 +28,9 @@
     "Disclaimer": "如果您没有请求重置,请忽略此电子邮件。"
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "重置密码",
-    "Body": "请使用以下一次性密码在 {{ template \"app.name\" }} 上重置您的密码。",
+    "Body": "您好，<br/> 请使用以下验证码在 <b>{{ template \"app.name\" }}</b> 上重置您的密码。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有请求重置,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有请求重置，请忽略此电子邮件。"
   },
   "SetupPrimaryLoginLink": {
     "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮件",
@@ -52,15 +50,14 @@
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "在 {{ template \"app.name\" }} 上设置双步验证",
-    "Body": "下面的文本框包含一个用于设置双步验证的一次性密码。",
+    "Body": "您好，<br/> 请使用以下验证码在 <b>{{ template \"app.name\" }}</b> 上设置两步验证。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有触发此设置,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有触发此设置，请忽略此电子邮件。"
   },
   "VerificationEmail": {
-    "Body": "您好，<br/> 请使用以下验证码来验证您在 <b>{{ template \"app.name\" }}</b> 上的电子邮箱地址 {{ .Email }}。",
+    "Body": "您好，<br/> 请使用以下验证码确认您的电子邮件地址并继续使用 <b>{{ template \"app.name\" }}</b>。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "您收到此电子邮件是因为您尝试在 <b>{{ template \"app.name\" }}</b> 上验证电子邮箱地址。如果您不确定原因，可以安全地忽略它。"
+    "Disclaimer": "您收到此电子邮件是因为您尝试在 <b>{{ template \"app.name\" }}</b> 上验证电子邮件地址。如果您不确定原因，可以安全地忽略它。"
   },
   "PrimaryLoginLinkTXT": {
     "Title": "登录到 {{ template \"app.name\" }}",
@@ -69,10 +66,9 @@
     "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "登录到 {{ template \"app.name\" }}",
-    "Body": "请使用以下一次性密码完成登录过程。",
+    "Body": "您好，\n请使用以下验证码登录 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "请勿与任何人分享。如果您没有触发登录，请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您从 {{ template \"app.name\" }} 登录。如果您不确定原因，可以安全地忽略它。"
   },
   "PrimaryOOBSMSTXT": {
     "Title": "使用此一次性密码 {{ .Code }} 登录到 {{ template \"app.name\" }}。",
@@ -85,10 +81,9 @@
     "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "登录到 {{ template \"app.name\" }}",
-    "Body": "请使用以下一次性密码完成登录过程。",
+    "Body": "您好，\n请使用以下验证码登录 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "请勿与任何人分享。如果您没有登录，请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您从 {{ template \"app.name\" }} 登录。如果您没有登录，请忽略此电子邮件。"
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} 是您在 {{ template \"app.name\" }} 的一次性密码。",
@@ -106,8 +101,7 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "重置密码",
-    "Body": "请使用以下一次性密码在 {{ template \"app.name\" }} 上重置您的密码。",
+    "Body": "您好，\n请使用以下验证码在 {{ template \"app.name\" }} 上重置您的密码。",
     "Code": "{{ .Code }}",
     "Disclaimer": "请勿与任何人分享。如果您没有请求重置，请忽略此电子邮件。"
   },
@@ -122,10 +116,9 @@
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "在 {{ template \"app.name\" }} 上注册",
-    "Body": "请使用以下一次性密码完成在 {{ template \"app.name\" }} 上的注册过程。",
+    "Body": "您好，\n请使用以下验证码确认您的电子邮件地址并继续使用 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有注册,请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您在 {{ template \"app.name\" }} 注册或登录。如果您不确定原因，可以安全地忽略它。"
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "使用此一次性密码 {{ .Code }} 在 {{ template \"app.name\" }} 上注册。",
@@ -138,20 +131,18 @@
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "在 {{ template \"app.name\" }} 上设置双重验证",
-    "Body": "下面的文本框包含一个用于在 {{ template \"app.name\" }} 上设置双重验证的一次性密码。",
+    "Body": "您好，\n请使用以下验证码在 {{ template \"app.name\" }} 上设置两步验证。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有触发此设置,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有触发此设置，请忽略此电子邮件。"
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "使用此一次性密码 {{ .Code }} 在 {{ template \"app.name\" }} 上设置双重验证。",
     "Disclaimer": "不要与任何人分享。"
   },
   "VerificationEmailTXT": {
-    "Title": "电子邮箱验证",
-    "Body": "此电子邮件用于验证 {{ .Email }} 在 {{ template \"app.name\" }} 上的注册。在验证页面上使用此代码。",
+    "Body": "您好，\n请使用以下代码确认您的电子邮件地址并继续使用 {{ template \"app.name\" }}。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有登录或注册,请忽略此电子邮件。"
+    "Disclaimer": "您收到此电子邮件是因为您尝试在 {{ template \"app.name\" }} 上验证电子邮件地址。如果您不确定原因，可以安全地忽略它。"
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} 是您在 {{ template \"app.name\" }} 上的验证码。",

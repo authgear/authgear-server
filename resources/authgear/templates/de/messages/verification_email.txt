@@ -1,7 +1,6 @@
-E-Mail-Verifizierung
-
-Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template "app.name" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.
+Hallo,
+Bitte verwende den folgenden Code, um deine E-Mail-Adresse zu bestätigen und mit {{ template "app.name" }} fortzufahren.
 
 {{ .Code }}
 
-Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail.
+Du hast diese E-Mail erhalten, weil du versucht hast, eine E-Mail-Adresse auf {{ template "app.name" }} zu verifizieren. Wenn du dir nicht sicher bist warum, kannst du sie bedenkenlos ignorieren.

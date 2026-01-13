@@ -17,10 +17,9 @@
     "Disclaimer": "Se non hai richiesto l''accesso, ignora questa email."
   },
   "SecondaryOOBEmail": {
-    "Title": "Accedi a {{ template \"app.name\" }}",
-    "Body": "Per favore usa la seguente password monouso per completare il processo di accesso.",
+    "Body": "Ciao, <br/> Utilizza il seguente codice per accedere a <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai effettuato l''accesso, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché hai effettuato l''accesso da <b>{{ template \"app.name\" }}</b>. Se non hai effettuato l''accesso, ignora questa email."
   },
   "ForgotPassword": {
     "Title": "Reimposta Password",
@@ -29,10 +28,9 @@
     "Disclaimer": "Se non hai richiesto un reset, ignora questa email."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Reimposta Password",
-    "Body": "Per favore usa la seguente password monouso per reimpostare la tua password su {{ template \"app.name\" }}.",
+    "Body": "Ciao, <br/> Utilizza il seguente codice per reimpostare la tua password su <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai richiesto un reset, ignora questa email."
+    "Disclaimer": "Non condividerlo con nessuno. Se non hai richiesto una reimpostazione, ignora questa email."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Verifica la tua email su {{ template \"app.name\" }}",
@@ -52,15 +50,14 @@
     "Disclaimer": "Se non hai richiesto questa configurazione, ignora questa email."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Configura la Verifica in Due Passaggi su {{ template \"app.name\" }}",
-    "Body": "La casella di testo qui sotto contiene una password monouso generata per configurare la verifica in due passaggi.",
+    "Body": "Ciao, <br/> Utilizza il seguente codice per configurare la verifica in due passaggi su <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai richiesto questa configurazione, ignora questa email."
+    "Disclaimer": "Non condividerlo con nessuno. Se non hai avviato questa configurazione, ignora questa email."
   },
   "VerificationEmail": {
-    "Body": "Ciao, <br/> Per favore utilizza il seguente codice per verificare il tuo indirizzo email {{ .Email }} su <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Ciao, <br/> Utilizza il seguente codice per confermare il tuo indirizzo email e continuare su <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su <b>{{ template \"app.name\" }}</b>. Se non sei sicuro del perché, puoi tranquillamente ignorarla."
+    "Disclaimer": "Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su <b>{{ template \"app.name\" }}</b>. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Accedi a {{ template \"app.name\" }}",
@@ -69,10 +66,9 @@
     "Disclaimer": "Se non hai richiesto l''accesso, ignora questa email."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Accedi a {{ template \"app.name\" }}",
-    "Body": "Utilizza la seguente password monouso per completare il processo di accesso.",
+    "Body": "Ciao,\nUtilizza il seguente codice per accedere a {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai richiesto l''accesso, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché hai effettuato l''accesso da {{ template \"app.name\" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Accedi a {{ template \"app.name\" }} con questa password monouso {{ .Code }}.",
@@ -85,10 +81,9 @@
     "Disclaimer": "Se non hai richiesto l''accesso, ignora questa email."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Accedi a {{ template \"app.name\" }}",
-    "Body": "Utilizza la seguente password monouso per completare il processo di accesso.",
+    "Body": "Ciao,\nUtilizza il seguente codice per accedere a {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai effettuato l''accesso, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché hai effettuato l''accesso da {{ template \"app.name\" }}. Se non hai effettuato l''accesso, ignora questa email."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} è la tua password monouso per {{ template \"app.name\" }}.",
@@ -106,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Reimposta password",
-    "Body": "Utilizza la seguente password monouso per reimpostare la tua password su {{ template \"app.name\" }}.",
+    "Body": "Ciao,\nUtilizza il seguente codice per reimpostare la tua password su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai richiesto un reset, ignora questa email."
+    "Disclaimer": "Non condividerlo con nessuno. Se non hai richiesto una reimpostazione, ignora questa email."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Reimposta la tua password in {{ template \"app.name\" }} con questa password monouso {{ .Code }}.",
@@ -122,10 +116,9 @@
     "Disclaimer": "Se non hai avviato questa configurazione, ignora questa email."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Registrati su {{ template \"app.name\" }}",
-    "Body": "Per favore usa la seguente password monouso per completare il processo di registrazione su {{ template \"app.name\" }}.",
+    "Body": "Ciao,\nUtilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non ti sei registrato, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché ti sei registrato o hai effettuato l''accesso da {{ template \"app.name\" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Registrati su {{ template \"app.name\" }} con questa password monouso {{ .Code }}.",
@@ -138,20 +131,18 @@
     "Disclaimer": "Se non hai avviato questa configurazione, ignora questa email."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Configura la verifica in due passaggi su {{ template \"app.name\" }}",
-    "Body": "La casella di testo sottostante contiene una password monouso generata per configurare la verifica in due passaggi su {{ template \"app.name\" }}.",
+    "Body": "Ciao,\nUtilizza il seguente codice per configurare la verifica in due passaggi su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerla con nessuno. Se non hai avviato questa configurazione, ignora questa email."
+    "Disclaimer": "Non condividerlo con nessuno. Se non hai avviato questa configurazione, ignora questa email."
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "Configura la verifica in due passaggi su {{ template \"app.name\" }} con questa password monouso {{ .Code }}.",
     "Disclaimer": "Non condividerla con nessuno."
   },
   "VerificationEmailTXT": {
-    "Title": "Verifica email",
-    "Body": "Questa email viene inviata per verificare {{ .Email }} su {{ template \"app.name\" }}. Usa questo codice nella pagina di verifica.",
+    "Body": "Ciao,\nUtilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Non condividerlo con nessuno. Se non hai effettuato l''accesso o la registrazione, ignora questa email."
+    "Disclaimer": "Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su {{ template \"app.name\" }}. Se non sei sicuro del perché, puoi tranquillamente ignorarla."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} è il tuo codice di verifica di {{ template \"app.name\" }}.",

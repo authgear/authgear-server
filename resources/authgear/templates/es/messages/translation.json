@@ -17,10 +17,9 @@
     "Disclaimer": "Si no solicitó un inicio de sesión, ignore este correo electrónico."
   },
   "SecondaryOOBEmail": {
-    "Title": "Iniciar sesión en {{ template \"app.name\" }}",
-    "Body": "Utilice la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para iniciar sesión en <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la comparta con nadie. Si no inició sesión, ignore este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque has iniciado sesión desde <b>{{ template \"app.name\" }}</b>. Si no has iniciado sesión, por favor ignora este correo."
   },
   "ForgotPassword": {
     "Title": "Restablecer contraseña",
@@ -29,10 +28,9 @@
     "Disclaimer": "Si no solicitó un restablecimiento, ignore este correo electrónico."
   },
   "ForgotPasswordOOBEmail": {
-    "Title": "Restablecer contraseña",
-    "Body": "Utilice la siguiente contraseña de un solo uso para restablecer su contraseña en {{ template \"app.name\" }}.",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para restablecer tu contraseña en <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la comparta con nadie. Si no solicitó un restablecimiento, ignore este correo electrónico."
+    "Disclaimer": "No lo compartas con nadie. Si no solicitaste un restablecimiento, por favor ignora este correo."
   },
   "SetupPrimaryLoginLink": {
     "Title": "Verifique su correo electrónico en {{ template \"app.name\" }}",
@@ -52,15 +50,14 @@
     "Disclaimer": "Si no solicitó esta configuración, ignore este correo electrónico."
   },
   "SetupSecondaryOOBEmail": {
-    "Title": "Configurar la verificación de dos pasos en {{ template \"app.name\" }}",
-    "Body": "El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación de dos pasos.",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para configurar la verificación en dos pasos en <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No la comparta con nadie. Si no solicitó esta configuración, ignore este correo electrónico."
+    "Disclaimer": "No lo compartas con nadie. Si no iniciaste esta configuración, por favor ignora este correo."
   },
   "VerificationEmail": {
-    "Body": "Hola, <br/> Por favor utiliza el siguiente código para verificar tu dirección de correo electrónico {{ .Email }} en <b>{{ template \"app.name\" }}</b>.",
+    "Body": "Hola, <br/> Por favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en <b>{{ template \"app.name\" }}</b>.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Has recibido este correo electrónico porque intentaste verificar una dirección de correo electrónico en <b>{{ template \"app.name\" }}</b>. Si no estás seguro por qué, puedes ignorarlo con seguridad."
+    "Disclaimer": "Has recibido este correo electrónico porque intentaste verificar una dirección de correo electrónico en <b>{{ template \"app.name\" }}</b>. Si no estás seguro de por qué, puedes ignorarlo con seguridad."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Iniciar sesión en {{ template \"app.name\" }}",
@@ -69,10 +66,9 @@
     "Disclaimer": "Si no ha solicitado un inicio de sesión, ignore este correo electrónico."
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "Iniciar sesión en {{ template \"app.name\" }}",
-    "Body": "Utilice la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para iniciar sesión en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo comparta con nadie. Si no ha solicitado un inicio de sesión, ignore este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque iniciaste sesión desde {{ template \"app.name\" }}. Si no estás seguro de por qué, puedes ignorarlo con seguridad."
   },
   "PrimaryOOBSMSTXT": {
     "Title": "Iniciar sesión en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
@@ -85,10 +81,9 @@
     "Disclaimer": "Si no ha solicitado un inicio de sesión, ignore este correo electrónico."
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "Iniciar sesión en {{ template \"app.name\" }}",
-    "Body": "Utilice la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para iniciar sesión en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo comparta con nadie. Si no ha iniciado sesión, ignore este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque has iniciado sesión desde {{ template \"app.name\" }}. Si no has iniciado sesión, por favor ignora este correo."
   },
   "SecondaryOOBSMSTXT": {
     "Title": "{{ .Code }} es su contraseña de un solo uso de {{ template \"app.name\" }}.",
@@ -106,10 +101,9 @@
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
-    "Title": "Restablecer contraseña",
-    "Body": "Utilice la siguiente contraseña de un solo uso para restablecer su contraseña en {{ template \"app.name\" }}.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para restablecer tu contraseña en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo comparta con nadie. Si no ha solicitado un restablecimiento, ignore este correo electrónico."
+    "Disclaimer": "No lo compartas con nadie. Si no solicitaste un restablecimiento, por favor ignora este correo."
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "Restablece tu contraseña en {{ template \"app.name\" }} con este código de un solo uso {{ .Code }}.",
@@ -122,10 +116,9 @@
     "Disclaimer": "Si no iniciaste este proceso, ignora este correo electrónico."
   },
   "SetupPrimaryOOBEmailTXT": {
-    "Title": "Regístrate en {{ template \"app.name\" }}",
-    "Body": "Por favor, utiliza el siguiente código de un solo uso para completar el proceso de registro en {{ template \"app.name\" }}.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo compartas con nadie. Si no te registraste, ignora este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque te registraste o iniciaste sesión desde {{ template \"app.name\" }}. Si no estás seguro de por qué, puedes ignorarlo con seguridad."
   },
   "SetupPrimaryOOBSMSTXT": {
     "Title": "Regístrate en {{ template \"app.name\" }} con este código de un solo uso {{ .Code }}.",
@@ -138,20 +131,18 @@
     "Disclaimer": "Si no iniciaste este proceso, ignora este correo electrónico."
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "Configura la verificación de dos pasos en {{ template \"app.name\" }}",
-    "Body": "El cuadro de texto a continuación contiene un código de un solo uso generado para configurar la verificación de dos pasos en {{ template \"app.name\" }}.",
+    "Body": "Hola,\nPor favor, utiliza el siguiente código para configurar la verificación en dos pasos en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo compartas con nadie. Si no iniciaste este proceso, ignora este correo electrónico."
+    "Disclaimer": "No lo compartas con nadie. Si no iniciaste esta configuración, por favor ignora este correo."
   },
   "SetupSecondaryOOBSMSTXT": {
     "Title": "Configura la verificación de dos pasos en {{ template \"app.name\" }} con este código de un solo uso {{ .Code }}.",
     "Disclaimer": "No lo compartas con nadie."
   },
   "VerificationEmailTXT": {
-    "Title": "Verificación de correo electrónico",
-    "Body": "Este correo electrónico se envía para verificar {{ .Email }} en {{ template \"app.name\" }}. Utiliza este código en la página de verificación.",
+    "Body": "Hola,\nPor favor utiliza el siguiente código para confirmar tu dirección de correo electrónico y continuar en {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "No lo compartas con nadie. Si no iniciaste sesión o te registraste, ignora este correo electrónico."
+    "Disclaimer": "Has recibido este correo electrónico porque intentaste verificar una dirección de correo electrónico en {{ template \"app.name\" }}. Si no estás seguro por qué, puedes ignorarlo con seguridad."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} es tu código de verificación de {{ template \"app.name\" }}.",
