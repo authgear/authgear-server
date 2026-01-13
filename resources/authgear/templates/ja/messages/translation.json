@@ -140,9 +140,9 @@
     "Disclaimer": "誰にも教えないでください。"
   },
   "VerificationEmailTXT": {
-    "Body": "こんにちは、\n以下のコードを使用して{{ template \"app.name\" }}でメールアドレス{{ .Email }}を確認してください。",
+    "Body": "こんにちは、\n以下のコードを使用してメールアドレスを確認し、{{ template \"app.name\" }}で続行してください。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "このメールは、{{ template \"app.name\" }}でメールアドレスを確認しようとしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
+    "Disclaimer": "このメールは{{ template \"app.name\" }}でメールアドレスを確認しようとしたため受信しました。心当たりがない場合は、安全に無視していただいて構いません。"
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }}は{{ template \"app.name\" }}の確認コードです。",

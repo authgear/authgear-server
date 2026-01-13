@@ -1,5 +1,5 @@
 Xin chào,
-Vui lòng sử dụng mã sau để xác minh địa chỉ email {{ .Email }} của bạn trên {{ template "app.name" }}.
+Vui lòng sử dụng mã sau để xác nhận địa chỉ email của bạn và tiếp tục trên {{ template "app.name" }}.
 
 {{ .Code }}
 

@@ -140,7 +140,7 @@
     "Disclaimer": "Jangan bagikan dengan siapa pun."
   },
   "VerificationEmailTXT": {
-    "Body": "Halo,\nSilakan gunakan kode berikut untuk memverifikasi alamat email Anda {{ .Email }} di {{ template \"app.name\" }}.",
+    "Body": "Halo,\nSilakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Anda menerima email ini karena Anda mencoba memverifikasi alamat email di {{ template \"app.name\" }}. Jika Anda tidak yakin mengapa, Anda dapat mengabaikannya dengan aman."
   },

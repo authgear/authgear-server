@@ -140,9 +140,9 @@
     "Disclaimer": "Geben Sie es niemandem weiter."
   },
   "VerificationEmailTXT": {
-    "Body": "Hallo,\nBitte verwenden Sie den folgenden Code, um Ihre E-Mail-Adresse {{ .Email }} auf {{ template \"app.name\" }} zu verifizieren.",
+    "Body": "Hallo,\nBitte verwende den folgenden Code, um deine E-Mail-Adresse zu bestätigen und mit {{ template \"app.name\" }} fortzufahren.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Sie haben diese E-Mail erhalten, weil Sie versucht haben, eine E-Mail-Adresse auf {{ template \"app.name\" }} zu verifizieren. Wenn Sie sich nicht sicher sind warum, können Sie diese E-Mail einfach ignorieren."
+    "Disclaimer": "Du hast diese E-Mail erhalten, weil du versucht hast, eine E-Mail-Adresse auf {{ template \"app.name\" }} zu verifizieren. Wenn du dir nicht sicher bist warum, kannst du sie bedenkenlos ignorieren."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Verifizierungscode.",

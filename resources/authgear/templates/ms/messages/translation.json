@@ -140,7 +140,7 @@
     "Disclaimer": "Jangan kongsi dengan sesiapa."
   },
   "VerificationEmailTXT": {
-    "Body": "Hai di sana,\nSila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} di {{ template \"app.name\" }}.",
+    "Body": "Hai,\nSila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Anda menerima e-mel ini kerana anda cuba mengesahkan alamat e-mel di {{ template \"app.name\" }}. Jika anda tidak pasti mengapa, anda boleh mengabaikannya dengan selamat."
   },

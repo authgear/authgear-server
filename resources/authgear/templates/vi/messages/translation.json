@@ -140,7 +140,7 @@
     "Disclaimer": "Không chia sẻ với bất kỳ ai."
   },
   "VerificationEmailTXT": {
-    "Body": "Xin chào,\nVui lòng sử dụng mã sau để xác minh địa chỉ email {{ .Email }} của bạn trên {{ template \"app.name\" }}.",
+    "Body": "Xin chào,\nVui lòng sử dụng mã sau để xác nhận địa chỉ email của bạn và tiếp tục trên {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Bạn nhận được email này vì bạn đã cố gắng xác minh địa chỉ email trên {{ template \"app.name\" }}. Nếu bạn không chắc tại sao, bạn có thể bỏ qua nó một cách an toàn."
   },

@@ -1,5 +1,5 @@
-Hai di sana,
-Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda {{ .Email }} di {{ template "app.name" }}.
+Hai,
+Sila gunakan kod berikut untuk mengesahkan alamat e-mel anda dan teruskan di {{ template "app.name" }}.
 
 {{ .Code }}
 

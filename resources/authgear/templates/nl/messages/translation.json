@@ -140,9 +140,9 @@
     "Disclaimer": "Deel het niet met iemand."
   },
   "VerificationEmailTXT": {
-    "Body": "Hallo,\nGebruik de volgende code om je e-mailadres {{ .Email }} te verifiëren op {{ template \"app.name\" }}.",
+    "Body": "Hallo,\nGebruik de volgende code om je e-mailadres te bevestigen en verder te gaan op {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze veilig negeren."
+    "Disclaimer": "Je hebt deze e-mail ontvangen omdat je een e-mailadres probeerde te verifiëren op {{ template \"app.name\" }}. Als je niet zeker weet waarom, kun je deze e-mail veilig negeren."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} is uw {{ template \"app.name\" }} verificatiecode.",

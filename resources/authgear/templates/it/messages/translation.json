@@ -140,9 +140,9 @@
     "Disclaimer": "Non condividerla con nessuno."
   },
   "VerificationEmailTXT": {
-    "Body": "Ciao,\nUtilizza il seguente codice per verificare il tuo indirizzo email {{ .Email }} su {{ template \"app.name\" }}.",
+    "Body": "Ciao,\nUtilizza il seguente codice per confermare il tuo indirizzo email e continuare su {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su {{ template \"app.name\" }}. Se non sei sicuro del motivo, puoi tranquillamente ignorarla."
+    "Disclaimer": "Hai ricevuto questa email perché hai cercato di verificare un indirizzo email su {{ template \"app.name\" }}. Se non sei sicuro del perché, puoi tranquillamente ignorarla."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} è il tuo codice di verifica di {{ template \"app.name\" }}.",

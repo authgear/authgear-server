@@ -1,5 +1,5 @@
 Kumusta,
-Mangyaring gamitin ang sumusunod na code upang i-verify ang iyong email address {{ .Email }} sa {{ template "app.name" }}.
+Mangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa {{ template "app.name" }}.
 
 {{ .Code }}
 

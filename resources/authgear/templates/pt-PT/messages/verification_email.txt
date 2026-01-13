@@ -1,6 +1,6 @@
 Olá,
-Por favor, utilize o seguinte código para verificar o seu endereço de email {{ .Email }} em {{ template "app.name" }}.
+Por favor utilize o seguinte código para confirmar o seu endereço de email e continuar no {{ template "app.name" }}.
 
 {{ .Code }}
 
-Recebeu este email porque tentou verificar um endereço de email em {{ template "app.name" }}. Se não tem a certeza do motivo, pode ignorá-lo com segurança.
+Recebeu este email porque tentou verificar um endereço de email no {{ template "app.name" }}. Se não tem a certeza porquê, pode ignorá-lo com segurança.

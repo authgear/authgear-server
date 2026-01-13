@@ -1,5 +1,5 @@
 您好，
-请使用以下验证码在 {{ template "app.name" }} 上验证您的电子邮件地址 {{ .Email }}。
+请使用以下代码确认您的电子邮件地址并继续使用 {{ template "app.name" }}。
 
 {{ .Code }}
 

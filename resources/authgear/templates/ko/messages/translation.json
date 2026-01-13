@@ -140,9 +140,9 @@
     "Disclaimer": "누구에게도 공유하지 마세요."
   },
   "VerificationEmailTXT": {
-    "Body": "안녕하세요,\n다음 코드를 사용하여 {{ template \"app.name\" }}에서 이메일 주소 {{ .Email }}를 확인하세요.",
+    "Body": "안녕하세요,\n다음 코드를 사용하여 이메일 주소를 확인하고 {{ template \"app.name\" }}에서 계속 진행하세요.",
     "Code": "{{ .Code }}",
-    "Disclaimer": "{{ template \"app.name\" }}에서 이메일 주소를 확인하려고 했기 때문에 이 이메일을 받았습니다. 이유가 확실하지 않은 경우 안전하게 무시하셔도 됩니다."
+    "Disclaimer": "{{ template \"app.name\" }}에서 이메일 주소를 확인하려고 시도했기 때문에 이 이메일을 받았습니다. 이유를 모르겠다면 안전하게 무시하셔도 됩니다."
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }}는 {{ template \"app.name\" }}의 확인 코드입니다.",

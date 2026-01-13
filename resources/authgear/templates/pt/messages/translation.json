@@ -140,7 +140,7 @@
     "Disclaimer": "Não a compartilhe com ninguém."
   },
   "VerificationEmailTXT": {
-    "Body": "Olá,\nPor favor, use o seguinte código para verificar seu endereço de e-mail {{ .Email }} no {{ template \"app.name\" }}.",
+    "Body": "Olá,\nPor favor, use o seguinte código para confirmar seu endereço de e-mail e continuar no {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Você recebeu este e-mail porque tentou verificar um endereço de e-mail no {{ template \"app.name\" }}. Se você não tem certeza do motivo, pode ignorá-lo com segurança."
   },

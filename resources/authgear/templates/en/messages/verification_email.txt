@@ -1,5 +1,5 @@
 Hi there,
-Please use the following code to verify your email address {{ .Email }} on {{ template "app.name" }}.
+Please use the following code to confirm your email address and continue on {{ template "app.name" }}.
 
 {{ .Code }}
 

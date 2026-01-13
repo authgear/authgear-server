@@ -1,5 +1,5 @@
 Halo,
-Silakan gunakan kode berikut untuk memverifikasi alamat email Anda {{ .Email }} di {{ template "app.name" }}.
+Silakan gunakan kode berikut untuk mengonfirmasi alamat email Anda dan melanjutkan di {{ template "app.name" }}.
 
 {{ .Code }}
 

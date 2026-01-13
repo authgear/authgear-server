@@ -140,7 +140,7 @@
     "Disclaimer": "Huwag ibahagi ito sa sinuman."
   },
   "VerificationEmailTXT": {
-    "Body": "Kumusta,\nMangyaring gamitin ang sumusunod na code upang i-verify ang iyong email address {{ .Email }} sa {{ template \"app.name\" }}.",
+    "Body": "Kumusta,\nMangyaring gamitin ang sumusunod na code upang kumpirmahin ang iyong email address at magpatuloy sa {{ template \"app.name\" }}.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Natanggap mo ang email na ito dahil sinubukan mong i-verify ang isang email address sa {{ template \"app.name\" }}. Kung hindi ka sigurado kung bakit, maaari mong ligtas na balewalain ito."
   },
