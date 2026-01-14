@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import Toggle from "../../Toggle";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";

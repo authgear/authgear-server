@@ -11,7 +11,7 @@ import {
 import {
   Context as IntlContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import {
   OAuthClientRow,
   OAuthClientRowHeader,

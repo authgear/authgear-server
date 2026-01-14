@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   PortalAPIAppConfig,
   PrimaryAuthenticatorType,

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../../intl";
 import { useRemoveRoleFromGroupsMutation } from "../../../graphql/adminapi/mutations/removeRoleFromGroups";
 import { useRoleQuery } from "../../../graphql/adminapi/query/roleQuery";
 import { useSnapshotData } from "../../../hook/useSnapshotData";

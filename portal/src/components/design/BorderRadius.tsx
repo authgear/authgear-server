@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Context as MFContext } from "@oursky/react-messageformat";
+import { Context as MFContext } from "../../intl";
 import cn from "classnames";
 
 import ButtonToggleGroup, { Option } from "../common/ButtonToggleGroup";

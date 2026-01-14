@@ -1,5 +1,5 @@
 import React, { useMemo, useContext, useCallback } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 
 import ButtonWithLoading from "../../ButtonWithLoading";

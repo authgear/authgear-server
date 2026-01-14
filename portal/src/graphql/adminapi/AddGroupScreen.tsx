@@ -9,7 +9,7 @@ import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { useNavigate } from "react-router-dom";
 import { useCreateGroupMutation } from "./mutations/createGroupMutation";

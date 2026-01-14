@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 import {
   Dropdown,
   IContextualMenuProps,

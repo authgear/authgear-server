@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../../intl";
 import { useDeleteRoleMutation } from "../../../graphql/adminapi/mutations/deleteRoleMutation";
 import { useSnapshotData } from "../../../hook/useSnapshotData";
 import RolesAndGroupsBaseDeleteDialog from "./common/RolesAndGroupsBaseDeleteDialog";

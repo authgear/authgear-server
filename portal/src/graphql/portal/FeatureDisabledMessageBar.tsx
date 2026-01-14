@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { IMessageBarProps } from "@fluentui/react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Values } from "@oursky/react-messageformat";
+import { FormattedMessage, Values } from "../../intl";
 import BlueMessageBar from "../../BlueMessageBar";
 
 export interface FeatureDisabledMessageBarProps extends IMessageBarProps {

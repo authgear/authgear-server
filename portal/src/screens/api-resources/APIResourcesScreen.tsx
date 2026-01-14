@@ -4,7 +4,7 @@ import ScreenDescription from "../../ScreenDescription";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
 import { useDeleteResourceMutation } from "../../graphql/adminapi/mutations/deleteResourceMutation.generated";

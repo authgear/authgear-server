@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import cn from "classnames";
 import { IconButton, IIconProps, IButtonStyles } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import { getPaginationRenderData } from "./util/pagination";
 import styles from "./PaginationWidget.module.css";
 import DefaultButton from "./DefaultButton";

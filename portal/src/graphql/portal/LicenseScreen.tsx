@@ -4,7 +4,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { Label, Text, useTheme } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import TextField from "../../TextField";
 import { formatDateOnly } from "../../util/formatDateOnly";
 import styles from "./LicenseScreen.module.css";

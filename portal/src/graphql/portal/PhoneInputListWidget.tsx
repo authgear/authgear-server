@@ -21,7 +21,7 @@ import {
   IconButton,
   IIconProps,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import { useTextField } from "../../hook/useInput";
 import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";

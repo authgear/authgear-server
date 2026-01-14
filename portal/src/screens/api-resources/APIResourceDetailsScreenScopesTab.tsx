@@ -5,7 +5,7 @@ import WidgetTitle from "../../WidgetTitle";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
 import {
   CreateScopeForm,

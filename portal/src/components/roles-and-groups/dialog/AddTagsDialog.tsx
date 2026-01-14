@@ -6,7 +6,7 @@ import {
   ITag,
   Label,
 } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import React, { ReactElement, useCallback, useMemo, useState } from "react";
 import PrimaryButton from "../../../PrimaryButton";
 import DefaultButton from "../../../DefaultButton";

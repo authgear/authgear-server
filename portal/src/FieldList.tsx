@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { IconButton, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useFormField } from "./form";
 import ErrorRenderer from "./ErrorRenderer";

@@ -1,6 +1,6 @@
 import { useCallback, useContext } from "react";
 import en from "cldr-localenames-full/main/en/territories.json";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../intl";
 
 export function useGetCountryName(): {
   getCountryName: (code: string) => string;

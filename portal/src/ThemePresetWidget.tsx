@@ -7,7 +7,7 @@ import {
   isLightThemeEqual,
 } from "./util/theme";
 import { Text, DefaultEffects, Icon } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 import styles from "./ThemePresetWidget.module.css";
 
 export interface ThemePresetWidgetProps {

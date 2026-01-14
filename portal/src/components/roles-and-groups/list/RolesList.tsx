@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
 import { useParams } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../../intl";
 import Link from "../../../Link";
 import DeleteRoleDialog, {
   DeleteRoleDialogData,

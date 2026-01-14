@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import { Label, Text } from "@fluentui/react";
 import ExternalLink from "./ExternalLink";
 import styles from "./TextLink.module.css";

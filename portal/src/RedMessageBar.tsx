@@ -7,7 +7,7 @@ import {
   PartialTheme,
   ThemeProvider,
 } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 import { useParams } from "react-router-dom";
 import { useMergedStyles } from "./util/mergeStyles";
 

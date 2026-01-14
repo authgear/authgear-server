@@ -1,7 +1,7 @@
 import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { MessageBar } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
   AppConfigFormModel,

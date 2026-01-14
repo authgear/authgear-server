@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";

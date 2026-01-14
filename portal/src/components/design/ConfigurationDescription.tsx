@@ -1,5 +1,5 @@
 import React from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import WidgetDescription from "../../WidgetDescription";
 
 interface ConfigurationDescriptionProps {

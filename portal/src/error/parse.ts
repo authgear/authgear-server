@@ -5,7 +5,7 @@ import {
   FormatErrorCause,
   ValidationFailedErrorInfoCause,
 } from "./validation";
-import { Values } from "@oursky/react-messageformat";
+import { Values } from "../intl";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
 import {

@@ -18,7 +18,8 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "noImplicitAny": false // Set to false because somehow our codebase contains a lot of implicit any types
   },
   "include": ["./src", "vite.config.ts"]
 }

@@ -1,6 +1,6 @@
 /* global JSX */
 import React, { useMemo, useCallback, useContext, useState } from "react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "./intl";
 import {
   DetailsList,
   DetailsHeader,

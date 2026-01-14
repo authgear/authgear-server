@@ -13,7 +13,7 @@ import styles from "./CurrentPlanCard.module.css";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { useId } from "@fluentui/react-hooks";
 import LinkButton from "../../LinkButton";
 import {

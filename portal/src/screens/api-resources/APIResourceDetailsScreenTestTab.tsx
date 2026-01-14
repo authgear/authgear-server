@@ -9,7 +9,7 @@ import DefaultButton from "../../DefaultButton";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import WidgetTitle from "../../WidgetTitle";
 import { Text, Dropdown, IDropdownOption, PivotItem } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";

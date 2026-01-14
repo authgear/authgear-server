@@ -23,7 +23,7 @@ import {
 import { AGPivot } from "../../components/common/AGPivot";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   PortalAPIAppConfig,
   IdentityType,

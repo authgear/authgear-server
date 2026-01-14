@@ -11,7 +11,7 @@ import {
   TooltipHost,
 } from "@fluentui/react";
 import { useTooltipTargetElement } from "./Tooltip";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 
 import styles from "./LabelWithTooltip.module.css";
 

@@ -6,7 +6,7 @@ import {
   ITextFieldStyles,
   Text,
 } from "@fluentui/react";
-import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
+import { Context, FormattedMessage, Values } from "./intl";
 
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";

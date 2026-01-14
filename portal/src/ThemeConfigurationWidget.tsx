@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { Text, Label, Dropdown, IDropdownOption } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "./intl";
 import ScaleContainer from "./ScaleContainer";
 import Widget from "./Widget";
 import WidgetTitle from "./WidgetTitle";

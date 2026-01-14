@@ -1,7 +1,7 @@
 import React from "react";
 import { Icon, Text } from "@fluentui/react";
 import styles from "./FeatureBanner.module.css";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 
 interface FeatureBannerProps {}
 

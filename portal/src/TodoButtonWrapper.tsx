@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { Dialog, DialogFooter } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import PrimaryButton from "./PrimaryButton";
 
 import styles from "./TodoButtonWrapper.module.css";

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { SearchableDropdown } from "../common/SearchableDropdown";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { IDropdownOption } from "@fluentui/react";
 import { Role } from "../../graphql/adminapi/globalTypes.generated";

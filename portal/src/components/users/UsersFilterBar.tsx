@@ -2,7 +2,7 @@ import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import styles from "./UsersFilterBar.module.css";
 import { SearchBox } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 import {
   GroupsFilterDropdown,
   GroupsFilterDropdownOption,

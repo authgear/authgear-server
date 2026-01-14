@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { generatePath, useNavigate, useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   Dialog,
   DialogFooter,

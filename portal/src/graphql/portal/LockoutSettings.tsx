@@ -4,7 +4,7 @@ import React, { ReactElement, useMemo, useContext, useCallback } from "react";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { Checkbox, Dropdown, IDropdownOption, Text } from "@fluentui/react";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";

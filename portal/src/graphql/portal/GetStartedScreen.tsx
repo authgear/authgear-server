@@ -12,7 +12,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { useQuery, useMutation } from "@apollo/client";
 import Link from "../../Link";
 import ScreenTitle from "../../ScreenTitle";

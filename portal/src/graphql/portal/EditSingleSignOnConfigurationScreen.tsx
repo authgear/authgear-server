@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import SingleSignOnConfigurationWidget, {
   useSingleSignOnConfigurationWidget,
 } from "./SingleSignOnConfigurationWidget";

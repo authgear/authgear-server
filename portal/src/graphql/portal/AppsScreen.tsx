@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { DefaultEffects, Text } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";
 import ShowError from "../../ShowError";

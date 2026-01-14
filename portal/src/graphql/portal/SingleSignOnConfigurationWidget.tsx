@@ -1,5 +1,5 @@
 import { Checkbox, DirectionalHint, Label, Text, Icon } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { produce } from "immer";
 import React, { useCallback, useContext, useMemo, useState } from "react";

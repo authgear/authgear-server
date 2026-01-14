@@ -20,7 +20,7 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "./intl";
 import { ApolloProvider } from "@apollo/client";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";

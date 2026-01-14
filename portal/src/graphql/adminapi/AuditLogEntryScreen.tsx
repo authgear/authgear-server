@@ -1,7 +1,7 @@
 import React, { useMemo, useContext } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { Text, Label } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import CommandBarContainer from "../../CommandBarContainer";

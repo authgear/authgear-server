@@ -5,7 +5,7 @@ import { useResourceScopesQueryQuery } from "../../graphql/adminapi/query/resour
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
 import { EditApplicationScopesScreenContent } from "./EditApplicationScopesScreen";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 
 const pageSize = 1000;
 

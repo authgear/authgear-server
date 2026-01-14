@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Spinner } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import styles from "./ShowLoading.module.css";
 
 interface ShowLoadingProps {

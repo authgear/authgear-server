@@ -1,5 +1,5 @@
 import React from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 
 import { Text } from "@fluentui/react";
 import styles from "./ResourceListEmptyView.module.css";

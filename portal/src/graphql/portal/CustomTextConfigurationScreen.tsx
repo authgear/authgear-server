@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import cn from "classnames";
 
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";

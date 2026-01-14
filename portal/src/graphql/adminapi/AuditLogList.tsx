@@ -8,7 +8,7 @@ import {
   ShimmeredDetailsList,
   MessageBar,
 } from "@fluentui/react";
-import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
+import { Context, FormattedMessage, Values } from "../../intl";
 import Link from "../../Link";
 import PaginationWidget from "../../PaginationWidget";
 import {

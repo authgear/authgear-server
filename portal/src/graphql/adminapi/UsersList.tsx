@@ -14,7 +14,7 @@ import {
   MessageBar,
   IListProps,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { Link, useParams } from "react-router-dom";
 import { UsersListFragment } from "./query/usersListQuery.generated";
 import {

@@ -13,7 +13,7 @@ import {
   IRenderFunction,
   IDetailsHeaderProps,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import styles from "./PriorityList.module.css";
 import OrderButtons from "./OrderButtons";
 

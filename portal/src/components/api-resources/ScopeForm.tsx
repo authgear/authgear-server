@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useEffect } from "react";
 import FormTextField from "../../FormTextField";
 import styles from "./ScopeForm.module.css";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import cn from "classnames";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";

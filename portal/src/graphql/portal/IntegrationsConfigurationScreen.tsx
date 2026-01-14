@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   DetailsList,
   IColumn,

@@ -10,7 +10,7 @@ import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import FormTextField from "../../FormTextField";
 import WidgetDescription from "../../WidgetDescription";
 import PrimaryButton from "../../PrimaryButton";

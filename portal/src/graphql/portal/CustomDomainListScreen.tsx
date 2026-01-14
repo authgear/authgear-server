@@ -9,7 +9,7 @@ import React, {
 import cn from "classnames";
 import { produce } from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   DetailsList,
   Dialog,

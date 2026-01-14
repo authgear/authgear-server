@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import cn from "classnames";
 import { Image, ImageFit } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { base64EncodedDataToDataURI } from "./util/uri";
 import PrimaryButton from "./PrimaryButton";

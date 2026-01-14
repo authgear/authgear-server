@@ -12,7 +12,7 @@ import cn from "classnames";
 import {
   Context as MFContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 
 import FormContainer from "../../FormContainer";
 import HorizontalDivider from "../../HorizontalDivider";

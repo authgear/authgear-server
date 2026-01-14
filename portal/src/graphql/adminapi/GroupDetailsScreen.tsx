@@ -6,7 +6,7 @@ import ShowLoading from "../../ShowLoading";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { GroupQueryNodeFragment } from "./query/groupQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import FormContainer from "../../FormContainer";
 import {

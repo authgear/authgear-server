@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { v4 as uuidv4 } from "uuid";
 import { produce } from "immer";
 import ShowError from "../../ShowError";

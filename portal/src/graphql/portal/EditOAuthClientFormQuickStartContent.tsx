@@ -4,7 +4,7 @@ import { AGPivot } from "../../components/common/AGPivot";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import WidgetTitle from "../../WidgetTitle";
 import {
   OAuthClientConfig,

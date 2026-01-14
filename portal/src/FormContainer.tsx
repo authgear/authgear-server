@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
 import PrimaryButton from "./PrimaryButton";

@@ -12,7 +12,7 @@ import WidgetTitle from "../../WidgetTitle";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import {
   DetailsList,

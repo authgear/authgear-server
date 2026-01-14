@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { PivotItem } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import cn from "classnames";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";

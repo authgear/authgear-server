@@ -36,7 +36,7 @@ import { produce } from "immer";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import {
   ChoiceGroup,
   IChoiceGroupOption,

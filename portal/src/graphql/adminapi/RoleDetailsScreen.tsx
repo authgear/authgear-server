@@ -15,7 +15,7 @@ import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { useNavigate, useParams } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";

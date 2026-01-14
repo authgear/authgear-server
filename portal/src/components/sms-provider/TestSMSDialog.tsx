@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { SmsProviderConfigurationInput } from "../../graphql/portal/globalTypes.generated";
 import { Dialog, DialogFooter, IDialogProps, Text } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";

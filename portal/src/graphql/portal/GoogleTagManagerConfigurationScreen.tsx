@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
   AppConfigFormModel,

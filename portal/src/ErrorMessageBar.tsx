@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { ParsedAPIError } from "./error/parse";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 
 interface ErrorMessageBarContext {
   readonly errors: readonly ParsedAPIError[];

@@ -6,7 +6,7 @@ import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useFormTopErrors } from "../../form";
 import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 
 export interface CreateScopeFormState {
   scope: string;

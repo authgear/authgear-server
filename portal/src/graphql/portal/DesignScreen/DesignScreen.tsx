@@ -20,7 +20,7 @@ import {
 import {
   Context as MFContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../../intl";
 import cn from "classnames";
 
 import { useParams } from "react-router-dom";

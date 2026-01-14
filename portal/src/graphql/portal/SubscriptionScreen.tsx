@@ -24,7 +24,7 @@ import {
 } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import { useConst } from "@fluentui/react-hooks";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";

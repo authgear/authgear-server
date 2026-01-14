@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import cn from "classnames";
 import styles from "./ImageInput.module.css";
 
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import { SecondaryButton } from "../Button/SecondaryButton/SecondaryButton";
 import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
 import { SquareIcon } from "../SquareIcon/SquareIcon";

@@ -1,4 +1,4 @@
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import ScreenContent from "../../ScreenContent";

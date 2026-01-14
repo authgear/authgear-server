@@ -1,5 +1,5 @@
 import { ITag } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
 import { useQuery } from "@apollo/client";

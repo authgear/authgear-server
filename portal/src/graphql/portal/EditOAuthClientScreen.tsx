@@ -15,7 +15,7 @@ import {
   PivotItem,
 } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";

@@ -5,7 +5,7 @@ import {
   FormattedMessage,
   Context as MessageFormatContext,
   ContextValue as MessageFormatContextValue,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
 import ScreenTitle from "../../ScreenTitle";

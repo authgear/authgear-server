@@ -12,7 +12,7 @@ import {
   MessageBar,
   MessageBarType,
 } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { useNavigate } from "react-router-dom";
 import { DateTime, SystemZone } from "luxon";
 

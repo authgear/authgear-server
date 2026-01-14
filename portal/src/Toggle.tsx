@@ -1,6 +1,6 @@
 import React, { ReactNode, useContext, useMemo, forwardRef } from "react";
 import cn from "classnames";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import {
   // eslint-disable-next-line no-restricted-imports
   Toggle as FluentUIToggle,

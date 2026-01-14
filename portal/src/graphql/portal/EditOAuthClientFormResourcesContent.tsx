@@ -6,7 +6,7 @@ import WidgetTitle from "../../WidgetTitle";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
 import {
   useResourcesQueryQuery,

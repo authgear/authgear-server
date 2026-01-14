@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 
 import styles from "./Tooltip.module.css";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 
 interface TooltipProps {
   className?: string;

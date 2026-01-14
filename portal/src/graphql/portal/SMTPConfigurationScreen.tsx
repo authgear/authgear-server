@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
 import { Dialog, DialogFooter } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { parseSender } from "email-addresses";
 import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";

@@ -3,7 +3,7 @@ import { Text } from "@fluentui/react";
 import {
   Context as MFContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import cn from "classnames";
 
 import { LanguageTag } from "../../util/resource";

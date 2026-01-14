@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   Checkbox,
   ChoiceGroup,

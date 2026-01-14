@@ -3,7 +3,7 @@ import { SearchBox } from "@fluentui/react";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../../intl";
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";

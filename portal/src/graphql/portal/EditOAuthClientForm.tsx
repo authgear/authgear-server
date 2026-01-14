@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
 import { DateTime } from "luxon";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 
 import { useEndpoints } from "../../hook/useEndpoints";
 

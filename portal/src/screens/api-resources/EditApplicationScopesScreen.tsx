@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import {
   GetClientResourceScopesDocument,
   GetClientResourceScopesQuery,

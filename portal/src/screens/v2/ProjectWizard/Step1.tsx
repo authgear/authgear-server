@@ -4,7 +4,7 @@ import { Text } from "../../../components/project-wizard/Text";
 import {
   Context as MessageContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../../intl";
 import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";

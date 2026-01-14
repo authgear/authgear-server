@@ -7,7 +7,7 @@ import {
   IDropdownProps,
   Label,
 } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   AuthenticatorPasswordConfig,
   PasswordPolicyFeatureConfig,

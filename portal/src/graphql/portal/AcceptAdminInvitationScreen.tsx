@@ -5,7 +5,7 @@ import {
   Context,
   FormattedMessage,
   FormattedMessageProps,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";

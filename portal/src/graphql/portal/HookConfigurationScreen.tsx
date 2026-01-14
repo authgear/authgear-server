@@ -1,6 +1,6 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   Dropdown,

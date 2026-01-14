@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 import CommandBarButton from "../../CommandBarButton";
 
 interface ClearAllButtonProps {

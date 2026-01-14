@@ -9,7 +9,7 @@ import { useSystemConfig } from "../../../context/SystemConfigContext";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import {

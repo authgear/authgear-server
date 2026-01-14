@@ -5,7 +5,7 @@ import ScreenTitle from "../../ScreenTitle";
 import {
   Context as IntlContext,
   FormattedMessage,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import ScreenDescription from "../../ScreenDescription";
 import { useParams } from "react-router-dom";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";

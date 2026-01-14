@@ -6,7 +6,7 @@ import React, {
   Ref,
 } from "react";
 import cn from "classnames";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "./intl";
 import { getShades, BannerConfiguration } from "./util/theme";
 import { base64EncodedDataToDataURI } from "./util/uri";
 import styles from "./ThemePreviewWidget.module.css";

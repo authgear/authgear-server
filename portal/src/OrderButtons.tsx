@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import { IconButton, IIconProps } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 
 import styles from "./OrderButtons.module.css";
 

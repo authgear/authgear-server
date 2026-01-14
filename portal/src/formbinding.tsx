@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import { IDialogProps } from "@fluentui/react";
-import { Context, Values } from "@oursky/react-messageformat";
+import { Context, Values } from "./intl";
 import { useFormField } from "./form";
 import { FormField, ParsedAPIError } from "./error/parse";
 import ErrorRenderer from "./ErrorRenderer";

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../intl";
 
 import { ErrorParseRule, parseAPIErrors, parseRawError } from "./parse";
 import PrimaryButton from "../PrimaryButton";

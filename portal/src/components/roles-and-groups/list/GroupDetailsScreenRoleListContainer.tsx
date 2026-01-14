@@ -3,7 +3,7 @@ import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQue
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../../intl";
 import { useQuery } from "@apollo/client";
 import { SearchBox } from "@fluentui/react";
 import ShowError from "../../../ShowError";

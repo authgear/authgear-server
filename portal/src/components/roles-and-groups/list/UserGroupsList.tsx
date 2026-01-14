@@ -7,7 +7,7 @@ import {
   IDetailsRowProps,
   Text,
 } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../../intl";
 import { useParams } from "react-router-dom";
 
 import styles from "./UserGroupsList.module.css";

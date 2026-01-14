@@ -5,7 +5,7 @@ import { useLoadableView } from "../../hook/useLoadableView";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { PivotItem } from "@fluentui/react";

@@ -2,7 +2,7 @@ import { Dialog, DialogFooter, IDialogProps } from "@fluentui/react";
 import {
   FormattedMessage,
   Context as MessageContext,
-} from "@oursky/react-messageformat";
+} from "../../intl";
 import React, { useContext, useMemo } from "react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";

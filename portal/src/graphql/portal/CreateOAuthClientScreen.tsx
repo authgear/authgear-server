@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
 import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
 import {

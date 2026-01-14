@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import styles from "./Logo.module.css";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 
 export function Logo({ inverted }: { inverted?: boolean }): React.ReactElement {
   const { renderToString } = useContext(Context);

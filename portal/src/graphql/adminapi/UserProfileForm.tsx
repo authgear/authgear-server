@@ -16,7 +16,7 @@ import {
   ITheme,
   Label,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import FormTextField from "../../FormTextField";
 import FormDropdown from "../../FormDropdown";
 import FormPhoneTextField from "../../FormPhoneTextField";

@@ -1,6 +1,6 @@
 import React, { ReactElement, ReactNode } from "react";
 import { MessageBar } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { PortalAPIAppConfig } from "../../types";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
