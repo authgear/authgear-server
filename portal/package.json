@@ -6,7 +6,6 @@
   ],
   "type": "module",
   "scripts": {
-    "postinstall": "./scripts/npm-postinstall.sh",
     "test": "jest",
     "start": "vite --debug",
     "build": "vite build",
@@ -84,7 +83,6 @@
     "@fluentui/react-icons": "^2.0.315",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@monaco-editor/react": "^4.7.0",
-    "@oursky/react-messageformat": "^2.0.2",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/themes": "^3.2.1",
@@ -115,6 +113,7 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "18.3.1",
     "react-helmet-async": "2.0.5",
+    "react-intl": "^6.8.9",
     "react-router-dom": "7.12.0",
     "tzdata": "1.0.44",
     "uuid": "9.0.1",
