@@ -12,18 +12,20 @@
 {{ end }}
 
 {{ define "__settings_identity_email_verification_label.html" }}
-  <div class="flex flex-col gap-y-2 items-start">
-  {{ if $.Verified }}
-    <p class="body-text--md settings-text-color-success">
-      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-    </p>
-  {{ else }}
-    <p class="body-text--md settings-text-color-failure">
-      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-    </p>
-    {{ $.VerfifyButton }}
+  {{ if $.VerificationEnabled }}
+    <div class="flex flex-col gap-y-2 items-start">
+    {{ if $.Verified }}
+      <p class="body-text--md settings-text-color-success">
+        {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
+      </p>
+    {{ else }}
+      <p class="body-text--md settings-text-color-failure">
+        {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
+      </p>
+      {{ $.VerfifyButton }}
+    {{ end }}
+    </div>
   {{ end }}
-  </div>
 {{ end }}
 
 {{ define "__settings_identity_email_edit_button.html" }}
@@ -76,6 +78,7 @@
         (dict
           "Verified" $.Verified
           "VerfifyButton" $verifyButton
+          "VerificationEnabled" $.VerificationEnabled
         )
       )
       "ActionButton" (include "__settings_identity_email_edit_button.html"
