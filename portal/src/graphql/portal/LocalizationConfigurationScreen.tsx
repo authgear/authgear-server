@@ -810,7 +810,7 @@ const LocalizationConfigurationScreen: React.VFC =
       const verificationConfig = config.effectiveAppConfig?.verification;
       return Boolean(
         (verificationConfig?.claims?.email?.enabled ?? true) ||
-          (verificationConfig?.claims?.phone_number?.enabled ?? true)
+        (verificationConfig?.claims?.phone_number?.enabled ?? true)
       );
     }, [config]);
 
@@ -835,7 +835,7 @@ const LocalizationConfigurationScreen: React.VFC =
         ?.email_otp_mode ?? "code";
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
-      const specifiers = [];
+      const specifiers: ResourceSpecifier[] = [];
 
       const supportedLanguages = [...initialSupportedLanguages];
       if (!supportedLanguages.includes(DEFAULT_TEMPLATE_LOCALE)) {

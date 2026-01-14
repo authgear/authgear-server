@@ -33,7 +33,7 @@ export interface UserGroupsListItem extends Pick<Group, "id" | "name" | "key"> {
 }
 
 export interface UserGroupsListUser
-  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
+  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> { }
 
 export enum UserGroupsListColumnKey {
   Name = "Name",
@@ -137,9 +137,8 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
         return (
           <Link
             className="contents"
-            to={`/project/${appID}/user-management/groups/${
-              (props.item as UserGroupsListItem).id
-            }/details`}
+            to={`/project/${appID}/user-management/groups/${(props.item as UserGroupsListItem).id
+              }/details`}
           >
             <DetailsRow {...props} />
           </Link>
@@ -167,9 +166,9 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
               item.roles.totalCount === 0
                 ? "-"
                 : item.roles.items
-                    ?.slice(0, 3)
-                    .map((item) => item.name)
-                    .join(", ");
+                  ?.slice(0, 3)
+                  .map((item) => item.name)
+                  .join(", ");
             const addtionalInfo =
               item.roles.totalCount > 3 ? ` +${item.roles.totalCount - 3}` : "";
             return (
@@ -181,7 +180,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           default:
             return (
               <TextCell>
-                {item[column?.fieldName as keyof UserGroupsListItem] ?? ""}
+                {(item[column?.fieldName as keyof UserGroupsListItem] as React.ReactNode) ?? ""}
               </TextCell>
             );
         }

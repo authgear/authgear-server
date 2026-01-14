@@ -482,7 +482,7 @@ const messagingServiceSIDErrorRules: ErrorParseRule[] = [
 ];
 
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
-  const specifiers = [];
+  const specifiers: ResourceSpecifier[] = [];
   if (state.denoHookURL) {
     specifiers.push(makeDenoScriptSpecifier(state.denoHookURL));
   }
@@ -747,10 +747,10 @@ function SMSProviderConfigurationScreen1({
           (effectiveAppConfig.authentication.secondary_authentication_mode ===
             "if_exists" ||
             effectiveAppConfig.authentication.secondary_authentication_mode ===
-              "required")) ||
+            "required")) ||
         // phone verification enabled.
         effectiveAppConfig?.verification?.claims?.phone_number?.enabled ===
-          true,
+        true,
 
       smsProviderConfigured:
         secretConfig?.smsProviderSecrets?.twilioCredentials != null ||
@@ -839,9 +839,9 @@ function SMSProviderConfigurationScreen1({
       <ShowError
         error={form.loadError ?? featureConfig.loadError}
         onRetry={() => {
-          refetchAppConfig().finally(() => {});
+          refetchAppConfig().finally(() => { });
           form.reload();
-          featureConfig.refetch().finally(() => {});
+          featureConfig.refetch().finally(() => { });
         }}
       />
     );
@@ -976,8 +976,8 @@ function SMSProviderConfigurationContent(props: {
           />
         ) : null}
         {isAuthgearOnce &&
-        isSMSRequiredForSomeEnabledFeatures &&
-        !smsProviderConfigured ? (
+          isSMSRequiredForSomeEnabledFeatures &&
+          !smsProviderConfigured ? (
           <div className={cn(styles.widget, "flex flex-col")}>
             <RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen className="self-start w-fit" />
           </div>
@@ -1329,7 +1329,7 @@ function TwilioForm({ form }: { form: FormModel }) {
           styles={horizontalChoiceGroupStyles}
         />
         {form.state.twilioSenderType ===
-        TwilioSenderType.MessagingServiceSID ? (
+          TwilioSenderType.MessagingServiceSID ? (
           <div className="flex flex-col gap-2">
             <FormTextField
               type="text"

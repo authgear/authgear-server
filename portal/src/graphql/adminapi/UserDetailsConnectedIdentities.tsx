@@ -49,13 +49,13 @@ interface IdentityClaim extends Record<string, unknown> {
 interface Identity {
   id: string;
   type:
-    | "ANONYMOUS"
-    | "LOGIN_ID"
-    | "OAUTH"
-    | "BIOMETRIC"
-    | "PASSKEY"
-    | "SIWE"
-    | "LDAP";
+  | "ANONYMOUS"
+  | "LOGIN_ID"
+  | "OAUTH"
+  | "BIOMETRIC"
+  | "PASSKEY"
+  | "SIWE"
+  | "LDAP";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -201,8 +201,8 @@ function getIdentityName(
       return item.formattedDeviceInfo
         ? item.formattedDeviceInfo
         : renderToString(
-            "UserDetails.connected-identities.biometric.unknown-device"
-          );
+          "UserDetails.connected-identities.biometric.unknown-device"
+        );
     case "anonymous":
       return renderToString(
         "UserDetails.connected-identities.anonymous.anonymous-user"
@@ -641,7 +641,7 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   );
 };
 
-interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {}
+interface OAuthIdentityListCellProps extends BaseIdentityListCellProps { }
 
 const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
   props
@@ -865,7 +865,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         if (identity.type === "BIOMETRIC") {
           const info =
             identity.claims[
-              "https://authgear.com/claims/biometric/formatted_device_info"
+            "https://authgear.com/claims/biometric/formatted_device_info"
             ];
           const formattedDeviceInfo = typeof info === "string" ? info : "";
           biometricIdentityList.push({
@@ -892,15 +892,15 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             connectedOn: createdAtStr,
             lastLoginUserName:
               identity.claims[
-                "https://authgear.com/claims/ldap/last_login_username"
+              "https://authgear.com/claims/ldap/last_login_username"
               ],
             userIDAttributeName:
               identity.claims[
-                "https://authgear.com/claims/ldap/user_id_attribute_name"
+              "https://authgear.com/claims/ldap/user_id_attribute_name"
               ] ?? "",
             userIDAttributeValue:
               identity.claims[
-                "https://authgear.com/claims/ldap/user_id_attribute_value"
+              "https://authgear.com/claims/ldap/user_id_attribute_value"
               ] ?? "",
           });
         }
@@ -1061,19 +1061,25 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           key: "email",
           text: renderToString("UserDetails.connected-identities.email"),
           iconProps: { iconName: "Mail" },
-          onClick: () => navigate("./add-email"),
+          onClick: () => {
+            void navigate("./add-email");
+          },
         },
         {
           key: "phone",
           text: renderToString("UserDetails.connected-identities.phone"),
           iconProps: { iconName: "CellPhone" },
-          onClick: () => navigate("./add-phone"),
+          onClick: () => {
+            void navigate("./add-phone");
+          },
         },
         {
           key: "username",
           text: renderToString("UserDetails.connected-identities.username"),
           iconProps: { iconName: "Accounts" },
-          onClick: () => navigate("./add-username"),
+          onClick: () => {
+            void navigate("./add-username");
+          },
         },
       ];
       const enabledItems = availableMenuItem.filter((item) => {

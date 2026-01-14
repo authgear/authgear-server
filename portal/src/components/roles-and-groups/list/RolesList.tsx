@@ -93,7 +93,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     },
   ];
   const items: RoleListItem[] = useMemo(() => {
-    const items = [];
+    const items: RoleListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;

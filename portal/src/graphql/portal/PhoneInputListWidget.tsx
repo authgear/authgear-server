@@ -261,7 +261,7 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
       const pinned = new Set(pinnedAlpha2);
       const allowed = new Set(allowedAlpha2);
 
-      const lst = [];
+      const lst: ListItem[] = [];
 
       for (const alpha2 of pinnedAlpha2) {
         const country = COUNTRY_MAP[alpha2];

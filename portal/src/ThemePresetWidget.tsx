@@ -238,7 +238,7 @@ const ThemePresetWidget: React.VFC<ThemePresetWidgetProps> =
       onClickDarkTheme,
       onClickCustom,
     } = props;
-    const children = [];
+    const children: React.ReactNode[] = [];
 
     if (isDarkMode) {
       for (let i = 0; i < DARK_THEME_PRESETS.length; i++) {

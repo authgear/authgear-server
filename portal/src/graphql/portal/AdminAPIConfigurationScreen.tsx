@@ -80,7 +80,7 @@ function isLocationState(raw: unknown): raw is LocationState {
     typeof raw === "object" &&
     typeof (raw as Partial<LocationState>).keyID === "string" &&
     typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
-      "boolean" &&
+    "boolean" &&
     typeof (raw as Partial<LocationState>)
       .shouldGenerateShortLivedAdminAPIToken === "boolean"
   );
@@ -152,7 +152,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     }, [queryResult.secretConfig?.adminAPISecrets]);
 
     const items: Item[] = useMemo(() => {
-      const items = [];
+      const items: Item[] = [];
       for (const adminAPISecret of adminAPISecrets) {
         items.push({
           keyID: adminAPISecret.keyID,

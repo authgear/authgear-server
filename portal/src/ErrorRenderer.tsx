@@ -20,7 +20,7 @@ const ErrorRenderer: React.VFC<ErrorRendererProps> = function ErrorRenderer(
     errorArray = [...errorArray, ...errors];
   }
 
-  const children = [];
+  const children: React.ReactNode[] = [];
   for (let i = 0; i < errorArray.length; i++) {
     const e = errorArray[i];
     if (children.length > 0) {

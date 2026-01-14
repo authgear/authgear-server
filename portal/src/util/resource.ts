@@ -83,7 +83,7 @@ export function expandDef(
     ];
   }
 
-  const specifiers = [];
+  const specifiers: ResourceSpecifier[] = [];
   for (const extension of def.extensions) {
     specifiers.push({
       def,

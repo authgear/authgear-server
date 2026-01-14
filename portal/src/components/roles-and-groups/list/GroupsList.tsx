@@ -92,7 +92,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     },
   ];
   const items: GroupListItem[] = useMemo(() => {
-    const items = [];
+    const items: GroupListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;

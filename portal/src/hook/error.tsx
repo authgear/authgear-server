@@ -18,8 +18,8 @@ interface ErrorContextValue {
 const DEFAULT_VALUE: ErrorContextValue = {
   errors: new Map(),
   error: null,
-  addError: (_id: string, _error: unknown) => {},
-  removeError: (_id: string) => {},
+  addError: (_id: string, _error: unknown) => { },
+  removeError: (_id: string) => { },
 };
 
 const ErrorContext = createContext(DEFAULT_VALUE);
@@ -45,7 +45,7 @@ export function ErrorContextProvider(
       const map = new Map(prev.errors);
       map.set(id, incomingError);
 
-      let error = null;
+      let error: unknown = null;
       for (const e of map.values()) {
         if (e != null) {
           error = e;
@@ -64,7 +64,7 @@ export function ErrorContextProvider(
       const map = new Map(prev.errors);
       map.delete(id);
 
-      let error = null;
+      let error: unknown = null;
       for (const e of map.values()) {
         if (e != null) {
           error = e;

@@ -3,16 +3,18 @@ import { FormattedMessage as RealFormattedMessage, useIntl } from 'react-intl'
 
 // This file is to support legacy API that uses @oursky/react-messageformat
 
-export function FormattedMessage(props: {
+export interface FormattedMessageProps {
   id: string;
   values?: Record<string, any>;
-}): React.ReactElement {
-  return <RealFormattedMessage {...props} />
+}
+
+export function FormattedMessage(props: FormattedMessageProps): React.ReactElement {
+  return <RealFormattedMessage id={props.id} values={props.values} />
 }
 
 export type Values = Record<string, any>;
 
-interface IntlContextValue {
+export interface IntlContextValue {
   locale: string;
   renderToString: (id: string, values?: Record<any, any>) => string;
 }

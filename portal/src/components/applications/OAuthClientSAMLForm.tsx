@@ -4,7 +4,7 @@ import Toggle from "../../Toggle";
 import {
   FormattedMessage,
   Context as MessageFormatContext,
-  ContextValue as MessageFormatContextValue,
+  IntlContextValue as MessageFormatContextValue,
 } from "../../intl";
 import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
@@ -716,8 +716,8 @@ export function OAuthClientSAMLForm({
                     formState.isSLOEnabled
                       ? endpoints.logout
                       : renderToString(
-                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
-                        )
+                        "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                      )
                   }
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}

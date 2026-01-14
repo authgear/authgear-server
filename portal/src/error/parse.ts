@@ -352,8 +352,8 @@ export function makeValidationErrorCustomMessageIDRule(
 ): ErrorParseRule {
   return (apiError: APIError): ErrorParseRuleResult => {
     if (apiError.reason === "ValidationFailed") {
-      const unhandledCauses = [];
-      const parsedAPIErrors = [];
+      const unhandledCauses: ValidationFailedErrorInfoCause[] = [];
+      const parsedAPIErrors: ParsedAPIError[] = [];
 
       for (const cause of apiError.info.causes) {
         if (kind === cause.kind && locationRegExp.test(cause.location)) {

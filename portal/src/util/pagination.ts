@@ -74,7 +74,7 @@ export function getPaginationRenderData(
     maxOffset = 0;
   }
 
-  const offsets = [];
+  const offsets: number[] = [];
   for (
     let i = offset - ADDITIONAL_PAGE_TO_SHOW * pageSize;
     i <= offset + ADDITIONAL_PAGE_TO_SHOW * pageSize;

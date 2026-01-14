@@ -29,7 +29,7 @@ export function Step4(): React.ReactElement {
           <Text.Heading>
             <FormattedMessage
               id="OnboardingSurveyScreen.step4.header"
-              components={{
+              values={{
                 Hint: Text.HeadingHint,
               }}
             />

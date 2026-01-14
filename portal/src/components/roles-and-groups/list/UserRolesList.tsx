@@ -28,7 +28,7 @@ export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
 }
 
 export interface UserRolesListUser
-  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
+  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> { }
 
 export enum UserRolesListColumnKey {
   Name = "Name",
@@ -132,9 +132,8 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
         return (
           <Link
             className="contents"
-            to={`/project/${appID}/user-management/roles/${
-              (props.item as UserRolesListItem).id
-            }/details`}
+            to={`/project/${appID}/user-management/roles/${(props.item as UserRolesListItem).id
+              }/details`}
           >
             <DetailsRow {...props} />
           </Link>
@@ -169,7 +168,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
           default:
             return (
               <TextCell>
-                {item[column?.fieldName as keyof UserRolesListItem] ?? ""}
+                {(item[column?.fieldName as keyof UserRolesListItem] as React.ReactNode) ?? ""}
               </TextCell>
             );
         }

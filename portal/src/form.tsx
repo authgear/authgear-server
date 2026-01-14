@@ -131,7 +131,7 @@ function getFieldErrors(
   fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>,
   field: FormField
 ): ParsedAPIError[] {
-  const errors = [];
+  const errors: ParsedAPIError[] = [];
   for (const [key, value] of fieldErrors.entries()) {
     if (equal(key, field)) {
       errors.push(...value);
@@ -152,7 +152,7 @@ export function useFormField(field: FormField | undefined): FormFieldProps {
 
   useEffect(() => {
     if (field == null) {
-      return () => {};
+      return () => { };
     }
     registerField?.(field);
     return () => unregisterField?.(field);

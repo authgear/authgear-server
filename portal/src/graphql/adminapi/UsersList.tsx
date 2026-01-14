@@ -58,8 +58,8 @@ interface UsersListProps {
   showRolesAndGroups: boolean;
 }
 
-interface UserListRoleItem extends Pick<Role, "id" | "name" | "key"> {}
-interface UserListGroupItem extends Pick<Group, "id" | "name" | "key"> {}
+interface UserListRoleItem extends Pick<Role, "id" | "name" | "key"> { }
+interface UserListGroupItem extends Pick<Group, "id" | "name" | "key"> { }
 
 interface UserListRoles {
   totalCount: number;
@@ -178,19 +178,19 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const columns: IColumn[] = useMemo(() => {
     const rolesAndGroupsColumns = showRolesAndGroups
       ? [
-          {
-            key: "roles",
-            name: renderToString("UsersList.column.roles"),
-            minWidth: 150,
-            columnActionsMode: ColumnActionsMode.disabled,
-          },
-          {
-            key: "groups",
-            name: renderToString("UsersList.column.groups"),
-            minWidth: 150,
-            columnActionsMode: ColumnActionsMode.disabled,
-          },
-        ]
+        {
+          key: "roles",
+          name: renderToString("UsersList.column.roles"),
+          minWidth: 150,
+          columnActionsMode: ColumnActionsMode.disabled,
+        },
+        {
+          key: "groups",
+          name: renderToString("UsersList.column.groups"),
+          minWidth: 150,
+          columnActionsMode: ColumnActionsMode.disabled,
+        },
+      ]
       : [];
 
     return [
@@ -258,7 +258,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     useState<DisableUserDialogData | null>(null);
 
   const items: UserListItem[] = useMemo(() => {
-    const items = [];
+    const items: UserListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
@@ -408,7 +408,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     (item: UserListItem, column: IColumn | undefined) => {
       return (
         <TextCell>
-          {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
+          {(item[column?.key as keyof UserListItem] as React.ReactNode) ??
+            USER_LIST_PLACEHOLDER}
         </TextCell>
       );
     },

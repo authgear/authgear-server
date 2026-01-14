@@ -61,13 +61,13 @@ const CustomTextConfigurationScreen: React.VFC =
       return (
         config.effectiveAppConfig?.localization?.supported_languages ?? [
           config.effectiveAppConfig?.localization?.fallback_language ??
-            DEFAULT_TEMPLATE_LOCALE,
+          DEFAULT_TEMPLATE_LOCALE,
         ]
       );
     }, [config.effectiveAppConfig?.localization]);
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
-      const specifiers = [];
+      const specifiers: ResourceSpecifier[] = [];
 
       const supportedLanguages = [...initialSupportedLanguages];
       if (!supportedLanguages.includes(DEFAULT_TEMPLATE_LOCALE)) {

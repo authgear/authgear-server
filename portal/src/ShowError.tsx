@@ -25,7 +25,7 @@ const ShowError: React.VFC<ShowErrorProps> = function ShowError(
     [onRetry]
   );
 
-  const children = [];
+  const children: React.ReactNode[] = [];
   if (error instanceof Error) {
     children.push(
       <React.Fragment key="1">

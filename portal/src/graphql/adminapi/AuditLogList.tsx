@@ -122,7 +122,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
   );
 
   const items: AuditLogListItem[] = useMemo(() => {
-    const items = [];
+    const items: AuditLogListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
