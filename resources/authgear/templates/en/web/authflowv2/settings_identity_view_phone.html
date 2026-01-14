@@ -12,18 +12,20 @@
 {{ end }}
 
 {{ define "__settings_identity_phone_verification_label.html" }}
-  <div class="flex flex-col gap-y-2 items-start">
-    {{ if $.Verified }}
-      <p class="body-text--md settings-text-color-success">
-        {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-      </p>
-    {{ else }}
-      <p class="body-text--md settings-text-color-failure">
-        {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-      </p>
-      {{ $.VerfifyButton }}
-    {{ end }}
-  </div>
+  {{ if $.VerificationEnabled }}
+    <div class="flex flex-col gap-y-2 items-start">
+      {{ if $.Verified }}
+        <p class="body-text--md settings-text-color-success">
+          {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
+        </p>
+      {{ else }}
+        <p class="body-text--md settings-text-color-failure">
+          {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
+        </p>
+        {{ $.VerfifyButton }}
+      {{ end }}
+    </div>
+  {{ end }}
 {{ end }}
 
 {{ define "__settings_identity_phone_edit_button.html" }}
@@ -74,6 +76,7 @@
         (dict
           "Verified" $.Verified
           "VerfifyButton" $verifyButton
+          "VerificationEnabled" $.VerificationEnabled
         )
       )
       "ActionButton" (include "__settings_identity_phone_edit_button.html"

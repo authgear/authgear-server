@@ -45,11 +45,13 @@ type AuthflowV2SettingsIdentityListPhoneViewModel struct {
 	OAuthPhoneIdentities []*AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity
 	Verifications        map[string][]verification.ClaimStatus
 	CreateDisabled       bool
+	VerificationEnabled  bool
 }
 
 type AuthflowV2SettingsIdentityListPhoneHandler struct {
 	Database                 *appdb.Handle
 	LoginIDConfig            *config.LoginIDConfig
+	VerificationConfig       *config.VerificationConfig
 	Identities               *identityservice.Service
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
@@ -138,6 +140,7 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context
 		CreateDisabled:       createDisabled,
 		PrimaryPhone:         primary,
 		AllPhones:            phones.Keys(),
+		VerificationEnabled:  *h.VerificationConfig.Claims.PhoneNumber.Enabled,
 	}
 	viewmodels.Embed(data, vm)
 
