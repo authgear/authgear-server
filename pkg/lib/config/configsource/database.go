@@ -306,13 +306,13 @@ func (d *Database) UpdateDatabaseSource(ctx context.Context, appID string, updat
 func (d *Database) invalidateHost(ctx context.Context, domain string) {
 	logger := DatabaseLogger.GetLogger(ctx)
 	d.hostMap.Delete(domain)
-	logger.Info(ctx, "invalidated cached host", slog.String("domain", domain))
+	logger.Debug(ctx, "invalidated cached host", slog.String("domain", domain))
 }
 
 func (d *Database) invalidateApp(ctx context.Context, appID string) {
 	logger := DatabaseLogger.GetLogger(ctx)
 	d.appMap.Delete(appID)
-	logger.Info(ctx, "invalidated cached config", slog.String("app_id", appID))
+	logger.Debug(ctx, "invalidated cached config", slog.String("app_id", appID))
 }
 
 func (d *Database) invalidateAllApp(ctx context.Context) {
@@ -321,7 +321,7 @@ func (d *Database) invalidateAllApp(ctx context.Context) {
 		d.appMap.Delete(key)
 		return true
 	})
-	logger.Info(ctx, "invalidated all cached config")
+	logger.Debug(ctx, "invalidated all cached config")
 }
 
 func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
@@ -444,7 +444,7 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 	planStore := d.PlanStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		logger := DatabaseLogger.GetLogger(ctx)
-		logger.Info(ctx, "load app config from db", slog.String("app_id", a.appID))
+		logger.Debug(ctx, "load app config from db", slog.String("app_id", a.appID))
 		data, err := store.GetDatabaseSourceByAppID(ctx, a.appID)
 		if err != nil {
 			return err
