@@ -58,7 +58,7 @@ func (m *Middleware) handleError(ctx context.Context, next http.Handler, rw http
 	// If it is an dpop error, we do not return error here.
 	// Continue to serve the request, until someone need the proof and handle error there.
 	if errors.As(err, &oauthErr) {
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithError(err).Warn(ctx,
 			"failed to parse dpop proof",
 			slog.Bool("dpop_logs", true),
 		)

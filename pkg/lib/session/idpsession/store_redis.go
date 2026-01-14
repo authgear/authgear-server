@@ -216,7 +216,7 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			} else {
 				session, err = s.Unmarshal(sessionJSON)
 				if err != nil {
-					logger.WithError(err).Error(ctx, "invalid JSON value",
+					logger.WithError(err).Warn(ctx, "invalid JSON value",
 						slog.String("key", key),
 					)
 					err = nil
@@ -230,7 +230,7 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 				_, err = conn.HDel(ctx, listKey, key).Result()
 				if err != nil {
 					// ignore non-critical error
-					logger.WithError(err).Error(ctx, "failed to update session list",
+					logger.WithError(err).Warn(ctx, "failed to update session list",
 						slog.String("key", listKey),
 					)
 					err = nil
