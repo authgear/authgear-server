@@ -6,7 +6,7 @@ import "@tabler/icons/iconfont/tabler-icons.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import React from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { initializeIcons, registerIcons } from "@fluentui/react";
 
 // See below for details.
@@ -115,5 +115,9 @@ window.MonacoEnvironment = {
 };
 loader.config({ monaco });
 loader.init().then(() => {
-  render(<ReactApp />, document.getElementById("react-app-root"));
+  const container = document.getElementById("react-app-root");
+  if (container) {
+    const root = createRoot(container);
+    root.render(<ReactApp />);
+  }
 });

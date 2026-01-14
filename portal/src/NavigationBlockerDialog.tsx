@@ -1,8 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Location } from "history";
+import React, { useCallback, useState } from "react";
+import { Location } from "react-router";
+import { useNavigate, useBlocker } from "react-router-dom";
 import BlockerDialog from "./BlockerDialog";
-import { useBlocker } from "./hook/useBlocker";
 
 interface NavigationBlockerDialogProps {
   blockNavigation: boolean;
@@ -20,17 +19,26 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
       destination?: Location;
     }>({ visible: false });
 
-    // disable block navigation when dialog visible
-    const _blockNavigation = useMemo(() => {
-      return !navigationBlockerDialog.visible && blockNavigation;
-    }, [blockNavigation, navigationBlockerDialog.visible]);
-
-    useBlocker((tx) => {
-      setNavigationBlockerDialog({
-        visible: true,
-        destination: tx.location,
-      });
-    }, _blockNavigation);
+    useBlocker(
+      useCallback(
+        ({
+          nextLocation,
+        }: {
+          currentLocation: Location;
+          nextLocation: Location;
+        }) => {
+          if (blockNavigation && !navigationBlockerDialog.visible) {
+            setNavigationBlockerDialog({
+              visible: true,
+              destination: nextLocation,
+            });
+            return true; // Block navigation
+          }
+          return false; // Do not block navigation
+        },
+        [blockNavigation, navigationBlockerDialog.visible]
+      )
+    );
 
     const onDialogDismiss = useCallback(() => {
       setNavigationBlockerDialog({ visible: false });
