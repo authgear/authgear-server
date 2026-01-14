@@ -41,7 +41,7 @@ func (m *PublicOriginMiddleware) Handle(next http.Handler) http.Handler {
 		newURL.Scheme = publicOrigin.Scheme
 		newURL.Host = publicOrigin.Host
 
-		logger.Info(ctx, "redirect to the configured public origin", slog.String("new_url", newURL.String()))
+		logger.Debug(ctx, "redirect to the configured public origin", slog.String("new_url", newURL.String()))
 		http.Redirect(w, r, newURL.String(), http.StatusTemporaryRedirect)
 	})
 }
