@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -65,7 +66,7 @@ func (r *Restorer) Restore(ctx context.Context) error {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(ctx, fmt.Sprintf("Restoring from %s", inputPathAbs))
+	logger.Info(ctx, "restoring from directory", slog.String("path", inputPathAbs))
 
 	return r.dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		logger := RestorerLogger.GetLogger(ctx)
@@ -73,12 +74,12 @@ func (r *Restorer) Restore(ctx context.Context) error {
 			inputFile := filepath.Join(inputPathAbs, fmt.Sprintf("%s.csv", tableName))
 			f, err := os.Open(inputFile)
 			if err != nil {
-				logger.Warn(ctx, fmt.Sprintf("Restoration of %s skipped: failed to open %s", tableName, inputFile))
+				logger.Warn(ctx, "restoration skipped", slog.String("table", tableName), slog.String("file", inputFile))
 				continue
 			}
 			defer f.Close()
 
-			logger.Info(ctx, fmt.Sprintf("Restoring %s", tableName))
+			logger.Info(ctx, "restoring table", slog.String("table", tableName))
 			csvReader := csv.NewReader(f)
 			records, err := csvReader.ReadAll()
 			if err != nil {
@@ -86,7 +87,7 @@ func (r *Restorer) Restore(ctx context.Context) error {
 			}
 			columns, data, err := r.convertToDatabaseData(records)
 			if err != nil {
-				logger.WithError(err).Error(ctx, fmt.Sprintf("Error on restoring %s from %s", tableName, inputFile))
+				logger.WithError(err).Error(ctx, "error restoring table", slog.String("table", tableName), slog.String("file", inputFile))
 				return err
 			}
 			for _, row := range data {
