@@ -111,9 +111,9 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
             styles={(_, theme) => ({
               root: option?.disabled
                 ? {
-                  fontStyle: "italic",
-                  color: theme.semanticColors.disabledText,
-                }
+                    fontStyle: "italic",
+                    color: theme.semanticColors.disabledText,
+                  }
                 : undefined,
             })}
           >

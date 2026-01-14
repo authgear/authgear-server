@@ -80,7 +80,7 @@ interface FeatureConfigFormState {
   whiteLabelingDisabled: boolean;
 }
 
-const NOOP = () => { };
+const NOOP = () => {};
 
 const ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN = [
   ...ALL_LANGUAGES_TEMPLATES,
@@ -127,8 +127,8 @@ function constructConfig(
 
 interface FormState
   extends ConfigFormState,
-  ResourcesFormState,
-  FeatureConfigFormState {
+    ResourcesFormState,
+    FeatureConfigFormState {
   selectedLanguage: string;
 }
 
@@ -792,7 +792,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       reload: () => {
         config.reload();
         resources.reload();
-        featureConfig.refetch().finally(() => { });
+        featureConfig.refetch().finally(() => {});
       },
       reset: () => {
         config.reset();

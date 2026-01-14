@@ -716,8 +716,8 @@ export function OAuthClientSAMLForm({
                     formState.isSLOEnabled
                       ? endpoints.logout
                       : renderToString(
-                        "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
-                      )
+                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                        )
                   }
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}

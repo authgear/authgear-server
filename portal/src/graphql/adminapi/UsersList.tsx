@@ -58,8 +58,8 @@ interface UsersListProps {
   showRolesAndGroups: boolean;
 }
 
-interface UserListRoleItem extends Pick<Role, "id" | "name" | "key"> { }
-interface UserListGroupItem extends Pick<Group, "id" | "name" | "key"> { }
+interface UserListRoleItem extends Pick<Role, "id" | "name" | "key"> {}
+interface UserListGroupItem extends Pick<Group, "id" | "name" | "key"> {}
 
 interface UserListRoles {
   totalCount: number;
@@ -178,19 +178,19 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const columns: IColumn[] = useMemo(() => {
     const rolesAndGroupsColumns = showRolesAndGroups
       ? [
-        {
-          key: "roles",
-          name: renderToString("UsersList.column.roles"),
-          minWidth: 150,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: "groups",
-          name: renderToString("UsersList.column.groups"),
-          minWidth: 150,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-      ]
+          {
+            key: "roles",
+            name: renderToString("UsersList.column.roles"),
+            minWidth: 150,
+            columnActionsMode: ColumnActionsMode.disabled,
+          },
+          {
+            key: "groups",
+            name: renderToString("UsersList.column.groups"),
+            minWidth: 150,
+            columnActionsMode: ColumnActionsMode.disabled,
+          },
+        ]
       : [];
 
     return [

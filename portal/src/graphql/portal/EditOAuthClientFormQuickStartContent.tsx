@@ -1,10 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Dropdown, IDropdownOption, PivotItem, Text } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import WidgetTitle from "../../WidgetTitle";
 import {
   OAuthClientConfig,

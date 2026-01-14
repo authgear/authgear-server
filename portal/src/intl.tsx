@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react'
-import { FormattedMessage as RealFormattedMessage, useIntl } from 'react-intl'
+import React, { useCallback } from "react";
+import { FormattedMessage as RealFormattedMessage, useIntl } from "react-intl";
 
 // This file is to support legacy API that uses @oursky/react-messageformat
 
@@ -8,8 +8,10 @@ export interface FormattedMessageProps {
   values?: Record<string, any>;
 }
 
-export function FormattedMessage(props: FormattedMessageProps): React.ReactElement {
-  return <RealFormattedMessage id={props.id} values={props.values} />
+export function FormattedMessage(
+  props: FormattedMessageProps
+): React.ReactElement {
+  return <RealFormattedMessage id={props.id} values={props.values} />;
 }
 
 export type Values = Record<string, any>;
@@ -22,13 +24,24 @@ export interface IntlContextValue {
 export const Context = React.createContext<IntlContextValue>({
   locale: "en",
   renderToString: (id: string, _values?: Record<any, any>) => id,
-})
+});
 
-export function IntlContextProvider({ children }: { children: React.ReactNode }) {
-  const intl = useIntl()
-  const renderToString = useCallback((id: string, values?: Record<any, any>) => {
-    return intl.formatMessage({ id }, values)
-  }, [intl])
+export function IntlContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const intl = useIntl();
+  const renderToString = useCallback(
+    (id: string, values?: Record<any, any>) => {
+      return intl.formatMessage({ id }, values);
+    },
+    [intl]
+  );
 
-  return <Context.Provider value={{ locale: intl.locale, renderToString }}>{children}</Context.Provider>
+  return (
+    <Context.Provider value={{ locale: intl.locale, renderToString }}>
+      {children}
+    </Context.Provider>
+  );
 }

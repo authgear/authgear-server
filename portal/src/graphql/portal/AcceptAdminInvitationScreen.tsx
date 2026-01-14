@@ -1,11 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear, { PromptOption } from "@authgear/web";
 import { Text, DefaultEffects } from "@fluentui/react";
-import {
-  Context,
-  FormattedMessage,
-  FormattedMessageProps,
-} from "../../intl";
+import { Context, FormattedMessage, FormattedMessageProps } from "../../intl";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";

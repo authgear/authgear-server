@@ -810,7 +810,7 @@ const LocalizationConfigurationScreen: React.VFC =
       const verificationConfig = config.effectiveAppConfig?.verification;
       return Boolean(
         (verificationConfig?.claims?.email?.enabled ?? true) ||
-        (verificationConfig?.claims?.phone_number?.enabled ?? true)
+          (verificationConfig?.claims?.phone_number?.enabled ?? true)
       );
     }, [config]);
 

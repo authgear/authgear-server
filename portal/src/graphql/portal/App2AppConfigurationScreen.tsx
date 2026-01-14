@@ -2,10 +2,7 @@ import React, { useContext, useMemo } from "react";
 import styles from "./App2AppConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
-import {
-  Context as IntlContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as IntlContext, FormattedMessage } from "../../intl";
 import ScreenDescription from "../../ScreenDescription";
 import { useParams } from "react-router-dom";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";

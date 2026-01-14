@@ -1,9 +1,6 @@
 import React, { useContext } from "react";
 import { Text } from "@fluentui/react";
-import {
-  Context as MFContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MFContext, FormattedMessage } from "../../intl";
 import cn from "classnames";
 
 import { LanguageTag } from "../../util/resource";

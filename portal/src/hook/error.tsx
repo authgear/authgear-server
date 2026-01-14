@@ -18,8 +18,8 @@ interface ErrorContextValue {
 const DEFAULT_VALUE: ErrorContextValue = {
   errors: new Map(),
   error: null,
-  addError: (_id: string, _error: unknown) => { },
-  removeError: (_id: string) => { },
+  addError: (_id: string, _error: unknown) => {},
+  removeError: (_id: string) => {},
 };
 
 const ErrorContext = createContext(DEFAULT_VALUE);

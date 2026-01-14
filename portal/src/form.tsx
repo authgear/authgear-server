@@ -152,7 +152,7 @@ export function useFormField(field: FormField | undefined): FormFieldProps {
 
   useEffect(() => {
     if (field == null) {
-      return () => { };
+      return () => {};
     }
     registerField?.(field);
     return () => unregisterField?.(field);

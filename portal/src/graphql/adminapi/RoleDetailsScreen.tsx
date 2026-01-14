@@ -12,10 +12,7 @@ import {
 } from "../../RoleAndGroupsLayout";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { useNavigate, useParams } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";

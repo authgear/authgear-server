@@ -9,10 +9,7 @@ import {
   DialogFooter,
 } from "@fluentui/react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { useQuery, useMutation } from "@apollo/client";
 import Link from "../../Link";
 import ScreenTitle from "../../ScreenTitle";

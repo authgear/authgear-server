@@ -14,8 +14,12 @@ const defaultRichTextElements = {
 };
 
 // This is to support legacy API that uses @oursky/react-messageformat
-function _LegacyAPIContextProvider({ children }: { children: React.ReactNode }) {
-  return <IntlContextProvider>{children}</IntlContextProvider>
+function _LegacyAPIContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <IntlContextProvider>{children}</IntlContextProvider>;
 }
 
 export function AppLocaleProvider({

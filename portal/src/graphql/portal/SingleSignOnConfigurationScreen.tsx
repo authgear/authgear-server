@@ -8,10 +8,7 @@ import {
   SpinnerSize,
   Text,
 } from "@fluentui/react";
-import {
-  Context as IntlContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as IntlContext, FormattedMessage } from "../../intl";
 import {
   OAuthClientRow,
   OAuthClientRowHeader,

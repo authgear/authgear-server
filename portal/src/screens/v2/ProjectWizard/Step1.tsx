@@ -1,10 +1,7 @@
 import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import { Text } from "../../../components/project-wizard/Text";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../../intl";
 import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";

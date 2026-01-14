@@ -1,10 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
 import { Text } from "../../../components/onboarding/Text";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../../intl";
 import { OnboardingSurveyFormModel, UseCase } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";

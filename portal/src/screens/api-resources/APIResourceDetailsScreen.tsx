@@ -2,10 +2,7 @@ import React, { useContext, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "../../intl";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { PivotItem } from "@fluentui/react";

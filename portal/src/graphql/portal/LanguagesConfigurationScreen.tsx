@@ -9,10 +9,7 @@ import { useParams } from "react-router-dom";
 import { Checkbox, IDropdownOption, Label, List, Text } from "@fluentui/react";
 import { produce } from "immer";
 import cn from "classnames";
-import {
-  Context as MFContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MFContext, FormattedMessage } from "../../intl";
 
 import FormContainer from "../../FormContainer";
 import HorizontalDivider from "../../HorizontalDivider";

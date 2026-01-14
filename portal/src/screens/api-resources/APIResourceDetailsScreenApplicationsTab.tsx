@@ -1,8 +1,5 @@
 import React, { useMemo, useCallback, useState, useContext } from "react";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import WidgetTitle from "../../WidgetTitle";
 import { SearchBox, Text } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";

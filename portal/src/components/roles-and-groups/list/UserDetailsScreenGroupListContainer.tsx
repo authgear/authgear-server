@@ -1,9 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { SearchBox } from "@fluentui/react";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "../../../intl";
+import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";

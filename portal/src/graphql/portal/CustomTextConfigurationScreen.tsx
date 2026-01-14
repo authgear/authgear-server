@@ -61,7 +61,7 @@ const CustomTextConfigurationScreen: React.VFC =
       return (
         config.effectiveAppConfig?.localization?.supported_languages ?? [
           config.effectiveAppConfig?.localization?.fallback_language ??
-          DEFAULT_TEMPLATE_LOCALE,
+            DEFAULT_TEMPLATE_LOCALE,
         ]
       );
     }, [config.effectiveAppConfig?.localization]);

@@ -3,10 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import styles from "./EditOAuthClientFormResourcesContent.module.css";
 import WidgetTitle from "../../WidgetTitle";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
 import {
   useResourcesQueryQuery,

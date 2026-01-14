@@ -80,7 +80,7 @@ function isLocationState(raw: unknown): raw is LocationState {
     typeof raw === "object" &&
     typeof (raw as Partial<LocationState>).keyID === "string" &&
     typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
-    "boolean" &&
+      "boolean" &&
     typeof (raw as Partial<LocationState>)
       .shouldGenerateShortLivedAdminAPIToken === "boolean"
   );
