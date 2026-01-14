@@ -283,7 +283,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to decode refresh token",
 			slog.Bool("refresh_token_log", true),
 		)
@@ -293,7 +293,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(ctx, grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get offline grant: not found",
 			slog.String("offline_grant_id", grantID),
 			slog.Bool("refresh_token_log", true),
@@ -301,7 +301,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get offline grant",
 			slog.String("offline_grant_id", grantID),
 			slog.Bool("refresh_token_log", true),
@@ -312,7 +312,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	tokenHash = oauth.HashToken(token)
 	if !offlineGrant.MatchCurrentHash(tokenHash) {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+		logger.WithSkipStackTrace().Warn(ctx,
 			"failed to match refresh token hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -324,7 +324,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	offlineGrantSession, ok := offlineGrant.ToSession(tokenHash)
 	if !ok {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+		logger.WithSkipStackTrace().Warn(ctx,
 			"failed to convert offline grant to session",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -336,14 +336,14 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	_, client := resolveClient(ctx, s.ClientResolver, offlineGrantSession.ClientID)
 
 	if dpopErr := offlineGrantSession.MatchDPoPJKT(ctx, client, func(dpopErr error) {
-		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
+		logger.WithError(dpopErr).Warn(ctx,
 			"failed to match dpop jkt on parse refresh token",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("dpop_logs", true),
 		)
 
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+		logger.WithSkipStackTrace().Warn(ctx,
 			"failed to match DPoP JKT",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -356,7 +356,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get authorization: not found",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -365,7 +365,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get authorization",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -379,7 +379,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
 			// NOTE(DEV-2982): This is for debugging the session lost problem
-			logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+			logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 				"failed to get user: not found",
 				slog.String("user_id", offlineGrant.GetUserID()),
 				slog.String("offline_grant_id", offlineGrant.ID),
@@ -388,7 +388,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			return nil, nil, "", ErrInvalidRefreshToken
 		}
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get user",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
@@ -400,7 +400,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	err = u.AccountStatus(now).Check()
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"user account status check failed",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
