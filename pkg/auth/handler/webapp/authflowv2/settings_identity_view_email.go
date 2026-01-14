@@ -193,9 +193,10 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 
 		s := session.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityEmail(ctx, s, &accountmanagement.StartUpdateIdentityEmailInput{
-			LoginID:    loginID,
-			LoginIDKey: loginIDKey,
-			IdentityID: identityID,
+			LoginID:                 loginID,
+			LoginIDKey:              loginIDKey,
+			IdentityID:              identityID,
+			IsVerificationRequested: true,
 		})
 		if err != nil {
 			return err

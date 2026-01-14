@@ -303,6 +303,8 @@ type StartUpdateIdentityEmailInput struct {
 	IdentityID string
 	LoginID    string
 	LoginIDKey string
+	// IsVerificationRequested is true if user requests to verify the identity.
+	IsVerificationRequested bool
 }
 
 type StartUpdateIdentityEmailOutput struct {
@@ -336,7 +338,9 @@ func (s *Service) StartUpdateIdentityEmail(ctx context.Context, resolvedSession 
 		if err != nil {
 			return err
 		}
-		needVerification = !verified && *s.Config.Verification.Claims.Email.Enabled && *s.Config.Verification.Claims.Email.Required
+		needVerification = !verified &&
+			*s.Config.Verification.Claims.Email.Enabled &&
+			(*s.Config.Verification.Claims.Email.Required || input.IsVerificationRequested)
 
 		if needVerification {
 			target := newInfo.LoginID.LoginID
