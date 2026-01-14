@@ -200,10 +200,11 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 
 		s := session.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
-			Channel:    channel,
-			LoginID:    loginID,
-			LoginIDKey: loginIDKey,
-			IdentityID: identityID,
+			Channel:                 channel,
+			LoginID:                 loginID,
+			LoginIDKey:              loginIDKey,
+			IdentityID:              identityID,
+			IsVerificationRequested: true,
 		})
 		if err != nil {
 			return err

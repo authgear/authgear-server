@@ -699,6 +699,8 @@ type StartUpdateIdentityPhoneInput struct {
 	IdentityID string
 	LoginID    string
 	LoginIDKey string
+	// IsVerificationRequested is true if the user requests to verify the identity.
+	IsVerificationRequested bool
 }
 
 type StartUpdateIdentityPhoneOutput struct {
@@ -731,7 +733,10 @@ func (s *Service) StartUpdateIdentityPhone(ctx context.Context, resolvedSession 
 		if err != nil {
 			return err
 		}
-		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
+		needVerification = !verified &&
+			*s.Config.Verification.Claims.PhoneNumber.Enabled &&
+			(*s.Config.Verification.Claims.PhoneNumber.Required || input.IsVerificationRequested)
+
 		if needVerification {
 			target := info.LoginID.LoginID
 			err = s.sendOTPCode(ctx, userID, input.Channel, target, false)
