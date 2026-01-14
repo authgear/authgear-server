@@ -591,7 +591,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	}
 
 	if dpopErr := codeGrant.MatchDPoPJKT(ctx, client, func(dpopErr error) {
-		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
+		logger.WithError(dpopErr).Warn(ctx,
 			"failed to match dpop jkt on issue tokens",
 			slog.String("user_id", codeGrant.AuthenticationInfo.UserID),
 			slog.Bool("dpop_logs", true),
@@ -657,7 +657,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx, "failed to invalidate code grant",
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx, "failed to invalidate code grant",
 			slog.Bool("refresh_token_log", true))
 	}
 
@@ -678,7 +678,7 @@ func (h *TokenHandler) handleRefreshToken(
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to get device info from token request",
 			slog.Bool("refresh_token_log", true),
 		)
@@ -694,7 +694,7 @@ func (h *TokenHandler) handleRefreshToken(
 			userID = offlineGrant.GetUserID()
 		}
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to parse refresh token",
 			slog.String("offline_grant_id", offlineGrantID),
 			slog.String("user_id", userID),
@@ -711,7 +711,7 @@ func (h *TokenHandler) handleRefreshToken(
 	offlineGrantSession, ok := offlineGrant.ToSession(currentRefreshTokenHash)
 	if !ok {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to convert offline grant to session by hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -723,7 +723,7 @@ func (h *TokenHandler) handleRefreshToken(
 	handleResult, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to issue tokens for refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -734,7 +734,7 @@ func (h *TokenHandler) handleRefreshToken(
 
 	if client.ClientID != offlineGrantSession.ClientID {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+		logger.WithSkipStackTrace().Warn(ctx,
 			"client ID in request does match that of refresh token",
 			slog.String("client_id", client.ClientID),
 			slog.String("offline_grant_client_id", offlineGrantSession.ClientID),
@@ -748,7 +748,7 @@ func (h *TokenHandler) handleRefreshToken(
 	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, offlineGrantSession.InitialTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to access offline grant during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -760,7 +760,7 @@ func (h *TokenHandler) handleRefreshToken(
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(ctx, offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
+		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
 			"failed to update offline grant device info during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -846,7 +846,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
 	logger := TokenHandlerLogger.GetLogger(ctx)
 
 	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(ctx, client, func(dpopErr error) {
-		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
+		logger.WithError(dpopErr).Warn(ctx,
 			"failed to match dpop jkt of device_secret",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("dpop_logs", true),
@@ -1864,7 +1864,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		} else {
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := authz.UserID
-			logger.WithSkipLogging().WithSkipStackTrace().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
+			logger.WithSkipStackTrace().Warn(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
 				slog.String("user_id", userID),
 				slog.Bool("refresh_token_log", true))
 		}
