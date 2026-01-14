@@ -139,7 +139,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 			userID := i.userID(workflows.Nearest)
 			now := deps.Clock.NowUTC()
 			logger := latteSignupLogger.GetLogger(ctx)
-			logger.WithSkipLogging().WithSkipStackTrace().Error(ctx, "updated last login",
+			logger.WithSkipStackTrace().Warn(ctx, "updated last login",
 				slog.String("user_id", userID),
 				slog.Bool("refresh_token_log", true))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
