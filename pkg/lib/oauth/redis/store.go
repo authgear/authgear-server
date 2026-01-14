@@ -279,7 +279,7 @@ func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 
 	logger := OAuthStoreLogger.GetLogger(ctx)
 	// NOTE(DEV-2982): This is for debugging the session lost problem
-	logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+	logger.WithSkipStackTrace().Warn(ctx,
 		"create offline grant",
 		slog.String("offline_grant_id", grant.ID),
 		slog.String("offline_grant_initial_client_id", grant.InitialClientID),
@@ -630,7 +630,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		// TODO(slog): Before we have fine-grained logging, use WithSkipLogging().Error() to force logging to stderr.
-		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+		logger.WithSkipStackTrace().Warn(ctx,
 			"delete offline grant",
 			slog.String("offline_grant_id", grant.ID),
 			slog.String("offline_grant_initial_client_id", grant.InitialClientID),
