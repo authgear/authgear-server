@@ -103,7 +103,7 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 		}, nil, &timeToAct, nil
 	}
 
-	logger.WithSkipStackTrace().WithSkipLogging().Error(ctx, "rate limited",
+	logger.WithSkipStackTrace().Warn(ctx, "rate limited",
 		slog.Bool("global", spec.IsGlobal),
 		slog.String("bucket", string(spec.Name)),
 		slog.String("ratelimitgroup", string(spec.RateLimitGroup)),
