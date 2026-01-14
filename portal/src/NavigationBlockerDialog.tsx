@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Location } from "react-router";
 import { useNavigate, useBlocker } from "react-router-dom";
 import BlockerDialog from "./BlockerDialog";
@@ -19,7 +19,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
       destination?: Location;
     }>({ visible: false });
 
-    useBlocker(
+    const blocker = useBlocker(
       useCallback(
         ({
           nextLocation,
@@ -39,6 +39,13 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
         [blockNavigation, navigationBlockerDialog.visible]
       )
     );
+
+    useEffect(() => {
+      // ensure the blocker is reset at unmount
+      return () => {
+        if (blocker.state === "blocked") blocker.reset();
+      };
+    }, [blocker]);
 
     const onDialogDismiss = useCallback(() => {
       setNavigationBlockerDialog({ visible: false });
