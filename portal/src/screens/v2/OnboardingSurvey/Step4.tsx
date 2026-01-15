@@ -27,7 +27,9 @@ export function Step4(): React.ReactElement {
             <FormattedMessage
               id="OnboardingSurveyScreen.step4.header"
               values={{
-                Hint: Text.HeadingHint,
+                Hint: (chunks: React.ReactNode) => (
+                  <Text.HeadingHint>{chunks}</Text.HeadingHint>
+                ),
               }}
             />
           </Text.Heading>

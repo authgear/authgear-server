@@ -26,6 +26,7 @@ import {
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
 import LabelWithTooltip from "./LabelWithTooltip";
+import ExternalLink from "./ExternalLink";
 import {
   UserProfileAttributesAccessControl,
   AccessControlLevelString,
@@ -261,7 +262,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       canDrop: () => true,
       canDrag: () => true,
       onDragEnter: () => styles.onDragEnter,
-      onDragLeave: () => {},
+      onDragLeave: () => { },
       onDragStart: (_item?: T, index?: number) => {
         if (index != null) {
           setDNDIndex(index);
@@ -331,7 +332,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
                 party: pendingUpdate.mainAdjustment[0],
                 level: renderToString(
                   "user-profile.access-control-level." +
-                    pendingUpdate.mainAdjustment[1]
+                  pendingUpdate.mainAdjustment[1]
                 ),
               }}
             />
@@ -547,6 +548,8 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     onRenderReorderHandle,
   ]);
 
+
+
   const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
     useCallback(
       (
@@ -566,6 +569,25 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
           props.column.key === "bearer" ||
           props.column.key === "end_user"
         ) {
+          let tooltipValues: Record<string, any> | undefined;
+          if (props.column.key === "end_user") {
+            tooltipValues = {
+              DocLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
+                  {chunks}
+                </ExternalLink>
+              ),
+            };
+          } else if (props.column.key === "bearer") {
+            tooltipValues = {
+              DocLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
+                  {chunks}
+                </ExternalLink>
+              ),
+            };
+          }
+
           return (
             <LabelWithTooltip
               labelId={
@@ -574,6 +596,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
               tooltipMessageId={
                 "UserProfileAttributesList.header.tooltip." + props.column.key
               }
+              tooltipValues={tooltipValues}
               directionalHint={DirectionalHint.topCenter}
             />
           );

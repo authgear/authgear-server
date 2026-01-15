@@ -45,6 +45,7 @@ import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenM
 import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
+import ExternalLink from "../../ExternalLink";
 import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
@@ -80,7 +81,7 @@ function isLocationState(raw: unknown): raw is LocationState {
     typeof raw === "object" &&
     typeof (raw as Partial<LocationState>).keyID === "string" &&
     typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
-      "boolean" &&
+    "boolean" &&
     typeof (raw as Partial<LocationState>)
       .shouldGenerateShortLivedAdminAPIToken === "boolean"
   );
@@ -409,7 +410,12 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
               <FormattedMessage id="AdminAPIConfigurationScreen.title" />
             </ScreenTitle>
             <ScreenDescription className={styles.widget}>
-              <FormattedMessage id="AdminAPIConfigurationScreen.description" />
+              <FormattedMessage
+                id="AdminAPIConfigurationScreen.description"
+                values={{
+                  b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                }}
+              />
             </ScreenDescription>
             <Widget className={styles.widget}>
               <WidgetTitle>
@@ -430,7 +436,17 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 readOnly={true}
               />
               <WidgetDescription>
-                <FormattedMessage id="AdminAPIConfigurationScreen.details.description" />
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.details.description"
+                  values={{
+                    docLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                    code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                  }}
+                />
               </WidgetDescription>
             </Widget>
             <HorizontalDivider className={styles.separator} />
@@ -525,12 +541,24 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 messageBarType={MessageBarType.warning}
                 styles={messageBarStyles}
               >
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.graphiql.warning"
+                  values={{
+                    b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                  }}
+                />
               </MessageBar>
               <WidgetDescription>
                 <FormattedMessage
                   id="AdminAPIConfigurationScreen.graphiql.description"
-                  values={{ graphqlEndpoint }}
+                  values={{
+                    graphqlEndpoint,
+                    docLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                  }}
                 />
               </WidgetDescription>
               <div>

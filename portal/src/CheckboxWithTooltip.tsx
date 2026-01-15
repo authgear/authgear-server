@@ -7,17 +7,24 @@ import Tooltip from "./Tooltip";
 
 interface CheckboxWithTooltipProps extends ICheckboxProps {
   tooltipMessageId: string;
+  tooltipMessageValues?: Record<string, any>;
 }
 
 const CheckboxWithTooltip: React.VFC<CheckboxWithTooltipProps> =
   function CheckboxWithTooltip(props: CheckboxWithTooltipProps) {
-    const { tooltipMessageId, className, ...rest } = props;
+    const {
+      tooltipMessageId,
+      tooltipMessageValues,
+      className,
+      ...rest
+    } = props;
 
     return (
       <div className={cn(styles.root, className)}>
         <Checkbox {...rest} />
         <Tooltip
           tooltipMessageId={tooltipMessageId}
+          tooltipMessageValues={tooltipMessageValues}
           className={styles.tooltip}
         />
       </div>

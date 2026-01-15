@@ -31,7 +31,7 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
 import {
   formatCertificateFilename,
@@ -184,7 +184,11 @@ function IdpCertificateSection({
           <FormattedMessage
             id="OAuthClientSAMLForm.idpCertificate.rotateHint"
             values={{
-              href: `/project/${appID}/advanced/saml-certificate`,
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/advanced/saml-certificate`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         </MessageBar>
@@ -716,8 +720,8 @@ export function OAuthClientSAMLForm({
                     formState.isSLOEnabled
                       ? endpoints.logout
                       : renderToString(
-                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
-                        )
+                        "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                      )
                   }
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}

@@ -13,6 +13,7 @@ import { FormattedMessage } from "./intl";
 interface TooltipProps {
   className?: string;
   tooltipMessageId: string;
+  tooltipMessageValues?: Record<string, any>;
   isHidden?: boolean;
   children?: React.ReactNode;
 }
@@ -63,19 +64,28 @@ export function TooltipIcon(props: TooltipIconProps): React.ReactElement {
 }
 
 const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
-  const { className, tooltipMessageId, isHidden, children } = props;
+  const {
+    className,
+    tooltipMessageId,
+    tooltipMessageValues,
+    isHidden,
+    children,
+  } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {
       // eslint-disable-next-line react/no-unstable-nested-components
       onRenderContent: () => (
         <div className={styles.tooltip}>
           <span>
-            <FormattedMessage id={tooltipMessageId} />
+            <FormattedMessage
+              id={tooltipMessageId}
+              values={tooltipMessageValues}
+            />
           </span>
         </div>
       ),
     };
-  }, [tooltipMessageId]);
+  }, [tooltipMessageId, tooltipMessageValues]);
 
   return (
     <div className={cn(className, styles.root)}>

@@ -18,6 +18,7 @@ import {
   SSOProviderFormSecretViewModel,
 } from "../../types";
 import Widget from "../../Widget";
+import ExternalLink from "../../ExternalLink";
 
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
@@ -760,7 +761,20 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 )}
                 // @ts-expect-error
                 description={
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.domain-hint.description" />
+                  <FormattedMessage
+                    id="SingleSignOnConfigurationScreen.widget.domain-hint.description"
+                    values={{
+                      externalLink: (chunks: React.ReactNode) => (
+                        <ExternalLink
+                          href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/direct-signin?pivots=b2c-user-flow#redirect-sign-in-to-a-social-provider"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 }
                 className={styles.textField}
                 styles={TEXT_FIELD_STYLE}
@@ -1020,9 +1034,8 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           <div className={styles.rowContent}>
             <div className={styles.rowName}>
               <Text variant="medium" className={styles.rowTitle} block={true}>
-                {`${renderToString(titleId)}${
-                  subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
-                }`}
+                {`${renderToString(titleId)}${subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+                  }`}
                 {showAlias ? ` - ${providerConfig.alias}` : null}
               </Text>
             </div>

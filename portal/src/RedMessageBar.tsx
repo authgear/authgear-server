@@ -8,7 +8,7 @@ import {
   ThemeProvider,
 } from "@fluentui/react";
 import { FormattedMessage } from "./intl";
-import { useParams } from "react-router-dom";
+import { Link as ReactRouterLink, useParams } from "react-router-dom";
 import { useMergedStyles } from "./util/mergeStyles";
 
 export default function RedMessageBar(
@@ -65,7 +65,13 @@ export function RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen(
     <RedMessageBar {...props}>
       <FormattedMessage
         id="RedMessageBar.remind-configure-sms-provider-in-non-sms-provider-screen"
-        values={{ to: `/project/${appID}/advanced/sms-gateway` }}
+        values={{
+          ReactRouterLink: (children: React.ReactNode) => (
+            <ReactRouterLink to={`/project/${appID}/advanced/sms-gateway`}>
+              {children}
+            </ReactRouterLink>
+          ),
+        }}
       />
     </RedMessageBar>
   );
@@ -99,7 +105,13 @@ export function RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen(
     <RedMessageBar {...props}>
       <FormattedMessage
         id="RedMessageBar.remind-configure-smtp-in-non-smtp-configuration-screen"
-        values={{ to: `/project/${appID}/advanced/smtp` }}
+        values={{
+          ReactRouterLink: (children: React.ReactNode) => (
+            <ReactRouterLink to={`/project/${appID}/advanced/smtp`}>
+              {children}
+            </ReactRouterLink>
+          ),
+        }}
       />
     </RedMessageBar>
   );

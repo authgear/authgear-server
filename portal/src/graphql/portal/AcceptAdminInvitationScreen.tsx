@@ -103,7 +103,7 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
             navigate(`/project/${appID}`);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }, [acceptCollaboratorInvitation, invitationCode, navigate]);
 
     if (errors.length > 0) {
@@ -217,7 +217,10 @@ const AcceptAdminInvitationScreen: React.VFC =
         <AcceptAdminInvitationContent
           title={{
             id: "AcceptAdminInvitationScreen.not-authenticaed.title",
-            values: { appID: appID! },
+            values: {
+              appID: appID!,
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+            },
           }}
           descriptions={[
             { id: "AcceptAdminInvitationScreen.not-authenticaed.description" },

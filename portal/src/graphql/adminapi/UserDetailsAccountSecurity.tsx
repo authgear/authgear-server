@@ -640,9 +640,12 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             <FormattedMessage
               id="UserDetails.account-security.expired"
               values={{
-                prefixClassName: styles.passwordCellExpiredPrefix,
                 expiredInDays,
-                Text,
+                text: (chunks: React.ReactNode) => (
+                  <Text className={styles.passwordCellExpiredPrefix}>
+                    {chunks}
+                  </Text>
+                ),
               }}
             />
           </MessageBar>
@@ -909,7 +912,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       // Global grace period without deadline, no need to extend
       if (
         authenticationConfig?.secondary_authentication_grace_period?.enabled ===
-          true &&
+        true &&
         globalGracePeriodEndAt == null
       ) {
         return false;
@@ -1102,7 +1105,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     const onConfirmDeleteAuthenticator = useCallback(
       (authenticatorID) => {
         deleteAuthenticator(authenticatorID)
-          .catch(() => {})
+          .catch(() => { })
           .finally(() => {
             dismissConfirmationDialog();
           });
@@ -1113,7 +1116,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     const onConfirmDeleteIdentity = useCallback(
       (identityID) => {
         deleteIdentity(identityID)
-          .catch(() => {})
+          .catch(() => { })
           .finally(() => {
             dismissConfirmationDialog();
           });
@@ -1221,20 +1224,20 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             confirmationDialogData?.type === "authenticator"
               ? onConfirmDeleteAuthenticator
               : confirmationDialogData?.type === "identity"
-              ? onConfirmDeleteIdentity
-              : undefined
+                ? onConfirmDeleteIdentity
+                : undefined
           }
           loading={
             confirmationDialogData?.type === "authenticator"
               ? deletingAuthenticator
               : confirmationDialogData?.type === "identity"
-              ? deletingIdentity
-              : undefined
+                ? deletingIdentity
+                : undefined
           }
           onDismiss={dismissConfirmationDialog}
         />
         {primaryAuthenticatorLists.hasVisibleList ||
-        primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
+          primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
           <div className={styles.authenticatorContainer}>
             <div
               className={cn(
@@ -1321,7 +1324,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           </div>
         ) : null}
         {secondaryAuthenticatorLists.hasVisibleList ||
-        secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
+          secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
           <div className={styles.authenticatorContainer}>
             <div
               className={cn(
@@ -1430,8 +1433,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               </div>
             ) : null}
             {secondaryAuthicatorIsRequired &&
-            (!secondaryAuthenticatorLists.hasVisibleList ||
-              !secondaryAuthenticatorLists.hasEnabledAuthenticator) ? (
+              (!secondaryAuthenticatorLists.hasVisibleList ||
+                !secondaryAuthenticatorLists.hasEnabledAuthenticator) ? (
               <>
                 <Text as="h3" className={cn(styles.authenticatorEmpty)}>
                   {!secondaryAuthenticatorLists.hasVisibleList ? (
@@ -1471,8 +1474,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     <FormattedMessage
                       id="UserDetails.account-security.secondary.update-existing-grace-period"
                       values={{
-                        Extend: onRenderExtendedMFAGracePeriod,
-                        Cancel: onRenderCancelMFAGracePeriod,
+                        extend: onRenderExtendedMFAGracePeriod,
+                        cancel: onRenderCancelMFAGracePeriod,
                       }}
                     />
                   </div>

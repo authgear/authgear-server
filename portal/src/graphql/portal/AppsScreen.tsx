@@ -8,6 +8,7 @@ import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import BlueMessageBar from "../../BlueMessageBar";
+import ExternalLink from "../../ExternalLink";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
 import { AppListItem, Viewer } from "./globalTypes.generated";
@@ -79,7 +80,16 @@ function ProjectQuotaMessageBar(
   }
   return (
     <BlueMessageBar>
-      <FormattedMessage id="AppsScreen.project-quota-reached" />
+      <FormattedMessage
+        id="AppsScreen.project-quota-reached"
+        values={{
+          externalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="https://go.authgear.com/portal-support">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
+      />
     </BlueMessageBar>
   );
 }

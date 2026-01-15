@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode } from "react";
 import { MessageBar } from "@fluentui/react";
 import { FormattedMessage } from "../../intl";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { PortalAPIAppConfig } from "../../types";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
@@ -54,7 +54,11 @@ export default function ShowOnlyIfSIWEIsDisabled(
         <FormattedMessage
           id="SIWE.disable-first"
           values={{
-            href: `/project/${appID}/configuration/authentication/web3`,
+            reactRouterLink: (chunks: React.ReactNode) => (
+              <Link to={`/project/${appID}/configuration/authentication/web3`}>
+                {chunks}
+              </Link>
+            ),
           }}
         />
       </MessageBar>

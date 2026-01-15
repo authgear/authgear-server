@@ -24,7 +24,7 @@ import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { PortalAPIAppConfig } from "../../types";
 import styles from "./EndpointDirectAccessScreen.module.css";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useDomainsQuery } from "./query/domainsQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -89,8 +89,8 @@ function makeConstructRedirectURLFormState(domains: Domain[]) {
           ? "ShowError"
           : "ShowBrandPage"
         : default_redirect_uri === ""
-        ? "ShowLoginAndRedirectToSettings"
-        : "ShowLoginAndRedirectToCustomURL";
+          ? "ShowLoginAndRedirectToSettings"
+          : "ShowLoginAndRedirectToCustomURL";
 
     return {
       public_origin,
@@ -343,7 +343,11 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label--disabled"
             values={{
-              href: `/project/${appID}/branding/custom-domains`,
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/custom-domains`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         ) : (
@@ -358,7 +362,11 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label--disabled"
             values={{
-              href: `/project/${appID}/branding/custom-domains`,
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/custom-domains`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         ) : (
@@ -445,6 +453,7 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section1.description"
                 values={{
                   endpoint: publicOrigin,
+                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                 }}
               />
             </Text>
@@ -465,6 +474,7 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section2.description"
                 values={{
                   endpoint: publicOrigin,
+                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                 }}
               />
             </Text>

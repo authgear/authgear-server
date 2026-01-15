@@ -139,31 +139,31 @@ function formatSystemZone(now: Date, locale: string): string {
 
 function getMostAppropriateAccountState(accountStatus: AccountStatus):
   | {
-      state: "scheduled-deletion";
-      deleteAt: Date;
-    }
+    state: "scheduled-deletion";
+    deleteAt: Date;
+  }
   | {
-      state: "anonymized";
-    }
+    state: "anonymized";
+  }
   | {
-      state: "scheduled-anonymization";
-      anonymizeAt: Date;
-    }
+    state: "scheduled-anonymization";
+    anonymizeAt: Date;
+  }
   | {
-      state: "less-than-account-valid-from";
-      accountValidFrom: Date;
-    }
+    state: "less-than-account-valid-from";
+    accountValidFrom: Date;
+  }
   | {
-      state: "greater-than-or-equal-to-account-valid-until";
-      accountValidUntil: Date;
-    }
+    state: "greater-than-or-equal-to-account-valid-until";
+    accountValidUntil: Date;
+  }
   | {
-      state: "disabled";
-      temporarilyDisabledUntil: Date | null;
-    }
+    state: "disabled";
+    temporarilyDisabledUntil: Date | null;
+  }
   | {
-      state: "normal";
-    } {
+    state: "normal";
+  } {
   const now = new Date();
   if (accountStatus.deleteAt != null) {
     return {
@@ -431,8 +431,8 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
           </Text>
         </div>
         {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
-        (buttonStates.toggleDisable.disableReason != null ||
-          buttonStates.toggleDisable.temporarilyDisabledUntil != null) ? (
+          (buttonStates.toggleDisable.disableReason != null ||
+            buttonStates.toggleDisable.temporarilyDisabledUntil != null) ? (
           <div className={styles.actionCellDescription}>
             {buttonStates.toggleDisable.disableReason != null ? (
               <>
@@ -538,7 +538,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
             }}
           >
             {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+              buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.body--unset" />
             ) : (
               <>
@@ -552,13 +552,16 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidFrom
                           ) ?? "",
+                        strong: (chunks: React.ReactNode) => (
+                          <strong>{chunks}</strong>
+                        ),
                       }}
                     />
                     <br />
                   </>
                 ) : null}
                 {buttonStates.setAccountValidPeriod.accountValidUntil !=
-                null ? (
+                  null ? (
                   <>
                     <FormattedMessage
                       id="UserDetailsAccountStatus.account-valid-period.end"
@@ -568,6 +571,9 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidUntil
                           ) ?? "",
+                        strong: (chunks: React.ReactNode) => (
+                          <strong>{chunks}</strong>
+                        ),
                       }}
                     />
                     <br />
@@ -585,7 +591,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
           iconProps={{ iconName: "Calendar" }}
           text={
             buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+              buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
             ) : (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
@@ -593,7 +599,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
           }
           onClick={
             buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-            buttonStates.setAccountValidPeriod.accountValidUntil == null
+              buttonStates.setAccountValidPeriod.accountValidUntil == null
               ? onClickSetAccountValidPeriod
               : onClickEditAccountValidPeriod
           }
@@ -854,17 +860,17 @@ export interface AccountStatusDialogProps {
   isHidden: boolean;
   onDismiss: (info: { deletedUser: boolean }) => void;
   mode:
-    | "disable"
-    | "re-enable"
-    | "set-account-valid-period"
-    | "edit-account-valid-period"
-    | "anonymize-or-schedule"
-    | "cancel-anonymization"
-    | "anonymize-immediately"
-    | "delete-or-schedule"
-    | "cancel-deletion"
-    | "delete-immediately"
-    | "auto";
+  | "disable"
+  | "re-enable"
+  | "set-account-valid-period"
+  | "edit-account-valid-period"
+  | "anonymize-or-schedule"
+  | "cancel-anonymization"
+  | "anonymize-immediately"
+  | "delete-or-schedule"
+  | "cancel-deletion"
+  | "delete-immediately"
+  | "auto";
   accountStatus: AccountStatus;
 }
 
@@ -1354,7 +1360,10 @@ export function AccountStatusDialog(
       subText = (
         <FormattedMessage
           id="AccountStatusDialog.reenable-user.description"
-          values={args}
+          values={{
+            ...args,
+            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+          }}
         />
       );
       button1 = (
@@ -1373,7 +1382,11 @@ export function AccountStatusDialog(
       subText = (
         <FormattedMessage
           id="AccountStatusDialog.disable-user.description"
-          values={args}
+          values={{
+            ...args,
+            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+            br: <br />,
+          }}
         />
       );
       body = disableForm;

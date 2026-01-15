@@ -36,6 +36,9 @@ import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import ExternalLink from "../../ExternalLink";
+
+
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
@@ -558,8 +561,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           />
         ) : null}
         {isAuthgearOnce &&
-        isSMTPRequiredForSomeEnabledFeatures &&
-        !smtpConfigured ? (
+          isSMTPRequiredForSomeEnabledFeatures &&
+          !smtpConfigured ? (
           <div className={cn(styles.widget, "flex flex-col")}>
             <RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen className="self-start w-fit" />
           </div>
@@ -596,7 +599,16 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {form.state.providerType === ProviderType.Custom ? (
                 <>
                   <ProviderCardDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
+                    <FormattedMessage
+                      id="SMTPConfigurationScreen.custom.description"
+                      values={{
+                        DocLink: (chunks: React.ReactNode) => (
+                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                            {chunks}
+                          </ExternalLink>
+                        ),
+                      }}
+                    />
                   </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}
@@ -684,7 +696,16 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {form.state.providerType === ProviderType.Sendgrid ? (
                 <>
                   <ProviderCardDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
+                    <FormattedMessage
+                      id="SMTPConfigurationScreen.sendgrid.description"
+                      values={{
+                        DocLink: (chunks: React.ReactNode) => (
+                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                            {chunks}
+                          </ExternalLink>
+                        ),
+                      }}
+                    />
                   </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}
@@ -814,7 +835,7 @@ const SMTPConfigurationScreen1: React.VFC<{
             configQuery.effectiveAppConfig.authentication
               .secondary_authentication_mode === "required")) ||
         configQuery.effectiveAppConfig?.verification?.claims?.email?.enabled ===
-          true,
+        true,
       smtpConfigured: configQuery.secretConfig?.smtpSecret != null,
     };
   }, [
@@ -845,7 +866,7 @@ const SMTPConfigurationScreen1: React.VFC<{
     },
     reload: () => {
       configForm.reload();
-      featureConfig.refetch().finally(() => {});
+      featureConfig.refetch().finally(() => { });
     },
     reset: () => {
       configForm.reset();

@@ -1,3 +1,4 @@
+import React from "react";
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
 import {
@@ -13,6 +14,7 @@ import {
   matchParentChild,
 } from "../util/jsonpointer";
 import { APIResourceUpdateConflictError } from "./resourceUpdateConflict";
+import ExternalLink from "../ExternalLink";
 
 export interface FormField {
   parentJSONPointer: string | RegExp;
@@ -237,6 +239,8 @@ function parseError(error: APIError): ParsedAPIError[] {
         messageID: "errors.webhook.disallowed",
         arguments: {
           info: JSON.stringify(error.info ?? {}),
+          code: (chunks: React.ReactNode) =>
+            React.createElement("code", null, chunks),
         },
       });
       break;
@@ -250,6 +254,14 @@ function parseError(error: APIError): ParsedAPIError[] {
     case "HookInvalidResponse": {
       errors.push({
         messageID: "errors.webhook.invalid-response",
+        arguments: {
+          docLink: (chunks: React.ReactNode) =>
+            React.createElement(
+              ExternalLink,
+              { href: "https://docs.authgear.com/customization/events-hooks" },
+              chunks
+            ),
+        },
       });
       break;
     }
@@ -265,6 +277,14 @@ function parseError(error: APIError): ParsedAPIError[] {
     case "AlchemyProtocol": {
       errors.push({
         messageID: "errors.alchemy-protocol",
+        arguments: {
+          externalLink: (chunks: React.ReactNode) =>
+            React.createElement(
+              ExternalLink,
+              { href: "mailto:hello@authgear.com" },
+              chunks
+            ),
+        },
       });
       break;
     }
@@ -273,6 +293,8 @@ function parseError(error: APIError): ParsedAPIError[] {
         messageID: "errors.deno-hook.typecheck",
         arguments: {
           message: error.message ?? "",
+          pre: (chunks: React.ReactNode) =>
+            React.createElement("pre", null, chunks),
         },
       });
       break;
@@ -621,7 +643,8 @@ export function parseAPIErrors(
   errors: APIError[],
   fields: FormField[],
   topRules: ErrorParseRule[],
-  fallbackMessageID?: string
+  fallbackMessageID?: string,
+  fallbackMessageValues?: Values
 ): ErrorParseResult {
   if (errors.length === 0) {
     return { fieldErrors: new Map(), topErrors: [], conflictErrors: [] };
@@ -657,6 +680,7 @@ export function parseAPIErrors(
     if (fallbackMessageID != null) {
       topErrors.push({
         messageID: fallbackMessageID,
+        arguments: fallbackMessageValues,
       });
     } else {
       for (const error of unhandledErrors) {

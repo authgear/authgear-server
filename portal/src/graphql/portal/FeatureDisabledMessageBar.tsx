@@ -3,6 +3,8 @@ import { IMessageBarProps } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage, Values } from "../../intl";
 import BlueMessageBar from "../../BlueMessageBar";
+import ReactRouterLink from "../../ReactRouterLink";
+import ExternalLink from "../../ExternalLink";
 
 export interface FeatureDisabledMessageBarProps extends IMessageBarProps {
   messageID: string;
@@ -15,10 +17,23 @@ const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
     const { appID } = useParams() as { appID: string };
 
     const values = useMemo(() => {
+      const planPagePath = `/project/${appID}/billing`;
+      const contactUsHref =
+        "https://www.authgear.com/schedule-demo?utm_source=portal&utm_medium=link&utm_campaign=additional_order";
       return {
-        planPagePath: `/project/${appID}/billing`,
-        contactUsHref:
-          "https://www.authgear.com/schedule-demo?utm_source=portal&utm_medium=link&utm_campaign=additional_order",
+        planPagePath,
+        contactUsHref,
+        b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+        ReactRouterLink: (chunks: React.ReactNode) => (
+          <ReactRouterLink to={planPagePath} target="_blank">
+            {chunks}
+          </ReactRouterLink>
+        ),
+        ExternalLink: (chunks: React.ReactNode) => (
+          <ExternalLink href={contactUsHref}>
+            {chunks}
+          </ExternalLink>
+        ),
         ...messageValues,
       };
     }, [appID, messageValues]);

@@ -6,7 +6,7 @@ import {
   IChoiceGroupOptionProps,
   Text,
 } from "@fluentui/react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
@@ -275,9 +275,15 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
                     : "CreateOAuthClientScreen.application-type.description.m2m"
                 }
                 values={{
-                  href: `/project/${encodeURIComponent(
-                    appNodeID
-                  )}/api-resources/create`,
+                  reactRouterLink: (chunks: React.ReactNode) => (
+                    <Link
+                      to={`/project/${encodeURIComponent(
+                        appNodeID
+                      )}/api-resources/create`}
+                    >
+                      {chunks}
+                    </Link>
+                  ),
                 }}
               />
             ) as any as string
@@ -529,9 +535,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
               }
             );
           },
-          () => {}
+          () => { }
         )
-        .catch(() => {});
+        .catch(() => { });
     }, [
       save,
       appID,

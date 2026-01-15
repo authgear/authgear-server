@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
+import ExternalLink from "../../ExternalLink";
 
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import {
@@ -61,7 +62,7 @@ const CustomTextConfigurationScreen: React.VFC =
       return (
         config.effectiveAppConfig?.localization?.supported_languages ?? [
           config.effectiveAppConfig?.localization?.fallback_language ??
-            DEFAULT_TEMPLATE_LOCALE,
+          DEFAULT_TEMPLATE_LOCALE,
         ]
       );
     }, [config.effectiveAppConfig?.localization]);
@@ -243,6 +244,19 @@ const CustomTextConfigurationScreen: React.VFC =
                 values={{
                   COMMIT: gitCommitHash,
                   language: translationSheetLanguage,
+                  br: <br />,
+                  externalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink
+                      href={`https://github.com/authgear/authgear-server/blob/${gitCommitHash}/resources/authgear/templates/${translationSheetLanguage}/translation.json`}
+                    >
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                  docLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://docs.authgear.com/customization/ui-customization/built-in-ui/localization">
+                      {chunks}
+                    </ExternalLink>
+                  ),
                 }}
               />
             ),

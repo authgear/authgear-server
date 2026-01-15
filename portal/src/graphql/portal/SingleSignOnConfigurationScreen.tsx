@@ -9,6 +9,7 @@ import {
   Text,
 } from "@fluentui/react";
 import { Context as IntlContext, FormattedMessage } from "../../intl";
+import ExternalLink from "../../ExternalLink";
 import {
   OAuthClientRow,
   OAuthClientRowHeader,
@@ -147,7 +148,16 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
             description={
               <ScreenDescription className={styles.widget}>
                 <Text>
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
+                  <FormattedMessage
+                    id="SingleSignOnConfigurationScreen.description"
+                    values={{
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink href="https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers">
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 </Text>
                 {oauthClientsMaximum < 99 ? (
                   <FeatureDisabledMessageBar
@@ -239,7 +249,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
         providers: state.providers.filter((p) => {
           if (
             createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
-              k &&
+            k &&
             p.config.alias === alias
           ) {
             return false;
@@ -261,7 +271,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
       () => {
         setIsDeleteDialogVisible(false);
       },
-      () => {}
+      () => { }
     );
   }, [form]);
 

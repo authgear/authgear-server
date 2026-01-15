@@ -18,6 +18,7 @@ import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import styles from "./GoogleTagManagerConfigurationScreen.module.css";
 import { clearEmptyObject } from "../../util/misc";
+import ExternalLink from "../../ExternalLink";
 
 interface FormState {
   enabled: boolean;
@@ -118,8 +119,19 @@ const GoogleTagManagerConfigurationContent: React.VFC<GoogleTagManagerConfigurat
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
+
+
           <WidgetDescription>
-            <FormattedMessage id="GoogleTagManagerConfigurationScreen.description" />
+            <FormattedMessage
+              id="GoogleTagManagerConfigurationScreen.description"
+              values={{
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/integration/integration-with-other-software/user-analytics-by-google-tag-manager">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </WidgetDescription>
         </Widget>
         <Widget className={styles.widget}>

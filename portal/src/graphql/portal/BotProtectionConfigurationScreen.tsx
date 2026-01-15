@@ -53,6 +53,7 @@ import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
 import HorizontalDivider from "../../HorizontalDivider";
 import { useFormLoading } from "../../form";
+import ExternalLink from "../../ExternalLink";
 
 const MASKED_SECRET = "***************";
 
@@ -61,27 +62,27 @@ const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
 
 const DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs =
-  {
-    passwordMode: "never",
-    passwordlessViaEmailMode: "never",
-    passwordlessViaSMSMode: "always",
-  };
+{
+  passwordMode: "never",
+  passwordlessViaEmailMode: "never",
+  passwordlessViaSMSMode: "always",
+};
 const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
-  {
-    flows: {
-      flowType: "specificAuthenticator",
-      flowConfigs: {
-        allSignupLogin: {
-          allSignupLoginMode: "never",
-        },
-        specificAuthenticator:
-          DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
+{
+  flows: {
+    flowType: "specificAuthenticator",
+    flowConfigs: {
+      allSignupLogin: {
+        allSignupLoginMode: "never",
       },
+      specificAuthenticator:
+        DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
     },
-    resetPassword: {
-      resetPasswordMode: "always",
-    },
-  };
+  },
+  resetPassword: {
+    resetPasswordMode: "always",
+  },
+};
 
 interface LocationState {
   isOAuthRedirect: boolean;
@@ -256,9 +257,9 @@ function constructBotProtectionConfig(
     signup_or_login:
       currentState.requirements.flows.flowType === "allSignupLogin"
         ? {
-            mode: currentState.requirements.flows.flowConfigs.allSignupLogin
-              .allSignupLoginMode,
-          }
+          mode: currentState.requirements.flows.flowConfigs.allSignupLogin
+            .allSignupLoginMode,
+        }
         : undefined,
   };
   const accountRecoveryRequirements: Partial<BotProtectionRequirements> = {
@@ -269,19 +270,19 @@ function constructBotProtectionConfig(
   const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> =
     currentState.requirements.flows.flowType === "specificAuthenticator"
       ? {
-          password: {
-            mode: currentState.requirements.flows.flowConfigs
-              .specificAuthenticator.passwordMode,
-          },
-          oob_otp_email: {
-            mode: currentState.requirements.flows.flowConfigs
-              .specificAuthenticator.passwordlessViaEmailMode,
-          },
-          oob_otp_sms: {
-            mode: currentState.requirements.flows.flowConfigs
-              .specificAuthenticator.passwordlessViaSMSMode,
-          },
-        }
+        password: {
+          mode: currentState.requirements.flows.flowConfigs
+            .specificAuthenticator.passwordMode,
+        },
+        oob_otp_email: {
+          mode: currentState.requirements.flows.flowConfigs
+            .specificAuthenticator.passwordlessViaEmailMode,
+        },
+        oob_otp_sms: {
+          mode: currentState.requirements.flows.flowConfigs
+            .specificAuthenticator.passwordlessViaSMSMode,
+        },
+      }
       : {};
   const requirements: BotProtectionRequirements = {
     ...signupOrLoginRequirements,
@@ -520,7 +521,16 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     return providerType === "recaptchav2" ? (
       <>
         <WidgetDescription>
-          <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.description" />
+          <FormattedMessage
+            id="BotProtectionConfigurationScreen.provider.recaptchaV2.description"
+            values={{
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://developers.google.com/recaptcha/docs/settings">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
         </WidgetDescription>
         <FormTextField
           type="text"
@@ -560,7 +570,16 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     ) : (
       <>
         <WidgetDescription>
-          <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.description" />
+          <FormattedMessage
+            id="BotProtectionConfigurationScreen.provider.cloudflare.description"
+            values={{
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://developers.cloudflare.com/turnstile/get-started/#get-a-sitekey-and-secret-key">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
         </WidgetDescription>
         <FormTextField
           type="text"

@@ -163,6 +163,7 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
               id="CookieLifetimeConfigurationScreen.description"
               values={{
                 hostname: getHostname(form.state.publicOrigin),
+                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
               }}
             />
           </Text>

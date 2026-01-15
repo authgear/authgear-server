@@ -131,7 +131,7 @@ function PlansSection({
             window.location.href = url;
           }
         })
-        .finally(() => {});
+        .finally(() => { });
     },
     [appID, createCheckoutSession]
   );
@@ -173,7 +173,7 @@ function PlansSection({
           appID,
           planName,
         },
-      }).finally(() => {});
+      }).finally(() => { });
       setUpgradeToPlan(planName);
     },
     [appID, previewUpdateSubscription]
@@ -186,7 +186,7 @@ function PlansSection({
           appID,
           planName,
         },
-      }).finally(() => {});
+      }).finally(() => { });
       setDowngradeToPlan(planName);
     },
     [appID, previewUpdateSubscription]
@@ -382,6 +382,13 @@ function PlansSection({
         error={reactivateSubscriptionError}
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.reactivate.error"
+        fallbackErrorMessageValues={{
+          ExternalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="mailto:hello@authgear.com">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
       />
       <Dialog
         hidden={upgradeToPlan == null}
@@ -504,7 +511,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
       // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
+        <FormattedMessage
+          id="SubscriptionScreen.enterprise.instructions"
+          values={{
+            ExternalLink: (chunks: React.ReactNode) => (
+              <ExternalLink href="mailto:hello@authgear.com">
+                {chunks}
+              </ExternalLink>
+            ),
+          }}
+        />
       ) as IDialogContentProps["subText"],
     };
   }, []);
@@ -621,6 +637,13 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         error={cancelSubscriptionError}
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.cancel.error"
+        fallbackErrorMessageValues={{
+          ExternalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="mailto:hello@authgear.com">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
       />
       <Dialog
         hidden={enterpriseDialogHidden}
@@ -647,7 +670,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         </div>
         {planName === "free" ? (
           <BlueMessageBar>
-            <FormattedMessage id="warnings.free-plan" />
+            <FormattedMessage
+              id="warnings.free-plan"
+              values={{
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://go.authgear.com/portal-support">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </BlueMessageBar>
         ) : null}
         <AGPivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
@@ -741,7 +773,7 @@ function PlanDetailsTab({
             window.location.href = url;
           }
         },
-        () => {}
+        () => { }
       );
     },
     [generateCustomPortalSession]
@@ -939,13 +971,13 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   // refetch in every few seconds and wait until it changes to false
   useEffect(() => {
     if (subscriptionScreenQuery.loading) {
-      return () => {};
+      return () => { };
     }
     if (!isProcessingSubscription) {
-      return () => {};
+      return () => { };
     }
     const interval = setInterval(() => {
-      subscriptionScreenQuery.refetch().finally(() => {});
+      subscriptionScreenQuery.refetch().finally(() => { });
     }, CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL);
     return () => {
       clearInterval(interval);
@@ -965,7 +997,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
       <ShowError
         error={subscriptionScreenQuery.error}
         onRetry={() => {
-          subscriptionScreenQuery.refetch().finally(() => {});
+          subscriptionScreenQuery.refetch().finally(() => { });
         }}
       />
     );

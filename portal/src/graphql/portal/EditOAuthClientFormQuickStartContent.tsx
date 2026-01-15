@@ -19,12 +19,13 @@ import { useEndpoints } from "../../hook/useEndpoints";
 import { CodeField } from "../../components/common/CodeField";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import DefaultButton from "../../DefaultButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { Resource } from "../adminapi/globalTypes.generated";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { LocationState } from "./EditOAuthClientScreen";
+import ExternalLink from "../../ExternalLink";
 
 interface EditOAuthClientFormQuickStartContentProps {
   className?: string;
@@ -150,7 +151,16 @@ function EditOAuthClientFormQuickStartContentLoaded(
         <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.title" />
       </WidgetTitle>
       <Text as="p" variant="medium" className="mt-2" block={true}>
-        <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.description" />
+        <FormattedMessage
+          id="EditOAuthClientForm.quick-start.m2m.description"
+          values={{
+            docLink: (chunks: React.ReactNode) => (
+              <ExternalLink href="https://docs.authgear.com/get-started/m2m-applications">
+                {chunks}
+              </ExternalLink>
+            ),
+          }}
+        />
       </Text>
       <QuickStartStep
         className="mt-6"
@@ -177,7 +187,11 @@ function EditOAuthClientFormQuickStartContentLoaded(
           <Text as="p" block={true} className="mt-2">
             <FormattedMessage
               id="EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet"
-              values={{ href: "?tab=api-resources" }}
+              values={{
+                reactRouterLink: (chunks: React.ReactNode) => (
+                  <Link to="?tab=api-resources">{chunks}</Link>
+                ),
+              }}
             />
           </Text>
         ) : null}

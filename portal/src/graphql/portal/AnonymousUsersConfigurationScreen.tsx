@@ -1,6 +1,6 @@
 /* global JSX */
 import React, { useCallback, useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import {
@@ -102,7 +102,7 @@ function constructConfig(
     if (
       currentState.enabled &&
       initialState.promotionConflictBehaviour !==
-        currentState.promotionConflictBehaviour
+      currentState.promotionConflictBehaviour
     ) {
       config.identity ??= {};
       config.identity.on_conflict ??= {};
@@ -174,15 +174,15 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
             ? client.refresh_token_idle_timeout_seconds != null
               ? formatSeconds(
-                  locale,
-                  client.refresh_token_idle_timeout_seconds
-                ) ?? "-"
+                locale,
+                client.refresh_token_idle_timeout_seconds
+              ) ?? "-"
               : "-"
             : "-",
           refreshTokenLifetime:
             client.refresh_token_lifetime_seconds != null
               ? formatSeconds(locale, client.refresh_token_lifetime_seconds) ??
-                ""
+              ""
               : "",
         };
       });
@@ -272,7 +272,12 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           block={true}
           className={styles.widgetDescription}
         >
-          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.description" />
+          <FormattedMessage
+            id="AnonymousUsersConfigurationScreen.user-lifetime.description"
+            values={{
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+            }}
+          />
         </Text>
         <div>
           <Text className={styles.title} variant="medium" block={true}>
@@ -294,7 +299,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                       formattedDuration:
                         sessionIdleTimeoutSeconds != null
                           ? formatSeconds(locale, sessionIdleTimeoutSeconds) ??
-                            ""
+                          ""
                           : "",
                     }}
                   />
@@ -347,7 +352,11 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
-              applicationsPath: `/project/${appID}/configuration/apps`,
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/configuration/apps`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         </Text>

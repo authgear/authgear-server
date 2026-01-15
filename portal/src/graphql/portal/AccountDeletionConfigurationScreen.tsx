@@ -19,6 +19,7 @@ import WidgetTitle from "../../WidgetTitle";
 import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import { checkIntegerInput } from "../../util/input";
+import ExternalLink from "../../ExternalLink";
 
 interface FormState {
   scheduled_by_end_user_enabled: boolean;
@@ -127,8 +128,19 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
             )}
             inlineLabel={true}
           />
+
+
           <MessageBar>
-            <FormattedMessage id="AccountDeletionConfigurationScreen.apple-app-store.description" />
+            <FormattedMessage
+              id="AccountDeletionConfigurationScreen.apple-app-store.description"
+              values={{
+                ExternalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://developer.apple.com/app-store/review/guidelines/#5.1.1">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </MessageBar>
         </Widget>
       </ScreenContent>
