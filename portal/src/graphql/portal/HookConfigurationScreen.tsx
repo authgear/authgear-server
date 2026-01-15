@@ -91,34 +91,34 @@ const BLOCK_EVENT_TYPES = [
 type BlockingEvent = (typeof BLOCK_EVENT_TYPES)[number];
 
 const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
-{
-  "user.pre_create": "EventUserPreCreate",
-  "user.profile.pre_update": "EventUserProfilePreUpdate",
-  "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
-  "user.pre_schedule_anonymization": "EventUserPreScheduleAnonymization",
-  "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
-  "oidc.id_token.pre_create": "EventOIDCIDTokenPreCreate",
-  "authentication.pre_initialize": "EventAuthenticationPreInitialize",
-  "authentication.post_identified": "EventAuthenticationPostIdentified",
-  "authentication.pre_authenticated": "EventAuthenticationPreAuthenticated",
-};
+  {
+    "user.pre_create": "EventUserPreCreate",
+    "user.profile.pre_update": "EventUserProfilePreUpdate",
+    "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
+    "user.pre_schedule_anonymization": "EventUserPreScheduleAnonymization",
+    "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
+    "oidc.id_token.pre_create": "EventOIDCIDTokenPreCreate",
+    "authentication.pre_initialize": "EventAuthenticationPreInitialize",
+    "authentication.post_identified": "EventAuthenticationPostIdentified",
+    "authentication.pre_authenticated": "EventAuthenticationPreAuthenticated",
+  };
 
 const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
-{
-  "user.pre_create": "EventUserPreCreateHookResponse",
-  "user.profile.pre_update": "EventUserProfilePreUpdateHookResponse",
-  "user.pre_schedule_deletion": "EventUserPreScheduleDeletionHookResponse",
-  "user.pre_schedule_anonymization":
-    "EventUserPreScheduleAnonymizationHookResponse",
-  "oidc.jwt.pre_create": "EventOIDCJWTPreCreateHookResponse",
-  "oidc.id_token.pre_create": "EventOIDCIDTokenPreCreateHookResponse",
-  "authentication.pre_initialize":
-    "EventAuthenticationPreInitializeHookResponse",
-  "authentication.post_identified":
-    "EventAuthenticationPostIdentifiedHookResponse",
-  "authentication.pre_authenticated":
-    "EventAuthenticationPreAuthenticatedHookResponse",
-};
+  {
+    "user.pre_create": "EventUserPreCreateHookResponse",
+    "user.profile.pre_update": "EventUserProfilePreUpdateHookResponse",
+    "user.pre_schedule_deletion": "EventUserPreScheduleDeletionHookResponse",
+    "user.pre_schedule_anonymization":
+      "EventUserPreScheduleAnonymizationHookResponse",
+    "oidc.jwt.pre_create": "EventOIDCJWTPreCreateHookResponse",
+    "oidc.id_token.pre_create": "EventOIDCIDTokenPreCreateHookResponse",
+    "authentication.pre_initialize":
+      "EventAuthenticationPreInitializeHookResponse",
+    "authentication.post_identified":
+      "EventAuthenticationPostIdentifiedHookResponse",
+    "authentication.pre_authenticated":
+      "EventAuthenticationPreAuthenticatedHookResponse",
+  };
 
 const BLOCKING_HOOK_EXAMPLES: Record<BlockingEvent, string> = {
   "user.pre_create": ``,
@@ -1217,6 +1217,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 <FormattedMessage
                   id="HookConfigurationScreen.edit-hook.description"
                   values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     docLink: (chunks: React.ReactNode) => (
                       <ExternalLink
                         href={
@@ -1268,6 +1269,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage
                     id="HookConfigurationScreen.blocking-events.description"
                     values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       docLink: (chunks: React.ReactNode) => (
                         <ExternalLink href="https://docs.authgear.com/customization/events-hooks/blocking-events">
                           {chunks}
@@ -1366,6 +1368,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage
                     id="HookConfigurationScreen.non-blocking-events.description"
                     values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       docLink: (chunks: React.ReactNode) => (
                         <ExternalLink href="https://docs.authgear.com/customization/events-hooks/non-blocking-events">
                           {chunks}
@@ -1476,10 +1479,12 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage
                     id="HookConfigurationScreen.signature.description"
                     values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       code: (chunks: React.ReactNode) => (
                         <code className="inline-code">{chunks}</code>
                       ),
                       br: <br />,
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       docLink: (chunks: React.ReactNode) => (
                         <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
                           {chunks}
@@ -1550,7 +1555,7 @@ const HookConfigurationScreen1: React.VFC<{
       <ShowError
         error={featureConfig.loadError}
         onRetry={() => {
-          featureConfig.refetch().finally(() => { });
+          featureConfig.refetch().finally(() => {});
         }}
       />
     );

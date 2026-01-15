@@ -154,6 +154,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
         <FormattedMessage
           id="EditOAuthClientForm.quick-start.m2m.description"
           values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
             docLink: (chunks: React.ReactNode) => (
               <ExternalLink href="https://docs.authgear.com/get-started/m2m-applications">
                 {chunks}
@@ -188,6 +189,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
             <FormattedMessage
               id="EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 reactRouterLink: (chunks: React.ReactNode) => (
                   <Link to="?tab=api-resources">{chunks}</Link>
                 ),

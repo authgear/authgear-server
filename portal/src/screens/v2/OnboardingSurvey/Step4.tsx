@@ -27,6 +27,7 @@ export function Step4(): React.ReactElement {
             <FormattedMessage
               id="OnboardingSurveyScreen.step4.header"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 Hint: (chunks: React.ReactNode) => (
                   <Text.HeadingHint>{chunks}</Text.HeadingHint>
                 ),

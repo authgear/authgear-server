@@ -102,7 +102,7 @@ function constructConfig(
     if (
       currentState.enabled &&
       initialState.promotionConflictBehaviour !==
-      currentState.promotionConflictBehaviour
+        currentState.promotionConflictBehaviour
     ) {
       config.identity ??= {};
       config.identity.on_conflict ??= {};
@@ -174,15 +174,15 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
             ? client.refresh_token_idle_timeout_seconds != null
               ? formatSeconds(
-                locale,
-                client.refresh_token_idle_timeout_seconds
-              ) ?? "-"
+                  locale,
+                  client.refresh_token_idle_timeout_seconds
+                ) ?? "-"
               : "-"
             : "-",
           refreshTokenLifetime:
             client.refresh_token_lifetime_seconds != null
               ? formatSeconds(locale, client.refresh_token_lifetime_seconds) ??
-              ""
+                ""
               : "",
         };
       });
@@ -275,6 +275,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.description"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               b: (chunks: React.ReactNode) => <b>{chunks}</b>,
             }}
           />
@@ -299,7 +300,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                       formattedDuration:
                         sessionIdleTimeoutSeconds != null
                           ? formatSeconds(locale, sessionIdleTimeoutSeconds) ??
-                          ""
+                            ""
                           : "",
                     }}
                   />
@@ -352,6 +353,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               reactRouterLink: (chunks: React.ReactNode) => (
                 <Link to={`/project/${appID}/configuration/apps`}>
                   {chunks}

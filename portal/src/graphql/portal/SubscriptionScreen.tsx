@@ -131,7 +131,7 @@ function PlansSection({
             window.location.href = url;
           }
         })
-        .finally(() => { });
+        .finally(() => {});
     },
     [appID, createCheckoutSession]
   );
@@ -173,7 +173,7 @@ function PlansSection({
           appID,
           planName,
         },
-      }).finally(() => { });
+      }).finally(() => {});
       setUpgradeToPlan(planName);
     },
     [appID, previewUpdateSubscription]
@@ -186,7 +186,7 @@ function PlansSection({
           appID,
           planName,
         },
-      }).finally(() => { });
+      }).finally(() => {});
       setDowngradeToPlan(planName);
     },
     [appID, previewUpdateSubscription]
@@ -383,6 +383,7 @@ function PlansSection({
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.reactivate.error"
         fallbackErrorMessageValues={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           ExternalLink: (chunks: React.ReactNode) => (
             <ExternalLink href="mailto:hello@authgear.com">
               {chunks}
@@ -514,6 +515,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <FormattedMessage
           id="SubscriptionScreen.enterprise.instructions"
           values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
             ExternalLink: (chunks: React.ReactNode) => (
               <ExternalLink href="mailto:hello@authgear.com">
                 {chunks}
@@ -638,6 +640,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.cancel.error"
         fallbackErrorMessageValues={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           ExternalLink: (chunks: React.ReactNode) => (
             <ExternalLink href="mailto:hello@authgear.com">
               {chunks}
@@ -673,6 +676,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage
               id="warnings.free-plan"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 externalLink: (chunks: React.ReactNode) => (
                   <ExternalLink href="https://go.authgear.com/portal-support">
                     {chunks}
@@ -773,7 +777,7 @@ function PlanDetailsTab({
             window.location.href = url;
           }
         },
-        () => { }
+        () => {}
       );
     },
     [generateCustomPortalSession]
@@ -971,13 +975,13 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   // refetch in every few seconds and wait until it changes to false
   useEffect(() => {
     if (subscriptionScreenQuery.loading) {
-      return () => { };
+      return () => {};
     }
     if (!isProcessingSubscription) {
-      return () => { };
+      return () => {};
     }
     const interval = setInterval(() => {
-      subscriptionScreenQuery.refetch().finally(() => { });
+      subscriptionScreenQuery.refetch().finally(() => {});
     }, CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL);
     return () => {
       clearInterval(interval);
@@ -997,7 +1001,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
       <ShowError
         error={subscriptionScreenQuery.error}
         onRetry={() => {
-          subscriptionScreenQuery.refetch().finally(() => { });
+          subscriptionScreenQuery.refetch().finally(() => {});
         }}
       />
     );

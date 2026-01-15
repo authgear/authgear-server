@@ -14,7 +14,7 @@ export function useDelayedSave(form: FormModel): () => void {
     }
 
     setDelaySave(false);
-    // eslint-disable-next-line no-void
+
     void form.save();
   }, [form, delaySave]);
 

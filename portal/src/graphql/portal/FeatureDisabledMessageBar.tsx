@@ -23,16 +23,17 @@ const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
       return {
         planPagePath,
         contactUsHref,
+        // eslint-disable-next-line react/no-unstable-nested-components
         b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+        // eslint-disable-next-line react/no-unstable-nested-components
         ReactRouterLink: (chunks: React.ReactNode) => (
           <ReactRouterLink to={planPagePath} target="_blank">
             {chunks}
           </ReactRouterLink>
         ),
+        // eslint-disable-next-line react/no-unstable-nested-components
         ExternalLink: (chunks: React.ReactNode) => (
-          <ExternalLink href={contactUsHref}>
-            {chunks}
-          </ExternalLink>
+          <ExternalLink href={contactUsHref}>{chunks}</ExternalLink>
         ),
         ...messageValues,
       };

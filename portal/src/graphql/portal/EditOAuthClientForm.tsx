@@ -488,16 +488,16 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             refreshTokenLifetimeFormattedDuration:
               clientConfig.refresh_token_lifetime_seconds != null
                 ? formatSeconds(
-                  locale,
-                  clientConfig.refresh_token_lifetime_seconds
-                ) ?? ""
+                    locale,
+                    clientConfig.refresh_token_lifetime_seconds
+                  ) ?? ""
                 : "",
             refreshTokenIdleTimeoutFormattedDuration:
               clientConfig.refresh_token_idle_timeout_seconds != null
                 ? formatSeconds(
-                  locale,
-                  clientConfig.refresh_token_idle_timeout_seconds
-                ) ?? ""
+                    locale,
+                    clientConfig.refresh_token_idle_timeout_seconds
+                  ) ?? ""
                 : "",
           }
         );
@@ -508,9 +508,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           refreshTokenLifetimeFormattedDuration:
             clientConfig.refresh_token_lifetime_seconds != null
               ? formatSeconds(
-                locale,
-                clientConfig.refresh_token_lifetime_seconds
-              ) ?? ""
+                  locale,
+                  clientConfig.refresh_token_lifetime_seconds
+                ) ?? ""
               : "",
         }
       );
@@ -630,17 +630,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                     clientSecrets.length < 2
                       ? undefined
                       : [
-                        {
-                          iconProps: { iconName: "Delete" },
-                          disabled:
-                            clientSecretHook.isLoading ||
-                            clientSecretHook.isUpdating,
-                          onClick: () => {
-                            onDeleteClientSecretClick(keyItem);
+                          {
+                            iconProps: { iconName: "Delete" },
+                            disabled:
+                              clientSecretHook.isLoading ||
+                              clientSecretHook.isUpdating,
+                            onClick: () => {
+                              onDeleteClientSecretClick(keyItem);
+                            },
+                            theme: themes.destructive,
                           },
-                          theme: themes.destructive,
-                        },
-                      ]
+                        ]
                   }
                 />
                 <Text
@@ -948,6 +948,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 <FormattedMessage
                   id="EditOAuthClientForm.sender-constraining.description"
                   values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     externalLink: (chunks: React.ReactNode) => (
                       <ExternalLink href="https://docs.authgear.com/security/sender-constraining">
                         {chunks}
@@ -969,6 +970,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
                   hostname: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   reactRouterLink: (chunks: React.ReactNode) => (
                     <Link to={`/project/${appID}/advanced/session`}>
                       {chunks}
@@ -1008,6 +1010,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               <FormattedMessage
                 id="EditOAuthClientForm.app2app.uris.description"
                 values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   reactRouterLink: (chunks: React.ReactNode) => (
                     <Link to="#uris">{chunks}</Link>
                   ),

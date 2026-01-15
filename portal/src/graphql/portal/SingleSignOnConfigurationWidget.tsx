@@ -764,6 +764,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                   <FormattedMessage
                     id="SingleSignOnConfigurationScreen.widget.domain-hint.description"
                     values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       externalLink: (chunks: React.ReactNode) => (
                         <ExternalLink
                           href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/direct-signin?pivots=b2c-user-flow#redirect-sign-in-to-a-social-provider"
@@ -1034,8 +1035,9 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           <div className={styles.rowContent}>
             <div className={styles.rowName}>
               <Text variant="medium" className={styles.rowTitle} block={true}>
-                {`${renderToString(titleId)}${subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
-                  }`}
+                {`${renderToString(titleId)}${
+                  subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+                }`}
                 {showAlias ? ` - ${providerConfig.alias}` : null}
               </Text>
             </div>

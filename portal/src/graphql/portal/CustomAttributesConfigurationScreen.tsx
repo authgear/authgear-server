@@ -141,7 +141,7 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
                   <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
                 }
                 iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-                onClick={useCallback(() => navigate("./add"), [navigate])}
+                onClick={useCallback(async () => navigate("./add"), [navigate])}
               />
             </div>
           </div>

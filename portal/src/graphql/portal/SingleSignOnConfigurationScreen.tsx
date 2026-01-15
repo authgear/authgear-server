@@ -151,6 +151,7 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
                   <FormattedMessage
                     id="SingleSignOnConfigurationScreen.description"
                     values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
                       docLink: (chunks: React.ReactNode) => (
                         <ExternalLink href="https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers">
                           {chunks}
@@ -249,7 +250,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
         providers: state.providers.filter((p) => {
           if (
             createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
-            k &&
+              k &&
             p.config.alias === alias
           ) {
             return false;
@@ -271,7 +272,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
       () => {
         setIsDeleteDialogVisible(false);
       },
-      () => { }
+      () => {}
     );
   }, [form]);
 

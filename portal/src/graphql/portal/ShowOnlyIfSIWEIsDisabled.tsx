@@ -54,6 +54,7 @@ export default function ShowOnlyIfSIWEIsDisabled(
         <FormattedMessage
           id="SIWE.disable-first"
           values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
             reactRouterLink: (chunks: React.ReactNode) => (
               <Link to={`/project/${appID}/configuration/authentication/web3`}>
                 {chunks}

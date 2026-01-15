@@ -66,6 +66,7 @@ export function RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen(
       <FormattedMessage
         id="RedMessageBar.remind-configure-sms-provider-in-non-sms-provider-screen"
         values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           ReactRouterLink: (children: React.ReactNode) => (
             <ReactRouterLink to={`/project/${appID}/advanced/sms-gateway`}>
               {children}
@@ -106,6 +107,7 @@ export function RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen(
       <FormattedMessage
         id="RedMessageBar.remind-configure-smtp-in-non-smtp-configuration-screen"
         values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           ReactRouterLink: (children: React.ReactNode) => (
             <ReactRouterLink to={`/project/${appID}/advanced/smtp`}>
               {children}

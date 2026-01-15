@@ -283,7 +283,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
     }, [renderToString]);
 
     const onAddClientButtonClick = useCallback(
-      () => navigate("./add"),
+      async () => navigate("./add"),
       [navigate]
     );
 

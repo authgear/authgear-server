@@ -119,12 +119,11 @@ const GoogleTagManagerConfigurationContent: React.VFC<GoogleTagManagerConfigurat
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
-
-
           <WidgetDescription>
             <FormattedMessage
               id="GoogleTagManagerConfigurationScreen.description"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 DocLink: (chunks: React.ReactNode) => (
                   <ExternalLink href="https://docs.authgear.com/integration/integration-with-other-software/user-analytics-by-google-tag-manager">
                     {chunks}

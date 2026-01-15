@@ -129,11 +129,11 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
             inlineLabel={true}
           />
 
-
           <MessageBar>
             <FormattedMessage
               id="AccountDeletionConfigurationScreen.apple-app-store.description"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 ExternalLink: (chunks: React.ReactNode) => (
                   <ExternalLink href="https://developer.apple.com/app-store/review/guidelines/#5.1.1">
                     {chunks}

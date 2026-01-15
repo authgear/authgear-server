@@ -30,6 +30,7 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
           id="DeleteResourceDialog.description"
           values={{
             name: data.resourceName ?? data.resourceURI,
+            // eslint-disable-next-line react/no-unstable-nested-components
             b: (chunks: React.ReactNode) => <b>{chunks}</b>,
           }}
         />

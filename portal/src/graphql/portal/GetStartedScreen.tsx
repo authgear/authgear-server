@@ -270,8 +270,8 @@ function Card(props: CardProps) {
       e.stopPropagation();
 
       skipProgress?.(cardKey).then(
-        () => { },
-        () => { }
+        () => {},
+        () => {}
       );
     },
     [skipProgress, cardKey]
@@ -299,6 +299,7 @@ function Card(props: CardProps) {
         <FormattedMessage
           id={"GetStartedScreen.card.description." + cardKey}
           values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
             DocLink: (chunks: React.ReactNode) => {
               let href = "";
               if (cardKey === "create_application") {
@@ -395,6 +396,7 @@ function HelpText() {
       <FormattedMessage
         id="GetStartedScreen.help-text"
         values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           ExternalLinkForum: (chunks: React.ReactNode) => (
             <ExternalLink
               href="https://github.com/authgear/authgear-server/discussions"
@@ -403,6 +405,7 @@ function HelpText() {
               {chunks}
             </ExternalLink>
           ),
+          // eslint-disable-next-line react/no-unstable-nested-components
           ExternalLinkContactUs: (chunks: React.ReactNode) => (
             <ExternalLink
               href="https://www.authgear.com/talk-with-us?utm_source=portal&utm_medium=link&utm_campaign=getting_started"
@@ -515,7 +518,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
         () => {
           navigate("./..");
         },
-        () => { }
+        () => {}
       );
     },
     [appID, skipAppTutorialMutationFunction, navigate, capture]

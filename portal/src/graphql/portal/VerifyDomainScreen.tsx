@@ -165,7 +165,7 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
           navigate("./../..?verify=success");
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [verifyDomain, domain, navigate]);
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
@@ -202,6 +202,7 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
             id="VerifyDomainScreen.desc-main"
             values={{
               domain: domain.domain,
+              // eslint-disable-next-line react/no-unstable-nested-components
               b: (chunks: React.ReactNode) => <b>{chunks}</b>,
             }}
           />

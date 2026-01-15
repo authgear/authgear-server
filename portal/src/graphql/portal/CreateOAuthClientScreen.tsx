@@ -275,6 +275,7 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
                     : "CreateOAuthClientScreen.application-type.description.m2m"
                 }
                 values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   reactRouterLink: (chunks: React.ReactNode) => (
                     <Link
                       to={`/project/${encodeURIComponent(
@@ -535,9 +536,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
               }
             );
           },
-          () => { }
+          () => {}
         )
-        .catch(() => { });
+        .catch(() => {});
     }, [
       save,
       appID,

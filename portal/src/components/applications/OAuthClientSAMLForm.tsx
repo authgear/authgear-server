@@ -184,6 +184,7 @@ function IdpCertificateSection({
           <FormattedMessage
             id="OAuthClientSAMLForm.idpCertificate.rotateHint"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               reactRouterLink: (chunks: React.ReactNode) => (
                 <Link to={`/project/${appID}/advanced/saml-certificate`}>
                   {chunks}
@@ -720,8 +721,8 @@ export function OAuthClientSAMLForm({
                     formState.isSLOEnabled
                       ? endpoints.logout
                       : renderToString(
-                        "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
-                      )
+                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                        )
                   }
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}

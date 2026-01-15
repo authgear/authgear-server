@@ -11,11 +11,11 @@ export function useLocationEffect<S>(
   const navigate = useNavigate();
   useEffect(() => {
     if (state != null) {
-      effectFunction(state as any);
+      effectFunction(state);
       navigate(location, {
         replace: true,
       });
     }
   }, [effectFunction, navigate, location, state]);
-  return state as any;
+  return state;
 }

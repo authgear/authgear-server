@@ -525,9 +525,9 @@ interface SecretConfigFormState {
 
 interface FormState
   extends ConfigFormState,
-  ResourcesFormState,
-  FeatureConfigFormState,
-  SecretConfigFormState { }
+    ResourcesFormState,
+    FeatureConfigFormState,
+    SecretConfigFormState {}
 
 interface FormModel {
   isLoading: boolean;
@@ -1096,18 +1096,18 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         : 10,
       historyDurationMins: isLockoutEnabled
         ? parseOptionalDurationIntoMinutes(
-          config.authentication?.lockout?.history_duration
-        )
+            config.authentication?.lockout?.history_duration
+          )
         : 1440,
       minimumDurationMins: isLockoutEnabled
         ? parseOptionalDurationIntoMinutes(
-          config.authentication?.lockout?.minimum_duration
-        )
+            config.authentication?.lockout?.minimum_duration
+          )
         : 1,
       maximumDurationMins: isLockoutEnabled
         ? parseOptionalDurationIntoMinutes(
-          config.authentication?.lockout?.maximum_duration
-        )
+            config.authentication?.lockout?.maximum_duration
+          )
         : 60,
       backoffFactorRaw: isLockoutEnabled
         ? config.authentication?.lockout?.backoff_factor?.toString()
@@ -1385,10 +1385,10 @@ function constructConfig(
       ...(currentState.smsDailySendLimit == null
         ? { enabled: false }
         : {
-          enabled: true,
-          period: "24h",
-          burst: currentState.smsDailySendLimit,
-        }),
+            enabled: true,
+            period: "24h",
+            burst: currentState.smsDailySendLimit,
+          }),
     };
 
     if (currentState.emailVerificationDailyLimit == null) {
@@ -1609,10 +1609,10 @@ function LoginMethodButton(props: LoginMethodButtonProps) {
 }
 
 const AUTHENTICATION_BUTTON_ICON: Record<LoginMethodSecondLevelOption, string> =
-{
-  passwordless: "mailbox",
-  password: "forms",
-};
+  {
+    passwordless: "mailbox",
+    password: "forms",
+  };
 
 interface AuthenticationButtonProps {
   targetValue: LoginMethodSecondLevelOption;
@@ -1859,6 +1859,7 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           <FormattedMessage
             id="warnings.free-plan"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               externalLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://go.authgear.com/portal-support">
                   {chunks}
@@ -1910,7 +1911,7 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     onChangeLoginIDChecked: onChangeLoginIDCheckedProp,
     onSwapLoginID: onSwapLoginIDProp,
     onChangePrimaryAuthenticatorChecked:
-    onChangePrimaryAuthenticatorCheckedProp,
+      onChangePrimaryAuthenticatorCheckedProp,
     onSwapPrimaryAuthenticator: onSwapPrimaryAuthenticatorProp,
   } = props;
 
@@ -2346,6 +2347,7 @@ function EmailSettings(props: EmailSettingsProps) {
                 "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
               }
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 externalLink: (chunks: React.ReactNode) => (
                   <ExternalLink
                     href="https://github.com/Kikobeats/free-email-domains/blob/master/domains.json"
@@ -2371,6 +2373,7 @@ function EmailSettings(props: EmailSettingsProps) {
                 "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
               }
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 externalLink: (chunks: React.ReactNode) => (
                   <ExternalLink
                     href="https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf"
@@ -2515,6 +2518,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <FormattedMessage
             id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               ExternalLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid">
                   {chunks}
@@ -3422,7 +3426,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const isLoginIDEmailEnabled = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
-        true &&
+          true &&
         loginIDKeyConfigsControl.find((a) => a.value.type === "email")
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
@@ -3431,7 +3435,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const isLoginIDPhoneEnabled = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
-        true &&
+          true &&
         loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
@@ -3440,7 +3444,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const showUsernameSettings = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
-        true &&
+          true &&
         loginIDKeyConfigsControl.find((a) => a.value.type === "username")
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
@@ -3595,15 +3599,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             passkeyChecked={passkeyChecked}
           />
           {isAuthgearOnce &&
-            isSMSRequiredForSomeEnabledFeatures &&
-            !smsProviderConfigured ? (
+          isSMSRequiredForSomeEnabledFeatures &&
+          !smsProviderConfigured ? (
             <RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen
               className={styles.widget}
             />
           ) : null}
           {isAuthgearOnce &&
-            isSMTPRequiredForSomeEnabledFeatures &&
-            !smtpConfigured ? (
+          isSMTPRequiredForSomeEnabledFeatures &&
+          !smtpConfigured ? (
             <RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen
               className={styles.widget}
             />
@@ -3838,7 +3842,7 @@ const LoginMethodConfigurationScreen: React.VFC =
           featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
         smsProviderConfigured:
           secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
-          null ||
+            null ||
           secretConfig.secretConfig?.smsProviderSecrets
             ?.customSMSProviderCredentials != null,
         smtpConfigured: secretConfig.secretConfig?.smtpSecret != null,
@@ -3881,8 +3885,8 @@ const LoginMethodConfigurationScreen: React.VFC =
       reload: () => {
         configForm.reload();
         resourceForm.reload();
-        featureConfig.refetch().finally(() => { });
-        secretConfig.refetch().finally(() => { });
+        featureConfig.refetch().finally(() => {});
+        secretConfig.refetch().finally(() => {});
       },
       reset: () => {
         configForm.reset();
@@ -3960,6 +3964,7 @@ function PasskeySection({
             <FormattedMessage
               id="LoginMethodConfigurationScreen.passkey.enable"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 DocLink: (chunks: React.ReactNode) => (
                   <ExternalLink href="https://docs.authgear.com/authentication-and-access/authentication/passkeys">
                     {chunks}

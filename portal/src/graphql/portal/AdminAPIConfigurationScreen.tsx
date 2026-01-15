@@ -44,8 +44,7 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
-import ExternalLink from "../../ExternalLink";
+import ExternalLink, { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
 import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
@@ -81,7 +80,7 @@ function isLocationState(raw: unknown): raw is LocationState {
     typeof raw === "object" &&
     typeof (raw as Partial<LocationState>).keyID === "string" &&
     typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
-    "boolean" &&
+      "boolean" &&
     typeof (raw as Partial<LocationState>)
       .shouldGenerateShortLivedAdminAPIToken === "boolean"
   );
@@ -413,6 +412,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
               <FormattedMessage
                 id="AdminAPIConfigurationScreen.description"
                 values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                 }}
               />
@@ -439,11 +439,13 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 <FormattedMessage
                   id="AdminAPIConfigurationScreen.details.description"
                   values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     docLink: (chunks: React.ReactNode) => (
                       <ExternalLink href="https://docs.authgear.com/customization/admin-api">
                         {chunks}
                       </ExternalLink>
                     ),
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                   }}
                 />
@@ -528,6 +530,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   </MessageBar>
                 ) : null}
                 <WidgetDescription>
+                  {}
                   <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
                 </WidgetDescription>
               </div>
@@ -544,6 +547,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 <FormattedMessage
                   id="AdminAPIConfigurationScreen.graphiql.warning"
                   values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                   }}
                 />
@@ -553,6 +557,8 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   id="AdminAPIConfigurationScreen.graphiql.description"
                   values={{
                     graphqlEndpoint,
+
+                    // eslint-disable-next-line react/no-unstable-nested-components
                     docLink: (chunks: React.ReactNode) => (
                       <ExternalLink href="https://docs.authgear.com/customization/admin-api">
                         {chunks}

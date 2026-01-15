@@ -228,7 +228,10 @@ const UsersScreen: React.VFC = function UsersScreen() {
             <PrimaryButton
               text={renderToString("UsersScreen.add-user")}
               iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-              onClick={useCallback(() => navigate("./add-user"), [navigate])}
+              onClick={useCallback(
+                async () => navigate("./add-user"),
+                [navigate]
+              )}
             />
           </div>
           <UsersFilterBar

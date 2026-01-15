@@ -89,8 +89,8 @@ function makeConstructRedirectURLFormState(domains: Domain[]) {
           ? "ShowError"
           : "ShowBrandPage"
         : default_redirect_uri === ""
-          ? "ShowLoginAndRedirectToSettings"
-          : "ShowLoginAndRedirectToCustomURL";
+        ? "ShowLoginAndRedirectToSettings"
+        : "ShowLoginAndRedirectToCustomURL";
 
     return {
       public_origin,
@@ -343,6 +343,7 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label--disabled"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               reactRouterLink: (chunks: React.ReactNode) => (
                 <Link to={`/project/${appID}/branding/custom-domains`}>
                   {chunks}
@@ -362,6 +363,7 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label--disabled"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               reactRouterLink: (chunks: React.ReactNode) => (
                 <Link to={`/project/${appID}/branding/custom-domains`}>
                   {chunks}
@@ -453,7 +455,10 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section1.description"
                 values={{
                   endpoint: publicOrigin,
-                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Text>
@@ -474,7 +479,10 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section2.description"
                 values={{
                   endpoint: publicOrigin,
-                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Text>

@@ -8,7 +8,12 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { produce } from "immer";
-import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useSearchParams,
+  Link,
+} from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import {
   DetailsList,
@@ -145,7 +150,7 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
             onNewDomainChange(null, "");
           }
         })
-        .catch(() => { });
+        .catch(() => {});
     },
     [createDomain, newDomain, onNewDomainChange]
   );
@@ -336,7 +341,7 @@ const DeleteDomainDialog: React.VFC<DeleteDomainDialogProps> =
 
     const onConfirmClick = useCallback(() => {
       deleteDomain(domainID)
-        .catch(() => { })
+        .catch(() => {})
         .finally(() => {
           dismissDialog();
         });
@@ -575,7 +580,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
 
     const confirmUpdatePublicOrigin = useCallback(() => {
       // save app config form
-      save().catch(() => { });
+      save().catch(() => {});
     }, [save]);
 
     const dismissUpdatePublicOriginDialog = useCallback(() => {
@@ -680,8 +685,11 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
             <FormattedMessage
               id="CustomDomainListScreen.rediect-endpoint-direct-access.message"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 reactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to={`/project/${appID}/advanced/endpoint-direct-access`}>
+                  <Link
+                    to={`/project/${appID}/advanced/endpoint-direct-access`}
+                  >
                     {chunks}
                   </Link>
                 ),

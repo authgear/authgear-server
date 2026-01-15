@@ -62,7 +62,7 @@ const CustomTextConfigurationScreen: React.VFC =
       return (
         config.effectiveAppConfig?.localization?.supported_languages ?? [
           config.effectiveAppConfig?.localization?.fallback_language ??
-          DEFAULT_TEMPLATE_LOCALE,
+            DEFAULT_TEMPLATE_LOCALE,
         ]
       );
     }, [config.effectiveAppConfig?.localization]);
@@ -245,6 +245,7 @@ const CustomTextConfigurationScreen: React.VFC =
                   COMMIT: gitCommitHash,
                   language: translationSheetLanguage,
                   br: <br />,
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   externalLink: (chunks: React.ReactNode) => (
                     <ExternalLink
                       href={`https://github.com/authgear/authgear-server/blob/${gitCommitHash}/resources/authgear/templates/${translationSheetLanguage}/translation.json`}
@@ -252,6 +253,7 @@ const CustomTextConfigurationScreen: React.VFC =
                       {chunks}
                     </ExternalLink>
                   ),
+                  // eslint-disable-next-line react/no-unstable-nested-components
                   docLink: (chunks: React.ReactNode) => (
                     <ExternalLink href="https://docs.authgear.com/customization/ui-customization/built-in-ui/localization">
                       {chunks}

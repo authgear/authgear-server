@@ -83,6 +83,7 @@ function ProjectQuotaMessageBar(
       <FormattedMessage
         id="AppsScreen.project-quota-reached"
         values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
           externalLink: (chunks: React.ReactNode) => (
             <ExternalLink href="https://go.authgear.com/portal-support">
               {chunks}

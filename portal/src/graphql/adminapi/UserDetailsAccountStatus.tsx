@@ -139,31 +139,31 @@ function formatSystemZone(now: Date, locale: string): string {
 
 function getMostAppropriateAccountState(accountStatus: AccountStatus):
   | {
-    state: "scheduled-deletion";
-    deleteAt: Date;
-  }
+      state: "scheduled-deletion";
+      deleteAt: Date;
+    }
   | {
-    state: "anonymized";
-  }
+      state: "anonymized";
+    }
   | {
-    state: "scheduled-anonymization";
-    anonymizeAt: Date;
-  }
+      state: "scheduled-anonymization";
+      anonymizeAt: Date;
+    }
   | {
-    state: "less-than-account-valid-from";
-    accountValidFrom: Date;
-  }
+      state: "less-than-account-valid-from";
+      accountValidFrom: Date;
+    }
   | {
-    state: "greater-than-or-equal-to-account-valid-until";
-    accountValidUntil: Date;
-  }
+      state: "greater-than-or-equal-to-account-valid-until";
+      accountValidUntil: Date;
+    }
   | {
-    state: "disabled";
-    temporarilyDisabledUntil: Date | null;
-  }
+      state: "disabled";
+      temporarilyDisabledUntil: Date | null;
+    }
   | {
-    state: "normal";
-  } {
+      state: "normal";
+    } {
   const now = new Date();
   if (accountStatus.deleteAt != null) {
     return {
@@ -431,8 +431,8 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
           </Text>
         </div>
         {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
-          (buttonStates.toggleDisable.disableReason != null ||
-            buttonStates.toggleDisable.temporarilyDisabledUntil != null) ? (
+        (buttonStates.toggleDisable.disableReason != null ||
+          buttonStates.toggleDisable.temporarilyDisabledUntil != null) ? (
           <div className={styles.actionCellDescription}>
             {buttonStates.toggleDisable.disableReason != null ? (
               <>
@@ -538,7 +538,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
             }}
           >
             {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-              buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.body--unset" />
             ) : (
               <>
@@ -552,6 +552,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidFrom
                           ) ?? "",
+                        // eslint-disable-next-line react/no-unstable-nested-components
                         strong: (chunks: React.ReactNode) => (
                           <strong>{chunks}</strong>
                         ),
@@ -561,7 +562,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                   </>
                 ) : null}
                 {buttonStates.setAccountValidPeriod.accountValidUntil !=
-                  null ? (
+                null ? (
                   <>
                     <FormattedMessage
                       id="UserDetailsAccountStatus.account-valid-period.end"
@@ -571,6 +572,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidUntil
                           ) ?? "",
+                        // eslint-disable-next-line react/no-unstable-nested-components
                         strong: (chunks: React.ReactNode) => (
                           <strong>{chunks}</strong>
                         ),
@@ -591,7 +593,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
           iconProps={{ iconName: "Calendar" }}
           text={
             buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-              buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
             ) : (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
@@ -599,7 +601,7 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
           }
           onClick={
             buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-              buttonStates.setAccountValidPeriod.accountValidUntil == null
+            buttonStates.setAccountValidPeriod.accountValidUntil == null
               ? onClickSetAccountValidPeriod
               : onClickEditAccountValidPeriod
           }
@@ -805,10 +807,10 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     }, []);
 
     const onDismiss: AccountStatusDialogProps["onDismiss"] = useCallback(
-      (info) => {
+      async (info) => {
         setDialogHidden(true);
         if (info.deletedUser) {
-          setTimeout(() => navigate("./../.."), 0);
+          await navigate("./../..");
         }
       },
       [navigate]
@@ -858,19 +860,19 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
 
 export interface AccountStatusDialogProps {
   isHidden: boolean;
-  onDismiss: (info: { deletedUser: boolean }) => void;
+  onDismiss: (info: { deletedUser: boolean }) => void | Promise<void>;
   mode:
-  | "disable"
-  | "re-enable"
-  | "set-account-valid-period"
-  | "edit-account-valid-period"
-  | "anonymize-or-schedule"
-  | "cancel-anonymization"
-  | "anonymize-immediately"
-  | "delete-or-schedule"
-  | "cancel-deletion"
-  | "delete-immediately"
-  | "auto";
+    | "disable"
+    | "re-enable"
+    | "set-account-valid-period"
+    | "edit-account-valid-period"
+    | "anonymize-or-schedule"
+    | "cancel-anonymization"
+    | "anonymize-immediately"
+    | "delete-or-schedule"
+    | "cancel-deletion"
+    | "delete-immediately"
+    | "auto";
   accountStatus: AccountStatus;
 }
 
@@ -1163,11 +1165,11 @@ export function AccountStatusDialog(
     onDismiss({ deletedUser: false });
   }, [loading, isHidden, onDismiss]);
 
-  const onClickDisable = useCallback(() => {
+  const onClickDisable = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus({
+    await setDisabledStatus({
       userID: accountStatus.id,
       isDisabled: true,
       reason: sanitizedDisableReason,
@@ -1177,7 +1179,8 @@ export function AccountStatusDialog(
         disableChoiceGroupKey === "indefinitely"
           ? null
           : temporarilyDisabledUntil,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     disableChoiceGroupKey,
@@ -1189,28 +1192,30 @@ export function AccountStatusDialog(
     temporarilyDisabledUntil,
   ]);
 
-  const onClickReenable = useCallback(() => {
+  const onClickReenable = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus({
+    await setDisabledStatus({
       userID: accountStatus.id,
       isDisabled: false,
       reason: null,
       temporarilyDisabledFrom: null,
       temporarilyDisabledUntil: null,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
 
-  const onClickSetAccountValidPeriod = useCallback(() => {
+  const onClickSetAccountValidPeriod = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setAccountValidPeriod({
+    await setAccountValidPeriod({
       userID: accountStatus.id,
       accountValidFrom: accountValidFrom,
       accountValidUntil: accountValidUntil,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     accountValidFrom,
@@ -1221,22 +1226,20 @@ export function AccountStatusDialog(
     setAccountValidPeriod,
   ]);
 
-  const onClickAnonymize = useCallback(() => {
+  const onClickAnonymize = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    anonymizeUser(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await anonymizeUser(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [accountStatus.id, anonymizeUser, isHidden, loading, onDismiss]);
 
-  const onClickScheduleAnonymization = useCallback(() => {
+  const onClickScheduleAnonymization = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    scheduleAccountAnonymization(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await scheduleAccountAnonymization(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1245,13 +1248,12 @@ export function AccountStatusDialog(
     scheduleAccountAnonymization,
   ]);
 
-  const onClickUnscheduleAnonymization = useCallback(() => {
+  const onClickUnscheduleAnonymization = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    unscheduleAccountAnonymization(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await unscheduleAccountAnonymization(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1260,31 +1262,32 @@ export function AccountStatusDialog(
     unscheduleAccountAnonymization,
   ]);
 
-  const onClickDelete = useCallback(() => {
+  const onClickDelete = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    deleteUser(accountStatus.id)
-      .then(() => onDismiss({ deletedUser: true }))
-      .catch(() => onDismiss({ deletedUser: false }));
+    try {
+      await deleteUser(accountStatus.id);
+      await onDismiss({ deletedUser: true });
+    } catch (_e) {
+      await onDismiss({ deletedUser: false });
+    }
   }, [accountStatus.id, deleteUser, isHidden, loading, onDismiss]);
 
-  const onClickScheduleDeletion = useCallback(() => {
+  const onClickScheduleDeletion = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    scheduleAccountDeletion(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await scheduleAccountDeletion(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [accountStatus.id, isHidden, loading, onDismiss, scheduleAccountDeletion]);
 
-  const onClickUnscheduleDeletion = useCallback(() => {
+  const onClickUnscheduleDeletion = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    unscheduleAccountDeletion(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await unscheduleAccountDeletion(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1362,6 +1365,7 @@ export function AccountStatusDialog(
           id="AccountStatusDialog.reenable-user.description"
           values={{
             ...args,
+            // eslint-disable-next-line react/no-unstable-nested-components
             strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
           }}
         />
@@ -1384,6 +1388,7 @@ export function AccountStatusDialog(
           id="AccountStatusDialog.disable-user.description"
           values={{
             ...args,
+            // eslint-disable-next-line react/no-unstable-nested-components
             strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
             br: <br />,
           }}

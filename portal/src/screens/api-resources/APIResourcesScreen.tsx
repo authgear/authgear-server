@@ -135,6 +135,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
             <FormattedMessage
               id="APIResourcesScreen.description"
               values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
                 DocLink: (chunks: React.ReactNode) => (
                   <ExternalLink href="https://docs.authgear.com/get-started/m2m-applications">
                     {chunks}

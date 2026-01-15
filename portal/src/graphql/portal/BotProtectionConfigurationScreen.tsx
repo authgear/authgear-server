@@ -62,27 +62,27 @@ const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
 
 const DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs =
-{
-  passwordMode: "never",
-  passwordlessViaEmailMode: "never",
-  passwordlessViaSMSMode: "always",
-};
+  {
+    passwordMode: "never",
+    passwordlessViaEmailMode: "never",
+    passwordlessViaSMSMode: "always",
+  };
 const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
-{
-  flows: {
-    flowType: "specificAuthenticator",
-    flowConfigs: {
-      allSignupLogin: {
-        allSignupLoginMode: "never",
+  {
+    flows: {
+      flowType: "specificAuthenticator",
+      flowConfigs: {
+        allSignupLogin: {
+          allSignupLoginMode: "never",
+        },
+        specificAuthenticator:
+          DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
       },
-      specificAuthenticator:
-        DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
     },
-  },
-  resetPassword: {
-    resetPasswordMode: "always",
-  },
-};
+    resetPassword: {
+      resetPasswordMode: "always",
+    },
+  };
 
 interface LocationState {
   isOAuthRedirect: boolean;
@@ -257,9 +257,9 @@ function constructBotProtectionConfig(
     signup_or_login:
       currentState.requirements.flows.flowType === "allSignupLogin"
         ? {
-          mode: currentState.requirements.flows.flowConfigs.allSignupLogin
-            .allSignupLoginMode,
-        }
+            mode: currentState.requirements.flows.flowConfigs.allSignupLogin
+              .allSignupLoginMode,
+          }
         : undefined,
   };
   const accountRecoveryRequirements: Partial<BotProtectionRequirements> = {
@@ -270,19 +270,19 @@ function constructBotProtectionConfig(
   const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> =
     currentState.requirements.flows.flowType === "specificAuthenticator"
       ? {
-        password: {
-          mode: currentState.requirements.flows.flowConfigs
-            .specificAuthenticator.passwordMode,
-        },
-        oob_otp_email: {
-          mode: currentState.requirements.flows.flowConfigs
-            .specificAuthenticator.passwordlessViaEmailMode,
-        },
-        oob_otp_sms: {
-          mode: currentState.requirements.flows.flowConfigs
-            .specificAuthenticator.passwordlessViaSMSMode,
-        },
-      }
+          password: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordMode,
+          },
+          oob_otp_email: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaEmailMode,
+          },
+          oob_otp_sms: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaSMSMode,
+          },
+        }
       : {};
   const requirements: BotProtectionRequirements = {
     ...signupOrLoginRequirements,
@@ -524,6 +524,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           <FormattedMessage
             id="BotProtectionConfigurationScreen.provider.recaptchaV2.description"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               ExternalLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://developers.google.com/recaptcha/docs/settings">
                   {chunks}
@@ -573,6 +574,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           <FormattedMessage
             id="BotProtectionConfigurationScreen.provider.cloudflare.description"
             values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
               ExternalLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://developers.cloudflare.com/turnstile/get-started/#get-a-sitekey-and-secret-key">
                   {chunks}

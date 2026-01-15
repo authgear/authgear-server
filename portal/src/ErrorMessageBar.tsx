@@ -43,11 +43,13 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
               id={err.messageID ?? ""}
               values={{
                 ...err.arguments,
+                // eslint-disable-next-line react/no-unstable-nested-components
                 reactRouterLink: (chunks: React.ReactNode) => (
                   <Link to={err.arguments?.to ?? err.arguments?.href}>
                     {chunks}
                   </Link>
                 ),
+                // eslint-disable-next-line react/no-unstable-nested-components
                 externalLink: (chunks: React.ReactNode) => (
                   <ExternalLink
                     href={err.arguments?.to ?? err.arguments?.href}
@@ -57,13 +59,17 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
                     {chunks}
                   </ExternalLink>
                 ),
+                // eslint-disable-next-line react/no-unstable-nested-components
                 docLink: (chunks: React.ReactNode) => (
                   <ExternalLink href={err.arguments?.to ?? err.arguments?.href}>
                     {chunks}
                   </ExternalLink>
                 ),
+                // eslint-disable-next-line react/no-unstable-nested-components
                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                // eslint-disable-next-line react/no-unstable-nested-components
                 strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                // eslint-disable-next-line react/no-unstable-nested-components
                 code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                 br: <br />,
               }}

@@ -262,7 +262,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       canDrop: () => true,
       canDrag: () => true,
       onDragEnter: () => styles.onDragEnter,
-      onDragLeave: () => { },
+      onDragLeave: () => {},
       onDragStart: (_item?: T, index?: number) => {
         if (index != null) {
           setDNDIndex(index);
@@ -332,7 +332,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
                 party: pendingUpdate.mainAdjustment[0],
                 level: renderToString(
                   "user-profile.access-control-level." +
-                  pendingUpdate.mainAdjustment[1]
+                    pendingUpdate.mainAdjustment[1]
                 ),
               }}
             />
@@ -548,8 +548,6 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     onRenderReorderHandle,
   ]);
 
-
-
   const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
     useCallback(
       (
@@ -572,6 +570,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
           let tooltipValues: Record<string, any> | undefined;
           if (props.column.key === "end_user") {
             tooltipValues = {
+              // eslint-disable-next-line react/no-unstable-nested-components
               DocLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
                   {chunks}
@@ -580,6 +579,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
             };
           } else if (props.column.key === "bearer") {
             tooltipValues = {
+              // eslint-disable-next-line react/no-unstable-nested-components
               DocLink: (chunks: React.ReactNode) => (
                 <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
                   {chunks}

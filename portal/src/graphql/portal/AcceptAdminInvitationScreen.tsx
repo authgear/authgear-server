@@ -103,7 +103,7 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
             navigate(`/project/${appID}`);
           }
         })
-        .catch(() => { });
+        .catch(() => {});
     }, [acceptCollaboratorInvitation, invitationCode, navigate]);
 
     if (errors.length > 0) {
@@ -183,7 +183,7 @@ const AcceptAdminInvitationScreen: React.VFC =
       [redirectURI, originalPath]
     );
 
-    const goToHome = useCallback(() => navigate("/"), [navigate]);
+    const goToHome = useCallback(async () => navigate("/"), [navigate]);
 
     if (loading) {
       return <ShowLoading />;
@@ -219,6 +219,7 @@ const AcceptAdminInvitationScreen: React.VFC =
             id: "AcceptAdminInvitationScreen.not-authenticaed.title",
             values: {
               appID: appID!,
+              // eslint-disable-next-line react/no-unstable-nested-components
               b: (chunks: React.ReactNode) => <b>{chunks}</b>,
             },
           }}

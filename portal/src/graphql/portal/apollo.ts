@@ -52,7 +52,6 @@ export function createCache(): ApolloCache<NormalizedCacheObject> {
 }
 
 export function createLogoutLink(onLogout: () => void): ApolloLink {
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return onError(({ networkError, graphQLErrors }) => {
     const is401Error =
       networkError &&
