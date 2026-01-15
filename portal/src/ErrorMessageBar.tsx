@@ -71,7 +71,6 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
                 strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                 // eslint-disable-next-line react/no-unstable-nested-components
                 code: (chunks: React.ReactNode) => <code>{chunks}</code>,
-                br: <br />,
               }}
             />
           ) : (

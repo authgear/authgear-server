@@ -244,7 +244,6 @@ const CustomTextConfigurationScreen: React.VFC =
                 values={{
                   COMMIT: gitCommitHash,
                   language: translationSheetLanguage,
-                  br: <br />,
                   // eslint-disable-next-line react/no-unstable-nested-components
                   externalLink: (chunks: React.ReactNode) => (
                     <ExternalLink

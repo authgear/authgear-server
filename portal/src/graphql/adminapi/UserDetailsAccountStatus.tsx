@@ -1390,7 +1390,6 @@ export function AccountStatusDialog(
             ...args,
             // eslint-disable-next-line react/no-unstable-nested-components
             strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-            br: <br />,
           }}
         />
       );
