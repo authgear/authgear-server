@@ -367,7 +367,7 @@
   "UserDetails.account-security.mark-as-expired-confirm-dialog.message": "The user will be asked to change password at the next login.",
   "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke": "The user will NOT be asked to change password at the next login.",
   "UserDetails.account-security.secondary.grant-grace-period": "Grant grace period to set up 2FA",
-  "UserDetails.account-security.secondary.update-existing-grace-period": "<extend/> or <cancel/>",
+  "UserDetails.account-security.secondary.update-existing-grace-period": "<extend></extend> or <cancel></cancel>",
   "UserDetails.account-security.secondary.extend-grace-period": "Extend grace period",
   "UserDetails.account-security.secondary.cancel-grace-period": "Cancel grace period",
   "UserDetails.account-security.grant-mfa-grace-period-confirm-dialog.title": "Grace Period for 2FA Setup",
