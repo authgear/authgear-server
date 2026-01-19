@@ -45,13 +45,11 @@ type AuthflowV2SettingsIdentityListEmailViewModel struct {
 	OAuthEmailIdentities []*AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity
 	Verifications        map[string][]verification.ClaimStatus
 	CreateDisabled       bool
-	VerificationEnabled  bool
 }
 
 type AuthflowV2SettingsIdentityListEmailHandler struct {
 	Database                 *appdb.Handle
 	LoginIDConfig            *config.LoginIDConfig
-	VerificationConfig       *config.VerificationConfig
 	Identities               *identityservice.Service
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
@@ -140,7 +138,6 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(ctx context.Context
 		CreateDisabled:       createDisabled,
 		PrimaryEmail:         primary,
 		AllEmails:            emails.Keys(),
-		VerificationEnabled:  *h.VerificationConfig.Claims.Email.Enabled,
 	}
 	viewmodels.Embed(data, vm)
 

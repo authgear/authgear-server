@@ -12,16 +12,14 @@
 {{ end }}
 
 {{ define "__settings_identity_email_verification_label.html" }}
-  {{ if $.VerificationEnabled }}
-    {{ if $.Verified }}
-      <span class="body-text--md settings-text-color-success">
-        {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-      </span>
-    {{ else }}
-      <span class="body-text--md settings-text-color-failure">
-        {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-      </span>
-    {{ end }}
+  {{ if $.Verified }}
+    <span class="body-text--md settings-text-color-success">
+      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
+    </span>
+  {{ else }}
+    <span class="body-text--md settings-text-color-failure">
+      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
+    </span>
   {{ end }}
 {{ end }}
 
@@ -41,10 +39,7 @@
                 "MaterialIconName" "email"
                 "Label" .OriginalLoginID
                 "SupplementaryNote" (include "__settings_identity_email_verification_label.html"
-                  (dict
-                    "Verified" $claim.Verified
-                    "VerificationEnabled" $.VerificationEnabled
-                  )
+                  (dict "Verified" $claim.Verified)
                 )
                 "WithArrow" true
               )
