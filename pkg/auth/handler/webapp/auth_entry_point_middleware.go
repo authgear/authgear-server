@@ -69,7 +69,7 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 					cookies = append(cookies, cookie.Name)
 				}
 			}
-			logger.WithSkipStackTrace().WithSkipLogging().Error(ctx, "auth direct access blocked",
+			logger.WithSkipStackTrace().WithSkipLogging().Warn(ctx, "auth direct access blocked",
 				slog.String("web_session_id", webSessionID),
 				slog.String("oauth_session_id", oauthSessionID),
 				slog.String("saml_session_id", samlSessionID),
