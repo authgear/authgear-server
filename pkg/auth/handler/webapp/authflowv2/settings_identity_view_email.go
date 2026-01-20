@@ -54,23 +54,25 @@ func ConfigureAuthflowV2SettingsIdentityViewEmailRoute(route httproute.Route) ht
 }
 
 type AuthflowV2SettingsIdentityViewEmailViewModel struct {
-	LoginIDKey     string
-	EmailIdentity  *identity.LoginID
-	Verified       bool
-	Verifications  map[string][]verification.ClaimStatus
-	UpdateDisabled bool
-	DeleteDisabled bool
+	LoginIDKey          string
+	EmailIdentity       *identity.LoginID
+	Verified            bool
+	Verifications       map[string][]verification.ClaimStatus
+	UpdateDisabled      bool
+	DeleteDisabled      bool
+	VerificationEnabled bool
 }
 
 type AuthflowV2SettingsIdentityViewEmailHandler struct {
-	Database          *appdb.Handle
-	LoginIDConfig     *config.LoginIDConfig
-	Identities        *identityservice.Service
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Verification      verification.Service
-	Renderer          handlerwebapp.Renderer
-	AccountManagement accountmanagement.Service
+	Database           *appdb.Handle
+	LoginIDConfig      *config.LoginIDConfig
+	VerificationConfig *config.VerificationConfig
+	Identities         *identityservice.Service
+	ControllerFactory  handlerwebapp.ControllerFactory
+	BaseViewModel      *viewmodels.BaseViewModeler
+	Verification       verification.Service
+	Renderer           handlerwebapp.Renderer
+	AccountManagement  accountmanagement.Service
 }
 
 func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -115,11 +117,12 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(ctx context.Context
 	}
 
 	vm := AuthflowV2SettingsIdentityViewEmailViewModel{
-		LoginIDKey:     loginIDKey,
-		EmailIdentity:  emailIdentity,
-		Verified:       verified,
-		UpdateDisabled: updateDisabled,
-		DeleteDisabled: deleteDisabled,
+		LoginIDKey:          loginIDKey,
+		EmailIdentity:       emailIdentity,
+		Verified:            verified,
+		UpdateDisabled:      updateDisabled,
+		DeleteDisabled:      deleteDisabled,
+		VerificationEnabled: *h.VerificationConfig.Claims.Email.Enabled,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -190,9 +193,10 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 
 		s := session.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityEmail(ctx, s, &accountmanagement.StartUpdateIdentityEmailInput{
-			LoginID:    loginID,
-			LoginIDKey: loginIDKey,
-			IdentityID: identityID,
+			LoginID:                 loginID,
+			LoginIDKey:              loginIDKey,
+			IdentityID:              identityID,
+			IsVerificationRequested: true,
 		})
 		if err != nil {
 			return err

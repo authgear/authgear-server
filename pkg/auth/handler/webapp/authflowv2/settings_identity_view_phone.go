@@ -55,17 +55,19 @@ func ConfigureAuthflowV2SettingsIdentityViewPhoneRoute(route httproute.Route) ht
 }
 
 type AuthflowV2SettingsIdentityViewPhoneViewModel struct {
-	LoginIDKey     string
-	Channel        string
-	PhoneIdentity  *identity.LoginID
-	Verified       bool
-	UpdateDisabled bool
-	DeleteDisabled bool
+	LoginIDKey          string
+	Channel             string
+	PhoneIdentity       *identity.LoginID
+	Verified            bool
+	UpdateDisabled      bool
+	DeleteDisabled      bool
+	VerificationEnabled bool
 }
 
 type AuthflowV2SettingsIdentityViewPhoneHandler struct {
 	Database            *appdb.Handle
 	LoginIDConfig       *config.LoginIDConfig
+	VerificationConfig  *config.VerificationConfig
 	Identities          *identityservice.Service
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
@@ -119,12 +121,13 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 	}
 
 	vm := AuthflowV2SettingsIdentityViewPhoneViewModel{
-		LoginIDKey:     loginIDKey,
-		Channel:        string(channel),
-		PhoneIdentity:  phoneIdentity,
-		Verified:       verified,
-		UpdateDisabled: updateDisabled,
-		DeleteDisabled: deleteDisabled,
+		LoginIDKey:          loginIDKey,
+		Channel:             string(channel),
+		PhoneIdentity:       phoneIdentity,
+		Verified:            verified,
+		UpdateDisabled:      updateDisabled,
+		DeleteDisabled:      deleteDisabled,
+		VerificationEnabled: *h.VerificationConfig.Claims.PhoneNumber.Enabled,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -197,10 +200,11 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 
 		s := session.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
-			Channel:    channel,
-			LoginID:    loginID,
-			LoginIDKey: loginIDKey,
-			IdentityID: identityID,
+			Channel:                 channel,
+			LoginID:                 loginID,
+			LoginIDKey:              loginIDKey,
+			IdentityID:              identityID,
+			IsVerificationRequested: true,
 		})
 		if err != nil {
 			return err

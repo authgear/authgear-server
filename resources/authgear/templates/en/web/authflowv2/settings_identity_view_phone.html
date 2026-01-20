@@ -54,7 +54,7 @@
 
 <div class="flex flex-col gap-y-6">
   {{ $verifyButton := "" }}
-  {{ if not $.Verified }}
+  {{ if and (not $.Verified) ($.VerificationEnabled) }}
     {{ $verifyButton = (include "__settings_identity_phone_verification_button.html" (dict
         "CSRFField" $.CSRFField
         "Verified" false
