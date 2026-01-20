@@ -629,7 +629,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 		}
 
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		// TODO(slog): Before we have fine-grained logging, use WithSkipLogging().Error() to force logging to stderr.
+		// TODO(slog): Before we have fine-grained logging, use .Warn() to force logging to stderr.
 		logger.WithSkipStackTrace().Warn(ctx,
 			"delete offline grant",
 			slog.String("offline_grant_id", grant.ID),

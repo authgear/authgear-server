@@ -16,7 +16,9 @@ import (
 // LoggingSkippable is an interface to be implemented by error.
 type LoggingSkippable interface{ SkipLogging() bool }
 
-const AttrKeySkipLogging = "__authgear_skip_logging"
+// attrKeySkipLogging is used internally in the logs middleware for filtering specific errors only.
+// It should not be used when defining logs.
+const attrKeySkipLogging = "__authgear_skip_logging"
 
 type SkipLoggingHandler struct {
 	// See https://github.com/golang/example/blob/master/slog-handler-guide/README.md#the-withgroup-method
@@ -43,13 +45,6 @@ func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) err
 	shouldSkip := false
 
 	visitAttr := func(attr slog.Attr) {
-		if attr.Key == AttrKeySkipLogging {
-			if attr.Value.Kind() == slog.KindBool {
-				if attr.Value.Bool() {
-					shouldSkip = true
-				}
-			}
-		}
 		if attr.Key == AttrKeyError {
 			if err, ok := attr.Value.Any().(error); ok {
 				if IgnoreError(err) {
@@ -76,14 +71,14 @@ func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) err
 
 		// Loop through the original attrs and add them to cloned.
 		record.Attrs(func(attr slog.Attr) bool {
-			if attr.Key != AttrKeySkipLogging {
+			if attr.Key != attrKeySkipLogging {
 				clonedWithoutAttrs.AddAttrs(attr)
 			}
 			return true
 		})
 
 		// Always write the skip_logging attr.
-		clonedWithoutAttrs.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
+		clonedWithoutAttrs.AddAttrs(slog.Bool(attrKeySkipLogging, true))
 
 		record = clonedWithoutAttrs
 	}
@@ -151,14 +146,10 @@ func IgnoreError(err error) (ignore bool) {
 	return
 }
 
-func SkipLogging() slog.Attr {
-	return slog.Bool(AttrKeySkipLogging, true)
-}
-
 func IsLoggingSkipped(record slog.Record) bool {
 	skipped := false
 	record.Attrs(func(attr slog.Attr) bool {
-		if attr.Key == AttrKeySkipLogging {
+		if attr.Key == attrKeySkipLogging {
 			if attr.Value.Kind() == slog.KindBool {
 				skipped = attr.Value.Bool()
 				return false
