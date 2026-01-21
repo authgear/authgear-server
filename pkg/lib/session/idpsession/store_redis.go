@@ -64,7 +64,7 @@ func (s *StoreRedis) Create(ctx context.Context, sess *IDPSession, expireAt time
 
 	logger := StoreRedisLogger.GetLogger(ctx)
 	// NOTE(DEV-2982): This is for debugging the session lost problem
-	logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+	logger.WithSkipStackTrace().Warn(ctx,
 		"create IDP session",
 		slog.String("idp_session_id", sess.ID),
 		slog.Time("idp_session_created_at", sess.CreatedAt),
@@ -169,7 +169,7 @@ func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error
 	})
 
 	// NOTE(DEV-2982): This is for debugging the session lost problem
-	logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
+	logger.WithSkipStackTrace().Warn(ctx,
 		"delete IDP session",
 		slog.String("idp_session_id", session.ID),
 		slog.Time("idp_session_created_at", session.CreatedAt),
@@ -216,7 +216,7 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			} else {
 				session, err = s.Unmarshal(sessionJSON)
 				if err != nil {
-					logger.WithError(err).Error(ctx, "invalid JSON value",
+					logger.WithError(err).Warn(ctx, "invalid JSON value",
 						slog.String("key", key),
 					)
 					err = nil
@@ -230,7 +230,7 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 				_, err = conn.HDel(ctx, listKey, key).Result()
 				if err != nil {
 					// ignore non-critical error
-					logger.WithError(err).Error(ctx, "failed to update session list",
+					logger.WithError(err).Warn(ctx, "failed to update session list",
 						slog.String("key", listKey),
 					)
 					err = nil

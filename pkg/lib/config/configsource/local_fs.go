@@ -108,7 +108,7 @@ func (s *LocalFS) watch(ctx context.Context, done <-chan struct{}) {
 			}
 			logger.Info(ctx, "change detected, reloading...", slog.String("file", event.Name))
 			if err := s.reload(ctx); err != nil {
-				logger.WithError(err).Error(ctx, "reload failed", slog.String("file", event.Name))
+				logger.WithError(err).Warn(ctx, "reload failed", slog.String("file", event.Name))
 			}
 
 		case err, ok := <-s.watcher.Errors:
@@ -165,6 +165,6 @@ func (s *LocalFS) ReloadApp(ctx context.Context, appID string) {
 	// In single mode, appID is ignored.
 	err := s.reload(ctx)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "reload failed")
+		logger.WithError(err).Warn(ctx, "reload failed")
 	}
 }

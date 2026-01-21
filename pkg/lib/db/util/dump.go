@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -69,7 +70,7 @@ func (d *Dumper) Dump(ctx context.Context) error {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(ctx, fmt.Sprintf("Dumping to %s", outputPathAbs))
+	logger.Info(ctx, "dumping to directory", slog.String("path", outputPathAbs))
 
 	err = os.MkdirAll(outputPathAbs, 0755)
 	if err != nil {
@@ -80,7 +81,7 @@ func (d *Dumper) Dump(ctx context.Context) error {
 		logger := DumperLogger.GetLogger(ctx)
 		for _, tableName := range d.TableNames {
 			filePath := filepath.Join(d.OutputDir, fmt.Sprintf("%s.csv", tableName))
-			logger.Info(ctx, fmt.Sprintf("Dumping %s to %s", tableName, filePath))
+			logger.Info(ctx, "dumping table", slog.String("table", tableName), slog.String("file", filePath))
 			columns, rows, err := d.queryTable(ctx, tableName)
 			if err != nil {
 				return err

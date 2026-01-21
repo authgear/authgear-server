@@ -123,16 +123,6 @@ func TestNewSkipLoggingMiddleware(t *testing.T) {
 			}
 		})
 
-		Convey("error logging should be skipped when WithSkipLogging is used", func() {
-			logger.With(SkipLogging()).Error("test message")
-			// It may seem incorrect to have 2 __authgear_skip_logging here.
-			// This is the result of the trivial implementation of WithAttrs.
-			// In WithAttrs, we forward the call to both groupOrAttrs and the underlying handler.
-			// The underlying handler (TextHandler in this case) implements WithAttrs by including the attrs when it prints.
-			// On the other hand, we always include __authgear_skip_logging in the record's attrs so that IsLoggingSkipped(record) works.
-			So(w.String(), ShouldEqual, "level=ERROR msg=\"test message\" __authgear_skip_logging=true __authgear_skip_logging=true\n")
-		})
-
 		Convey("ForceLogging should override skip behavior", func() {
 			forcedErr := errorutil.ForceLogging(context.Canceled)
 			logger.Error("test message", Err(forcedErr))
@@ -243,25 +233,25 @@ func TestIsLoggingSkipped(t *testing.T) {
 
 		Convey("should return true for record with skip attribute set to true", func() {
 			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
-			record.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
+			record.AddAttrs(slog.Bool(attrKeySkipLogging, true))
 			So(IsLoggingSkipped(record), ShouldBeTrue)
 		})
 
 		Convey("should return false for record with skip attribute set to false", func() {
 			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
-			record.AddAttrs(slog.Bool(AttrKeySkipLogging, false))
+			record.AddAttrs(slog.Bool(attrKeySkipLogging, false))
 			So(IsLoggingSkipped(record), ShouldBeFalse)
 		})
 
 		Convey("should return false for record with skip attribute of wrong type", func() {
 			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
-			record.AddAttrs(slog.String(AttrKeySkipLogging, "true"))
+			record.AddAttrs(slog.String(attrKeySkipLogging, "true"))
 			So(IsLoggingSkipped(record), ShouldBeFalse)
 		})
 
 		Convey("should return false for record with skip attribute as int", func() {
 			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
-			record.AddAttrs(slog.Int(AttrKeySkipLogging, 1))
+			record.AddAttrs(slog.Int(attrKeySkipLogging, 1))
 			So(IsLoggingSkipped(record), ShouldBeFalse)
 		})
 
@@ -269,7 +259,7 @@ func TestIsLoggingSkipped(t *testing.T) {
 			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
 			record.AddAttrs(
 				slog.String("other", "value"),
-				slog.Bool(AttrKeySkipLogging, true),
+				slog.Bool(attrKeySkipLogging, true),
 				slog.Int("number", 42),
 			)
 			So(IsLoggingSkipped(record), ShouldBeTrue)

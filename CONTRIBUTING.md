@@ -26,6 +26,7 @@
 * [Agentic coding](#agentic-coding)
   * [Always prompts](#always-prompts)
   * [Manual prompts](#manual-prompts)
+* [Logging](#logging)
 
 # Contributing guide
 
@@ -582,3 +583,82 @@ They live in ./.claude/commands/
 In Claude Code, they are custom slash commands, and you use them as such.
 
 In Cursor, you need to reference them with `@`.
+
+# Logging
+
+## Goals
+
+- Make production issues diagnosable from logs.
+- Avoid noise from non-production issues.
+- Keep logs consistent, searchable, and safe (no secrets/PII).
+- Prefer structured attributes over string formatting.
+
+## Choosing Severity
+
+Authgear server supports 4 severity levels (`debug`, `info`, `warn`, `error`)
+
+`Debug`
+
+High noise. Use for developer diagnostics that are too noisy for prod by default.
+
+- Debugging information
+
+E.g. Branch decisions, cache hits/misses, detailed timings, payload sizes (not contents)
+
+`Info`
+
+Low noise. Use for normal, expected events in the system.
+
+- Lifecycle events
+- Business / domain events
+- Successful completion of important operations
+- Not every request, only meaningful ones.
+
+E.g. Service started, subscription created.
+
+`Warn`
+
+Something unexpected happened, but the system can continue **without immediate action**.
+
+- Auto-retries happen
+- Fallbacks are used
+- Inputs are suspicious but not fatal
+- Something may become an incident if frequent
+
+E.g. CSRF Forbidden, Rate limit exceeded
+
+`Error`
+
+An operation failed or data integrity might be affected, **action is needed**.
+
+- User request fails (5xx)
+- Data may be lost or corrupted
+- "This should not happen" situations
+
+E.g. Runtime exception, failed to send email or SMS, config invalid at startup.
+
+## Message Style
+
+- Keep messages short, stable, and human-readable.
+- Don’t embed variable data into the message, put it in attributes.
+
+Good:
+
+- `logger.Info("user created", slog.String("user_id", userID), ...)`
+- `logger.WithError(err).Error("failed to create user", ...)`
+
+Bad:
+
+- `logger.Info("user created: %s", user.ID)`
+- `logger.Error("failed to create user: %s", err)`
+
+## Quick Checklist
+
+- Correct severity (Debug/Info/Warn/Error)
+- The message is readable and stable, variable data is in attributes
+- No unnecessary noise
+  - Avoid high volume Info logs (e.g. per-request)
+  - Use Debug for non-production diagnostics
+  - Use Error only when action or investigation is required
+- No secrets/PII
+- No duplicate error logs across layers

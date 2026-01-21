@@ -80,7 +80,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context
 	}
 
 	if subtle.ConstantTimeCompare([]byte(hubVerifyToken), []byte(h.Credentials.Webhook.VerifyToken)) != 1 {
-		logger.Error(ctx, "invalid verify token received")
+		logger.Warn(ctx, "invalid verify token received")
 		http.Error(w, "invalid verify token", http.StatusBadRequest)
 		return
 	}
@@ -95,7 +95,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	)
 
 	if h.Credentials == nil || h.Credentials.Webhook == nil {
-		logger.Error(ctx, "whatsapp cloud api webhook credential is not configured")
+		logger.Warn(ctx, "whatsapp cloud api webhook credential is not configured")
 		// Simply return 404 if webhook is not configured
 		http.Error(w, "not found", http.StatusNotFound)
 		return
@@ -108,13 +108,13 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	signature := r.Header.Get("X-Hub-Signature-256")
 	if signature == "" {
-		logger.Error(ctx, "missing signature")
+		logger.Warn(ctx, "missing signature")
 		http.Error(w, "missing signature", http.StatusBadRequest)
 		return
 	}
 
 	if !strings.HasPrefix(signature, "sha256=") {
-		logger.Error(ctx, "invalid X-Hub-Signature-256 header format")
+		logger.Warn(ctx, "invalid X-Hub-Signature-256 header format")
 		http.Error(w, "invalid X-Hub-Signature-256 header format", http.StatusBadRequest)
 		return
 	}
@@ -133,7 +133,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	expectedSignature := hex.EncodeToString(expectedMAC)
 
 	if subtle.ConstantTimeCompare([]byte(signature), []byte(expectedSignature)) != 1 {
-		logger.Error(ctx, "invalid signature")
+		logger.Warn(ctx, "invalid signature")
 		http.Error(w, "invalid signature", http.StatusUnauthorized)
 		return
 	}
@@ -160,7 +160,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifiedWebhookPayload(w http.Res
 		for _, change := range entry.Changes {
 			if change.Field == "messages" {
 				if subtle.ConstantTimeCompare([]byte(change.Value.Metadata.PhoneNumberID), []byte(h.Credentials.PhoneNumberID)) != 1 {
-					logger.Error(
+					logger.Warn(
 						ctx,
 						"phone number ID does not match configured phone number ID",
 						slog.String("phone_number_id", change.Value.Metadata.PhoneNumberID),
@@ -184,7 +184,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifiedWebhookPayload(w http.Res
 						status.Errors,
 					)
 					if err != nil {
-						logger.WithError(err).Error(ctx, "Failed to update message status")
+						logger.WithError(err).Error(ctx, "failed to update message status")
 						continue
 					}
 				}

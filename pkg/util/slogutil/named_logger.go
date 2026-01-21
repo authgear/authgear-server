@@ -109,10 +109,6 @@ func (l NamedLogger) WithError(err error) NamedLogger {
 	return l.With(Err(err))
 }
 
-func (l NamedLogger) WithSkipLogging() NamedLogger {
-	return l.With(SkipLogging())
-}
-
 func (l NamedLogger) WithSkipStackTrace() NamedLogger {
 	return l.With(SkipStackTrace())
 }

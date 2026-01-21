@@ -180,7 +180,7 @@ func (s *UserImportService) importRecordInConn(
 
 	if err != nil {
 		if !apierrors.IsAPIError(err) {
-			logger.WithError(err).Error(ctx, err.Error())
+			logger.WithError(err).Error(ctx, "failed to process import record")
 		}
 		detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
 	}

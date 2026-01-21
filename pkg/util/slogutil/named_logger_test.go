@@ -57,13 +57,6 @@ level=INFO msg=info logger=service.a attr=info
 			So(w.String(), ShouldEqual, "level=ERROR msg=error logger=service.a error=\"something went wrong\"\n")
 		})
 
-		Convey("skip logging with WithSkipLogging()", func() {
-			logger := serviceALogger.GetLogger(ctx)
-
-			logger.WithSkipLogging().Error(ctx, "error")
-			So(w.String(), ShouldEqual, "level=ERROR msg=error logger=service.a __authgear_skip_logging=true\n")
-		})
-
 		Convey("derive logger with With()", func() {
 			logger := serviceALogger.GetLogger(ctx)
 

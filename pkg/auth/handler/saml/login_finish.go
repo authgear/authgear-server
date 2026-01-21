@@ -38,7 +38,7 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 
 	authInfoID, ok := h.AuthenticationInfoResolver.GetAuthenticationInfoID(r)
 	if !ok {
-		logger.WithSkipLogging().Warn(ctx, "authentication info id is missing")
+		logger.Warn(ctx, "authentication info id is missing")
 		// Maybe the user visited the page directly, tell him not to do so.
 		http.Error(rw, "invoking this endpoint directly is not supported", http.StatusBadRequest)
 		return

@@ -92,7 +92,6 @@ func NewSentryHandler() *SentryHandler {
 	noctx := context.Background()
 	options := sentryslog.Option{
 		EventLevel: []slog.Level{
-			slog.LevelWarn,
 			slog.LevelError,
 		},
 		// Pass an empty slice to disable sentry.Logger.
