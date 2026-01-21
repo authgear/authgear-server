@@ -66,7 +66,7 @@ func (s *Store) GetAppIDByDomain(ctx context.Context, domain string) (string, er
 
 	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
-		return "", err
+		return "", errors.Join(errors.New("failed to query app id by domain"), err)
 	}
 
 	var appID string
@@ -74,7 +74,7 @@ func (s *Store) GetAppIDByDomain(ctx context.Context, domain string) (string, er
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", ErrAppNotFound
 		}
-		return "", err
+		return "", errors.Join(errors.New("failed to scan while querying app id by domain"), err)
 	}
 
 	return appID, nil
@@ -90,7 +90,7 @@ func (s *Store) GetDomainsByAppID(ctx context.Context, appID string) (domains []
 
 	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
-		return
+		return nil, errors.Join(errors.New("failed to query domains by app id"), err)
 	}
 	defer rows.Close()
 
@@ -98,7 +98,7 @@ func (s *Store) GetDomainsByAppID(ctx context.Context, appID string) (domains []
 		var d string
 		err := rows.Scan(&d)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(errors.New("failed to scan while querying domains by app id"), err)
 		}
 		domains = append(domains, d)
 	}
@@ -112,7 +112,7 @@ func (s *Store) GetDatabaseSourceByAppID(ctx context.Context, appID string) (*Da
 
 	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to query database source by app id"), err)
 	}
 
 	dbs, err := s.scanConfigSource(scanner)
@@ -120,7 +120,7 @@ func (s *Store) GetDatabaseSourceByAppID(ctx context.Context, appID string) (*Da
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrAppNotFound
 		}
-		return nil, err
+		return nil, errors.Join(errors.New("failed to scan while querying database source by app id"), err)
 	}
 
 	return dbs, nil

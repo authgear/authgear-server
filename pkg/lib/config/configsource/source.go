@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -31,7 +32,7 @@ type ConfigSource struct {
 func (s *ConfigSource) ProvideContext(ctx context.Context, r *http.Request, fn func(context.Context, *config.AppContext) error) error {
 	appID, err := s.AppIDResolver.ResolveAppID(ctx, r)
 	if err != nil {
-		return err
+		return errors.Join(errors.New("failed to resolve app id"), err)
 	}
 	return s.ResolveContext(ctx, appID, fn)
 }
