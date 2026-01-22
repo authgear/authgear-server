@@ -13,7 +13,6 @@
   - [Protocol](#protocol)
   - [Validations](#validations)
   - [Transformations](#transformations)
-  - [Authentication](#authentication)
   - [Rate Limits](#rate-limits)
 - [Configuration](#configuration)
   - [Enabling & Rate Limits](#enabling--rate-limits)
@@ -130,11 +129,6 @@ Some hard limits:
 The following attributes should be added to the logs by the server:
 
 - project_id: The authgear project ID.
-- api_key_id: The API Key used in the log request.
-
-### Authentication
-
-Basic Auth with API Key generated for each client. See [Configuration](#configuration).
 
 ### Rate Limits
 
