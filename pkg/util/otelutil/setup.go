@@ -14,7 +14,8 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/semconv/v1.34.0"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
 	"github.com/authgear/authgear-server/pkg/version"
 )
@@ -79,6 +80,13 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	// set the global meter provider.
 	otel.SetMeterProvider(meterProvider)
+
+	// Set up trace provider.
+	traceProvider, err := newTracerProvider()
+	if err != nil {
+		return
+	}
+	otel.SetTracerProvider(traceProvider)
 
 	// Start go runtime metrics collection.
 	// Refer to https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
@@ -237,4 +245,11 @@ func newMetricExportersFromEnv(ctx context.Context) (exporters []sdkmetric.Expor
 	}
 
 	return
+}
+
+func newTracerProvider() (*trace.TracerProvider, error) {
+	// We do not collect traces at the moment.
+	// Configure exporters here when we want to collect trace data.
+	tracerProvider := trace.NewTracerProvider()
+	return tracerProvider, nil
 }
