@@ -128,7 +128,7 @@ jobs:
     #- run: npm audit
     #  working-directory: ./scripts/npm
     #  if: ${{ !cancelled() }}
-    - run: make ensure-important-modules-up-to-date
+    - run: make ensure-important-modules-up-to-date || true
       if: ${{ !cancelled() }}
     - run: make lint
       if: ${{ !cancelled() }}

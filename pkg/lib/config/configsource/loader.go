@@ -15,7 +15,7 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearYAML, err)
 	} else if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to read app config"), err)
 	}
 	appConfig := result.(*config.AppConfig)
 
@@ -23,7 +23,7 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearSecretYAML, err)
 	} else if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to read secret config"), err)
 	}
 	secretConfig := result.(*config.SecretConfig)
 
@@ -32,7 +32,7 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		featureConfig = config.NewEffectiveDefaultFeatureConfig()
 	} else if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to read feature config"), err)
 	} else {
 		featureConfig = result.(*config.FeatureConfig)
 	}
