@@ -169,11 +169,7 @@
 /pkg/auth/handler/webapp/create_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/create_password.go:107:27: requestcontext
 /pkg/auth/handler/webapp/csrf_error_instruction.go:49:36: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:49:5: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:55:5: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:90:5: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:98:12: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:125:9: requestcontext
+/pkg/auth/handler/webapp/csrf_middleware.go:35:10: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:144:27: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:146:31: requestcontext
 /pkg/auth/handler/webapp/enter_oob_otp.go:161:27: requestcontext
@@ -254,8 +250,8 @@
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity_success.go:42:27: requestcontext
 /pkg/auth/handler/webapp/verify_login_link.go:92:27: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:210:9: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:426:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:207:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:424:9: requestcontext
 /pkg/auth/handler/webapp/websocket.go:42:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:53:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:77:30: requestcontext
