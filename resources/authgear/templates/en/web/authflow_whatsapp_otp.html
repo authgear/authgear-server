@@ -25,7 +25,6 @@
 {{- end }}
 
 <form id="main-form" class="twc-container-vertical" method="post" novalidate>
-{{ $.CSRFField }}
 
 <input
 	tabindex="0"
@@ -50,7 +49,6 @@
 </form>
 
 <form class="link" method="post" novalidate>
-{{ $.CSRFField }}
 <span class="primary-txt text-sm">
 {{ if not $.FailedAttemptRateLimitExceeded }}
 {{ template "whatsapp-otp-resend-button-hint" }}

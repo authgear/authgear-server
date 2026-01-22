@@ -32,7 +32,6 @@
 </button>
 {{ else }}
 <form method="post" novalidate target="_blank">
-{{ $.CSRFField }}
 <button class="btn primary-btn w-full" type="submit" name="x_action" value="download" data-turbo="false">
 {{ template "download-button-label" }}
 </button>
@@ -40,7 +39,6 @@
 {{ end }}
 
 <form method="post" novalidate>
-{{ $.CSRFField }}
 <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
 {{ template "next-button-label" }}
 </button>

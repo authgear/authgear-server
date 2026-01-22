@@ -24,7 +24,6 @@
 
 	<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 
-	{{ $.CSRFField }}
 
 	{{ if eq .LoginIDInputType "phone" }}
 	<input
@@ -91,7 +90,6 @@
 </form>
 
 <form id="remove-form" class="hidden" method="post" novalidate>
-{{ $.CSRFField }}
 </form>
 
 {{ template "__watermark.html" . }}

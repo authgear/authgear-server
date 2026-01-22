@@ -48,7 +48,6 @@
     </p>
     {{ if not .IsCurrent }}
     <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
       <button
         class="btn primary-txt flex-1 flex flex-col items-end justify-center"
@@ -78,7 +77,6 @@
 {{ if gt (len .Sessions) 1 }}
 <div class="px-5 pb-5 row-sep">
   <form method="post" novalidate>
-    {{ $.CSRFField }}
     <button
       class="btn destructive-secondary-btn text-sm"
       type="submit"
@@ -123,7 +121,6 @@
       {{ template "settings-sessions-authorized-apps-item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt) "hasFullUserInfoAccess" .HasFullUserInfoAccess) }}
     </p>
     <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <input type="hidden" name="x_authorization_id" value="{{ .ID }}">
       <button
         class="btn primary-txt flex-1 flex flex-col items-end justify-center"

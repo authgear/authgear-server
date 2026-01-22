@@ -27,7 +27,6 @@
       }}
     {{ else }}
       <form action='{{ call $.MakeURLWithBackURL "/settings/mfa/totp" }}' method="post" novalidate>
-        {{ $.CSRFField }}
         <button
           class="w-full"
           type="submit"
@@ -136,7 +135,7 @@
         "Description" (translate "v2.page.settings-mfa.default.revoke-device-dialog-description" (dict
           "NumberOfDeviceTokens" $.NumberOfDeviceTokens
         ))
-        "FormContent" $.CSRFField
+        "FormContent" ""
         "Buttons" (list
           (dict
             "Type" "Destructive"

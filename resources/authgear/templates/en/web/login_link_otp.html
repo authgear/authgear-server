@@ -15,7 +15,6 @@
   {{ end }}
 
   <form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
-    {{ $.CSRFField }}
   </form>
 
   <button
@@ -28,7 +27,6 @@
   ></button>
 
   <form class="link" method="post" novalidate>
-    {{ $.CSRFField }}
     <span class="primary-txt text-sm">{{ template "login-link-otp-resend-button-hint" }}</span>
     <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
       data-resend-button-cooldown-value="{{ $.OTPCodeSendCooldown }}"
@@ -52,7 +50,6 @@
 {{ template "__alternatives.html" $altOptions }}
 {{ else }}
 <form id="next-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
-{{ $.CSRFField }}
 </form>
 
 <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">

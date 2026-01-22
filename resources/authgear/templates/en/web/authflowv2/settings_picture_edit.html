@@ -24,7 +24,6 @@
   {{/* When the upload finishes, this form is submitted to the URL of the previous page */}}
   {{/* The previous page does not support POST method, hence we see the error described in the issue */}}
   <form class="hidden" method="post" action="{{ $.RequestURI }}" novalidate data-image-picker-target="formUpload">
-    {{ $.CSRFField }}
     <input type="hidden" name="/picture" value="" data-image-picker-target="inputValue">
     <input type="hidden" name="x_action" value="save">
   </form>
@@ -73,7 +72,6 @@
 
     <!-- Remove Button -->
     <form method="post" novalidate>
-      {{ $.CSRFField }}
       <input type="hidden" name="/picture" value="">
       <button
         class="secondary-btn w-full {{ if not $.Picture }}hidden{{ end }}"

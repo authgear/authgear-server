@@ -26,7 +26,6 @@
     </p>
   </header>
   <form method="POST" novalidate class="flex flex-col gap-y-4 items-center">
-    {{ $.CSRFField }} 
     
     {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
     {{ template "web/authflowv2/__bot_protection_widget.html" . }}

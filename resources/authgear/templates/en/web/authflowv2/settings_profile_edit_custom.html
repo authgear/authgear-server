@@ -29,7 +29,6 @@
   data-action="submit->turbo-form#submitForm"
   method="post"
 >
-  {{ $.CSRFField }}
 
   {{ $ca := (call $.GetCustomAttributeByPointer $.Pointer) }}
   {{ $Value := $ca.Value }}

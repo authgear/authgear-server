@@ -36,7 +36,6 @@
       {{ template "inactive-label" }}
     </p>
     <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_totp">
         <i class="ti ti-edit"></i>
       </button>
@@ -64,7 +63,6 @@
       {{ template "inactive-label" }}
     </p>
     <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_email">
         <i class="ti ti-edit"></i>
       </button>
@@ -91,7 +89,6 @@
       {{ template "inactive-label" }}
     </p>
     <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
         <i class="ti ti-edit"></i>
       </button>
@@ -117,7 +114,6 @@
       <i class="ti ti-edit"></i>
     </a>
     <form class="col-start-4 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ $.SecondaryPassword.ID }}">
       <button class="btn destructive-secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="remove_secondary_password">
         <i class="ti ti-circle-minus"></i>
@@ -125,7 +121,6 @@
     </form>
     {{ else }}
     <form class="link col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="setup_secondary_password">
         <i class="ti ti-edit"></i>
       </button>
@@ -159,7 +154,6 @@
     </p>
   {{ if $.HasDeviceTokens }}
   <form class="col-start-1 col-span-2 m-0" method="post" novalidate>
-    {{ $.CSRFField }}
     <button class="justify-self-start btn destructive-secondary-btn text-sm" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>

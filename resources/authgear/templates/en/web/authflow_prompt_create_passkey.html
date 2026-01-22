@@ -23,7 +23,6 @@
 			data-authgear-event="authgear.button.create_passkey"
 		>{{ template "create-passkey-label" }}</button>
 		<form method="post" novalidate>
-			{{ $.CSRFField }}
 			<button class="block w-full btn secondary-btn px-5 py-1.5 text-center" type="submit" name="x_action" value="skip">
 				{{ template "prompt-create-passkey-skip-label" }}
 			</button>
@@ -31,7 +30,6 @@
 	</div>
 
 	<form class="hidden" method="post" novalidate>
-	{{ $.CSRFField }}
 	<input type="hidden" name="x_attestation_response" data-authflow-passkey-creation-target="input">
 	<button type="submit" class="hidden" name="x_action" value="" data-authflow-passkey-creation-target="submit"></button>
 	</form>

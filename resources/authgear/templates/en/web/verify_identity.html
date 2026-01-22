@@ -17,7 +17,6 @@
 <div class="text-sm break-words primary-txt text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
 <form class="twc-container-vertical" method="post" novalidate>
-{{ $.CSRFField }}
 
 <input
 	tabindex="0"
@@ -47,7 +46,6 @@
 </form>
 
 <form class="link" method="post" novalidate>
-{{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
 <span class="primary-txt text-sm">

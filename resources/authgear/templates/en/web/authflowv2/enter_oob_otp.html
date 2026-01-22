@@ -60,12 +60,10 @@
         data-controller="turbo-form"
         data-action="submit->turbo-form#submitForm"
       >
-        {{ $.CSRFField }}
       </form>
 
       {{ template "authflowv2/__otp_input.html"
         (dict
-          "CSRFField" $.CSRFField
           "FormName" "main-form"
           "CodeLength" $.CodeLength
           "AutoFocus" $.ShouldFocusInput

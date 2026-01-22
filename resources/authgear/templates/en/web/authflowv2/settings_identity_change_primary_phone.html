@@ -20,7 +20,6 @@
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
 >
-  {{ $.CSRFField }}
   <ul>
     {{ $currentPhone := .PhoneNumber }}
     {{ range .Phones }}

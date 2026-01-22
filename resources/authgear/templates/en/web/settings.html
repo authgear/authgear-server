@@ -154,7 +154,6 @@
       {{ if $verification_triggerable }}
       {{ if not $verification_verified }}
       <form class="" method="post" novalidate>
-        {{ $.CSRFField }}
         <input type="hidden" name="q_identity_id" value="{{ .identity_id }}">
         <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
           {{ template "verify-via-button-label" (dict "loginIDType" .login_id_type ) }}
@@ -167,7 +166,6 @@
     {{/* Action */}}
     {{ if eq .type "oauth" }}
     <form class="w-6 flex flex-col" method="post" novalidate>
-      {{ $.CSRFField }}
       <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
       <input type="hidden" name="q_identity_id" value="{{ .identity_id }}">
       {{ if .identity_id }}

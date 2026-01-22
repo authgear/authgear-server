@@ -28,7 +28,6 @@
           data-controller="turbo-form"
           data-action="submit->turbo-form#submitForm"
         >
-          {{ $.CSRFField }}
           {{- if eq .Identification "email" }}
             <button
               class="secondary-btn w-full"

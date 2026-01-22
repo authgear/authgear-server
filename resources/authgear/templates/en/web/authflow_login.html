@@ -28,7 +28,6 @@
 				data-controller="retain-form-form"
 				data-retain-form-form-id-value="auth-form"
 				>
-				{{ $.CSRFField }}
 
 				<h1 class="m-0 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
@@ -138,7 +137,6 @@
 						</span>
 					</button>
 					<form class="hidden" method="post" novalidate>
-					{{ $.CSRFField }}
 					<input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
 					<button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
 					</form>
@@ -147,7 +145,6 @@
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-col" method="post" data-turbo="false" novalidate>
-				{{ $.CSRFField }}
 				{{ $skip := false }}
 				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
 				{{ $skip = true }}

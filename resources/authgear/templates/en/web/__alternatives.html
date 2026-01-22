@@ -13,7 +13,6 @@
                 {{ template "setup-passkey-instead" .Data }}
             </button>
             <form method="post" novalidate>
-                {{ $.CSRFField }}
                 <input type="hidden" name="x_step_kind" value="{{ .Step }}">
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
@@ -33,7 +32,6 @@
                 {{ template "use-passkey-instead" .Data }}
             </button>
             <form method="post" novalidate>
-                {{ $.CSRFField }}
                 <input type="hidden" name="x_step_kind" value="{{ .Step }}">
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
@@ -60,7 +58,6 @@
                 </div>
             {{ end }}
             <form method="post" novalidate>
-                {{ $.CSRFField }}
                 <input type="hidden" name="x_step_kind" value="{{ .Step }}">
                 {{ range $name, $value := .Input }}
                     <input type="hidden" name="{{ $name }}" value="{{ $value }}">

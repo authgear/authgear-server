@@ -40,7 +40,6 @@
     data-controller="turbo-form"
     data-action="submit->turbo-form#submitForm"
   >
-    {{ .CSRFField }}
     <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
     <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
     <input type="hidden" name="x_channel" value={{ .Channel }}>
@@ -56,7 +55,6 @@
   {{ $verifyButton := "" }}
   {{ if and (not $.Verified) ($.VerificationEnabled) }}
     {{ $verifyButton = (include "__settings_identity_phone_verification_button.html" (dict
-        "CSRFField" $.CSRFField
         "Verified" false
         "Channel" $.Channel
         "LoginID" $.PhoneIdentity.LoginID
@@ -123,7 +121,6 @@
 {{ end }}
 
 {{ define "__settings_identity_view_phone_remove_dialog_form_content.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ $.PhoneIdentity.ID }}">
 {{ end }}
 

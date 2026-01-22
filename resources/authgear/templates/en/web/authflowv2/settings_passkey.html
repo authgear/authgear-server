@@ -32,7 +32,7 @@
       "DialogID" .ID
       "Title" (include "v2.page.settings-passkey.default.remove-passkey-dialog-title" nil)
       "Description" (include "v2.page.settings-passkey.default.remove-passkey-dialog-description" nil)
-      "FormContent" (include "__settings_passkey_dialog_remove_input.html" (dict "ID" .ID "CSRFField" $.CSRFField))
+      "FormContent" (include "__settings_passkey_dialog_remove_input.html" (dict "ID" .ID  ))
       "Buttons" (list
         (dict
           "Type" "Destructive"
@@ -63,7 +63,6 @@
     data-controller="turbo-form"
     data-action="submit->turbo-form#submitForm"
   >
-    {{ $.CSRFField }}
     <input
       type="hidden"
       name="x_attestation_response"
@@ -99,6 +98,5 @@
 {{ end }}
 
 {{ define "__settings_passkey_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ .ID }}">
 {{ end }}

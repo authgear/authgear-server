@@ -20,7 +20,6 @@
   novalidate
 >
   <div class="w-full tablet:max-w-86">
-    {{ $.CSRFField }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
         "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-unspecified" nil)

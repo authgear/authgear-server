@@ -55,7 +55,7 @@
               "DialogID" .ID
               "Title" $remove_dialog_title
               "Description" $remove_dialog_description
-              "FormContent" (include "__settings_oob_otp_dialog_remove_input.html" (dict "AuthenticatorID" .ID "CSRFField" $.CSRFField))
+              "FormContent" (include "__settings_oob_otp_dialog_remove_input.html" (dict "AuthenticatorID" .ID  ))
               "Buttons"
                 (list
                   (dict
@@ -121,6 +121,5 @@
 {{ end }}
 
 {{ define "__settings_oob_otp_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_authenticator_id" value="{{ $.AuthenticatorID }}">
 {{ end }}

@@ -12,7 +12,6 @@
 </p>
 
 <form class="twc-container-vertical" method="post" novalidate data-controller="account-deletion">
-  {{ $.CSRFField }}
   <label class="flex flex-col">
     <span class="secondary-txt text-sm">
       {{ template "account-deletion-confirmation-label" (dict "deleteConfirmationText" "DELETE") }}

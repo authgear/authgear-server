@@ -40,7 +40,7 @@
         "DialogID" .ID
         "Title" (include "v2.page.settings-biometric.default.remove-biometric-dialog-title" nil)
         "Description" (include "v2.page.settings-biometric.default.remove-biometric-dialog-description" nil)
-        "FormContent" (include "__settings_biometric_dialog_remove_input.html" (dict "BiometricID" .ID "CSRFField" $.CSRFField))
+        "FormContent" (include "__settings_biometric_dialog_remove_input.html" (dict "BiometricID" .ID  ))
         "Buttons"
           (list
             (dict
@@ -72,6 +72,5 @@
 {{ end }}
 
 {{ define "__settings_biometric_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ $.BiometricID }}">
 {{ end }}

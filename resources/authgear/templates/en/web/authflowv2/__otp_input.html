@@ -1,7 +1,6 @@
 <!-- Example usage:
   {{ template "authflowv2/__otp_input.html"
     (dict
-      "CSRFField" ($.CSRFField)
       "FormName" "otp-form"
       "CodeLength" 6
       "ErrorMessage" "Invalid code"
@@ -68,7 +67,6 @@
       data-controller="turbo-form"
       data-action="submit->turbo-form#submitForm"
     >
-      {{ $.CSRFField }}
       <button
         id="resend-button"
         class="link-btn"

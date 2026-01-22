@@ -33,7 +33,7 @@
               "DialogID" .ID
               "Title" (include "v2.page.settings-totp.default.remove-totp-dialog-title" nil)
               "Description" (include "v2.page.settings-totp.default.remove-totp-dialog-description" nil)
-              "FormContent" (include "__settings_totp_dialog_remove_input.html" (dict "AuthenticatorID" .ID "CSRFField" $.CSRFField))
+              "FormContent" (include "__settings_totp_dialog_remove_input.html" (dict "AuthenticatorID" .ID  ))
               "Buttons"
                 (list
                   (dict
@@ -54,7 +54,6 @@
   {{ end }}
 
   <form method="post" novalidate>
-    {{ $.CSRFField }}
     <button
       class="settings-link-btn mx-auto mt-6 block"
       type="submit"
@@ -91,6 +90,5 @@
 {{ end }}
 
 {{ define "__settings_totp_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_authenticator_id" value="{{ $.AuthenticatorID }}">
 {{ end }}
