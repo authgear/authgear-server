@@ -93,6 +93,7 @@ func (r *Router) Health(h http.Handler) {
 
 func (r *Router) Add(route Route, h http.Handler) {
 	middlewares := []Middleware{
+		MiddlewareFunc(otelutil.WithOtelContext(route.PathPattern)),
 		MiddlewareFunc(otelutil.SetupLabeler),
 		MiddlewareFunc(otelutil.WithHTTPRoute(route.PathPattern)),
 	}
