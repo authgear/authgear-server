@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -40,7 +41,11 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 				otelauthgear.CounterSecFetchCSRFRequestCount,
 				otelauthgear.WithStatusError(),
 			)
-			logger.WithError(secFetchError).Warn(ctx, "SecFetch CSRF Forbidden")
+			logger.WithError(secFetchError).With(
+				slog.String("Sec-Fetch-Site", r.Header.Get("Sec-Fetch-Site")),
+				slog.String("Origin", r.Header.Get("Origin")),
+				slog.String("Host", r.Host),
+			).Warn(ctx, "SecFetch CSRF Forbidden")
 
 			uiImpl := m.UIImplementationService.GetUIImplementation()
 
