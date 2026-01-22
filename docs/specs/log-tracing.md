@@ -223,16 +223,20 @@ logging:
   otlp:
     enabled: true
     otlpLogsEndpoint: http://<otel-collector-addr>
+    logLevel: INFO
   console:
     enabled: true
+    logLevel: WARN
 ```
 
 - `logging.otlp`:
   - `enabled`: If `true`, enable `otlp` log handler, and `otlpLogsEndpoint` must be provided.
   - `otlpLogsEndpoint`: The otlp log ingestion endpoint to send logs to.
+  - `logLevel`: The log level of the `otlp` log handler.
 
 - `logging.console`:
-  - `enabled`: If `true`, enable `console` log handler..
+  - `enabled`: If `true`, enable `console` log handler.
+  - `logLevel`: The log level of the `console` log handler.
 
 See [Environment Variables](#environemnt-variables) for details.
 
