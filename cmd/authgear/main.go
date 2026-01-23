@@ -48,8 +48,6 @@ func main() {
 	}
 
 	ctx := context.Background()
-	ctx = slogutil.Setup(ctx)
-
 	ctx, shutdown, err := otelutil.SetupOTelSDKGlobally(ctx)
 	if err != nil {
 		log.Fatalf("failed to setup otel: %v", err)
@@ -57,6 +55,8 @@ func main() {
 	defer func() {
 		_ = shutdown(ctx)
 	}()
+
+	ctx = slogutil.Setup(ctx)
 
 	err = cmd.Root.ExecuteContext(ctx)
 	if err != nil {

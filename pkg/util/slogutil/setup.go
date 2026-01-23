@@ -5,10 +5,19 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	slogmulti "github.com/samber/slog-multi"
 )
 
-func MakeLogger(strLevel string) *slog.Logger {
+func MakeLogger(ctx context.Context, strLevel string) *slog.Logger {
+	handlers := []slog.Handler{}
+
+	if lp := otelutil.GetOTelLoggerProvider(ctx); lp != nil {
+		handlers = append(handlers, NewOTelLogHandler(lp))
+	}
+	handlers = append(handlers, NewSentryHandler())
+	handlers = append(handlers, NewStderrHandler(strLevel))
+
 	// This is the main logging pipeline.
 	// It includes the middleware to rich the record,
 	// and handle sensitive information.
@@ -19,8 +28,7 @@ func MakeLogger(strLevel string) *slog.Logger {
 		NewSkipLoggingMiddleware(),
 		NewMaskMiddleware(NewDefaultMaskHandlerOptions()),
 	).Handler(slogmulti.Fanout(
-		NewSentryHandler(),
-		NewStderrHandler(strLevel),
+		handlers...,
 	))
 
 	// The actual handler is a fanout to
@@ -37,12 +45,12 @@ func MakeLogger(strLevel string) *slog.Logger {
 
 // MakeLoggerFromEnv reads environment variable LOG_LEVEL and sets up slog logging.
 // For simplicity, we read the environment variable directly.
-func MakeLoggerFromEnv() *slog.Logger {
+func MakeLoggerFromEnv(ctx context.Context) *slog.Logger {
 	strLevel := os.Getenv("LOG_LEVEL")
-	return MakeLogger(strLevel)
+	return MakeLogger(ctx, strLevel)
 }
 
 func Setup(ctx context.Context) context.Context {
-	logger := MakeLoggerFromEnv()
+	logger := MakeLoggerFromEnv(ctx)
 	return SetContextLogger(ctx, logger)
 }

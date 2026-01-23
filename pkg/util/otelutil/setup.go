@@ -10,8 +10,10 @@ import (
 	instrumentationruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -87,6 +89,22 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 		return
 	}
 	otel.SetTracerProvider(traceProvider)
+
+	shutdownFuncs = append(shutdownFuncs, traceProvider.Shutdown)
+
+	// TODO: Support export logs with http
+	logExporter, err := stdoutlog.New()
+	if err != nil {
+		return
+	}
+
+	logProvider := log.NewLoggerProvider(
+		log.WithResource(res),
+		log.WithProcessor(log.NewBatchProcessor(logExporter)),
+	)
+	outCtx = WithOTelLoggerProvider(outCtx, logProvider)
+
+	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
 
 	// Start go runtime metrics collection.
 	// Refer to https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview

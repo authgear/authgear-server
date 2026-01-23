@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -18,7 +19,14 @@ func (c *Controller) Start(ctx context.Context) {
 		err = fmt.Errorf("failed to load config: %w", err)
 		panic(err)
 	}
-
+	ctx, shutdown, err := otelutil.SetupOTelSDKGlobally(ctx)
+	if err != nil {
+		err = fmt.Errorf("failed to setup otel: %w", err)
+		panic(err)
+	}
+	defer func() {
+		_ = shutdown(ctx)
+	}()
 	ctx = slogutil.Setup(ctx)
 
 	ctx, p, err := deps.NewBackgroundProvider(
