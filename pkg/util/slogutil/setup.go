@@ -33,7 +33,11 @@ func MakeLogger(ctx context.Context, cfg *LogEnvironmentConfig) *slog.Logger {
 			handlers = append(handlers, NewStderrHandler(level))
 		case LogHandlerOTLP:
 			if lp := otelutil.GetOTelLoggerProvider(ctx); lp != nil {
-				handlers = append(handlers, NewOTelLogHandler(lp))
+				level := cfg.OTLPLevel
+				if level == "" {
+					level = cfg.Level
+				}
+				handlers = append(handlers, NewOTelLogHandler(lp, level))
 			}
 		}
 	}
