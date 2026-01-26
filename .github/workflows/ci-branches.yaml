@@ -39,7 +39,7 @@ jobs:
             -Dsonar.projectBaseDir=. \
             -Dsonar.organization=authgear \
             -Dsonar.projectKey=authgear_authgear-server \
-            -Dsonar.exclusions=e2e/**" \
+            -Dsonar.exclusions=e2e/**,**/*.generated.*" \
             -e SONAR_TOKEN="${SONAR_TOKEN}" \
             -v "${{ github.workspace }}:/usr/src" \
             sonarsource/sonar-scanner-cli:latest
