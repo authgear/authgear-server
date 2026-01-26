@@ -45,7 +45,7 @@ func Create(ctx context.Context, opt *CreateOptions) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	if err := createConfigSource(ctx, tx, appID, data); err != nil {
 		return fmt.Errorf("failed to create config source record: %w", err)
