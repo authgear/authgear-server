@@ -100,29 +100,27 @@ func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(
 		}
 	}()
 
-	tx, err := beginTx(ctx_hooks, h.conn)
-	if err != nil {
-		return
-	}
+	err = beginTx(ctx_hooks, h.conn, func(tx *sql.Tx) (err error) {
+		ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
+			TxLike: tx,
+		})
 
-	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
-		TxLike: tx,
-	})
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-			panic(r)
-		} else if err != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-		} else {
-			err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
-			if err == nil {
-				shouldRunDidCommitHooks = true
+		defer func() {
+			if r := recover(); r != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+				panic(r)
+			} else if err != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+			} else {
+				err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
+				if err == nil {
+					shouldRunDidCommitHooks = true
+				}
 			}
-		}
-	}()
+		}()
 
-	err = do(ctx_hooks_tx)
+		err = do(ctx_hooks_tx)
+		return err
+	})
 	return
 }
