@@ -227,6 +227,8 @@ func (d *Database) ResolveContext(ctx context.Context, appID string, fn func(con
 	app := value.(*dbApp)
 	appCtx, err := app.Load(ctx, d)
 	if err != nil {
+		// invalidate app cache to prevent loading the error again
+		d.invalidateApp(ctx, appID)
 		return errors.Join(errors.New("failed to load app context from db"), err)
 	}
 	ctx = config.WithAppContext(ctx, appCtx)
