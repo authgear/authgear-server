@@ -206,7 +206,7 @@ func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (s
 		logger.Debug(ctx, "resolve appid from db", slog.String("host", host))
 		aid, err := store.GetAppIDByDomain(ctx, host)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to get app id by domain"), err)
 		}
 		d.hostMap.Store(host, aid)
 		appID = aid
@@ -214,7 +214,7 @@ func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (s
 	})
 
 	if err != nil {
-		return "", err
+		return "", errors.Join(errors.New("failed to complete transaction while resolving app id by domain"), err)
 	}
 	return appID, nil
 }
@@ -227,7 +227,7 @@ func (d *Database) ResolveContext(ctx context.Context, appID string, fn func(con
 	app := value.(*dbApp)
 	appCtx, err := app.Load(ctx, d)
 	if err != nil {
-		return err
+		return errors.Join(errors.New("failed to load app context from db"), err)
 	}
 	ctx = config.WithAppContext(ctx, appCtx)
 
@@ -447,34 +447,34 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 		logger.Debug(ctx, "load app config from db", slog.String("app_id", a.appID))
 		data, err := store.GetDatabaseSourceByAppID(ctx, a.appID)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to get app config from db"), err)
 		}
 
 		p, err := planStore.GetPlan(ctx, data.PlanName)
 		if err != nil && !errors.Is(err, plan.ErrPlanNotFound) {
-			return err
+			return errors.Join(errors.New("failed to get plan from db"), err)
 		}
 
 		planFs, err := MakePlanFSFromPlan(p)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to make plan fs"), err)
 		}
 
 		appFs, err := MakeAppFSFromDatabaseSource(data)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to make app fs"), err)
 		}
 		resources := d.BaseResources.Overlay(planFs)
 		resources = resources.Overlay(appFs)
 
 		appConfig, err := LoadConfig(ctx, resources)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to load app config"), err)
 		}
 
 		domains, err := store.GetDomainsByAppID(ctx, a.appID)
 		if err != nil {
-			return err
+			return errors.Join(errors.New("failed to get domains from db"), err)
 		}
 
 		appCtx = &config.AppContext{
@@ -488,7 +488,7 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("failed to complete transaction while loading app context"), err)
 	}
 
 	return appCtx, nil
