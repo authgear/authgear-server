@@ -6,8 +6,9 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	slogmulti "github.com/samber/slog-multi"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 const (
