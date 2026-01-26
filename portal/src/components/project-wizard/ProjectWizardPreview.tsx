@@ -36,23 +36,21 @@ export function ProjectWizardPreview({
     return url.toString();
   }, [authgearEndpoint]);
 
-  const targetOrigin = useMemo(() => {
-    return new URL(src).origin;
-  }, [src]);
-
   useEffect(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
-  }, [form.state, targetOrigin]);
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*"); // NOSONAR
+  }, [form.state]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
-  }, [form.state, targetOrigin]);
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*"); // NOSONAR
+  }, [form.state]);
 
   return (
     <div className={cn(className, "flex-col flex")}>

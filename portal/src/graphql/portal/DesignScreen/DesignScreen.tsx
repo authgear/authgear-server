@@ -889,16 +889,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     selectedPreviewPage,
   ]);
 
-  const targetOrigin = useMemo(() => {
-    return new URL(src).origin;
-  }, [src]);
-
   useEffect(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
       designForm.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
-  }, [designForm.state, targetOrigin]);
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+  }, [designForm.state]);
 
   useEffect(() => {
     setIsIframeLoading(true);
@@ -909,8 +906,9 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       designForm.state
     );
     setIsIframeLoading(false);
-    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
-  }, [designForm.state, targetOrigin]);
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+  }, [designForm.state]);
 
   return (
     <div className={cn("flex", "flex-col", className)}>
