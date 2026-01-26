@@ -36,19 +36,23 @@ export function ProjectWizardPreview({
     return url.toString();
   }, [authgearEndpoint]);
 
+  const targetOrigin = useMemo(() => {
+    return new URL(src).origin;
+  }, [src]);
+
   useEffect(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [form.state]);
+    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
+  }, [form.state, targetOrigin]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [form.state]);
+    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
+  }, [form.state, targetOrigin]);
 
   return (
     <div className={cn(className, "flex-col flex")}>

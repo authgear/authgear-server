@@ -851,13 +851,6 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
 
   const [isIframeLoading, setIsIframeLoading] = useState(true);
 
-  useEffect(() => {
-    const message = mapDesignFormStateToPreviewCustomisationMessage(
-      designForm.state
-    );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [designForm.state]);
-
   const supportedPreviewPages = useMemo(
     () => getSupportedPreviewPagesFromConfig(effectiveAppConfig),
     [effectiveAppConfig]
@@ -896,6 +889,17 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     selectedPreviewPage,
   ]);
 
+  const targetOrigin = useMemo(() => {
+    return new URL(src).origin;
+  }, [src]);
+
+  useEffect(() => {
+    const message = mapDesignFormStateToPreviewCustomisationMessage(
+      designForm.state
+    );
+    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
+  }, [designForm.state, targetOrigin]);
+
   useEffect(() => {
     setIsIframeLoading(true);
   }, [src]);
@@ -905,8 +909,8 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       designForm.state
     );
     setIsIframeLoading(false);
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [designForm.state]);
+    authUIIframeRef.current?.contentWindow?.postMessage(message, targetOrigin);
+  }, [designForm.state, targetOrigin]);
 
   return (
     <div className={cn("flex", "flex-col", className)}>
