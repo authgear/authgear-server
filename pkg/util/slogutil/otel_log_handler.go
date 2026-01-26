@@ -29,6 +29,10 @@ func (h *otelLevelHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.level
 }
 
+func (h *otelLevelHandler) Handle(ctx context.Context, r slog.Record) error {
+	return h.Handler.Handle(ctx, r)
+}
+
 func (h *otelLevelHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &otelLevelHandler{
 		level:   h.level,

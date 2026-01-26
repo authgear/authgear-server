@@ -9,8 +9,8 @@ import (
 
 	instrumentationruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -36,6 +36,11 @@ const envvar_OTEL_PROPAGATORS = "OTEL_PROPAGATORS"
 // The returned context contains a *sdkresource.Resource.
 // The returned context contains a *otelhttp.Labeler.
 func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown func(context.Context) error, err error) {
+	// Set up OTel error handler to log errors to stderr
+	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
+		fmt.Fprintf(os.Stderr, "[OTEL_SDK_ERROR] %v\n", err)
+	}))
+
 	// Force producing the deprecated metrics.
 	// See https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
 	// We have to do this because the number of GC count is only available in the deprecated metrics.
@@ -92,16 +97,21 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 
 	shutdownFuncs = append(shutdownFuncs, traceProvider.Shutdown)
 
-	// TODO: Support export logs with http
-	logExporter, err := stdoutlog.New()
-	if err != nil {
-		return
+	otlpEndpoint := os.Getenv("LOG_HANDLER_OTLP_ENDPOINT")
+	var logOptions []log.LoggerProviderOption
+	logOptions = append(logOptions, log.WithResource(res))
+
+	if otlpEndpoint != "" {
+		logExporter, err := otlploghttp.New(ctx,
+			otlploghttp.WithEndpointURL(otlpEndpoint),
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		logOptions = append(logOptions, log.WithProcessor(log.NewBatchProcessor(logExporter)))
 	}
 
-	logProvider := log.NewLoggerProvider(
-		log.WithResource(res),
-		log.WithProcessor(log.NewBatchProcessor(logExporter)),
-	)
+	logProvider := log.NewLoggerProvider(logOptions...)
 	outCtx = WithOTelLoggerProvider(outCtx, logProvider)
 
 	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
