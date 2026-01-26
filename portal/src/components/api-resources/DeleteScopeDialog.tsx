@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { DeleteConfirmationDialog } from "../common/DeleteConfirmationDialog";
 
 export interface DeleteScopeDialogData {

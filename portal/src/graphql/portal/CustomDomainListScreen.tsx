@@ -8,8 +8,13 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { produce } from "immer";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import {
+  useNavigate,
+  useParams,
+  useSearchParams,
+  Link,
+} from "react-router-dom";
+import { Context, FormattedMessage } from "../../intl";
 import {
   DetailsList,
   Dialog,
@@ -680,7 +685,14 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
             <FormattedMessage
               id="CustomDomainListScreen.rediect-endpoint-direct-access.message"
               values={{
-                href: `/project/${appID}/advanced/endpoint-direct-access`,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                reactRouterLink: (chunks: React.ReactNode) => (
+                  <Link
+                    to={`/project/${appID}/advanced/endpoint-direct-access`}
+                  >
+                    {chunks}
+                  </Link>
+                ),
               }}
             />
           </MessageBar>

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 
 import styles from "./PasswordStrengthMeter.module.css";
 import { GuessableLevel } from "./util/zxcvbn";

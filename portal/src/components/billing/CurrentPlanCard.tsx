@@ -10,10 +10,7 @@ import {
   useTheme,
 } from "@fluentui/react";
 import styles from "./CurrentPlanCard.module.css";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { useId } from "@fluentui/react-hooks";
 import LinkButton from "../../LinkButton";
 import {

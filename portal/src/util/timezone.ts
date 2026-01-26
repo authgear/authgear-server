@@ -8,7 +8,7 @@ export interface Option {
 }
 
 export function makeTimezoneOptions(): Option[] {
-  const options = [];
+  const options: Option[] = [];
   const refTime = new Date().getTime();
 
   for (const [key, value] of Object.entries(data.zones)) {

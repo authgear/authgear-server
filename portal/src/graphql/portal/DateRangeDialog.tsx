@@ -1,5 +1,5 @@
 import { DatePicker, Dialog, DialogFooter } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import React, { useMemo } from "react";
 import styles from "./DateRangeDialog.module.css";
 import TextField from "../../TextField";

@@ -45,7 +45,7 @@ export function ErrorContextProvider(
       const map = new Map(prev.errors);
       map.set(id, incomingError);
 
-      let error = null;
+      let error: unknown = null;
       for (const e of map.values()) {
         if (e != null) {
           error = e;
@@ -64,7 +64,7 @@ export function ErrorContextProvider(
       const map = new Map(prev.errors);
       map.delete(id);
 
-      let error = null;
+      let error: unknown = null;
       for (const e of map.values()) {
         if (e != null) {
           error = e;

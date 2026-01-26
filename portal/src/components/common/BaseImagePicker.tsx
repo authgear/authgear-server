@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { Dialog, DialogFooter } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import { dataURIToBase64EncodedData } from "../../util/uri";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";

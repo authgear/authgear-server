@@ -1,10 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
 import { Text } from "../../../components/onboarding/Text";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../../intl";
 import { OnboardingSurveyFormModel, UseCase } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";
@@ -29,8 +26,11 @@ export function Step4(): React.ReactElement {
           <Text.Heading>
             <FormattedMessage
               id="OnboardingSurveyScreen.step4.header"
-              components={{
-                Hint: Text.HeadingHint,
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                Hint: (chunks: React.ReactNode) => (
+                  <Text.HeadingHint>{chunks}</Text.HeadingHint>
+                ),
               }}
             />
           </Text.Heading>

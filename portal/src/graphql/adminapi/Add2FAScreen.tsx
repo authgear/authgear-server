@@ -7,10 +7,7 @@ import React, {
   useEffect,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";

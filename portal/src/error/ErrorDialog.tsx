@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Values } from "../intl";
 
 import { ErrorParseRule, parseAPIErrors, parseRawError } from "./parse";
 import PrimaryButton from "../PrimaryButton";
@@ -11,17 +11,30 @@ interface ErrorDialogProps {
   error: unknown;
   rules?: ErrorParseRule[];
   fallbackErrorMessageID?: string;
+  fallbackErrorMessageValues?: Values;
 }
 
 const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
-  const { titleMessageID, error, rules, fallbackErrorMessageID } = props;
+  const {
+    titleMessageID,
+    error,
+    rules,
+    fallbackErrorMessageID,
+    fallbackErrorMessageValues,
+  } = props;
 
   const { topErrors } = useMemo(() => {
     const apiErrors = parseRawError(error);
-    return parseAPIErrors(apiErrors, [], rules ?? [], fallbackErrorMessageID);
-  }, [error, rules, fallbackErrorMessageID]);
+    return parseAPIErrors(
+      apiErrors,
+      [],
+      rules ?? [],
+      fallbackErrorMessageID,
+      fallbackErrorMessageValues
+    );
+  }, [error, rules, fallbackErrorMessageID, fallbackErrorMessageValues]);
 
   const [visible, setVisible] = useState(false);
 

@@ -7,7 +7,7 @@ import {
   IDetailsRowProps,
   Text,
 } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../../intl";
 import { useParams } from "react-router-dom";
 
 import styles from "./UserGroupsList.module.css";
@@ -181,7 +181,9 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           default:
             return (
               <TextCell>
-                {item[column?.fieldName as keyof UserGroupsListItem] ?? ""}
+                {(item[
+                  column?.fieldName as keyof UserGroupsListItem
+                ] as React.ReactNode) ?? ""}
               </TextCell>
             );
         }

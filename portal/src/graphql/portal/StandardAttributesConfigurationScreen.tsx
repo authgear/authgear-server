@@ -1,7 +1,7 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import FormContainer from "../../FormContainer";
 import {
@@ -23,6 +23,7 @@ import {
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./StandardAttributesConfigurationScreen.module.css";
+import ExternalLink from "../../ExternalLink";
 
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];
@@ -103,6 +104,26 @@ function ItemComponent(
   const fieldName = parseJSONPointer(pointer)[0];
   const { themes } = useSystemConfig();
   const descriptionColor = themes.main.palette.neutralTertiary;
+  const messageId = "standard-attribute.description." + fieldName;
+
+  const renderExternalLink = useCallback(
+    (children: React.ReactNode) => (
+      <ExternalLink href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">
+        {children}
+      </ExternalLink>
+    ),
+    []
+  );
+
+  const values = useMemo(() => {
+    if (messageId === "standard-attribute.description.zoneinfo") {
+      return {
+        externalLink: renderExternalLink,
+      };
+    }
+    return {};
+  }, [messageId, renderExternalLink]);
+
   return (
     <div className={className}>
       <Text className={styles.fieldName} block={true}>
@@ -115,7 +136,7 @@ function ItemComponent(
           color: descriptionColor,
         }}
       >
-        <FormattedMessage id={"standard-attribute.description." + fieldName} />
+        <FormattedMessage id={messageId} values={values} />
       </Text>
     </div>
   );

@@ -2,7 +2,9 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
 import { DateTime } from "luxon";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import ExternalLink from "../../ExternalLink";
 
 import { useEndpoints } from "../../hook/useEndpoints";
 
@@ -21,7 +23,6 @@ import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import { useParams, useNavigate } from "react-router-dom";
 import TextField from "../../TextField";
 import { Accordion } from "../../components/common/Accordion";
 import DefaultButton from "../../DefaultButton";
@@ -944,7 +945,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 "EditOAuthClientForm.sender-constraining.require.label"
               )}
               description={
-                <FormattedMessage id="EditOAuthClientForm.sender-constraining.description" />
+                <FormattedMessage
+                  id="EditOAuthClientForm.sender-constraining.description"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    externalLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/security/sender-constraining">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                  }}
+                />
               }
             />
           </Widget>
@@ -958,8 +969,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               <FormattedMessage
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
-                  to: `/project/${appID}/advanced/session`,
                   hostname: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  reactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appID}/advanced/session`}>
+                      {chunks}
+                    </Link>
+                  ),
                 }}
               />
             </WidgetDescription>
@@ -991,7 +1007,15 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               )}
             />
             <HelpText>
-              <FormattedMessage id="EditOAuthClientForm.app2app.uris.description" />
+              <FormattedMessage
+                id="EditOAuthClientForm.app2app.uris.description"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  reactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to="#uris">{chunks}</Link>
+                  ),
+                }}
+              />
             </HelpText>
           </Widget>
         ) : null}

@@ -2,10 +2,7 @@ import React, { useState, useMemo, useCallback, useContext } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
 import WidgetTitle from "../../WidgetTitle";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
 import {
   CreateScopeForm,

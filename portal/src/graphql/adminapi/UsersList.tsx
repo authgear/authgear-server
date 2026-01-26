@@ -14,7 +14,7 @@ import {
   MessageBar,
   IListProps,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { Link, useParams } from "react-router-dom";
 import { UsersListFragment } from "./query/usersListQuery.generated";
 import {
@@ -258,7 +258,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     useState<DisableUserDialogData | null>(null);
 
   const items: UserListItem[] = useMemo(() => {
-    const items = [];
+    const items: UserListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
@@ -408,7 +408,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     (item: UserListItem, column: IColumn | undefined) => {
       return (
         <TextCell>
-          {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
+          {(item[column?.key as keyof UserListItem] as React.ReactNode) ??
+            USER_LIST_PLACEHOLDER}
         </TextCell>
       );
     },

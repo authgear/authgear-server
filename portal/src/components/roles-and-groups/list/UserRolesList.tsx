@@ -6,7 +6,7 @@ import {
   IColumn,
   IDetailsRowProps,
 } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../../intl";
 import { useParams } from "react-router-dom";
 
 import styles from "./UserRolesList.module.css";
@@ -169,7 +169,9 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
           default:
             return (
               <TextCell>
-                {item[column?.fieldName as keyof UserRolesListItem] ?? ""}
+                {(item[
+                  column?.fieldName as keyof UserRolesListItem
+                ] as React.ReactNode) ?? ""}
               </TextCell>
             );
         }

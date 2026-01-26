@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import styles from "./GroupsList.module.css";
 import { useParams } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../../intl";
 import Link from "../../../Link";
 import DeleteGroupDialog, {
   DeleteGroupDialogData,
@@ -92,7 +92,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     },
   ];
   const items: GroupListItem[] = useMemo(() => {
-    const items = [];
+    const items: GroupListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;

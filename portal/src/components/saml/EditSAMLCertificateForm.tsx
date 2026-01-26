@@ -9,10 +9,7 @@ import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
 import WidgetTitle from "../../WidgetTitle";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import {
   DetailsList,

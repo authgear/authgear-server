@@ -14,8 +14,13 @@ import {
   ErrorBoundary,
   init as sentryInit,
 } from "@sentry/react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import { FormattedMessage, Context } from "./intl";
 import { ApolloProvider } from "@apollo/client";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
@@ -112,122 +117,136 @@ async function initApp(systemConfig: SystemConfig) {
   loadTheme(systemConfig.themes.main);
 }
 
-// ReactAppRoutes defines the routes.
-const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          index={true}
-          element={
-            <Authenticated>
-              <Navigate to="/projects" replace={true} />
-            </Authenticated>
-          }
-        />
-
-        <Route path="/projects">
-          <Route
-            index={true}
-            element={
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Outlet />,
+    children: [
+      {
+        index: true,
+        element: (
+          <Authenticated>
+            <Navigate to="/projects" replace={true} />
+          </Authenticated>
+        ),
+      },
+      {
+        path: "projects",
+        children: [
+          {
+            index: true,
+            element: (
               <Authenticated>
                 <Suspense fallback={<ShowLoading />}>
                   <AppsScreen />
                 </Suspense>
               </Authenticated>
-            }
-          />
-          <Route
-            path="create"
-            element={
+            ),
+          },
+          {
+            path: "create",
+            element: (
               <Authenticated>
                 <Suspense fallback={<ShowLoading />}>
                   <ProjectWizardScreenV2 />
                 </Suspense>
               </Authenticated>
-            }
-          />
-        </Route>
-        <Route path="onboarding-survey">
-          <Route
-            index={true}
-            // @ts-expect-error
-            path="*"
-            element={
+            ),
+          },
+        ],
+      },
+      {
+        path: "onboarding-survey",
+        children: [
+          {
+            index: true,
+            path: "*",
+            element: (
               <Authenticated>
                 <Suspense fallback={<ShowLoading />}>
                   <OnboardingSurveyScreen />
                 </Suspense>
               </Authenticated>
-            }
-          />
-        </Route>
-        <Route path="/project">
-          <Route index={true} element={<Navigate to="/" />} />
-          <Route path=":appID">
-            <Route
-              index={true}
-              // @ts-expect-error
-              path="*"
-              element={
-                <Authenticated>
-                  <AppContextProvider>
-                    <AppRoot />
-                  </AppContextProvider>
-                </Authenticated>
-              }
-            />
-            <Route path="wizard">
-              <Route
-                index={true}
-                // @ts-expect-error
-                path="*"
-                element={
+            ),
+          },
+        ],
+      },
+      {
+        path: "project",
+        element: <Outlet />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/" />,
+          },
+          {
+            path: ":appID",
+            element: <Outlet />,
+            children: [
+              {
+                index: true,
+                path: "*",
+                element: (
                   <Authenticated>
-                    <Suspense fallback={<ShowLoading />}>
-                      <AppContextProvider>
-                        <ProjectWizardScreenV2 />
-                      </AppContextProvider>
-                    </Suspense>
+                    <AppContextProvider>
+                      <AppRoot />
+                    </AppContextProvider>
                   </Authenticated>
-                }
-              />
-            </Route>
-          </Route>
-        </Route>
-
-        <Route
-          path="/oauth-redirect"
-          element={
-            <Suspense fallback={<ShowLoading />}>
-              <OAuthRedirect />
-            </Suspense>
-          }
-        />
-
-        <Route path="/internal-redirect" element={<InternalRedirect />} />
-
-        <Route
-          path="/onboarding-redirect"
-          element={
-            <Suspense fallback={<ShowLoading />}>
-              <OnboardingRedirect />
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/collaborators/invitation"
-          element={
-            <Suspense fallback={<ShowLoading />}>
-              <AcceptAdminInvitationScreen />
-            </Suspense>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
-  );
-};
+                ),
+              },
+              {
+                path: "wizard",
+                children: [
+                  {
+                    index: true,
+                    path: "*",
+                    element: (
+                      <Authenticated>
+                        <Suspense fallback={<ShowLoading />}>
+                          <AppContextProvider>
+                            <ProjectWizardScreenV2 />
+                          </AppContextProvider>
+                        </Suspense>
+                      </Authenticated>
+                    ),
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: "oauth-redirect",
+        element: (
+          <Suspense fallback={<ShowLoading />}>
+            <OAuthRedirect />
+          </Suspense>
+        ),
+      },
+      {
+        path: "internal-redirect",
+        element: <InternalRedirect />,
+      },
+      {
+        path: "onboarding-redirect",
+        element: (
+          <Suspense fallback={<ShowLoading />}>
+            <OnboardingRedirect />
+          </Suspense>
+        ),
+      },
+      {
+        path: "collaborators/invitation",
+        element: (
+          <Suspense fallback={<ShowLoading />}>
+            <AcceptAdminInvitationScreen />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+]);
 
 const PortalRoot = function PortalRoot() {
   const { renderToString } = useContext(Context);
@@ -239,7 +258,7 @@ const PortalRoot = function PortalRoot() {
       <ThemeProvider>
         <ToastProvider>
           <div className={styles.root}>
-            <ReactAppRoutes />
+            <RouterProvider router={router} />
           </div>
         </ToastProvider>
       </ThemeProvider>

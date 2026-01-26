@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { DefaultEffects, Text } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";
 import ShowError from "../../ShowError";
@@ -8,6 +8,7 @@ import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import BlueMessageBar from "../../BlueMessageBar";
+import ExternalLink from "../../ExternalLink";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
 import { AppListItem, Viewer } from "./globalTypes.generated";
@@ -79,7 +80,17 @@ function ProjectQuotaMessageBar(
   }
   return (
     <BlueMessageBar>
-      <FormattedMessage id="AppsScreen.project-quota-reached" />
+      <FormattedMessage
+        id="AppsScreen.project-quota-reached"
+        values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          externalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="https://go.authgear.com/portal-support">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
+      />
     </BlueMessageBar>
   );
 }

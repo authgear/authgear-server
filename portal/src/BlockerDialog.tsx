@@ -9,7 +9,7 @@ import {
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
 export interface BlockerDialogProps extends IDialogProps {

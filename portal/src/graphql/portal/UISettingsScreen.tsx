@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import { parse, Root } from "postcss";
 import ShowLoading from "../../ShowLoading";
@@ -334,7 +334,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     );
 
     const lightTheme = useMemo(() => {
-      let lightTheme = null;
+      let lightTheme: LightTheme | null = null;
       for (const r of Object.values(state.resources)) {
         if (
           r?.nullableValue != null &&
@@ -349,7 +349,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     }, [state.resources]);
 
     const darkTheme = useMemo(() => {
-      let darkTheme = null;
+      let darkTheme: DarkTheme | null = null;
       for (const r of Object.values(state.resources)) {
         if (
           r?.nullableValue != null &&
@@ -363,7 +363,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     }, [state.resources]);
 
     const lightBannerConfiguration = useMemo(() => {
-      let bannerConfiguration = null;
+      let bannerConfiguration: BannerConfiguration | null = null;
       for (const r of Object.values(state.resources)) {
         if (
           r?.nullableValue != null &&
@@ -377,7 +377,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     }, [state.resources]);
 
     const darkBannerConfiguration = useMemo(() => {
-      let bannerConfiguration = null;
+      let bannerConfiguration: BannerConfiguration | null = null;
       for (const r of Object.values(state.resources)) {
         if (
           r?.nullableValue != null &&
@@ -732,7 +732,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
   }, [config.effectiveConfig.localization]);
 
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
-    const specifiers = [];
+    const specifiers: ResourceSpecifier[] = [];
     for (const locale of initialSupportedLanguages) {
       for (const def of ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN) {
         specifiers.push(...expandDef(def, locale));

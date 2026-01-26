@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
   AppConfigFormModel,
@@ -18,6 +18,7 @@ import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import styles from "./GoogleTagManagerConfigurationScreen.module.css";
 import { clearEmptyObject } from "../../util/misc";
+import ExternalLink from "../../ExternalLink";
 
 interface FormState {
   enabled: boolean;
@@ -119,7 +120,17 @@ const GoogleTagManagerConfigurationContent: React.VFC<GoogleTagManagerConfigurat
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
           <WidgetDescription>
-            <FormattedMessage id="GoogleTagManagerConfigurationScreen.description" />
+            <FormattedMessage
+              id="GoogleTagManagerConfigurationScreen.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/integration/integration-with-other-software/user-analytics-by-google-tag-manager">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </WidgetDescription>
         </Widget>
         <Widget className={styles.widget}>

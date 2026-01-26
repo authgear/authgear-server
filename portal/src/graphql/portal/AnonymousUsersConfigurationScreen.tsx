@@ -1,8 +1,8 @@
 /* global JSX */
 import React, { useCallback, useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { produce } from "immer";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   Dropdown,
   IDropdownOption,
@@ -272,7 +272,13 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           block={true}
           className={styles.widgetDescription}
         >
-          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.description" />
+          <FormattedMessage
+            id="AnonymousUsersConfigurationScreen.user-lifetime.description"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+            }}
+          />
         </Text>
         <div>
           <Text className={styles.title} variant="medium" block={true}>
@@ -347,7 +353,12 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
-              applicationsPath: `/project/${appID}/configuration/apps`,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/configuration/apps`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         </Text>

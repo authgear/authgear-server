@@ -8,7 +8,7 @@ import {
   ShimmeredDetailsList,
   MessageBar,
 } from "@fluentui/react";
-import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
+import { Context, FormattedMessage, Values } from "../../intl";
 import Link from "../../Link";
 import PaginationWidget from "../../PaginationWidget";
 import {
@@ -122,7 +122,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
   );
 
   const items: AuditLogListItem[] = useMemo(() => {
-    const items = [];
+    const items: AuditLogListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;

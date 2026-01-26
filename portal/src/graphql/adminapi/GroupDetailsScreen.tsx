@@ -3,10 +3,7 @@ import { useParams } from "react-router-dom";
 import { useGroupQuery } from "./query/groupQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { GroupQueryNodeFragment } from "./query/groupQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";

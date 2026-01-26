@@ -14,7 +14,7 @@ import {
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
 import { useFormConflictErrors } from "./form";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface FormConfirmOverridingDialogProps {

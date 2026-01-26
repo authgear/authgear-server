@@ -5,7 +5,7 @@ import {
   IDialogContentProps,
   IModalProps,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useSnapshotData } from "../../hook/useSnapshotData";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import PrimaryButton from "../../PrimaryButton";

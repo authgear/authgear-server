@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import cn from "classnames";
+import ExternalLink from "../../ExternalLink";
 
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import {
@@ -67,7 +68,7 @@ const CustomTextConfigurationScreen: React.VFC =
     }, [config.effectiveAppConfig?.localization]);
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
-      const specifiers = [];
+      const specifiers: ResourceSpecifier[] = [];
 
       const supportedLanguages = [...initialSupportedLanguages];
       if (!supportedLanguages.includes(DEFAULT_TEMPLATE_LOCALE)) {
@@ -243,6 +244,20 @@ const CustomTextConfigurationScreen: React.VFC =
                 values={{
                   COMMIT: gitCommitHash,
                   language: translationSheetLanguage,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  externalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink
+                      href={`https://github.com/authgear/authgear-server/blob/${gitCommitHash}/resources/authgear/templates/${translationSheetLanguage}/translation.json`}
+                    >
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  docLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://docs.authgear.com/customization/ui-customization/built-in-ui/localization">
+                      {chunks}
+                    </ExternalLink>
+                  ),
                 }}
               />
             ),

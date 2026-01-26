@@ -12,7 +12,7 @@ import {
 } from "react-router-dom";
 import { addDays, PivotItem, ISearchBoxProps } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
 import NavBreadcrumb from "../../NavBreadcrumb";

@@ -7,7 +7,7 @@ import {
   ITimeRange,
   defaultDatePickerStrings,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import { DateTime } from "luxon";
 import DefaultButton from "./DefaultButton";
 

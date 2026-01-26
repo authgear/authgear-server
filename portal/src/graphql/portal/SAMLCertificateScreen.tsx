@@ -15,7 +15,7 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ScreenDescription from "../../ScreenDescription";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import styles from "./SAMLCertificateScreen.module.css";
 import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertificateForm";
 import { AutoGenerateFirstCertificate } from "../../components/saml/AutoGenerateFirstCertificate";

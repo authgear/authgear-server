@@ -1,10 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Icon, Text } from "@fluentui/react";
 import styles from "./PlanCard.module.css";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import PrimaryButton from "../../PrimaryButton";
 import { CTAVariant, getCTAVariant } from "../../util/plan";
 import Tooltip from "../../Tooltip";

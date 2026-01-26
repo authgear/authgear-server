@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import cn from "classnames";
 import styles from "./FormField.module.css";
 import { Text } from "@radix-ui/themes";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import { ErrorParseRule } from "../../../error/parse";
 import { useErrorMessage } from "../../../formbinding";
 

@@ -1,5 +1,5 @@
 import { Icon, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import React from "react";
 
 interface CancelSubscriptionReminderProps {

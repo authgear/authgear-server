@@ -1,21 +1,26 @@
-import { LocaleProvider } from "@oursky/react-messageformat";
+import { IntlProvider } from "react-intl";
 import React from "react";
-import ExternalLink from "../../ExternalLink";
-import Link from "../../Link";
-import { ILinkProps } from "@fluentui/react";
 import DEFAULT_MESSAGES from "../../locale-data/en.json";
 import { SystemConfig } from "../../system-config";
+import { IntlContextProvider } from "../../intl";
 
-const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
-  return <ExternalLink {...props} />;
-};
-
-const defaultComponents = {
-  ExternalLink,
-  ReactRouterLink: Link,
-  DocLink,
+const defaultRichTextElements = {
   br: () => <br />,
+  b: (children: React.ReactNode) => <b>{children}</b>,
+  strong: (children: React.ReactNode) => <strong>{children}</strong>,
+  code: (children: React.ReactNode) => <code>{children}</code>,
+  pre: (children: React.ReactNode) => <pre>{children}</pre>,
+  small: (children: React.ReactNode) => <small>{children}</small>,
 };
+
+// This is to support legacy API that uses @oursky/react-messageformat
+function _LegacyAPIContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <IntlContextProvider>{children}</IntlContextProvider>;
+}
 
 export function AppLocaleProvider({
   children,
@@ -25,12 +30,12 @@ export function AppLocaleProvider({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <LocaleProvider
+    <IntlProvider
       locale="en"
-      messageByID={systemConfig?.translations.en ?? DEFAULT_MESSAGES}
-      defaultComponents={defaultComponents}
+      messages={systemConfig?.translations.en ?? DEFAULT_MESSAGES}
+      defaultRichTextElements={defaultRichTextElements}
     >
-      {children}
-    </LocaleProvider>
+      <_LegacyAPIContextProvider>{children}</_LegacyAPIContextProvider>
+    </IntlProvider>
   );
 }

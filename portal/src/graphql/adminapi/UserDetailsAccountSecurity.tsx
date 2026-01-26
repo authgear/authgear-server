@@ -12,7 +12,7 @@ import {
   MessageBarType,
   Text,
 } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
@@ -640,11 +640,13 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             <FormattedMessage
               id="UserDetails.account-security.expired"
               values={{
-                prefixClassName: styles.passwordCellExpiredPrefix,
                 expiredInDays,
-              }}
-              components={{
-                Text,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                text: (chunks: React.ReactNode) => (
+                  <Text className={styles.passwordCellExpiredPrefix}>
+                    {chunks}
+                  </Text>
+                ),
               }}
             />
           </MessageBar>
@@ -1129,19 +1131,25 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           key: "password",
           text: renderToString("AuthenticatorType.secondary.password"),
           iconProps: { iconName: "Accounts" },
-          onClick: () => navigate("./add-2fa-password"),
+          onClick: () => {
+            void navigate("./add-2fa-password");
+          },
         },
         {
           key: "oob_otp_email",
           text: renderToString("AuthenticatorType.secondary.oob-otp-email"),
           iconProps: { iconName: "Mail" },
-          onClick: () => navigate("./add-2fa-email"),
+          onClick: () => {
+            void navigate("./add-2fa-email");
+          },
         },
         {
           key: "oob_otp_sms",
           text: renderToString("AuthenticatorType.secondary.oob-otp-phone"),
           iconProps: { iconName: "CellPhone" },
-          onClick: () => navigate("./add-2fa-phone"),
+          onClick: () => {
+            void navigate("./add-2fa-phone");
+          },
         },
       ];
       const enabledItems = availableMenuItem.filter((item) => {
@@ -1466,9 +1474,9 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   <div className={styles.updateMFAGracePeriodContainer}>
                     <FormattedMessage
                       id="UserDetails.account-security.secondary.update-existing-grace-period"
-                      components={{
-                        Extend: onRenderExtendedMFAGracePeriod,
-                        Cancel: onRenderCancelMFAGracePeriod,
+                      values={{
+                        extend: onRenderExtendedMFAGracePeriod,
+                        cancel: onRenderCancelMFAGracePeriod,
                       }}
                     />
                   </div>

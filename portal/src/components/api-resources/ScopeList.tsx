@@ -9,7 +9,7 @@ import {
   IDetailsRowProps,
   Text,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ScopeList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";

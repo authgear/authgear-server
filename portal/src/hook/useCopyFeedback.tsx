@@ -12,7 +12,7 @@ import {
   IIconProps,
   Text,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../intl";
 import { copyToClipboard } from "../util/clipboard";
 
 export interface CopyButtonProps {

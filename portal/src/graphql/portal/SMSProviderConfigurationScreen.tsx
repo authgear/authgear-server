@@ -33,10 +33,7 @@ import {
   getHookKind,
 } from "../../types";
 import { produce } from "immer";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import {
   ChoiceGroup,
   IChoiceGroupOption,
@@ -83,6 +80,7 @@ import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 import Tooltip from "../../Tooltip";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen } from "../../RedMessageBar";
+import ExternalLink from "../../ExternalLink";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -482,7 +480,7 @@ const messagingServiceSIDErrorRules: ErrorParseRule[] = [
 ];
 
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
-  const specifiers = [];
+  const specifiers: ResourceSpecifier[] = [];
   if (state.denoHookURL) {
     specifiers.push(makeDenoScriptSpecifier(state.denoHookURL));
   }
@@ -1120,21 +1118,36 @@ function ProviderSection({
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.twilio.description"
             values={{
-              href: "https://docs.authgear.com/customization/custom-providers/twilio",
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/custom-providers/twilio">
+                  {chunks}
+                </ExternalLink>
+              ),
             }}
           />
         ) : form.state.providerType === SMSProviderType.Webhook ? (
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.webhook.description"
             values={{
-              href: "https://docs.authgear.com/customization/custom-providers/webhook-custom-script",
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/custom-providers/webhook-custom-script">
+                  {chunks}
+                </ExternalLink>
+              ),
             }}
           />
         ) : (
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.deno.description"
             values={{
-              href: "https://docs.authgear.com/customization/custom-providers/webhook-custom-script",
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/custom-providers/webhook-custom-script">
+                  {chunks}
+                </ExternalLink>
+              ),
             }}
           />
         )}
@@ -1347,7 +1360,12 @@ function TwilioForm({ form }: { form: FormModel }) {
               <FormattedMessage
                 id="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.hint"
                 values={{
-                  href: "https://www.twilio.com/docs/messaging/services",
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ExternalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://www.twilio.com/docs/messaging/services">
+                      {chunks}
+                    </ExternalLink>
+                  ),
                 }}
               />
             </Text>
@@ -1530,7 +1548,12 @@ function WebhookForm({
           <FormattedMessage
             id="SMSProviderConfigurationScreen.form.webhook.signatureKey.description"
             values={{
-              href: `https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature`,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
+                  {chunks}
+                </ExternalLink>
+              ),
             }}
           />
         </Text>

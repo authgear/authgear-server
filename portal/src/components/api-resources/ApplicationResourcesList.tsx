@@ -8,7 +8,7 @@ import {
   Text,
 } from "@fluentui/react";
 import Toggle from "../../Toggle";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ApplicationResourcesList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";

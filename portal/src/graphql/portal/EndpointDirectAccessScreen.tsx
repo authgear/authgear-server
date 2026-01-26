@@ -13,7 +13,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   FormContainerBase,
   useFormContainerBaseContext,
@@ -24,7 +24,7 @@ import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { PortalAPIAppConfig } from "../../types";
 import styles from "./EndpointDirectAccessScreen.module.css";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useDomainsQuery } from "./query/domainsQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -343,7 +343,12 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label--disabled"
             values={{
-              href: `/project/${appID}/branding/custom-domains`,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/custom-domains`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         ) : (
@@ -358,7 +363,12 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
           <FormattedMessage
             id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label--disabled"
             values={{
-              href: `/project/${appID}/branding/custom-domains`,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/custom-domains`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         ) : (
@@ -445,6 +455,10 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section1.description"
                 values={{
                   endpoint: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Text>
@@ -465,6 +479,10 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
                 id="EndpointDirectAccessScreen.section2.description"
                 values={{
                   endpoint: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Text>

@@ -7,7 +7,7 @@ import {
   Text,
   IRenderFunction,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 
 import { LanguageTag } from "../../util/resource";
 
@@ -55,7 +55,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
     );
 
     const templateLocaleOptions: IDropdownOption[] = useMemo(() => {
-      const options = [];
+      const options: IDropdownOption[] = [];
 
       const combinedLocales = new Set([
         ...existingLanguages,

@@ -131,7 +131,7 @@ function getFieldErrors(
   fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>,
   field: FormField
 ): ParsedAPIError[] {
-  const errors = [];
+  const errors: ParsedAPIError[] = [];
   for (const [key, value] of fieldErrors.entries()) {
     if (equal(key, field)) {
       errors.push(...value);

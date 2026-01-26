@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Text } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 
@@ -163,6 +163,8 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
               id="CookieLifetimeConfigurationScreen.description"
               values={{
                 hostname: getHostname(form.state.publicOrigin),
+                // eslint-disable-next-line react/no-unstable-nested-components
+                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
               }}
             />
           </Text>

@@ -294,14 +294,6 @@ When we do that, we should change `{{ $.CSPNONCE }}` to something like `@@CSPNON
 
 ### Known issues on portal
 
-As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
-come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
-still exist.
-See [https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874](https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874)
-react-router-dom@6.4.0 removed the `block` function from NavigationContext.
-We have to remain on react-router-dom@6.3.0 until we find an alternative.
-As of react-router-dom@6.18.0, unstable_useBlocker and unstable_usePrompt are still marked as unstable.
-
 NPM has an outstanding issue related to optional native dependencies.
 https://github.com/npm/cli/issues/4828
 The issue will happen if the following conditions hold:

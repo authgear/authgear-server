@@ -24,7 +24,7 @@ import {
 } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import { useConst } from "@fluentui/react-hooks";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -382,6 +382,14 @@ function PlansSection({
         error={reactivateSubscriptionError}
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.reactivate.error"
+        fallbackErrorMessageValues={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          ExternalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="mailto:hello@authgear.com">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
       />
       <Dialog
         hidden={upgradeToPlan == null}
@@ -504,7 +512,17 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
       // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
+        <FormattedMessage
+          id="SubscriptionScreen.enterprise.instructions"
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            ExternalLink: (chunks: React.ReactNode) => (
+              <ExternalLink href="mailto:hello@authgear.com">
+                {chunks}
+              </ExternalLink>
+            ),
+          }}
+        />
       ) as IDialogContentProps["subText"],
     };
   }, []);
@@ -621,6 +639,14 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         error={cancelSubscriptionError}
         rules={[]}
         fallbackErrorMessageID="SubscriptionScreen.cancel.error"
+        fallbackErrorMessageValues={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          ExternalLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="mailto:hello@authgear.com">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
       />
       <Dialog
         hidden={enterpriseDialogHidden}
@@ -647,7 +673,17 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         </div>
         {planName === "free" ? (
           <BlueMessageBar>
-            <FormattedMessage id="warnings.free-plan" />
+            <FormattedMessage
+              id="warnings.free-plan"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://go.authgear.com/portal-support">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </BlueMessageBar>
         ) : null}
         <AGPivot onLinkClick={onLinkClick} selectedKey={selectedTab}>

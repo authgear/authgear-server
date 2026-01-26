@@ -13,7 +13,7 @@ import {
   IRenderFunction,
   IDetailsRowProps,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import Widget from "./Widget";
 import FormTextField from "./FormTextField";
 import PrimaryButton from "./PrimaryButton";

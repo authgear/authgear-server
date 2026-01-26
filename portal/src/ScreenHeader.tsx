@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import {
   Icon,
   Text,

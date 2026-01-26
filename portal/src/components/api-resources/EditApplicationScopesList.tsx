@@ -9,7 +9,7 @@ import {
   SearchBox,
   Text,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import styles from "./EditApplicationScopesList.module.css";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";

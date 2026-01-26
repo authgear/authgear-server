@@ -7,7 +7,7 @@ import {
   MessageBar,
   MessageBarType,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 
 import styles from "./ModifiedIndicator.module.css";
 import PrimaryButton from "./PrimaryButton";

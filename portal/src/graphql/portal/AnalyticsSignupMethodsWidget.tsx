@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { Pie } from "react-chartjs-2";
 import { Text } from "@fluentui/react";
 

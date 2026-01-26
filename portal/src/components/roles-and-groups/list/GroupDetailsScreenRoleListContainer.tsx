@@ -1,9 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useQuery } from "@apollo/client";
 import { SearchBox } from "@fluentui/react";
 import ShowError from "../../../ShowError";

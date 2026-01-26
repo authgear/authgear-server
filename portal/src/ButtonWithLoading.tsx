@@ -6,7 +6,7 @@ import {
   SpinnerSize,
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface ButtonWithLoadingProps extends IButtonProps {

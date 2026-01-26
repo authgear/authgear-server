@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import {
   DetailsList,
   IColumn,
@@ -202,6 +202,8 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
             id="VerifyDomainScreen.desc-main"
             values={{
               domain: domain.domain,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
             }}
           />
         </Text>

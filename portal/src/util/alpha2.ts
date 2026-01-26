@@ -1,4 +1,4 @@
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../intl";
 import { useContext, useMemo } from "react";
 import ALL_COUNTRIES from "../data/country.json";
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";

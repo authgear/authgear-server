@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useConst } from "@fluentui/react-hooks";
 import { ICommandBarItemProps, Text, useTheme } from "@fluentui/react";
 import { useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
 import { Periodical } from "./globalTypes.generated";
 import ScreenContent from "../../ScreenContent";

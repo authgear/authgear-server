@@ -4,7 +4,7 @@ import {
   IDialogContentProps,
   IModalProps,
 } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import React, { useMemo } from "react";
 import PrimaryButton from "../../PrimaryButton";
 

@@ -21,7 +21,7 @@ import {
   IconButton,
   IIconProps,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import { useTextField } from "../../hook/useInput";
 import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";
@@ -261,7 +261,7 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
       const pinned = new Set(pinnedAlpha2);
       const allowed = new Set(allowedAlpha2);
 
-      const lst = [];
+      const lst: ListItem[] = [];
 
       for (const alpha2 of pinnedAlpha2) {
         const country = COUNTRY_MAP[alpha2];

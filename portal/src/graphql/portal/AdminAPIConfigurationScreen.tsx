@@ -13,7 +13,7 @@ import {
   useTheme,
 } from "@fluentui/react";
 import cn from "classnames";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
@@ -44,7 +44,7 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
+import ExternalLink, { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
 import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
@@ -152,7 +152,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     }, [queryResult.secretConfig?.adminAPISecrets]);
 
     const items: Item[] = useMemo(() => {
-      const items = [];
+      const items: Item[] = [];
       for (const adminAPISecret of adminAPISecrets) {
         items.push({
           keyID: adminAPISecret.keyID,
@@ -409,7 +409,13 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
               <FormattedMessage id="AdminAPIConfigurationScreen.title" />
             </ScreenTitle>
             <ScreenDescription className={styles.widget}>
-              <FormattedMessage id="AdminAPIConfigurationScreen.description" />
+              <FormattedMessage
+                id="AdminAPIConfigurationScreen.description"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                }}
+              />
             </ScreenDescription>
             <Widget className={styles.widget}>
               <WidgetTitle>
@@ -430,7 +436,19 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 readOnly={true}
               />
               <WidgetDescription>
-                <FormattedMessage id="AdminAPIConfigurationScreen.details.description" />
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.details.description"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    docLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+                  }}
+                />
               </WidgetDescription>
             </Widget>
             <HorizontalDivider className={styles.separator} />
@@ -512,6 +530,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   </MessageBar>
                 ) : null}
                 <WidgetDescription>
+                  {}
                   <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
                 </WidgetDescription>
               </div>
@@ -525,12 +544,27 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 messageBarType={MessageBarType.warning}
                 styles={messageBarStyles}
               >
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.graphiql.warning"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                  }}
+                />
               </MessageBar>
               <WidgetDescription>
                 <FormattedMessage
                   id="AdminAPIConfigurationScreen.graphiql.description"
-                  values={{ graphqlEndpoint }}
+                  values={{
+                    graphqlEndpoint,
+
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    docLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                  }}
                 />
               </WidgetDescription>
               <div>

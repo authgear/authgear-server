@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
 import { useParams } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../../intl";
 import Link from "../../../Link";
 import DeleteRoleDialog, {
   DeleteRoleDialogData,
@@ -93,7 +93,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     },
   ];
   const items: RoleListItem[] = useMemo(() => {
-    const items = [];
+    const items: RoleListItem[] = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;

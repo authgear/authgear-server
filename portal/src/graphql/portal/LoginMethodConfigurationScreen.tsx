@@ -23,7 +23,7 @@ import {
 import { AGPivot } from "../../components/common/AGPivot";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   PortalAPIAppConfig,
   IdentityType,
@@ -135,6 +135,7 @@ import {
 } from "../../RedMessageBar";
 import Tooltip from "../../Tooltip";
 import { Callout } from "../../components/v2/Callout/Callout";
+import ExternalLink from "../../ExternalLink";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -1855,7 +1856,17 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
       {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
       {showFreePlanWarning ? (
         <BlueMessageBar>
-          <FormattedMessage id="warnings.free-plan" />
+          <FormattedMessage
+            id="warnings.free-plan"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              externalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://go.authgear.com/portal-support">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
         </BlueMessageBar>
       ) : null}
     </Widget>
@@ -2335,6 +2346,18 @@ function EmailSettings(props: EmailSettingsProps) {
               id={
                 "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
               }
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink
+                    href="https://github.com/Kikobeats/free-email-domains/blob/master/domains.json"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
             />
           ) as unknown as string
         }
@@ -2349,6 +2372,18 @@ function EmailSettings(props: EmailSettingsProps) {
               id={
                 "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
               }
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink
+                    href="https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
             />
           ) as unknown as string
         }
@@ -2483,7 +2518,12 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <FormattedMessage
             id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
             values={{
-              href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid">
+                  {chunks}
+                </ExternalLink>
+              ),
             }}
           />
         ) as unknown as string,
@@ -2770,7 +2810,19 @@ function onRenderCriteriaLabel() {
   return (
     <LabelWithTooltip
       labelId="VerificationConfigurationScreen.criteria.label"
+      labelValues={{
+        code: (chunks: React.ReactNode) => (
+          <code className="inline-code">{chunks}</code>
+        ),
+      }}
       tooltipMessageId="VerificationConfigurationScreen.criteria.tooltip"
+      tooltipValues={{
+        docLink: (chunks: React.ReactNode) => (
+          <ExternalLink href="https://docs.authgear.com/reference/apis/oauth-2.0-and-openid-connect-oidc/userinfo">
+            {chunks}
+          </ExternalLink>
+        ),
+      }}
       directionalHint={DirectionalHint.topCenter}
     />
   );
@@ -3909,7 +3961,17 @@ function PasskeySection({
         <Toggle
           inlineLabel={true}
           label={
-            <FormattedMessage id="LoginMethodConfigurationScreen.passkey.enable" />
+            <FormattedMessage
+              id="LoginMethodConfigurationScreen.passkey.enable"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/authentication-and-access/authentication/passkeys">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           }
           checked={passkeyChecked}
           onChange={onChangePasskeyChecked}

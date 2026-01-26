@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
@@ -147,25 +147,20 @@ function makeStandardAttributesFromState(
     delete state.updated_at;
 
     for (const key of Object.keys(state)) {
-      // @ts-expect-error
-      const value = state[key];
+      const value = (state as any)[key];
       if (value === "") {
-        // @ts-expect-error
-        delete state[key];
+        delete (state as any)[key];
       }
     }
 
     for (const key of Object.keys(state.address)) {
-      // @ts-expect-error
-      const value = state.address[key];
+      const value = (state.address as any)[key];
       if (value === "") {
-        // @ts-expect-error
-        delete state.address[key];
+        delete (state.address as any)[key];
       }
     }
     if (Object.keys(state.address).length === 0) {
-      // @ts-expect-error
-      delete state.address;
+      delete (state as any).address;
     }
   });
 }

@@ -1,5 +1,5 @@
 import { Checkbox, DirectionalHint, Label, Text, Icon } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { produce } from "immer";
 import React, { useCallback, useContext, useMemo, useState } from "react";
@@ -18,6 +18,7 @@ import {
   SSOProviderFormSecretViewModel,
 } from "../../types";
 import Widget from "../../Widget";
+import ExternalLink from "../../ExternalLink";
 
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
@@ -760,7 +761,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 )}
                 // @ts-expect-error
                 description={
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.domain-hint.description" />
+                  <FormattedMessage
+                    id="SingleSignOnConfigurationScreen.widget.domain-hint.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      externalLink: (chunks: React.ReactNode) => (
+                        <ExternalLink
+                          href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/direct-signin?pivots=b2c-user-flow#redirect-sign-in-to-a-social-provider"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 }
                 className={styles.textField}
                 styles={TEXT_FIELD_STYLE}

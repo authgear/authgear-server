@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
 import { Dialog, DialogFooter } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { parseSender } from "email-addresses";
 import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";
@@ -36,6 +36,8 @@ import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import ExternalLink from "../../ExternalLink";
+
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
@@ -596,7 +598,17 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {form.state.providerType === ProviderType.Custom ? (
                 <>
                   <ProviderCardDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
+                    <FormattedMessage
+                      id="SMTPConfigurationScreen.custom.description"
+                      values={{
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        DocLink: (chunks: React.ReactNode) => (
+                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                            {chunks}
+                          </ExternalLink>
+                        ),
+                      }}
+                    />
                   </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}
@@ -684,7 +696,17 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {form.state.providerType === ProviderType.Sendgrid ? (
                 <>
                   <ProviderCardDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
+                    <FormattedMessage
+                      id="SMTPConfigurationScreen.sendgrid.description"
+                      values={{
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        DocLink: (chunks: React.ReactNode) => (
+                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                            {chunks}
+                          </ExternalLink>
+                        ),
+                      }}
+                    />
                   </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}

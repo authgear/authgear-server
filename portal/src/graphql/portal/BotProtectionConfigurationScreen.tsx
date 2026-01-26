@@ -1,4 +1,4 @@
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import ScreenContent from "../../ScreenContent";
@@ -53,6 +53,7 @@ import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
 import HorizontalDivider from "../../HorizontalDivider";
 import { useFormLoading } from "../../form";
+import ExternalLink from "../../ExternalLink";
 
 const MASKED_SECRET = "***************";
 
@@ -520,7 +521,17 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     return providerType === "recaptchav2" ? (
       <>
         <WidgetDescription>
-          <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.description" />
+          <FormattedMessage
+            id="BotProtectionConfigurationScreen.provider.recaptchaV2.description"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://developers.google.com/recaptcha/docs/settings">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
         </WidgetDescription>
         <FormTextField
           type="text"
@@ -560,7 +571,17 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     ) : (
       <>
         <WidgetDescription>
-          <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.description" />
+          <FormattedMessage
+            id="BotProtectionConfigurationScreen.provider.cloudflare.description"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              ExternalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://developers.cloudflare.com/turnstile/get-started/#get-a-sitekey-and-secret-key">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
         </WidgetDescription>
         <FormTextField
           type="text"

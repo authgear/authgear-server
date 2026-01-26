@@ -16,7 +16,7 @@ import {
   ITheme,
   Label,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import FormTextField from "../../FormTextField";
 import FormDropdown from "../../FormDropdown";
 import FormPhoneTextField from "../../FormPhoneTextField";
@@ -178,8 +178,7 @@ function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
     () => isDisabled(fieldName),
     [isDisabled, fieldName]
   );
-  // @ts-expect-error
-  const value = standardAttributes[fieldName];
+  const value = (standardAttributes as any)[fieldName];
   const label = "standard-attribute." + fieldName;
   return (
     <FormTextField
@@ -204,8 +203,7 @@ interface StandardAttributeLabelProps {
 function StandardAttributeLabel(props: StandardAttributeLabelProps) {
   const { standardAttributes, fieldName, className } = props;
   const { renderToString } = useContext(Context);
-  // @ts-expect-error
-  const value = standardAttributes[fieldName];
+  const value = (standardAttributes as any)[fieldName];
   const label = "standard-attribute." + fieldName;
   return (
     <TextLink
@@ -595,7 +593,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
         stdAttrKey: keyof StandardAttributesState,
         identityClaimKey: keyof IdentityClaims
       ): IDropdownOption[] => {
-        const options = [];
+        const options: IDropdownOption[] = [];
         const value = standardAttributes[stdAttrKey];
         const seen = new Set();
 

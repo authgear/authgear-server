@@ -1,11 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear, { PromptOption } from "@authgear/web";
 import { Text, DefaultEffects } from "@fluentui/react";
-import {
-  Context,
-  FormattedMessage,
-  FormattedMessageProps,
-} from "@oursky/react-messageformat";
+import { Context, FormattedMessage, FormattedMessageProps } from "../../intl";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";
@@ -187,7 +183,7 @@ const AcceptAdminInvitationScreen: React.VFC =
       [redirectURI, originalPath]
     );
 
-    const goToHome = useCallback(() => navigate("/"), [navigate]);
+    const goToHome = useCallback(async () => navigate("/"), [navigate]);
 
     if (loading) {
       return <ShowLoading />;
@@ -221,7 +217,11 @@ const AcceptAdminInvitationScreen: React.VFC =
         <AcceptAdminInvitationContent
           title={{
             id: "AcceptAdminInvitationScreen.not-authenticaed.title",
-            values: { appID: appID! },
+            values: {
+              appID: appID!,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+            },
           }}
           descriptions={[
             { id: "AcceptAdminInvitationScreen.not-authenticaed.description" },

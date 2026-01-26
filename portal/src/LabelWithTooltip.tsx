@@ -11,7 +11,7 @@ import {
   TooltipHost,
 } from "@fluentui/react";
 import { useTooltipTargetElement } from "./Tooltip";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 
 import styles from "./LabelWithTooltip.module.css";
 
@@ -25,6 +25,8 @@ interface LabelWithTooltipProps {
   directionalHint?: ITooltipHostProps["directionalHint"];
   required?: boolean;
   labelIIconProps?: IIconProps;
+  labelValues?: Record<string, any>;
+  tooltipValues?: Record<string, any>;
 }
 
 const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
@@ -39,6 +41,8 @@ const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
       directionalHint,
       required,
       labelIIconProps,
+      labelValues,
+      tooltipValues,
     } = props;
 
     const { id, setRef, targetElement } = useTooltipTargetElement();
@@ -56,7 +60,7 @@ const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
               </Text>
             ) : null}
             <Text className={styles.tooltipMessage}>
-              <FormattedMessage id={tooltipMessageId} />
+              <FormattedMessage id={tooltipMessageId} values={tooltipValues} />
             </Text>
           </div>
         ),
@@ -67,6 +71,7 @@ const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
       tooltipHeaderId,
       tooltipMessageId,
       targetElement,
+      tooltipValues,
     ]);
 
     return (
@@ -80,7 +85,7 @@ const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
               {labelIIconProps ? (
                 <Icon {...labelIIconProps} className={styles.labelIcon} />
               ) : null}
-              <FormattedMessage id={labelId} />
+              <FormattedMessage id={labelId} values={labelValues} />
             </Label>
             <Icon
               id={id}

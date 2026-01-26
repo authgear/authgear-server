@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "../../intl";
 import PrimaryButton from "../../PrimaryButton";
 import { useNavigate, useParams } from "react-router-dom";
 

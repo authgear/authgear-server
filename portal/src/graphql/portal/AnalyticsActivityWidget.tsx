@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { IPivotItemProps, PivotItem, Text } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import { TooltipItem } from "chart.js";

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { Text } from "../../../components/project-wizard/Text";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";

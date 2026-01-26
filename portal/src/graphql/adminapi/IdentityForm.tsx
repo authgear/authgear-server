@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { LoginIDKeyType, PortalAPIAppConfig } from "../../types";
 import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";

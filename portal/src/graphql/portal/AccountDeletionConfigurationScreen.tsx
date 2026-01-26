@@ -1,7 +1,7 @@
 import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { MessageBar } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
   AppConfigFormModel,
@@ -19,6 +19,7 @@ import WidgetTitle from "../../WidgetTitle";
 import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import { checkIntegerInput } from "../../util/input";
+import ExternalLink from "../../ExternalLink";
 
 interface FormState {
   scheduled_by_end_user_enabled: boolean;
@@ -127,8 +128,19 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
             )}
             inlineLabel={true}
           />
+
           <MessageBar>
-            <FormattedMessage id="AccountDeletionConfigurationScreen.apple-app-store.description" />
+            <FormattedMessage
+              id="AccountDeletionConfigurationScreen.apple-app-store.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                ExternalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://developer.apple.com/app-store/review/guidelines/#5.1.1">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </MessageBar>
         </Widget>
       </ScreenContent>

@@ -4,7 +4,7 @@ import {
   TextButtonIcon,
   TextButtonProps,
 } from "../v2/Button/TextButton/TextButton";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 
 export function OnboardingSurveyBackButton({
   onClick,

@@ -1,10 +1,7 @@
 import React, { useState, useCallback, useMemo, useContext } from "react";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ScreenDescription from "../../ScreenDescription";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
 import { useDeleteResourceMutation } from "../../graphql/adminapi/mutations/deleteResourceMutation.generated";
@@ -20,6 +17,7 @@ import { SearchBox } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { useDebounced } from "../../hook/useDebounced";
+import ExternalLink from "../../ExternalLink";
 
 const PAGE_SIZE = 10;
 
@@ -134,7 +132,17 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
         ]}
         headerDescription={
           <ScreenDescription>
-            <FormattedMessage id="APIResourcesScreen.description" />
+            <FormattedMessage
+              id="APIResourcesScreen.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/get-started/m2m-applications">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </ScreenDescription>
         }
         headerSuffix={

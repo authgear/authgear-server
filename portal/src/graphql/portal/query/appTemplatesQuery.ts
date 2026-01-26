@@ -35,7 +35,7 @@ export function useAppTemplatesQuery(
 ): AppTemplatesQueryResult {
   const client = usePortalClient();
   const pairs: SpecifierPathPair[] = useMemo(() => {
-    const pairs = [];
+    const pairs: SpecifierPathPair[] = [];
     for (const specifier of specifiers) {
       const path = expandSpecifier(specifier);
       pairs.push({

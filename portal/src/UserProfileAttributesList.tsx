@@ -1,6 +1,6 @@
 /* global JSX */
 import React, { useMemo, useCallback, useContext, useState } from "react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "./intl";
 import {
   DetailsList,
   DetailsHeader,
@@ -26,6 +26,7 @@ import {
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
 import LabelWithTooltip from "./LabelWithTooltip";
+import ExternalLink from "./ExternalLink";
 import {
   UserProfileAttributesAccessControl,
   AccessControlLevelString,
@@ -566,6 +567,27 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
           props.column.key === "bearer" ||
           props.column.key === "end_user"
         ) {
+          let tooltipValues: Record<string, any> | undefined;
+          if (props.column.key === "end_user") {
+            tooltipValues = {
+              // eslint-disable-next-line react/no-unstable-nested-components
+              DocLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
+                  {chunks}
+                </ExternalLink>
+              ),
+            };
+          } else if (props.column.key === "bearer") {
+            tooltipValues = {
+              // eslint-disable-next-line react/no-unstable-nested-components
+              DocLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
+                  {chunks}
+                </ExternalLink>
+              ),
+            };
+          }
+
           return (
             <LabelWithTooltip
               labelId={
@@ -574,6 +596,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
               tooltipMessageId={
                 "UserProfileAttributesList.header.tooltip." + props.column.key
               }
+              tooltipValues={tooltipValues}
               directionalHint={DirectionalHint.topCenter}
             />
           );

@@ -8,7 +8,7 @@ import {
 } from "./query/groupsListQuery.generated";
 import styles from "./GroupsScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { useDebounced } from "../../hook/useDebounced";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";

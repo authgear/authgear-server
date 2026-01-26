@@ -8,7 +8,7 @@ import {
 } from "./query/rolesListQuery.generated";
 import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import RolesList from "../../components/roles-and-groups/list/RolesList";
 import { useDebounced } from "../../hook/useDebounced";

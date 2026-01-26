@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
+import { Context } from "./intl";
 import {
   INavLink,
   INavLinkGroup,

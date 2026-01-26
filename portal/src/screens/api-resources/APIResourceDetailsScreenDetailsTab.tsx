@@ -3,7 +3,7 @@ import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutati
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
 import WidgetTitle from "../../WidgetTitle";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import {
   ResourceForm,

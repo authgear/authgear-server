@@ -20,7 +20,7 @@ export function exactKeywordSearch<X, K extends keyof X>(
 ): X[] {
   const matchedSet = new Set();
   const needle = searchString.toLowerCase();
-  const matchedItems = [];
+  const matchedItems: X[] = [];
   for (const item of list) {
     for (const key of keyList) {
       const value = item[key];

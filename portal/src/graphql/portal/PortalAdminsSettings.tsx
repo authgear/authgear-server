@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { makeReasonErrorParseRule } from "../../error/parse";

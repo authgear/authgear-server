@@ -1,6 +1,6 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   Dropdown,
@@ -58,6 +58,7 @@ import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import TextField from "../../TextField";
+import ExternalLink from "../../ExternalLink";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
@@ -338,7 +339,7 @@ function makeNewURL(eventKind: EventKind): string {
 }
 
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
-  const specifiers = [];
+  const specifiers: ResourceSpecifier[] = [];
   for (const h of state.blocking_handlers) {
     if (getHookKind(h.url) === "denohook") {
       specifiers.push(makeDenoScriptSpecifier(h.url));
@@ -1174,7 +1175,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const blockingHandlers: BlockingEventHandler[] = useMemo(() => {
       const diff = state.diff;
       const cfgs = state.blocking_handlers;
-      const out = [];
+      const out: BlockingEventHandler[] = [];
       for (const c of cfgs) {
         out.push({
           ...c,
@@ -1188,7 +1189,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const nonBlockingHandlers: NonBlockingEventHandler[] = useMemo(() => {
       const diff = state.diff;
       const cfgs = state.non_blocking_handlers;
-      const out = [];
+      const out: NonBlockingEventHandler[] = [];
       for (const c of cfgs) {
         out.push({
           ...c,
@@ -1216,10 +1217,18 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 <FormattedMessage
                   id="HookConfigurationScreen.edit-hook.description"
                   values={{
-                    docHref:
-                      codeEditorState.eventKind === "blocking"
-                        ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
-                        : "https://docs.authgear.com/customization/events-hooks/non-blocking-events",
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    docLink: (chunks: React.ReactNode) => (
+                      <ExternalLink
+                        href={
+                          codeEditorState.eventKind === "blocking"
+                            ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
+                            : "https://docs.authgear.com/customization/events-hooks/non-blocking-events"
+                        }
+                      >
+                        {chunks}
+                      </ExternalLink>
+                    ),
                   }}
                 />
               </WidgetDescription>
@@ -1257,7 +1266,17 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage id="HookConfigurationScreen.blocking-events" />
                 </WidgetTitle>
                 <WidgetDescription>
-                  <FormattedMessage id="HookConfigurationScreen.blocking-events.description" />
+                  <FormattedMessage
+                    id="HookConfigurationScreen.blocking-events.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/blocking-events">
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 </WidgetDescription>
                 {blockingHandlerMax < 99 ? (
                   blockingHandlerDisabled ? (
@@ -1346,7 +1365,17 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
                 </WidgetTitle>
                 <WidgetDescription>
-                  <FormattedMessage id="HookConfigurationScreen.non-blocking-events.description" />
+                  <FormattedMessage
+                    id="HookConfigurationScreen.non-blocking-events.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/non-blocking-events">
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 </WidgetDescription>
                 {nonBlockingHandlerMax < 99 ? (
                   nonBlockingHandlerDisabled ? (
@@ -1447,7 +1476,21 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   <FormattedMessage id="HookConfigurationScreen.signature.title" />
                 </WidgetTitle>
                 <WidgetDescription className={styles.columnFull}>
-                  <FormattedMessage id="HookConfigurationScreen.signature.description" />
+                  <FormattedMessage
+                    id="HookConfigurationScreen.signature.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      code: (chunks: React.ReactNode) => (
+                        <code className="inline-code">{chunks}</code>
+                      ),
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 </WidgetDescription>
                 <TextField
                   className={styles.secretInput}

@@ -1,5 +1,5 @@
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import React, { useMemo, useCallback, useState, useEffect } from "react";
 import ScreenContent from "../../ScreenContent";
 import styles from "./IPBlocklistScreen.module.css";

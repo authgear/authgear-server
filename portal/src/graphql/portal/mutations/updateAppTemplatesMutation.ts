@@ -36,7 +36,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
   });
   const updateAppTemplates = useCallback(
     async (updates: ResourceUpdate[], ignoreConflict: boolean = false) => {
-      const paths = [];
+      const paths: string[] = [];
       for (const specifier of updates.map((u) => u.specifier)) {
         paths.push(expandSpecifier(specifier));
       }

@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import cn from "classnames";
 import WidgetTitle from "../../WidgetTitle";
 

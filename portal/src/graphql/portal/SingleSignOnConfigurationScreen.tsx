@@ -8,10 +8,8 @@ import {
   SpinnerSize,
   Text,
 } from "@fluentui/react";
-import {
-  Context as IntlContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as IntlContext, FormattedMessage } from "../../intl";
+import ExternalLink from "../../ExternalLink";
 import {
   OAuthClientRow,
   OAuthClientRowHeader,
@@ -150,7 +148,17 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
             description={
               <ScreenDescription className={styles.widget}>
                 <Text>
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
+                  <FormattedMessage
+                    id="SingleSignOnConfigurationScreen.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink href="https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers">
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
                 </Text>
                 {oauthClientsMaximum < 99 ? (
                   <FeatureDisabledMessageBar

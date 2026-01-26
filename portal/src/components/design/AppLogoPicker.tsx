@@ -1,5 +1,5 @@
 import React from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { Image, ImageFit } from "@fluentui/react";
 
 import cn from "classnames";

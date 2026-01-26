@@ -1,8 +1,5 @@
 import cn from "classnames";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import PrimaryButton from "../../PrimaryButton";
 import React, { useCallback, useContext, useMemo } from "react";
 import { SimpleFormModel } from "../../hook/useSimpleForm";

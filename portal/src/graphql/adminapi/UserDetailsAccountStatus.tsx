@@ -12,7 +12,7 @@ import {
   MessageBar,
   MessageBarType,
 } from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { useNavigate } from "react-router-dom";
 import { DateTime, SystemZone } from "luxon";
 
@@ -552,6 +552,10 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidFrom
                           ) ?? "",
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        strong: (chunks: React.ReactNode) => (
+                          <strong>{chunks}</strong>
+                        ),
                       }}
                     />
                     <br />
@@ -568,6 +572,10 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
                             locale,
                             buttonStates.setAccountValidPeriod.accountValidUntil
                           ) ?? "",
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        strong: (chunks: React.ReactNode) => (
+                          <strong>{chunks}</strong>
+                        ),
                       }}
                     />
                     <br />
@@ -799,10 +807,10 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     }, []);
 
     const onDismiss: AccountStatusDialogProps["onDismiss"] = useCallback(
-      (info) => {
+      async (info) => {
         setDialogHidden(true);
         if (info.deletedUser) {
-          setTimeout(() => navigate("./../.."), 0);
+          await navigate("./../..");
         }
       },
       [navigate]
@@ -852,7 +860,7 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
 
 export interface AccountStatusDialogProps {
   isHidden: boolean;
-  onDismiss: (info: { deletedUser: boolean }) => void;
+  onDismiss: (info: { deletedUser: boolean }) => void | Promise<void>;
   mode:
     | "disable"
     | "re-enable"
@@ -1157,11 +1165,11 @@ export function AccountStatusDialog(
     onDismiss({ deletedUser: false });
   }, [loading, isHidden, onDismiss]);
 
-  const onClickDisable = useCallback(() => {
+  const onClickDisable = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus({
+    await setDisabledStatus({
       userID: accountStatus.id,
       isDisabled: true,
       reason: sanitizedDisableReason,
@@ -1171,7 +1179,8 @@ export function AccountStatusDialog(
         disableChoiceGroupKey === "indefinitely"
           ? null
           : temporarilyDisabledUntil,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     disableChoiceGroupKey,
@@ -1183,28 +1192,30 @@ export function AccountStatusDialog(
     temporarilyDisabledUntil,
   ]);
 
-  const onClickReenable = useCallback(() => {
+  const onClickReenable = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus({
+    await setDisabledStatus({
       userID: accountStatus.id,
       isDisabled: false,
       reason: null,
       temporarilyDisabledFrom: null,
       temporarilyDisabledUntil: null,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
 
-  const onClickSetAccountValidPeriod = useCallback(() => {
+  const onClickSetAccountValidPeriod = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    setAccountValidPeriod({
+    await setAccountValidPeriod({
       userID: accountStatus.id,
       accountValidFrom: accountValidFrom,
       accountValidUntil: accountValidUntil,
-    }).finally(() => onDismiss({ deletedUser: false }));
+    });
+    onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     accountValidFrom,
@@ -1215,22 +1226,20 @@ export function AccountStatusDialog(
     setAccountValidPeriod,
   ]);
 
-  const onClickAnonymize = useCallback(() => {
+  const onClickAnonymize = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    anonymizeUser(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await anonymizeUser(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [accountStatus.id, anonymizeUser, isHidden, loading, onDismiss]);
 
-  const onClickScheduleAnonymization = useCallback(() => {
+  const onClickScheduleAnonymization = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    scheduleAccountAnonymization(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await scheduleAccountAnonymization(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1239,13 +1248,12 @@ export function AccountStatusDialog(
     scheduleAccountAnonymization,
   ]);
 
-  const onClickUnscheduleAnonymization = useCallback(() => {
+  const onClickUnscheduleAnonymization = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    unscheduleAccountAnonymization(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await unscheduleAccountAnonymization(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1254,31 +1262,32 @@ export function AccountStatusDialog(
     unscheduleAccountAnonymization,
   ]);
 
-  const onClickDelete = useCallback(() => {
+  const onClickDelete = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    deleteUser(accountStatus.id)
-      .then(() => onDismiss({ deletedUser: true }))
-      .catch(() => onDismiss({ deletedUser: false }));
+    try {
+      await deleteUser(accountStatus.id);
+      await onDismiss({ deletedUser: true });
+    } catch (_e) {
+      await onDismiss({ deletedUser: false });
+    }
   }, [accountStatus.id, deleteUser, isHidden, loading, onDismiss]);
 
-  const onClickScheduleDeletion = useCallback(() => {
+  const onClickScheduleDeletion = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    scheduleAccountDeletion(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await scheduleAccountDeletion(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [accountStatus.id, isHidden, loading, onDismiss, scheduleAccountDeletion]);
 
-  const onClickUnscheduleDeletion = useCallback(() => {
+  const onClickUnscheduleDeletion = useCallback(async () => {
     if (loading || isHidden) {
       return;
     }
-    unscheduleAccountDeletion(accountStatus.id).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    await unscheduleAccountDeletion(accountStatus.id);
+    await onDismiss({ deletedUser: false });
   }, [
     accountStatus.id,
     isHidden,
@@ -1354,7 +1363,11 @@ export function AccountStatusDialog(
       subText = (
         <FormattedMessage
           id="AccountStatusDialog.reenable-user.description"
-          values={args}
+          values={{
+            ...args,
+            // eslint-disable-next-line react/no-unstable-nested-components
+            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+          }}
         />
       );
       button1 = (
@@ -1373,7 +1386,11 @@ export function AccountStatusDialog(
       subText = (
         <FormattedMessage
           id="AccountStatusDialog.disable-user.description"
-          values={args}
+          values={{
+            ...args,
+            // eslint-disable-next-line react/no-unstable-nested-components
+            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+          }}
         />
       );
       body = disableForm;
@@ -1705,7 +1722,7 @@ export function AccountStatusMessageBar(
   const { locale } = useContext(Context);
   const accountState = getMostAppropriateAccountState(accountStatus);
 
-  let message = null;
+  let message: React.ReactNode = null;
   switch (accountState.state) {
     case "scheduled-deletion":
       message = (

@@ -6,10 +6,7 @@ import {
 } from "../../RoleAndGroupsLayout";
 import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { useNavigate } from "react-router-dom";
 import { useCreateGroupMutation } from "./mutations/createGroupMutation";

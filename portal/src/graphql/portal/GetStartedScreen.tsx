@@ -9,12 +9,10 @@ import {
   DialogFooter,
 } from "@fluentui/react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-  Context as MessageContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { useQuery, useMutation } from "@apollo/client";
 import Link from "../../Link";
+import ExternalLink from "../../ExternalLink";
 import ScreenTitle from "../../ScreenTitle";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -298,7 +296,22 @@ function Card(props: CardProps) {
         <FormattedMessage id={"GetStartedScreen.card.title." + cardKey} />
       </Text>
       <Text className={styles.cardDescription}>
-        <FormattedMessage id={"GetStartedScreen.card.description." + cardKey} />
+        <FormattedMessage
+          id={"GetStartedScreen.card.description." + cardKey}
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            DocLink: (chunks: React.ReactNode) => {
+              let href = "";
+              if (cardKey === "create_application") {
+                href = "https://docs.authgear.com/get-started";
+              } else if (cardKey === "sso") {
+                href =
+                  "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers";
+              }
+              return <ExternalLink href={href}>{chunks}</ExternalLink>;
+            },
+          }}
+        />
       </Text>
       {internalHref != null ? (
         <Link
@@ -383,8 +396,24 @@ function HelpText() {
       <FormattedMessage
         id="GetStartedScreen.help-text"
         values={{
-          onClickForum,
-          onClickContactUs,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          ExternalLinkForum: (chunks: React.ReactNode) => (
+            <ExternalLink
+              href="https://github.com/authgear/authgear-server/discussions"
+              onClick={onClickForum}
+            >
+              {chunks}
+            </ExternalLink>
+          ),
+          // eslint-disable-next-line react/no-unstable-nested-components
+          ExternalLinkContactUs: (chunks: React.ReactNode) => (
+            <ExternalLink
+              href="https://www.authgear.com/talk-with-us?utm_source=portal&utm_medium=link&utm_campaign=getting_started"
+              onClick={onClickContactUs}
+            >
+              {chunks}
+            </ExternalLink>
+          ),
         }}
       />
     </Text>

@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { DeleteConfirmationDialog } from "../common/DeleteConfirmationDialog";
 
 export interface DeleteResourceDialogData {
@@ -30,6 +30,8 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
           id="DeleteResourceDialog.description"
           values={{
             name: data.resourceName ?? data.resourceURI,
+            // eslint-disable-next-line react/no-unstable-nested-components
+            b: (chunks: React.ReactNode) => <b>{chunks}</b>,
           }}
         />
       );

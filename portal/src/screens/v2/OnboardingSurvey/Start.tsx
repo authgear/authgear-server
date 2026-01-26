@@ -1,7 +1,7 @@
 import React from "react";
 import { Text } from "../../../components/onboarding/Text";
 import { EmojiIcon } from "../../../components/onboarding/EmojiIcon";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import { OnboardingSurveyFormModel } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { WhiteButton } from "../../../components/v2/Button/WhiteButton/WhiteButton";

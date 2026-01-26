@@ -7,7 +7,7 @@ import {
   isLightThemeEqual,
 } from "./util/theme";
 import { Text, DefaultEffects, Icon } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "./intl";
 import styles from "./ThemePresetWidget.module.css";
 
 export interface ThemePresetWidgetProps {
@@ -238,7 +238,7 @@ const ThemePresetWidget: React.VFC<ThemePresetWidgetProps> =
       onClickDarkTheme,
       onClickCustom,
     } = props;
-    const children = [];
+    const children: React.ReactNode[] = [];
 
     if (isDarkMode) {
       for (let i = 0; i < DARK_THEME_PRESETS.length; i++) {

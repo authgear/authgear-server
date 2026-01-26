@@ -2,7 +2,7 @@ import React from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
 import { Persona, PersonaSize, Text, FontIcon } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { formatDatetime } from "../../util/formatDatetime";
 import { AccountStatus, AccountStatusBadge } from "./UserDetailsAccountStatus";
 

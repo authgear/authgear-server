@@ -6,7 +6,7 @@ import {
   ShimmeredDetailsList,
   SelectionMode,
 } from "@fluentui/react";
-import { Context as MessageContext } from "@oursky/react-messageformat";
+import { Context as MessageContext } from "../../intl";
 import styles from "./ApplicationList.module.css";
 import Toggle from "../../Toggle";
 import ActionButton from "../../ActionButton";

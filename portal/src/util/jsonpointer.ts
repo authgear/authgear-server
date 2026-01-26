@@ -18,7 +18,7 @@ class StringBuilder {
 }
 
 export function parseJSONPointer(pointer: string): string[] {
-  const output = [];
+  const output: string[] = [];
   let state: State = State.SLASH;
   let w: StringBuilder | null = null;
   for (const r of pointer) {

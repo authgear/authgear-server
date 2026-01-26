@@ -4,8 +4,8 @@ import Toggle from "../../Toggle";
 import {
   FormattedMessage,
   Context as MessageFormatContext,
-  ContextValue as MessageFormatContextValue,
-} from "@oursky/react-messageformat";
+  IntlContextValue as MessageFormatContextValue,
+} from "../../intl";
 import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
 import ScreenTitle from "../../ScreenTitle";
@@ -31,7 +31,7 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
 import {
   formatCertificateFilename,
@@ -184,7 +184,12 @@ function IdpCertificateSection({
           <FormattedMessage
             id="OAuthClientSAMLForm.idpCertificate.rotateHint"
             values={{
-              href: `/project/${appID}/advanced/saml-certificate`,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              reactRouterLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/advanced/saml-certificate`}>
+                  {chunks}
+                </Link>
+              ),
             }}
           />
         </MessageBar>

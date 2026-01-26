@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { Text } from "../../../components/onboarding/Text";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../../intl";
 import { OnboardingSurveyFormModel, TeamOrPersonal } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";

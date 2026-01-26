@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { generatePath, useNavigate, useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import {
   Dialog,
   DialogFooter,
@@ -1061,19 +1061,25 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           key: "email",
           text: renderToString("UserDetails.connected-identities.email"),
           iconProps: { iconName: "Mail" },
-          onClick: () => navigate("./add-email"),
+          onClick: () => {
+            void navigate("./add-email");
+          },
         },
         {
           key: "phone",
           text: renderToString("UserDetails.connected-identities.phone"),
           iconProps: { iconName: "CellPhone" },
-          onClick: () => navigate("./add-phone"),
+          onClick: () => {
+            void navigate("./add-phone");
+          },
         },
         {
           key: "username",
           text: renderToString("UserDetails.connected-identities.username"),
           iconProps: { iconName: "Accounts" },
-          onClick: () => navigate("./add-username"),
+          onClick: () => {
+            void navigate("./add-username");
+          },
         },
       ];
       const enabledItems = availableMenuItem.filter((item) => {

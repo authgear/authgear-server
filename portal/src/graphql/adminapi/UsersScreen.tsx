@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageBar } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "../../intl";
 import { useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
@@ -228,7 +228,10 @@ const UsersScreen: React.VFC = function UsersScreen() {
             <PrimaryButton
               text={renderToString("UsersScreen.add-user")}
               iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-              onClick={useCallback(() => navigate("./add-user"), [navigate])}
+              onClick={useCallback(
+                async () => navigate("./add-user"),
+                [navigate]
+              )}
             />
           </div>
           <UsersFilterBar

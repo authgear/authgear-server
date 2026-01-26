@@ -7,7 +7,7 @@ import React, {
   useEffect,
   ChangeEvent,
 } from "react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "../../intl";
 import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios, { AxiosProgressEvent, RawAxiosRequestHeaders } from "axios";

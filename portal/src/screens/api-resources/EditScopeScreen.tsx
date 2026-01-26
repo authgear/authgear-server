@@ -5,7 +5,7 @@ import {
   useLocation,
   createPath,
 } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import {
   ScopeForm,
   ScopeFormState,

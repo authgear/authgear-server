@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
@@ -141,7 +141,7 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
                   <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
                 }
                 iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-                onClick={useCallback(() => navigate("./add"), [navigate])}
+                onClick={useCallback(async () => navigate("./add"), [navigate])}
               />
             </div>
           </div>
