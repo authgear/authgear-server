@@ -2,12 +2,21 @@ package saml_test
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"math/big"
 	"net/url"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -549,6 +558,96 @@ func TestSAMLService(t *testing.T) {
 				AttributeName:      "mapattr",
 				UserProfilePointer: "/map",
 			})
+		})
+	})
+
+	Convey("ConstructSignedQueryParameters", t, func() {
+		Convey("should generate valid signature for redirect binding", func() {
+			svc := createService()
+
+			// Generate a key for testing
+			rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			So(err, ShouldBeNil)
+			jwkKey, err := jwk.FromRaw(rsaKey)
+			So(err, ShouldBeNil)
+			_ = jwkKey.Set(jwk.KeyIDKey, "test-key-id")
+
+			svc.SAMLConfig.Signing = &config.SAMLSigningConfig{
+				KeyID:           "test-key-id",
+				SignatureMethod: config.SAMLSigningSignatureMethodRSASHA256,
+			}
+
+			certBytes, err := x509.CreateCertificate(rand.Reader, &x509.Certificate{
+				SerialNumber: big.NewInt(1),
+			}, &x509.Certificate{
+				SerialNumber: big.NewInt(1),
+			}, &rsaKey.PublicKey, rsaKey)
+			So(err, ShouldBeNil)
+
+			svc.SAMLIdpSigningMaterials = &config.SAMLIdpSigningMaterials{
+				Certificates: []*config.SAMLIdpSigningCertificate{
+					{
+						Key: &config.JWK{Key: jwkKey},
+						Certificate: &config.X509Certificate{
+							Pem: config.X509CertificatePem(pem.EncodeToMemory(&pem.Block{
+								Type:  "CERTIFICATE",
+								Bytes: certBytes,
+							})),
+						},
+					},
+				},
+			}
+
+			// Also set it as SP signing material for verification
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(pem.EncodeToMemory(&pem.Block{
+								Type:  "CERTIFICATE",
+								Bytes: certBytes,
+							})),
+						},
+					},
+				},
+			}
+
+			relayState := "test-relay-state"
+			el := &saml.SAMLElementToSign{
+				SAMLRequest: "test-request",
+			}
+
+			q, err := svc.ConstructSignedQueryParameters(relayState, el)
+			So(err, ShouldBeNil)
+
+			signature := q.Get("Signature")
+			sigAlg := q.Get("SigAlg")
+
+			So(signature, ShouldNotBeEmpty)
+			So(sigAlg, ShouldEqual, "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+
+			// Verify the signature independently
+			// 1. Reconstruct the signing value according to SAML spec
+			// SAMLRequest=value&RelayState=value&SigAlg=value (URL escaped)
+			expectedSigningValue := fmt.Sprintf("SAMLRequest=%s&RelayState=%s&SigAlg=%s",
+				url.QueryEscape(q.Get("SAMLRequest")),
+				url.QueryEscape(q.Get("RelayState")),
+				url.QueryEscape(q.Get("SigAlg")),
+			)
+
+			// 2. Decode the signature
+			decodedSignature, err := base64.StdEncoding.DecodeString(signature)
+			So(err, ShouldBeNil)
+
+			// 3. Hash the signing value
+			hash := crypto.SHA256.New()
+			_, _ = hash.Write([]byte(expectedSigningValue))
+			hashed := hash.Sum(nil)
+
+			// 4. Verify using the public key directly
+			err = rsa.VerifyPKCS1v15(&rsaKey.PublicKey, crypto.SHA256, hashed, decodedSignature)
+			So(err, ShouldBeNil)
 		})
 	})
 }
