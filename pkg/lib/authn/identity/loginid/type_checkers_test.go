@@ -254,7 +254,24 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			n := &PhoneChecker{
-				Alpha2AllowList: []string{"US"},
+				AppAlpha2AllowList: []string{"US"},
+			}
+
+			for _, c := range cases {
+				f(c, n)
+			}
+		})
+
+		Convey("independent app and feature allowlist", func() {
+			cases := []Case{
+				{"+12124567890", ""}, // US
+				{"+85298765432", "invalid login ID:\n/login_id: blocked\n  map[reason:PhoneNumberCountryCodeAllowlist]"},  // HK, not in feature
+				{"+441234567890", "invalid login ID:\n/login_id: blocked\n  map[reason:PhoneNumberCountryCodeAllowlist]"}, // GB, not in app
+			}
+
+			n := &PhoneChecker{
+				AppAlpha2AllowList:     []string{"US", "HK"},
+				FeatureAlpha2AllowList: []string{"US", "GB"},
 			}
 
 			for _, c := range cases {
@@ -294,7 +311,7 @@ ui:
 				}
 
 				n := &PhoneChecker{
-					Alpha2AllowList: []string{"GB"},
+					AppAlpha2AllowList: []string{"GB"},
 				}
 
 				for _, c := range cases {
@@ -308,7 +325,7 @@ ui:
 				}
 
 				n := &PhoneChecker{
-					Alpha2AllowList: []string{"US"},
+					AppAlpha2AllowList: []string{"US"},
 				}
 
 				for _, c := range cases {

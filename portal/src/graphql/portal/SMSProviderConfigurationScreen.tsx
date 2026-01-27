@@ -30,6 +30,7 @@ import {
   PortalAPISecretConfigUpdateInstruction,
   SMSProvider,
   SMSProviderTwilioCredentials,
+  PhoneInputFeatureConfig,
   getHookKind,
 } from "../../types";
 import { produce } from "immer";
@@ -863,6 +864,9 @@ function SMSProviderConfigurationScreen1({
           featureConfig.effectiveFeatureConfig?.messaging
             ?.custom_sms_provider_disabled ?? false
         }
+        phoneInputFeatureConfig={
+          featureConfig.effectiveFeatureConfig?.ui?.phone_input
+        }
       />
     </FormContainer>
   );
@@ -874,12 +878,14 @@ function SMSProviderConfigurationContent(props: {
   sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
   checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
   isCustomSMSProviderDisabled: boolean;
+  phoneInputFeatureConfig: PhoneInputFeatureConfig | null | undefined;
 }) {
   const {
     form,
     effectiveAppConfig,
     checkDenoHookHandle,
     isCustomSMSProviderDisabled,
+    phoneInputFeatureConfig,
   } = props;
   const { isAuthgearOnce } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
@@ -1048,6 +1054,7 @@ function SMSProviderConfigurationContent(props: {
           appID={appID}
           isHidden={isTestSMSDialogHidden}
           effectiveAppConfig={effectiveAppConfig}
+          phoneInputFeatureConfig={phoneInputFeatureConfig}
           input={testConfig}
           onDismiss={onCancelTestSMS}
         />

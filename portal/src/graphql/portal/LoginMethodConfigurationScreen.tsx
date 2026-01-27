@@ -33,6 +33,7 @@ import {
   LoginIDEmailConfig,
   LoginIDUsernameConfig,
   PhoneInputConfig,
+  PhoneInputFeatureConfig,
   AuthenticatorOOBSMSConfig,
   AuthenticatorPasswordConfig,
   AuthenticatorValidPeriods,
@@ -64,7 +65,6 @@ import {
   expandSpecifier,
 } from "../../util/resource";
 import { clearEmptyObject } from "../../util/misc";
-import { isLimitedFreePlan } from "../../util/plan";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -516,6 +516,7 @@ interface FeatureConfigFormState {
   planName: string | null;
   phoneLoginIDDisabled: boolean;
   passwordPolicyFeatureConfig: PasswordPolicyFeatureConfig;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig;
 }
 
 interface SecretConfigFormState {
@@ -540,35 +541,6 @@ interface FormModel {
   reload: () => void;
   reset: () => void;
   save: () => Promise<void>;
-}
-
-function shouldShowFreePlanWarning(formState: FormState): boolean {
-  const {
-    identitiesControl,
-    loginIDKeyConfigsControl,
-    primaryAuthenticatorsControl,
-    planName,
-  } = formState;
-
-  if (planName == null) {
-    return false;
-  }
-
-  if (!isLimitedFreePlan(planName)) {
-    return false;
-  }
-
-  // For our purpose, controlListUnwrap is sufficient here.
-  const identities = controlListUnwrap(identitiesControl);
-  const loginIDKeyConfigs = controlListUnwrap(loginIDKeyConfigsControl);
-  const primaryAuthenticators = controlListUnwrap(primaryAuthenticatorsControl);
-
-  const loginIDEnabled = identities.includes("login_id");
-  const phoneEnabled =
-    loginIDKeyConfigs.find((a) => a.type === "phone") != null;
-  const oobOTPSMSEnabled = primaryAuthenticators.includes("oob_otp_sms");
-
-  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
 function loginMethodFromFormState(formState: FormState): LoginMethod {
@@ -1683,7 +1655,6 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
 
 interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
-  showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
   displayCombineSignupLoginFlowToggle: boolean;
   combineSignupLoginFlowChecked: boolean;
@@ -1695,7 +1666,6 @@ interface LoginMethodChooserProps {
 function LoginMethodChooser(props: LoginMethodChooserProps) {
   const {
     loginMethod,
-    showFreePlanWarning,
     phoneLoginIDDisabled,
     appID,
     onChangeLoginMethod,
@@ -1854,21 +1824,6 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
         />
       ) : null}
       {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
-      {showFreePlanWarning ? (
-        <BlueMessageBar>
-          <FormattedMessage
-            id="warnings.free-plan"
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              externalLink: (chunks: React.ReactNode) => (
-                <ExternalLink href="https://go.authgear.com/portal-support">
-                  {chunks}
-                </ExternalLink>
-              ),
-            }}
-          />
-        </BlueMessageBar>
-      ) : null}
     </Widget>
   );
 }
@@ -2452,11 +2407,17 @@ function EmailSettings(props: EmailSettingsProps) {
 interface PhoneSettingsProps {
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig;
   setState: AppConfigFormModel<FormState>["setState"];
 }
 
 function PhoneSettings(props: PhoneSettingsProps) {
-  const { phoneInputConfig, loginIDKeyConfigsControl, setState } = props;
+  const {
+    phoneInputConfig,
+    loginIDKeyConfigsControl,
+    phoneInputFeatureConfig,
+    setState,
+  } = props;
   const { renderToString } = useContext(Context);
 
   const onChangePhoneList = useCallback(
@@ -2564,10 +2525,27 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <SectionTitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
           </SectionTitle>
+          {phoneInputFeatureConfig?.allowlist &&
+          phoneInputFeatureConfig.allowlist.length > 0 ? (
+            <BlueMessageBar>
+              <FormattedMessage
+                id="FeatureConfig.phone-input.allowlist.restricted"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  externalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://go.authgear.com/portal-support">
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                }}
+              />
+            </BlueMessageBar>
+          ) : null}
           <PhoneInputListWidget
             disabled={false}
             allowedAlpha2={phoneInputConfig.allowlist}
             pinnedAlpha2={phoneInputConfig.pinned_list}
+            featureAllowlist={phoneInputFeatureConfig?.allowlist}
             onChange={onChangePhoneList}
           />
         </section>
@@ -3408,11 +3386,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationClaims,
     ]);
 
-    const showFreePlanWarning = useMemo(
-      () => shouldShowFreePlanWarning(state),
-      [state]
-    );
-
     const isPasswordlessEnabled = useMemo(() => {
       return primaryAuthenticatorsControl
         .filter((c) => c.value === "oob_otp_email" || c.value === "oob_otp_sms")
@@ -3614,7 +3587,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ) : null}
           <HorizontalDivider className={styles.separator} />
           <LoginMethodChooser
-            showFreePlanWarning={showFreePlanWarning}
             loginMethod={loginMethod}
             phoneLoginIDDisabled={phoneLoginIDDisabled}
             displayCombineSignupLoginFlowToggle={
@@ -3689,6 +3661,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 <PhoneSettings
                   loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                   phoneInputConfig={phoneInputConfig}
+                  phoneInputFeatureConfig={state.phoneInputFeatureConfig}
                   setState={setState}
                 />
               </PivotItem>
@@ -3840,6 +3813,8 @@ const LoginMethodConfigurationScreen: React.VFC =
             ?.disabled ?? false,
         passwordPolicyFeatureConfig:
           featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
+        phoneInputFeatureConfig:
+          featureConfig.effectiveFeatureConfig?.ui?.phone_input,
         smsProviderConfigured:
           secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
             null ||
@@ -3854,6 +3829,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
         ?.disabled,
       featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
+      featureConfig.effectiveFeatureConfig?.ui?.phone_input,
       configForm.state,
       secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
       secretConfig.secretConfig?.smsProviderSecrets

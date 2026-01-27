@@ -34,6 +34,7 @@ export interface CountryCallingCodeListProps {
   className?: string;
   pinnedAlpha2: string[];
   allowedAlpha2: string[];
+  featureAllowlist?: string[];
   onChange: (newPinnedCodes: string[], newSelectedCodes: string[]) => void;
   disabled: boolean;
 }
@@ -243,8 +244,14 @@ const CountryCallingCodeListSelectAll: React.VFC<CountryCallingCodeListSelectAll
 
 const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
   function CountryCallingCodeList(props: CountryCallingCodeListProps) {
-    const { disabled, className, pinnedAlpha2, allowedAlpha2, onChange } =
-      props;
+    const {
+      disabled,
+      className,
+      pinnedAlpha2,
+      allowedAlpha2,
+      featureAllowlist,
+      onChange,
+    } = props;
     const { renderToString } = useContext(Context);
     const { getTelecomCountryName } = useGetTelecomCountryName();
 
@@ -260,40 +267,83 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
     const allItems: ListItem[] = useMemo(() => {
       const pinned = new Set(pinnedAlpha2);
       const allowed = new Set(allowedAlpha2);
+      const featureSet =
+        featureAllowlist && featureAllowlist.length > 0
+          ? new Set(featureAllowlist)
+          : null;
 
-      const lst: ListItem[] = [];
+      const isFeatureAllowed = (alpha2: string): boolean => {
+        return featureSet ? featureSet.has(alpha2) : true;
+      };
 
-      for (const alpha2 of pinnedAlpha2) {
+      const makeItem = (alpha2: string): ListItem => {
         const country = COUNTRY_MAP[alpha2];
-        lst.push({
+        return {
           key: country.Alpha2,
           selected: allowed.has(country.Alpha2),
           pinned: pinned.has(country.Alpha2),
           alpha2: country.Alpha2,
           countryCallingCode: country.CountryCallingCode,
           displayName: getTelecomCountryName(country.Alpha2),
-          disabled,
-        });
+          disabled: disabled || !isFeatureAllowed(country.Alpha2),
+        };
+      };
+
+      const pinnedEnabled: ListItem[] = [];
+      const pinnedDisabled: ListItem[] = [];
+      for (const alpha2 of pinnedAlpha2) {
+        const item = makeItem(alpha2);
+        if (isFeatureAllowed(alpha2)) {
+          pinnedEnabled.push(item);
+        } else {
+          pinnedDisabled.push(item);
+        }
       }
 
-      for (const country of ALL_COUNTRIES) {
-        if (pinned.has(country.Alpha2)) {
+      const selectedEnabled: ListItem[] = [];
+      const selectedDisabled: ListItem[] = [];
+      for (const alpha2 of allowedAlpha2) {
+        if (pinned.has(alpha2)) {
           continue;
         }
-
-        lst.push({
-          key: country.Alpha2,
-          selected: allowed.has(country.Alpha2),
-          pinned: pinned.has(country.Alpha2),
-          alpha2: country.Alpha2,
-          countryCallingCode: country.CountryCallingCode,
-          displayName: getTelecomCountryName(country.Alpha2),
-          disabled,
-        });
+        const item = makeItem(alpha2);
+        if (isFeatureAllowed(alpha2)) {
+          selectedEnabled.push(item);
+        } else {
+          selectedDisabled.push(item);
+        }
       }
 
-      return lst;
-    }, [disabled, allowedAlpha2, pinnedAlpha2, getTelecomCountryName]);
+      const othersEnabled: ListItem[] = [];
+      const othersDisabled: ListItem[] = [];
+      for (const country of ALL_COUNTRIES) {
+        const alpha2 = country.Alpha2;
+        if (pinned.has(alpha2) || allowed.has(alpha2)) {
+          continue;
+        }
+        const item = makeItem(alpha2);
+        if (isFeatureAllowed(alpha2)) {
+          othersEnabled.push(item);
+        } else {
+          othersDisabled.push(item);
+        }
+      }
+
+      return [
+        ...pinnedEnabled,
+        ...pinnedDisabled,
+        ...selectedEnabled,
+        ...selectedDisabled,
+        ...othersEnabled,
+        ...othersDisabled,
+      ];
+    }, [
+      disabled,
+      allowedAlpha2,
+      pinnedAlpha2,
+      getTelecomCountryName,
+      featureAllowlist,
+    ]);
 
     const { search } = useExactKeywordSearch(allItems, [
       "alpha2",
@@ -371,7 +421,7 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
 
     const selectAll = useCallback(() => {
       onChange(
-        filteredItems.map((a) => a.alpha2),
+        filteredItems.filter((item) => !item.disabled).map((a) => a.alpha2),
         pinnedAlpha2
       );
     }, [onChange, filteredItems, pinnedAlpha2]);

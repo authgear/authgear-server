@@ -5,7 +5,7 @@ import { Dialog, DialogFooter, IDialogProps, Text } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig, PhoneInputFeatureConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
 import { useCalloutToast } from "../v2/Callout/Callout";
 import { FormProvider, useFormTopErrors } from "../../form";
@@ -15,6 +15,7 @@ import {
   makeReasonErrorParseRule,
 } from "../../error/parse";
 import { APIError, APISMSGatewayError } from "../../error/error";
+import { intersectAllowlist } from "../../util/phone";
 
 const topErrorRules: ErrorParseRule[] = [
   makeReasonErrorParseRule(
@@ -70,6 +71,7 @@ export interface TestSMSDialogProps {
   isHidden: boolean;
   input: SmsProviderConfigurationInput;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
+  phoneInputFeatureConfig: PhoneInputFeatureConfig | null | undefined;
   onDismiss: () => void;
 }
 
@@ -78,6 +80,7 @@ export function TestSMSDialog({
   isHidden,
   input,
   effectiveAppConfig,
+  phoneInputFeatureConfig,
   onDismiss,
 }: TestSMSDialogProps): React.ReactElement {
   const [toInputValue, setToInputValue] = useState("");
@@ -137,8 +140,28 @@ export function TestSMSDialog({
           <FormPhoneTextField
             parentJSONPointer=""
             fieldName="to"
-            allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-            pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+            allowlist={useMemo(
+              () =>
+                intersectAllowlist(
+                  effectiveAppConfig?.ui?.phone_input?.allowlist,
+                  phoneInputFeatureConfig?.allowlist
+                ),
+              [
+                effectiveAppConfig?.ui?.phone_input?.allowlist,
+                phoneInputFeatureConfig?.allowlist,
+              ]
+            )}
+            pinnedList={useMemo(
+              () =>
+                intersectAllowlist(
+                  effectiveAppConfig?.ui?.phone_input?.pinned_list,
+                  phoneInputFeatureConfig?.allowlist
+                ),
+              [
+                effectiveAppConfig?.ui?.phone_input?.pinned_list,
+                phoneInputFeatureConfig?.allowlist,
+              ]
+            )}
             initialInputValue={toInputValue}
             onChange={onChangeValues}
             errorRules={phoneFieldErrorRules}
