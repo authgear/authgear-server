@@ -33,6 +33,7 @@ import {
   LoginIDEmailConfig,
   LoginIDUsernameConfig,
   PhoneInputConfig,
+  PhoneInputFeatureConfig,
   AuthenticatorOOBSMSConfig,
   AuthenticatorPasswordConfig,
   AuthenticatorValidPeriods,
@@ -516,6 +517,7 @@ interface FeatureConfigFormState {
   planName: string | null;
   phoneLoginIDDisabled: boolean;
   passwordPolicyFeatureConfig: PasswordPolicyFeatureConfig;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig;
 }
 
 interface SecretConfigFormState {
@@ -2452,11 +2454,17 @@ function EmailSettings(props: EmailSettingsProps) {
 interface PhoneSettingsProps {
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig;
   setState: AppConfigFormModel<FormState>["setState"];
 }
 
 function PhoneSettings(props: PhoneSettingsProps) {
-  const { phoneInputConfig, loginIDKeyConfigsControl, setState } = props;
+  const {
+    phoneInputConfig,
+    loginIDKeyConfigsControl,
+    phoneInputFeatureConfig,
+    setState,
+  } = props;
   const { renderToString } = useContext(Context);
 
   const onChangePhoneList = useCallback(
@@ -2568,6 +2576,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
             disabled={false}
             allowedAlpha2={phoneInputConfig.allowlist}
             pinnedAlpha2={phoneInputConfig.pinned_list}
+            featureAllowlist={phoneInputFeatureConfig?.allowlist}
             onChange={onChangePhoneList}
           />
         </section>
@@ -3689,6 +3698,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 <PhoneSettings
                   loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                   phoneInputConfig={phoneInputConfig}
+                  phoneInputFeatureConfig={state.phoneInputFeatureConfig}
                   setState={setState}
                 />
               </PivotItem>
@@ -3840,6 +3850,8 @@ const LoginMethodConfigurationScreen: React.VFC =
             ?.disabled ?? false,
         passwordPolicyFeatureConfig:
           featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
+        phoneInputFeatureConfig:
+          featureConfig.effectiveFeatureConfig?.ui?.phone_input,
         smsProviderConfigured:
           secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
             null ||
@@ -3854,6 +3866,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
         ?.disabled,
       featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
+      featureConfig.effectiveFeatureConfig?.ui?.phone_input,
       configForm.state,
       secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
       secretConfig.secretConfig?.smsProviderSecrets
