@@ -1,15 +1,7 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import {
-  Text,
-  FontIcon,
-  IButtonProps,
-  Image,
-  ImageFit,
-  Dialog,
-  DialogFooter,
-} from "@fluentui/react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Context as MessageContext, FormattedMessage } from "../../intl";
+import React, { useCallback, useMemo } from "react";
+import { Text, FontIcon, IButtonProps, Image, ImageFit } from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FormattedMessage } from "../../intl";
 import { useQuery, useMutation } from "@apollo/client";
 import Link from "../../Link";
 import ExternalLink from "../../ExternalLink";
@@ -51,8 +43,6 @@ import ActionButton from "../../ActionButton";
 import LinkButton from "../../LinkButton";
 import { useCapture } from "../../gtm_v2";
 import { useTester } from "../../hook/tester";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -555,11 +545,6 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
 export default function GetStartedScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const client = usePortalClient();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const showApplyMessagingDialog =
-    searchParams.get("showApplyMessagingDialog") === "true";
-
-  const { renderToString } = useContext(MessageContext);
 
   const {
     effectiveAppConfig,
@@ -590,25 +575,6 @@ export default function GetStartedScreen(): React.ReactElement {
   const loading =
     queryResult0.loading || queryResult.loading || appConfigLoading;
 
-  const applyMessagingDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="GetStartedScreen.applyMessagingDialog.title" />
-      ),
-      subText: renderToString("GetStartedScreen.applyMessagingDialog.message"),
-    };
-  }, [renderToString]);
-
-  const doApplyMessaging = useCallback(() => {
-    window.open("https://go.authgear.com/portal-support", "_blank")?.focus();
-  }, []);
-
-  const onDismissApplyMessagingDialog = useCallback(() => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("showApplyMessagingDialog");
-    setSearchParams(nextParams);
-  }, [searchParams, setSearchParams]);
-
   if (loading || !tutorialStatusData || !effectiveAppConfig) {
     return <ShowLoading />;
   }
@@ -626,26 +592,6 @@ export default function GetStartedScreen(): React.ReactElement {
         tutorialStatusData={tutorialStatusData}
         userTotalCount={queryResult0.data?.users?.totalCount ?? 0}
       />
-      <Dialog
-        hidden={!showApplyMessagingDialog}
-        dialogContentProps={applyMessagingDialogContentProps}
-        onDismiss={onDismissApplyMessagingDialog}
-      >
-        <DialogFooter>
-          <PrimaryButton
-            onClick={doApplyMessaging}
-            text={
-              <FormattedMessage id="GetStartedScreen.applyMessagingDialog.apply" />
-            }
-          />
-          <DefaultButton
-            onClick={onDismissApplyMessagingDialog}
-            text={
-              <FormattedMessage id="GetStartedScreen.applyMessagingDialog.later" />
-            }
-          />
-        </DialogFooter>
-      </Dialog>
     </>
   );
 }
