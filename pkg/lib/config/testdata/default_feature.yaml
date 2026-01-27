@@ -52,6 +52,7 @@ authenticator:
 ui:
   white_labeling:
     disabled: false
+  phone_input: {}
 custom_domain:
   disabled: false
 oauth:
