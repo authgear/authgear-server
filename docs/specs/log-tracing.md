@@ -242,7 +242,29 @@ See [Environment Variables](#environemnt-variables) for details.
 
 ### Loki Instance
 
-The deployment of the Loki instance is not included in this spec, because it is treated as an external component.
+The full details of the Loki instance deployment are not included in this spec, because it is treated as an external component.
+
+#### Loki redundancy
+
+Since Loki application itself is stateless, the requirement will be storage-level redundancy.
+
+**On Cloud**
+
+Assume cloud storage has good redundancy with SLA. No special configuration
+
+**On-Prem**
+
+Rely on SAN storage. RAID might work but SAN is preferred if budget allows.
+
+There are software level solution like DRBD (Distributed Replicated Block Device) but we don't support that.
+
+#### Loki Helm
+
+https://grafana.com/docs/loki/latest/get-started/deployment-modes/
+
+Cloud deployment should use simple scalable deployment mode with an S3 shared object store.
+
+Reference: https://www.infracloud.io/blogs/high-availability-disaster-recovery-in-loki/
 
 ## Future Works
 
