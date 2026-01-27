@@ -65,7 +65,6 @@ import {
   expandSpecifier,
 } from "../../util/resource";
 import { clearEmptyObject } from "../../util/misc";
-import { isLimitedFreePlan } from "../../util/plan";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -542,35 +541,6 @@ interface FormModel {
   reload: () => void;
   reset: () => void;
   save: () => Promise<void>;
-}
-
-function shouldShowFreePlanWarning(formState: FormState): boolean {
-  const {
-    identitiesControl,
-    loginIDKeyConfigsControl,
-    primaryAuthenticatorsControl,
-    planName,
-  } = formState;
-
-  if (planName == null) {
-    return false;
-  }
-
-  if (!isLimitedFreePlan(planName)) {
-    return false;
-  }
-
-  // For our purpose, controlListUnwrap is sufficient here.
-  const identities = controlListUnwrap(identitiesControl);
-  const loginIDKeyConfigs = controlListUnwrap(loginIDKeyConfigsControl);
-  const primaryAuthenticators = controlListUnwrap(primaryAuthenticatorsControl);
-
-  const loginIDEnabled = identities.includes("login_id");
-  const phoneEnabled =
-    loginIDKeyConfigs.find((a) => a.type === "phone") != null;
-  const oobOTPSMSEnabled = primaryAuthenticators.includes("oob_otp_sms");
-
-  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
 function loginMethodFromFormState(formState: FormState): LoginMethod {
@@ -1685,7 +1655,6 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
 
 interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
-  showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
   displayCombineSignupLoginFlowToggle: boolean;
   combineSignupLoginFlowChecked: boolean;
@@ -1697,7 +1666,6 @@ interface LoginMethodChooserProps {
 function LoginMethodChooser(props: LoginMethodChooserProps) {
   const {
     loginMethod,
-    showFreePlanWarning,
     phoneLoginIDDisabled,
     appID,
     onChangeLoginMethod,
@@ -1856,21 +1824,6 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
         />
       ) : null}
       {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
-      {showFreePlanWarning ? (
-        <BlueMessageBar>
-          <FormattedMessage
-            id="warnings.free-plan"
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              externalLink: (chunks: React.ReactNode) => (
-                <ExternalLink href="https://go.authgear.com/portal-support">
-                  {chunks}
-                </ExternalLink>
-              ),
-            }}
-          />
-        </BlueMessageBar>
-      ) : null}
     </Widget>
   );
 }
@@ -3433,11 +3386,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationClaims,
     ]);
 
-    const showFreePlanWarning = useMemo(
-      () => shouldShowFreePlanWarning(state),
-      [state]
-    );
-
     const isPasswordlessEnabled = useMemo(() => {
       return primaryAuthenticatorsControl
         .filter((c) => c.value === "oob_otp_email" || c.value === "oob_otp_sms")
@@ -3639,7 +3587,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ) : null}
           <HorizontalDivider className={styles.separator} />
           <LoginMethodChooser
-            showFreePlanWarning={showFreePlanWarning}
             loginMethod={loginMethod}
             phoneLoginIDDisabled={phoneLoginIDDisabled}
             displayCombineSignupLoginFlowToggle={
