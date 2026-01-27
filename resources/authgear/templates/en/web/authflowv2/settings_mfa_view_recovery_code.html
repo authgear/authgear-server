@@ -37,7 +37,6 @@
           novalidate
           target="_blank"
         >
-          {{ $.CSRFField }}
           <button
             form="download-form"
             class="tertiary-btn w-full"
@@ -72,7 +71,6 @@
       data-controller="turbo-form"
       data-action="submit->turbo-form#submitForm"
     >
-      {{ $.CSRFField }}
       <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
       {{ include "v2.component.button.default.label-continue" nil }}
       </button>
@@ -86,7 +84,6 @@
       data-controller="turbo-form"
       data-action="submit->turbo-form#submitForm"
     >
-      {{ $.CSRFField }}
       <button class="btn primary-btn w-full" type="submit" name="x_action" value="regenerate">
       {{ include "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label" nil }}
       </button>

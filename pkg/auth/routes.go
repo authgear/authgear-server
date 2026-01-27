@@ -192,7 +192,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	newWebappPageChain := func() httproute.Middleware {
 		return httproute.Chain(
 			newWebappChain(),
-			p.Middleware(newCSRFDebugMiddleware),
 			p.Middleware(newCSRFMiddleware),
 			// Turbo no longer requires us to tell the redirected location.
 			// It can now determine redirection from the response.

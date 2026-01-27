@@ -33,7 +33,6 @@
         target="_blank"
         data-turbo="false"
       >
-        {{ $.CSRFField }}
         <button
           form="download-form"
           class="tertiary-btn w-full"
@@ -63,7 +62,6 @@
     data-controller="turbo-form"
     data-action="submit->turbo-form#submitForm"
   >
-    {{ $.CSRFField }}
     <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
     {{ include "v2.component.button.default.label-continue" nil }}
     </button>

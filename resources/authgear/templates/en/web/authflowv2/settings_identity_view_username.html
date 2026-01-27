@@ -74,7 +74,6 @@
 {{ end }}
 
 {{ define "__settings_identity_view_username_delete_username_form_content.html" }}
-{{ $.CSRFField }}
 <input type="hidden" name="x_identity_id" value="{{$.Identity.ID}}" />
 <input type="hidden" name="x_login_id_key" value="{{$.Identity.LoginIDKey}}" />
 {{ end }}

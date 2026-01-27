@@ -7,7 +7,6 @@
   </h2>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
   <form class="flex flex-col" method="post" novalidate>
-    {{ $.CSRFField }}
     <button
       class="btn primary-btn my-5"
       type="submit"

@@ -10,7 +10,6 @@
 <p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
 
 <form class="twc-container-vertical my-5" data-controller="click-to-switch" method="post" novalidate>
-{{ $.CSRFField }}
 
 <a class="as-btn not-a btn primary-btn"
     href="{{ $.WeChatRedirectURI }}"

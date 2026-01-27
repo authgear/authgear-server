@@ -41,7 +41,6 @@
     data-controller="turbo-form"
     data-action="submit->turbo-form#submitForm"
     >
-    {{ .CSRFField }}
     <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
     <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
     <button type="submit" class="secondary-btn" name="x_action" value="verify">
@@ -60,7 +59,6 @@
   {{ if and (not $.Verified) ($.VerificationEnabled) }}
     {{ $verifyButton = (include "__settings_identity_email_verification_button.html"
         (dict
-          "CSRFField" $.CSRFField
           "LoginID" $LoginID
           "IdentityID" $IdentityID
         )
@@ -124,7 +122,6 @@
 {{ end }}
 
 {{ define "__settings_identity_view_email_remove_dialog_form_content.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ $.EmailIdentity.ID }}">
 {{ end }}
 

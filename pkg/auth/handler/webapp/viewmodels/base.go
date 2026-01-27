@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gorilla/csrf"
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -137,8 +136,6 @@ func (m *BaseViewModel) SetError(err error) {
 }
 
 func (m *BaseViewModel) SetFormJSON(form url.Values) {
-	// Do not restore CSRF token.
-	delete(form, webapp.CSRFFieldName)
 	simpleMap := make(map[string]string)
 	for key := range form {
 		simpleMap[key] = form.Get(key)
@@ -288,7 +285,8 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		RequestURI:  r.URL.RequestURI(),
 		HasXStep:    hasXStep,
 		CSPNonce:    cspNonce,
-		CSRFField:   csrf.TemplateField(r),
+		// We switched to a new Sec-Fetch based csrf, so we do not need a csrf field. This key is left for template backward compatibility.
+		CSRFField: "",
 		Translations: &TranslationsCompatImpl{
 			Context:            ctx,
 			TranslationService: m.Translations,

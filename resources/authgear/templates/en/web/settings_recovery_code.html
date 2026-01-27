@@ -10,7 +10,6 @@
 	{{ if not $.RecoveryCodes }}
 		<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-not-available-description" }}</p>
 		<form method="post" novalidate>
-			{{ $.CSRFField }}
 			<button
 				class="btn primary-btn w-full"
 				type="submit"
@@ -34,7 +33,6 @@
 
 		<div class="mt-5 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
 			<form method="post" novalidate>
-				{{ $.CSRFField }}
 				<button
 					class="btn primary-btn w-full"
 					type="submit"
@@ -62,7 +60,6 @@
 				</div>
 			{{ else }}
 				<form method="post" novalidate target="_blank">
-					{{ $.CSRFField }}
 					<button
 						class="btn primary-btn w-full"
 						type="submit"

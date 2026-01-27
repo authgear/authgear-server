@@ -19,7 +19,6 @@
   data-action="submit->turbo-form#submitForm"
   method="post"
 >
-  {{ $.CSRFField }}
 
   {{ if (call $.IsEditable "/locale") }}
   {{ template "authflowv2/__locale_input.html"

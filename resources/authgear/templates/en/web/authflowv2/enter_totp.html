@@ -57,7 +57,6 @@
         data-controller="turbo-form"
         data-action="{{ if $show_captcha }}submit->bot-protection#verifyFormSubmit {{ end }}submit->turbo-form#submitForm"
       >
-        {{ $.CSRFField }}
         {{ if $show_captcha }}
           {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
         {{ end }}
@@ -65,7 +64,6 @@
 
       {{ template "authflowv2/__otp_input.html"
         (dict
-          "CSRFField" $.CSRFField
           "FormName" "main-form"
           "CodeLength" 6
           "AutoFocus" $.ShouldFocusInput

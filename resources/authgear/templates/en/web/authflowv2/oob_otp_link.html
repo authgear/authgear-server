@@ -28,7 +28,6 @@
     </header>
     <div></div>
 
-    {{ $.CSRFField }}
     <footer class="flex flex-col gap-y-4">
       {{- if $.DeviceTokenEnabled }}
         {{ template "authflowv2/__device_token_checkbox.html" }}
@@ -82,7 +81,6 @@
     data-controller="turbo-form"
     data-action="submit->turbo-form#submitForm"
   >
-    {{ $.CSRFField }}
     <button
       class="primary-btn w-full"
       type="submit"

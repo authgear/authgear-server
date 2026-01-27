@@ -13,7 +13,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ErrorService), "*"),
 	wire.Struct(new(AuthflowNavigator), "*"),
 
-	wire.Struct(new(CSRFDebugMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
 	wire.Bind(new(SessionMiddlewareSessionService), new(*Service2)),

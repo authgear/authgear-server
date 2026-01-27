@@ -12,7 +12,6 @@
 {{- if eq $.ActionType "authenticate" }}
 {{- if eq .Authentication "recovery_code" }}
 <form class="text-left text-sm" method="post" novalidate>
-{{ $.CSRFField }}
 <input type="hidden" name="x_index" value="{{ .Index }}">
 <input type="hidden" name="x_channel" value="{{ .Channel }}">
 <input type="hidden" name="x_action" value="take_branch">
@@ -28,7 +27,6 @@
 
 {{- range $.Branches }}
 <form method="post" novalidate>
-{{ $.CSRFField }}
 <input type="hidden" name="x_index" value="{{ .Index }}">
 <input type="hidden" name="x_channel" value="{{ .Channel }}">
 <input type="hidden" name="x_action" value="take_branch">

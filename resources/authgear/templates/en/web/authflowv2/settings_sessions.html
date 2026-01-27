@@ -23,7 +23,7 @@
         "DialogID" .ID
         "Title" (include "v2.page.settings-sessions.default.terminate-session-dialog-title" nil)
         "Description" (include "v2.page.settings-sessions.default.terminate-session-dialog-description" nil)
-        "FormContent" (include "__settings_session_dialog_remove_input.html" (dict "ID" .ID "CSRFField" $.CSRFField))
+        "FormContent" (include "__settings_session_dialog_remove_input.html" (dict "ID" .ID  ))
         "Buttons" (list
           (dict
             "Type" "Destructive"
@@ -64,7 +64,7 @@
       "DialogID" "revoke-all"
       "Title" (include "v2.page.settings-sessions.default.all-sessions-dialog-title" nil)
       "Description" (include "v2.page.settings-sessions.default.all-sessions-dialog-description" nil)
-      "FormContent" (include "__settings_session_dialog_remove_all_input.html" (dict "CSRFField" $.CSRFField))
+      "FormContent" (include "__settings_session_dialog_remove_all_input.html" nil)
       "Buttons" (list
         (dict
           "Type" "Destructive"
@@ -83,12 +83,10 @@
 {{ end }}
 
 {{ define "__settings_session_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_session_id" value="{{ .ID }}">
 {{ end }}
 
 {{ define "__settings_session_dialog_remove_all_input.html" }}
-  {{ $.CSRFField }}
 {{ end }}
 
 {{ define "__settings_session_item_remove_btn.html" }}

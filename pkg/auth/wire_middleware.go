@@ -115,13 +115,6 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newCSRFDebugMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.CSRFDebugMiddleware)),
-	))
-}
-
 func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

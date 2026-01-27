@@ -44,13 +44,11 @@
         data-controller="turbo-form"
         data-action="submit->turbo-form#submitForm"
       >
-        {{ $.CSRFField }}
         <input type="hidden" name="x_login_id_key" value="{{ $.LoginIDKey }}">
       </form>
 
       {{ template "authflowv2/__otp_input.html"
         (dict
-          "CSRFField" $.CSRFField
           "FormName" "main-form"
           "CodeLength" $.CodeLength
           "AutoFocus" true
@@ -85,7 +83,6 @@
             data-controller="turbo-form"
             data-action="submit->turbo-form#submitForm"
           >
-            {{ $.CSRFField }}
 
             <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
             <input type="hidden" name="x_identity_id" value="{{ $.IdentityID }}">

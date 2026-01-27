@@ -19,7 +19,6 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.5.0
-	github.com/gorilla/csrf v1.7.3
 	github.com/graphql-go/graphql v0.8.1
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
 	github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f
@@ -229,7 +228,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
-	github.com/gorilla/securecookie v1.1.2
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

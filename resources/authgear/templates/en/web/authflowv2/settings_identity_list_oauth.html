@@ -58,7 +58,6 @@
             "SupplementaryNote" .display_id
             "ActionButton" (include "__settings_action_item_connect.html" (dict
               "Ctx" $ctx
-              "CSRFField" $.CSRFField
               "ProviderAlias" .provider_alias
               "ProviderType" .provider_type
               "IdentityID" .identity_id
@@ -83,7 +82,6 @@
 {{ define "__settings_action_item_connect.html" }}
 {{ if not .Verified }}
   <form method="post" novalidate>
-    {{ .CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
     <button
       class="settings-link-btn"
@@ -113,7 +111,7 @@
       "DialogID" .ProviderAlias
       "Title" (include "v2.page.settings-oauth.default.remove-oauth-dialog-title" (dict "ProviderName" $provider_name ))
       "Description" (include "v2.page.settings-oauth.default.remove-oauth-dialog-description"  (dict "ProviderName" $provider_name ))
-      "FormContent" (include "__settings_oauth_dialog_remove_input.html" (dict "CSRFField" $.CSRFField "ProviderAlias" .ProviderAlias "IdentityID" .IdentityID))
+      "FormContent" (include "__settings_oauth_dialog_remove_input.html" (dict "ProviderAlias" .ProviderAlias "IdentityID" .IdentityID))
       "Buttons"
         (list
           (dict
@@ -134,7 +132,6 @@
 {{ end }}
 
 {{ define "__settings_oauth_dialog_remove_input.html" }}
-  {{ $.CSRFField }}
   <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
   <input type="hidden" name="q_identity_id" value="{{ .IdentityID }}">
 {{ end }}

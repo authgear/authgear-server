@@ -21,7 +21,6 @@
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
       </p>
-      {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
       <button
         class="w-6 col-start-2 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn destructive-secondary-btn"
@@ -36,7 +35,6 @@
   {{ end }}
 
   <form class="row-sep" method="post" novalidate>
-    {{ $.CSRFField }}
     <button class="settings-add-btn secondary-btn" type="submit" name="x_action" value="add">
       {{ template "add-button-label" }}
     </button>

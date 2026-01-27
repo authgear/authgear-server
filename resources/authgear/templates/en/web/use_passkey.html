@@ -17,7 +17,6 @@
 >{{ template "use-passkey-label" }}</button>
 
 <form class="hidden" method="post" novalidate>
-{{ $.CSRFField }}
 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
 <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
 <button type="submit" class="hidden" name="x_action" value="" data-passkey-request-target="submit"></button>

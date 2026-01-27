@@ -21,7 +21,6 @@
 
 {{- if eq $.StateQuery "matched" }}
 <form id="next-form" class="hidden" method="post" novalidate>
-{{ $.CSRFField }}
 </form>
 
 <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">
@@ -56,7 +55,6 @@
 </div>
 
 <form class="link" method="post" novalidate>
-{{ $.CSRFField }}
 <span class="primary-txt text-sm">{{ template "login-link-otp-resend-button-hint" }}</span>
 <button
 	class="btn secondary-btn text-sm"
