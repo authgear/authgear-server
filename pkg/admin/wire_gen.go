@@ -214,11 +214,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -1475,11 +1477,13 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
