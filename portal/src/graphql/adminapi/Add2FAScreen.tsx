@@ -13,9 +13,11 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
+import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import { useUserQuery } from "./query/userQuery";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig, PhoneInputFeatureConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
+import { intersectAllowlist } from "../../util/phone";
 
 import styles from "./Add2FAScreen.module.css";
 import FormContainer from "../../FormContainer";
@@ -32,6 +34,7 @@ import {
 
 interface FieldContextValue {
   effectiveAppConfig?: PortalAPIAppConfig;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig | null;
   resetToken?: unknown;
 }
 
@@ -46,7 +49,8 @@ const defaultState: FormState = {
 const FieldContext = createContext<FieldContextValue>({});
 
 function PhoneField(props: { onChange: (value: string) => void }) {
-  const { effectiveAppConfig, resetToken } = useContext(FieldContext);
+  const { effectiveAppConfig, phoneInputFeatureConfig, resetToken } =
+    useContext(FieldContext);
   const [inputValue, setInputValue] = useState("");
   const { onChange } = props;
   const onChangeValues = useCallback(
@@ -71,13 +75,30 @@ function PhoneField(props: { onChange: (value: string) => void }) {
     []
   );
 
+  const allowlist = useMemo(() => {
+    return intersectAllowlist(
+      effectiveAppConfig?.ui?.phone_input?.allowlist,
+      phoneInputFeatureConfig?.allowlist
+    );
+  }, [effectiveAppConfig?.ui?.phone_input?.allowlist, phoneInputFeatureConfig]);
+
+  const pinnedList = useMemo(() => {
+    return intersectAllowlist(
+      effectiveAppConfig?.ui?.phone_input?.pinned_list,
+      phoneInputFeatureConfig?.allowlist
+    );
+  }, [
+    effectiveAppConfig?.ui?.phone_input?.pinned_list,
+    phoneInputFeatureConfig,
+  ]);
+
   return (
     <FormPhoneTextField
       parentJSONPointer=""
       fieldName="phone"
       className={styles.widget}
-      allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-      pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+      allowlist={allowlist}
+      pinnedList={pinnedList}
       initialInputValue={inputValue}
       onChange={onChangeValues}
       errorRules={errorRules}
@@ -174,6 +195,14 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
     loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveFeatureConfig,
+    isLoading: loadingFeatureConfig,
+    loadError: featureConfigError,
+    refetch: refetchFeatureConfig,
+  } = useAppFeatureConfigQuery(appID);
+
+  const phoneInputFeatureConfig = effectiveFeatureConfig?.ui?.phone_input;
 
   const navigate = useNavigate();
 
@@ -209,9 +238,10 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
   const contextValue = useMemo(() => {
     return {
       effectiveAppConfig: effectiveAppConfig ?? undefined,
+      phoneInputFeatureConfig: phoneInputFeatureConfig ?? undefined,
       resetToken,
     };
-  }, [resetToken, effectiveAppConfig]);
+  }, [resetToken, effectiveAppConfig, phoneInputFeatureConfig]);
 
   const title = (
     <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
@@ -284,7 +314,7 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
 
   const canSave = form.state.value.length > 0;
 
-  if (loadingUser || loadingAppConfig) {
+  if (loadingUser || loadingAppConfig || loadingFeatureConfig) {
     return <ShowLoading />;
   }
 
@@ -294,6 +324,12 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
 
   if (appConfigError != null) {
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+  }
+
+  if (featureConfigError != null) {
+    return (
+      <ShowError error={featureConfigError} onRetry={refetchFeatureConfig} />
+    );
   }
 
   return (
