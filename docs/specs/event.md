@@ -108,6 +108,7 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
 - `ip_address`: The IP address of the HTTP request, if present.
 - `user_agent`: The User-Agent HTTP request header, if present.
+- `trace_id`: The trace id for log tracing.
 - `triggered_by`: The origin of the event.
   - `user`: The event originates from a end-user facing UI.
   - `admin_api`: The event originates from the Admin API.
