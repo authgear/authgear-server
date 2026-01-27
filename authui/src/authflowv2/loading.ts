@@ -62,7 +62,8 @@ export class LoadingController extends Controller {
         );
       // Detect if the form is controlled by turbo-form.
       // We only step in if the form is NOT controlled by turbo-form.
-      if (turboFormController == null) {
+      // We also do not step in if the form is submitted to a new tab.
+      if (turboFormController == null && form.target !== "_blank") {
         makeAllButtonPointerEventsNone();
       }
     }
