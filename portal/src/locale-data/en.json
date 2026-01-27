@@ -133,7 +133,6 @@
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
   "errors.input-file-media-type": "The file you selected is not of supported type. Please select another one.",
-  "warnings.free-plan": "To avoid spam, SMS and WhatsApp messages are disabled by default. To unlock your free SMS/WhatsApp messages, please complete <externalLink>the application form</externalLink>.",
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
   "Toggle.on": "On",
