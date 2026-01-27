@@ -46,7 +46,7 @@ var _ = FeatureConfigSchema.Add("PhoneInputFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"allowlist": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" } }
+		"allowlist": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" }, "minItems": 1 }
 	}
 }
 `)

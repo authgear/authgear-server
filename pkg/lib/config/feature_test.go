@@ -28,6 +28,8 @@ func TestParseFeatureConfig(t *testing.T) {
 		err = yaml.Unmarshal(data, &defaultCfg)
 		So(err, ShouldBeNil)
 
+		config.PopulateFeatureConfigDefaultValues(&defaultCfg)
+
 		So(cfg, ShouldResemble, &defaultCfg)
 	})
 
