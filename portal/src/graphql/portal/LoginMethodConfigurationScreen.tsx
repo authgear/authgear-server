@@ -2572,6 +2572,22 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <SectionTitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
           </SectionTitle>
+          {phoneInputFeatureConfig?.allowlist &&
+          phoneInputFeatureConfig.allowlist.length > 0 ? (
+            <BlueMessageBar>
+              <FormattedMessage
+                id="FeatureConfig.phone-input.allowlist.restricted"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  externalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://go.authgear.com/portal-support">
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                }}
+              />
+            </BlueMessageBar>
+          ) : null}
           <PhoneInputListWidget
             disabled={false}
             allowedAlpha2={phoneInputConfig.allowlist}
