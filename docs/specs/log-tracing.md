@@ -6,6 +6,7 @@
 - [Trace ID](#trace-id)
   - [Authgear SDK](#authgear-sdk)
   - [Trace Context over HTTP Headers](#trace-context-over-http-headers)
+  - [Trace Context over HTTP Query Parameters](#trace-context-over-http-query-parameters)
   - [API Errors](#api-errors)
   - [Exceptions](#exceptions)
 - [SDK Log Collection API](#sdk-log-collection-api)
@@ -104,14 +105,6 @@ Returns the trace ID in all API Errors.
 }
 ```
 
-### Exceptions
-
-Under the following cases, we have trace IDs managed in different ways:
-
-1. If the request does not include a trace ID, maybe because logging is disabled or it is a old version. In this case, server generates a trace ID per request. With the exception in point 2.
-
-2. If the request does not include a trace ID, and it is under a flow (e.g. oauth login flow, or settings action). They shares the same trace ID. The trace ID is stored in the related session cookie. However, if the traceparent HTTP Header exist, it always take precedence.
-
 ## SDK Log Collection API
 
 A new API for SDKs to call, sending logs to server.
@@ -208,8 +201,8 @@ Also include a trace_id in event context. See [event.md](./event.md)
 
 ```typescript
 authgear.configure({
-    logLevel: "ERROR", // DEBUG, INFO, WARN, ERROR
-    sdkLogCollectionEnabled: true,
+  logLevel: "ERROR", // DEBUG, INFO, WARN, ERROR
+  sdkLogCollectionEnabled: true,
 });
 ```
 
