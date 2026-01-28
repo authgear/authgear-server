@@ -246,7 +246,7 @@ check-dockerignore:
 graphiql:
 	npm --prefix portalgraphiql ci
 	npm --prefix portalgraphiql run build
-	cp ./portalgraphiql/dist/index.html pkg/util/graphqlutil/graphiql.html
+	cp ./portalgraphiql/dist/index.html pkg/util/graphqlutil/graphiql.generated.html
 
 .PHONY: once/Dockerfile
 once/Dockerfile:

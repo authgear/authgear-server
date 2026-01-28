@@ -18,3 +18,28 @@ jobs:
     uses: ./.github/workflows/run-builds.yaml
     with:
       push_image: ${{ github.repository == 'authgear/authgear-server' }}
+
+  sonarcloud:
+    if: ${{ github.ref == 'refs/heads/main' && github.repository == 'authgear/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Analyze with SonarCloud
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          docker run \
+            --rm \
+            -e SONAR_SCANNER_OPTS=" \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectBaseDir=. \
+            -Dsonar.organization=authgear \
+            -Dsonar.projectKey=authgear_authgear-server \
+            -Dsonar.exclusions=e2e/**,**/*.generated.*" \
+            -e SONAR_TOKEN="${SONAR_TOKEN}" \
+            -v "${{ github.workspace }}:/usr/src" \
+            sonarsource/sonar-scanner-cli:latest
