@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureRootRoute(route httproute.Route) httproute.Route {
@@ -30,5 +31,5 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
-	http.Redirect(w, r, u.String(), http.StatusFound)
+	httputil.Redirect(r.Context(), w, r, u.String(), http.StatusFound)
 }

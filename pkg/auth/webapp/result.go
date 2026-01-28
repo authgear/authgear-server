@@ -61,6 +61,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	}
 
 	redirectURI.RawQuery = q.Encode()
+	redirectURIString := httputil.ConstructInternalRedirectURI(req.Context(), redirectURI.String())
 
 	for _, cookie := range r.Cookies {
 		httputil.UpdateCookie(w, cookie)
@@ -77,7 +78,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 			action = NavigationActionAdvance
 		}
 		data, err := json.Marshal(xhrResponse{
-			RedirectURI: redirectURI.String(),
+			RedirectURI: redirectURIString,
 			Action:      action,
 		})
 		if err != nil {
@@ -90,7 +91,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 	} else {
-		http.Redirect(w, req, redirectURI.String(), http.StatusFound)
+		http.Redirect(w, req, redirectURIString, http.StatusFound)
 	}
 }
 

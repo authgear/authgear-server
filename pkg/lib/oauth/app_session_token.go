@@ -48,7 +48,7 @@ func (s *AppSessionTokenService) Handle(ctx context.Context, input AppSessionTok
 	}
 
 	cookie := s.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token)
-	return &httputil.ResultRedirect{
+	return &httputil.InternalRedirectResult{
 		Cookies: []*http.Cookie{cookie},
 		URL:     input.RedirectURI,
 	}, nil
