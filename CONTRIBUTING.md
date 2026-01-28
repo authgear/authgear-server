@@ -654,3 +654,18 @@ Bad:
   - Use Error only when action or investigation is required
 - No secrets/PII
 - No duplicate error logs across layers
+
+## OTel Logs
+
+In local development, logs are sent to a loki instance on `http://localhost:3102`.
+
+You can query the logs using the following command (logcli need to be installed):
+
+```sh
+logcli query --addr="http://localhost:3102" \
+  '{service_name="authgear"} | app="YOUR_APP"' \
+  --since=1h \
+  -o jsonl -q
+```
+
+This could be useful when you need to verify if the log is properly sent via otlp handler.

@@ -7,7 +7,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // The following attributes are not supported because we do not know the actual protocol between
@@ -121,6 +121,12 @@ func WithHTTPRoute(httpRoute string) func(http.Handler) http.Handler {
 			labeler.Add(semconv.HTTPRoute(httpRoute))
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func WithOtelContext(httpRoute string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return otelhttp.NewHandler(next, httpRoute)
 	}
 }
 

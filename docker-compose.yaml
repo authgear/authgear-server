@@ -158,6 +158,14 @@ services:
       PHPLDAPADMIN_HTTPS: "false"
       PHPLDAPADMIN_LDAP_CLIENT_TLS: "false"
 
+  loki:
+    image: grafana/loki:3.3.2
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yaml
+    ports:
+      - "3102:3100"
+
 volumes:
   redis_data:
     driver: local
