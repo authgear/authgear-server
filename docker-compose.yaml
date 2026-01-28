@@ -166,6 +166,19 @@ services:
     ports:
       - "3102:3100"
 
+  grafana:
+    profiles: ["grafana"]
+    image: grafana/grafana:11.3.0
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    ports:
+      - "3103:3000"
+
+
 volumes:
   redis_data:
     driver: local
