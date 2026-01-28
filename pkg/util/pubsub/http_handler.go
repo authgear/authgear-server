@@ -49,6 +49,12 @@ type HTTPHandler struct {
 //nolint:gocognit
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rootCtx, cancel := context.WithCancel(r.Context())
+	defer func() {
+		logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
+		cancel()
+		logger.Debug(rootCtx, "canceled root context")
+	}()
+
 	logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
 
 	doneChan := make(chan struct{}, 2)
@@ -57,8 +63,6 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		doneChan <- struct{}{}
 		doneChan <- struct{}{}
-		cancel()
-		logger.Debug(rootCtx, "canceled root context")
 	}()
 
 	insecureSkipVerify := false

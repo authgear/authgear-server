@@ -139,30 +139,28 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 		_ = conn.Close()
 	}()
 
-	tx, err := beginTx(ctx_hooks, conn)
-	if err != nil {
-		return
-	}
+	err = beginTx(ctx_hooks, conn, func(tx *sql.Tx) (err error) {
+		ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
+			TxLike: tx,
+		})
 
-	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
-		TxLike: tx,
-	})
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-			panic(r)
-		} else if err != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-		} else {
-			err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
-			if err == nil {
-				shouldRunDidCommitHooks = true
+		defer func() {
+			if r := recover(); r != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+				panic(r)
+			} else if err != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+			} else {
+				err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
+				if err == nil {
+					shouldRunDidCommitHooks = true
+				}
 			}
-		}
-	}()
+		}()
 
-	err = do(ctx_hooks_tx)
+		err = do(ctx_hooks_tx)
+		return err
+	})
 	return
 }
 
@@ -196,30 +194,28 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 		_ = conn.Close()
 	}()
 
-	tx, err := beginTx(ctx_hooks, conn)
-	if err != nil {
-		return
-	}
+	err = beginTx(ctx_hooks, conn, func(tx *sql.Tx) (err error) {
+		ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
+			TxLike: tx,
+		})
 
-	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
-		TxLike: tx,
-	})
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-			panic(r)
-		} else if err != nil {
-			_ = rollbackTx(ctx_hooks_tx, tx)
-		} else {
-			err = rollbackTx(ctx_hooks_tx, tx)
-			if err == nil {
-				shouldRunDidCommitHooks = true
+		defer func() {
+			if r := recover(); r != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+				panic(r)
+			} else if err != nil {
+				_ = rollbackTx(ctx_hooks_tx, tx)
+			} else {
+				err = rollbackTx(ctx_hooks_tx, tx)
+				if err == nil {
+					shouldRunDidCommitHooks = true
+				}
 			}
-		}
-	}()
+		}()
 
-	err = do(ctx_hooks_tx)
+		err = do(ctx_hooks_tx)
+		return err
+	})
 	return
 }
 
@@ -263,18 +259,19 @@ func (*HookHandle) IsInTx(ctx context.Context) bool {
 	return isInTx
 }
 
-func beginTx(ctx context.Context, conn oteldatabasesql.Conn_) (*sql.Tx, error) {
+func beginTx(ctx context.Context, conn oteldatabasesql.Conn_, do func(tx *sql.Tx) error) error {
 	logger := HookHandleLogger.GetLogger(ctx)
 
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(ctx, txOptions)
 	if err != nil {
-		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
+		return fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
+	defer func() { _ = rollbackTx(ctx, tx) }()
 
 	logger.Debug(ctx, "begin")
-	return tx, nil
+	return do(tx)
 }
 
 func commitTx(ctx context.Context, tx *sql.Tx, hooks []TransactionHook) error {
@@ -283,7 +280,7 @@ func commitTx(ctx context.Context, tx *sql.Tx, hooks []TransactionHook) error {
 	for _, hook := range hooks {
 		err := hook.WillCommitTx(ctx)
 		if err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
+			if rbErr := rollbackTx(ctx, tx); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err

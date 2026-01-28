@@ -2,6 +2,7 @@ package saml
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -699,7 +700,7 @@ func (s *Service) ConstructSignedQueryParameters(
 		return nil, err
 	}
 
-	rawSignature, err := rsa.SignPKCS1v15(nil, key, signingCtx.Hash, digest)
+	rawSignature, err := key.Sign(rand.Reader, digest, signingCtx.Hash)
 	if err != nil {
 		return nil, err
 	}

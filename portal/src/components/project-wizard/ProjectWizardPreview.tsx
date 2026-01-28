@@ -40,14 +40,16 @@ export function ProjectWizardPreview({
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*"); // NOSONAR
   }, [form.state]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
       form.state
     );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*"); // NOSONAR
   }, [form.state]);
 
   return (
