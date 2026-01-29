@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
+	"github.com/authgear/authgear-server/pkg/api/logging"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
@@ -97,7 +98,7 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 
 	shutdownFuncs = append(shutdownFuncs, traceProvider.Shutdown)
 
-	otlpEndpoint := os.Getenv("LOG_HANDLER_OTLP_ENDPOINT")
+	otlpEndpoint := logging.LoadConfig().OTLPEndpoint
 	var logOptions []log.LoggerProviderOption
 	logOptions = append(logOptions, log.WithResource(res))
 

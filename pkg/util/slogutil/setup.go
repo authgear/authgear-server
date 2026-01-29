@@ -4,35 +4,24 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/kelseyhightower/envconfig"
-
 	slogmulti "github.com/samber/slog-multi"
 
+	"github.com/authgear/authgear-server/pkg/api/logging"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
-const (
-	LogHandlerConsole = "console"
-	LogHandlerOTLP    = "otlp"
-)
-
-var ALLOWED_LOG_HANDLERS = []string{
-	LogHandlerConsole,
-	LogHandlerOTLP,
-}
-
-func MakeLogger(ctx context.Context, cfg *LogEnvironmentConfig) *slog.Logger {
+func MakeLogger(ctx context.Context, cfg *logging.LogEnvironmentConfig) *slog.Logger {
 	handlers := []slog.Handler{}
 
 	for _, h := range cfg.Handlers {
 		switch h {
-		case LogHandlerConsole:
+		case logging.LogHandlerConsole:
 			level := cfg.ConsoleLevel
 			if level == "" {
 				level = cfg.Level
 			}
 			handlers = append(handlers, NewStderrHandler(level))
-		case LogHandlerOTLP:
+		case logging.LogHandlerOTLP:
 			if lp := otelutil.GetOTelLoggerProvider(ctx); lp != nil {
 				level := cfg.OTLPLevel
 				if level == "" {
@@ -72,8 +61,7 @@ func MakeLogger(ctx context.Context, cfg *LogEnvironmentConfig) *slog.Logger {
 
 // MakeLoggerFromEnv reads environment variables and sets up slog logging.
 func MakeLoggerFromEnv(ctx context.Context) *slog.Logger {
-	cfg := &LogEnvironmentConfig{}
-	_ = envconfig.Process("LOG", cfg)
+	cfg := logging.LoadConfig()
 	return MakeLogger(ctx, cfg)
 }
 
