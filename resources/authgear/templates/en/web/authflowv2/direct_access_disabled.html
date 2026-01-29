@@ -28,5 +28,12 @@
       {{ end }}
     </div>
   </div>
+  {{ if .TrackingID }}
+  <div class="flex justify-center mt-4">
+    <div class="tracking-id-text text-center max-w-90">
+      {{ include "v2.component.error-tracking-id.label" (dict "TrackingID" .TrackingID) }}
+    </div>
+  </div>
+  {{ end }}
 </div>
 {{ end }}

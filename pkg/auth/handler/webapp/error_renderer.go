@@ -15,6 +15,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -77,17 +78,17 @@ func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.Respo
 	result.WriteResponse(w, r)
 }
 
-func (h *ErrorRenderer) GetErrorData(r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
+func (h *ErrorRenderer) GetErrorData(ctx context.Context, r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
-	baseViewModel.SetError(err)
+	baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
 
 func (s *ErrorRenderer) makeSessionCompletedErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, apierr *apierrors.APIError) httputil.Result {
 	if r.Method == http.MethodGet {
-		data, err := s.GetErrorData(r, w, apierr)
+		data, err := s.GetErrorData(ctx, r, w, apierr)
 		if err != nil {
 			return s.makeNonRecoverableResult(ctx, u, apierr)
 		}
@@ -111,7 +112,7 @@ func (s *ErrorRenderer) makeNonRecoverableResult(ctx context.Context, u url.URL,
 		RedirectURI:      u.String(),
 		NavigationAction: webapp.NavigationActionReplace,
 	}
-	err := s.ErrorService.SetNonRecoverableError(result, apierr)
+	err := s.ErrorService.SetNonRecoverableError(ctx, result, apierr)
 	if err != nil {
 		panic(err)
 	}

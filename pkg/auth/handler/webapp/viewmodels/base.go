@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -82,6 +83,7 @@ type BaseViewModel struct {
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
 	Error                 interface{}
+	TrackingID            string
 	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
@@ -117,7 +119,10 @@ type BaseViewModel struct {
 	IsSettingsAction bool
 }
 
-func (m *BaseViewModel) SetError(err error) {
+func (m *BaseViewModel) SetError(err error, trackingID string) {
+	// When we display an error,
+	// we want to see the tracking id of the error not the current request
+	m.TrackingID = trackingID
 	if apiError := asAPIError(err); apiError != nil {
 		b, err := json.Marshal(struct {
 			Error *apierrors.APIError `json:"error"`
@@ -370,11 +375,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			return strings.Join(processedAllowedOrgins, ",")
 		}(),
 		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
+		TrackingID:       errorutil.FormatTrackingID(ctx),
 	}
 
 	if errorState, ok := m.ErrorService.PopError(ctx, rw, r); ok {
 		model.SetFormJSON(errorState.Form)
-		model.SetError(errorState.Error)
+		model.SetError(errorState.Error, errorState.TrackingID)
 	}
 
 	if s := webapp.GetSession(ctx); s != nil {
@@ -501,6 +507,7 @@ func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWr
 		Platform:          "",
 		ShouldFocusInput:  false,
 		WebsocketDisabled: true,
+		TrackingID:        errorutil.FormatTrackingID(ctx),
 	}
 	return model
 }

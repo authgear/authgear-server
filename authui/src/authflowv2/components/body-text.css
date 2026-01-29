@@ -178,4 +178,9 @@
       @apply text-end;
     }
   }
+
+  .tracking-id-text {
+    @apply body-text--sm opacity-50 break-all;
+    @apply py-4;
+  }
 }

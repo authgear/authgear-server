@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -29,11 +30,11 @@ type AccountStatusHandler struct {
 	Renderer          Renderer
 }
 
-func (h *AccountStatusHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *AccountStatusHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	if node, ok := graph.CurrentNode().(*nodes.NodeValidateUser); ok {
-		baseViewModel.SetError(node.Error)
+		baseViewModel.SetError(node.Error, errorutil.FormatTrackingID(ctx))
 	}
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
@@ -53,7 +54,7 @@ func (h *AccountStatusHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		data, err := h.GetData(r, w, graph)
+		data, err := h.GetData(ctx, r, w, graph)
 		if err != nil {
 			return err
 		}

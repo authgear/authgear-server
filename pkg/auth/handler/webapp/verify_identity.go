@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -139,11 +140,11 @@ func (h *VerifyIdentityHandler) GetData(ctx context.Context, r *http.Request, rw
 	return data, nil
 }
 
-func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, rw http.ResponseWriter, err error) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetErrorData(ctx context.Context, r *http.Request, rw http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	baseViewModel.SetError(err)
+	baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
 	viewModel := VerifyIdentityViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)

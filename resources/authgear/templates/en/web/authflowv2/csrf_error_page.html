@@ -12,6 +12,11 @@
       {{ include "v2.page.csrf-error.default.message" nil }}
       <a href="{{ call $.MakeURL "/errors/cookie_instruction" }}"> {{ include "v2.page.csrf-error.default.see-instructions" nil }}</a>
     </p> 
+    {{ if .TrackingID }}
+      <div class="tracking-id-text">
+        {{ include "v2.component.error-tracking-id.label" (dict "TrackingID" .TrackingID) }}
+      </div>
+    {{ end }}
   </div>
 </div>
 {{ end }}

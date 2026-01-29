@@ -36,6 +36,11 @@
           {{- end }}
         </h2>
       {{- end }}
+      {{ if .TrackingID }}
+        <div class="tracking-id-text">
+          {{ include "v2.component.error-tracking-id.label" (dict "TrackingID" .TrackingID) }}
+        </div>
+      {{ end }}
     </header>
   <div></div>
 
