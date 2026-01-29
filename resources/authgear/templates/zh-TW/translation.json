@@ -886,7 +886,7 @@
   "v2.component.button.default.label-terminate": "終止",
   "v2.component.device-token-checkbox.default.label": "記住此裝置，不要再詢問",
   "v2.component.divider.default.or-label": "或",
-  "v2.component.error-tracking-id.label": "追蹤 ID: {TrackingID}",
+  "v2.component.error-tracking-id.default.label": "追蹤 ID: {TrackingID}",
   "v2.component.input.default.placeholder-email": "電郵地址",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "v2.component.input.default.placeholder-phone": "電話號碼",

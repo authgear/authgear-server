@@ -886,7 +886,7 @@
   "v2.component.button.default.label-terminate": "Mengakhiri",
   "v2.component.device-token-checkbox.default.label": "Ingat perangkat ini, dan jangan tanya lagi",
   "v2.component.divider.default.or-label": "atau",
-  "v2.component.error-tracking-id.label": "ID Pelacakan: {TrackingID}",
+  "v2.component.error-tracking-id.default.label": "ID Pelacakan: {TrackingID}",
   "v2.component.input.default.placeholder-email": "Alamat email",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {Alamat email} username {Nama Pengguna} other {Alamat email atau nama pengguna}}",
   "v2.component.input.default.placeholder-phone": "Nomor telepon",

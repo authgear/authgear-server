@@ -8,7 +8,7 @@
         {{ .ErrorMessage }}
         {{ if .TrackingID }}
           <div class="tracking-id-text">
-            {{ include "v2.component.error-tracking-id.label" (dict "TrackingID" .TrackingID) }}
+            {{ include "v2.component.error-tracking-id.default.label" (dict "TrackingID" .TrackingID) }}
           </div>
         {{ end }}
       </div>

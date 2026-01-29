@@ -886,7 +886,7 @@
   "v2.component.button.default.label-terminate": "Kết thúc",
   "v2.component.device-token-checkbox.default.label": "Nhớ thiết bị này, và không hỏi lại",
   "v2.component.divider.default.or-label": "hoặc",
-  "v2.component.error-tracking-id.label": "ID theo dõi: {TrackingID}",
+  "v2.component.error-tracking-id.default.label": "ID theo dõi: {TrackingID}",
   "v2.component.input.default.placeholder-email": "Địa chỉ email",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {Địa chỉ email} username {Tên người dùng} other {Địa chỉ email hoặc tên người dùng}}",
   "v2.component.input.default.placeholder-phone": "Số điện thoại",
