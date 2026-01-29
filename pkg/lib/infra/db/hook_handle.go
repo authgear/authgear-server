@@ -268,6 +268,8 @@ func beginTx(ctx context.Context, conn oteldatabasesql.Conn_, do func(tx *sql.Tx
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
+	// Best practice is to defer tx.Rollback
+	// See https://go.dev/doc/database/execute-transactions
 	defer func() { _ = rollbackTx(ctx, tx) }()
 
 	logger.Debug(ctx, "begin")
