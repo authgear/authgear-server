@@ -886,6 +886,7 @@
   "v2.component.button.default.label-terminate": "종료",
   "v2.component.device-token-checkbox.default.label": "이 기기를 기억하고 다시 묻지 않기",
   "v2.component.divider.default.or-label": "또는",
+  "v2.component.error-tracking-id.label": "추적 ID: {TrackingID}",
   "v2.component.input.default.placeholder-email": "이메일 주소",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {이메일 주소} username {사용자이름} other {이메일 주소 또는 사용자이름}}",
   "v2.component.input.default.placeholder-phone": "전화번호",
