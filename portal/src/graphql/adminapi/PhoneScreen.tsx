@@ -14,13 +14,15 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import IdentityForm, { LoginIDFieldProps } from "./IdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
+import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import {
   ErrorParseRule,
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig, PhoneInputFeatureConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
+import { intersectAllowlist } from "../../util/phone";
 
 import styles from "./PhoneScreen.module.css";
 
@@ -33,13 +35,15 @@ const errorRules: ErrorParseRule[] = [
 
 interface PhoneContextValue {
   effectiveAppConfig?: PortalAPIAppConfig;
+  phoneInputFeatureConfig?: PhoneInputFeatureConfig | null;
   resetToken?: unknown;
 }
 
 const PhoneContext = createContext<PhoneContextValue>({});
 
 function LoginIDField(props: LoginIDFieldProps) {
-  const { effectiveAppConfig, resetToken } = useContext(PhoneContext);
+  const { effectiveAppConfig, phoneInputFeatureConfig, resetToken } =
+    useContext(PhoneContext);
   const [inputValue, setInputValue] = useState("");
   const { onChange } = props;
   const onChangeValues = useCallback(
@@ -53,14 +57,32 @@ function LoginIDField(props: LoginIDFieldProps) {
   useEffect(() => {
     setInputValue("");
   }, [resetToken]);
+
+  const allowlist = useMemo(() => {
+    return intersectAllowlist(
+      effectiveAppConfig?.ui?.phone_input?.allowlist,
+      phoneInputFeatureConfig?.allowlist
+    );
+  }, [effectiveAppConfig?.ui?.phone_input?.allowlist, phoneInputFeatureConfig]);
+
+  const pinnedList = useMemo(() => {
+    return intersectAllowlist(
+      effectiveAppConfig?.ui?.phone_input?.pinned_list,
+      phoneInputFeatureConfig?.allowlist
+    );
+  }, [
+    effectiveAppConfig?.ui?.phone_input?.pinned_list,
+    phoneInputFeatureConfig,
+  ]);
+
   return (
     <FormPhoneTextField
       parentJSONPointer=""
       fieldName="login_id"
       errorRules={errorRules}
       className={styles.widget}
-      allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-      pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+      allowlist={allowlist}
+      pinnedList={pinnedList}
       initialInputValue={inputValue}
       onChange={onChangeValues}
     />
@@ -85,6 +107,14 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
     loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveFeatureConfig,
+    isLoading: loadingFeatureConfig,
+    loadError: featureConfigError,
+    refetch: refetchFeatureConfig,
+  } = useAppFeatureConfigQuery(appID);
+
+  const phoneInputFeatureConfig = effectiveFeatureConfig?.ui?.phone_input;
 
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -142,15 +172,16 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
   const contextValue = useMemo(() => {
     return {
       effectiveAppConfig: effectiveAppConfig ?? undefined,
+      phoneInputFeatureConfig: phoneInputFeatureConfig ?? undefined,
       resetToken,
     };
-  }, [resetToken, effectiveAppConfig]);
+  }, [resetToken, effectiveAppConfig, phoneInputFeatureConfig]);
 
   const title = (
     <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
   );
 
-  if (loadingUser || loadingAppConfig) {
+  if (loadingUser || loadingAppConfig || loadingFeatureConfig) {
     return <ShowLoading />;
   }
 
@@ -160,6 +191,12 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
 
   if (appConfigError != null) {
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+  }
+
+  if (featureConfigError != null) {
+    return (
+      <ShowError error={featureConfigError} onRetry={refetchFeatureConfig} />
+    );
   }
 
   return (

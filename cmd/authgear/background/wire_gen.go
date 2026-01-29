@@ -211,11 +211,13 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := p.BaseResources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

@@ -83,11 +83,13 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	nilResourceManager := NewNilResourceManager()
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     nilResourceManager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       nilResourceManager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

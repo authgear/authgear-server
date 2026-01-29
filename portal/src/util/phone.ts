@@ -49,3 +49,18 @@ export function parsePhoneNumber(rawInputValue: string): string | null {
   }
   return parsed.number;
 }
+
+export function intersectAllowlist(
+  appAllowlist: string[] | undefined,
+  featureAllowlist: string[] | undefined
+): string[] | undefined {
+  if (!featureAllowlist || featureAllowlist.length === 0) {
+    return appAllowlist;
+  }
+  if (!appAllowlist || appAllowlist.length === 0) {
+    return [];
+  }
+
+  const featureSet = new Set(featureAllowlist);
+  return appAllowlist.filter((a) => featureSet.has(a));
+}

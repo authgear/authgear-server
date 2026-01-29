@@ -118,11 +118,13 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLExecutor: sqlExecutor,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -927,11 +929,13 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -1233,11 +1237,13 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	}
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

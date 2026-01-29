@@ -156,11 +156,13 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: sqlExecutor,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -945,11 +947,14 @@ func newLoginIDSerivce(p *deps.AppProvider) *loginid.Provider {
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
+	featureConfig := config.FeatureConfig
+	uiFeatureConfig := featureConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		UIConfig:      uiConfig,
-		LoginIDConfig: loginIDConfig,
-		Resources:     manager,
+		UIConfig:        uiConfig,
+		LoginIDConfig:   loginIDConfig,
+		UIFeatureConfig: uiFeatureConfig,
+		Resources:       manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

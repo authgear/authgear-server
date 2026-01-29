@@ -27,9 +27,10 @@ type TypeChecker interface {
 }
 
 type TypeCheckerFactory struct {
-	UIConfig      *config.UIConfig
-	LoginIDConfig *config.LoginIDConfig
-	Resources     ResourceManager
+	UIConfig        *config.UIConfig
+	LoginIDConfig   *config.LoginIDConfig
+	UIFeatureConfig *config.UIFeatureConfig
+	Resources       ResourceManager
 }
 
 func (f *TypeCheckerFactory) NewChecker(ctx context.Context, loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
@@ -145,13 +146,19 @@ func (f *TypeCheckerFactory) makeUsernameChecker(ctx context.Context, options Ch
 }
 
 func (f *TypeCheckerFactory) makePhoneNumberChecker() *PhoneChecker {
-	var allowlist []string
+	var appAllowlist []string
 	if f.UIConfig.PhoneInput != nil {
-		allowlist = f.UIConfig.PhoneInput.AllowList
+		appAllowlist = f.UIConfig.PhoneInput.AllowList
+	}
+
+	var featureAllowlist []string
+	if f.UIFeatureConfig != nil && f.UIFeatureConfig.PhoneInput != nil {
+		featureAllowlist = f.UIFeatureConfig.PhoneInput.AllowList
 	}
 
 	return &PhoneChecker{
-		Alpha2AllowList: allowlist,
+		AppAlpha2AllowList:     appAllowlist,
+		FeatureAlpha2AllowList: featureAllowlist,
 	}
 }
 
@@ -325,7 +332,8 @@ func (c *UsernameChecker) Validate(ctx context.Context, validationCtx *validatio
 }
 
 type PhoneChecker struct {
-	Alpha2AllowList []string
+	AppAlpha2AllowList     []string
+	FeatureAlpha2AllowList []string
 }
 
 func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.Context, loginID string) {
@@ -343,21 +351,29 @@ func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.C
 		return
 	}
 
-	if len(c.Alpha2AllowList) > 0 {
-		isAllowed := false
-		for _, allow := range c.Alpha2AllowList {
+	check := func(allowlist []string) bool {
+		if len(allowlist) == 0 {
+			return true
+		}
+		for _, allow := range allowlist {
 			// Allow the phone number if any of the possible region code is in allow list
 			for _, alpha2 := range parsed.Alpha2 {
 				if allow == alpha2 {
-					isAllowed = true
-					break
+					return true
 				}
 			}
 		}
-		if !isAllowed {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
-			return
-		}
+		return false
+	}
+
+	if !check(c.AppAlpha2AllowList) {
+		validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+		return
+	}
+
+	if !check(c.FeatureAlpha2AllowList) {
+		validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+		return
 	}
 }
 

@@ -237,11 +237,19 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 	htmlDir := intl.HTMLDir(resolvedLanguageTag)
 
-	allowedPhoneCountryCodeJSON, err := json.Marshal(m.AuthUI.PhoneInput.AllowList)
+	featureAllowlist := []string{}
+	if m.AuthUIFeatureConfig != nil && m.AuthUIFeatureConfig.PhoneInput != nil {
+		featureAllowlist = m.AuthUIFeatureConfig.PhoneInput.AllowList
+	}
+
+	allowedPhoneCountryCodes := config.IntersectAllowlist(m.AuthUI.PhoneInput.AllowList, featureAllowlist)
+	pinnedPhoneCountryCodes := config.IntersectAllowlist(m.AuthUI.PhoneInput.PinnedList, featureAllowlist)
+
+	allowedPhoneCountryCodeJSON, err := json.Marshal(allowedPhoneCountryCodes)
 	if err != nil {
 		panic(err)
 	}
-	pinnedPhoneCountryCodeJSON, err := json.Marshal(m.AuthUI.PhoneInput.PinnedList)
+	pinnedPhoneCountryCodeJSON, err := json.Marshal(pinnedPhoneCountryCodes)
 	if err != nil {
 		panic(err)
 	}
