@@ -77,10 +77,12 @@ const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
       onRenderContent: () => (
         <div className={styles.tooltip}>
           <span>
-            <FormattedMessage
-              id={tooltipMessageId}
-              values={tooltipMessageValues}
-            />
+            {tooltipMessageId ? (
+              <FormattedMessage
+                id={tooltipMessageId}
+                values={tooltipMessageValues}
+              />
+            ) : null}
           </span>
         </div>
       ),
