@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM quay.io/theauthgear/golang:1.25.5-noble AS authgear-once-stage-wrapper
+FROM quay.io/theauthgear/golang:1.25.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download

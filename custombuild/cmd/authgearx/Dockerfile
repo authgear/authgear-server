@@ -15,7 +15,7 @@ COPY Makefile .
 RUN make authui
 
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.25.5-noble AS authgear-stage-1
+FROM quay.io/theauthgear/golang:1.25.6-noble AS authgear-stage-1
 
 # Install build time C dependencies
 RUN set -eux; \
