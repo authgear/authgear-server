@@ -1,6 +1,7 @@
 package password
 
 import (
+"context"
 	"fmt"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 func TestTranslateBcryptError(t *testing.T) {
 	Convey("TranslateBcryptError", t, func() {
 		test := func(err error, expected *apierrors.APIError) {
-			So(apierrors.AsAPIError(TranslateBcryptError(err)), ShouldResemble, expected)
+			So(apierrors.AsAPIErrorWithContext(context.Background(), TranslateBcryptError(err)), ShouldResemble, expected)
 		}
 
 		test(nil, nil)

@@ -15,7 +15,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -53,7 +52,7 @@ func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, 
 }
 
 func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
-	apierror := apierrors.AsAPIError(err)
+	apierror := apierrors.AsAPIErrorWithContext(ctx, err)
 
 	// Show WebUIInvalidSession error in different page.
 	u := *r.URL
@@ -81,7 +80,7 @@ func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.Respo
 func (h *ErrorRenderer) GetErrorData(ctx context.Context, r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
-	baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
+	baseViewModel.SetError(ctx, err)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
@@ -122,7 +121,7 @@ func (s *ErrorRenderer) makeNonRecoverableResult(ctx context.Context, u url.URL,
 
 func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) httputil.Result {
 	logger := ErrorRendererLogger.GetLogger(ctx)
-	apierr := apierrors.AsAPIError(err)
+	apierr := apierrors.AsAPIErrorWithContext(ctx, err)
 
 	if apierrors.IsKind(apierr, apierrors.UnexpectedError) {
 		logger.WithError(err).Error(ctx, "unexpected error")

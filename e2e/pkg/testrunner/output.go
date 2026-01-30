@@ -1,6 +1,7 @@
 package testrunner
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -30,7 +31,7 @@ func MatchAuthflowOutput(output Output, flowResult *authflowclient.FlowResponse,
 			return nil, nil, fmt.Errorf("expected flow error, got nil")
 		}
 
-		apiError := apierrors.AsAPIError(flowError)
+		apiError := apierrors.AsAPIErrorWithContext(context.Background(), flowError)
 		apiErrorJSON, err := json.Marshal(&apiError)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to marshal API error: %w", err)
@@ -67,7 +68,7 @@ func MatchUserImportOutput(output AdminAPIUserImportOutput, userImportResult *au
 			return nil, nil, fmt.Errorf("expected user import error, got nil")
 		}
 
-		apiError := apierrors.AsAPIError(userImportError)
+		apiError := apierrors.AsAPIErrorWithContext(context.Background(), userImportError)
 		apiErrorJSON, err := json.Marshal(&apiError)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to marshal API error: %w", err)

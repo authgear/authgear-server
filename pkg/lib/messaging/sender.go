@@ -117,7 +117,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			)
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
-				Description: s.errorToDescription(err),
+				Description: s.errorToDescription(ctx, err),
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.EmailError)))
@@ -251,7 +251,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 			)
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
-				Description: s.errorToDescription(err),
+				Description: s.errorToDescription(ctx, err),
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.SMSError)))
@@ -380,7 +380,7 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 			).Error(ctx, "failed to send Whatsapp")
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
-				Description: s.errorToDescription(err),
+				Description: s.errorToDescription(ctx, err),
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
@@ -479,11 +479,11 @@ func (s *Sender) DispatchEventImmediatelyWithTx(ctx context.Context, payload eve
 	})
 }
 
-func (s *Sender) errorToDescription(err error) string {
+func (s *Sender) errorToDescription(ctx context.Context, err error) string {
 	// APIError.Error() shows message only, but we want to show the full content of it.
 	// Modifying APIError.Error is another big change that I do not want to deal with here.
 	if apierrors.IsAPIError(err) {
-		apiError := apierrors.AsAPIError(err)
+		apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 		b, err := json.Marshal(apiError)
 		if err != nil {
 			panic(err)

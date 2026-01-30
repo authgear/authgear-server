@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -64,7 +63,7 @@ func (h *ResetPasswordHandler) GetData(ctx context.Context, r *http.Request, rw 
 
 	_, err := h.ResetPassword.VerifyCode(ctx, r.Form.Get("code"))
 	if apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
-		baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
+		baseViewModel.SetError(ctx, err)
 	} else if err != nil {
 		// Ignore other errors (e.g. rate limit),
 		// and let it (potentially) fail when submitting.

@@ -29,14 +29,7 @@ func ErrRateLimited(rl RateLimitName, rlgroup RateLimitGroup, bucketName BucketN
 }
 
 func IsRateLimitErrorWithBucketName(err error, bucketName BucketName) bool {
-	if !apierrors.IsKind(err, RateLimited) {
-		return false
-	}
-
-	apiError := apierrors.AsAPIError(err)
-	if apiError == nil {
-		return false
-	}
-
-	return apiError.Info_ReadOnly[DEPRECATED_bucketNameKey] == bucketName
+	return apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == RateLimited && e.Info_ReadOnly[DEPRECATED_bucketNameKey] == bucketName
+	})
 }

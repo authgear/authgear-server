@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -105,7 +104,7 @@ func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(ctx context.Contex
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
-	baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
+	baseViewModel.SetError(ctx, err)
 	viewmodels.Embed(data, baseViewModel)
 
 	return data, nil

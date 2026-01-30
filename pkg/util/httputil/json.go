@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"mime"
@@ -112,20 +111,23 @@ var JSONResponseWriterLogger = slogutil.NewLogger("json-response-writer")
 
 func WriteJSONResponse(ctx context.Context, w http.ResponseWriter, resp *api.Response) {
 	httpStatus := http.StatusOK
-	encoder := json.NewEncoder(w)
-	err := apierrors.AsAPIError(resp.Error)
+	apiError := apierrors.AsAPIErrorWithContext(ctx, resp.Error)
+	if apiError != nil {
+		httpStatus = apiError.Code
+	}
 
+	body, err := resp.EncodeToJSON(ctx)
 	if err != nil {
-		httpStatus = err.Code
+		panic(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpStatus)
-	if err := encoder.Encode(resp); err != nil {
+	if _, err := w.Write(body); err != nil {
 		panic(err)
 	}
 
-	if err != nil && err.Code >= 500 && err.Code < 600 {
+	if apiError != nil && apiError.Code >= 500 && apiError.Code < 600 {
 		logger := JSONResponseWriterLogger.GetLogger(ctx)
 		logger.WithError(resp.Error).Error(ctx, "unexpected error occurred")
 	}

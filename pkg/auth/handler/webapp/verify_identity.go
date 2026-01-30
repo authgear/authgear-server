@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -144,7 +143,7 @@ func (h *VerifyIdentityHandler) GetErrorData(ctx context.Context, r *http.Reques
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	baseViewModel.SetError(err, errorutil.FormatTrackingID(ctx))
+	baseViewModel.SetError(ctx, err)
 	viewModel := VerifyIdentityViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)

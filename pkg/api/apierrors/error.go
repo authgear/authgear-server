@@ -1,6 +1,7 @@
 package apierrors
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -41,8 +42,9 @@ func (c MapCause) MarshalJSON() ([]byte, error) {
 
 type APIError struct {
 	Kind
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Message    string `json:"message"`
+	Code       int    `json:"code"`
+	TrackingID string `json:"tracking_id,omitempty"`
 	// Do not mutate Info directly, use CloneWithInfo instead
 	Info_ReadOnly Details `json:"info,omitempty"`
 }
@@ -149,56 +151,76 @@ func mergeInfo(infos ...map[string]interface{}) map[string]interface{} {
 	return out
 }
 
-func AsAPIError(err error) *APIError {
+func AsAPIErrorWithContext(ctx context.Context, err error) *APIError {
+	e := asAPIError(err)
+	if e == nil {
+		return nil
+	}
+
+	if e.TrackingID == "" {
+		e.TrackingID = errorutil.FormatTrackingID(ctx)
+	}
+
+	return e
+}
+
+func IsAPIErrorWithCondition(err error, condition func(*APIError) bool) bool {
+	e := asAPIError(err)
+	if e == nil {
+		return false
+	}
+
+	return condition(e)
+}
+
+func asAPIError(err error) *APIError {
 	if err == nil {
 		return nil
 	}
 
 	details := errorutil.CollectDetails(err, nil)
 	info := errorutil.FilterDetails(details, APIErrorDetail)
-
-	var maxBytesError *http.MaxBytesError
-	if errors.As(err, &maxBytesError) {
-		return newRequestBodyTooLarge(maxBytesError)
-	}
-
-	var jsonSyntaxError *json.SyntaxError
-	if errors.As(err, &jsonSyntaxError) {
-		return newInvalidJSON(jsonSyntaxError)
-	}
+	trackingID := errorutil.CollectTrackingID(err)
 
 	var apiError *APIError
-	if errors.As(err, &apiError) {
+	if maxBytesError := (*http.MaxBytesError)(nil); errors.As(err, &maxBytesError) {
+		apiError = newRequestBodyTooLarge(maxBytesError)
+	} else if jsonSyntaxError := (*json.SyntaxError)(nil); errors.As(err, &jsonSyntaxError) {
+		apiError = newInvalidJSON(jsonSyntaxError)
+	} else if errors.As(err, &apiError) {
 		mergedInfo := mergeInfo(apiError.Info_ReadOnly, info)
-		return apiError.CloneWithInfo(mergedInfo)
-	}
-
-	var v *validation.AggregatedError
-	if errors.As(err, &v) {
+		apiError = apiError.CloneWithInfo(mergedInfo)
+	} else if v := (*validation.AggregatedError)(nil); errors.As(err, &v) {
 		causes := make([]Cause, len(v.Errors))
 		for i, c := range v.Errors {
 			c := c
 			causes[i] = &c
 		}
 		info["causes"] = causes
-		return &APIError{
+		apiError = &APIError{
 			Kind:          ValidationFailed,
 			Message:       v.Message,
 			Code:          ValidationFailed.Name.HTTPStatus(),
 			Info_ReadOnly: info,
 		}
+	} else {
+		apiError = &APIError{
+			Kind:          UnexpectedError,
+			Message:       "unexpected error occurred",
+			Code:          UnexpectedError.Name.HTTPStatus(),
+			Info_ReadOnly: info,
+		}
 	}
 
-	return &APIError{
-		Kind:          UnexpectedError,
-		Message:       "unexpected error occurred",
-		Code:          UnexpectedError.Name.HTTPStatus(),
-		Info_ReadOnly: info,
+	if trackingID != "" {
+		apiError.TrackingID = trackingID
 	}
+
+	return apiError
 }
 
 func IsKind(err error, kind Kind) bool {
-	e := AsAPIError(err)
+	e := asAPIError(err)
 	return e != nil && e.Kind == kind
 }
 

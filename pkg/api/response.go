@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -11,9 +12,9 @@ type Response struct {
 	Error  error
 }
 
-func (r *Response) MarshalJSON() ([]byte, error) {
+func (r *Response) EncodeToJSON(ctx context.Context) ([]byte, error) {
 	return json.Marshal(struct {
 		Result interface{}         `json:"result,omitempty"`
 		Error  *apierrors.APIError `json:"error,omitempty"`
-	}{r.Result, apierrors.AsAPIError(r.Error)})
+	}{r.Result, apierrors.AsAPIErrorWithContext(ctx, r.Error)})
 }

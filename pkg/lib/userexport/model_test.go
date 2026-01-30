@@ -1,6 +1,7 @@
 package userexport
 
 import (
+"context"
 	"encoding/json"
 	"testing"
 
@@ -63,7 +64,7 @@ func TestRequest(t *testing.T) {
 			Pointer: "/sub",
 		})
 		_, err := ExtractCSVHeaderField(fields)
-		apiErr := apierrors.AsAPIError(err)
+		apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 		infoJson, _ := json.Marshal(apiErr.Info_ReadOnly)
 		So(err, ShouldBeError, "field names are not unique")
 		So(string(infoJson), ShouldEqualJSON, `{"field_names":["sub","sub"]}`)
@@ -77,7 +78,7 @@ func TestRequest(t *testing.T) {
 			FieldName: "sub",
 		})
 		_, err = ExtractCSVHeaderField(fields)
-		apiErr = apierrors.AsAPIError(err)
+		apiErr = apierrors.AsAPIErrorWithContext(context.Background(), err)
 		infoJson, _ = json.Marshal(apiErr.Info_ReadOnly)
 		So(err, ShouldBeError, "field names are not unique")
 		So(string(infoJson), ShouldEqualJSON, `{"field_names":["sub","sub"]}`)
@@ -94,7 +95,7 @@ func TestRequest(t *testing.T) {
 			FieldName: "claims.0.email",
 		})
 		_, err = ExtractCSVHeaderField(fields)
-		apiErr = apierrors.AsAPIError(err)
+		apiErr = apierrors.AsAPIErrorWithContext(context.Background(), err)
 		infoJson, _ = json.Marshal(apiErr.Info_ReadOnly)
 		So(err, ShouldBeError, "field names are not unique")
 		So(string(infoJson), ShouldEqualJSON, `{"field_names":["claims.0.email","sub","claims.0.email"]}`)

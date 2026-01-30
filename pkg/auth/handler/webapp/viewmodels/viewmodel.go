@@ -1,6 +1,7 @@
 package viewmodels
 
 import (
+	"context"
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -16,9 +17,9 @@ func SliceContains(slice []interface{}, value interface{}) bool {
 	return false
 }
 
-func asAPIError(anyError interface{}) *apierrors.APIError {
+func asAPIError(ctx context.Context, anyError interface{}) *apierrors.APIError {
 	if err, ok := anyError.(error); ok {
-		return apierrors.AsAPIError(err)
+		return apierrors.AsAPIErrorWithContext(ctx, err)
 	}
 	return nil
 }

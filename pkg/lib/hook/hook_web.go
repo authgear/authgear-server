@@ -141,7 +141,7 @@ func (h *EventWebHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL,
 	var hookResp *event.HookResponse
 	hookResp, err = event.ParseHookResponse(ctx, e.Type, resp.Body)
 	if err != nil {
-		apiError := apierrors.AsAPIError(err)
+		apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 		err = HookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
 		return nil, err
 	}

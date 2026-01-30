@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -167,10 +166,11 @@ func (c *ErrorService) SetRecoverableError(ctx context.Context, r *http.Request,
 
 	redisKey := redisKeyWebError(c.AppID, tokenHash)
 
+	apiError := apierrors.AsAPIErrorWithContext(ctx, value)
 	dataBytes, err := json.Marshal(&ErrorState{
 		Form:       r.Form,
-		Error:      value,
-		TrackingID: errorutil.FormatTrackingID(ctx),
+		Error:      apiError,
+		TrackingID: apiError.TrackingID,
 	})
 	if err != nil {
 		return nil, err
@@ -191,15 +191,16 @@ func (c *ErrorService) SetRecoverableError(ctx context.Context, r *http.Request,
 
 // SetNonRecoverableError does NOT retain form.
 func (c *ErrorService) SetNonRecoverableError(ctx context.Context, result *Result, value *apierrors.APIError) error {
-	data, err := json.Marshal(&ErrorState{
-		Error:      value,
-		TrackingID: errorutil.FormatTrackingID(ctx),
+	apiError := apierrors.AsAPIErrorWithContext(ctx, value)
+	dataBytes, err := json.Marshal(&ErrorState{
+		Error:      apiError,
+		TrackingID: apiError.TrackingID,
 	})
 	if err != nil {
 		return err
 	}
 
-	queryValue := base64.RawURLEncoding.EncodeToString(data)
+	queryValue := base64.RawURLEncoding.EncodeToString(dataBytes)
 
 	redirectURI, err := url.Parse(result.RedirectURI)
 	if err != nil {

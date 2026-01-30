@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -25,7 +26,7 @@ func (w *ResponseWriter) WriteResponse(rw http.ResponseWriter, req *http.Request
 	const turboStreamMedia = "text/vnd.turbo-stream.html"
 	accept := req.Header.Get("Accept")
 	if strings.Contains(accept, turboStreamMedia) && resp.Error != nil {
-		data := w.PrepareData(resp.Error)
+		data := w.PrepareData(req.Context(), resp.Error)
 		w.Renderer.RenderStatus(rw, req, http.StatusInternalServerError, TemplateTurboErrorHTML, data)
 		return
 	}
@@ -33,8 +34,8 @@ func (w *ResponseWriter) WriteResponse(rw http.ResponseWriter, req *http.Request
 	httputil.WriteJSONResponse(req.Context(), rw, resp)
 }
 
-func (w *ResponseWriter) PrepareData(err error) map[string]interface{} {
-	apiError := apierrors.AsAPIError(err)
+func (w *ResponseWriter) PrepareData(ctx context.Context, err error) map[string]interface{} {
+	apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 	b, err := json.Marshal(struct {
 		Error *apierrors.APIError `json:"error"`
 	}{apiError})

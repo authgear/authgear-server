@@ -60,7 +60,7 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 				continue
 			}
 
-			apiError := apierrors.AsAPIError(err)
+			apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 			if gqlError.Extensions == nil {
 				gqlError.Extensions = make(map[string]interface{})
 			}

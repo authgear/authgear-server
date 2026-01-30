@@ -1,6 +1,7 @@
 package httputil
 
 import (
+"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,7 +24,7 @@ func TestBindJSONBody(t *testing.T) {
 
 			var m interface{}
 			err := BindJSONBody(r, w, schema.Validator(), &m, WithBodyMaxSize(1))
-			So(apierrors.AsAPIError(err), ShouldResemble, &apierrors.APIError{
+			So(apierrors.AsAPIErrorWithContext(context.Background(), err), ShouldResemble, &apierrors.APIError{
 				Kind: apierrors.Kind{
 					Name:   apierrors.RequestEntityTooLarge,
 					Reason: "JSONTooLarge",

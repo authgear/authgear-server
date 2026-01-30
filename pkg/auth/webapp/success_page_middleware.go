@@ -47,7 +47,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 			if currentPath != pathInCookie {
 				// Show invalid session error when the path cookie doesn't match
 				// the current path
-				apierror := apierrors.AsAPIError(ErrInvalidSession)
+				apierror := apierrors.AsAPIErrorWithContext(ctx, ErrInvalidSession)
 				errorCookie, err := m.ErrorService.SetRecoverableError(ctx, r, apierror)
 				if err != nil {
 					panic(err)

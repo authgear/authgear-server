@@ -1,6 +1,7 @@
 package apierrors_test
 
 import (
+"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,7 +18,7 @@ func TestAPIError(t *testing.T) {
 	Convey("AsAPIError", t, func() {
 		Convey("simple error", func() {
 			err := apierrors.NewInternalError("internal server error")
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message:       "internal server error",
@@ -30,7 +31,7 @@ func TestAPIError(t *testing.T) {
 			err = apierrors.NewInternalError("internal server error")
 			err = fmt.Errorf("wrap this: %w", err)
 
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message:       "internal server error",
@@ -41,7 +42,7 @@ func TestAPIError(t *testing.T) {
 		Convey("common error", func() {
 			NotAuthenticated := apierrors.Unauthorized.WithReason("NotAuthenticated")
 			err := NotAuthenticated.New("authentication required")
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:          apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
 				Message:       "authentication required",
@@ -55,7 +56,7 @@ func TestAPIError(t *testing.T) {
 				"failed to validate form payload",
 				apierrors.Details{"field": "email"},
 			)
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
@@ -71,7 +72,7 @@ func TestAPIError(t *testing.T) {
 				"invalid code",
 				apierrors.StringCause("CodeExpired"),
 			)
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid code",
@@ -90,7 +91,7 @@ func TestAPIError(t *testing.T) {
 					apierrors.StringCause("TooSimple"),
 				},
 			)
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid password format",
@@ -109,7 +110,7 @@ func TestAPIError(t *testing.T) {
 				"b": apierrors.APIErrorDetail.Value("b"),
 			})
 			c := fmt.Errorf("c: %w", b)
-			apiErr := apierrors.AsAPIError(c)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), c)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: "UnexpectedError"},
 				Message: "unexpected error occurred",
@@ -125,7 +126,7 @@ func TestAPIError(t *testing.T) {
 				Limit: 1,
 			}
 
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:          apierrors.Kind{Name: apierrors.RequestEntityTooLarge, Reason: "RequestEntityTooLarge"},
 				Message:       "http: request body too large",
@@ -138,7 +139,7 @@ func TestAPIError(t *testing.T) {
 			var unimportant interface{}
 			err := json.Unmarshal([]byte(`{"a":}`), &unimportant)
 
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
 				Message: "invalid character '}' looking for beginning of value",
@@ -152,7 +153,7 @@ func TestAPIError(t *testing.T) {
 			var unimportant interface{}
 			err := json.Unmarshal([]byte(``), &unimportant)
 
-			apiErr := apierrors.AsAPIError(err)
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
 				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
 				Message: "unexpected end of JSON input",
@@ -167,7 +168,7 @@ func TestAPIError(t *testing.T) {
 
 			newErr := errorutil.WithDetails(originalErr, errorutil.Details{"newkey": "test"})
 
-			_ = apierrors.AsAPIError(newErr)
+			_ = apierrors.AsAPIErrorWithContext(context.Background(), newErr)
 
 			// The original error info should not be modified
 			So(originalErr.(*apierrors.APIError).Info_ReadOnly, ShouldResemble, make(apierrors.Details))
