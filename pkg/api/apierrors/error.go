@@ -151,6 +151,8 @@ func mergeInfo(infos ...map[string]interface{}) map[string]interface{} {
 	return out
 }
 
+// Convert any error to APIError with tracking id.
+// Use this method to construct an APIError for output.
 func AsAPIErrorWithContext(ctx context.Context, err error) *APIError {
 	e := asAPIError(err)
 	if e == nil {
@@ -164,6 +166,7 @@ func AsAPIErrorWithContext(ctx context.Context, err error) *APIError {
 	return e
 }
 
+// Check if an error is some kind of APIError usind condition.
 func IsAPIErrorWithCondition(err error, condition func(*APIError) bool) bool {
 	e := asAPIError(err)
 	if e == nil {
@@ -173,6 +176,7 @@ func IsAPIErrorWithCondition(err error, condition func(*APIError) bool) bool {
 	return condition(e)
 }
 
+// This method should be private. Use AsAPIErrorWithContext or IsAPIErrorWithCondition.
 func asAPIError(err error) *APIError {
 	if err == nil {
 		return nil

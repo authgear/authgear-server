@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"testing"
 
+	oteltrace "go.opentelemetry.io/otel/trace"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 
@@ -23,8 +25,83 @@ func TestAPIError(t *testing.T) {
 				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message:       "internal server error",
 				Code:          500,
+				TrackingID:    "",
 				Info_ReadOnly: map[string]interface{}{},
 			})
+		})
+		Convey("with tracking id", func() {
+			err := apierrors.NewInternalError("internal server error")
+			traceID := oteltrace.TraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+			spanID := oteltrace.SpanID([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
+			sc := oteltrace.NewSpanContext(oteltrace.SpanContextConfig{
+				TraceID: traceID,
+				SpanID:  spanID,
+			})
+			ctx := oteltrace.ContextWithSpanContext(context.Background(), sc)
+
+			apiErr := apierrors.AsAPIErrorWithContext(ctx, err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:       "internal server error",
+				Code:          500,
+				TrackingID:    "0102030405060708090a0b0c0d0e0f10-0102030405060708",
+				Info_ReadOnly: map[string]interface{}{},
+			})
+		})
+		Convey("with pre-existing tracking id", func() {
+			err := &apierrors.APIError{
+				Kind:       apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:    "internal server error",
+				Code:       500,
+				TrackingID: "existing-id",
+			}
+			ctx := context.Background()
+
+			apiErr := apierrors.AsAPIErrorWithContext(ctx, err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:       "internal server error",
+				Code:          500,
+				TrackingID:    "existing-id",
+				Info_ReadOnly: map[string]interface{}{},
+			})
+		})
+		Convey("with tracking id attached by WithTrackingID", func() {
+			traceID := oteltrace.TraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+			spanID := oteltrace.SpanID([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
+			sc := oteltrace.NewSpanContext(oteltrace.SpanContextConfig{
+				TraceID: traceID,
+				SpanID:  spanID,
+			})
+			ctx := oteltrace.ContextWithSpanContext(context.Background(), sc)
+
+			err := errors.New("any error")
+			errWithID := errorutil.WithTrackingID(ctx, err)
+
+			apiErr := apierrors.AsAPIErrorWithContext(context.Background(), errWithID)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: "UnexpectedError"},
+				Message:       "unexpected error occurred",
+				Code:          500,
+				TrackingID:    "0102030405060708090a0b0c0d0e0f10-0102030405060708",
+				Info_ReadOnly: map[string]interface{}{},
+			})
+		})
+		Convey("precedence of tracking id", func() {
+			traceID1 := oteltrace.TraceID([16]byte{1})
+			spanID1 := oteltrace.SpanID([8]byte{1})
+			ctx1 := oteltrace.ContextWithSpanContext(context.Background(), oteltrace.NewSpanContext(oteltrace.SpanContextConfig{TraceID: traceID1, SpanID: spanID1}))
+
+			traceID2 := oteltrace.TraceID([16]byte{2})
+			spanID2 := oteltrace.SpanID([8]byte{2})
+			ctx2 := oteltrace.ContextWithSpanContext(context.Background(), oteltrace.NewSpanContext(oteltrace.SpanContextConfig{TraceID: traceID2, SpanID: spanID2}))
+
+			err := errors.New("any error")
+			errWithID := errorutil.WithTrackingID(ctx1, err)
+
+			// AsAPIErrorWithContext with ctx2 should still use ID from errWithID (ctx1)
+			apiErr := apierrors.AsAPIErrorWithContext(ctx2, errWithID)
+			So(apiErr.TrackingID, ShouldEqual, errorutil.FormatTrackingID(ctx1))
 		})
 		Convey("wrapped error", func() {
 			var err error
