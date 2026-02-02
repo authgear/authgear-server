@@ -54,7 +54,7 @@
 /pkg/auth/handler/saml/logout.go:613:9: requestcontext
 /pkg/auth/handler/saml/logout.go:619:46: requestcontext
 /pkg/auth/handler/saml/logout.go:622:31: requestcontext
-/pkg/auth/handler/webapp/account_status.go:49:27: requestcontext
+/pkg/auth/handler/webapp/account_status.go:48:27: requestcontext
 /pkg/auth/handler/webapp/app_static_assets.go:39:33: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:35:10: requestcontext
 /pkg/auth/handler/webapp/authflow_change_password.go:96:26: requestcontext
@@ -76,8 +76,8 @@
 /pkg/auth/handler/webapp/authflow_promote.go:129:33: requestcontext
 /pkg/auth/handler/webapp/authflow_prompt_create_passkey.go:102:26: requestcontext
 /pkg/auth/handler/webapp/authflow_reauth.go:41:33: requestcontext
-/pkg/auth/handler/webapp/authflow_reset_password.go:129:35: requestcontext
-/pkg/auth/handler/webapp/authflow_reset_password.go:133:27: requestcontext
+/pkg/auth/handler/webapp/authflow_reset_password.go:128:35: requestcontext
+/pkg/auth/handler/webapp/authflow_reset_password.go:132:27: requestcontext
 /pkg/auth/handler/webapp/authflow_reset_password_success.go:59:35: requestcontext
 /pkg/auth/handler/webapp/authflow_setup_oob_otp.go:130:26: requestcontext
 /pkg/auth/handler/webapp/authflow_setup_totp.go:111:26: requestcontext
@@ -108,8 +108,8 @@
 /pkg/auth/handler/webapp/authflowv2/promote.go:136:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/prompt_create_passkey.go:142:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/reauth.go:42:33: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password.go:170:35: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password.go:174:27: requestcontext
+/pkg/auth/handler/webapp/authflowv2/reset_password.go:169:35: requestcontext
+/pkg/auth/handler/webapp/authflowv2/reset_password.go:173:27: requestcontext
 /pkg/auth/handler/webapp/authflowv2/reset_password_success.go:60:36: requestcontext
 /pkg/auth/handler/webapp/authflowv2/select_account.go:111:32: requestcontext
 /pkg/auth/handler/webapp/authflowv2/select_account.go:247:27: requestcontext
@@ -195,10 +195,10 @@
 /pkg/auth/handler/webapp/prompt_create_passkey.go:47:27: requestcontext
 /pkg/auth/handler/webapp/reauth.go:29:27: requestcontext
 /pkg/auth/handler/webapp/reauth.go:31:34: requestcontext
-/pkg/auth/handler/webapp/reset_password.go:85:27: requestcontext
+/pkg/auth/handler/webapp/reset_password.go:84:27: requestcontext
 /pkg/auth/handler/webapp/reset_password_success.go:42:27: requestcontext
-/pkg/auth/handler/webapp/root.go:34:20: requestcontext
 /pkg/auth/handler/webapp/return.go:42:27: requestcontext
+/pkg/auth/handler/webapp/root.go:34:20: requestcontext
 /pkg/auth/handler/webapp/select_account.go:110:32: requestcontext
 /pkg/auth/handler/webapp/select_account.go:111:34: requestcontext
 /pkg/auth/handler/webapp/select_account.go:230:27: requestcontext
@@ -246,9 +246,10 @@
 /pkg/auth/handler/webapp/sso_callback.go:72:44: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:83:28: requestcontext
 /pkg/auth/handler/webapp/tester.go:279:27: requestcontext
-/pkg/auth/handler/webapp/turbo_response_writer.go:33:29: requestcontext
+/pkg/auth/handler/webapp/turbo_response_writer.go:29:25: requestcontext
+/pkg/auth/handler/webapp/turbo_response_writer.go:34:29: requestcontext
 /pkg/auth/handler/webapp/use_passkey.go:53:27: requestcontext
-/pkg/auth/handler/webapp/verify_identity.go:162:27: requestcontext
+/pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity_success.go:42:27: requestcontext
 /pkg/auth/handler/webapp/verify_login_link.go:92:27: requestcontext
 /pkg/auth/handler/webapp/viewmodels/base.go:212:9: requestcontext
@@ -281,7 +282,7 @@
 /pkg/images/deps/context.go:23:10: requestcontext
 /pkg/images/deps/middleware_request.go:24:10: requestcontext
 /pkg/images/handler/get.go:94:11: requestcontext
-/pkg/images/handler/post.go:58:9: requestcontext
+/pkg/images/handler/post.go:57:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:36:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:39:10: requestcontext
 /pkg/lib/authenticationflow/intl_middleware.go:16:41: requestcontext
@@ -300,7 +301,7 @@
 /pkg/lib/deps/providers.go:152:36: requestcontext
 /pkg/lib/dpop/middleware.go:21:10: requestcontext
 /pkg/lib/healthz/healthz.go:25:9: requestcontext
-/pkg/lib/infra/middleware/panic.go:42:12: requestcontext
+/pkg/lib/infra/middleware/panic.go:41:12: requestcontext
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext
 /pkg/lib/oauth/response_mode.go:122:40: requestcontext
 /pkg/lib/oauth/response_mode.go:149:40: requestcontext
@@ -330,7 +331,7 @@
 /pkg/util/httputil/csp.go:158:42: requestcontext
 /pkg/util/httputil/csp.go:164:42: requestcontext
 /pkg/util/httputil/file_server.go:116:11: requestcontext
-/pkg/util/httputil/json.go:97:9: requestcontext
+/pkg/util/httputil/json.go:96:9: requestcontext
 /pkg/util/httputil/result.go:29:11: requestcontext
 /pkg/util/jwkutil/contextbackground.go:11:52: contextbackground
 /pkg/util/otelutil/nethttp.go:121:46: requestcontext
