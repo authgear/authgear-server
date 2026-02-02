@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"go.opentelemetry.io/otel/trace"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -92,12 +93,52 @@ func TestServiceDispatchEvent(t *testing.T) {
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
 					AuditContext:       event.NewAuditContext("", nil),
+					TrackingID:         "",
 				},
 			}).Times(1).Return(nil)
 
 			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldBeEmpty)
+		})
+
+		Convey("dispatch event with tracking id", func() {
+			userID := "user-id"
+			user := model.User{
+				Meta: model.Meta{ID: userID},
+			}
+			payload := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
+			}
+
+			traceID := trace.TraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+			spanID := trace.SpanID([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
+			sc := trace.NewSpanContext(trace.SpanContextConfig{
+				TraceID: traceID,
+				SpanID:  spanID,
+			})
+			ctx := trace.ContextWithSpanContext(context.Background(), sc)
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
+			sink.EXPECT().ReceiveBlockingEvent(ctx, &event.Event{
+				ID:      "0000000000000000",
+				Type:    MockBlockingEventType1,
+				Seq:     0,
+				Payload: payload,
+				Context: event.Context{
+					Timestamp:          1136214245,
+					UserID:             &userID,
+					Language:           fallbackLanguage,
+					PreferredLanguages: []string{},
+					TriggeredBy:        event.TriggeredByTypeUser,
+					AuditContext:       event.NewAuditContext("", nil),
+					TrackingID:         "0102030405060708090a0b0c0d0e0f10-0102030405060708",
+				},
+			}).Times(1).Return(nil)
+
+			err := service.DispatchEventOnCommit(ctx, payload)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("include user", func() {
@@ -135,6 +176,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 						PreferredLanguages: []string{},
 						TriggeredBy:        event.TriggeredByTypeUser,
 						AuditContext:       event.NewAuditContext("", nil),
+						TrackingID:         "",
 					},
 				},
 			).Return(nil)
@@ -208,6 +250,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
 					AuditContext:       event.NewAuditContext("", nil),
+					TrackingID:         "",
 				},
 				IsNonBlocking: true,
 			})
@@ -246,6 +289,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
 					AuditContext:       event.NewAuditContext("", nil),
+					TrackingID:         "",
 				},
 			}).Return(fmt.Errorf("e"))
 			sink.EXPECT().ReceiveNonBlockingEvent(ctx, gomock.Any()).Times(0)
