@@ -33,6 +33,7 @@ steps:
           "reason": "UserNotFound",
           "message": "user not found",
           "code": 404,
+          "tracking_id": "[[string]]",
           "info": {
             "ExistingIdentities": [
               {
