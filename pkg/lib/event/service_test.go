@@ -7,13 +7,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"go.opentelemetry.io/otel/trace"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

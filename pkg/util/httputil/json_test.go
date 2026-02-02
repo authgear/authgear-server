@@ -1,7 +1,7 @@
 package httputil
 
 import (
-"context"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"

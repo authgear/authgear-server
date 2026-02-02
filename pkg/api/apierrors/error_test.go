@@ -1,7 +1,7 @@
 package apierrors_test
 
 import (
-"context"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
