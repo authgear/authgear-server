@@ -11,7 +11,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -26,6 +28,10 @@ import (
 // envvar_OTEL_METRICS_EXPORTER is documented at
 // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection
 const envvar_OTEL_METRICS_EXPORTER = "OTEL_METRICS_EXPORTER"
+
+// envvar_OTEL_TRACES_EXPORTER is documented at
+// https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection
+const envvar_OTEL_TRACES_EXPORTER = "OTEL_TRACES_EXPORTER"
 
 // envvar_OTEL_PROPAGATORS is documented at
 // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration
@@ -90,7 +96,7 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	otel.SetMeterProvider(meterProvider)
 
 	// Set up trace provider.
-	traceProvider, err := newTracerProvider()
+	traceProvider, err := newTracerProvider(ctx, res)
 	if err != nil {
 		return
 	}
@@ -276,9 +282,53 @@ func newMetricExportersFromEnv(ctx context.Context) (exporters []sdkmetric.Expor
 	return
 }
 
-func newTracerProvider() (*trace.TracerProvider, error) {
-	// We do not collect traces at the moment.
-	// Configure exporters here when we want to collect trace data.
-	tracerProvider := trace.NewTracerProvider()
+func newTracerProvider(ctx context.Context, res *sdkresource.Resource) (*trace.TracerProvider, error) {
+	options := []trace.TracerProviderOption{
+		trace.WithResource(res),
+	}
+
+	exporters, err := newTraceExportersFromEnv(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, exporter := range exporters {
+		options = append(options, trace.WithBatcher(exporter))
+	}
+
+	tracerProvider := trace.NewTracerProvider(options...)
 	return tracerProvider, nil
+}
+
+func newTraceExportersFromEnv(ctx context.Context) (exporters []trace.SpanExporter, err error) {
+	// The specification says the default value of OTEL_TRACES_EXPORTER is "otlp".
+	// However, we want the export of traces to be OPT-IN, rather than OPT-OUT.
+	// This makes Authgear backwards-compatible if OTEL_TRACES_EXPORTER is not set.
+	OTEL_TRACES_EXPORTER := strings.TrimSpace(os.Getenv(envvar_OTEL_TRACES_EXPORTER))
+	if OTEL_TRACES_EXPORTER == "" || OTEL_TRACES_EXPORTER == "none" {
+		return nil, nil
+	}
+
+	// The spec says the implementation SHOULD support comma-separated list.
+	parts := strings.Split(OTEL_TRACES_EXPORTER, ",")
+	for _, part := range parts {
+		switch part {
+		case "otlp":
+			exporter, err := otlptracehttp.New(ctx)
+			if err != nil {
+				return nil, err
+			}
+			exporters = append(exporters, exporter)
+		case "console":
+			exporter, err := stdouttrace.New()
+			if err != nil {
+				return nil, err
+			}
+			exporters = append(exporters, exporter)
+		default:
+			err = fmt.Errorf("unsupported value: %v=%v", envvar_OTEL_TRACES_EXPORTER, OTEL_TRACES_EXPORTER)
+			return
+		}
+	}
+
+	return
 }

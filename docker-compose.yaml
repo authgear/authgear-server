@@ -166,6 +166,14 @@ services:
     ports:
       - "3102:3100"
 
+  tempo:
+    image: grafana/tempo:2.6.1
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo-config.yaml:/etc/tempo.yaml
+    ports:
+      - "3104:3200"
+
   grafana:
     profiles: ["grafana"]
     image: grafana/grafana:11.3.0

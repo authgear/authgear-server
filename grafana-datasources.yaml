@@ -8,8 +8,8 @@ datasources:
     isDefault: true
     jsonData:
       derivedFields:
-        - datasourceUid: prometheus
-          matcherRegex: "traceID=(\\w+)"
+        - datasourceUid: tempo
+          matcherRegex: "trace_id=(\\w+)"
           name: TraceID
           url: "$${__value.raw}"
   - name: Prometheus
@@ -18,3 +18,18 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: false
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    url: http://tempo:3200
+    access: proxy
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus
+      tracesToLogsV2:
+        datasourceUid: "Loki"
+        spanStartTimeShift: "-1h"
+        spanEndTimeShift: "1h"
+        customQuery: true
+        query: '{service_name="$${__span.tags["service.name"]}"} | trace_id = "$${__span.traceId}"'
