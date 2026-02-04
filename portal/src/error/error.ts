@@ -115,6 +115,7 @@ export interface APISMSGatewayError {
   info: {
     ProviderErrorCode: string;
     ProviderName: string;
+    Description: string;
   };
 }
 

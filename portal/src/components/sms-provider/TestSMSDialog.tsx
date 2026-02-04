@@ -21,32 +21,35 @@ const topErrorRules: ErrorParseRule[] = [
     "SMSGatewayAuthenticationFailed",
     "TestSMSDialog.errors.gateway-authentication-failed-error",
     (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
     })
   ),
   makeReasonErrorParseRule(
     "SMSGatewayDeliveryRejected",
     "TestSMSDialog.errors.gateway-delivery-rejected-error",
     (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
     })
   ),
   makeReasonErrorParseRule(
     "SMSGatewayRateLimited",
     "TestSMSDialog.errors.gateway-rate-limited-error",
     (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
     })
   ),
   (apiError: APIError): ErrorParseRuleResult => {
+    const info = (apiError as Partial<APISMSGatewayError> | null)?.info;
     return {
       parsedAPIErrors: [
         {
           messageID: "TestSMSDialog.errors.unknown-error",
           arguments: {
-            code:
-              (apiError as Partial<APISMSGatewayError> | null)?.info
-                ?.ProviderErrorCode ?? "-",
+            code: info?.ProviderErrorCode || "__empty__",
+            description: info?.Description || "__empty__",
           },
         },
       ],
@@ -60,7 +63,8 @@ const phoneFieldErrorRules: ErrorParseRule[] = [
     "SMSGatewayInvalidPhoneNumber",
     "TestSMSDialog.errors.gateway-invalid-phone-number-error",
     (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
     })
   ),
 ];
