@@ -99,7 +99,7 @@ The threshold depends on the risk of the country.
 For High risk countries:
 
 ```
-threshold = 7 day rolling mean of sms successfully sent to the country per day
+threshold = max(50, 7 day rolling mean of sms successfully sent to the country per day)
 ```
 
 For Low risk countries:
@@ -111,7 +111,7 @@ threshold = infinity
 For Mid risk countries:
 
 ```
-threshold = 7 day rolling mean of sms successfully sent to the country per day * 2
+threshold = max(100, 7 day rolling mean of sms successfully sent to the country per day * 2)
 ```
 
 `enabled`: boolean. Whether this warning is enabled.
@@ -124,19 +124,19 @@ The threshold depends on the risk of the country.
 For High risk countries:
 
 ```
-threshold = 7 day rolling max of sms successfully verified to the country per day
+threshold = max(15, 7 day rolling max of sms successfully verified to the country per day * 0.2)
 ```
 
 For Low risk countries:
 
 ```
-threshold = 7 day rolling max of sms successfully verified to the country per day * 3
+threshold = max(300, 7 day rolling max of sms successfully verified to the country per day * 1)
 ```
 
 For Mid risk countries:
 
 ```
-threshold = 7 day rolling max of sms successfully verified to the country per day * 2
+threshold = max(30, 7 day rolling max of sms successfully verified to the country per day * 0.5)
 ```
 
 `enabled`: boolean. Whether this warning is enabled.
