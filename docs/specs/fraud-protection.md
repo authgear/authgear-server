@@ -1,5 +1,23 @@
 # Fraud Protection
 
+- [SMS Pumping](#sms-pumping)
+  - [Config](#config)
+  - [Warnings](#warnings)
+    - [SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP](#sms_many_phone_number_countries_per_ip)
+    - [SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY](#sms_many_failures_per_phone_number_country)
+    - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY](#sms_many_attempts_per_phone_number_country)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY](#sms_many_unverified_otps_per_phone_number_country)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_IP](#sms_many_unverified_otps_per_ip)
+    - [SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION](#sms_unmatched_phone_number_countries_ip_geo_location)
+    - [Notes](#notes)
+  - [Country Based Risk Classification](#country-based-risk-classification)
+  - [Decision Record](#decision-record)
+  - [API Error](#api-error)
+  - [Future Work](#future-work)
+    - [Decision: Challenge](#decision-challenge)
+    - [Warning: Custom](#warning-custom)
+    - [Risk Scoring](#risk-scoring)
+
 ## SMS Pumping
 
 ### Config
@@ -59,21 +77,21 @@ fraud_protection:
 
 ### Warnings
 
-**SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP**:
+#### SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
 The threshold is 5.
 
 `enabled`: boolean. Whether this warning is enabled.
 
-**SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY**:
+#### SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
 Check if the number of SMS delivery failures for a specific phone number country exceeds the threshold in 24 hours.
 
 The threshold is 50.
 
 `enabled`: boolean. Whether this warning is enabled.
 
-**SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY**:
+#### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY
 Check if the total number of SMS requested for a specific phone number country exceeds the threshold in 24 hours.
 
 The threshold depends on the risk of the country.
@@ -98,7 +116,7 @@ threshold = 7 day rolling mean of sms successfully sent to the country per day *
 
 `enabled`: boolean. Whether this warning is enabled.
 
-**SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY**:
+#### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY
 Check if the number of unverified OTPs for a specific phone number country exceeds the threshold in 24 hours.
 
 The threshold depends on the risk of the country.
@@ -123,14 +141,14 @@ threshold = 7 day rolling max of sms successfully verified to the country per da
 
 `enabled`: boolean. Whether this warning is enabled.
 
-**SMS_MANY_UNVERIFIED_OTPS_PER_IP**:
+#### SMS_MANY_UNVERIFIED_OTPS_PER_IP
 Check if the number of unverified OTPs from a single IP exceeds the threshold.
 
 The threshold is 10.
 
 `enabled`: boolean. Whether this warning is enabled.
 
-**SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION**:
+#### SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
 Check if the country of the requested phone number matches the geo-location of the IP address.
 
 `enabled`: boolean. Whether this warning is enabled.
