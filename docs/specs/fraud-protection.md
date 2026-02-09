@@ -11,6 +11,7 @@
     - [SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION](#sms_unmatched_phone_number_countries_ip_geo_location)
     - [Notes](#notes)
   - [Country Based Risk Classification](#country-based-risk-classification)
+  - [Environment Variables](#environment-variables)
   - [Decision Record](#decision-record)
   - [API Error](#api-error)
   - [Future Work](#future-work)
@@ -201,6 +202,19 @@ fraud_protection:
       - UA
     low:
       - HK
+```
+ 
+### Environment Variables
+ 
+ The default classification of countries can be overridden using the following environment variables. The value should be a comma-separated list of ISO 3166-1 alpha-2 country codes.
+ 
+ - `FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT`: Default list of High Risk countries.
+ - `FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT`: Default list of Low Risk countries.
+
+```shell
+# Set high risk countries to Egypt and Ukraine, and low risk to Hong Kong
+FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT=EG,UA
+FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT=HK
 ```
 
 ### Decision Record
