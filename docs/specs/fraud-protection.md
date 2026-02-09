@@ -13,11 +13,12 @@
   - [Country Based Risk Classification](#country-based-risk-classification)
   - [Environment Variables](#environment-variables)
   - [Decision Record](#decision-record)
+  - [Risk Scoring](#risk-scoring)
   - [API Error](#api-error)
-  - [Future Work](#future-work)
-    - [Decision: Challenge](#decision-challenge)
-    - [Warning: Custom](#warning-custom)
-    - [Risk Scoring](#risk-scoring)
+- [Future Work](#future-work)
+  - [Decision: Challenge](#decision-challenge)
+  - [Warning: Custom](#warning-custom)
+  - [Support weights other than 0 and 1](#support-weights-other-than-0-and-1)
 
 ## SMS Pumping
 
@@ -36,16 +37,22 @@ fraud_protection:
       - HK
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP
+      weight: 1 # (Optional) Supported values: 0 or 1. If 0, the warning does not contribute to the risk_score.
       enabled: true
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
+      weight: 1
       enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY
+      weight: 1
       enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY
+      weight: 1
       enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP
+      weight: 1
       enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
+      weight: 1
       enabled: true
   decisions:
     # Decisions are evaluated in order. The first decision that matches will be executed, and further decisions will be ignored.
@@ -60,19 +67,14 @@ fraud_protection:
           geo_location_codes: ["HK", "US"]
           regex: ["^\\+852\\d*$"]
     - decision: block
-      name: block if triggered 3 warnings
+      name: block if high risk score
       block_mode: error
-      block_with_warnings:
-        - "*"
-      block_with_thresholds:
+      block_thresholds:
         risk_score: 3
     - decision: block
       name: block if number of unverified otp is high
       block_mode: silent
-      block_with_warnings:
-        - SMS_MANY_UNVERIFIED_OTPS_PER_COUNTRY
-        - SMS_MANY_UNVERIFIED_OTPS_PER_IP
-      block_with_thresholds:
+      block_thresholds:
         risk_score: 1
 ```
 
@@ -217,6 +219,29 @@ FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT=EG,UA
 FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT=HK
 ```
 
+### Risk Scoring
+
+Each warning has a `weight` configuration (default `1`). Currently, only values `0` and `1` are supported.
+- `weight: 1`: The warning contributes its score to the global `risk_score`.
+- `weight: 0`: The warning is logged but does not contribute to the `risk_score`.
+
+A single, global `risk_score` is calculated for each request using the equation:
+`risk_score = sum(warning_score * weight)` for all triggered warnings.
+
+Where `warning_score` is specific to each warning type (usually `1`).
+
+We can make decisions based on this global `risk_score`:
+
+```yaml
+fraud_protection:
+  decisions:
+    - decision: block
+      block_mode: error
+      name: block if high risk score
+      block_thresholds:
+        risk_score: 10
+```
+
 ### Decision Record
 
 Each sms send request (No matter success or not) will produce a decision record.
@@ -236,6 +261,7 @@ Each sms send request (No matter success or not) will produce a decision record.
     "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
     "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY",
   ],
+  "risk_score": 3,
   "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
   "ip_address": "203.0.113.42",
   "http_url": "https://example.authgear-apps.com/",
@@ -278,6 +304,7 @@ And audit log:
         "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
         "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY",
       ],
+      "risk_score": 3,
       "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
       "ip_address": "203.0.113.42",
       "geo_location_code": "US",
@@ -314,9 +341,7 @@ fraud_protection:
   decisions:
     - decision: challenge
       name: challenge if triggered 1 warnings
-      warnings:
-        - "*"
-      thresholds:
+      challenge_thresholds:
         risk_score: 3
       challenge:
         bot_protection: # ...
@@ -335,39 +360,7 @@ fraud_protection:
         url: authgeardeno:///deno/script.ts
 ```
 
-#### Risk Scoring
+#### Support weights other than 0 and 1
 
-Each warning will support a `weight` config. Default `1`.
+In the future, we will support weights other than `0` and `1` (e.g., `0.5`, `2`) to allow more fine-grained risk scoring where some warnings are more significant than others.
 
-```yaml
-fraud_protection:
-  warnings:
-    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP
-      weight: 2
-      enabled: true
-    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
-      weight: 3
-      enabled: true
-    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY
-      enabled: true
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY
-      enabled: true
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP
-      enabled: true
-    - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
-      enabled: true
-```
-
-Each warning has a `score` (default `1`). The `risk_score` for a decision is the sum of `score * weight` for all its corresponding triggered warnings.
-
-We can make decisions based on the risk score:
-
-```yaml
-fraud_protection:
-  decisions:
-    - decision: block
-      block_mode: error
-      name: block if high risk score
-      block_with_thresholds:
-        risk_score: 10
-```
