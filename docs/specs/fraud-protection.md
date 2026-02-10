@@ -98,7 +98,9 @@ The threshold is 5.
 #### SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
 Check if the number of SMS delivery failures for a specific phone number country exceeds the threshold in 24 hours.
 
-The threshold is 50.
+```
+threshold = max(0.6 * total number of sms delivered in the past 24 hours, 10)
+```
 
 `enabled`: boolean. Whether this warning is enabled.
 
