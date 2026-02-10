@@ -18,6 +18,7 @@
   - [Decision Record](#decision-record)
   - [Risk Scoring](#risk-scoring)
   - [API Error](#api-error)
+  - [Examples](#examples)
 - [Future Work](#future-work)
   - [Decision: Challenge](#decision-challenge)
   - [Warning: Custom](#warning-custom)
@@ -398,6 +399,112 @@ If `block_mode` is `error`, API error will be returned.
 ```
 
 If `block_mode` is `silent`, the API will pretends sms has been sent without returning error.
+
+### Examples
+
+#### 1. Turn on all warnings, block if at least one warning triggered
+
+```yaml
+fraud_protection:
+  enabled: true
+  warnings:
+    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
+      enabled: true
+    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
+      enabled: true
+    - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
+      enabled: true
+  decisions:
+    block:
+      risk_score: 1
+      block_mode: error
+```
+
+#### 2. Observe only. No blocking
+
+By not providing a `block` configuration, triggered warnings will be recorded in logs but the request will always be allowed.
+
+```yaml
+fraud_protection:
+  enabled: true
+  warnings:
+    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
+      enabled: true
+    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
+      enabled: true
+    - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
+      enabled: true
+  decisions:
+    # No block rules are defined, so only audit logs are produced and nothing is blocked.
+    block: {}
+```
+
+Alternatively, you can set a very high `risk_score` threshold.
+
+#### 3. Selective Blocking (Attempts only)
+
+Turn on all warnings, but only block if SMS attempts are high. Warnings like unverified OTPs or geo-location mismatches will still appear in logs (since `weight: 0`) but won't trigger a block.
+
+```yaml
+fraud_protection:
+  enabled: true
+  warnings:
+    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 0
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      weight: 0
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+      weight: 0
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
+      weight: 0
+      enabled: true
+    - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
+      weight: 0
+      enabled: true
+  decisions:
+    block:
+      risk_score: 1
+      block_mode: error
+```
 
 ### Future Work
 
