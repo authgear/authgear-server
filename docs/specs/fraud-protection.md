@@ -5,8 +5,10 @@
   - [Warnings](#warnings)
     - [SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP](#sms_many_phone_number_countries_per_ip)
     - [SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY](#sms_many_failures_per_phone_number_country)
-    - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY](#sms_many_attempts_per_phone_number_country)
-    - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY](#sms_many_unverified_otps_per_phone_number_country)
+    - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_attempts_per_phone_number_country_per_day)
+    - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR](#sms_many_attempts_per_phone_number_country_per_hour)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_unverified_otps_per_phone_number_country_per_day)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR](#sms_many_unverified_otps_per_phone_number_country_per_hour)
     - [SMS_MANY_UNVERIFIED_OTPS_PER_IP](#sms_many_unverified_otps_per_ip)
     - [SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION](#sms_unmatched_phone_number_countries_ip_geo_location)
     - [Notes](#notes)
@@ -42,10 +44,16 @@ fraud_protection:
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
       weight: 1
       enabled: true
-    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
       enabled: true
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 1
       enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP
@@ -94,15 +102,15 @@ The threshold is 50.
 
 `enabled`: boolean. Whether this warning is enabled.
 
-#### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY
-Check if the total number of SMS requested for a specific phone number country exceeds the threshold in 24 hours.
+#### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+Check if the total number of SMS requested for a specific phone number country exceeds the daily threshold in 24 hours.
 
 The threshold depends on the risk of the country.
 
 For High risk countries:
 
 ```
-threshold = max(50, 7 day rolling mean of sms successfully sent to the country per day)
+threshold = max(50, 14 day rolling mean of sms successfully sent to the country per day)
 ```
 
 For Low risk countries:
@@ -114,32 +122,82 @@ threshold = infinity
 For Mid risk countries:
 
 ```
-threshold = max(100, 7 day rolling mean of sms successfully sent to the country per day * 2)
+threshold = max(100, 14 day rolling mean of sms successfully sent to the country per day * 2)
 ```
 
 `enabled`: boolean. Whether this warning is enabled.
 
-#### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY
-Check if the number of unverified OTPs for a specific phone number country exceeds the threshold in 24 hours.
+#### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+Check if the number of SMS requested for a specific phone number country exceeds the hourly threshold.
+
+The threshold is 1/6 of the corresponding daily threshold.
+
+For High risk countries:
+
+```
+threshold = max(50, 14 day rolling mean of sms successfully sent to the country per day) / 6
+```
+
+For Low risk countries:
+
+```
+threshold = infinity
+```
+
+For Mid risk countries:
+
+```
+threshold = max(100, 14 day rolling mean of sms successfully sent to the country per day * 2) / 6
+```
+
+`enabled`: boolean. Whether this warning is enabled.
+
+#### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+Check if the number of unverified OTPs for a specific phone number country exceeds the daily threshold in 24 hours.
 
 The threshold depends on the risk of the country.
 
 For High risk countries:
 
 ```
-threshold = max(15, 7 day rolling max of sms successfully verified to the country per day * 0.2)
+threshold = max(15, 14 day rolling max of sms successfully verified to the country per day * 0.2)
 ```
 
 For Low risk countries:
 
 ```
-threshold = max(300, 7 day rolling max of sms successfully verified to the country per day * 1)
+threshold = max(300, 14 day rolling max of sms successfully verified to the country per day * 1)
 ```
 
 For Mid risk countries:
 
 ```
-threshold = max(30, 7 day rolling max of sms successfully verified to the country per day * 0.5)
+threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5)
+```
+
+`enabled`: boolean. Whether this warning is enabled.
+
+#### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
+
+The threshold is 1/6 of the corresponding daily threshold.
+
+For High risk countries:
+
+```
+threshold = max(15, 14 day rolling max of sms successfully verified to the country per day * 0.2) / 6
+```
+
+For Low risk countries:
+
+```
+threshold = max(300, 14 day rolling max of sms successfully verified to the country per day * 1) / 6
+```
+
+For Mid risk countries:
+
+```
+threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5) / 6
 ```
 
 `enabled`: boolean. Whether this warning is enabled.
@@ -257,9 +315,11 @@ Each sms send request (No matter success or not) will produce a decision record.
     "type": "verification",
   },
   "triggered_warnings": [
-    "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY",
+    "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
+    "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
     "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
-    "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY",
+    "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
+    "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
   ],
   "risk_score": 3,
   "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
@@ -300,9 +360,11 @@ And audit log:
       "decision": "blocked",
       "block_mode": "error",
       "triggered_warnings": [
-        "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY",
+        "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
+        "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
         "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
-        "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY",
+        "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
+        "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
       ],
       "risk_score": 3,
       "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
