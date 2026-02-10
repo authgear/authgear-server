@@ -67,27 +67,18 @@ fraud_protection:
       weight: 1
       enabled: true
   decisions:
-    # Decisions are evaluated in order. The first decision that matches will be executed, and further decisions will be ignored.
-    # If no decisions match, the default behavior is to allow the request.
-    - decision: allow
-      name: always allow major business location
-      allow_when_matches:
-        ip_address:
-          cidrs: ["123.123.1.1/32"]
-          geo_location_codes: ["HK"]
-        phone_number:
-          geo_location_codes: ["HK", "US"]
-          regex: ["^\\+852\\d*$"]
-    - decision: block
-      name: block if high risk score
-      block_mode: error
-      block_thresholds:
-        risk_score: 3
-    - decision: block
-      name: block if number of unverified otp is high
-      block_mode: silent
-      block_thresholds:
-        risk_score: 1
+    # Decisions are evaluated in order: 'allow' rules are checked first, then 'block' rules.
+    # If no rules match, the default behavior is to allow the request.
+    allow:
+      ip_address:
+        cidrs: ["123.123.1.1/32"]
+        geo_location_codes: ["HK"]
+      phone_number:
+        geo_location_codes: ["HK", "US"]
+        regex: ["^\\+852\\d*$"]
+    block:
+      risk_score: 3
+      block_mode: error # error or silent
 ```
 
 ### Warnings
@@ -310,11 +301,9 @@ We can make decisions based on this global `risk_score`:
 ```yaml
 fraud_protection:
   decisions:
-    - decision: block
+    block:
+      risk_score: 10
       block_mode: error
-      name: block if high risk score
-      block_thresholds:
-        risk_score: 10
 ```
 
 ### Decision Record
@@ -413,21 +402,17 @@ If `block_mode` is `silent`, the API will pretends sms has been sent without ret
 ### Future Work
 
 #### Decision: Challenge
-
-```yaml
-fraud_protection:
-  enabled: true
-  warnings:
-    - type: #...
-  decisions:
-    - decision: challenge
-      name: challenge if triggered 1 warnings
-      challenge_thresholds:
-        risk_score: 3
-      challenge:
-        bot_protection: # ...
-        email_verification: #...
-```
+ 
+ ```yaml
+ fraud_protection:
+   enabled: true
+   warnings:
+     - type: #...
+   decisions:
+     challenge:
+       risk_score: 3
+       challenge_mode: bot_protection # or email_verification
+ ```
 
 #### Warning: Custom
 
