@@ -9,7 +9,8 @@
     - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR](#sms_many_attempts_per_phone_number_country_per_hour)
     - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_unverified_otps_per_phone_number_country_per_day)
     - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR](#sms_many_unverified_otps_per_phone_number_country_per_hour)
-    - [SMS_MANY_UNVERIFIED_OTPS_PER_IP](#sms_many_unverified_otps_per_ip)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY](#sms_many_unverified_otps_per_ip_per_day)
+    - [SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR](#sms_many_unverified_otps_per_ip_per_hour)
     - [SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION](#sms_unmatched_phone_number_countries_ip_geo_location)
     - [Notes](#notes)
   - [Country Based Risk Classification](#country-based-risk-classification)
@@ -56,7 +57,10 @@ fraud_protection:
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 1
       enabled: true
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+      weight: 1
+      enabled: true
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
       weight: 1
       enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
@@ -204,10 +208,21 @@ threshold = max(30, 14 day rolling max of sms successfully verified to the count
 
 `enabled`: boolean. Whether this warning is enabled.
 
-#### SMS_MANY_UNVERIFIED_OTPS_PER_IP
-Check if the number of unverified OTPs from a single IP exceeds the threshold.
+#### SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+Check if the number of unverified OTPs from a single IP exceeds the threshold in the past 24 hours.
 
-The threshold is 10.
+```
+threshold = max(20, 0.5 * verified OTPs in the past 24 hours)
+```
+
+`enabled`: boolean. Whether this warning is enabled.
+
+#### SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
+Check if the number of unverified OTPs from a single IP exceeds the hourly threshold.
+
+```
+threshold = max(5, 0.5 * verified OTPs in the past 24 hours / 6)
+```
 
 `enabled`: boolean. Whether this warning is enabled.
 
@@ -319,7 +334,8 @@ Each sms send request (No matter success or not) will produce a decision record.
   "triggered_warnings": [
     "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
     "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
-    "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
+    "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY",
+    "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR",
     "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
     "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
   ],
@@ -364,7 +380,8 @@ And audit log:
       "triggered_warnings": [
         "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
         "SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
-        "SMS_MANY_UNVERIFIED_OTPS_PER_IP",
+        "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY",
+        "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR",
         "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY",
         "SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR",
       ],
