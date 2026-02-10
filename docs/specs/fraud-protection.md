@@ -3,8 +3,8 @@
 - [SMS Pumping](#sms-pumping)
   - [Config](#config)
   - [Warnings](#warnings)
-    - [SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP](#sms_many_phone_number_countries_per_ip)
-    - [SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY](#sms_many_failures_per_phone_number_country)
+    - [SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY](#sms_many_phone_number_countries_per_ip_per_day)
+    - [SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_failures_per_phone_number_country_per_day)
     - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_attempts_per_phone_number_country_per_day)
     - [SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR](#sms_many_attempts_per_phone_number_country_per_hour)
     - [SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY](#sms_many_unverified_otps_per_phone_number_country_per_day)
@@ -38,10 +38,10 @@ fraud_protection:
     low:
       - HK
   warnings:
-    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP
+    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
       weight: 1 # (Optional) Supported values: 0 or 1. If 0, the warning does not contribute to the risk_score.
       enabled: true
-    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
+    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
       enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
@@ -88,14 +88,14 @@ fraud_protection:
 
 ### Warnings
 
-#### SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP
+#### SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
 The threshold is 5.
 
 `enabled`: boolean. Whether this warning is enabled.
 
-#### SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY
+#### SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
 Check if the number of SMS delivery failures for a specific phone number country exceeds the threshold in 24 hours.
 
 The threshold is 50.
