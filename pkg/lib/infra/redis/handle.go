@@ -44,7 +44,7 @@ func (h *Handle) WithConnContext(ctx context.Context, do func(ctx context.Contex
 		}
 	}()
 
-	return do(ctx, conn)
+	return do(ctx, &otelRedisConn{conn: conn})
 }
 
 func (h *Handle) Client() *goredis.Client {
