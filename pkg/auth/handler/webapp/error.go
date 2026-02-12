@@ -15,6 +15,7 @@ func ConfigureErrorRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/errors/error")
 }
 
+// TODO(tung)
 var TemplateWebFatalErrorHTML = template.RegisterHTML(
 	"web/fatal_error.html",
 	Components...,

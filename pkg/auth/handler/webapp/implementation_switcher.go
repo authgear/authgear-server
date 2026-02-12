@@ -53,6 +53,7 @@ func (m *ImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handle
 }
 
 type ImplementationSwitcherHandler struct {
+	// TODO(tung)
 	Interaction http.Handler
 	AuthflowV2  http.Handler
 }
@@ -62,8 +63,6 @@ func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http
 	switch impl {
 	case config.UIImplementationAuthflowV2:
 		h.AuthflowV2.ServeHTTP(w, r)
-	case config.UIImplementationInteraction:
-		h.Interaction.ServeHTTP(w, r)
 	default:
 		panic(fmt.Errorf("unknown ui implementation %s", impl))
 	}
