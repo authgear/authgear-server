@@ -9,13 +9,17 @@ import (
 
 	instrumentationruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/semconv/v1.34.0"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
+	"github.com/authgear/authgear-server/pkg/api/logging"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
@@ -33,6 +37,11 @@ const envvar_OTEL_PROPAGATORS = "OTEL_PROPAGATORS"
 // The returned context contains a *sdkresource.Resource.
 // The returned context contains a *otelhttp.Labeler.
 func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown func(context.Context) error, err error) {
+	// Set up OTel error handler to log errors to stderr
+	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
+		fmt.Fprintf(os.Stderr, "[OTEL_SDK_ERROR] %v\n", err)
+	}))
+
 	// Force producing the deprecated metrics.
 	// See https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
 	// We have to do this because the number of GC count is only available in the deprecated metrics.
@@ -79,6 +88,34 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	// set the global meter provider.
 	otel.SetMeterProvider(meterProvider)
+
+	// Set up trace provider.
+	traceProvider, err := newTracerProvider()
+	if err != nil {
+		return
+	}
+	otel.SetTracerProvider(traceProvider)
+
+	shutdownFuncs = append(shutdownFuncs, traceProvider.Shutdown)
+
+	otlpEndpoint := logging.LoadConfig().OTLPEndpoint
+	var logOptions []log.LoggerProviderOption
+	logOptions = append(logOptions, log.WithResource(res))
+
+	if otlpEndpoint != "" {
+		logExporter, err := otlploghttp.New(ctx,
+			otlploghttp.WithEndpointURL(otlpEndpoint),
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		logOptions = append(logOptions, log.WithProcessor(log.NewBatchProcessor(logExporter)))
+	}
+
+	logProvider := log.NewLoggerProvider(logOptions...)
+	outCtx = WithOTelLoggerProvider(outCtx, logProvider)
+
+	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
 
 	// Start go runtime metrics collection.
 	// Refer to https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
@@ -237,4 +274,11 @@ func newMetricExportersFromEnv(ctx context.Context) (exporters []sdkmetric.Expor
 	}
 
 	return
+}
+
+func newTracerProvider() (*trace.TracerProvider, error) {
+	// We do not collect traces at the moment.
+	// Configure exporters here when we want to collect trace data.
+	tracerProvider := trace.NewTracerProvider()
+	return tracerProvider, nil
 }

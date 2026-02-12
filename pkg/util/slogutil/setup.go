@@ -3,12 +3,37 @@ package slogutil
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	slogmulti "github.com/samber/slog-multi"
+
+	"github.com/authgear/authgear-server/pkg/api/logging"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
-func MakeLogger(strLevel string) *slog.Logger {
+func MakeLogger(ctx context.Context, cfg *logging.LogEnvironmentConfig) *slog.Logger {
+	handlers := []slog.Handler{}
+
+	for _, h := range cfg.Handlers {
+		switch h {
+		case logging.LogHandlerConsole:
+			level := cfg.ConsoleLevel
+			if level == "" {
+				level = cfg.Level
+			}
+			handlers = append(handlers, NewStderrHandler(level))
+		case logging.LogHandlerOTLP:
+			if lp := otelutil.GetOTelLoggerProvider(ctx); lp != nil {
+				level := cfg.OTLPLevel
+				if level == "" {
+					level = cfg.Level
+				}
+				handlers = append(handlers, NewOTelLogHandler(lp, level))
+			}
+		}
+	}
+
+	handlers = append(handlers, NewSentryHandler())
+
 	// This is the main logging pipeline.
 	// It includes the middleware to rich the record,
 	// and handle sensitive information.
@@ -19,8 +44,7 @@ func MakeLogger(strLevel string) *slog.Logger {
 		NewSkipLoggingMiddleware(),
 		NewMaskMiddleware(NewDefaultMaskHandlerOptions()),
 	).Handler(slogmulti.Fanout(
-		NewSentryHandler(),
-		NewStderrHandler(strLevel),
+		handlers...,
 	))
 
 	// The actual handler is a fanout to
@@ -35,14 +59,13 @@ func MakeLogger(strLevel string) *slog.Logger {
 	return logger
 }
 
-// MakeLoggerFromEnv reads environment variable LOG_LEVEL and sets up slog logging.
-// For simplicity, we read the environment variable directly.
-func MakeLoggerFromEnv() *slog.Logger {
-	strLevel := os.Getenv("LOG_LEVEL")
-	return MakeLogger(strLevel)
+// MakeLoggerFromEnv reads environment variables and sets up slog logging.
+func MakeLoggerFromEnv(ctx context.Context) *slog.Logger {
+	cfg := logging.LoadConfig()
+	return MakeLogger(ctx, cfg)
 }
 
 func Setup(ctx context.Context) context.Context {
-	logger := MakeLoggerFromEnv()
+	logger := MakeLoggerFromEnv(ctx)
 	return SetContextLogger(ctx, logger)
 }

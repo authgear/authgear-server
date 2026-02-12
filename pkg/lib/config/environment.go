@@ -74,8 +74,6 @@ type EnvironmentConfig struct {
 	TrustProxy TrustProxy `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
 	DevMode DevMode `envconfig:"DEV_MODE" default:"false"`
-	// LogLevel sets the global log level
-	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
 	// SentryDSN sets the sentry DSN.
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 	// AuthUISentryDSN sets the sentry DSN for auth ui.
