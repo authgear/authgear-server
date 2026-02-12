@@ -12,17 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebSettingsHTML = template.RegisterHTML(
-	"web/settings.html",
-	Components...,
-)
-
-var TemplateWebSettingsAnonymousUserHTML = template.RegisterHTML(
-	"web/settings_anonymous_user.html",
-	Components...,
 )
 
 type SettingsEndpointsProvider interface {

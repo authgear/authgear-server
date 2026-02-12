@@ -1,15 +1,6 @@
 package webapp
 
-import (
-	"time"
-
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebSettingsBiometricHTML = template.RegisterHTML(
-	"web/settings_biometric.html",
-	Components...,
-)
+import "time"
 
 type BiometricIdentity struct {
 	ID          string

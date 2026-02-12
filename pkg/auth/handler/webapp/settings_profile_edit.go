@@ -7,12 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebSettingsProfileEditHTML = template.RegisterHTML(
-	"web/settings_profile_edit.html",
-	Components...,
 )
 
 type SettingsProfileEditUserService interface {

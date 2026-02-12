@@ -4,12 +4,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebSettingsSessionsHTML = template.RegisterHTML(
-	"web/settings_sessions.html",
-	Components...,
 )
 
 type Authorization struct {
