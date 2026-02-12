@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -16,6 +17,12 @@ var TemplateWebSettingsV2DeleteAccountSuccessHTML = template.RegisterHTML(
 	"web/authflowv2/settings_delete_account_success.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsDeleteAccountSuccessRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/delete_account/success")
+}
 
 type AuthflowV2SettingsDeleteAccountSuccessHandler struct {
 	ControllerFactory         handlerwebapp.ControllerFactory

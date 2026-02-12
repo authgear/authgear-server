@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -25,12 +24,6 @@ var TemplateWebSettingsAnonymousUserHTML = template.RegisterHTML(
 	"web/settings_anonymous_user.html",
 	Components...,
 )
-
-func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("OPTIONS", "GET", "POST").
-		WithPathPattern("/settings")
-}
 
 type SettingsEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
