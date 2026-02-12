@@ -8,12 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebSettingsDeleteAccountHTML = template.RegisterHTML(
-	"web/settings_delete_account.html",
-	Components...,
 )
 
 type SettingsDeleteAccountViewModel struct {
