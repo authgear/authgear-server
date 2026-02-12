@@ -1122,6 +1122,7 @@
   "v2.page.forgot-password.default.title": "Forgot password?",
   "v2.page.forgot-password.email.send-via-phone": "Send via Phone",
   "v2.page.forgot-password.phone.send-via-email": "Send via Email",
+  "v2.page.feature-disabled.default.title": "Features has been disabled",
   "v2.page.login.default.subtitle": "Login to {AppName}",
   "v2.page.login.default.switch-to-signup": "No account? <a href=\"{href}\">Create one</a>",
   "v2.page.login.default.title": "Welcome",

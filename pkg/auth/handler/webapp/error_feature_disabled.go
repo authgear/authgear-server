@@ -10,7 +10,7 @@ import (
 )
 
 var TemplateWebFeatureDisabledHTML = template.RegisterHTML(
-	"web/error_feature_disabled.html",
+	"web/authflowv2/error_feature_disabled.html",
 	Components...,
 )
 
@@ -28,7 +28,7 @@ type FeatureDisabledHandler struct {
 
 func (h *FeatureDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	return data, nil
