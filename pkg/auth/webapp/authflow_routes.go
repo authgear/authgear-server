@@ -283,7 +283,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 			state := &webappoauth.WebappOAuthState{
 				AppID:            string(n.AppID),
 				WebSessionID:     webSessionID,
-				UIImplementation: config.Deprecated_UIImplementationAuthflow,
+				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: expectedPath,
 				ProviderAlias:    data.Alias,
