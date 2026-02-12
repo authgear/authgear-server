@@ -851,13 +851,6 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
 
   const [isIframeLoading, setIsIframeLoading] = useState(true);
 
-  useEffect(() => {
-    const message = mapDesignFormStateToPreviewCustomisationMessage(
-      designForm.state
-    );
-    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [designForm.state]);
-
   const supportedPreviewPages = useMemo(
     () => getSupportedPreviewPagesFromConfig(effectiveAppConfig),
     [effectiveAppConfig]
@@ -897,6 +890,14 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   ]);
 
   useEffect(() => {
+    const message = mapDesignFormStateToPreviewCustomisationMessage(
+      designForm.state
+    );
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+  }, [designForm.state]);
+
+  useEffect(() => {
     setIsIframeLoading(true);
   }, [src]);
 
@@ -905,6 +906,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       designForm.state
     );
     setIsIframeLoading(false);
+    // We must use "*" as targetOrigin because the iframe is sandboxed with a unique origin (null).
     authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
   }, [designForm.state]);
 

@@ -3,7 +3,7 @@
 # See https://www.shellcheck.net/wiki/SC3001
 
 check_user_is_correct() {
-	if [ "$(id -u -n)" != "authgear" ]; then
+	if [[ "$(id -u -n)" != "authgear" ]]; then
 		printf 1>&2 "docker-entrypoint.sh is supposed to be run with the user authgear.\n"
 		exit 1
 	fi
@@ -18,28 +18,28 @@ generate_password() {
 }
 
 docker_authgearonce_check_immutable_environment_variables_are_set() {
-	if [ -z "$AUTHGEAR_ONCE_LICENSE_KEY" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_LICENSE_KEY" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_LICENSE_KEY must be set.\n"
 		exit 1
 	fi
-	if [ -z "$AUTHGEAR_ONCE_LICENSE_EXPIRE_AT" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_LICENSE_EXPIRE_AT" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_LICENSE_EXPIRE_AT must be set.\n"
 		exit 1
 	fi
 	# AUTHGEAR_ONCE_LICENSEE_EMAIL is optional.
-	if [ -z "$AUTHGEAR_ONCE_MACHINE_FINGERPRINT" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_MACHINE_FINGERPRINT" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_MACHINE_FINGERPRINT must be set.\n"
 		exit 1
 	fi
-	if [ -z "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_EMAIL must be set.\n"
 		exit 1
 	fi
-	if [ -z "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_PASSWORD must be set.\n"
 		exit 1
 	fi
-	if [ "$(printf "%s" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" | wc -c)" -lt 8 ]; then
+	if [[ "$(printf "%s" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" | wc -c)" -lt 8 ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_PASSWORD must be at least 8 characters long.\n"
 		exit 1
 	fi
@@ -49,7 +49,7 @@ check_http_origin_is_set() {
 	name="AUTHGEAR_HTTP_ORIGIN_$1"
 	value="${!name}"
 
-	if [ -z "$value" ]; then
+	if [[ -z "$value" ]]; then
 		printf 1>&2 "%s must be set. This will be used to configure nginx and certbot.\n" "$name"
 		exit 1
 	fi
@@ -61,7 +61,7 @@ check_http_origin_not_equal_to_each_other() {
 	value1="${!name1}"
 	value2="${!name2}"
 
-	if [ "$value1" = "$value2" ]; then
+	if [[ "$value1" == "$value2" ]]; then
 		printf 1>&2 "%s must not equal %s.\n" "$name1" "$name2"
 		exit 1
 	fi
@@ -129,7 +129,7 @@ docker_postgresql_create_database() {
 SELECT 1 FROM pg_database WHERE datname = :'db';
 	EOSQL
 	)"
-	if [ -z "$db_exists" ]; then
+	if [[ -z "$db_exists" ]]; then
 		docker_postgresql_psql \
 			--dbname postgres \
 			--set db="authgear" <<-'EOSQL'
@@ -190,7 +190,7 @@ docker_nginx_render_server_block() {
 	name="AUTHGEAR_HTTP_ORIGIN_$1"
 	value="${!name}"
 
-	if [ -z "$value" ]; then
+	if [[ -z "$value" ]]; then
 		printf 1>&2 "%s must be set. This will be used to configure nginx and certbot.\n" "$name"
 		exit 1
 	fi
@@ -209,7 +209,7 @@ docker_nginx_render_server_block() {
 	*)
 		;;
 	esac
-	if [ -z "$without_scheme" ]; then
+	if [[ -z "$without_scheme" ]]; then
 		printf 1>&2 "%s must start with http:// or https://.\n" "$name"
 		exit 1
 	fi
@@ -234,19 +234,19 @@ docker_nginx_render_server_block() {
 	*)
 		;;
 	esac
-	if [ "$contains_port" = "true" ]; then
+	if [[ "$contains_port" == "true" ]]; then
 		printf 1>&2 "%s must not contain port.\n" "$name"
 		exit 1
 	fi
-	if [ "$contains_path" = "true" ]; then
+	if [[ "$contains_path" == "true" ]]; then
 		printf 1>&2 "%s must not contain path.\n" "$name"
 		exit 1
 	fi
-	if [ "$contains_query" = "true" ]; then
+	if [[ "$contains_query" == "true" ]]; then
 		printf 1>&2 "%s must not contain query.\n" "$name"
 		exit 1
 	fi
-	if [ "$contains_fragment" = "true" ]; then
+	if [[ "$contains_fragment" == "true" ]]; then
 		printf 1>&2 "%s must not contain fragment.\n" "$name"
 		exit 1
 	fi
@@ -256,7 +256,7 @@ docker_nginx_render_server_block() {
 }
 
 docker_authgearonce_check_mutable_environment_variables_are_set() {
-	if [ -z "$AUTHGEAR_ONCE_IMAGE" ]; then
+	if [[ -z "$AUTHGEAR_ONCE_IMAGE" ]]; then
 		printf 1>&2 "AUTHGEAR_ONCE_IMAGE must be set.\n"
 		exit 1
 	fi
@@ -539,19 +539,19 @@ docker_authgearonce_persist_immutable_environment_variables() {
 		printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
 		printf "export AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD"
 	} >> "$1"
-	if [ -n "$AUTHGEAR_SMTP_HOST" ]; then
+	if [[ -n "$AUTHGEAR_SMTP_HOST" ]]; then
 		printf "export AUTHGEAR_SMTP_HOST=%s\n" "$AUTHGEAR_SMTP_HOST" >> "$1"
 	fi
-	if [ -n "$AUTHGEAR_SMTP_PORT" ]; then
+	if [[ -n "$AUTHGEAR_SMTP_PORT" ]]; then
 		printf "export AUTHGEAR_SMTP_PORT=%s\n" "$AUTHGEAR_SMTP_PORT" >> "$1"
 	fi
-	if [ -n "$AUTHGEAR_SMTP_USERNAME" ]; then
+	if [[ -n "$AUTHGEAR_SMTP_USERNAME" ]]; then
 		printf "export AUTHGEAR_SMTP_USERNAME=%s\n" "$AUTHGEAR_SMTP_USERNAME" >> "$1"
 	fi
-	if [ -n "$AUTHGEAR_SMTP_PASSWORD" ]; then
+	if [[ -n "$AUTHGEAR_SMTP_PASSWORD" ]]; then
 		printf "export AUTHGEAR_SMTP_PASSWORD=%s\n" "$AUTHGEAR_SMTP_PASSWORD" >> "$1"
 	fi
-	if [ -n "$AUTHGEAR_SMTP_SENDER_ADDRESS" ]; then
+	if [[ -n "$AUTHGEAR_SMTP_SENDER_ADDRESS" ]]; then
 		printf "export AUTHGEAR_SMTP_SENDER_ADDRESS=%s\n" "$AUTHGEAR_SMTP_SENDER_ADDRESS" >> "$1"
 	fi
 }
@@ -664,13 +664,13 @@ main() {
 	docker_authgearonce_create_directory
 
 	what_to_do=''
-	if ! [ -r "$AUTHGEARONCE_ENV_SHELL_SCRIPT" ]; then
+	if [[ ! -r "$AUTHGEARONCE_ENV_SHELL_SCRIPT" ]]; then
 		# The env file does not exist.
 		# This means the volume is new.
 		# In this case, we require the environment variables to be set.
 		what_to_do='first_time_setup'
 		docker_authgearonce_create_env_sh
-	elif [ -n "$AUTHGEAR_ONCE_IMAGE" ]; then
+	elif [[ -n "$AUTHGEAR_ONCE_IMAGE" ]]; then
 		# Just pick one of the required environment to check.
 		# If it is non-empty, then the setup command is re-run.
 		what_to_do='rerun_setup'
@@ -693,7 +693,7 @@ main() {
 
 	# If this file exists and its size is greater than zero,
 	# then we consider the database has initialized.
-	if [ -s "$PGDATA/PG_VERSION" ]; then
+	if [[ -s "$PGDATA/PG_VERSION" ]]; then
 		printf 1>&2 "PostgreSQL database directory (%s) seems initialized. Skipping initialization.\n" "$PGDATA"
 	else
 		docker_postgresql_initdb
@@ -719,16 +719,16 @@ main() {
 	docker_authgear_run_database_migrations
 	docker_authgear_create_deployment_runtime_directory
 
-	if [ "$what_to_do" = 'first_time_setup' ]; then
+	if [[ "$what_to_do" == 'first_time_setup' ]]; then
 		docker_authgear_first_time_setup
 		exit_status="$?"
-		if [ "$exit_status" -ne 0 ]; then
+		if [[ "$exit_status" -ne 0 ]]; then
 			exit "$exit_status"
 		fi
-	elif [ "$what_to_do" = 'rerun_setup' ]; then
+	elif [[ "$what_to_do" == 'rerun_setup' ]]; then
 		docker_authgear_rerun_setup
 		exit_status="$?"
-		if [ "$exit_status" -ne 0 ]; then
+		if [[ "$exit_status" -ne 0 ]]; then
 			exit "$exit_status"
 		fi
 	fi
