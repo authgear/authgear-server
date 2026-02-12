@@ -53,9 +53,7 @@ func (m *ImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handle
 }
 
 type ImplementationSwitcherHandler struct {
-	// TODO(tung)
-	Interaction http.Handler
-	AuthflowV2  http.Handler
+	AuthflowV2 http.Handler
 }
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
