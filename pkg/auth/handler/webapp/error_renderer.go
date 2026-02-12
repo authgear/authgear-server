@@ -42,8 +42,6 @@ type ErrorRenderer struct {
 func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	uiImpl := s.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
-	case config.UIImplementationInteraction:
-		s.renderInteractionError(ctx, w, r, err)
 	case config.UIImplementationAuthflowV2:
 		s.renderAuthflowError(ctx, w, r, err)
 	default:
@@ -51,6 +49,7 @@ func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, 
 	}
 }
 
+// TODO(tung)
 func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	apierror := apierrors.AsAPIErrorWithContext(ctx, err)
 

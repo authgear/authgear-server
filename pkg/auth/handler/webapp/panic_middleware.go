@@ -89,8 +89,6 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 						switch uiImpl {
 						case config.UIImplementationAuthflowV2:
 							errorHTML = TemplateV2WebFatalErrorHTML
-						case config.UIImplementationInteraction:
-							errorHTML = TemplateWebFatalErrorHTML
 						default:
 							panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 						}

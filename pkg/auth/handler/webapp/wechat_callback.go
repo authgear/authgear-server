@@ -58,9 +58,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	stateToken := r.Form.Get("state")
-	code := r.Form.Get("code")
-	error_ := r.Form.Get("error")
-	errorDescription := r.Form.Get("error_description")
 
 	updateWebSession := func(ctx context.Context) error {
 		state, err := h.OAuthStateStore.PopAndRecoverState(ctx, stateToken)
@@ -85,26 +82,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				WebappOAuthState: state,
 				Query:            r.Form.Encode(),
 			}
-
-			err = ctrl.UpdateSession(ctx, session)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		case config.UIImplementationInteraction:
-			webSessionID := state.WebSessionID
-			session, err := ctrl.GetSession(ctx, webSessionID)
-			if err != nil {
-				return err
-			}
-
-			step := session.CurrentStep()
-			step.FormData["x_action"] = WechatActionCallback
-			step.FormData["x_code"] = code
-			step.FormData["x_error"] = error_
-			step.FormData["x_error_description"] = errorDescription
-			session.Steps[len(session.Steps)-1] = step
 
 			err = ctrl.UpdateSession(ctx, session)
 			if err != nil {
