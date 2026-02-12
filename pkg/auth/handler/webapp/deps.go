@@ -57,24 +57,18 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ForgotPasswordSuccessHandler), "*"),
 	wire.Struct(new(ResetPasswordHandler), "*"),
 	wire.Struct(new(ResetPasswordSuccessHandler), "*"),
-	wire.Struct(new(SettingsHandler), "*"),
+
 	wire.Struct(new(TesterHandler), "*"),
-	wire.Struct(new(SettingsProfileHandler), "*"),
-	wire.Struct(new(SettingsProfileEditHandler), "*"),
+
 	wire.Struct(new(SettingsIdentityHandler), "*"),
-	wire.Struct(new(SettingsBiometricHandler), "*"),
-	wire.Struct(new(SettingsMFAHandler), "*"),
-	wire.Struct(new(SettingsTOTPHandler), "*"),
-	wire.Struct(new(SettingsOOBOTPHandler), "*"),
+
 	wire.Struct(new(SettingsRecoveryCodeHandler), "*"),
-	wire.Struct(new(SettingsSessionsHandler), "*"),
+
 	wire.Struct(new(ForceChangePasswordHandler), "*"),
-	wire.Struct(new(SettingsChangePasswordHandler), "*"),
+
 	wire.Struct(new(ForceChangeSecondaryPasswordHandler), "*"),
 	wire.Struct(new(SettingsChangeSecondaryPasswordHandler), "*"),
-	wire.Struct(new(SettingsDeleteAccountHandler), "*"),
-	wire.Struct(new(SettingsDeleteAccountSuccessHandler), "*"),
-	wire.Struct(new(SettingsPasskeyHandler), "*"),
+
 	wire.Struct(new(AccountStatusHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
 	wire.Struct(new(ReturnHandler), "*"),
