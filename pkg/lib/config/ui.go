@@ -168,7 +168,6 @@ const (
 type SettingsUIImplementation string
 
 const (
-	SettingsUIImplementationV1 SettingsUIImplementation = "v1"
 	SettingsUIImplementationV2 SettingsUIImplementation = "v2"
 )
 
