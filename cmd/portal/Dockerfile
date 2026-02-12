@@ -26,7 +26,7 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 2: Build the Go binary
-FROM quay.io/theauthgear/golang:1.25.5-noble AS authgear-portal-stage-2
+FROM quay.io/theauthgear/golang:1.25.6-noble AS authgear-portal-stage-2
 
 # Install build time C dependencies
 RUN set -eux; \
