@@ -81,8 +81,13 @@ export function useSimpleForm<State, Result = unknown>(
       ) {
         setCurrentState(initialState);
       }
-      setSubmissionResult(result);
-      setIsSubmitted(true);
+      // Since react 18, state updates could be batched,
+      // causing bugs like NavigationBlockerDialog showing because isDirty is not updated.
+      // Therefore we wait for next tick to ensure latest states are available
+      setTimeout(() => {
+        setSubmissionResult(result);
+        setIsSubmitted(true);
+      });
     } catch (e: unknown) {
       setError(e);
       throw e;
