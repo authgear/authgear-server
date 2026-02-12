@@ -18,7 +18,7 @@ import (
 )
 
 var TemplateWebLogoutHTML = template.RegisterHTML(
-	"web/logout.html",
+	"web/authflowv2/logout.html",
 	Components...,
 )
 
@@ -71,7 +71,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		baseViewModel := h.BaseViewModel.ViewModel(r, w)
+		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 
 		data := map[string]interface{}{}
 
