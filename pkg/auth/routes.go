@@ -304,24 +304,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
 	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppLoginHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2LoginHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2LoginHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppSignupHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2SignupHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2SignupHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppPromoteHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2PromoteHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2PromoteHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappReauthRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppReauthHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2ReauthHandler),
 	})
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppSSOCallbackHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
 	})
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
@@ -418,7 +413,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureResetPasswordRoute(webappPageRoute), p.Handler(newWebAppResetPasswordHandler))
 	router.Add(webapphandler.ConfigureAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAccountStatusHandler))
 	router.Add(webapphandler.ConfigureReturnRoute(webappPageRoute), p.Handler(newWebAppReturnHandler))
-	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappPageRoute), p.Handler(newWebAppConnectWeb3AccountHandler))
@@ -571,8 +565,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureNoProjectSSOCallbackRoute(noProjectRoute), p.RootHandlerWithConfigSource(configSource, newNoProjectSSOCallbackHandler))
 
 	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppNotFoundHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2NotFoundHandler),
 	})
 
 	return router.HTTPHandler()

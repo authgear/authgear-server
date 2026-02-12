@@ -26,11 +26,9 @@ type SSOCallbackHandlerOAuthStateStore interface {
 
 type SSOCallbackHandler struct {
 	AuthflowController *AuthflowController
-	// TODO(tung)
-	ControllerFactory ControllerFactory
-	ErrorRenderer     *ErrorRenderer
-	OAuthStateStore   SSOCallbackHandlerOAuthStateStore
-	AccountManagement *accountmanagement.Service
+	ErrorRenderer      *ErrorRenderer
+	OAuthStateStore    SSOCallbackHandlerOAuthStateStore
+	AccountManagement  *accountmanagement.Service
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -49,33 +49,6 @@ func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, 
 	}
 }
 
-// TODO(tung)
-func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
-	apierror := apierrors.AsAPIErrorWithContext(ctx, err)
-
-	// Show WebUIInvalidSession error in different page.
-	u := *r.URL
-	// If the request method is Get, avoid redirect back to the same path
-	// which causes infinite redirect loop
-	if r.Method == http.MethodGet {
-		u.Path = "/errors/error"
-	}
-	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
-		u.Path = "/errors/error"
-	}
-
-	cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierror)
-	if err != nil {
-		panic(err)
-	}
-	result := webapp.Result{
-		RedirectURI:      u.String(),
-		NavigationAction: webapp.NavigationActionReplace,
-		Cookies:          []*http.Cookie{cookie},
-	}
-	result.WriteResponse(w, r)
-}
-
 func (h *ErrorRenderer) GetErrorData(ctx context.Context, r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
