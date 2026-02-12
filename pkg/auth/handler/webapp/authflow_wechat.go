@@ -60,7 +60,7 @@ func (h *AuthflowWechatHandler) GetData(ctx context.Context, w http.ResponseWrit
 	state := &webappoauth.WebappOAuthState{
 		AppID:            string(h.AppID),
 		WebSessionID:     s.ID,
-		UIImplementation: config.Deprecated_UIImplementationAuthflow,
+		UIImplementation: config.UIImplementationAuthflowV2,
 		XStep:            screen.Screen.StateToken.XStep,
 		ErrorRedirectURI: (&url.URL{
 			Path:     r.URL.Path,
