@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -16,12 +15,6 @@ var TemplateWebSettingsDeleteAccountHTML = template.RegisterHTML(
 	"web/settings_delete_account.html",
 	Components...,
 )
-
-func ConfigureSettingsDeleteAccountRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/delete_account")
-}
 
 type SettingsDeleteAccountViewModel struct {
 	ExpectedAccountDeletionTime time.Time

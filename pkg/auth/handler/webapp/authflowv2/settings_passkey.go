@@ -16,6 +16,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -24,6 +25,12 @@ var TemplateSettingsV2PasskeyHTML = template.RegisterHTML(
 	"web/authflowv2/settings_passkey.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsPasskeyRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/passkey")
+}
 
 type AuthflowV2SettingsPasskeyViewModel struct {
 	PasskeyIdentities   []*identity.Info

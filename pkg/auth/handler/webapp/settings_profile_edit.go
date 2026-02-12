@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -15,12 +14,6 @@ var TemplateWebSettingsProfileEditHTML = template.RegisterHTML(
 	"web/settings_profile_edit.html",
 	Components...,
 )
-
-func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("GET", "POST").
-		WithPathPattern("/settings/profile/:variant/edit")
-}
 
 type SettingsProfileEditUserService interface {
 	GetRaw(ctx context.Context, id string) (*user.User, error)

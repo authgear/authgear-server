@@ -15,6 +15,7 @@ import (
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -23,6 +24,12 @@ var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
 	"web/authflowv2/settings_mfa_totp.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsTOTPRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/mfa/totp")
+}
 
 type AuthflowV2SettingsTOTPViewModel struct {
 	TOTPAuthenticators []*authenticator.TOTP

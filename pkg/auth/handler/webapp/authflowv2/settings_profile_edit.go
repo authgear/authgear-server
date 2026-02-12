@@ -18,6 +18,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+func ConfigureAuthflowV2SettingsProfileEditRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "POST").
+		WithPathPattern("/settings/profile/:variant/edit")
+}
+
 func init() {
 	settingsProfileEditVariantToTemplate = make(map[string]*template.HTML)
 	settingsProfileEditVariantToTemplate["address"] = template.RegisterHTML(

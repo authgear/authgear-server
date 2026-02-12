@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -22,6 +23,12 @@ var TemplateWebSettingsV2DeleteAccountHTML = template.RegisterHTML(
 	"web/authflowv2/settings_delete_account.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsDeleteAccountRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/delete_account")
+}
 
 type AuthflowV2SettingsDeleteAccountViewModel struct {
 	ExpectedAccountDeletionTime time.Time
