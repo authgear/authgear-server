@@ -25,7 +25,7 @@ import (
 )
 
 var TemplateWebTesterHTML = template.RegisterHTML(
-	"web/tester.html",
+	"web/authflowv2/tester.html",
 	Components...,
 )
 

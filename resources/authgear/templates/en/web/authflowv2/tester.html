@@ -1,0 +1,24 @@
+{{ template "authflowv2/__page_frame.html" . }} {{ define "page-content" }}
+<div class="flex-1-0-auto screen-logo-layout">
+  {{ template "authflowv2/__header.html" . }}
+  <div class="screen-title-description">
+    <h1 class="screen-title">
+      {{ include "v2.page.tester.default.title" . }}
+    </h1>
+    <h2 class="screen-description">
+      {{ include "v2.page.tester.default.subtitle" . }}
+    </h2>
+  </div>
+  <div class="h-[464px] code-block overflow-auto">    
+    <pre class="code-block__text w-full h-full">{{ $.UserInfoJson }}</pre>
+  </div>
+  <div class="flex gap-4 flex-col">
+    <a class="block primary-btn w-full" href="/settings"
+      >{{ include "v2.page.tester.default.settings-button-label" . }}</a
+    >
+    <a class="block label-btn w-full" href="{{ $.ReturnURI }}"
+      >{{ include "v2.page.tester.default.back-button-label" . }}</a
+    >
+  </div>
+</div>
+{{ end }}
