@@ -50,6 +50,10 @@ type mockFloat64Histogram struct {
 	options []metric.RecordOption
 }
 
+func (h *mockFloat64Histogram) Enabled(context.Context) bool {
+	return true
+}
+
 var _ metric.Float64Histogram = (*mockFloat64Histogram)(nil)
 
 func (h *mockFloat64Histogram) Record(ctx context.Context, incr float64, options ...metric.RecordOption) {
