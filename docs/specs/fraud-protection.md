@@ -42,31 +42,22 @@ fraud_protection:
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
       weight: 1 # (Optional) Supported values: 0 or 1. If 0, the warning does not contribute to the risk_score.
-      enabled: true
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 1
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 1
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
       weight: 1
-      enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
-      weight: 1
-      enabled: true
+      weight: 0
   decisions:
     # Decisions are evaluated in order: 'allow' rules are checked first, then 'block' rules.
     # If no rules match, the default behavior is to allow the request.
@@ -89,7 +80,6 @@ Check if the number of distinct countries of requested phone numbers from a sing
 
 The threshold is 5.
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
 Check if the number of SMS delivery failures for a specific phone number country exceeds the threshold in 24 hours.
@@ -98,7 +88,6 @@ Check if the number of SMS delivery failures for a specific phone number country
 threshold = max(0.6 * total number of sms delivered in the past 24 hours, 10)
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
 Check if the total number of SMS requested for a specific phone number country exceeds the daily threshold in 24 hours.
@@ -123,7 +112,6 @@ For Mid risk countries:
 threshold = max(100, 14 day rolling mean of sms successfully sent to the country per day * 2)
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
 Check if the number of SMS requested for a specific phone number country exceeds the hourly threshold.
@@ -148,7 +136,6 @@ For Mid risk countries:
 threshold = max(100, 14 day rolling mean of sms successfully sent to the country per day * 2) / 6
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
 Check if the number of unverified OTPs for a specific phone number country exceeds the daily threshold in 24 hours.
@@ -173,7 +160,6 @@ For Mid risk countries:
 threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5)
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
 Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
@@ -198,7 +184,6 @@ For Mid risk countries:
 threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5) / 6
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
 Check if the number of unverified OTPs from a single IP exceeds the threshold in the past 24 hours.
@@ -207,7 +192,6 @@ Check if the number of unverified OTPs from a single IP exceeds the threshold in
 threshold = max(20, 0.5 * verified OTPs in the past 24 hours)
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
 Check if the number of unverified OTPs from a single IP exceeds the hourly threshold.
@@ -216,12 +200,10 @@ Check if the number of unverified OTPs from a single IP exceeds the hourly thres
 threshold = max(5, 0.5 * verified OTPs in the past 24 hours / 6)
 ```
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
 Check if the country of the requested phone number matches the geo-location of the IP address.
 
-`enabled`: boolean. Whether this warning is enabled.
 
 #### Notes
 
@@ -409,23 +391,14 @@ fraud_protection:
   enabled: true
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
-      enabled: true
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-      enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
-      enabled: true
   decisions:
     block:
       risk_score: 1
@@ -441,23 +414,14 @@ fraud_protection:
   enabled: true
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
-      enabled: true
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-      enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
-      enabled: true
   decisions:
     # No block rules are defined, so only audit logs are produced and nothing is blocked.
     block: {}
@@ -475,31 +439,22 @@ fraud_protection:
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 1
-      enabled: true
     - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 1
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
       weight: 0
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
       weight: 0
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
       weight: 0
-      enabled: true
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
       weight: 0
-      enabled: true
     - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
       weight: 0
-      enabled: true
   decisions:
     block:
       risk_score: 1
