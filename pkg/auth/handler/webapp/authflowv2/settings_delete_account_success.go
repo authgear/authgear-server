@@ -7,6 +7,7 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -30,8 +31,16 @@ type AuthflowV2SettingsDeleteAccountSuccessHandler struct {
 	Renderer                  handlerwebapp.Renderer
 	AccountDeletion           *config.AccountDeletionConfig
 	Clock                     clock.Clock
-	UIInfoResolver            handlerwebapp.SettingsDeleteAccountSuccessUIInfoResolver
-	AuthenticationInfoService handlerwebapp.SettingsDeleteAccountSuccessAuthenticationInfoService
+	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+	AuthenticationInfoService SettingsDeleteAccountSuccessAuthenticationInfoService
+}
+
+type SettingsDeleteAccountSuccessUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
+type SettingsDeleteAccountSuccessAuthenticationInfoService interface {
+	Get(ctx context.Context, entryID string) (entry *authenticationinfo.Entry, err error)
 }
 
 func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
