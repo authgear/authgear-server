@@ -23,7 +23,7 @@ func UserExport(ctx context.Context, appProvider *deps.AppProvider, task *redisq
 		Filename: outputFilename,
 	}
 	if taskError != nil {
-		result.Error = apierrors.AsAPIError(taskError)
+		result.Error = apierrors.AsAPIErrorWithContext(ctx, taskError)
 	}
 
 	resultBytes, err := json.Marshal(result)

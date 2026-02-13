@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -20,7 +21,7 @@ func TestValidateCurrentPassword(t *testing.T) {
 	test := func(pe *Expiry, authenticator *authenticator.Password, expected string) {
 		err := pe.Validate(authenticator)
 		if err != nil {
-			e := apierrors.AsAPIError(err)
+			e := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			b, _ := json.Marshal(e)
 			So(string(b), ShouldEqualJSON, expected)
 		} else {

@@ -10,10 +10,10 @@ receivers:
 processors:
   attributes:
     actions:
-    # Set deployment.environment.name so applications do not have to set it themselves with OTEL_RESOURCE_ATTRIBUTES.
-    - key: deployment.environment.name
-      value: local
-      action: upsert
+      # Set deployment.environment.name so applications do not have to set it themselves with OTEL_RESOURCE_ATTRIBUTES.
+      - key: deployment.environment.name
+        value: local
+        action: upsert
 
 exporters:
   prometheusremotewrite:
@@ -22,6 +22,10 @@ exporters:
       insecure: true
     resource_to_telemetry_conversion:
       enabled: true
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
 
 service:
   pipelines:
@@ -29,3 +33,7 @@ service:
       receivers: [otlp]
       processors: [attributes]
       exporters: [prometheusremotewrite]
+    traces:
+      receivers: [otlp]
+      processors: [attributes]
+      exporters: [otlp/tempo]

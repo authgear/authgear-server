@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -46,13 +45,19 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 
 				// Write the error as JSON.
 				if !written {
-					apiError := apierrors.AsAPIError(e)
+					apiError := apierrors.AsAPIErrorWithContext(ctx, e)
 					resp := &api.Response{Error: e}
 					httpStatus := apiError.Code
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(httpStatus)
-					encoder := json.NewEncoder(w)
-					_ = encoder.Encode(resp)
+					bodyBytes, err := resp.EncodeToJSON(ctx)
+					if err != nil {
+						// If encoding the error response fails, there's not much else we can do.
+						// Log the error and proceed without writing a body.
+						logger.WithError(err).Error(ctx, "failed to encode error response")
+						return
+					}
+					_, _ = w.Write(bodyBytes)
 				}
 			}
 		}()

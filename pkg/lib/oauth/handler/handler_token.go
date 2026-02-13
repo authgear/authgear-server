@@ -305,7 +305,7 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			PreparationResult: handleResult.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
 		})
 		if err != nil {
-			err = h.translateAccessTokenError(err)
+			err = h.translateAccessTokenError(ctx, err)
 			return errorResult(err)
 		}
 
@@ -1042,8 +1042,9 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("AnonymousUserDisallowed") {
+	if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == api.InvariantViolated && e.HasCause("AnonymousUserDisallowed")
+	}) {
 		return nil, protocol.NewError("unauthorized_client", "AnonymousUserDisallowed")
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentials.Reason)
@@ -1234,11 +1235,13 @@ func (h *TokenHandler) handleBiometricSetup(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
+	if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == api.InvariantViolated && e.HasCause("BiometricDisallowed")
+	}) {
 		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
-	} else if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("AnonymousUserAddIdentity") {
+	} else if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == api.InvariantViolated && e.HasCause("AnonymousUserAddIdentity")
+	}) {
 		return nil, protocol.NewError("unauthorized_client", "AnonymousUserAddIdentity")
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentials.Reason)
@@ -1299,8 +1302,9 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
+	if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == api.InvariantViolated && e.HasCause("BiometricDisallowed")
+	}) {
 		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentials.Reason)
@@ -2054,11 +2058,11 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 	return token, sToken, err
 }
 
-func (h *TokenHandler) translateAccessTokenError(err error) error {
-	if apiErr := apierrors.AsAPIError(err); apiErr != nil {
-		if apiErr.Reason == hook.HookDisallowed.Reason {
-			return protocol.NewError("server_error", "access token generation is disallowed by hook")
-		}
+func (h *TokenHandler) translateAccessTokenError(ctx context.Context, err error) error {
+	if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Reason == hook.HookDisallowed.Reason
+	}) {
+		return protocol.NewError("server_error", "access token generation is disallowed by hook")
 	}
 
 	return err

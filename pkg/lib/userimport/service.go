@@ -182,7 +182,7 @@ func (s *UserImportService) importRecordInConn(
 		if !apierrors.IsAPIError(err) {
 			logger.WithError(err).Error(ctx, "failed to process import record")
 		}
-		detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
+		detail.Errors = []*apierrors.APIError{apierrors.AsAPIErrorWithContext(ctx, err)}
 	}
 
 	result.Details = append(result.Details, detail)

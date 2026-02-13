@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -34,7 +33,7 @@ func (h *AccountStatusHandler) GetData(ctx context.Context, r *http.Request, rw 
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	if node, ok := graph.CurrentNode().(*nodes.NodeValidateUser); ok {
-		baseViewModel.SetError(node.Error, errorutil.FormatTrackingID(ctx))
+		baseViewModel.SetError(ctx, node.Error)
 	}
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil

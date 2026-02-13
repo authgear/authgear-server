@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -259,6 +260,7 @@ func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.
 		AppID:              string(s.AppID),
 		ClientID:           clientID,
 		OAuth:              oauthContext,
+		TrackingID:         errorutil.FormatTrackingID(ctx),
 	}
 
 	payload.FillContext(eventCtx)

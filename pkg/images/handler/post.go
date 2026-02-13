@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"mime"
@@ -193,7 +192,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		body := &api.Response{Result: map[string]interface{}{
 			"url": fmt.Sprintf("authgearimages:///%s", key),
 		}}
-		bodyBytes, err := json.Marshal(body)
+		bodyBytes, err := body.EncodeToJSON(ctx)
 		if err != nil {
 			return err
 		}

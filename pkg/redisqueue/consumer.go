@@ -308,7 +308,7 @@ func (c *Consumer) work(ctx context.Context) {
 
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to process task")
-		task.Error = apierrors.AsAPIError(err)
+		task.Error = apierrors.AsAPIErrorWithContext(ctx, err)
 	}
 	task.Status = redisqueue.TaskStatusCompleted
 	completedAt := c.clock.NowUTC()

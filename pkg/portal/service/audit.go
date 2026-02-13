@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -146,6 +147,7 @@ func (s *AuditService) makeContext(ctx context.Context, appID string, payload ev
 		UserAgent:          string(s.UserAgentString),
 		ClientID:           clientID,
 		AppID:              appID,
+		TrackingID:         errorutil.FormatTrackingID(ctx),
 	}
 
 	payload.FillContext(eventCtx)

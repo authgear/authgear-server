@@ -280,17 +280,17 @@ func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetM
 	}
 	var apierr *apierrors.APIError
 	if data.IsTimeout {
-		apierr = apierrors.AsAPIError(ErrWhatsappMessageStatusCallbackTimeout)
+		apierr = apierrors.AsAPIErrorWithContext(ctx, ErrWhatsappMessageStatusCallbackTimeout)
 	} else if len(data.Errors) > 0 {
 		// See https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
 		// Message Undeliverable
 		if data.Errors[0].Code == 131026 {
-			apierr = apierrors.AsAPIError(ErrWhatsappUndeliverable)
+			apierr = apierrors.AsAPIErrorWithContext(ctx, ErrWhatsappUndeliverable)
 		} else {
 			logger.GetLogger(ctx).With(
 				slog.Int("error_code", data.Errors[0].Code),
 			).Error(ctx, "unexpected whatsapp status error")
-			apierr = apierrors.AsAPIError(ErrUnexpectedWhatsappMessageStatusError)
+			apierr = apierrors.AsAPIErrorWithContext(ctx, ErrUnexpectedWhatsappMessageStatusError)
 		}
 	}
 	return &GetMessageStatusResult{

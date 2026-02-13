@@ -454,7 +454,7 @@ func (s *Service2) afterPost(
 		if !apierrors.IsAPIError(interactionErr) {
 			logger.WithError(interactionErr).Error(ctx, "interaction error")
 		}
-		errCookie, err := s.ErrorService.SetRecoverableError(ctx, s.Request, apierrors.AsAPIError(interactionErr))
+		errCookie, err := s.ErrorService.SetRecoverableError(ctx, s.Request, apierrors.AsAPIErrorWithContext(ctx, interactionErr))
 		if err != nil {
 			return err
 		}

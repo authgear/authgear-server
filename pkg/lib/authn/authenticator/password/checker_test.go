@@ -104,7 +104,7 @@ func TestValidateNewPassword(t *testing.T) {
 		ctx := context.Background()
 		err := pc.ValidateNewPassword(ctx, userID, password)
 		if err != nil {
-			e := apierrors.AsAPIError(err)
+			e := apierrors.AsAPIErrorWithContext(context.Background(), err)
 			b, _ := json.Marshal(e)
 			So(string(b), ShouldEqualJSON, expected)
 		} else {

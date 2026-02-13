@@ -272,7 +272,7 @@ func (s *MessageSender) updateCodeAfterSent(ctx context.Context, opts SendOption
 		return nil
 	}
 	if result.SendError != nil {
-		code.SendMessageError = apierrors.AsAPIError(result.SendError)
+		code.SendMessageError = apierrors.AsAPIErrorWithContext(ctx, result.SendError)
 	}
 	if result.WhatsappMessageID != "" {
 		code.WhatsappMessageID = result.WhatsappMessageID

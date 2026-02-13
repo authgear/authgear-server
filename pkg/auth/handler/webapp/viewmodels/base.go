@@ -119,11 +119,11 @@ type BaseViewModel struct {
 	IsSettingsAction bool
 }
 
-func (m *BaseViewModel) SetError(err error, trackingID string) {
-	// When we display an error,
-	// we want to see the tracking id of the error not the current request
-	m.TrackingID = trackingID
-	if apiError := asAPIError(err); apiError != nil {
+func (m *BaseViewModel) SetError(ctx context.Context, err error) {
+	if apiError := asAPIError(ctx, err); apiError != nil {
+		// When we display an error,
+		// we want to see the tracking id of the error not the current request
+		m.TrackingID = apiError.TrackingID
 		b, err := json.Marshal(struct {
 			Error *apierrors.APIError `json:"error"`
 		}{apiError})
@@ -380,7 +380,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 	if errorState, ok := m.ErrorService.PopError(ctx, rw, r); ok {
 		model.SetFormJSON(errorState.Form)
-		model.SetError(errorState.Error, errorState.TrackingID)
+		model.SetError(ctx, errorState.Error)
 	}
 
 	if s := webapp.GetSession(ctx); s != nil {

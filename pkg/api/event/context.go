@@ -39,6 +39,7 @@ type Context struct {
 	UserAgent       string        `json:"user_agent,omitempty"`
 	AppID           string        `json:"app_id,omitempty"`
 	ClientID        string        `json:"client_id,omitempty"`
+	TrackingID      string        `json:"tracking_id,omitempty"`
 }
 
 type OAuthContext struct {

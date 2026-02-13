@@ -10,11 +10,9 @@ import (
 var Deprecated_ErrDuplicatedIdentity = api.NewInvariantViolated("DuplicatedIdentity", "identity already exists", nil)
 
 func IsErrDuplicatedIdentity(err error) bool {
-	apiError := apierrors.AsAPIError(err)
-	if apiError.Reason == "InvariantViolated" && apiError.HasCause("DuplicatedIdentity") {
-		return true
-	}
-	return false
+	return apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Reason == "InvariantViolated" && e.HasCause("DuplicatedIdentity")
+	})
 }
 
 func NewErrDuplicatedIdentity(incoming *Spec, existing *Spec) error {

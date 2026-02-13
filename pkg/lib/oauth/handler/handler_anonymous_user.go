@@ -297,8 +297,9 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("AnonymousUserDisallowed") {
+	if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+		return e.Kind == api.InvariantViolated && e.HasCause("AnonymousUserDisallowed")
+	}) {
 		// anonymous user not enabled
 		return nil, apierrors.NewInvalid("anonymous user disallowed")
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
