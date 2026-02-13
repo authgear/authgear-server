@@ -91,6 +91,13 @@ This is neccessary for endpoints like authorization endpoint to propagate the tr
 - x_traceparent: The traceparent. Its value is the same as the `traceparent` header.
 - x_baggage: The baggage. Its value is the same as the `baggage` header, but is base64url encoded to ensure safe propagation through URLs.
 
+And traces MUST end when a flow ends, where a end of flow is defined by whenever a `redirect_uri` is navigated. When the trace ends, we remove the `x_traceparent` and `x_baggage` query parameter.
+
+#### Considerations
+
+- Progagating trace context with query parameters are non-standard. And might cause long traces which is not recommended. However, we still decide to do it because this give us more meaningful traces. If we do per-request traces, then a call to `authenticate()` in SDK will generate multiple traces which do not help much in customer support.
+- As a normal user flow should not span over 20 minutes, we expect no traces longer than 20 minutes should be produced.
+
 ### API Errors
 
 Returns the trace ID in all API Errors.
