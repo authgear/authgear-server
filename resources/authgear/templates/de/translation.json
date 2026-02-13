@@ -886,6 +886,7 @@
   "v2.component.button.default.label-terminate": "Beenden",
   "v2.component.device-token-checkbox.default.label": "Dieses Gerät merken und nicht erneut fragen",
   "v2.component.divider.default.or-label": "oder",
+  "v2.component.error-tracking-id.default.label": "Tracking-ID: {TrackingID}",
   "v2.component.input.default.placeholder-email": "E-Mail-Adresse",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {E-Mail-Adresse} username {Benutzername} other {E-Mail-Adresse oder Benutzername}}",
   "v2.component.input.default.placeholder-phone": "Telefonnummer",

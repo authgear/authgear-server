@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -22,8 +23,9 @@ import (
 const queryKeyError = "q_error"
 
 type ErrorState struct {
-	Form  url.Values
-	Error *apierrors.APIError
+	Form       url.Values          `json:"form,omitempty"`
+	Error      *apierrors.APIError `json:"error,omitempty"`
+	TrackingID string              `json:"tracking_id,omitempty"`
 }
 
 type ErrorService struct {
@@ -166,8 +168,9 @@ func (c *ErrorService) SetRecoverableError(ctx context.Context, r *http.Request,
 	redisKey := redisKeyWebError(c.AppID, tokenHash)
 
 	dataBytes, err := json.Marshal(&ErrorState{
-		Form:  r.Form,
-		Error: value,
+		Form:       r.Form,
+		Error:      value,
+		TrackingID: errorutil.FormatTrackingID(ctx),
 	})
 	if err != nil {
 		return nil, err
@@ -187,9 +190,10 @@ func (c *ErrorService) SetRecoverableError(ctx context.Context, r *http.Request,
 }
 
 // SetNonRecoverableError does NOT retain form.
-func (c *ErrorService) SetNonRecoverableError(result *Result, value *apierrors.APIError) error {
+func (c *ErrorService) SetNonRecoverableError(ctx context.Context, result *Result, value *apierrors.APIError) error {
 	data, err := json.Marshal(&ErrorState{
-		Error: value,
+		Error:      value,
+		TrackingID: errorutil.FormatTrackingID(ctx),
 	})
 	if err != nil {
 		return err

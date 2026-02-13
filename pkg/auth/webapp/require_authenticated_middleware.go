@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type RequireAuthenticatedMiddleware struct{}
@@ -24,7 +25,7 @@ func (m RequireAuthenticatedMiddleware) Handle(next http.Handler) http.Handler {
 				Path:     "/",
 				RawQuery: q.Encode(),
 			}
-			http.Redirect(w, r, u.String(), http.StatusFound)
+			httputil.Redirect(ctx, w, r, u.String(), http.StatusFound)
 		} else {
 			next.ServeHTTP(w, r)
 		}

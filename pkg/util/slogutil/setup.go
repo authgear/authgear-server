@@ -41,6 +41,7 @@ func MakeLogger(ctx context.Context, cfg *logging.LogEnvironmentConfig) *slog.Lo
 		NewErrorDetailMiddleware(),
 		NewStackTraceMiddleware(),
 		NewContextCauseMiddleware(),
+		NewOTelTraceStateMiddleware(),
 		NewSkipLoggingMiddleware(),
 		NewMaskMiddleware(NewDefaultMaskHandlerOptions()),
 	).Handler(slogmulti.Fanout(

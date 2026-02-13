@@ -1,6 +1,7 @@
 package otelutil
 
 import (
+	"encoding/base64"
 	"net"
 	"net/http"
 	"strings"
@@ -126,7 +127,24 @@ func WithHTTPRoute(httpRoute string) func(http.Handler) http.Handler {
 
 func WithOtelContext(httpRoute string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return otelhttp.NewHandler(next, httpRoute)
+		otelHandler := otelhttp.NewHandler(next, httpRoute)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Extract trace context from query parameters if not present in headers.
+			// This allows trace propagation through redirects or links.
+			if r.Header.Get(headerNameTraceParent) == "" {
+				// We use "x_traceparent" and "x_baggage" in query parameters.
+				// x_baggage is base64 RawURLEncoded.
+				if tp := r.URL.Query().Get(queryNameTraceParent); tp != "" {
+					r.Header.Set(headerNameTraceParent, tp)
+				}
+				if b64 := r.URL.Query().Get(queryNameBaggage); b64 != "" {
+					if decoded, err := base64.RawURLEncoding.DecodeString(b64); err == nil {
+						r.Header.Set(headerNameBaggage, string(decoded))
+					}
+				}
+			}
+			otelHandler.ServeHTTP(w, r)
+		})
 	}
 }
 

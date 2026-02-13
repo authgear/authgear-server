@@ -36,13 +36,13 @@ type loginResult interface {
 	loginResult()
 }
 
-type loginResultRedirect struct {
+type loginResultInternalRedirect struct {
 	RedirectURL string
 }
 
-var _ loginResult = &loginResultRedirect{}
+var _ loginResult = &loginResultInternalRedirect{}
 
-func (l *loginResultRedirect) loginResult() {}
+func (l *loginResultInternalRedirect) loginResult() {}
 
 type loginResultSAMLResponse struct {
 	Response    samlprotocol.Respondable
@@ -94,8 +94,8 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch result := result.(type) {
-	case *loginResultRedirect:
-		redirectResult := &httputil.ResultRedirect{
+	case *loginResultInternalRedirect:
+		redirectResult := &httputil.InternalRedirectResult{
 			URL: result.RedirectURL,
 		}
 		redirectResult.WriteResponse(rw, r)
@@ -431,7 +431,7 @@ func (h *LoginHandler) startSSOFlow(
 		return nil, err
 	}
 
-	return &loginResultRedirect{
+	return &loginResultInternalRedirect{
 		RedirectURL: endpoint.String(),
 	}, nil
 }

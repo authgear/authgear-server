@@ -69,7 +69,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 				Path:     r.URL.Path,
 				RawQuery: r.URL.Query().Encode(),
 			}
-			redirect := httputil.ResultRedirect{
+			redirect := httputil.InternalRedirectResult{
 				URL:     u.String(),
 				Cookies: cookies,
 			}
@@ -86,7 +86,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 				Path:     r.URL.Path,
 				RawQuery: r.URL.Query().Encode(),
 			}
-			redirect := httputil.ResultRedirect{
+			redirect := httputil.InternalRedirectResult{
 				URL:     u.String(),
 				Cookies: cookies,
 			}

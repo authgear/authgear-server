@@ -886,6 +886,7 @@
   "v2.component.button.default.label-terminate": "Tapusin",
   "v2.component.device-token-checkbox.default.label": "Tandaan ang device na ito, at huwag nang tanungin muli",
   "v2.component.divider.default.or-label": "o",
+  "v2.component.error-tracking-id.default.label": "Tracking ID: {TrackingID}",
   "v2.component.input.default.placeholder-email": "Email address",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {Email address} username {Username} other {Email address o username}}",
   "v2.component.input.default.placeholder-phone": "Numero ng telepono",

@@ -56,7 +56,7 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 		)
 		logoutURL := h.URLs.LogoutURL(endSessionURL)
 
-		http.Redirect(rw, r, logoutURL.String(), http.StatusFound)
+		httputil.Redirect(ctx, rw, r, logoutURL.String(), http.StatusFound)
 		return nil
 	}
 

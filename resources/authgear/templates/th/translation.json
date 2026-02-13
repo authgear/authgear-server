@@ -886,6 +886,7 @@
   "v2.component.button.default.label-terminate": "สิ้นสุด",
   "v2.component.device-token-checkbox.default.label": "จดจำอุปกรณ์นี้ และอย่าถามอีก",
   "v2.component.divider.default.or-label": "หรือ",
+  "v2.component.error-tracking-id.default.label": "รหัสติดตาม: {TrackingID}",
   "v2.component.input.default.placeholder-email": "ที่อยู่อีเมล",
   "v2.component.input.default.placeholder-login-id": "{variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
   "v2.component.input.default.placeholder-phone": "หมายเลขโทรศัพท์",

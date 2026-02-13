@@ -507,7 +507,7 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 			return nil, err
 		}
 
-		resp := &httputil.ResultRedirect{
+		resp := &httputil.InternalRedirectResult{
 			Cookies: []*http.Cookie{
 				h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID),
 			},
