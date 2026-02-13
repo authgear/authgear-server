@@ -30,6 +30,8 @@
 
 **authgear.yaml**
 
+An example:
+
 ```yaml
 fraud_protection:
   enabled: true
@@ -71,6 +73,55 @@ fraud_protection:
     block:
       risk_score: 3
       block_mode: error # error or silent
+```
+
+The default:
+
+
+```yaml
+fraud_protection:
+  enabled: true
+  geo_location_risks:
+    high:
+      - DZ
+      - AZ
+      - BD
+      - CU
+      - IR
+      - IL
+      - NG
+      - OM
+      - PK
+      - PS
+      - LK
+      - SY
+      - TJ
+      - TN
+    low:
+      - US
+      - CA
+  warnings:
+    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
+      weight: 1
+    - type: SMS_MANY_FAILURES_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+    - type: SMS_MANY_ATTEMPTS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      weight: 1
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
+      weight: 1
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
+      weight: 1
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
+      weight: 1
+    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
+      weight: 1
+    - type: SMS_UNMATCHED_PHONE_NUMBER_COUNTRIES_IP_GEO_LOCATION
+      weight: 0
+  decisions:
+    allow: {}
+    block: {}
 ```
 
 ### Warnings
