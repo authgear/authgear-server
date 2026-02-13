@@ -141,7 +141,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.95 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/nyaruka/phonenumbers v1.6.8 // indirect
+	github.com/nyaruka/phonenumbers v1.6.9 // indirect
 	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/oschwald/geoip2-golang v1.13.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
