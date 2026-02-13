@@ -5,6 +5,6 @@ import (
 )
 
 var TemplateWebConsentHTML = template.RegisterHTML(
-	"web/consent.html",
+	"web/authflowv2/consent.html",
 	Components...,
 )

@@ -1,0 +1,28 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+{{ $appName := (translate "app.name" nil) }}
+{{ $clientName := or $.ClientName "null" }}
+
+<div class="flex-1-0-auto screen-icon-layout">
+  {{ template "authflowv2/__header.html" . }}
+  <div class="screen-title-description">
+    <h1 class="screen-title">
+      {{ include "v2.page.logout.default.title" (dict "AppName" $appName "ClientName" $clientName) }}
+    </h1>
+    <h2 class="screen-description">
+    </h2>
+  </div>
+  <div></div>
+  <form method="post" novalidate>
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value="logout"
+      data-turbo="false"
+      data-authgear-event="authgear.button.sign_out"
+    >{{ include "v2.component.button.default.label-logout" nil }}</button>
+  </form>
+</div>
+{{ end }}

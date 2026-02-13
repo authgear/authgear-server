@@ -1,0 +1,94 @@
+{{ template "authflowv2/__page_frame.html" . }}
+
+{{ define "page-content" }}
+
+{{ $appName := (translate "app.name" nil) }}
+{{ $clientName := or $.ClientName "null" }}
+
+<div class="flex-1-0-auto screen-icon-layout">
+  {{ template "authflowv2/__header.html" . }}
+  <div class="screen-title-description">
+    <h1 class="screen-title">
+      {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
+    </h1>
+    <div class="flex flex-col gap-4">
+      <p class="text-center text-[1rem] font-medium text-[var(--color-neutral-700)] leading-[1.5rem]">
+        {{ include "v2.page.consent.default.signed-in-as-label" $.UserProfile }}
+      </p>
+      <h2 class="screen-description flex flex-col gap-4">
+        <p>
+          {{ include "v2.page.consent.default.subtitle" (dict "ClientName" $clientName) }}
+        </p>
+        <ul class="list-disc list-inside text-start">
+          {{ if (has "https://authgear.com/scopes/full-userinfo" $.Scopes) }}
+            <li>
+              {{ template "consent-scopes-full-userinfo" }}
+            </li>
+          {{ end }}
+
+          {{ if (has "profile" $.Scopes) }}
+            <li>
+              {{ template "consent-scopes-profile" }}
+            </li>
+          {{ end }}
+
+          {{ if (has "email" $.Scopes) }}
+            <li>
+              {{ template "consent-scopes-email" }}
+            </li>
+          {{ end }}
+
+          {{ if (has "phone" $.Scopes) }}
+            <li>
+              {{ template "consent-scopes-phone" }}
+            </li>
+          {{ end }}
+
+          {{ if (has "address" $.Scopes) }}
+            <li>
+              {{ template "consent-scopes-address" }}
+            </li>
+          {{ end }}
+        </ul>
+        {{ if (and $.ClientPolicyURI $.ClientTOSURI) }}
+          <div class="text-sm primary-txt">
+            {{ template "consent-policy-and-tos-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI "tosURI" $.ClientTOSURI) }}
+          </div>
+        {{ else if $.ClientPolicyURI }}
+          <div class="text-sm primary-txt">
+            {{ template "consent-policy-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI) }}
+          </div>
+        {{ else if $.ClientTOSURI }}
+          <div class="text-sm primary-txt">
+            {{ template "consent-tos-link-desc" (dict "clientName" $.ClientName "tosURI" $.ClientTOSURI) }}
+          </div>
+        {{ end }}
+      </h2>
+    </div>
+  </div>
+  <div></div>
+  <div class="flex flex-col gap-4">
+    <form method="post" novalidate>
+      <button
+        class="primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value="consent"
+        data-turbo="false"
+        data-authgear-event="authgear.button.consent_allow"
+      >{{ include "v2.page.consent.default.continue-button-label" . }}</button>
+    </form>
+
+    <form method="post" novalidate>
+      <button
+        class="label-btn w-full"
+        type="submit"
+        name="x_action"
+        value="cancel"
+        data-turbo="false"
+        data-authgear-event="authgear.button.consent_cancel"
+      >{{ include "v2.component.button.default.label-cancel" . }}</button>
+    </form>
+  </div>
+</div>
+{{ end }}
