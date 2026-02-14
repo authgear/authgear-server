@@ -73,3 +73,35 @@ identity:
   biometric:
     list_enabled: false
 ```
+
+## Errors
+
+### Invalid Account Status
+
+If a user with one of the following status:
+
+- Disabled
+- Deactivated
+- Scheduled deletion by admin
+- Scheduled deletion by end-user
+- Scheduled anonymization by admin
+
+is trying to use Biometric login, the login attempt will be rejected, and an error will be returned by the token endpoint.
+
+The error format follows [rfc6749 section 5.2](https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2), with `error=invalid_account_status`. The following is an example of error when a disbled user is trying to use biometric login:
+
+```
+error=invalid_account_status
+error_description=user is disabled
+```
+
+The SDK should simply throw an `OAuthError` containing the same information as the error returned from the token endpoint, and stop the login process. The biometric key should be kept.
+
+The error object thrown by the SDK should looks like:
+
+```swift
+OAuthError(
+  error="invalid_account_status",
+  error_description="user is disabled"
+)
+```
