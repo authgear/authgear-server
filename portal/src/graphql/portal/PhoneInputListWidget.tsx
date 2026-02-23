@@ -273,6 +273,8 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
           : null;
 
       const lst: ListItem[] = [];
+      const enabledItems: ListItem[] = [];
+      const disabledItems: ListItem[] = [];
 
       const makeItem = (alpha2: string): ListItem => {
         const country = COUNTRY_MAP[alpha2];
@@ -288,17 +290,27 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
         };
       };
 
+      // Add pinned items first
       for (const alpha2 of pinnedAlpha2) {
         lst.push(makeItem(alpha2));
       }
 
+      // Separate enabled and disabled items
       for (const country of ALL_COUNTRIES) {
         if (pinned.has(country.Alpha2)) {
           continue;
         }
 
-        lst.push(makeItem(country.Alpha2));
+        const item = makeItem(country.Alpha2);
+        if (item.disabled) {
+          disabledItems.push(item);
+        } else {
+          enabledItems.push(item);
+        }
       }
+
+      lst.push(...enabledItems);
+      lst.push(...disabledItems);
 
       return lst;
     }, [
