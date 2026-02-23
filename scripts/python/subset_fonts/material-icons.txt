@@ -68,6 +68,7 @@ link
 list
 lock
 login
+logout
 lowercase
 mail
 male
