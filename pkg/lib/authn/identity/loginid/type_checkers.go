@@ -343,21 +343,9 @@ func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.C
 		return
 	}
 
-	if len(c.Alpha2AllowList) > 0 {
-		isAllowed := false
-		for _, allow := range c.Alpha2AllowList {
-			// Allow the phone number if any of the possible region code is in allow list
-			for _, alpha2 := range parsed.Alpha2 {
-				if allow == alpha2 {
-					isAllowed = true
-					break
-				}
-			}
-		}
-		if !isAllowed {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
-			return
-		}
+	if !phone.IsPhoneNumberCountryAllowed(parsed, c.Alpha2AllowList) {
+		validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+		return
 	}
 }
 
