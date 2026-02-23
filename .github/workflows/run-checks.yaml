@@ -15,7 +15,7 @@ jobs:
       working-directory: ./authui
     - name: Run npm audit
       env:
-        AUDIT_LEVEL: high
+        AUDIT_LEVEL: critical
       run: |
         if [ -z "${AUDIT_LEVEL}" ]; then
           npm audit
@@ -64,7 +64,7 @@ jobs:
       working-directory: ./portal
     - name: Run npm audit
       env:
-        AUDIT_LEVEL: high
+        AUDIT_LEVEL: critical
       run: |
         if [ -z "${AUDIT_LEVEL}" ]; then
           npm audit
