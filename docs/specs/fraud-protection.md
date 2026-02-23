@@ -91,6 +91,15 @@ fraud_protection:
 
 ### Warnings
 
+We have identified two primary patterns of SMS pumping attacks:
+
+1. **Non-rotating IP attacks**: Attackers send a large number of OTP requests from the same IP address to different phone numbers across multiple countries. These are effectively blocked by IP-based metrics:
+   - `SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY` - Detects when many countries are targeted from a single IP
+   - `SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY` and `SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR` - Detects when many unverified OTPs are requested from a single IP
+
+2. **Rotating IP attacks**: Attackers change their IP address frequently to evade IP-based detection while targeting the same phone number. These are effectively blocked by phone-number-country based metrics:
+   - `SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY` and `SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR` - Detects when many unverified OTPs are requested for phone numbers in a specific country, regardless of IP
+
 #### SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
