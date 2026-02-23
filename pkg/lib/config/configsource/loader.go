@@ -42,6 +42,24 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 		SecretConfig:  secretConfig,
 		FeatureConfig: featureConfig,
 	}
+
+	// Filter phone countries based on feature config
+	if cfg.AppConfig.UI != nil && cfg.AppConfig.UI.PhoneInput != nil &&
+		cfg.FeatureConfig.UI != nil && cfg.FeatureConfig.UI.PhoneInput != nil {
+		if cfg.AppConfig.UI.PhoneInput.AllowList != nil {
+			cfg.AppConfig.UI.PhoneInput.AllowList = config.IntersectAllowlist(
+				cfg.AppConfig.UI.PhoneInput.AllowList,
+				cfg.FeatureConfig.UI.PhoneInput.AllowList,
+			)
+		}
+		if cfg.AppConfig.UI.PhoneInput.PinnedList != nil {
+			cfg.AppConfig.UI.PhoneInput.PinnedList = config.IntersectAllowlist(
+				cfg.AppConfig.UI.PhoneInput.PinnedList,
+				cfg.FeatureConfig.UI.PhoneInput.AllowList,
+			)
+		}
+	}
+
 	if err = cfg.SecretConfig.Validate(ctx, cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)
 	}
