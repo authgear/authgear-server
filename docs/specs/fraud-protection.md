@@ -12,13 +12,11 @@
   - [Country Based Risk Classification](#country-based-risk-classification)
   - [Environment Variables](#environment-variables)
   - [Decision Record](#decision-record)
-  - [Risk Scoring](#risk-scoring)
   - [API Error](#api-error)
   - [Examples](#examples)
 - [Future Work](#future-work)
   - [Decision: Challenge](#decision-challenge)
   - [Warning: Custom](#warning-custom)
-  - [Support weights other than 0 and 1](#support-weights-other-than-0-and-1)
 
 ## SMS Pumping
 
@@ -39,28 +37,20 @@ fraud_protection:
       - HK
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
-      weight: 1 # (Optional) Supported values: 0 or 1. If 0, the warning does not contribute to the risk_score.
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-      weight: 1
-  decisions:
-    # Decisions are evaluated in order: 'allow' rules are checked first, then 'block' rules.
-    # If no rules match, the default behavior is to allow the request.
-    allow:
+  decision:
+    always_allow:
+      # If any rule matches, the request is always allowed regardless of warnings.
       ip_address:
         cidrs: ["123.123.1.1/32"]
         geo_location_codes: ["HK"]
       phone_number:
         geo_location_codes: ["HK", "US"]
         regex: ["^\\+852\\d*$"]
-    block:
-      risk_score: 3
-      block_mode: error # error or silent
+    action: deny_if_any_warning # record_only or deny_if_any_warning
 ```
 
 The default:
@@ -90,18 +80,13 @@ fraud_protection:
       - CA
   warnings:
     - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
-      weight: 1
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-      weight: 1
-  decisions:
-    allow: {}
-    block: {}
+  decision:
+    always_allow: {}
+    action: record_only
 ```
 
 ### Warnings
@@ -239,27 +224,6 @@ FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT=EG,UA
 FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT=HK
 ```
 
-### Risk Scoring
-
-Each warning has a `weight` configuration (default `1`). Currently, only values `0` and `1` are supported.
-- `weight: 1`: The warning contributes its score to the global `risk_score`.
-- `weight: 0`: The warning is logged but does not contribute to the `risk_score`.
-
-A single, global `risk_score` is calculated for each request using the equation:
-`risk_score = sum(warning_score * weight)` for all triggered warnings.
-
-Where `warning_score` is specific to each warning type (usually `1`).
-
-We can make decisions based on this global `risk_score`:
-
-```yaml
-fraud_protection:
-  decisions:
-    block:
-      risk_score: 10
-      block_mode: error
-```
-
 ### Decision Record
 
 Each sms send request (No matter success or not) will produce a decision record.
@@ -280,7 +244,6 @@ Each sms send request (No matter success or not) will produce a decision record.
     "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY",
     "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR",
   ],
-  "risk_score": 3,
   "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
   "ip_address": "203.0.113.42",
   "http_url": "https://example.authgear-apps.com/",
@@ -324,7 +287,6 @@ And audit log:
         "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY",
         "SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR",
       ],
-      "risk_score": 3,
       "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
       "ip_address": "203.0.113.42",
       "geo_location_code": "US",
@@ -337,7 +299,7 @@ And audit log:
 
 ### API Error
 
-If `block_mode` is `error`, API error will be returned.
+When `action: deny_if_any_warning` and a warning is triggered, an API error will be returned.
 
 ```json
 {
@@ -347,11 +309,11 @@ If `block_mode` is `error`, API error will be returned.
 }
 ```
 
-If `block_mode` is `silent`, the API will pretends sms has been sent without returning error.
+When `action: record_only`, warnings are logged but the request is always allowed.
 
 ### Examples
 
-#### 1. Turn on all warnings, block if at least one warning triggered
+#### 1. Turn on all warnings, deny if any warning triggered
 
 ```yaml
 fraud_protection:
@@ -362,15 +324,13 @@ fraud_protection:
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-  decisions:
-    block:
-      risk_score: 1
-      block_mode: error
+  decision:
+    action: deny_if_any_warning
 ```
 
-#### 2. Observe only. No blocking
+#### 2. Record only (Diagnose mode). No denial
 
-By not providing a `block` configuration, triggered warnings will be recorded in logs but the request will always be allowed.
+Triggered warnings will be recorded in logs but requests will always be allowed.
 
 ```yaml
 fraud_protection:
@@ -381,41 +341,14 @@ fraud_protection:
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
     - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-  decisions:
-    # No block rules are defined, so only audit logs are produced and nothing is blocked.
-    block: {}
-```
-
-Alternatively, you can set a very high `risk_score` threshold.
-
-#### 3. Selective Blocking (Unverified OTPs only)
-
-Turn on all warnings, but only block if unverified OTP metrics are high. Warnings like phone number country mismatches will still appear in logs (since `weight: 0`) but won't trigger a block.
-
-```yaml
-fraud_protection:
-  enabled: true
-  warnings:
-    - type: SMS_MANY_PHONE_NUMBER_COUNTRIES_PER_IP_PER_DAY
-      weight: 0
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_DAY
-      weight: 1
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_PHONE_NUMBER_COUNTRY_PER_HOUR
-      weight: 1
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_DAY
-      weight: 1
-    - type: SMS_MANY_UNVERIFIED_OTPS_PER_IP_PER_HOUR
-      weight: 1
-  decisions:
-    block:
-      risk_score: 1
-      block_mode: error
+  decision:
+    action: record_only
 ```
 
 ### Future Work
 
 #### Decision: Challenge
- 
+
  ```yaml
  fraud_protection:
    enabled: true
@@ -423,7 +356,6 @@ fraud_protection:
      - type: #...
    decisions:
      challenge:
-       risk_score: 3
        challenge_mode: bot_protection # or email_verification
  ```
 
@@ -438,8 +370,4 @@ fraud_protection:
       hook:
         url: authgeardeno:///deno/script.ts
 ```
-
-#### Support weights other than 0 and 1
-
-In the future, we will support weights other than `0` and `1` (e.g., `0.5`, `2`) to allow more fine-grained risk scoring where some warnings are more significant than others.
 
