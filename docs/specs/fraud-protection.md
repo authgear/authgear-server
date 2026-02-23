@@ -167,6 +167,10 @@ Q: Why do not support IP range?
 
 A: By observation, if the attacker is capable to switch IP during an attack, usually it is difficult to define a meaningful attempt threshold for a ip range to block. If the attacker does not switch IP address, then per IP metrics can be used.
 
+Q: How are unverified OTP counts calculated?
+
+A: Unverified OTP counts include OTPs that were sent but not verified by the user. However, OTPs sent during a login, signup, or forgot password flow are excluded from the count if the flow was completed successfully using an alternative authentication method (e.g., passkey, password). This prevents legitimate flows where the user chose a different method from being counted as SMS pumping attempts.
+
 ### Country Based Risk Classification
 
 We define 3 level of risk. High, Mid, Low.
