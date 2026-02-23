@@ -59,6 +59,9 @@ export function useAuditLogEntryQueryLazyQuery(baseOptions?: Apollo.LazyQueryHoo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>(AuditLogEntryQueryDocument, options);
         }
+// @ts-ignore
+export function useAuditLogEntryQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>;
+export function useAuditLogEntryQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AuditLogEntryQueryQuery | undefined, AuditLogEntryQueryQueryVariables>;
 export function useAuditLogEntryQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>(AuditLogEntryQueryDocument, options);

@@ -73,6 +73,9 @@ export function useAnalyticChartsQueryLazyQuery(baseOptions?: Apollo.LazyQueryHo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>(AnalyticChartsQueryDocument, options);
         }
+// @ts-ignore
+export function useAnalyticChartsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>;
+export function useAnalyticChartsQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AnalyticChartsQueryQuery | undefined, AnalyticChartsQueryQueryVariables>;
 export function useAnalyticChartsQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>(AnalyticChartsQueryDocument, options);

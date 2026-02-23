@@ -120,6 +120,9 @@ export function useSubscriptionScreenQueryLazyQuery(baseOptions?: Apollo.LazyQue
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>(SubscriptionScreenQueryDocument, options);
         }
+// @ts-ignore
+export function useSubscriptionScreenQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>): Apollo.UseSuspenseQueryResult<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>;
+export function useSubscriptionScreenQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>): Apollo.UseSuspenseQueryResult<SubscriptionScreenQueryQuery | undefined, SubscriptionScreenQueryQueryVariables>;
 export function useSubscriptionScreenQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>(SubscriptionScreenQueryDocument, options);

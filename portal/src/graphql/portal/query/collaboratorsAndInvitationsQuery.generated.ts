@@ -65,6 +65,9 @@ export function useCollaboratorsAndInvitationsQueryLazyQuery(baseOptions?: Apoll
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
         }
+// @ts-ignore
+export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>): Apollo.UseSuspenseQueryResult<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>;
+export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>): Apollo.UseSuspenseQueryResult<CollaboratorsAndInvitationsQueryQuery | undefined, CollaboratorsAndInvitationsQueryQueryVariables>;
 export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);

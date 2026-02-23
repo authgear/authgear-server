@@ -134,6 +134,9 @@ export function useAppAndSecretConfigQueryLazyQuery(baseOptions?: Apollo.LazyQue
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>(AppAndSecretConfigQueryDocument, options);
         }
+// @ts-ignore
+export function useAppAndSecretConfigQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>;
+export function useAppAndSecretConfigQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AppAndSecretConfigQueryQuery | undefined, AppAndSecretConfigQueryQueryVariables>;
 export function useAppAndSecretConfigQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AppAndSecretConfigQueryQuery, AppAndSecretConfigQueryQueryVariables>(AppAndSecretConfigQueryDocument, options);

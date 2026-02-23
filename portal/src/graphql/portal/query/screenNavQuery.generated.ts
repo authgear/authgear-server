@@ -56,6 +56,9 @@ export function useScreenNavQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
         }
+// @ts-ignore
+export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>;
+export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ScreenNavQueryQuery | undefined, ScreenNavQueryQueryVariables>;
 export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);

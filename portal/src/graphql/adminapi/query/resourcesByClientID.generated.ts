@@ -61,6 +61,9 @@ export function useGetResourcesByClientIdLazyQuery(baseOptions?: Apollo.LazyQuer
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>(GetResourcesByClientIdDocument, options);
         }
+// @ts-ignore
+export function useGetResourcesByClientIdSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>): Apollo.UseSuspenseQueryResult<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>;
+export function useGetResourcesByClientIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>): Apollo.UseSuspenseQueryResult<GetResourcesByClientIdQuery | undefined, GetResourcesByClientIdQueryVariables>;
 export function useGetResourcesByClientIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GetResourcesByClientIdQuery, GetResourcesByClientIdQueryVariables>(GetResourcesByClientIdDocument, options);
