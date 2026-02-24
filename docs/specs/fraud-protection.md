@@ -104,29 +104,51 @@ Check if the number of unverified OTPs for a specific phone number country excee
 threshold = max(
   30,                                                    # (1)
   verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
-  verified_otps_to_country_past_24h * 0.3               # (3)
+  verified_otps_to_country_past_24h * 0.2               # (3)
 )
 ```
 
 - **(1) Constant lower bound**: Allows a minimum of 30 unverified OTPs regardless of history. This handles the initial launch period when there is no verified OTP data yet.
 - **(2) 14-day rolling max × 20%**: Provides a stable baseline quota derived from historical traffic. Using the rolling max (rather than average) ensures the threshold does not drop too aggressively after a high-traffic day.
-- **(3) Past 24h verified × 30%**: Adapts to sudden traffic spikes. A higher multiplier (30% vs 20% for the historical baseline) ensures the threshold reacts more generously on spike days, reducing false positives when traffic surges unexpectedly.
+- **(3) Past 24h verified × 20%**: Adapts to sudden traffic spikes. Using the same multiplier as the historical baseline ensures factor (3) only becomes the binding factor on true spike days — when today's verified OTP volume significantly exceeds the 14-day max.
 
 
 #### SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
 Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
 
-The threshold is 1/6 of the corresponding daily threshold, applying the same three factors:
-
 ```
 threshold = max(
-  30,                                                    # (1)
-  verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
-  verified_otps_to_country_past_24h * 0.3               # (3)
-) / 6
+  daily_threshold / 6,
+  verified_otps_to_country_past_1h * 0.2,               # (4)
+)
 ```
 
-- **(1)**, **(2)**, **(3)**: Same reasoning as `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY`.
+where `daily_threshold` is computed from `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY`.
+
+- **(daily / 6)**: The base hourly budget derived from the daily threshold.
+- **(4) Past 1h verified × 20%**: Handles traffic concentrated within a single hour (e.g., initial launch). Without this, a burst of legitimate traffic in one hour would produce a daily threshold that is reasonable, but an hourly threshold too low to reflect the actual activity in that hour.
+
+The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simulate.py) demonstrates the formula behavior with mock data. Summary:
+
+### ~1k SMS/day
+
+| Scenario                                                         | Daily threshold | Daily     | Hourly threshold | Hourly    |
+| ---------------------------------------------------------------- | --------------- | --------- | ---------------- | --------- |
+| Initial launch (no historical data, ~300 verified in first hour) | 60              | ok        | 60               | ok        |
+| Normal traffic (~1k/day, peak hour ~200)                         | 200             | ok        | 40               | ok        |
+| Spike day (~2x normal = 2k/day, peak hour ~400)                  | 400             | ok        | 80               | ok        |
+| Attack: quiet day (~1/2 normal = 500/day)                        | 200             | TRIGGERED | 33               | TRIGGERED |
+| Attack: during spike (~2x normal = 2k/day)                       | 400             | TRIGGERED | 80               | TRIGGERED |
+
+### Low traffic country (<20 SMS/day)
+
+| Scenario                                                                      | Daily threshold | Daily     | Hourly threshold | Hourly    |
+| ----------------------------------------------------------------------------- | --------------- | --------- | ---------------- | --------- |
+| [Low traffic] Initial launch (no historical data, ~10 verified in first hour) | 30              | ok        | 5                | ok        |
+| [Low traffic] Normal traffic (~15/day, peak hour ~5)                          | 30              | ok        | 5                | ok        |
+| [Low traffic] Spike day (~2x normal = 30/day, peak hour ~10)                  | 30              | ok        | 5                | ok        |
+| [Low traffic] Attack: quiet day (~1/2 normal = 7/day)                         | 30              | TRIGGERED | 5                | TRIGGERED |
+| [Low traffic] Attack: during spike (~2x normal = 30/day)                      | 30              | TRIGGERED | 5                | TRIGGERED |
 
 
 #### SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
