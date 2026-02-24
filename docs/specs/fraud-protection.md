@@ -120,62 +120,46 @@ Examples:
 #### SMS__MANY_COUNTRIES__BY_IP__DAILY
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
-The threshold is 5.
+The threshold is 3.
 
 
 #### SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
 Check if the number of unverified OTPs for a specific phone number country exceeds the daily threshold in 24 hours.
 
-The threshold depends on the risk of the country.
-
-For High risk countries:
-
 ```
-threshold = max(15, 14 day rolling max of sms successfully verified to the country per day * 0.2)
-```
-
-For Low risk countries:
-
-```
-threshold = max(300, 14 day rolling max of sms successfully verified to the country per day * 1)
+threshold = max(
+  30,                                                    # (1)
+  verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
+  verified_otps_to_country_past_24h * 0.3               # (3)
+)
 ```
 
-For Mid risk countries:
-
-```
-threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5)
-```
+- **(1) Constant lower bound**: Allows a minimum of 30 unverified OTPs regardless of history. This handles the initial launch period when there is no verified OTP data yet.
+- **(2) 14-day rolling max × 20%**: Provides a stable baseline quota derived from historical traffic. Using the rolling max (rather than average) ensures the threshold does not drop too aggressively after a high-traffic day.
+- **(3) Past 24h verified × 30%**: Adapts to sudden traffic spikes. A higher multiplier (30% vs 20% for the historical baseline) ensures the threshold reacts more generously on spike days, reducing false positives when traffic surges unexpectedly.
 
 
 #### SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
 Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
 
-The threshold is 1/6 of the corresponding daily threshold.
-
-For High risk countries:
+The threshold is 1/6 of the corresponding daily threshold, applying the same three factors:
 
 ```
-threshold = max(15, 14 day rolling max of sms successfully verified to the country per day * 0.2) / 6
+threshold = max(
+  30,                                                    # (1)
+  verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
+  verified_otps_to_country_past_24h * 0.3               # (3)
+) / 6
 ```
 
-For Low risk countries:
-
-```
-threshold = max(300, 14 day rolling max of sms successfully verified to the country per day * 1) / 6
-```
-
-For Mid risk countries:
-
-```
-threshold = max(30, 14 day rolling max of sms successfully verified to the country per day * 0.5) / 6
-```
+- **(1)**, **(2)**, **(3)**: Same reasoning as `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY`.
 
 
 #### SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
 Check if the number of unverified OTPs from a single IP exceeds the threshold in the past 24 hours.
 
 ```
-threshold = max(20, 0.5 * verified OTPs in the past 24 hours)
+threshold = max(10, 0.2 * verified OTPs in the past 24 hours)
 ```
 
 
@@ -183,7 +167,7 @@ threshold = max(20, 0.5 * verified OTPs in the past 24 hours)
 Check if the number of unverified OTPs from a single IP exceeds the hourly threshold.
 
 ```
-threshold = max(5, 0.5 * verified OTPs in the past 24 hours / 6)
+threshold = max(5, 0.2 * verified OTPs in the past 24 hours / 6)
 ```
 
 
