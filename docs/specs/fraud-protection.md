@@ -64,6 +64,17 @@ fraud_protection:
     action: record_only
 ```
 
+**authgear.features.yaml**
+
+Fraud protection configurability is controlled by a feature flag. By default, fraud protection settings are **not modifiable** by project admins. To allow customization, set:
+
+```yaml
+fraud_protection:
+  is_modifiable: true
+```
+
+When `is_modifiable` is `false` (default), projects must use the default configuration above and cannot customize warnings or decisions.
+
 ### Warnings
 
 We have identified two primary patterns of SMS pumping attacks:
