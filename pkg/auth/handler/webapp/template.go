@@ -26,3 +26,8 @@ var TemplateCSRFErrorInstructionHTML = template.RegisterHTML(
 	"web/authflowv2/csrf_error_instruction.html",
 	Components...,
 )
+
+var TemplateWebDownloadRecoveryCodeTXT = template.RegisterPlainText(
+	"web/download_recovery_code.txt",
+	plainTextComponents...,
+)
