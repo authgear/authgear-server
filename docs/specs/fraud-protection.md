@@ -4,11 +4,11 @@
   - [Config](#config)
   - [Warnings](#warnings)
     - [Naming Convention](#naming-convention)
-    - [SMS__MANY_COUNTRIES__BY_IP__DAILY](#sms_many_phone_number_countries_per_ip_per_day)
-    - [SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY](#sms_many_unverified_otps_per_phone_number_country_per_day)
-    - [SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY](#sms_many_unverified_otps_per_phone_number_country_per_hour)
-    - [SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY](#sms_many_unverified_otps_per_ip_per_day)
-    - [SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY](#sms_many_unverified_otps_per_ip_per_hour)
+    - [SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED](#sms__phone_countries__by_ip__daily_threshold_exceeded)
+    - [SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED](#sms__unverified_otps__by_phone_country__daily_threshold_exceeded)
+    - [SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED](#sms__unverified_otps__by_phone_country__hourly_threshold_exceeded)
+    - [SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED](#sms__unverified_otps__by_ip__daily_threshold_exceeded)
+    - [SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED](#sms__unverified_otps__by_ip__hourly_threshold_exceeded)
     - [Notes](#notes)
   - [Decision Record](#decision-record)
   - [API Error](#api-error)
@@ -30,11 +30,11 @@ An example:
 fraud_protection:
   enabled: true
   warnings:
-    - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY
+    - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
   decision:
     always_allow:
       # If any rule matches, the request is always allowed regardless of warnings.
@@ -54,11 +54,11 @@ The default:
 fraud_protection:
   enabled: true
   warnings:
-    - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY
+    - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
   decision:
     always_allow: {}
     action: record_only
@@ -69,35 +69,34 @@ fraud_protection:
 We have identified two primary patterns of SMS pumping attacks:
 
 1. **Non-rotating IP attacks**: Attackers send a large number of OTP requests from the same IP address to different phone numbers across multiple countries. These are effectively blocked by IP-based metrics:
-   - `SMS__MANY_COUNTRIES__BY_IP__DAILY` - Detects when many countries are targeted from a single IP
-   - `SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY` and `SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY` - Detects when many unverified OTPs are requested from a single IP
+   - `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` - Detects when many countries are targeted from a single IP
+   - `SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED` and `SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED` - Detects when many unverified OTPs are requested from a single IP
 
 2. **Rotating IP attacks**: Attackers change their IP address frequently to evade IP-based detection while targeting the same phone number. These are effectively blocked by phone-number-country based metrics:
-   - `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY` and `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY` - Detects when many unverified OTPs are requested for phone numbers in a specific country, regardless of IP
+   - `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED` and `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` - Detects when many unverified OTPs are requested for phone numbers in a specific country, regardless of IP
 
 #### Naming Convention
 
-Warning names follow the pattern: `{SERVICE}__{METRIC}__BY_{DIMENSION}__{TIME_PERIOD}`
+Warning names follow the pattern: `{SERVICE}__{METRIC}__BY_{DIMENSION}__{TIME_PERIOD}_THRESHOLD_EXCEEDED`
 
 - `{SERVICE}`: The service type (e.g., `SMS`, `EMAIL`)
-- `{METRIC}`: What is being measured (e.g., `MANY_COUNTRIES`, `MANY_UNVERIFIED_OTPS`)
-- `{DIMENSION}`: The scope for counting (e.g., `IP`, `COUNTRY`)
+- `{METRIC}`: What is being measured (e.g., `PHONE_COUNTRIES`, `UNVERIFIED_OTPS`)
+- `{DIMENSION}`: The scope for counting (e.g., `IP`, `PHONE_COUNTRY`)
 - `{TIME_PERIOD}`: The time window (e.g., `DAILY`, `HOURLY`)
 
 The double underscore (`__`) separates logical sections for improved readability.
 
 Examples:
-- `SMS__MANY_COUNTRIES__BY_IP__DAILY` - Many countries detected per IP per day
-- `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY` - Many unverified OTPs detected per country per hour
-- `EMAIL__MANY_RECIPIENTS__BY_IP__DAILY` - (Future) Many email recipients detected per IP per day
+- `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` - Phone countries detected per IP per day
+- `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` - Unverified OTPs detected per phone country per hour
 
-#### SMS__MANY_COUNTRIES__BY_IP__DAILY
+#### SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
 The threshold is 3.
 
 
-#### SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
+#### SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs for a specific phone number country exceeds the daily threshold in 24 hours.
 
 ```
@@ -113,7 +112,7 @@ threshold = max(
 - **(3) Past 24h verified × 20%**: Adapts to sudden traffic spikes. Using the same multiplier as the historical baseline ensures factor (3) only becomes the binding factor on true spike days — when today's verified OTP volume significantly exceeds the 14-day max.
 
 
-#### SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
+#### SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
 
 ```
@@ -123,7 +122,7 @@ threshold = max(
 )
 ```
 
-where `daily_threshold` is computed from `SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY`.
+where `daily_threshold` is computed from `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED`.
 
 - **(daily / 6)**: The base hourly budget derived from the daily threshold.
 - **(4) Past 1h verified × 20%**: Handles traffic concentrated within a single hour (e.g., initial launch). Without this, a burst of legitimate traffic in one hour would produce a daily threshold that is reasonable, but an hourly threshold too low to reflect the actual activity in that hour.
@@ -151,7 +150,7 @@ The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simula
 | [Low traffic] Attack: during spike (~2x normal = 30/day)                      | 30              | TRIGGERED | 5                | TRIGGERED |
 
 
-#### SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
+#### SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs from a single IP exceeds the threshold in the past 24 hours.
 
 ```
@@ -159,7 +158,7 @@ threshold = max(10, 0.2 * verified OTPs in the past 24 hours)
 ```
 
 
-#### SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY
+#### SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs from a single IP exceeds the hourly threshold.
 
 ```
@@ -192,10 +191,10 @@ Each sms send request (No matter success or not) will produce a decision record.
     "type": "verification",
   },
   "triggered_warnings": [
-    "SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY",
-    "SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY",
-    "SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY",
-    "SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY",
+    "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED",
+    "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED",
+    "SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED",
+    "SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED",
   ],
   "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
   "ip_address": "203.0.113.42",
@@ -235,10 +234,10 @@ And audit log:
       "decision": "blocked",
       "block_mode": "error",
       "triggered_warnings": [
-        "SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY",
-        "SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY",
-        "SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY",
-        "SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY",
+        "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED",
+        "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED",
+        "SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED",
+        "SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED",
       ],
       "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
       "ip_address": "203.0.113.42",
@@ -272,11 +271,11 @@ When `action: record_only`, warnings are logged but the request is always allowe
 fraud_protection:
   enabled: true
   warnings:
-    - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY
+    - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
   decision:
     action: deny_if_any_warning
 ```
@@ -289,11 +288,11 @@ Triggered warnings will be recorded in logs but requests will always be allowed.
 fraud_protection:
   enabled: true
   warnings:
-    - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY
-    - type: SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY
+    - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+    - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
   decision:
     action: record_only
 ```
