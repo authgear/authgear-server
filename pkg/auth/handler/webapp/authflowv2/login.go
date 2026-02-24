@@ -16,6 +16,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -25,6 +26,10 @@ var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
 	"web/authflowv2/login.html",
 	handlerwebapp.Components...,
 )
+
+func ConfigureAuthflowV2LoginRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern(AuthflowV2RouteLogin)
+}
 
 var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 	{

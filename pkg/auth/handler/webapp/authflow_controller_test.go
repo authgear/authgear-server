@@ -272,7 +272,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
-		mockNavigator := &webapp.AuthflowNavigator{}
+		mockNavigator := NewNoopAuthflowNavigator()
 
 		c := AuthflowController{
 			Clock:     mockClock,
