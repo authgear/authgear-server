@@ -61,7 +61,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw ht
 	)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 
-	viewmodels.Embed(data, handlerwebapp.ChangePasswordViewModel{
+	viewmodels.Embed(data, viewmodels.ChangePasswordViewModel{
 		Force: false,
 	})
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -20,4 +22,18 @@ type ErrorService interface {
 
 type MeterService interface {
 	TrackPageView(ctx context.Context, visitorID string, pageType meter.PageType) error
+}
+
+type PasswordPolicy interface {
+	PasswordPolicy() []password.Policy
+	PasswordRules() string
+}
+
+type ResetPasswordService interface {
+	VerifyCode(ctx context.Context, code string) (*otp.State, error)
+	ResetPasswordByEndUser(ctx context.Context, code string, newPassword string) error
+}
+
+type FlashMessage interface {
+	Flash(w http.ResponseWriter, name string)
 }

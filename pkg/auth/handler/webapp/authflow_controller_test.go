@@ -27,6 +27,29 @@ type NoopNavigator struct {
 }
 
 func (*NoopNavigator) Navigate(ctx context.Context, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	// Re-implement a minimal version of V2 navigation to avoid import cycle in tests
+	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
+		case declarative.StepAuthenticateData:
+			index := 0
+			if screen.Screen.TakenBranchIndex != nil {
+				index = *screen.Screen.TakenBranchIndex
+			}
+			option := data.Options[index]
+			switch option.Authentication {
+			case model.AuthenticationFlowAuthenticationPrimaryPassword:
+				screen.Advance("/authflow/v2/enter_password", result)
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+				screen.Advance("/authflow/v2/enter_oob_otp", result)
+			}
+		case declarative.VerifyOOBOTPData:
+			switch data.OTPForm {
+			case otp.FormCode:
+				screen.Advance("/authflow/v2/enter_oob_otp", result)
+			}
+		}
+	}
 }
 
 func (*NoopNavigator) NavigateResetPasswordSuccessPage() string {
@@ -341,7 +364,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			ctx := context.Background()
 			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
 			So(err, ShouldBeNil)
-			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_password?x_step="), ShouldBeTrue)
+			So(strings.HasPrefix(result.RedirectURI, "/authflow/v2/enter_password?x_step="), ShouldBeTrue)
 		})
 
 		Convey("the branch requires input to take", func() {
@@ -425,7 +448,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			ctx := context.Background()
 			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
 			So(err, ShouldBeNil)
-			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_oob_otp?x_step="), ShouldBeTrue)
+			So(strings.HasPrefix(result.RedirectURI, "/authflow/v2/enter_oob_otp?x_step="), ShouldBeTrue)
 		})
 	})
 }
