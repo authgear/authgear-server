@@ -10,12 +10,11 @@
     - [SMS__MANY_UNVERIFIED_OTPS__BY_IP__DAILY](#sms_many_unverified_otps_per_ip_per_day)
     - [SMS__MANY_UNVERIFIED_OTPS__BY_IP__HOURLY](#sms_many_unverified_otps_per_ip_per_hour)
     - [Notes](#notes)
-  - [Country Based Risk Classification](#country-based-risk-classification)
-  - [Environment Variables](#environment-variables)
   - [Decision Record](#decision-record)
   - [API Error](#api-error)
   - [Examples](#examples)
 - [Future Work](#future-work)
+  - [Country Based Risk Classification](#country-based-risk-classification)
   - [Decision: Challenge](#decision-challenge)
   - [Warning: Custom](#warning-custom)
 
@@ -30,12 +29,6 @@ An example:
 ```yaml
 fraud_protection:
   enabled: true
-  geo_location_risks:
-    high:
-      - EG
-      - UA
-    low:
-      - HK
   warnings:
     - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
     - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
@@ -60,25 +53,6 @@ The default:
 ```yaml
 fraud_protection:
   enabled: true
-  geo_location_risks:
-    high:
-      - DZ
-      - AZ
-      - BD
-      - CU
-      - IR
-      - IL
-      - NG
-      - OM
-      - PK
-      - PS
-      - LK
-      - SY
-      - TJ
-      - TN
-    low:
-      - US
-      - CA
   warnings:
     - type: SMS__MANY_COUNTRIES__BY_IP__DAILY
     - type: SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY
@@ -180,63 +154,6 @@ A: By observation, if the attacker is capable to switch IP during an attack, usu
 Q: How are unverified OTP counts calculated?
 
 A: Unverified OTP counts include OTPs that were sent but not verified by the user. However, OTPs sent during a login, signup, or forgot password flow are excluded from the count if the flow was completed successfully using an alternative authentication method (e.g., passkey, password). This prevents legitimate flows where the user chose a different method from being counted as SMS pumping attempts.
-
-### Country Based Risk Classification
-
-We define 3 level of risk. High, Mid, Low.
-
-By default, we classify countries as follows:
-
-High Risk:
-
-    - DZ # Algeria
-    - AZ # Azerbaijan
-    - BD # Bangladesh
-    - CU # Cuba
-    - IR # Iran
-    - IL # Israel
-    - NG # Nigeria
-    - OM # Oman
-    - PK # Pakistan
-    - PS # Palestinian Territory
-    - LK # Sri Lanka
-    - SY # Syria
-    - TJ # Tajikistan
-    - TN # Tunisia
-
-Low Risk:
-
-    - US
-    - CA
-
-Mid Risk:
-
-    - All remaining countries not listed as Low or High risk.
-
-This can be configured in project config:
-
-```yaml
-fraud_protection:
-  geo_location_risks:
-    high:
-      - EG
-      - UA
-    low:
-      - HK
-```
- 
-### Environment Variables
- 
- The default classification of countries can be overridden using the following environment variables. The value should be a comma-separated list of ISO 3166-1 alpha-2 country codes.
- 
- - `FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT`: Default list of High Risk countries.
- - `FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT`: Default list of Low Risk countries.
-
-```shell
-# Set high risk countries to Egypt and Ukraine, and low risk to Hong Kong
-FRAUD_PROTECTION_GEO_LOCATION_RISK_HIGH_DEFAULT=EG,UA
-FRAUD_PROTECTION_GEO_LOCATION_RISK_LOW_DEFAULT=HK
-```
 
 ### Decision Record
 
@@ -360,6 +277,22 @@ fraud_protection:
 ```
 
 ### Future Work
+
+#### Country Based Risk Classification
+
+This feature is not introduced for now for simplicity. In the future, we may introduce a 3-level country risk classification (High, Mid, Low) to apply different thresholds per country based on their historical association with SMS pumping. This would allow the formula multipliers to vary by risk level rather than using a single universal multiplier.
+
+The classification could be configured via project config:
+
+```yaml
+fraud_protection:
+  geo_location_risks:
+    high:
+      - EG
+      - UA
+    low:
+      - HK
+```
 
 #### Decision: Challenge
 
