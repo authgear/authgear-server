@@ -5,17 +5,19 @@ SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED thresholds wit
 
 Formula:
   daily_threshold = max(
-    30,                                          # (1) lower bound
+    20,                                          # (1) lower bound
     verified_past_14d_rolling_max * 0.2,         # (2) historical baseline
     verified_past_24h * 0.2,                     # (3) daily spike handling
   )
   hourly_threshold = max(
+    3,                                           # (1) lower bound
     daily_threshold / 6,
     verified_past_1h * 0.2,                      # (4) hourly spike handling
   )
 """
 
-LOWER_BOUND = 30
+LOWER_BOUND = 20
+HOURLY_LOWER_BOUND = 3
 HISTORICAL_MULTIPLIER = 0.2
 DAILY_SPIKE_MULTIPLIER = 0.2
 HOURLY_SPIKE_MULTIPLIER = 0.2
@@ -30,7 +32,7 @@ def compute_threshold(
     factor4 = verified_past_1h * HOURLY_SPIKE_MULTIPLIER
 
     daily = int(max(factor1, factor2, factor3))
-    hourly = int(max(daily / 6, factor4))
+    hourly = int(max(HOURLY_LOWER_BOUND, daily / 6, factor4))
 
     binding_map = {factor1: "(1)", factor2: "(2)", factor3: "(3)"}
     daily_binding = binding_map[max(factor1, factor2, factor3)]
