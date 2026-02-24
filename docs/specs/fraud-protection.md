@@ -101,13 +101,13 @@ Check if the number of unverified OTPs for a specific phone number country excee
 
 ```
 threshold = max(
-  30,                                                    # (1)
+  20,                                                    # (1)
   verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
   verified_otps_to_country_past_24h * 0.2               # (3)
 )
 ```
 
-- **(1) Constant lower bound**: Allows a minimum of 30 unverified OTPs regardless of history. This handles the initial launch period when there is no verified OTP data yet.
+- **(1) Constant lower bound**: Allows a minimum of 20 unverified OTPs regardless of history. This handles the initial launch period when there is no verified OTP data yet.
 - **(2) 14-day rolling max × 20%**: Provides a stable baseline quota derived from historical traffic. Using the rolling max (rather than average) ensures the threshold does not drop too aggressively after a high-traffic day.
 - **(3) Past 24h verified × 20%**: Adapts to sudden traffic spikes. Using the same multiplier as the historical baseline ensures factor (3) only becomes the binding factor on true spike days — when today's verified OTP volume significantly exceeds the 14-day max.
 
@@ -117,6 +117,7 @@ Check if the number of unverified OTPs for a specific phone number country excee
 
 ```
 threshold = max(
+  3,                                                     # (1) lower bound
   daily_threshold / 6,
   verified_otps_to_country_past_1h * 0.2,               # (4)
 )
@@ -124,6 +125,7 @@ threshold = max(
 
 where `daily_threshold` is computed from `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED`.
 
+- **(1) Constant lower bound**: Allows a minimum of 3 unverified OTPs per hour regardless of history.
 - **(daily / 6)**: The base hourly budget derived from the daily threshold.
 - **(4) Past 1h verified × 20%**: Handles traffic concentrated within a single hour (e.g., initial launch). Without this, a burst of legitimate traffic in one hour would produce a daily threshold that is reasonable, but an hourly threshold too low to reflect the actual activity in that hour.
 
@@ -143,11 +145,11 @@ The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simula
 
 | Scenario                                                                      | Daily threshold | Daily     | Hourly threshold | Hourly    |
 | ----------------------------------------------------------------------------- | --------------- | --------- | ---------------- | --------- |
-| [Low traffic] Initial launch (no historical data, ~10 verified in first hour) | 30              | ok        | 5                | ok        |
-| [Low traffic] Normal traffic (~15/day, peak hour ~5)                          | 30              | ok        | 5                | ok        |
-| [Low traffic] Spike day (~2x normal = 30/day, peak hour ~10)                  | 30              | ok        | 5                | ok        |
-| [Low traffic] Attack: quiet day (~1/2 normal = 7/day)                         | 30              | TRIGGERED | 5                | TRIGGERED |
-| [Low traffic] Attack: during spike (~2x normal = 30/day)                      | 30              | TRIGGERED | 5                | TRIGGERED |
+| [Low traffic] Initial launch (no historical data, ~10 verified in first hour) | 20              | ok        | 3                | ok        |
+| [Low traffic] Normal traffic (~15/day, peak hour ~5)                          | 20              | ok        | 3                | ok        |
+| [Low traffic] Spike day (~2x normal = 30/day, peak hour ~10)                  | 20              | ok        | 3                | ok        |
+| [Low traffic] Attack: quiet day (~1/2 normal = 7/day)                         | 20              | TRIGGERED | 3                | TRIGGERED |
+| [Low traffic] Attack: during spike (~2x normal = 30/day)                      | 20              | TRIGGERED | 3                | TRIGGERED |
 
 
 #### SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
