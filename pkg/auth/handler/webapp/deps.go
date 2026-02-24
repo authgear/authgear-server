@@ -60,14 +60,9 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(TesterHandler), "*"),
 
-	wire.Struct(new(SettingsIdentityHandler), "*"),
-
-	wire.Struct(new(SettingsRecoveryCodeHandler), "*"),
-
 	wire.Struct(new(ForceChangePasswordHandler), "*"),
 
 	wire.Struct(new(ForceChangeSecondaryPasswordHandler), "*"),
-	wire.Struct(new(SettingsChangeSecondaryPasswordHandler), "*"),
 
 	wire.Struct(new(AccountStatusHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),

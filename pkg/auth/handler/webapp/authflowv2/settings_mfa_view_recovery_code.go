@@ -39,7 +39,7 @@ type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagement *accountmanagement.Service
-	MFA               handlerwebapp.SettingsMFAService
+	MFA               SettingsMFAService
 }
 
 func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

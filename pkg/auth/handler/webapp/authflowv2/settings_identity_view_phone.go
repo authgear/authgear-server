@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -68,10 +67,10 @@ type AuthflowV2SettingsIdentityViewPhoneHandler struct {
 	Database            *appdb.Handle
 	LoginIDConfig       *config.LoginIDConfig
 	VerificationConfig  *config.VerificationConfig
-	Identities          *identityservice.Service
+	Identities          SettingsIdentityService
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
-	Verification        handlerwebapp.SettingsVerificationService
+	Verification        SettingsVerificationService
 	Renderer            handlerwebapp.Renderer
 	AuthenticatorConfig *config.AuthenticatorConfig
 	AccountManagement   accountmanagement.Service
@@ -90,12 +89,12 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 
 	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
-	phoneIdentity, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
+	phoneIdentity, err := h.Identities.GetWithUserID(ctx, *userID, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	verified, err := h.AccountManagement.CheckIdentityVerified(ctx, phoneIdentity.ToInfo())
+	verified, err := h.AccountManagement.CheckIdentityVerified(ctx, phoneIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +122,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 	vm := AuthflowV2SettingsIdentityViewPhoneViewModel{
 		LoginIDKey:          loginIDKey,
 		Channel:             string(channel),
-		PhoneIdentity:       phoneIdentity,
+		PhoneIdentity:       phoneIdentity.LoginID,
 		Verified:            verified,
 		UpdateDisabled:      updateDisabled,
 		DeleteDisabled:      deleteDisabled,

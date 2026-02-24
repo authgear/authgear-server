@@ -52,10 +52,10 @@ type AuthflowV2SettingsSessionsHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
-	Sessions          handlerwebapp.SettingsSessionManager
-	Authorizations    handlerwebapp.SettingsAuthorizationService
+	Sessions          SettingsSessionManager
+	Authorizations    SettingsAuthorizationService
 	OAuthConfig       *config.OAuthConfig
-	SessionListing    handlerwebapp.SettingsSessionListingService
+	SessionListing    SettingsSessionListingService
 }
 
 func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {

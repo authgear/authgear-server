@@ -35,7 +35,7 @@ type AuthflowV2SettingsHandler struct {
 	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
 	SettingsViewModel        *viewmodels.SettingsViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
-	Identities               handlerwebapp.SettingsIdentityService
+	Identities               SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
 	AccountDeletion          *config.AccountDeletionConfig
 }
