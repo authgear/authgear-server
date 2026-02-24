@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simulate SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__DAILY and
-SMS__MANY_UNVERIFIED_OTPS__BY_COUNTRY__HOURLY thresholds with mock data.
+Simulate SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED and
+SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED thresholds with mock data.
 
 Formula:
   daily_threshold = max(
