@@ -10,7 +10,6 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -50,10 +49,10 @@ type AuthflowV2SettingsIdentityListPhoneViewModel struct {
 type AuthflowV2SettingsIdentityListPhoneHandler struct {
 	Database                 *appdb.Handle
 	LoginIDConfig            *config.LoginIDConfig
-	Identities               *identityservice.Service
+	Identities               SettingsIdentityService
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
-	Verification             handlerwebapp.SettingsVerificationService
+	Verification             SettingsVerificationService
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 handlerwebapp.Renderer
 }
@@ -70,14 +69,20 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context
 
 	phones := setutil.Set[string]{}
 
-	loginIDIdentities, err := h.Identities.LoginID.List(ctx, *userID)
+	allIdentities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	oauthIdentities, err := h.Identities.OAuth.List(ctx, *userID)
-	if err != nil {
-		return nil, err
+	var loginIDIdentities []*identity.Info
+	var oauthIdentities []*identity.Info
+	for _, iden := range allIdentities {
+		if iden.Type == model.IdentityTypeLoginID {
+			loginIDIdentities = append(loginIDIdentities, iden)
+		}
+		if iden.Type == model.IdentityTypeOAuth {
+			oauthIdentities = append(oauthIdentities, iden)
+		}
 	}
 
 	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
@@ -90,24 +95,24 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context
 	oauthPhoneIdentities := []*AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity{}
 	var phoneInfos []*identity.Info = []*identity.Info{}
 	for _, identity := range loginIDIdentities {
-		if identity.LoginIDType == model.LoginIDKeyTypePhone {
-			phones.Add(identity.LoginID)
-			phoneIdentities = append(phoneIdentities, identity)
-			phoneInfos = append(phoneInfos, identity.ToInfo())
-			if identity.LoginID == settingsProfileViewModel.PhoneNumber {
-				primary = identity.LoginID
+		if identity.Type == model.IdentityTypeLoginID && identity.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
+			phones.Add(identity.LoginID.LoginID)
+			phoneIdentities = append(phoneIdentities, identity.LoginID)
+			phoneInfos = append(phoneInfos, identity)
+			if identity.LoginID.LoginID == settingsProfileViewModel.PhoneNumber {
+				primary = identity.LoginID.LoginID
 			}
 		}
 	}
 
 	for _, identity := range oauthIdentities {
-		phone, ok := identity.Claims[stdattrs.PhoneNumber].(string)
+		phone, ok := identity.OAuth.Claims[stdattrs.PhoneNumber].(string)
 		if ok && phone != "" {
 			phones.Add(phone)
 			oauthPhoneIdentities = append(oauthPhoneIdentities,
 				&AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity{
 					Phone:        phone,
-					ProviderType: identity.ProviderID.Type,
+					ProviderType: identity.OAuth.ProviderID.Type,
 				},
 			)
 			if phone == settingsProfileViewModel.PhoneNumber {

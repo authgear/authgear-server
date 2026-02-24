@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -52,8 +51,9 @@ type AuthflowV2SettingsIdentityViewUsernameViewModel struct {
 type AuthflowV2SettingsIdentityViewUsernameHandler struct {
 	Database          *appdb.Handle
 	AccountManagement *accountmanagement.Service
+	AppID             config.AppID
 	LoginIDConfig     *config.LoginIDConfig
-	Identities        *identityservice.Service
+	Identities        SettingsIdentityService
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
@@ -66,10 +66,11 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(ctx context.Cont
 
 	userID := session.GetUserID(ctx)
 	loginID := r.Form.Get("q_login_id")
-	usernameIdentity, err := h.Identities.LoginID.Get(ctx, *userID, loginID)
+	iden, err := h.Identities.GetWithUserID(ctx, *userID, loginID)
 	if err != nil {
 		return nil, err
 	}
+	usernameIdentity := iden.LoginID
 
 	updateDisabled := true
 	deleteDisabled := true

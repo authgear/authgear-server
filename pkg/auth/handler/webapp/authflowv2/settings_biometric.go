@@ -49,7 +49,7 @@ type AuthflowV2SettingsBiometricHandler struct {
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsViewModel        *viewmodels.SettingsViewModeler
 	Renderer                 handlerwebapp.Renderer
-	Identities               handlerwebapp.SettingsIdentityService
+	Identities               SettingsIdentityService
 	BiometricProvider        BiometricIdentityProvider
 	AccountManagementService *accountmanagement.Service
 }
