@@ -12,7 +12,7 @@ import (
 
 func ConfigureAuthflowV2ReauthRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTIONS", "GET").
+		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern(AuthflowV2RouteReauth)
 }
 

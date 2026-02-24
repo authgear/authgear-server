@@ -6,7 +6,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
+
+func ConfigureAuthflowV2SignupRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern(AuthflowV2RouteSignup)
+}
 
 type AuthflowV2SignupHandler struct {
 	SignupLoginHandler   InternalAuthflowV2SignupLoginHandler

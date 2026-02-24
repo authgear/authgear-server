@@ -83,7 +83,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(webapp.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
-	wire.Bind(new(webapp.AuthflowNavigatorOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
@@ -121,13 +120,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.PanicMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(webapp.AuthflowNavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.AuthflowEndpoints), new(*endpoints.Endpoints)),
 
@@ -240,7 +235,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handlerwebapp.TesterOfflineGrantService), new(*oauth.OfflineGrantService)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowService), new(*authenticationflow.Service)),
-	wire.Bind(new(handlerwebapp.AuthflowWechatHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.WechatCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.SSOCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2WechatHandlerOAuthStateStore), new(*webappoauth.Store)),
@@ -388,11 +382,6 @@ func MakeWebAppRequestMiddleware(p *deps.RootProvider, configSource *configsourc
 		})
 	})
 }
-
-var AuthflowUIHandlerDependencySet = wire.NewSet(
-	DependencySet,
-	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*webapp.AuthflowNavigator)),
-)
 
 var AuthflowV2UIHandlerDependencySet = wire.NewSet(
 	DependencySet,
