@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -38,11 +39,16 @@ func ConfigureAuthflowV2SettingsMFACreatePassword(route httproute.Route) httprou
 		WithPathPattern(AuthflowV2RouteSettingsMFACreatePassword)
 }
 
+type SettingsMFACreatePasswordHandlerPasswordPolicy interface {
+	PasswordPolicy() []password.Policy
+	PasswordRules() string
+}
+
 type AuthflowV2SettingsMFACreatePasswordHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
-	PasswordPolicy    handlerwebapp.PasswordPolicy
+	PasswordPolicy    SettingsMFACreatePasswordHandlerPasswordPolicy
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagementService *accountmanagement.Service
