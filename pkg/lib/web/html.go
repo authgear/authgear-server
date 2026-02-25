@@ -23,7 +23,6 @@ var TemplateWebModalHTML = template.RegisterHTML("web/__modal.html")
 var TemplateWebWatermarkHTML = template.RegisterHTML("web/__watermark.html")
 var TemplateWebRecoveryCodeHTML = template.RegisterHTML("web/__recovery_code.html")
 var TemplateWebTutorialHTML = template.RegisterHTML("web/__tutorial.html")
-var TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/__toc_pp_footer.html")
 var TemplateWebTranslationMessageHTML = template.RegisterHTML("web/__translation_message.html")
 
 // TODO: This file could be overridable per app, depends on the project plan in future
@@ -88,7 +87,6 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebWatermarkHTML,
 	TemplateWebRecoveryCodeHTML,
 	TemplateWebTutorialHTML,
-	TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebTranslationMessageHTML,
 
 	TemplateWebAuthflowV2LayoutHTML,
