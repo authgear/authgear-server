@@ -114,11 +114,15 @@ func NewAuthflowForgotPasswordOTPViewModel(
 	return vm, nil
 }
 
+type ForgotPasswordOTPHandlerFlashMessage interface {
+	Flash(w http.ResponseWriter, name string)
+}
+
 type AuthflowV2ForgotPasswordOTPHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
-	FlashMessage  handlerwebapp.FlashMessage
+	FlashMessage  ForgotPasswordOTPHandlerFlashMessage
 	Clock         clock.Clock
 }
 

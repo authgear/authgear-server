@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -32,12 +33,17 @@ var AuthflowV2SettingsMFAChangePasswordSchema = validation.NewSimpleSchema(`
 	}
 `)
 
+type SettingsMFAChangePasswordHandlerPasswordPolicy interface {
+	PasswordPolicy() []password.Policy
+	PasswordRules() string
+}
+
 type AuthflowV2SettingsMFAChangePasswordHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	Renderer                 handlerwebapp.Renderer
 	AccountManagementService *accountmanagement.Service
-	PasswordPolicy           handlerwebapp.PasswordPolicy
+	PasswordPolicy           SettingsMFAChangePasswordHandlerPasswordPolicy
 }
 
 func ConfigureAuthflowV2SettingsMFAChangePassword(route httproute.Route) httproute.Route {
