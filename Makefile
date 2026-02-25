@@ -216,6 +216,11 @@ translation-json-del-key: KEY=
 translation-json-del-key:
 	find . -path './resources/authgear/templates/*/translation.json' -not -path './resources/authgear/templates/*/messages/translation.json' -not -path './resources/authgear/templates/en/translation.json' -exec sh -c "jq <\$$1 'del(.[\"$(KEY)\"])' > \$$1.tmp; mv \$$1.tmp \$$1" _ '{}' \;
 
+# This make target take the en translation as reference, cleaup extra translation keys in other languages
+.PHONY: translation-json-cleanup-others
+translation-json-cleanup-others:
+	find . -path './resources/authgear/templates/*/translation.json' -not -path './resources/authgear/templates/*/messages/translation.json' -not -path './resources/authgear/templates/en/translation.json' -exec sh -c "jq --slurpfile ref resources/authgear/templates/en/translation.json 'with_entries(select(.key | in(\$$ref[0])))' \$$1 > \$$1.tmp && mv \$$1.tmp \$$1" _ '{}' \;
+
 .PHONY: templates-translation-json-del-key
 templates-translation-json-del-key:
 	@if [ -z "$(KEY)" ]; then echo "Error: KEY is required. Usage: make templates-translation-json-del-key KEY=my.key"; exit 1; fi
