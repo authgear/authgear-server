@@ -125,7 +125,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(handlersaml.SAMLAuthenticationInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
-		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 

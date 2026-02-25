@@ -320,7 +320,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	})
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
-	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppAuthflowV2SelectAccountHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2VerifyBotProtectionRoute(webappVerifyBotProtectionRoute), p.Handler(newWebAppAuthflowV2VerifyBotProtectionHandler))
 
@@ -368,14 +367,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureReturnRoute(webappPageRoute), p.Handler(newWebAppReturnHandler))
 	router.Add(webapphandler.ConfigureFeatureDisabledRoute(webappPageRoute), p.Handler(newWebAppFeatureDisabledHandler))
 
-	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
-	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsDeleteAccountSuccessRoute(webappSuccessPageRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler),
 	})
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
-	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsRoute(webappSettingsRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsHandler),
 	})

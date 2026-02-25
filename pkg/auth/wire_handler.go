@@ -172,13 +172,6 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SelectAccountHandler)),
-	))
-}
-
 func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
@@ -214,31 +207,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.EnterLoginIDHandler)),
-	))
-}
-
 func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2VerifyLoginLinkOTPHandler)),
-	))
-}
-
-func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ForgotPasswordSuccessHandler)),
-	))
-}
-
-func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ResetPasswordSuccessHandler)),
 	))
 }
 
