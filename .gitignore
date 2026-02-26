@@ -23,6 +23,9 @@ docker-compose-build-cache/
 # vs code
 .vscode
 
+# claude
+settings.local.json
+
 # .editorconfig
 .editorconfig
 
