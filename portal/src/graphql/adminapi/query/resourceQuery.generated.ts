@@ -50,6 +50,9 @@ export function useResourceQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ResourceQueryQuery, ResourceQueryQueryVariables>(ResourceQueryDocument, options);
         }
+// @ts-ignore
+export function useResourceQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ResourceQueryQuery, ResourceQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ResourceQueryQuery, ResourceQueryQueryVariables>;
+export function useResourceQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ResourceQueryQuery, ResourceQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ResourceQueryQuery | undefined, ResourceQueryQueryVariables>;
 export function useResourceQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ResourceQueryQuery, ResourceQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ResourceQueryQuery, ResourceQueryQueryVariables>(ResourceQueryDocument, options);

@@ -70,6 +70,9 @@ export function useGroupsListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(GroupsListQueryDocument, options);
         }
+// @ts-ignore
+export function useGroupsListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GroupsListQueryQuery, GroupsListQueryQueryVariables>): Apollo.UseSuspenseQueryResult<GroupsListQueryQuery, GroupsListQueryQueryVariables>;
+export function useGroupsListQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GroupsListQueryQuery, GroupsListQueryQueryVariables>): Apollo.UseSuspenseQueryResult<GroupsListQueryQuery | undefined, GroupsListQueryQueryVariables>;
 export function useGroupsListQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GroupsListQueryQuery, GroupsListQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(GroupsListQueryDocument, options);

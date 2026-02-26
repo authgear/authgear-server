@@ -182,6 +182,9 @@ export function useUserQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
         }
+// @ts-ignore
+export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>): Apollo.UseSuspenseQueryResult<UserQueryQuery, UserQueryQueryVariables>;
+export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>): Apollo.UseSuspenseQueryResult<UserQueryQuery | undefined, UserQueryQueryVariables>;
 export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);

@@ -145,7 +145,7 @@ func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*s
 		return nil, err
 	}
 
-	e.withSpan(ctx, sql, func(ctx context.Context) error {
+	err = e.withSpan(ctx, sql, func(ctx context.Context) error {
 		stmtPreparer, ok := getStmtPreparer(ctx)
 		if !ok {
 			tx := mustGetTxLike(ctx)
@@ -161,7 +161,7 @@ func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*s
 		result = stmt.QueryRowContext(ctx, args...)
 		return nil
 	})
-	return result, nil
+	return result, err
 }
 
 func isWriteConflict(err error) bool {

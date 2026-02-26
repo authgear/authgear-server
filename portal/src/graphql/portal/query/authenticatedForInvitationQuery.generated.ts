@@ -47,6 +47,9 @@ export function useAuthenticatedForInvitationQueryLazyQuery(baseOptions?: Apollo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>(AuthenticatedForInvitationQueryDocument, options);
         }
+// @ts-ignore
+export function useAuthenticatedForInvitationQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>;
+export function useAuthenticatedForInvitationQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>): Apollo.UseSuspenseQueryResult<AuthenticatedForInvitationQueryQuery | undefined, AuthenticatedForInvitationQueryQueryVariables>;
 export function useAuthenticatedForInvitationQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>(AuthenticatedForInvitationQueryDocument, options);

@@ -46,6 +46,9 @@ export function useViewerQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ViewerQueryQuery, ViewerQueryQueryVariables>(ViewerQueryDocument, options);
         }
+// @ts-ignore
+export function useViewerQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ViewerQueryQuery, ViewerQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ViewerQueryQuery, ViewerQueryQueryVariables>;
+export function useViewerQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ViewerQueryQuery, ViewerQueryQueryVariables>): Apollo.UseSuspenseQueryResult<ViewerQueryQuery | undefined, ViewerQueryQueryVariables>;
 export function useViewerQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ViewerQueryQuery, ViewerQueryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ViewerQueryQuery, ViewerQueryQueryVariables>(ViewerQueryDocument, options);
