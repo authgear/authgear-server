@@ -1033,5 +1033,90 @@ fraud_protection:
 			)
 			So(err, ShouldBeNil)
 		})
+
+		Convey("is_modifiable=false allows saving original non-default fraud_protection unchanged (plan downgrade)", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			// Original has a non-default fraud_protection (set when is_modifiable was true).
+			// After plan downgrade is_modifiable=false. Saving without changes must succeed.
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+fraud_protection:
+  enabled: false
+  decision:
+    action: deny_if_any_warning
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+fraud_protection:
+  enabled: false
+  decision:
+    action: deny_if_any_warning
+`),
+			)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("is_modifiable=false allows omitting fraud_protection (nil = default)", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			// Original has non-default fraud_protection. Incoming omits fraud_protection
+			// entirely (which parses as the default). This should be allowed because
+			// nil/omitted means "I don't want to change it" from the caller's perspective.
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+fraud_protection:
+  enabled: false
+  decision:
+    action: deny_if_any_warning
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+`),
+			)
+			So(err, ShouldBeNil)
+		})
 	})
 }
