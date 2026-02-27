@@ -52,6 +52,7 @@ var _ = Schema.Add("AppConfig", `
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
 		"bot_protection": { "$ref": "#/$defs/BotProtectionConfig" },
 		"network_protection": { "$ref": "#/$defs/NetworkProtectionConfig" },
+		"fraud_protection": { "$ref": "#/$defs/FraudProtectionConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
 		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" },
 		"external_jwt": { "$ref": "#/$defs/ExternalJWTConfig" }
@@ -96,6 +97,7 @@ type AppConfig struct {
 	Captcha           *CaptchaConfig           `json:"captcha,omitempty"`
 	BotProtection     *BotProtectionConfig     `json:"bot_protection,omitempty"`
 	NetworkProtection *NetworkProtectionConfig `json:"network_protection,omitempty"`
+	FraudProtection   *FraudProtectionConfig   `json:"fraud_protection,omitempty"`
 
 	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 

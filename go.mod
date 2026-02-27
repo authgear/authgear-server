@@ -42,7 +42,7 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20250326155420-f7f5a2f9f5bc
 	golang.org/x/crypto v0.48.0
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/oauth2 v0.34.0
 	golang.org/x/text v0.34.0
 	google.golang.org/api v0.246.0
