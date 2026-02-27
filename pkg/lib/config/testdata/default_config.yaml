@@ -661,6 +661,16 @@ bot_protection: {}
 network_protection:
   ip_filter:
     default_action: allow
+fraud_protection:
+  enabled: true
+  warnings:
+  - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
+  decision:
+    action: record_only
 test_mode:
   oob_otp:
     enabled: false
