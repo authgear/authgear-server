@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -17,6 +18,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
+
+func ConfigureAuthflowV2SettingsProfileEditRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "POST").
+		WithPathPattern("/settings/profile/:variant/edit")
+}
 
 func init() {
 	settingsProfileEditVariantToTemplate = make(map[string]*template.HTML)
@@ -70,9 +77,37 @@ type AuthflowV2SettingsProfileEditHandler struct {
 
 	UserProfileConfig *config.UserProfileConfig
 
-	Users       handlerwebapp.SettingsProfileEditUserService
-	StdAttrs    handlerwebapp.SettingsProfileEditStdAttrsService
-	CustomAttrs handlerwebapp.SettingsProfileEditCustomAttrsService
+	StdAttrsService    SettingsProfileEditStdAttrsService
+	CustomAttrsService SettingsProfileEditCustomAttrsService
+	UserService        SettingsProfileEditUserService
+}
+
+type SettingsProfileEditUserService interface {
+	GetRaw(ctx context.Context, id string) (*user.User, error)
+}
+
+type SettingsProfileEditStdAttrsService interface {
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
+type SettingsProfileEditCustomAttrsService interface {
+	UpdateCustomAttributesWithForm(ctx context.Context, role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
+}
+
+func PatchGenderForm(form url.Values) {
+	_, genderSelectOK := form["gender-select"]
+	if !genderSelectOK {
+		return
+	}
+
+	genderSelect := form.Get("gender-select")
+	genderInput := form.Get("gender-input")
+
+	if genderSelect == "other" {
+		form.Set("/gender", genderInput)
+	} else {
+		form.Set("/gender", genderSelect)
+	}
 }
 
 func (h *AuthflowV2SettingsProfileEditHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -181,13 +216,13 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 		m := handlerwebapp.JSONPointerFormToMap(r.Form)
 
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			u, err := h.Users.GetRaw(ctx, userID)
+			u, err := h.UserService.GetRaw(ctx, userID)
 			if err != nil {
 				return err
 			}
 
 			if variant == "custom_attributes" {
-				err = h.CustomAttrs.UpdateCustomAttributesWithForm(ctx, config.RoleEndUser, userID, m)
+				err = h.CustomAttrsService.UpdateCustomAttributesWithForm(ctx, config.RoleEndUser, userID, m)
 				if err != nil {
 					return err
 				}
@@ -197,7 +232,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 					return err
 				}
 
-				err = h.StdAttrs.UpdateStandardAttributes(ctx, config.RoleEndUser, userID, attrs)
+				err = h.StdAttrsService.UpdateStandardAttributes(ctx, config.RoleEndUser, userID, attrs)
 				if err != nil {
 					return err
 				}
@@ -213,20 +248,4 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 		result.WriteResponse(w, r)
 		return nil
 	})
-}
-
-func PatchGenderForm(form url.Values) {
-	_, genderSelectOK := form["gender-select"]
-	if !genderSelectOK {
-		return
-	}
-
-	genderSelect := form.Get("gender-select")
-	genderInput := form.Get("gender-input")
-
-	if genderSelect == "other" {
-		form.Set("/gender", genderInput)
-	} else {
-		form.Set("/gender", genderSelect)
-	}
 }

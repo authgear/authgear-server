@@ -11,7 +11,6 @@ var DependencySet = wire.NewSet(
 	NewErrorTokenCookieDef,
 	NewSignedUpCookieDef,
 	wire.Struct(new(ErrorService), "*"),
-	wire.Struct(new(AuthflowNavigator), "*"),
 
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),

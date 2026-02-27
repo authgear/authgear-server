@@ -37,11 +37,7 @@ func WithSettingsUIImplementation(ctx context.Context, impl config.SettingsUIImp
 }
 
 func GetSettingsUIImplementation(ctx context.Context) config.SettingsUIImplementation {
-	v, ok := ctx.Value(settingsImplementationSwitcherContextKey).(*settingsImplementationSwitcherContext)
-	if !ok {
-		return config.SettingsUIImplementationV2
-	}
-	return v.SettingsUIImplementation
+	return config.SettingsUIImplementationV2
 }
 
 func (m *SettingsImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handler {
@@ -53,15 +49,12 @@ func (m *SettingsImplementationSwitcherMiddleware) Handle(next http.Handler) htt
 }
 
 type SettingsImplementationSwitcherHandler struct {
-	SettingV1 http.Handler
 	SettingV2 http.Handler
 }
 
 func (h *SettingsImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	impl := GetSettingsUIImplementation(r.Context())
 	switch impl {
-	case config.SettingsUIImplementationV1:
-		h.SettingV1.ServeHTTP(w, r)
 	case config.SettingsUIImplementationV2:
 		h.SettingV2.ServeHTTP(w, r)
 	default:

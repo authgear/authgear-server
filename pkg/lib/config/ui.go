@@ -162,15 +162,12 @@ func (c *PhoneInputValidationLibphonenumber) SetDefaults() {
 type UIImplementation string
 
 const (
-	UIImplementationInteraction         UIImplementation = "interaction"
-	Deprecated_UIImplementationAuthflow UIImplementation = "authflow"
-	UIImplementationAuthflowV2          UIImplementation = "authflowv2"
+	UIImplementationAuthflowV2 UIImplementation = "authflowv2"
 )
 
 type SettingsUIImplementation string
 
 const (
-	SettingsUIImplementationV1 SettingsUIImplementation = "v1"
 	SettingsUIImplementationV2 SettingsUIImplementation = "v2"
 )
 

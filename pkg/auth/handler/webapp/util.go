@@ -2,6 +2,8 @@ package webapp
 
 import (
 	"image"
+	"mime"
+	"net/http"
 	"net/url"
 
 	"github.com/boombuler/barcode"
@@ -11,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 func FormToJSON(form url.Values) map[string]interface{} {
@@ -158,4 +161,20 @@ func FindLoginIDInPreviousInput(s *webapp.Session, xStep string) (string, bool) 
 		// Otherwise update xStep and find recursively.
 		xStep = screen.PreviousXStep
 	}
+}
+
+func FormatRecoveryCodes(recoveryCodes []string) []string {
+	out := make([]string, len(recoveryCodes))
+	for i, code := range recoveryCodes {
+		out[i] = secretcode.RecoveryCode.FormatForHuman(code)
+	}
+	return out
+}
+
+func SetRecoveryCodeAttachmentHeaders(w http.ResponseWriter) {
+	// No need to use FormatMediaType because the value is constant.
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
+		"filename": "recovery_codes.txt",
+	}))
 }

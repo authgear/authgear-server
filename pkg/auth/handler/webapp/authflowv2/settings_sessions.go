@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -23,6 +24,12 @@ var TemplateWebSettingsV2SessionsHTML = template.RegisterHTML(
 	"web/authflowv2/settings_sessions.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsSessionsRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/sessions")
+}
 
 type Authorization struct {
 	ID                    string
@@ -45,10 +52,10 @@ type AuthflowV2SettingsSessionsHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
-	Sessions          handlerwebapp.SettingsSessionManager
-	Authorizations    handlerwebapp.SettingsAuthorizationService
+	Sessions          SettingsSessionManager
+	Authorizations    SettingsAuthorizationService
 	OAuthConfig       *config.OAuthConfig
-	SessionListing    handlerwebapp.SettingsSessionListingService
+	SessionListing    SettingsSessionListingService
 }
 
 func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {

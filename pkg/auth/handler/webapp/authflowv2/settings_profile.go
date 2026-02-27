@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -15,6 +16,12 @@ var TemplateWebSettingsProfileHTML = template.RegisterHTML(
 	"web/authflowv2/settings_profile.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsProfileRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET").
+		WithPathPattern("/settings/profile")
+}
 
 type AuthflowV2SettingsProfileHandler struct {
 	Database                 *appdb.Handle

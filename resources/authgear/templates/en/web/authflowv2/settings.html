@@ -49,11 +49,6 @@
 
     {{ if eq .type "login_id" }}
 
-      {{ $url := call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}
-      {{ if .identity_id }}
-      {{ $url = call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}
-      {{ end }}
-
       {{ $label := "" }}
       {{ $identityArr := "" }}
       {{ $identity := "" }}

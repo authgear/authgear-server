@@ -36,13 +36,21 @@ var AuthflowV2SignupLoginIDSchema = validation.NewSimpleSchema(`
 	}
 `)
 
+type SignupLoginHandlerMeterService interface {
+	TrackPageView(ctx context.Context, visitorID string, pageType meter.PageType) error
+}
+
+type SignupLoginHandlerTutorialCookie interface {
+	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
+}
+
 type InternalAuthflowV2SignupLoginHandler struct {
 	Controller        *handlerwebapp.AuthflowController
 	BaseViewModel     *viewmodels.BaseViewModeler
 	AuthflowViewModel *viewmodels.AuthflowViewModeler
 	Renderer          handlerwebapp.Renderer
-	MeterService      handlerwebapp.MeterService
-	TutorialCookie    handlerwebapp.TutorialCookie
+	MeterService      SignupLoginHandlerMeterService
+	TutorialCookie    SignupLoginHandlerTutorialCookie
 }
 
 type AuthflowV2SignupUIVariant string

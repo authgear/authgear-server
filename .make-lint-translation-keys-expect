@@ -22,14 +22,6 @@ resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:27:18:
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
 resources/authgear/templates/en/web/authflowv2/__timezone_input.html:8:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/account_linking.html:89:33: translation key not defined: "%s-icon"
-resources/authgear/templates/en/web/authflowv2/consent.html:25:26: template translation is forbidden: `consent-scopes-full-userinfo`
-resources/authgear/templates/en/web/authflowv2/consent.html:31:26: template translation is forbidden: `consent-scopes-profile`
-resources/authgear/templates/en/web/authflowv2/consent.html:37:26: template translation is forbidden: `consent-scopes-email`
-resources/authgear/templates/en/web/authflowv2/consent.html:43:26: template translation is forbidden: `consent-scopes-phone`
-resources/authgear/templates/en/web/authflowv2/consent.html:49:26: template translation is forbidden: `consent-scopes-address`
-resources/authgear/templates/en/web/authflowv2/consent.html:55:24: template translation is forbidden: `consent-policy-and-tos-link-desc`
-resources/authgear/templates/en/web/authflowv2/consent.html:59:24: template translation is forbidden: `consent-policy-link-desc`
-resources/authgear/templates/en/web/authflowv2/consent.html:63:24: template translation is forbidden: `consent-tos-link-desc`
 resources/authgear/templates/en/web/authflowv2/direct_access_disabled.html:27:41: invalid translation key: "configure-direct-access-description"
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:102:30: template translation is forbidden: `__forgot_password_alternative`
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:157:26: template translation is forbidden: `__forgot_password_alternative`
@@ -57,5 +49,5 @@ resources/authgear/templates/en/web/authflowv2/settings_sessions.html:47:29: tra
 resources/authgear/templates/en/web/authflowv2/signup.html:97:26: translation key not defined: "v2.page.signup-login.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:106:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:282:35: translation key not defined: "%s-icon"
-59 errors found
+51 errors found
 exit status 1

@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -54,10 +53,6 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			viewmodels.Embed(data, baseViewModel)
 
 			switch uiImpl {
-			case config.UIImplementationInteraction:
-				http.Error(w, fmt.Sprintf("%v handler/auth/webapp",
-					http.StatusText(http.StatusForbidden)),
-					http.StatusForbidden)
 			case config.UIImplementationAuthflowV2:
 				fallthrough
 			default:

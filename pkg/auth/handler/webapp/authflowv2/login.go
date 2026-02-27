@@ -16,6 +16,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -25,6 +26,10 @@ var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
 	"web/authflowv2/login.html",
 	handlerwebapp.Components...,
 )
+
+func ConfigureAuthflowV2LoginRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern(AuthflowV2RouteLogin)
+}
 
 var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 	{
@@ -47,6 +52,18 @@ func NewAuthflowLoginViewModel(allowLoginOnly bool) AuthflowLoginViewModel {
 	}
 }
 
+type LoginHandlerMeterService interface {
+	TrackPageView(ctx context.Context, visitorID string, pageType meter.PageType) error
+}
+
+type LoginHandlerTutorialCookie interface {
+	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
+}
+
+type LoginHandlerErrorService interface {
+	HasError(ctx context.Context, r *http.Request) bool
+}
+
 type AuthflowV2LoginHandler struct {
 	SignupLoginHandler   InternalAuthflowV2SignupLoginHandler
 	UIConfig             *config.UIConfig
@@ -55,9 +72,9 @@ type AuthflowV2LoginHandler struct {
 	BaseViewModel        *viewmodels.BaseViewModeler
 	AuthflowViewModel    *viewmodels.AuthflowViewModeler
 	Renderer             handlerwebapp.Renderer
-	MeterService         handlerwebapp.MeterService
-	TutorialCookie       handlerwebapp.TutorialCookie
-	ErrorService         handlerwebapp.ErrorService
+	MeterService         LoginHandlerMeterService
+	TutorialCookie       LoginHandlerTutorialCookie
+	ErrorService         LoginHandlerErrorService
 }
 
 func (h *AuthflowV2LoginHandler) getAuthflowViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request) viewmodels.AuthflowViewModel {
