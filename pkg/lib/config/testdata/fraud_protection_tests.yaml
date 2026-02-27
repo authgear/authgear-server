@@ -1,0 +1,104 @@
+part: FraudProtectionConfig
+name: empty
+error: null
+value: {}
+---
+part: FraudProtectionConfig
+name: enabled-true
+error: null
+value:
+  enabled: true
+---
+part: FraudProtectionConfig
+name: enabled-false
+error: null
+value:
+  enabled: false
+---
+part: FraudProtectionConfig
+name: invalid-key
+error: |-
+  invalid value:
+  /invalid_key: 
+value:
+  invalid_key: foo
+---
+part: FraudProtectionConfig
+name: all-warnings
+error: null
+value:
+  enabled: true
+  warnings:
+  - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  - type: SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
+---
+part: FraudProtectionConfig
+name: invalid-warning-type
+error: |-
+  invalid value:
+  /warnings/0/type: enum
+    map[actual:INVALID_WARNING expected:[SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED]]
+value:
+  warnings:
+  - type: INVALID_WARNING
+---
+part: FraudProtectionConfig
+name: decision-record-only
+error: null
+value:
+  decision:
+    action: record_only
+---
+part: FraudProtectionConfig
+name: decision-deny-if-any-warning
+error: null
+value:
+  decision:
+    action: deny_if_any_warning
+---
+part: FraudProtectionConfig
+name: decision-invalid-action
+error: |-
+  invalid value:
+  /decision/action: enum
+    map[actual:invalid_action expected:[record_only deny_if_any_warning]]
+value:
+  decision:
+    action: invalid_action
+---
+part: FraudProtectionConfig
+name: always-allow-ip-cidrs
+error: null
+value:
+  decision:
+    always_allow:
+      ip_address:
+        cidrs:
+        - "192.168.0.0/24"
+        - "10.0.0.0/8"
+---
+part: FraudProtectionConfig
+name: always-allow-ip-geo-location-codes
+error: null
+value:
+  decision:
+    always_allow:
+      ip_address:
+        geo_location_codes:
+        - "SG"
+        - "HK"
+---
+part: FraudProtectionConfig
+name: always-allow-phone-number
+error: null
+value:
+  decision:
+    always_allow:
+      phone_number:
+        geo_location_codes:
+        - "SG"
+        regex:
+        - "^\\+65"
