@@ -89,7 +89,7 @@ var _ = Schema.Add("FraudProtectionPhoneNumberAlwaysAllow", `
 		},
 		"regex": {
 			"type": "array",
-			"items": { "type": "string" }
+			"items": { "type": "string", "format": "x_re2_regex" }
 		}
 	}
 }
