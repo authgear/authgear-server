@@ -420,6 +420,16 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		}
 	}
 
+	if !*fc.FraudProtection.IsModifiable {
+		defaultFP := &config.FraudProtectionConfig{}
+		config.SetFieldDefaults(defaultFP)
+		incomingFPJSON, _ := json.Marshal(appConfig.FraudProtection)
+		defaultFPJSON, _ := json.Marshal(defaultFP)
+		if string(incomingFPJSON) != string(defaultFPJSON) {
+			validationCtx.Child("fraud_protection").EmitErrorMessage("fraud_protection config is not modifiable")
+		}
+	}
+
 	return validationCtx.Error("features are limited by feature config")
 }
 
