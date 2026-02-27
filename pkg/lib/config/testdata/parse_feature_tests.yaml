@@ -164,3 +164,23 @@ config:
       enabled: true
       quota: 0
       period: month
+---
+name: fraud-protection-is-modifiable-true
+error: null
+config:
+  fraud_protection:
+    is_modifiable: true
+---
+name: fraud-protection-is-modifiable-false
+error: null
+config:
+  fraud_protection:
+    is_modifiable: false
+---
+name: fraud-protection-invalid-key
+error: |-
+  invalid feature config:
+  /fraud_protection/invalid_key: 
+config:
+  fraud_protection:
+    invalid_key: foo
