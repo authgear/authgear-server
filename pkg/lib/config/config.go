@@ -530,3 +530,29 @@ func Parse(ctx context.Context, inputYAML []byte) (*AppConfig, error) {
 func PopulateDefaultValues(config *AppConfig) {
 	SetFieldDefaults(config)
 }
+
+func ApplyFeatureConfigConstraints(appConfig *AppConfig, featureConfig *FeatureConfig) {
+	// Apply feature config constraints to app config.
+	// This function filters app config settings based on feature config limits.
+
+	// Filter phone countries based on feature config
+	if appConfig == nil || appConfig.UI == nil || appConfig.UI.PhoneInput == nil {
+		return
+	}
+	if featureConfig == nil || featureConfig.UI == nil || featureConfig.UI.PhoneInput == nil {
+		return
+	}
+
+	if appConfig.UI.PhoneInput.AllowList != nil {
+		appConfig.UI.PhoneInput.AllowList = IntersectAllowlist(
+			appConfig.UI.PhoneInput.AllowList,
+			featureConfig.UI.PhoneInput.AllowList,
+		)
+	}
+	if appConfig.UI.PhoneInput.PinnedList != nil {
+		appConfig.UI.PhoneInput.PinnedList = IntersectAllowlist(
+			appConfig.UI.PhoneInput.PinnedList,
+			featureConfig.UI.PhoneInput.AllowList,
+		)
+	}
+}

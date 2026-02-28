@@ -310,6 +310,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,
@@ -1123,6 +1124,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,
@@ -1428,6 +1430,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,

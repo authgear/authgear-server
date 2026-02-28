@@ -1002,6 +1002,11 @@ export interface CustomDomainFeatureConfig {
 
 export interface UIFeatureConfig {
   white_labeling?: WhiteLabelingFeatureConfig;
+  phone_input?: PhoneInputFeatureConfig;
+}
+
+export interface PhoneInputFeatureConfig {
+  allowlist?: string[];
 }
 
 export interface WhiteLabelingFeatureConfig {

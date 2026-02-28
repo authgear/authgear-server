@@ -42,6 +42,10 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 		SecretConfig:  secretConfig,
 		FeatureConfig: featureConfig,
 	}
+
+	// Apply feature config constraints to app config
+	config.ApplyFeatureConfigConstraints(cfg.AppConfig, cfg.FeatureConfig)
+
 	if err = cfg.SecretConfig.Validate(ctx, cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)
 	}

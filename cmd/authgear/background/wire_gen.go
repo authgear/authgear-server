@@ -405,6 +405,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,
