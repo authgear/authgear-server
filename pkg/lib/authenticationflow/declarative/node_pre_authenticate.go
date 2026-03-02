@@ -39,15 +39,15 @@ func newNodePreAuthenticate(ctx context.Context, deps *authflow.Dependencies, fl
 		Constraints:               nil,
 	}
 
-	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) error {
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
 		err = deps.Events.DispatchEventWithoutTx(ctx, e)
 		if err != nil {
-			return err
+			return authflow.DelayedOneTimeFunctionResult{}, err
 		}
 		n.IsPreAuthenticatedInvoked = true
 		n.Constraints = payload.Constraints
 		n.RateLimits = payload.RateLimits
-		return nil
+		return authflow.DelayedOneTimeFunctionResult{}, nil
 	}
 
 	return n, delayedFunction, nil

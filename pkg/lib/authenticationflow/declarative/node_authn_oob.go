@@ -51,14 +51,14 @@ func NewNodeAuthenticationOOB(ctx context.Context, deps *authflow.Dependencies, 
 
 	return &authflow.NodeWithDelayedOneTimeFunction{
 		Node: simpleNode,
-		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
 			if code != "" {
 				err := n.SendCode(ctx, deps, code)
 				if err != nil {
-					return err
+					return authflow.DelayedOneTimeFunctionResult{}, err
 				}
 			}
-			return nil
+			return authflow.DelayedOneTimeFunctionResult{}, nil
 		},
 	}, nil
 }
@@ -175,8 +175,8 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 		newSimpleNode := authflow.NewNodeSimple(n)
 		return &authflow.NodeWithDelayedOneTimeFunction{
 			Node: newSimpleNode,
-			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
-				return n.SendCode(ctx, deps, code)
+			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
+				return authflow.DelayedOneTimeFunctionResult{}, n.SendCode(ctx, deps, code)
 			},
 		}, authflow.ErrReplaceNode
 	default:

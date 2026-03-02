@@ -180,8 +180,17 @@ func (s *Service) processAcceptResult(
 			return updateSessionErr
 		}
 	}
+	for _, patch := range acceptResult.PendingSessionPatches {
+		session.PatchFrom(patch)
+	}
+	if len(acceptResult.PendingSessionPatches) > 0 {
+		updateSessionErr := s.Store.UpdateSession(ctx, session)
+		if updateSessionErr != nil {
+			return updateSessionErr
+		}
+	}
 	for _, fn := range acceptResult.DelayedOneTimeFunctions {
-		err := fn(ctx, s.Deps)
+		fnResult, err := fn(ctx, s.Deps)
 		if err != nil {
 			err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 				// Restore the database state
@@ -193,6 +202,13 @@ func (s *Service) processAcceptResult(
 				return newAuthenticationFlowError(flows, err)
 			})
 			return err
+		}
+		if fnResult.UpdatedSession != nil {
+			session.PatchFrom(fnResult.UpdatedSession)
+			updateSessionErr := s.Store.UpdateSession(ctx, session)
+			if updateSessionErr != nil {
+				return updateSessionErr
+			}
 		}
 	}
 	return nil

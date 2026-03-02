@@ -21,6 +21,8 @@ import (
 type AcceptResult struct {
 	BotProtectionVerificationResult *BotProtectionVerificationResult `json:"bot_protection,omitempty"`
 	DelayedOneTimeFunctions         []DelayedOneTimeFunction         `json:"-"`
+	// PendingSessionPatches are applied (in order) before delayed functions run.
+	PendingSessionPatches []*Session `json:"-"`
 }
 
 func NewAcceptResult() *AcceptResult {
@@ -179,7 +181,12 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 				nodeToReplace = reactToResult
 			case *NodeWithDelayedOneTimeFunction:
 				nodeToReplace = reactToResult.Node
-				result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+				if reactToResult.UpdatedSession != nil {
+					result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
+				}
+				if reactToResult.DelayedOneTimeFunction != nil {
+					result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+				}
 			default:
 				panic(fmt.Errorf("failed to update node: uxepected type of ReactToResult %t", reactToResult))
 			}
@@ -246,7 +253,12 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 			nextNode = *reactToResult
 		case *NodeWithDelayedOneTimeFunction:
 			nextNode = *reactToResult.Node
-			result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+			if reactToResult.UpdatedSession != nil {
+				result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
+			}
+			if reactToResult.DelayedOneTimeFunction != nil {
+				result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+			}
 		default:
 			panic(fmt.Errorf("failed to append node: uxepected type of ReactToResult %t", reactToResult))
 		}
