@@ -494,15 +494,7 @@ export function useProjectWizardForm(
           await reloadScreenNavQuery();
           setDefaultState(updatedState);
 
-          let url = `/project/${existingAppNodeID}?`;
-          if (formState.loginMethods.includes(LoginMethod.Phone)) {
-            const search = new URLSearchParams({
-              showApplyMessagingDialog: "true",
-            }).toString();
-            url += search;
-          }
-
-          return url.toString();
+          return `/project/${existingAppNodeID}`;
         }
       }
     },

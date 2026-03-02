@@ -290,6 +290,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,

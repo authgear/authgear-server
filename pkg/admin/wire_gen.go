@@ -409,6 +409,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,
@@ -1668,6 +1669,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,

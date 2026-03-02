@@ -440,6 +440,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,
@@ -1223,6 +1224,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,

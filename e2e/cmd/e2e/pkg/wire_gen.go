@@ -348,6 +348,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Store:                    oobStore,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
 		Store:    store3,

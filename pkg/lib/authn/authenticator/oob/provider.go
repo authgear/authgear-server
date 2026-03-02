@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -22,6 +23,7 @@ type Provider struct {
 	Store                    *Store
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Clock                    clock.Clock
+	UIConfig                 *config.UIConfig
 }
 
 func (p *Provider) Get(ctx context.Context, userID string, id string) (*authenticator.OOBOTP, error) {
@@ -79,13 +81,29 @@ func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthent
 		a.Email = target
 	case model.AuthenticatorTypeOOBSMS:
 		validationCtx := &validation.Context{}
-		err := config.FormatPhone{}.CheckFormat(ctx, target)
+
+		// Parse phone number
+		parsed, err := phone.ParsePhoneNumberWithUserInput(target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+			return nil, validationCtx.Error("invalid target")
 		}
-		err = validationCtx.Error("invalid target")
+
+		// Validate phone format
+		err = config.FormatPhone{}.CheckFormat(ctx, parsed.E164)
 		if err != nil {
-			return nil, err
+			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+			return nil, validationCtx.Error("invalid target")
+		}
+
+		// Check phone country allowlist
+		allowlist := []string{}
+		if p.UIConfig != nil && p.UIConfig.PhoneInput != nil {
+			allowlist = p.UIConfig.PhoneInput.AllowList
+		}
+		if !phone.IsPhoneNumberCountryAllowed(parsed, allowlist) {
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+			return nil, validationCtx.Error("invalid target")
 		}
 
 		target, err = p.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
