@@ -212,6 +212,11 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		return err
 	}
 
+	err = s.FraudProtection.CheckAndRecord(ctx, opts.To, string(msgType))
+	if err != nil {
+		return err
+	}
+
 	if s.FeatureTestModeSMSSuppressed {
 		return s.testModeSendSMS(ctx, msgType, opts)
 	}
