@@ -27,6 +27,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -276,6 +277,7 @@ type Dependencies struct {
 	Challenges                      ChallengeService
 	Captcha                         CaptchaService
 	BotProtection                   BotProtectionService
+	FraudProtection                 *fraudprotection.Service
 	OAuthProviderFactory            OAuthProviderFactory
 	PasskeyRequestOptionsService    PasskeyRequestOptionsService
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService

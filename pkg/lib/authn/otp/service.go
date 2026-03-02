@@ -69,6 +69,10 @@ type WhatsappService interface {
 	GetMessageStatus(ctx context.Context, messageID string) (*whatsapp.GetMessageStatusResult, error)
 }
 
+type FraudProtectionService interface {
+	RecordSMSOTPVerified(ctx context.Context, phoneNumber string)
+}
+
 var ServiceLogger = slogutil.NewLogger("otp")
 
 type Service struct {
@@ -83,6 +87,7 @@ type Service struct {
 	AttemptTracker        AttemptTracker
 	RateLimiter           RateLimiter
 	WhatsappService       WhatsappService
+	FraudProtection       FraudProtectionService
 
 	FeatureConfig *config.FeatureConfig
 	EnvConfig     *config.RateLimitsEnvironmentConfig
