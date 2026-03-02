@@ -37,7 +37,7 @@ const (
 )
 
 type FraudProtectionDecision struct {
-    AlwaysAllow FraudProtectionAlwaysAllow    `json:"always_allow,omitempty"`
+    AlwaysAllow *FraudProtectionAlwaysAllow   `json:"always_allow,omitempty"`
     Action      FraudProtectionDecisionAction `json:"action,omitempty"`
 }
 
@@ -67,7 +67,7 @@ const (
 - `Enabled = true`
 - All 5 warning types populated
 - `Action = record_only`
-- `AlwaysAllow = {}`
+- `AlwaysAllow` left as `nil` (pointer zero value — means no whitelist rules; `omitempty` omits it from YAML output)
 
 **Modify `pkg/lib/config/config.go`:**
 - Add `"fraud_protection": { "$ref": "#/$defs/FraudProtectionConfig" }` to AppConfig JSON schema
@@ -112,7 +112,9 @@ func effectiveFraudProtectionConfig(
     featureCfg *config.FraudProtectionFeatureConfig,
 ) *config.FraudProtectionConfig {
     if !*featureCfg.IsModifiable {
-        return config.DefaultFraudProtectionConfig() // returns hardcoded default
+        c := &config.FraudProtectionConfig{}
+        c.SetDefaults()
+        return c
     }
     return appCfg
 }
@@ -283,6 +285,7 @@ func (s *MetricsStore) GetVerifiedByCountry24h(ctx context.Context, country stri
 //     AND name = 'sms_otp_verified'
 //     AND key = $2
 //     AND start_time >= $3
+//   -- $1 = app_id
 //   -- $2 = "phone_country:{country}"
 //   -- $3 = clock.NowUTC().Add(-1 * time.Hour)
 func (s *MetricsStore) GetVerifiedByCountry1h(ctx context.Context, country string) (int64, error)
@@ -297,6 +300,7 @@ func (s *MetricsStore) GetVerifiedByCountry1h(ctx context.Context, country strin
 //     AND name = 'sms_otp_verified'
 //     AND key = $2
 //     AND start_time >= $3
+//   -- $1 = app_id
 //   -- $2 = "ip:{ip}"
 //   -- $3 = clock.NowUTC().Add(-24 * time.Hour)
 func (s *MetricsStore) GetVerifiedByIP24h(ctx context.Context, ip string) (int64, error)
@@ -316,6 +320,7 @@ func (s *MetricsStore) GetVerifiedByIP24h(ctx context.Context, ip string) (int64
 //       AND start_time >= $3
 //     GROUP BY day
 //   ) t
+//   -- $1 = app_id
 //   -- $2 = "phone_country:{country}"
 //   -- $3 = clock.NowUTC().Add(-14 * 24 * time.Hour)
 func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Context, country string) (int64, error)
@@ -482,12 +487,23 @@ return {count, (count > tonumber(ARGV[3])) and 1 or 0}
 
 `Service` is the coordinator. It queries `MetricsStore` for thresholds, passes them to `LeakyBucketStore` for atomic fill/check, then dispatches the audit event.
 
+Each consuming package defines its own narrow interface (same pattern as `EventService`, which is re-declared per package throughout the codebase):
+
 ```go
-// Interface consumed by messaging.Sender (defined in messaging package)
+// In pkg/lib/messaging/sender.go
 type FraudProtectionService interface {
     CheckAndRecord(ctx context.Context, phoneNumber, messageType string) error
 }
+```
 
+```go
+// In pkg/lib/authn/otp/service.go
+type FraudProtectionService interface {
+    RecordSMSOTPVerified(ctx context.Context, phoneNumber string)
+}
+```
+
+```go
 type EventService interface {
     DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
@@ -574,7 +590,7 @@ var DependencySet = wire.NewSet(
 
 **Modify `pkg/lib/deps/deps_common.go`**:
 - Add `fraudprotection.DependencySet` to `CommonDependencySet`
-- Bind `*fraudprotection.Service` to the `FraudProtectionService` interface consumed by `messaging.Sender` and `otp.Service`
+- Bind `*fraudprotection.Service` to the `FraudProtectionService` interface in the `messaging` package (for `CheckAndRecord`) and to the `FraudProtectionService` interface in the `otp` package (for `RecordSMSOTPVerified`). These are two separate per-package interfaces following the same pattern already used for other service dependencies in this codebase (e.g. `EventService` is redefined per package).
 
 `auditdb.WriteHandle`, `auditdb.ReadHandle`, `auditdb.SQLBuilderApp`, `auditdb.WriteSQLExecutor`, `auditdb.ReadSQLExecutor` are already provided via `AppRootDeps` in `deps_provider.go`. `appredis.Handle` and `clock.Clock` are also already in scope.
 
@@ -909,7 +925,7 @@ s.EventService.DispatchEventImmediately(ctx, &nonblocking.FraudProtectionDecisio
 | `pkg/lib/fraudprotection/leaky_bucket_store.go` | **Create** — `LeakyBucketStore`: Redis fill/drain + `LeakyBucketThresholds` / `LeakyBucketTriggered` types |
 | `pkg/lib/fraudprotection/deps.go` | **Create** — Wire DI set |
 | `pkg/lib/deps/deps_common.go` | **Modify** — add `fraudprotection.DependencySet` + interface binding |
-| `pkg/lib/messaging/sender.go` | **Modify** — `FraudProtection` field + call `CheckAndRecord` / `RecordSMSOTPSent` |
+| `pkg/lib/messaging/sender.go` | **Modify** — `FraudProtection` field + call `CheckAndRecord` before SMS send |
 | `pkg/lib/authenticationflow/declarative/milestone.go` | **Modify** — add `MilestoneOOBOTPSentPhoneTarget` interface |
 | `pkg/lib/authn/otp/service.go` | **Modify** — add `FraudProtection` field; call `RecordSMSOTPVerified` in `VerifyOTP()` when `code.OOBChannel == SMS` |
 | `pkg/lib/authenticationflow/declarative/node_authn_oob.go` | **Modify** — session counter (`SMSOTPSentCount++` on send, `SMSOTPVerifiedCount++` on verify) + implement `MilestoneOOBOTPSentPhoneTarget` |
@@ -1019,7 +1035,7 @@ Two more test files in `e2e/tests/fraud_protection/` that exercise the verified 
 
 `verified_otp_writes_to_metrics.test.yaml` — Completes a full SMS OTP signup (identify phone → select channel → submit code `111111` → flow finishes). Then uses `action: audit_query` to assert that exactly 2 rows exist in `_audit_metrics` for this app ID with `name = 'sms_otp_verified'` — one with `key = 'ip:{ip}'` and one with `key = 'phone_country:SG'`. This confirms `RecordSMSOTPVerified` → `MetricsStore.RecordVerified` is wired correctly end-to-end.
 
-`verified_otp_history_raises_threshold.test.yaml` — Uses `before: custom_audit_sql` to insert 30 `sms_otp_verified` rows for `phone_country:SG` with `start_time` in the past 30 minutes. With this history, `GetVerifiedByCountry1h(SG) = 30` → country hourly threshold = `max(3, 20/6, 30×0.2)` = 6. The test then runs 4 signup flows to SG numbers with `deny_if_any_warning`; all 4 OTP send steps succeed (level 4 ≤ threshold 6). A 7th flow is blocked. This directly proves that verified OTP history raises the adaptive threshold: without the pre-populated history the 4th would already be blocked (as shown in `sms_unverified_by_phone_country_hourly.test.yaml`).
+`verified_otp_history_raises_threshold.test.yaml` — Uses `before: custom_audit_sql` to insert 30 `sms_otp_verified` rows for `phone_country:SG` with `start_time` in the past 30 minutes. With this history, `GetVerifiedByCountry1h(SG) = 30` → country hourly threshold = `max(3, 20/6, 30×0.2)` = 6. The test then runs 6 signup flows to SG numbers with `deny_if_any_warning`; all 6 OTP send steps succeed (level 6 = threshold 6, not exceeded since trigger condition is `new_level > threshold` strictly). A 7th flow is blocked (level 7 > 6). This directly proves that verified OTP history raises the adaptive threshold: without the pre-populated history the 4th would already be blocked (as shown in `sms_unverified_by_phone_country_hourly.test.yaml`).
 
 ### Part 3 — Decision Record & Audit Log
 
