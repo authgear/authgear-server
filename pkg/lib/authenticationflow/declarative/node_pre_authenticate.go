@@ -60,7 +60,7 @@ func NewNodePreAuthenticateNodeSimple(ctx context.Context, deps *authflow.Depend
 		return nil, err
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node:                   authflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil

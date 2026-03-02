@@ -8,6 +8,7 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -140,12 +141,16 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	code string,
-) (*authflow.Node, error) {
+) (authflow.ReactToResult, error) {
 	milestone, ok := i.findDestination(flows)
 	var state *otp.State
 	var err error
+	var smsPhone string
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+		if dest.ForgotPasswordCodeChannel() == forgotpassword.CodeChannelSMS {
+			smsPhone = dest.TargetLoginID
+		}
 		state, err = deps.ResetPassword.VerifyCodeWithTarget(ctx,
 			dest.TargetLoginID,
 			code,
@@ -166,7 +171,15 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 	if maskedTarget == "" {
 		maskedTarget = phone.Mask(state.Target)
 	}
-	return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code, MaskedTarget: maskedTarget}), nil
+	nextNode := authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code, MaskedTarget: maskedTarget})
+	if smsPhone != "" {
+		updated := authflow.GetSession(ctx).WithSMSOTPVerifiedCountAdded(smsPhone)
+		return &authflow.NodeReactToResult{
+			Node:           nextNode,
+			UpdatedSession: updated,
+		}, nil
+	}
+	return nextNode, nil
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {

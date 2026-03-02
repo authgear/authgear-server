@@ -29,8 +29,11 @@ type Session struct {
 	UserIDHint                      string                           `json:"user_id_hint,omitempty"`
 	LoginHint                       string                           `json:"login_hint,omitempty"`
 
-	SMSOTPSentCount     int `json:"sms_otp_sent_count,omitempty"`
-	SMSOTPVerifiedCount int `json:"sms_otp_verified_count,omitempty"`
+	// SMSOTPSentCountByPhone tracks how many SMS OTPs were sent per phone number in this flow.
+	// Used by the root-flow OnCommitEffect to compute unverified sends for alt-auth exclusion.
+	SMSOTPSentCountByPhone map[string]int `json:"sms_otp_sent_count_by_phone,omitempty"`
+	// SMSOTPVerifiedCountByPhone tracks how many SMS OTPs were verified per phone number.
+	SMSOTPVerifiedCountByPhone map[string]int `json:"sms_otp_verified_count_by_phone,omitempty"`
 }
 
 type SessionOutput struct {
@@ -167,6 +170,31 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.C
 
 func (s *Session) SetBotProtectionVerificationResult(result *BotProtectionVerificationResult) {
 	s.BotProtectionVerificationResult = result
+}
+
+// WithSMSOTPSentCountAdded returns a new Session with the sent count for phone incremented by 1.
+// The maps are copied to avoid mutating the live session's maps.
+func (s *Session) WithSMSOTPSentCountAdded(phone string) *Session {
+	updated := *s
+	newMap := make(map[string]int, len(s.SMSOTPSentCountByPhone)+1)
+	for k, v := range s.SMSOTPSentCountByPhone {
+		newMap[k] = v
+	}
+	newMap[phone]++
+	updated.SMSOTPSentCountByPhone = newMap
+	return &updated
+}
+
+// WithSMSOTPVerifiedCountAdded returns a new Session with the verified count for phone incremented by 1.
+func (s *Session) WithSMSOTPVerifiedCountAdded(phone string) *Session {
+	updated := *s
+	newMap := make(map[string]int, len(s.SMSOTPVerifiedCountByPhone)+1)
+	for k, v := range s.SMSOTPVerifiedCountByPhone {
+		newMap[k] = v
+	}
+	newMap[phone]++
+	updated.SMSOTPVerifiedCountByPhone = newMap
+	return &updated
 }
 
 // PatchFrom copies all fields from updated into s.

@@ -83,10 +83,3 @@ func GetSession(ctx context.Context) *Session {
 	return ctx.Value(contextKeySession).(*Session)
 }
 
-func GetSMSOTPSentCount(ctx context.Context) int {
-	return GetSession(ctx).SMSOTPSentCount
-}
-
-func GetSMSOTPVerifiedCount(ctx context.Context) int {
-	return GetSession(ctx).SMSOTPVerifiedCount
-}
