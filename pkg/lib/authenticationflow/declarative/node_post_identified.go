@@ -55,7 +55,7 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 		return authflow.DelayedOneTimeFunctionResult{}, nil
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node:                   authflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil

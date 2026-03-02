@@ -30,16 +30,16 @@ type DelayedOneTimeFunctionResult struct {
 //   - executes just before the flow state is saved to store
 type DelayedOneTimeFunction func(ctx context.Context, deps *Dependencies) (DelayedOneTimeFunctionResult, error)
 
-type NodeWithDelayedOneTimeFunction struct {
+type NodeReactToResult struct {
 	Node                   *Node
 	DelayedOneTimeFunction DelayedOneTimeFunction // may be nil
 	// UpdatedSession, if non-nil, is applied to the live session before delayed functions run.
 	UpdatedSession *Session
 }
 
-var _ ReactToResult = &NodeWithDelayedOneTimeFunction{}
+var _ ReactToResult = &NodeReactToResult{}
 
-func (n *NodeWithDelayedOneTimeFunction) reactToResult() {}
+func (n *NodeReactToResult) reactToResult() {}
 
 type NodeSimple interface {
 	Kinder

@@ -47,7 +47,7 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 		return authflow.DelayedOneTimeFunctionResult{}, nil
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node:                   authflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil

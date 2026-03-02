@@ -179,7 +179,7 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 			switch reactToResult := reactToResult.(type) {
 			case *Node:
 				nodeToReplace = reactToResult
-			case *NodeWithDelayedOneTimeFunction:
+			case *NodeReactToResult:
 				nodeToReplace = reactToResult.Node
 				if reactToResult.UpdatedSession != nil {
 					result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
@@ -251,7 +251,7 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 		switch reactToResult := reactToResult.(type) {
 		case *Node:
 			nextNode = *reactToResult
-		case *NodeWithDelayedOneTimeFunction:
+		case *NodeReactToResult:
 			nextNode = *reactToResult.Node
 			if reactToResult.UpdatedSession != nil {
 				result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
