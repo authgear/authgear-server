@@ -33,6 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/botprotection"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -196,6 +197,12 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		networkprotection.DependencySet,
+	),
+
+	wire.NewSet(
+		fraudprotection.DependencySet,
+		wire.Bind(new(messaging.FraudProtectionService), new(*fraudprotection.Service)),
+		wire.Bind(new(otp.FraudProtectionService), new(*fraudprotection.Service)),
 	),
 
 	wire.NewSet(
