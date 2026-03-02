@@ -144,7 +144,7 @@ func (h *AuthflowV2SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http
 		}
 
 		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI}}
 		result.WriteResponse(w, r)
 
 		return nil

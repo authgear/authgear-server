@@ -102,10 +102,8 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			return err
 		}
 
-		var redirectURI *url.URL
-		navivagationAction := webapp.NavigationActionRedirect
 		if output.NeedVerification {
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityVerifyEmail)
+			redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityVerifyEmail)
 			if err != nil {
 				return err
 			}
@@ -113,29 +111,32 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			q := redirectURI.Query()
 			q.Set("q_login_id_key", loginIDKey)
 			q.Set("q_token", output.Token)
-
 			redirectURI.RawQuery = q.Encode()
-			navivagationAction = webapp.NavigationActionAdvance
-		} else if ctrl.IsInSettingsAction(s, webappSession) {
+
+			result := webapp.Result{RedirectURI: redirectURI.String(), NavigationAction: webapp.NavigationActionAdvance}
+			result.WriteResponse(w, r)
+			return nil
+		}
+
+		if ctrl.IsInSettingsAction(s, webappSession) {
 			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
 			if err != nil {
 				return err
 			}
 			settingsActionResult.WriteResponse(w, r)
 			return nil
-		} else {
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
-			if err != nil {
-				return err
-			}
-
-			q := redirectURI.Query()
-			q.Set("q_login_id_key", loginIDKey)
-
-			redirectURI.RawQuery = q.Encode()
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI.String(), NavigationAction: navivagationAction}
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		if err != nil {
+			return err
+		}
+
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		redirectURI.RawQuery = q.Encode()
+
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String(), NavigationAction: webapp.NavigationActionRedirect}}
 		result.WriteResponse(w, r)
 		return nil
 	})

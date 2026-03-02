@@ -157,7 +157,7 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 			panic("authflowv2: unexpected authenticator type")
 		}
 
-		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}}
 		result.WriteResponse(w, r)
 
 		return nil

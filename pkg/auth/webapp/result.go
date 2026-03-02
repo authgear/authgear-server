@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
@@ -18,13 +19,14 @@ const (
 )
 
 type Result struct {
-	UILocales        string              `json:"ui_locales,omitempty"`
-	ColorScheme      string              `json:"color_scheme,omitempty"`
-	RedirectURI      string              `json:"redirect_uri,omitempty"`
-	NavigationAction NavigationAction    `json:"navigation_action,omitempty"`
-	Cookies          []*http.Cookie      `json:"cookies,omitempty"`
-	IsInteractionErr bool                `json:"is_interaction_err,omitempty"`
-	RemoveQueries    setutil.Set[string] `json:"remove_queries,omitempty"`
+	UILocales                string              `json:"ui_locales,omitempty"`
+	ColorScheme              string              `json:"color_scheme,omitempty"`
+	RedirectURI              string              `json:"redirect_uri,omitempty"`
+	NavigationAction         NavigationAction    `json:"navigation_action,omitempty"`
+	Cookies                  []*http.Cookie      `json:"cookies,omitempty"`
+	IsInteractionErr         bool                `json:"is_interaction_err,omitempty"`
+	RemoveQueries            setutil.Set[string] `json:"remove_queries,omitempty"`
+	StopOTelTracePropagation bool                `json:"stop_otel_trace_propagation,omitempty"`
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
@@ -61,7 +63,14 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	}
 
 	redirectURI.RawQuery = q.Encode()
-	redirectURIString := httputil.ConstructInternalRedirectURI(req.Context(), redirectURI.String())
+	var redirectURIString string
+	if r.StopOTelTracePropagation {
+		otelutil.ClearTraceContext(q)
+		redirectURI.RawQuery = q.Encode()
+		redirectURIString = redirectURI.String()
+	} else {
+		redirectURIString = httputil.ConstructInternalRedirectURI(req.Context(), redirectURI.String())
+	}
 
 	for _, cookie := range r.Cookies {
 		httputil.UpdateCookie(w, cookie)
@@ -96,5 +105,21 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Result) IsInternalError() bool {
+	return false
+}
+
+// SettingsCompletedResult is a Result that stops OTel trace propagation.
+// Use this for any redirect that ends a settings flow, so that the next
+// settings operation starts a fresh trace instead of continuing the previous one.
+type SettingsCompletedResult struct {
+	*Result
+}
+
+func (r *SettingsCompletedResult) WriteResponse(w http.ResponseWriter, req *http.Request) {
+	r.Result.StopOTelTracePropagation = true
+	r.Result.WriteResponse(w, req)
+}
+
+func (r *SettingsCompletedResult) IsInternalError() bool {
 	return false
 }

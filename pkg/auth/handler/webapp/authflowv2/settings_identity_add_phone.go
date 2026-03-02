@@ -111,35 +111,41 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 			return err
 		}
 
-		var redirectURI *url.URL
 		if output.NeedVerification {
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityVerifyPhone)
+			redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityVerifyPhone)
+			if err != nil {
+				return err
+			}
 
 			q := redirectURI.Query()
 			q.Set("q_login_id_key", loginIDKey)
 			q.Set("q_token", output.Token)
-
 			redirectURI.RawQuery = q.Encode()
-		} else if ctrl.IsInSettingsAction(s, webappSession) {
+
+			result := webapp.Result{RedirectURI: redirectURI.String()}
+			result.WriteResponse(w, r)
+			return nil
+		}
+
+		if ctrl.IsInSettingsAction(s, webappSession) {
 			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
 			if err != nil {
 				return err
 			}
 			settingsActionResult.WriteResponse(w, r)
 			return nil
-		} else {
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
-
-			q := redirectURI.Query()
-			q.Set("q_login_id_key", loginIDKey)
-
-			redirectURI.RawQuery = q.Encode()
 		}
+
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
 		if err != nil {
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		redirectURI.RawQuery = q.Encode()
+
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
 		result.WriteResponse(w, r)
 		return nil
 	})

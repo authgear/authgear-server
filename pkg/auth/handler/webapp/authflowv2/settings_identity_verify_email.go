@@ -177,7 +177,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		q.Set("q_login_id_key", loginIDKey)
 		redirectURI.RawQuery = q.Encode()
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
 		result.WriteResponse(w, r)
 		return nil
 	})
