@@ -144,13 +144,12 @@ CREATE TABLE _audit_metrics (
     -- a unique index on a column that is not part of the partition key.
     id          TEXT                        NOT NULL,
     app_id      TEXT                        NOT NULL,
-    name TEXT                        NOT NULL,
-    period      TEXT                        NOT NULL,
+    name        TEXT                        NOT NULL,
     key         TEXT                        NOT NULL,
     start_time  TIMESTAMP WITHOUT TIME ZONE NOT NULL
 ) PARTITION BY RANGE (start_time);
 
-CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, period, key, start_time);
+CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, key, start_time);
 
 CREATE TABLE _audit_metrics_template (LIKE _audit_metrics);
 ALTER TABLE _audit_metrics_template ADD PRIMARY KEY (id);
@@ -192,13 +191,12 @@ DROP TABLE _audit_metrics;
 - `id` (`text`): surrogate PK — UUID string generated in Go via `uuid.New().String()` and passed as a parameter
 - `app_id` (`text`): the app tenant identifier
 - `name` (`text`): e.g. `sms_otp_verified`
-- `period` (`text`): time bucket granularity — `"1h"` (hourly index scan window; daily sums aggregated at query time)
 - `key` (`text`): dimension and value — `{dimension}:{value}`, e.g. `ip:1.2.3.4` or `phone_country:SG`
 - `start_time` (`timestamp without time zone`): exact event time (UTC); no truncation
 
 **Primary key:** `id` only — declared on the template table so pg_partman propagates it to each child partition. The parent table has no PK constraint (partitioned tables cannot have a unique index on a non-partition-key column). No `count` column; each row represents one verified OTP event (append-only).
 
-**Index:** `(app_id, name, period, key, start_time)` — on the parent table `_audit_metrics`; PostgreSQL propagates it to child partitions automatically.
+**Index:** `(app_id, name, key, start_time)` — on the parent table `_audit_metrics`; PostgreSQL propagates it to child partitions automatically.
 
 **`key` column format:** `{dimension}:{value}`
 - Examples: `ip:1.2.3.4`, `phone_country:SG`
@@ -207,10 +205,10 @@ DROP TABLE _audit_metrics;
 
 Two rows inserted per event in a single `INSERT ... VALUES (...), (...)` statement:
 
-| Event | `app_id` | `name` | `period` | `key` | `start_time` |
-|-------|----------|--------------|---------|-------|-------------|
-| OTP verified / alt-auth | `{appID}` | `sms_otp_verified` | `1h` | `ip:{ip}` | event time (UTC) |
-| OTP verified / alt-auth | `{appID}` | `sms_otp_verified` | `1h` | `phone_country:{alpha2}` | event time (UTC) |
+| Event | `app_id` | `name` | `key` | `start_time` |
+|-------|----------|--------|-------|-------------|
+| OTP verified | `{appID}` | `sms_otp_verified` | `ip:{ip}` | event time (UTC) |
+| OTP verified | `{appID}` | `sms_otp_verified` | `phone_country:{alpha2}` | event time (UTC) |
 
 `sms_otp_sent` is **not** written to PostgreSQL — the leaky bucket (Redis) tracks the real-time unverified count. Only `sms_otp_verified` goes to PostgreSQL because it is the historical denominator needed for adaptive threshold computation.
 
@@ -244,13 +242,14 @@ type MetricsStore struct {
 // RecordVerified inserts 2 rows into _audit_metrics in a single statement —
 // one for the IP dimension and one for the phone country dimension.
 // Two UUIDs are generated in Go via uuid.New().String() and passed as parameters.
-// Called after an OTP is verified or alt-auth completes (fire-and-forget).
+// Called after an OTP is verified (fire-and-forget). Alt-auth only drains the leaky
+// bucket via RevertSMSOTPSent and does NOT write to PostgreSQL.
 //
 // SQL:
-//   INSERT INTO _audit_metrics (id, app_id, name, period, key, start_time)
+//   INSERT INTO _audit_metrics (id, app_id, name, key, start_time)
 //   VALUES
-//     ($1, $2, 'sms_otp_verified', '1h', $3, $6),
-//     ($4, $2, 'sms_otp_verified', '1h', $5, $6)
+//     ($1, $2, 'sms_otp_verified', $3, $6),
+//     ($4, $2, 'sms_otp_verified', $5, $6)
 //   -- $1 = uuid.New().String()        (id for ip row)
 //   -- $2 = app_id
 //   -- $3 = "ip:{ip}"                  e.g. "ip:1.2.3.4"
@@ -267,7 +266,6 @@ func (s *MetricsStore) RecordVerified(ctx context.Context, ip, phoneCountry stri
 //   FROM _audit_metrics
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
-//     AND period = '1h'
 //     AND key = $2
 //     AND start_time >= $3
 //   -- $1 = app_id
@@ -283,7 +281,6 @@ func (s *MetricsStore) GetVerifiedByCountry24h(ctx context.Context, country stri
 //   FROM _audit_metrics
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
-//     AND period = '1h'
 //     AND key = $2
 //     AND start_time >= $3
 //   -- $2 = "phone_country:{country}"
@@ -298,7 +295,6 @@ func (s *MetricsStore) GetVerifiedByCountry1h(ctx context.Context, country strin
 //   FROM _audit_metrics
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
-//     AND period = '1h'
 //     AND key = $2
 //     AND start_time >= $3
 //   -- $2 = "ip:{ip}"
@@ -316,7 +312,6 @@ func (s *MetricsStore) GetVerifiedByIP24h(ctx context.Context, ip string) (int64
 //     FROM _audit_metrics
 //     WHERE app_id = $1
 //       AND name = 'sms_otp_verified'
-//       AND period = '1h'
 //       AND key = $2
 //       AND start_time >= $3
 //     GROUP BY day
@@ -326,14 +321,14 @@ func (s *MetricsStore) GetVerifiedByIP24h(ctx context.Context, ip string) (int64
 func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Context, country string) (int64, error)
 ```
 
-**Redis cache key format:** `{appID}:fraud_protection:threshold_cache:{name}:{period}:{key}` — TTL **5 minutes**.
+**Redis cache key format:** `{appID}:fraud_protection:threshold_cache:{name}:{key}` — TTL **5 minutes**.
 
 **Go-side key construction examples:**
 ```go
 appID   := string(s.AppID)
 pgKey   := fmt.Sprintf("phone_country:%s", country)  // or fmt.Sprintf("ip:%s", ip)
 
-cacheKey := fmt.Sprintf("%s:fraud_protection:threshold_cache:sms_otp_verified:1h:%s", appID, pgKey)
+cacheKey := fmt.Sprintf("%s:fraud_protection:threshold_cache:sms_otp_verified:%s", appID, pgKey)
 ```
 
 #### `pkg/lib/fraudprotection/leaky_bucket_store.go`
@@ -480,7 +475,8 @@ return {count, (count > tonumber(ARGV[3])) and 1 or 0}
 | Event | Operations |
 |-------|-----------|
 | SMS OTP sent | `fill(leaky_bucket:1h:country:{alpha2})`, `fill(leaky_bucket:1d:country:{alpha2})`, `fill(leaky_bucket:1h:ip:{ip})`, `fill(leaky_bucket:1d:ip:{ip})`, `ZADD ip_countries:{ip} {alpha2}` |
-| OTP verified / alt-auth | PostgreSQL write + `drain(leaky_bucket:1h:country:{alpha2})`, `drain(leaky_bucket:1d:country:{alpha2})`, `drain(leaky_bucket:1h:ip:{ip})`, `drain(leaky_bucket:1d:ip:{ip})` |
+| OTP verified | PostgreSQL write + `drain(leaky_bucket:1h:country:{alpha2})`, `drain(leaky_bucket:1d:country:{alpha2})`, `drain(leaky_bucket:1h:ip:{ip})`, `drain(leaky_bucket:1d:ip:{ip})` |
+| Alt-auth (unverified OTP) | `drain(leaky_bucket:1h:country:{alpha2})`, `drain(leaky_bucket:1d:country:{alpha2})`, `drain(leaky_bucket:1h:ip:{ip})`, `drain(leaky_bucket:1d:ip:{ip})` (no PostgreSQL write) |
 
 #### `pkg/lib/fraudprotection/service.go`
 
@@ -966,7 +962,7 @@ In `pkg/lib/config/configsource/resources_test.go`, add test cases for the new g
 ### Part 2 — Warning Implementation
 
 **Commit 6: `audit/db: add _audit_metrics partitioned table`**
-Add SQL migration creating the `_audit_metrics` table partitioned by `start_time` (monthly, 90-day retention via pg_partman), template table for PK propagation, and `(app_id, name, period, key, start_time)` index.
+Add SQL migration creating the `_audit_metrics` table partitioned by `start_time` (monthly, 90-day retention via pg_partman), template table for PK propagation, and `(app_id, name, key, start_time)` index.
 
 **Commit 7: `fraudprotection: implement MetricsStore`**
 Create `pkg/lib/fraudprotection/metrics_store.go`. Implements `RecordVerified` (2-row INSERT), `GetVerifiedByCountry24h`, `GetVerifiedByCountry1h`, `GetVerifiedByIP24h`, `GetVerifiedByCountryPast14DaysRollingMax`. All read methods use a 5-minute Redis cache.
