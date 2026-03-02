@@ -278,6 +278,10 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 	// Set flag to return reserved rate limit tokens
 	isCodeValid = true
 
+	if code.OOBChannel == model.AuthenticatorOOBChannelSMS {
+		s.FraudProtection.RecordSMSOTPVerified(ctx, target)
+	}
+
 	if !opts.SkipConsume {
 		if err := s.consumeCode(ctx, kind.Purpose(), code); err != nil {
 			return err
