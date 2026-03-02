@@ -28,6 +28,9 @@ type Session struct {
 	SuppressIDPSessionCookie        bool                             `json:"suppress_idp_session_cookie,omitempty"`
 	UserIDHint                      string                           `json:"user_id_hint,omitempty"`
 	LoginHint                       string                           `json:"login_hint,omitempty"`
+
+	SMSOTPSentCount     int `json:"sms_otp_sent_count,omitempty"`
+	SMSOTPVerifiedCount int `json:"sms_otp_verified_count,omitempty"`
 }
 
 type SessionOutput struct {
@@ -156,9 +159,19 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.C
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
 
+	// Store a pointer to the live session so callers can read the latest state via GetSession(ctx).
+	ctx = context.WithValue(ctx, contextKeySession, s)
+
 	return ctx
 }
 
 func (s *Session) SetBotProtectionVerificationResult(result *BotProtectionVerificationResult) {
 	s.BotProtectionVerificationResult = result
+}
+
+// PatchFrom copies all fields from updated into s.
+// Callers construct a full updated session by copying the live session and modifying fields,
+// then pass it here so processAcceptResult can persist the changes atomically.
+func (s *Session) PatchFrom(updated *Session) {
+	*s = *updated
 }

@@ -72,3 +72,21 @@ var contextKeyFlowID = contextKeyTypeFlowID{}
 func GetFlowID(ctx context.Context) string {
 	return ctx.Value(contextKeyFlowID).(string)
 }
+
+type contextKeyTypeSession struct{}
+
+var contextKeySession = contextKeyTypeSession{}
+
+// GetSession returns the live *Session stored by MakeContext.
+// Because a pointer is stored, mutations made to the session after MakeContext are visible.
+func GetSession(ctx context.Context) *Session {
+	return ctx.Value(contextKeySession).(*Session)
+}
+
+func GetSMSOTPSentCount(ctx context.Context) int {
+	return GetSession(ctx).SMSOTPSentCount
+}
+
+func GetSMSOTPVerifiedCount(ctx context.Context) int {
+	return GetSession(ctx).SMSOTPVerifiedCount
+}

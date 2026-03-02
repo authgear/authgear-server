@@ -19,14 +19,22 @@ var _ ReactToResult = &Node{}
 
 func (n *Node) reactToResult() {}
 
+// DelayedOneTimeFunctionResult is the return value of a DelayedOneTimeFunction.
+// If UpdatedSession is non-nil, processAcceptResult patches the live session and calls UpdateSession.
+type DelayedOneTimeFunctionResult struct {
+	UpdatedSession *Session
+}
+
 // DelayedOneTimeFunction
 //   - executes outside the transaction.
 //   - executes just before the flow state is saved to store
-type DelayedOneTimeFunction func(ctx context.Context, deps *Dependencies) error
+type DelayedOneTimeFunction func(ctx context.Context, deps *Dependencies) (DelayedOneTimeFunctionResult, error)
 
 type NodeWithDelayedOneTimeFunction struct {
 	Node                   *Node
-	DelayedOneTimeFunction DelayedOneTimeFunction
+	DelayedOneTimeFunction DelayedOneTimeFunction // may be nil
+	// UpdatedSession, if non-nil, is applied to the live session before delayed functions run.
+	UpdatedSession *Session
 }
 
 var _ ReactToResult = &NodeWithDelayedOneTimeFunction{}
