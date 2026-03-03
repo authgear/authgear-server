@@ -52,7 +52,7 @@ type LeakyBucketLevels struct {
 // ARGV[2] = threshold (current adaptive threshold for this bucket)
 // ARGV[3] = period (window_seconds: 3600 or 86400)
 // ARGV[4] = n (positive=fill, negative=drain, 0=read)
-// ARGV[5] = ttl_seconds (2 * window_seconds; only applied when n=1)
+// ARGV[5] = ttl_seconds (2 * window_seconds; only applied when n>0)
 // Returns {new_level (integer, truncated), triggered (0 or 1)}.
 var leakyBucketScript = `
 local now       = tonumber(ARGV[1])
@@ -76,7 +76,7 @@ local new_level = math.max(0, level - leaked + n)
 
 if n ~= 0 then
     redis.call('HMSET', KEYS[1], 'level', new_level, 'last_updated', now)
-    if n == 1 then
+    if n > 0 then
         redis.call('EXPIRE', KEYS[1], ttl)
     end
 end
