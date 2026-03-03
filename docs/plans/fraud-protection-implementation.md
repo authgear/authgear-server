@@ -847,9 +847,9 @@ The 6 public flows: `intent_login_flow.go`, `intent_signup_flow.go`, `intent_sig
 
 In `pkg/lib/fraudprotection/service.go`:
 ```go
-var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
+var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 ```
-→ `{"name":"Forbidden","reason":"BlockedByFraudProtection","code":403}`
+→ `{"name":"TooManyRequest","reason":"BlockedByFraudProtection","code":429}`
 
 ### 3.2 Audit Log Event
 
@@ -1022,7 +1022,7 @@ Add `before: custom_audit_sql` to `pkg/testrunner/` — identical to `before: cu
 **Commit 18: `e2e: add fraud protection unverified OTP blocking e2e tests`**
 Create `e2e/tests/fraud_protection/` with three test files. Each configures `authgear.yaml` via `override` with `fraud_protection`, `test_mode.oob_otp` (fixed code `111111`), and `test_mode.sms.suppressed`. Flows are run sequentially within a single test case using multiple `action: create` blocks, leaving OTPs unverified between flows. Because each test has a fresh app ID, the leaky bucket starts at 0 and `_audit_metrics` has no history, so adaptive thresholds fall to their minimums (country hourly = 3, IP countries = 3), making each warning reachable in exactly 4 flows.
 
-`sms_unverified_by_phone_country_hourly.test.yaml` — Tests `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to different SG numbers (`+6591230001`–`+6591230003`), each OTP send step succeeds (`verify_oob_otp_data`). The 4th flow's OTP send step for `+6591230004` returns `{"name": "Forbidden", "reason": "BlockedByFraudProtection", "code": 403}`.
+`sms_unverified_by_phone_country_hourly.test.yaml` — Tests `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to different SG numbers (`+6591230001`–`+6591230003`), each OTP send step succeeds (`verify_oob_otp_data`). The 4th flow's OTP send step for `+6591230004` returns `{"name": "TooManyRequest", "reason": "BlockedByFraudProtection", "code": 429}`.
 
 `sms_phone_countries_by_ip_daily.test.yaml` — Tests `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to distinct countries (SG `+6591230001`, HK `+85291230001`, MY `+60123450001`); each succeeds. The 4th flow to JP `+819012340001` is blocked with the same error.
 
@@ -1069,5 +1069,5 @@ Add `EventService` interface and field to `Service` struct. In `CheckAndRecord`,
 4. **Integration**: send >3 countries from same IP → `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` triggers; send >20 unverified OTPs to a country → country unverified warning triggers
 5. **Leaky bucket recovery**: verify that after the window elapses with no new sends, the leaky bucket level decays to 0 and warnings stop triggering
 6. **Audit log**: `fraud_protection.decision_recorded` event appears after a blocked/allowed SMS attempt
-7. **API error**: `{"name":"Forbidden","reason":"BlockedByFraudProtection","code":403}` when `action: deny_if_any_warning`
+7. **API error**: `{"name":"TooManyRequest","reason":"BlockedByFraudProtection","code":429}` when `action: deny_if_any_warning`
 8. **Always-allow**: whitelisted IP/phone bypasses the check entirely

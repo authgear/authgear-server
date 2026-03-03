@@ -268,9 +268,9 @@ When `action: deny_if_any_warning` and a warning is triggered, an API error will
 
 ```json
 {
-  "name": "Forbidden",
+  "name": "TooManyRequest",
   "reason": "BlockedByFraudProtection",
-  "code": 403
+  "code": 429
 }
 ```
 
