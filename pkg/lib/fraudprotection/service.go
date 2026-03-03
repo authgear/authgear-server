@@ -21,7 +21,7 @@ import (
 
 var ServiceLogger = slogutil.NewLogger("fraudprotection")
 
-var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
+var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 
 const (
 	// thresholdScaleFactor is the fraction of historical verified-OTP counts
