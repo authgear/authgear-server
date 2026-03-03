@@ -70,7 +70,7 @@ type WhatsappService interface {
 }
 
 type FraudProtectionService interface {
-	RecordSMSOTPVerified(ctx context.Context, phoneNumber string)
+	RecordSMSOTPVerified(ctx context.Context, phoneNumber string) error
 }
 
 var ServiceLogger = slogutil.NewLogger("otp")
@@ -279,7 +279,9 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 	isCodeValid = true
 
 	if code.OOBChannel == model.AuthenticatorOOBChannelSMS {
-		s.FraudProtection.RecordSMSOTPVerified(ctx, target)
+		if err := s.FraudProtection.RecordSMSOTPVerified(ctx, target); err != nil {
+			logger.WithError(err).Error(ctx, "failed to record SMS OTP verified for fraud protection")
+		}
 	}
 
 	if !opts.SkipConsume {

@@ -338,7 +338,7 @@ func TestCheckAndRecord(t *testing.T) {
 			So(err, ShouldEqual, ErrBlockedByFraudProtection)
 		})
 
-		Convey("returns nil (non-fatal) when leaky bucket fails", func() {
+		Convey("returns error when leaky bucket fails", func() {
 			import_err := &testError{"redis error"}
 			svc := &Service{
 				Config:        enabledCfg,
@@ -347,7 +347,7 @@ func TestCheckAndRecord(t *testing.T) {
 				LeakyBucket:   &stubLeakyBucket{sentErr: import_err},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
-			So(err, ShouldBeNil)
+			So(err, ShouldEqual, import_err)
 		})
 
 		Convey("skips check for allowlisted IP CIDR", func() {
