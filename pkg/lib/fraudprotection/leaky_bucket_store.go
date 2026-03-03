@@ -10,6 +10,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
+const (
+	bucketWindowHourly    = 3600
+	bucketWindowDaily     = 86400
+	ipCountriesThreshold  = 3
+	bucketDimensionCountry = "country"
+	bucketDimensionIP      = "ip"
+)
+
 // LeakyBucketThresholds holds per-bucket adaptive threshold values.
 type LeakyBucketThresholds struct {
 	CountryHourly float64 // used with period=3600
@@ -117,32 +125,32 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 		var err error
 
 		triggered.CountryHourly, err = evalTriggered(
-			s.bucketKey("3600", "country", phoneCountry),
-			thresholds.CountryHourly, 3600, 2*3600,
+			s.bucketKey(bucketWindowHourly, bucketDimensionCountry, phoneCountry),
+			thresholds.CountryHourly, bucketWindowHourly, 2*bucketWindowHourly,
 		)
 		if err != nil {
 			return err
 		}
 
 		triggered.CountryDaily, err = evalTriggered(
-			s.bucketKey("86400", "country", phoneCountry),
-			thresholds.CountryDaily, 86400, 2*86400,
+			s.bucketKey(bucketWindowDaily, bucketDimensionCountry, phoneCountry),
+			thresholds.CountryDaily, bucketWindowDaily, 2*bucketWindowDaily,
 		)
 		if err != nil {
 			return err
 		}
 
 		triggered.IPHourly, err = evalTriggered(
-			s.bucketKey("3600", "ip", ip),
-			thresholds.IPHourly, 3600, 2*3600,
+			s.bucketKey(bucketWindowHourly, bucketDimensionIP, ip),
+			thresholds.IPHourly, bucketWindowHourly, 2*bucketWindowHourly,
 		)
 		if err != nil {
 			return err
 		}
 
 		triggered.IPDaily, err = evalTriggered(
-			s.bucketKey("86400", "ip", ip),
-			thresholds.IPDaily, 86400, 2*86400,
+			s.bucketKey(bucketWindowDaily, bucketDimensionIP, ip),
+			thresholds.IPDaily, bucketWindowDaily, 2*bucketWindowDaily,
 		)
 		if err != nil {
 			return err
@@ -152,7 +160,7 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 		ipCountriesKey := s.ipCountriesKey(ip)
 		res, err := conn.Eval(ctx, ipCountriesScript,
 			[]string{ipCountriesKey},
-			phoneCountry, now, 3, 2*86400,
+			phoneCountry, now, ipCountriesThreshold, 2*bucketWindowDaily,
 		).Slice()
 		if err != nil {
 			return err
@@ -184,16 +192,16 @@ func (s *LeakyBucketStore) RecordSMSOTPVerified(ctx context.Context, ip, phoneCo
 			).Err()
 		}
 
-		if err := drain(s.bucketKey("3600", "country", phoneCountry), thresholds.CountryHourly, 3600); err != nil {
+		if err := drain(s.bucketKey(bucketWindowHourly, bucketDimensionCountry, phoneCountry), thresholds.CountryHourly, bucketWindowHourly); err != nil {
 			return err
 		}
-		if err := drain(s.bucketKey("86400", "country", phoneCountry), thresholds.CountryDaily, 86400); err != nil {
+		if err := drain(s.bucketKey(bucketWindowDaily, bucketDimensionCountry, phoneCountry), thresholds.CountryDaily, bucketWindowDaily); err != nil {
 			return err
 		}
-		if err := drain(s.bucketKey("3600", "ip", ip), thresholds.IPHourly, 3600); err != nil {
+		if err := drain(s.bucketKey(bucketWindowHourly, bucketDimensionIP, ip), thresholds.IPHourly, bucketWindowHourly); err != nil {
 			return err
 		}
-		if err := drain(s.bucketKey("86400", "ip", ip), thresholds.IPDaily, 86400); err != nil {
+		if err := drain(s.bucketKey(bucketWindowDaily, bucketDimensionIP, ip), thresholds.IPDaily, bucketWindowDaily); err != nil {
 			return err
 		}
 
@@ -201,10 +209,10 @@ func (s *LeakyBucketStore) RecordSMSOTPVerified(ctx context.Context, ip, phoneCo
 	})
 }
 
-func (s *LeakyBucketStore) bucketKey(period, dimension, value string) string {
-	return fmt.Sprintf("%s:fraud_protection:leaky_bucket:%s:%s:%s", string(s.AppID), period, dimension, value)
+func (s *LeakyBucketStore) bucketKey(period int, dimension, value string) string {
+	return fmt.Sprintf("app:%s:fraud_protection:leaky_bucket:%d:%s:%s", string(s.AppID), period, dimension, value)
 }
 
 func (s *LeakyBucketStore) ipCountriesKey(ip string) string {
-	return fmt.Sprintf("%s:fraud_protection:ip_countries:%s", string(s.AppID), ip)
+	return fmt.Sprintf("app:%s:fraud_protection:ip_countries:%s", string(s.AppID), ip)
 }

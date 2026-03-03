@@ -40,19 +40,19 @@ func TestMetricsStoreThresholdCacheKey(t *testing.T) {
 
 		So(s.thresholdCacheKey("phone_country:SG", "24h"),
 			ShouldEqual,
-			"myapp:fraud_protection:threshold_cache:sms_otp_verified:24h:phone_country:SG")
+			"app:myapp:fraud_protection:threshold_cache:sms_otp_verified:24h:phone_country:SG")
 
 		So(s.thresholdCacheKey("ip:1.2.3.4", "24h"),
 			ShouldEqual,
-			"myapp:fraud_protection:threshold_cache:sms_otp_verified:24h:ip:1.2.3.4")
+			"app:myapp:fraud_protection:threshold_cache:sms_otp_verified:24h:ip:1.2.3.4")
 
 		So(s.thresholdCacheKey("phone_country:MY", "14d_max"),
 			ShouldEqual,
-			"myapp:fraud_protection:threshold_cache:sms_otp_verified:14d_max:phone_country:MY")
+			"app:myapp:fraud_protection:threshold_cache:sms_otp_verified:14d_max:phone_country:MY")
 
 		So(s.thresholdCacheKey("phone_country:SG", "1h"),
 			ShouldEqual,
-			"myapp:fraud_protection:threshold_cache:sms_otp_verified:1h:phone_country:SG")
+			"app:myapp:fraud_protection:threshold_cache:sms_otp_verified:1h:phone_country:SG")
 	})
 }
 
