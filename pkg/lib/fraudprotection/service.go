@@ -13,7 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var ServiceLogger = slogutil.NewLogger("fraudprotection")
 
 var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 
@@ -63,14 +66,12 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 
 	thresholds, err := s.ComputeThresholds(ctx, ip, phoneCountry)
 	if err != nil {
-		// Non-fatal: if threshold computation fails, allow the request.
-		return nil
+		return err
 	}
 
 	triggered, err := s.LeakyBucket.RecordSMSOTPSent(ctx, ip, phoneCountry, thresholds)
 	if err != nil {
-		// Non-fatal: if leaky bucket fails, allow the request.
-		return nil
+		return err
 	}
 
 	warnings := s.evaluateWarnings(s.Config, triggered)
@@ -84,49 +85,54 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 }
 
 // RecordSMSOTPVerified records a verified OTP event.
-// Called from otp.Service.VerifyOTP() when code.OOBChannel==SMS (fire-and-forget).
-func (s *Service) RecordSMSOTPVerified(ctx context.Context, phoneNumber string) {
+// Called from otp.Service.VerifyOTP() when code.OOBChannel==SMS.
+func (s *Service) RecordSMSOTPVerified(ctx context.Context, phoneNumber string) error {
 	if !*s.Config.Enabled {
-		return
+		return nil
 	}
 
 	ip := string(s.RemoteIP)
 
 	parsedPhone, err := phone.ParsePhoneNumberWithUserInput(phoneNumber)
 	if err != nil || len(parsedPhone.Alpha2) == 0 {
-		return
+		// If phone number cannot be parsed, skip fraud protection rather than failing.
+		return nil
 	}
 	phoneCountry := parsedPhone.Alpha2[0]
 
-	// Write to PostgreSQL metrics (fire-and-forget).
-	_ = s.Metrics.RecordVerified(ctx, ip, phoneCountry)
+	// Write to PostgreSQL metrics.
+	if err := s.Metrics.RecordVerified(ctx, ip, phoneCountry); err != nil {
+		return err
+	}
 
-	// Drain leaky buckets (internally, count=1).
-	s.RevertSMSOTPSent(ctx, phoneNumber, 1)
+	// Drain leaky buckets.
+	return s.RevertSMSOTPSent(ctx, phoneNumber, 1)
 }
 
 // RevertSMSOTPSent drains all 4 leaky buckets by count units — no PostgreSQL write.
 // Used for alt-auth exclusion (unverified OTPs that should not count against limits).
-func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, count int) {
+func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, count int) error {
 	if !*s.Config.Enabled {
-		return
+		return nil
 	}
 
 	ip := string(s.RemoteIP)
 
 	parsedPhone, err := phone.ParsePhoneNumberWithUserInput(phoneNumber)
 	if err != nil || len(parsedPhone.Alpha2) == 0 {
-		return
+		// If phone number cannot be parsed, skip fraud protection rather than failing.
+		return nil
 	}
 	phoneCountry := parsedPhone.Alpha2[0]
 
 	thresholds, err := s.ComputeThresholds(ctx, ip, phoneCountry)
 	if err != nil {
-		return
+		return err
 	}
 
-	_ = s.LeakyBucket.RecordSMSOTPVerified(ctx, ip, phoneCountry, thresholds, count)
+	return s.LeakyBucket.RecordSMSOTPVerified(ctx, ip, phoneCountry, thresholds, count)
 }
+
 
 // ComputeThresholds queries MetricsStore for all 4 adaptive thresholds.
 func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string) (LeakyBucketThresholds, error) {
