@@ -46,6 +46,7 @@ import (
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -660,6 +661,33 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -672,6 +700,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -706,8 +735,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	roleLoader := loader.NewRoleLoader(queries)
 	groupLoader := loader.NewGroupLoader(queries)
-	readHandle := appProvider.AuditReadDatabase
-	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: readSQLExecutor,
@@ -852,6 +879,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
