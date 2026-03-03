@@ -74,7 +74,8 @@ end
 return {new_level, (new_level > threshold) and 1 or 0}
 `
 
-// ipCountriesScript tracks distinct countries seen from a given IP in the past 24h.
+// ipCountriesScript tracks distinct countries seen from a given IP in the past 24h
+// using a sorted set keyed by country code with the last-seen timestamp as the score.
 // KEYS[1] = sorted set key
 // ARGV[1] = alpha2 country code
 // ARGV[2] = now (unix timestamp)
@@ -85,7 +86,7 @@ var ipCountriesScript = `
 local now    = tonumber(ARGV[2])
 local cutoff = now - 86400
 
-redis.call('ZADD', KEYS[1], 'GT', now, ARGV[1])
+redis.call('ZADD', KEYS[1], now, ARGV[1])
 redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', cutoff)
 redis.call('EXPIRE', KEYS[1], ARGV[4])
 
