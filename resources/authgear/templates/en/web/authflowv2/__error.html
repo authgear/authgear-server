@@ -206,6 +206,8 @@
       <span>
         {{ include "v2.error.verification-code-invalid" nil }}
       </span>
+    {{ else if eq .Error.reason "BlockedByFraudProtection" }}
+      <span>{{ include "v2.error.blocked-by-fraud-protection" nil }}</span>
     {{ else if eq .Error.reason "RateLimited" }}
       {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}
         <span>{{ include "v2.error.sms-send-limit-exceeded" nil }}</span>
