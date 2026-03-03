@@ -132,6 +132,28 @@ func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err
 	return e.execCmd(cmd)
 }
 
+func (e *End2EndCmd) ExecuteSQLInsertUpdateAuditFile(sqlPath string) error {
+	cmd := fmt.Sprintf(
+		"./dist/e2e exec-sql-insert-update-audit --app-id %s --custom-sql \"%s\"",
+		e.AppID,
+		e.resolvePath(sqlPath),
+	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *End2EndCmd) QuerySQLSelectAuditRaw(rawSQL string) (jsonArrString string, err error) {
+	cmd := fmt.Sprintf(
+		"./dist/e2e query-sql-select-audit --app-id %s --raw-sql \"%s\"",
+		e.AppID,
+		rawSQL,
+	)
+
+	return e.execCmd(cmd)
+}
+
 func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e link-otp-code %s %s --app-id %s",
