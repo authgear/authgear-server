@@ -10,9 +10,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -106,6 +108,10 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 				slog.Float64("threshold", threshold),
 				slog.Float64("level", level),
 			)
+			otelutil.IntCounterAddOne(ctx,
+				otelauthgear.CounterFraudProtectionWarningCount,
+				otelauthgear.WithFraudProtectionWarningType(string(w)),
+			)
 		}
 	}
 
@@ -165,7 +171,6 @@ func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, coun
 
 	return s.LeakyBucket.RecordSMSOTPVerified(ctx, ip, phoneCountry, thresholds, count)
 }
-
 
 // ComputeThresholds queries MetricsStore for all 4 adaptive thresholds.
 func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string) (LeakyBucketThresholds, error) {
