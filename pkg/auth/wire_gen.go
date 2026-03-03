@@ -805,6 +805,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -1771,6 +1772,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -2854,6 +2856,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -4450,6 +4453,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -5285,6 +5289,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -6762,6 +6767,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -7820,6 +7826,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -8866,6 +8873,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -10430,6 +10438,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -11597,6 +11606,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -12667,6 +12677,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -13858,6 +13869,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -14861,6 +14873,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -15992,6 +16005,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -17080,6 +17094,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -18164,6 +18179,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -19263,6 +19279,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -20334,6 +20351,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -21432,6 +21450,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -22529,6 +22548,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -23626,6 +23646,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -24712,6 +24733,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -25818,6 +25840,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -26915,6 +26938,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -28013,6 +28037,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -29120,6 +29145,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -30217,6 +30243,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -31306,6 +31333,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -32425,6 +32453,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -33523,6 +33552,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -34609,6 +34639,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -35691,6 +35722,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -36753,6 +36785,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -37811,6 +37844,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -38941,6 +38975,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -39995,6 +40030,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -41158,6 +41194,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -42325,6 +42362,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -43399,6 +43437,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -44398,6 +44437,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -45396,6 +45436,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -46454,6 +46495,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -47654,6 +47696,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -48660,6 +48703,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -49622,6 +49666,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -50618,6 +50663,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -51626,6 +51672,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -52710,6 +52757,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -53762,6 +53810,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -54866,6 +54915,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -55755,6 +55805,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -56650,6 +56701,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -57837,6 +57889,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -59017,6 +59070,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -60187,6 +60241,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -61354,6 +61409,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -62525,6 +62581,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -63694,6 +63751,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -64861,6 +64919,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -66024,6 +66083,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -67187,6 +67247,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -68355,6 +68416,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -69524,6 +69586,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -70687,6 +70750,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -71854,6 +71918,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -73017,6 +73082,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -74180,6 +74246,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -75343,6 +75410,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -76506,6 +76574,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -77676,6 +77745,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -78841,6 +78911,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -80005,6 +80076,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -81171,6 +81243,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -82424,6 +82497,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -83941,6 +84015,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -85104,6 +85179,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -86267,6 +86343,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -87548,6 +87625,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -88713,6 +88791,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -89854,6 +89933,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -90717,6 +90797,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -91610,6 +91691,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -92496,6 +92578,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -93412,6 +93495,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -94482,6 +94566,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -95567,6 +95652,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -96654,6 +96740,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -97727,6 +97814,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -98817,6 +98905,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -99913,6 +100002,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -100991,6 +101081,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -102077,6 +102168,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -103165,6 +103257,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -104238,6 +104331,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -105329,6 +105423,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -106407,6 +106502,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -107497,6 +107593,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -108548,6 +108645,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -109634,6 +109732,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -110723,6 +110822,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -111820,6 +111920,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -113521,6 +113622,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -114376,6 +114478,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -115411,6 +115514,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
@@ -116324,6 +116428,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,

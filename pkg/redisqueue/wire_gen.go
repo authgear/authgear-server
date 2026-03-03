@@ -574,6 +574,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,

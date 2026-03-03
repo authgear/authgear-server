@@ -707,6 +707,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,

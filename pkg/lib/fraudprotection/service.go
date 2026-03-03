@@ -2,6 +2,7 @@ package fraudprotection
 
 import (
 	"context"
+	"log/slog"
 	"math"
 	"net"
 	"regexp"
@@ -47,11 +48,12 @@ type MetricsQuerier interface {
 
 // LeakyBucketer is the interface for filling and draining the SMS leaky buckets.
 type LeakyBucketer interface {
-	RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, error)
+	RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error)
 	RecordSMSOTPVerified(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error
 }
 
 type Service struct {
+	AppID       config.AppID
 	Metrics     MetricsQuerier
 	LeakyBucket LeakyBucketer
 	Config      *config.FraudProtectionConfig
@@ -85,12 +87,27 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		return err
 	}
 
-	triggered, err := s.LeakyBucket.RecordSMSOTPSent(ctx, ip, phoneCountry, thresholds)
+	triggered, levels, err := s.LeakyBucket.RecordSMSOTPSent(ctx, ip, phoneCountry, thresholds)
 	if err != nil {
 		return err
 	}
 
 	warnings := s.evaluateWarnings(s.Config, triggered)
+
+	if len(warnings) > 0 {
+		logger := ServiceLogger.GetLogger(ctx)
+		for _, w := range warnings {
+			threshold, level := s.warningThresholdAndLevel(w, thresholds, levels)
+			logger.Warn(ctx, "fraud protection warning triggered",
+				slog.String("app_id", string(s.AppID)),
+				slog.String("warning_type", string(w)),
+				slog.String("ip", ip),
+				slog.String("phone_country", phoneCountry),
+				slog.Float64("threshold", threshold),
+				slog.Float64("level", level),
+			)
+		}
+	}
 
 	action := s.Config.Decision.Action
 	if action == config.FraudProtectionDecisionActionDenyIfAnyWarning && len(warnings) > 0 {
@@ -202,6 +219,25 @@ func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string
 		IPHourly:      ipHourly,
 		IPDaily:       ipDaily,
 	}, nil
+}
+
+// warningThresholdAndLevel returns the threshold and current bucket level for a given warning type.
+// For IPCountriesDaily the "level" is the distinct-country count and "threshold" is the fixed constant.
+func (s *Service) warningThresholdAndLevel(w config.FraudProtectionWarningType, thresholds LeakyBucketThresholds, levels LeakyBucketLevels) (threshold, level float64) {
+	switch w {
+	case config.FraudProtectionWarningTypeSMSUnverifiedOTPsByPhoneCountryHourly:
+		return thresholds.CountryHourly, levels.CountryHourly
+	case config.FraudProtectionWarningTypeSMSUnverifiedOTPsByPhoneCountryDaily:
+		return thresholds.CountryDaily, levels.CountryDaily
+	case config.FraudProtectionWarningTypeSMSUnverifiedOTPsByIPHourly:
+		return thresholds.IPHourly, levels.IPHourly
+	case config.FraudProtectionWarningTypeSMSUnverifiedOTPsByIPDaily:
+		return thresholds.IPDaily, levels.IPDaily
+	case config.FraudProtectionWarningTypeSMSPhoneCountriesByIPDaily:
+		return ipCountriesThreshold, float64(levels.IPCountriesCount)
+	default:
+		return 0, 0
+	}
 }
 
 // evaluateWarnings maps LeakyBucketTriggered to []FraudProtectionWarningType,
