@@ -1,3 +1,5 @@
 test_mode:
   deterministic_link_otp:
     enabled: true
+fraud_protection:
+  is_modifiable: true
