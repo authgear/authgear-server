@@ -1,0 +1,101 @@
+name: Fraud protection - verified OTP history raises blocking threshold
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+before:
+  - type: custom_audit_sql
+    custom_audit_sql:
+      path: ./pre_populate_sg_metrics.sql
+steps:
+  # With 120 historical verified SG OTPs (2 days ago), the adaptive threshold
+  # for SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY becomes:
+  #   rollingMax=120 → countryDaily=max(20, 120*0.2)=24 → countryHourly=max(3, 24/6)=4
+  # Without history, the threshold is 3.33 and flow 4 is blocked.
+  # With history, the threshold is 4.0 so flow 4 now succeeds, and flow 5 is blocked.
+
+  # Flow 1 - SG number, succeeds
+  - name: flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 1 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 2
+  - name: flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230002"}
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 3
+  - name: flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230003"}
+  - name: flow 3 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4 - succeeds because raised threshold is 4.0 (without history it would be blocked)
+  - name: flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230004"}
+  - name: flow 4 - send sms (succeeds because history raised threshold to 4)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 5 - blocked because bucket level (5) > raised threshold (4)
+  - name: flow 5 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 5 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230005"}
+  - name: flow 5 - send sms (blocked by raised threshold)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {"name": "TooManyRequest", "reason": "BlockedByFraudProtection", "code": 429}
