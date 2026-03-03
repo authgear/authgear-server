@@ -57,6 +57,7 @@ import (
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -785,6 +786,33 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -797,6 +825,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -928,6 +957,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -1724,6 +1754,33 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -1736,6 +1793,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -1867,6 +1925,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -2780,6 +2839,33 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -2792,6 +2878,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -2923,6 +3010,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -4349,6 +4437,33 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -4361,6 +4476,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -4492,6 +4608,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -5157,6 +5274,33 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -5169,6 +5313,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -5300,6 +5445,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -6607,6 +6753,33 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -6619,6 +6792,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -6750,6 +6924,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -7638,6 +7813,33 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -7649,6 +7851,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -7780,6 +7983,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -8657,6 +8861,33 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -8668,6 +8899,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -8799,6 +9031,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -10194,6 +10427,33 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -10205,6 +10465,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -10336,6 +10597,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -10653,6 +10915,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -11333,6 +11596,33 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -11344,6 +11634,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -11475,6 +11766,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -12376,6 +12668,33 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -12387,6 +12706,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -12518,6 +12838,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -12835,6 +13156,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -13539,6 +13861,33 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -13550,6 +13899,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -13681,6 +14031,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -14515,6 +14866,33 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -14527,6 +14905,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -14716,6 +15095,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -15619,6 +15999,33 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -15630,6 +16037,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -15761,6 +16169,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -16680,6 +17089,33 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -16691,6 +17127,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -16822,6 +17259,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -17737,6 +18175,33 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -17748,6 +18213,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -17879,6 +18345,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -18809,6 +19276,33 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -18820,6 +19314,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -18951,6 +19446,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -19853,6 +20349,33 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -19864,6 +20387,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -19995,6 +20519,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -20924,6 +21449,33 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -20935,6 +21487,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -21066,6 +21619,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -21994,6 +22548,33 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -22005,6 +22586,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -22136,6 +22718,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -23064,6 +23647,33 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -23075,6 +23685,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -23206,6 +23817,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -24123,6 +24735,33 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -24134,6 +24773,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -24265,6 +24905,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -25202,6 +25843,33 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -25213,6 +25881,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -25344,6 +26013,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -26272,6 +26942,33 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -26283,6 +26980,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -26414,6 +27112,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -27343,6 +28042,33 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -27354,6 +28080,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -27485,6 +28212,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -28423,6 +29151,33 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -28434,6 +29189,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -28565,6 +29321,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -29493,6 +30250,33 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -29504,6 +30288,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -29635,6 +30420,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -30555,6 +31341,33 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -30566,6 +31379,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -30697,6 +31511,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -31647,6 +32462,33 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -31658,6 +32500,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -31789,6 +32632,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -32718,6 +33562,33 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -32729,6 +33600,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -32860,6 +33732,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -33777,6 +34650,33 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -33788,6 +34688,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -33919,6 +34820,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -34832,6 +35734,33 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -34843,6 +35772,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -34974,6 +35904,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -35867,6 +36798,33 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -35878,6 +36836,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -36009,6 +36968,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -36898,6 +37858,33 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -36909,6 +37896,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -37040,6 +38028,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -38001,6 +38990,33 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -38012,6 +39028,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -38143,6 +39160,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -39028,6 +40046,33 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -39039,6 +40084,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -39170,6 +40216,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -39487,6 +40534,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -40163,6 +41211,33 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -40174,6 +41249,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -40305,6 +41381,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -40622,6 +41699,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -41302,6 +42380,33 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -41313,6 +42418,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -41444,6 +42550,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -42349,6 +43456,33 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -42360,6 +43494,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -42491,6 +43626,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -43321,6 +44457,33 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -43332,6 +44495,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -43463,6 +44627,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -44292,6 +45457,33 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -44303,6 +45495,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -44434,6 +45627,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -45323,6 +46517,33 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -45334,6 +46555,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -45465,6 +46687,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -46496,6 +47719,33 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -46507,6 +47757,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -46638,6 +47889,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -47475,6 +48727,33 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -47486,6 +48765,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -47617,6 +48897,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -48410,6 +49691,33 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -48421,6 +49729,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -48552,6 +49861,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -49379,6 +50689,33 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -49390,6 +50727,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -49521,6 +50859,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -50360,6 +51699,33 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -50371,6 +51737,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -50502,6 +51869,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -50836,6 +52204,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -51416,6 +52785,33 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -51427,6 +52823,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -51558,6 +52955,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -51892,6 +53290,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -52440,6 +53839,33 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -52451,6 +53877,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -52582,6 +54009,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -52918,6 +54346,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -53516,6 +54945,33 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -53528,6 +54984,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -53659,6 +55116,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -54378,6 +55836,33 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -54390,6 +55875,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -54521,6 +56007,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -55246,6 +56733,33 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -55257,6 +56771,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -55388,6 +56903,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -55705,6 +57221,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -56405,6 +57922,33 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -56416,6 +57960,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -56547,6 +58092,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -56864,6 +58410,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -57557,6 +59104,33 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -57568,6 +59142,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -57699,6 +59274,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -58016,6 +59592,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -58699,6 +60276,33 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -58710,6 +60314,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -58841,6 +60446,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -59158,6 +60764,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -59838,6 +61445,33 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -59849,6 +61483,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -59980,6 +61615,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -60297,6 +61933,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -60981,6 +62618,33 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -60992,6 +62656,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -61123,6 +62788,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -61440,6 +63106,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -62122,6 +63789,33 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -62133,6 +63827,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -62264,6 +63959,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -62581,6 +64277,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -63261,6 +64958,33 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -63272,6 +64996,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -63403,6 +65128,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -63720,6 +65446,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -64396,6 +66123,33 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -64407,6 +66161,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -64538,6 +66293,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -64855,6 +66611,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -65531,6 +67288,33 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -65542,6 +67326,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -65673,6 +67458,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -65990,6 +67776,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -66671,6 +68458,33 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -66682,6 +68496,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -66813,6 +68628,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -67130,6 +68946,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -67812,6 +69629,33 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -67823,6 +69667,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -67954,6 +69799,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -68271,6 +70117,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -68947,6 +70794,33 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -68958,6 +70832,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -69089,6 +70964,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -69406,6 +71282,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -70086,6 +71963,33 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -70097,6 +72001,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -70228,6 +72133,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -70545,6 +72451,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -71221,6 +73128,33 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -71232,6 +73166,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -71363,6 +73298,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -71680,6 +73616,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -72356,6 +74293,33 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -72367,6 +74331,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -72498,6 +74463,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -72815,6 +74781,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -73491,6 +75458,33 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -73502,6 +75496,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -73633,6 +75628,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -73950,6 +75946,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -74626,6 +76623,33 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -74637,6 +76661,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -74768,6 +76793,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -75085,6 +77111,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -75768,6 +77795,33 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -75779,6 +77833,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -75910,6 +77965,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -76227,6 +78283,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -76905,6 +78962,33 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -76916,6 +79000,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -77047,6 +79132,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -77364,6 +79450,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -78041,6 +80128,33 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -78052,6 +80166,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -78183,6 +80298,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -78500,6 +80616,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -79179,6 +81296,33 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -79190,6 +81334,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -79321,6 +81466,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -79784,6 +81930,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -80404,6 +82551,33 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -80415,6 +82589,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -80546,6 +82721,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -80863,6 +83039,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -81893,6 +84070,33 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -81904,6 +84108,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -82035,6 +84240,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -82352,6 +84558,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -83028,6 +85235,33 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -83039,6 +85273,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -83170,6 +85405,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -83487,6 +85723,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -84163,6 +86400,33 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -84174,6 +86438,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -84305,6 +86570,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -84622,6 +86888,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -85416,6 +87683,33 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -85427,6 +87721,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -85558,6 +87853,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -85875,6 +88171,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -86553,6 +88850,33 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -86564,6 +88888,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -86695,6 +89020,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -87012,6 +89338,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
 		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -87666,6 +89993,33 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -87678,6 +90032,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -87809,6 +90164,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -88502,6 +90858,33 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -88514,6 +90897,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -88645,6 +91029,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -89368,6 +91753,33 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -89380,6 +91792,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -89511,6 +91924,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -90227,6 +92641,33 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -90239,6 +92680,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -90370,6 +92812,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -91116,6 +93559,33 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -91127,6 +93597,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -91258,6 +93729,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -92159,6 +94631,33 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -92170,6 +94669,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -92301,6 +94801,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -93217,6 +95718,33 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -93228,6 +95756,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -93359,6 +95888,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -94277,6 +96807,33 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -94288,6 +96845,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -94419,6 +96977,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -95323,6 +97882,33 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -95334,6 +97920,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -95465,6 +98052,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -96386,6 +98974,33 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -96397,6 +99012,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -96528,6 +99144,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -97455,6 +100072,33 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -97466,6 +100110,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -97597,6 +100242,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -98506,6 +101152,33 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -98517,6 +101190,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -98648,6 +101322,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -99565,6 +102240,33 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -99576,6 +102278,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -99707,6 +102410,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -100626,6 +103330,33 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -100637,6 +103368,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -100768,6 +103500,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -101672,6 +104405,33 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -101683,6 +104443,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -101814,6 +104575,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -102736,6 +105498,33 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -102747,6 +105536,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -102878,6 +105668,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -103787,6 +106578,33 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -103798,6 +106616,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -103929,6 +106748,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -104850,6 +107670,33 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -104861,6 +107708,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -104992,6 +107840,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -105874,6 +108723,33 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -105886,6 +108762,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -106017,6 +108894,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -106933,6 +109811,33 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -106945,6 +109850,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -107076,6 +109982,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -107995,6 +110902,33 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -108007,6 +110941,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -108138,6 +111073,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -109065,6 +112001,33 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -109076,6 +112039,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -109207,6 +112171,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -110739,6 +113704,33 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -110751,6 +113743,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -110882,6 +113875,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -111567,6 +114561,33 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -111578,6 +114599,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -111709,6 +114731,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -112575,6 +115598,33 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -112587,6 +115637,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -112718,6 +115769,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
@@ -113461,6 +116513,33 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clockClock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -113473,6 +116552,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -113604,6 +116684,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,

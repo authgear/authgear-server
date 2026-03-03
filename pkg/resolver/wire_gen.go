@@ -36,6 +36,7 @@ import (
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -687,6 +688,33 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudProtectionFeatureConfig := featureConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		Metrics:       metricsStore,
+		LeakyBucket:   leakyBucketStore,
+		Config:        fraudProtectionConfig,
+		FeatureConfig: fraudProtectionFeatureConfig,
+		RemoteIP:      remoteIP,
+		Clock:         clock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clock,
@@ -699,6 +727,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -830,6 +859,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
