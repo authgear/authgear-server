@@ -804,14 +804,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -1772,14 +1770,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -2857,14 +2853,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -4455,14 +4449,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -5292,14 +5284,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -6771,14 +6761,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -7831,14 +7819,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -8879,14 +8865,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -10445,14 +10429,12 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -11614,14 +11596,12 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -12686,14 +12666,12 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -13879,14 +13857,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -14884,14 +14860,12 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -16017,14 +15991,12 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -17107,14 +17079,12 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -18193,14 +18163,12 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -19294,14 +19262,12 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -20367,14 +20333,12 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -21467,14 +21431,12 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -22566,14 +22528,12 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -23665,14 +23625,12 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -24753,14 +24711,12 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -25861,14 +25817,12 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -26960,14 +26914,12 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -28060,14 +28012,12 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -29169,14 +29119,12 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -30268,14 +30216,12 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -31359,14 +31305,12 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -32480,14 +32424,12 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -33580,14 +33522,12 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -34668,14 +34608,12 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -35752,14 +35690,12 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -36816,14 +36752,12 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -37876,14 +37810,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -39008,14 +38940,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -40064,14 +39994,12 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -41229,14 +41157,12 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -42398,14 +42324,12 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -43474,14 +43398,12 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -44475,14 +44397,12 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -45475,14 +45395,12 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -46535,14 +46453,12 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -47737,14 +47653,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -48745,14 +48659,12 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -49709,14 +49621,12 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -50707,14 +50617,12 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -51717,14 +51625,12 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -52803,14 +52709,12 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -53857,14 +53761,12 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -54963,14 +54865,12 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -55854,14 +55754,12 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -56751,14 +56649,12 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -57940,14 +57836,12 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -59122,14 +59016,12 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -60294,14 +60186,12 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -61463,14 +61353,12 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -62636,14 +62524,12 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -63807,14 +63693,12 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -64976,14 +64860,12 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -66141,14 +66023,12 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -67306,14 +67186,12 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -68476,14 +68354,12 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -69647,14 +69523,12 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -70812,14 +70686,12 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -71981,14 +71853,12 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -73146,14 +73016,12 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -74311,14 +74179,12 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -75476,14 +75342,12 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -76641,14 +76505,12 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -77813,14 +77675,12 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -78980,14 +78840,12 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -80146,14 +80004,12 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -81314,14 +81170,12 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -82569,14 +82423,12 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -84088,14 +83940,12 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -85253,14 +85103,12 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -86418,14 +86266,12 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -87701,14 +87547,12 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -88868,14 +88712,12 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -90011,14 +89853,12 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -90876,14 +90716,12 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -91771,14 +91609,12 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -92659,14 +92495,12 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -93577,14 +93411,12 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -94649,14 +94481,12 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -95736,14 +95566,12 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -96825,14 +96653,12 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -97900,14 +97726,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -98992,14 +98816,12 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -100090,14 +99912,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -101170,14 +100990,12 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -102258,14 +102076,12 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -103348,14 +103164,12 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -104423,14 +104237,12 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -105516,14 +105328,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -106596,14 +106406,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -107688,14 +107496,12 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -108741,14 +108547,12 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -109829,14 +109633,12 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -110920,14 +110722,12 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -112019,14 +111819,12 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -113722,14 +113520,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -114579,14 +114375,12 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -115616,14 +115410,12 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
@@ -116531,14 +116323,12 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

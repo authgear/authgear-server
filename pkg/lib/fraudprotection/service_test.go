@@ -60,43 +60,7 @@ func defaultCfg() *config.FraudProtectionConfig {
 	return c
 }
 
-func defaultFeatureCfg(modifiable bool) *config.FraudProtectionFeatureConfig {
-	b := modifiable
-	return &config.FraudProtectionFeatureConfig{IsModifiable: &b}
-}
-
 // --- tests ---
-
-func TestEffectiveFraudProtectionConfig(t *testing.T) {
-	Convey("effectiveFraudProtectionConfig", t, func() {
-		Convey("returns hardcoded default when IsModifiable is false", func() {
-			app := &config.FraudProtectionConfig{
-				Enabled:  newBoolPtr(false), // intentionally disabled by app
-				Warnings: nil,
-			}
-			feature := defaultFeatureCfg(false)
-
-			result := effectiveFraudProtectionConfig(app, feature)
-
-			// Hardcoded default has Enabled=true
-			So(*result.Enabled, ShouldBeTrue)
-			// All 5 warning types present
-			So(len(result.Warnings), ShouldEqual, 5)
-		})
-
-		Convey("returns app config when IsModifiable is true", func() {
-			app := &config.FraudProtectionConfig{
-				Enabled:  newBoolPtr(false),
-				Warnings: nil,
-			}
-			feature := defaultFeatureCfg(true)
-
-			result := effectiveFraudProtectionConfig(app, feature)
-
-			So(*result.Enabled, ShouldBeFalse)
-		})
-	})
-}
 
 func TestEvaluateWarnings(t *testing.T) {
 	Convey("evaluateWarnings", t, func() {
@@ -330,7 +294,6 @@ func TestCheckAndRecord(t *testing.T) {
 		Convey("returns nil immediately when disabled", func() {
 			svc := &Service{
 				Config:        disabledCfg,
-				FeatureConfig: defaultFeatureCfg(true),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{},
 			}
@@ -341,7 +304,6 @@ func TestCheckAndRecord(t *testing.T) {
 		Convey("returns nil for unparseable phone number", func() {
 			svc := &Service{
 				Config:        enabledCfg,
-				FeatureConfig: defaultFeatureCfg(true),
 				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{},
@@ -357,7 +319,6 @@ func TestCheckAndRecord(t *testing.T) {
 			}
 			svc := &Service{
 				Config:        recordOnlyCfg,
-				FeatureConfig: defaultFeatureCfg(true),
 				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
@@ -369,7 +330,6 @@ func TestCheckAndRecord(t *testing.T) {
 		Convey("returns ErrBlockedByFraudProtection when warning triggered and action is deny", func() {
 			svc := &Service{
 				Config:        enabledCfg,
-				FeatureConfig: defaultFeatureCfg(true),
 				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
@@ -382,7 +342,6 @@ func TestCheckAndRecord(t *testing.T) {
 			import_err := &testError{"redis error"}
 			svc := &Service{
 				Config:        enabledCfg,
-				FeatureConfig: defaultFeatureCfg(true),
 				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{sentErr: import_err},
@@ -404,7 +363,6 @@ func TestCheckAndRecord(t *testing.T) {
 			// Even with a triggered bucket, the allowlist should bypass the block.
 			svc := &Service{
 				Config:        cfgWithAllowlist,
-				FeatureConfig: defaultFeatureCfg(true),
 				RemoteIP:      httputil.RemoteIP("10.1.2.3"),
 				Metrics:       &stubMetrics{},
 				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},

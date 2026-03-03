@@ -706,14 +706,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

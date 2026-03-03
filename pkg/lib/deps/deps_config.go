@@ -78,7 +78,6 @@ var ConfigDeps = wire.NewSet(
 		"Messaging",
 		"AdminAPI",
 		"TestMode",
-		"FraudProtection",
 	),
 	wire.FieldsOf(new(*config.TestModeConfig),
 		"FixedOOBOTP",
