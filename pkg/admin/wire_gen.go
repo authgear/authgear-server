@@ -679,14 +679,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
-	fraudProtectionFeatureConfig := featureConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
-		Metrics:       metricsStore,
-		LeakyBucket:   leakyBucketStore,
-		Config:        fraudProtectionConfig,
-		FeatureConfig: fraudProtectionFeatureConfig,
-		RemoteIP:      remoteIP,
-		Clock:         clockClock,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clockClock,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
