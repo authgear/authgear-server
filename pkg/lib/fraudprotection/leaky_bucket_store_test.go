@@ -41,12 +41,12 @@ func TestLeakyBucketStoreKeys(t *testing.T) {
 		s := &LeakyBucketStore{AppID: "myapp"}
 
 		Convey("bucketKey", func() {
-			So(s.bucketKey("3600", "country", "SG"), ShouldEqual, "myapp:fraud_protection:leaky_bucket:3600:country:SG")
-			So(s.bucketKey("86400", "ip", "1.2.3.4"), ShouldEqual, "myapp:fraud_protection:leaky_bucket:86400:ip:1.2.3.4")
+			So(s.bucketKey(bucketWindowHourly, bucketDimensionCountry, "SG"), ShouldEqual, "app:myapp:fraud_protection:leaky_bucket:3600:country:SG")
+			So(s.bucketKey(bucketWindowDaily, bucketDimensionIP, "1.2.3.4"), ShouldEqual, "app:myapp:fraud_protection:leaky_bucket:86400:ip:1.2.3.4")
 		})
 
 		Convey("ipCountriesKey", func() {
-			So(s.ipCountriesKey("1.2.3.4"), ShouldEqual, "myapp:fraud_protection:ip_countries:1.2.3.4")
+			So(s.ipCountriesKey("1.2.3.4"), ShouldEqual, "app:myapp:fraud_protection:ip_countries:1.2.3.4")
 		})
 	})
 }

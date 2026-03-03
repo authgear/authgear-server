@@ -20,6 +20,22 @@ var ServiceLogger = slogutil.NewLogger("fraudprotection")
 
 var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 
+const (
+	// thresholdScaleFactor is the fraction of historical verified-OTP counts
+	// used to set adaptive rate-limit thresholds (20%).
+	thresholdScaleFactor = 0.2
+
+	// thresholdHoursPerDay is the denominator for converting a daily threshold
+	// to an hourly one.
+	thresholdHoursPerDay = 6.0
+
+	// Minimum floor values for each leaky-bucket threshold.
+	thresholdMinCountryDaily  = 20.0
+	thresholdMinCountryHourly = 3.0
+	thresholdMinIPDaily       = 10.0
+	thresholdMinIPHourly      = 5.0
+)
+
 // MetricsQuerier is the interface for querying and writing verified-OTP metrics.
 type MetricsQuerier interface {
 	RecordVerified(ctx context.Context, ip, phoneCountry string) error
@@ -159,26 +175,26 @@ func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string
 	}
 
 	// Compute daily threshold for country.
-	countryDaily := math.Max(20,
+	countryDaily := math.Max(thresholdMinCountryDaily,
 		math.Max(
-			float64(rollingMax)*0.2,
-			float64(verifiedByCountry24h)*0.2,
+			float64(rollingMax)*thresholdScaleFactor,
+			float64(verifiedByCountry24h)*thresholdScaleFactor,
 		),
 	)
 
 	// Compute hourly threshold for country.
-	countryHourly := math.Max(3,
+	countryHourly := math.Max(thresholdMinCountryHourly,
 		math.Max(
-			countryDaily/6,
-			float64(verifiedByCountry1h)*0.2,
+			countryDaily/thresholdHoursPerDay,
+			float64(verifiedByCountry1h)*thresholdScaleFactor,
 		),
 	)
 
 	// Compute daily threshold for IP.
-	ipDaily := math.Max(10, float64(verifiedByIP24h)*0.2)
+	ipDaily := math.Max(thresholdMinIPDaily, float64(verifiedByIP24h)*thresholdScaleFactor)
 
 	// Compute hourly threshold for IP.
-	ipHourly := math.Max(5, float64(verifiedByIP24h)*0.2/6)
+	ipHourly := math.Max(thresholdMinIPHourly, float64(verifiedByIP24h)*thresholdScaleFactor/thresholdHoursPerDay)
 
 	return LeakyBucketThresholds{
 		CountryHourly: countryHourly,

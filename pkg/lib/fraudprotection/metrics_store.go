@@ -18,7 +18,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-const thresholdCacheTTL = 5 * time.Minute
+const (
+	thresholdCacheTTL         = 5 * time.Minute
+	metricsNameSMSOTPVerified = "sms_otp_verified"
+	auditMetricsTable         = "_audit_metrics"
+)
 
 type MetricsStore struct {
 	AuditWriteDatabase *auditdb.WriteHandle
@@ -41,12 +45,12 @@ func (s *MetricsStore) RecordVerified(ctx context.Context, ip, phoneCountry stri
 	id1 := uuid.New()
 	id2 := uuid.New()
 
-	tableName := s.SQLBuilder.TableName("_audit_metrics")
+	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 	builder := s.SQLBuilder.
 		Insert(tableName).
 		Columns("id", "name", "key", "start_time").
-		Values(id1, "sms_otp_verified", ipKey, now).
-		Values(id2, "sms_otp_verified", countryKey, now)
+		Values(id1, metricsNameSMSOTPVerified, ipKey, now).
+		Values(id2, metricsNameSMSOTPVerified, countryKey, now)
 
 	return s.AuditWriteDatabase.WithTx(ctx, func(ctx context.Context) error {
 		_, err := s.WriteSQLExecutor.ExecWith(ctx, builder)
@@ -94,13 +98,13 @@ func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Cont
 
 	// Cache miss — query PostgreSQL.
 	since := s.Clock.NowUTC().Add(-14 * 24 * time.Hour)
-	tableName := s.SQLBuilder.TableName("_audit_metrics")
+	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 	appID := string(s.AppID)
 
 	subquery := sq.Select("DATE_TRUNC('day', start_time) AS day", "COUNT(*) AS daily_count").
 		From(tableName).
 		Where("app_id = ?", appID).
-		Where("name = ?", "sms_otp_verified").
+		Where("name = ?", metricsNameSMSOTPVerified).
 		Where("key = ?", pgKey).
 		Where("start_time >= ?", since).
 		GroupBy("DATE_TRUNC('day', start_time)").
@@ -142,8 +146,8 @@ func (s *MetricsStore) queryVerifiedCount(ctx context.Context, pgKey string, win
 	err = s.AuditReadDatabase.ReadOnly(ctx, func(ctx context.Context) error {
 		query := s.SQLBuilder.
 			Select("COUNT(*)").
-			From(s.SQLBuilder.TableName("_audit_metrics")).
-			Where("name = ?", "sms_otp_verified").
+			From(s.SQLBuilder.TableName(auditMetricsTable)).
+			Where("name = ?", metricsNameSMSOTPVerified).
 			Where("key = ?", pgKey).
 			Where("start_time >= ?", since)
 
@@ -185,5 +189,5 @@ func (s *MetricsStore) setCachedCount(ctx context.Context, cacheKey string, coun
 }
 
 func (s *MetricsStore) thresholdCacheKey(pgKey string, window string) string {
-	return fmt.Sprintf("%s:fraud_protection:threshold_cache:sms_otp_verified:%s:%s", string(s.AppID), window, pgKey)
+	return fmt.Sprintf("app:%s:fraud_protection:threshold_cache:sms_otp_verified:%s:%s", string(s.AppID), window, pgKey)
 }
