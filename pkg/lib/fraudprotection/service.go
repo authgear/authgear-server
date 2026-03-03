@@ -17,9 +17,24 @@ import (
 
 var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 
+// MetricsQuerier is the interface for querying and writing verified-OTP metrics.
+type MetricsQuerier interface {
+	RecordVerified(ctx context.Context, ip, phoneCountry string) error
+	GetVerifiedByCountry24h(ctx context.Context, country string) (int64, error)
+	GetVerifiedByCountry1h(ctx context.Context, country string) (int64, error)
+	GetVerifiedByIP24h(ctx context.Context, ip string) (int64, error)
+	GetVerifiedByCountryPast14DaysRollingMax(ctx context.Context, country string) (int64, error)
+}
+
+// LeakyBucketer is the interface for filling and draining the SMS leaky buckets.
+type LeakyBucketer interface {
+	RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, error)
+	RecordSMSOTPVerified(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error
+}
+
 type Service struct {
-	Metrics       *MetricsStore
-	LeakyBucket   *LeakyBucketStore
+	Metrics       MetricsQuerier
+	LeakyBucket   LeakyBucketer
 	Config        *config.FraudProtectionConfig
 	FeatureConfig *config.FraudProtectionFeatureConfig
 	RemoteIP      httputil.RemoteIP
