@@ -36,6 +36,16 @@ type LeakyBucketTriggered struct {
 	IPCountriesDaily bool // SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
 }
 
+// LeakyBucketLevels holds the current level of each bucket after the fill operation,
+// as well as the distinct-country count for the IP. Used for structured logging.
+type LeakyBucketLevels struct {
+	CountryHourly    float64
+	CountryDaily     float64
+	IPHourly         float64
+	IPDaily          float64
+	IPCountriesCount int64
+}
+
 // leakyBucketScript is the unified Lua script for fill/drain/read operations.
 // KEYS[1] = bucket key
 // ARGV[1] = now (unix seconds, float)
@@ -101,31 +111,34 @@ type LeakyBucketStore struct {
 }
 
 // RecordSMSOTPSent atomically fills all 4 leaky buckets and updates the ip_countries ZSET.
-// Returns LeakyBucketTriggered indicating which warning conditions are now exceeded.
+// Returns LeakyBucketTriggered indicating which warning conditions are now exceeded,
+// and LeakyBucketLevels with the current level of each bucket after the fill.
 // Called BEFORE the SMS send; blocked requests are still counted as attack signals.
-func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, error) {
+func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
 	now := float64(s.Clock.NowUTC().Unix())
 	var triggered LeakyBucketTriggered
+	var levels LeakyBucketLevels
 
 	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		evalTriggered := func(key string, threshold float64, period, ttl int) (bool, error) {
+		evalBucket := func(key string, threshold float64, period, ttl int) (float64, bool, error) {
 			res, err := conn.Eval(ctx, leakyBucketScript,
 				[]string{key},
 				now, threshold, period, 1, ttl,
 			).Slice()
 			if err != nil {
-				return false, err
+				return 0, false, err
 			}
 			if len(res) < 2 {
-				return false, nil
+				return 0, false, nil
 			}
+			level, _ := res[0].(int64)
 			triggeredInt, _ := res[1].(int64)
-			return triggeredInt == 1, nil
+			return float64(level), triggeredInt == 1, nil
 		}
 
 		var err error
 
-		triggered.CountryHourly, err = evalTriggered(
+		levels.CountryHourly, triggered.CountryHourly, err = evalBucket(
 			s.bucketKey(bucketWindowHourly, bucketDimensionCountry, phoneCountry),
 			thresholds.CountryHourly, bucketWindowHourly, 2*bucketWindowHourly,
 		)
@@ -133,7 +146,7 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 			return err
 		}
 
-		triggered.CountryDaily, err = evalTriggered(
+		levels.CountryDaily, triggered.CountryDaily, err = evalBucket(
 			s.bucketKey(bucketWindowDaily, bucketDimensionCountry, phoneCountry),
 			thresholds.CountryDaily, bucketWindowDaily, 2*bucketWindowDaily,
 		)
@@ -141,7 +154,7 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 			return err
 		}
 
-		triggered.IPHourly, err = evalTriggered(
+		levels.IPHourly, triggered.IPHourly, err = evalBucket(
 			s.bucketKey(bucketWindowHourly, bucketDimensionIP, ip),
 			thresholds.IPHourly, bucketWindowHourly, 2*bucketWindowHourly,
 		)
@@ -149,7 +162,7 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 			return err
 		}
 
-		triggered.IPDaily, err = evalTriggered(
+		levels.IPDaily, triggered.IPDaily, err = evalBucket(
 			s.bucketKey(bucketWindowDaily, bucketDimensionIP, ip),
 			thresholds.IPDaily, bucketWindowDaily, 2*bucketWindowDaily,
 		)
@@ -167,16 +180,18 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 			return err
 		}
 		if len(res) >= 2 {
+			count, _ := res[0].(int64)
 			triggeredInt, _ := res[1].(int64)
+			levels.IPCountriesCount = count
 			triggered.IPCountriesDaily = triggeredInt == 1
 		}
 
 		return nil
 	})
 	if err != nil {
-		return LeakyBucketTriggered{}, err
+		return LeakyBucketTriggered{}, LeakyBucketLevels{}, err
 	}
-	return triggered, nil
+	return triggered, levels, nil
 }
 
 // RecordSMSOTPVerified drains all 4 leaky buckets by count units (fire-and-forget).

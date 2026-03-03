@@ -39,12 +39,13 @@ func (s *stubMetrics) GetVerifiedByCountryPast14DaysRollingMax(_ context.Context
 
 type stubLeakyBucket struct {
 	triggered LeakyBucketTriggered
+	levels    LeakyBucketLevels
 	sentErr   error
 	drainErr  error
 }
 
-func (s *stubLeakyBucket) RecordSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds) (LeakyBucketTriggered, error) {
-	return s.triggered, s.sentErr
+func (s *stubLeakyBucket) RecordSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
+	return s.triggered, s.levels, s.sentErr
 }
 func (s *stubLeakyBucket) RecordSMSOTPVerified(_ context.Context, _, _ string, _ LeakyBucketThresholds, _ int) error {
 	return s.drainErr

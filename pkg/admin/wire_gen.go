@@ -680,6 +680,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
