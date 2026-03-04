@@ -24,7 +24,13 @@
     "process": false
   },
   "overrides": {
-    "glob": "11.1.0"
+    "glob": "11.1.0",
+    "@microsoft/tsdoc-config": {
+      "ajv": "^8.18.0"
+    },
+    "eslint-plugin-sonarjs": {
+      "minimatch": "^10.2.4"
+    }
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
