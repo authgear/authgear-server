@@ -48,7 +48,7 @@ func (s *MetricsStore) RecordVerified(ctx context.Context, ip, phoneCountry stri
 	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 	builder := s.SQLBuilder.
 		Insert(tableName).
-		Columns("id", "name", "key", "start_time").
+		Columns("id", "name", "key", "created_at").
 		Values(id1, metricsNameSMSOTPVerified, ipKey, now).
 		Values(id2, metricsNameSMSOTPVerified, countryKey, now)
 
@@ -101,13 +101,13 @@ func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Cont
 	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 	appID := string(s.AppID)
 
-	subquery := sq.Select("DATE_TRUNC('day', start_time) AS day", "COUNT(*) AS daily_count").
+	subquery := sq.Select("DATE_TRUNC('day', created_at) AS day", "COUNT(*) AS daily_count").
 		From(tableName).
 		Where("app_id = ?", appID).
 		Where("name = ?", metricsNameSMSOTPVerified).
 		Where("key = ?", pgKey).
-		Where("start_time >= ?", since).
-		GroupBy("DATE_TRUNC('day', start_time)").
+		Where("created_at >= ?", since).
+		GroupBy("DATE_TRUNC('day', created_at)").
 		PlaceholderFormat(sq.Dollar)
 
 	query := sq.Select("COALESCE(MAX(daily_count), 0)").
@@ -149,7 +149,7 @@ func (s *MetricsStore) queryVerifiedCount(ctx context.Context, pgKey string, win
 			From(s.SQLBuilder.TableName(auditMetricsTable)).
 			Where("name = ?", metricsNameSMSOTPVerified).
 			Where("key = ?", pgKey).
-			Where("start_time >= ?", since)
+			Where("created_at >= ?", since)
 
 		row, err := s.ReadSQLExecutor.QueryRowWith(ctx, query)
 		if err != nil {
