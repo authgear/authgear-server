@@ -13,12 +13,12 @@ import (
 // --- stub implementations for testing ---
 
 type stubMetrics struct {
-	rollingMax     int64
-	country24h     int64
-	country1h      int64
-	ip24h          int64
-	recordErr      error
-	getErr         error
+	rollingMax int64
+	country24h int64
+	country1h  int64
+	ip24h      int64
+	recordErr  error
+	getErr     error
 }
 
 func (s *stubMetrics) RecordVerified(_ context.Context, _, _ string) error {
@@ -294,9 +294,9 @@ func TestCheckAndRecord(t *testing.T) {
 
 		Convey("returns nil immediately when disabled", func() {
 			svc := &Service{
-				Config:        disabledCfg,
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{},
+				Config:      disabledCfg,
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
@@ -304,10 +304,10 @@ func TestCheckAndRecord(t *testing.T) {
 
 		Convey("returns nil for unparseable phone number", func() {
 			svc := &Service{
-				Config:        enabledCfg,
-				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{},
+				Config:      enabledCfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{},
 			}
 			err := svc.CheckAndRecord(ctx, "not-a-phone", "otp")
 			So(err, ShouldBeNil)
@@ -319,10 +319,10 @@ func TestCheckAndRecord(t *testing.T) {
 				Action: config.FraudProtectionDecisionActionRecordOnly,
 			}
 			svc := &Service{
-				Config:        recordOnlyCfg,
-				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:      recordOnlyCfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
@@ -330,10 +330,10 @@ func TestCheckAndRecord(t *testing.T) {
 
 		Convey("returns ErrBlockedByFraudProtection when warning triggered and action is deny", func() {
 			svc := &Service{
-				Config:        enabledCfg,
-				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:      enabledCfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldEqual, ErrBlockedByFraudProtection)
@@ -342,10 +342,10 @@ func TestCheckAndRecord(t *testing.T) {
 		Convey("returns error when leaky bucket fails", func() {
 			import_err := &testError{"redis error"}
 			svc := &Service{
-				Config:        enabledCfg,
-				RemoteIP:      httputil.RemoteIP("1.2.3.4"),
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{sentErr: import_err},
+				Config:      enabledCfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{sentErr: import_err},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldEqual, import_err)
@@ -363,10 +363,10 @@ func TestCheckAndRecord(t *testing.T) {
 			}
 			// Even with a triggered bucket, the allowlist should bypass the block.
 			svc := &Service{
-				Config:        cfgWithAllowlist,
-				RemoteIP:      httputil.RemoteIP("10.1.2.3"),
-				Metrics:       &stubMetrics{},
-				LeakyBucket:   &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:      cfgWithAllowlist,
+				RemoteIP:    httputil.RemoteIP("10.1.2.3"),
+				Metrics:     &stubMetrics{},
+				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)

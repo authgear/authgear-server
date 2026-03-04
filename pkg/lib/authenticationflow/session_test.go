@@ -82,7 +82,7 @@ func TestPatchFrom(t *testing.T) {
 		Convey("copies all fields from updated into receiver", func() {
 			s := &Session{FlowID: "old-flow"}
 			updated := &Session{
-				FlowID: "new-flow",
+				FlowID:                     "new-flow",
 				SMSOTPSentCountByPhone:     map[string]int{"+6591234567": 3},
 				SMSOTPVerifiedCountByPhone: map[string]int{"+6591234567": 1},
 			}

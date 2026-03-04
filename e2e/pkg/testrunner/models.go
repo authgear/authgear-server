@@ -33,11 +33,11 @@ type AuthgearYAMLSource struct {
 type BeforeHookType string
 
 const (
-	BeforeHookTypeUserImport        BeforeHookType = "user_import"
-	BeforeHookTypeCustomSQL         BeforeHookType = "custom_sql"
-	BeforeHookTypeCustomAuditSQL    BeforeHookType = "custom_audit_sql"
-	BeforeHookTypeCreateSession     BeforeHookType = "create_session"
-	BeforeHookTypeCreateChallenge   BeforeHookType = "create_challenge"
+	BeforeHookTypeUserImport      BeforeHookType = "user_import"
+	BeforeHookTypeCustomSQL       BeforeHookType = "custom_sql"
+	BeforeHookTypeCustomAuditSQL  BeforeHookType = "custom_audit_sql"
+	BeforeHookTypeCreateSession   BeforeHookType = "create_session"
+	BeforeHookTypeCreateChallenge BeforeHookType = "create_challenge"
 )
 
 var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
@@ -164,12 +164,12 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 `)
 
 type BeforeHook struct {
-	Type             BeforeHookType              `json:"type"`
-	UserImport       string                      `json:"user_import"`
-	CustomSQL        *BeforeHookCustomSQL        `json:"custom_sql"`
-	CustomAuditSQL   *BeforeHookCustomAuditSQL   `json:"custom_audit_sql"`
-	CreateSession    *BeforeHookCreateSession    `json:"create_session"`
-	CreateChallenge  *BeforeHookCreateChallenge  `json:"create_challenge"`
+	Type            BeforeHookType             `json:"type"`
+	UserImport      string                     `json:"user_import"`
+	CustomSQL       *BeforeHookCustomSQL       `json:"custom_sql"`
+	CustomAuditSQL  *BeforeHookCustomAuditSQL  `json:"custom_audit_sql"`
+	CreateSession   *BeforeHookCreateSession   `json:"create_session"`
+	CreateChallenge *BeforeHookCreateChallenge `json:"create_challenge"`
 }
 
 var _ = TestCaseSchema.Add("SAMLBinding", `

@@ -681,6 +681,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
 	fraudprotectionService := &fraudprotection.Service{
+		AppID:       configAppID,
 		Metrics:     metricsStore,
 		LeakyBucket: leakyBucketStore,
 		Config:      fraudProtectionConfig,
