@@ -24,7 +24,6 @@
     "process": false
   },
   "overrides": {
-    "glob": "11.1.0",
     "@microsoft/tsdoc-config": {
       "ajv": "^8.18.0"
     },
