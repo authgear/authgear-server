@@ -1,0 +1,153 @@
+name: Fraud protection - always_allow phone_number regex bypasses blocking
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+        always_allow:
+          phone_number:
+            regex:
+              - "^\\+6591\\d+$"
+steps:
+  # Flows 1-3: fill the IP daily phone-countries bucket to the threshold (3 distinct countries).
+  # None of these match the always_allow regex, so they go through the normal check.
+
+  - name: flow 1 - create (HK)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone (HK)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85291230001"
+      }
+  - name: flow 1 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 2 - create (MY)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone (MY)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+60123450001"
+      }
+  - name: flow 2 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 3 - create (JP)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 3 - identify phone (JP)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+819012340001"
+      }
+  - name: flow 3 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4: SG number matching regex ^\+6591\d+$ — always_allow by regex.
+  # Bypasses fraud protection entirely, even though the threshold has been reached.
+
+  - name: flow 4 - create (SG matching regex, always_allow)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 4 - identify phone (SG +6591..., always_allow)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230004"
+      }
+  - name: flow 4 - send sms (always_allow regex bypasses block)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 5: US number — does not match the regex. This is the 4th distinct non-always-allowed
+  # country from this IP, which exceeds the threshold and is blocked.
+
+  - name: flow 5 - create (US, does not match regex)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 5 - identify phone (US)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+12125550001"
+      }
+  - name: flow 5 - send sms (blocked, US does not match always_allow regex)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
+
+  # Audit log should have exactly 4 entries: 3 allowed (HK, MY, JP) + 1 blocked (US).
+  # The SG flow 4 produces NO audit entry because always_allow returns before any recording.
+
+  - name: check audit log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'record'->>'decision' AS decision
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'fraud_protection.decision_recorded'
+      ORDER BY decision, created_at
+    audit_query_output:
+      rows: |
+        [
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "blocked"}
+        ]
