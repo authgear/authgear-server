@@ -48,7 +48,12 @@ Process each directory that contains a `package.json` (excluding `node_modules`)
 
 For each directory:
 
-1. `cd` into it and run `npm audit --json`.
+1. `cd` into it and check for **stale overrides** in `package.json` before auditing. For each entry in the `"overrides"` field:
+   - Identify what vulnerability or issue the override was originally added to fix (check git log: `git log --oneline -10 -- <dir>/package.json`).
+   - Run `npm list <overridden-package> --all` to see the currently resolved versions.
+   - Check if the parent package that originally required the vulnerable version has since released a patch that bundles a safe version on its own (i.e. the override is no longer needed to satisfy the advisory).
+   - If the override is no longer needed, remove it, run `npm install`, and confirm with `npm audit` that there are no regressions before proceeding. Include the removal in the same commit as any other fixes for this directory.
+2. `cd` into it and run `npm audit --json`.
 2. Parse the output:
    - If **no vulnerabilities**, note it and move on to the next directory.
    - Before applying any fix, inspect what versions `npm audit fix` would install by running `npm audit fix --dry-run --json`. For each package that would be updated:
