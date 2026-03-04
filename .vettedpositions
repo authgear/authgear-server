@@ -320,6 +320,7 @@
 /pkg/portal/session/middleware_session_info.go:52:9: requestcontext
 /pkg/portal/session/middleware_session_info.go:196:36: requestcontext
 /pkg/portal/session/middleware_session_required.go:12:38: requestcontext
+/pkg/portal/superadmin/transport/handler_graphql.go:25:29: requestcontext
 /pkg/portal/transport/admin_api_handler.go:39:9: requestcontext
 /pkg/portal/transport/graphql_handler.go:41:29: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:49:9: requestcontext
