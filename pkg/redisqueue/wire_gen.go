@@ -584,6 +584,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		HTTPRequestURL:  httpRequestURL,
 		HTTPReferer:     httpReferer,
 		Clock:           clock,
+		Database:        handle,
 		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
