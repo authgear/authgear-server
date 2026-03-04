@@ -45,5 +45,5 @@ END$$;
 
 -- +migrate Down
 SELECT undo_partition('{{ .SCHEMA }}._audit_metrics', p_keep_table := FALSE,
-  p_target_table := '{{ .SCHEMA }}._audit_metrics_default');
+  p_target_table := '{{ .SCHEMA }}._audit_metrics_template');
 DROP TABLE _audit_metrics;
