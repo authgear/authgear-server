@@ -691,6 +691,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		HTTPRequestURL:  httpRequestURL,
 		HTTPReferer:     httpReferer,
 		Clock:           clockClock,
+		Database:        handle,
 		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits

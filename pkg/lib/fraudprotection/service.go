@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	appdb "github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -72,6 +73,7 @@ type Service struct {
 	HTTPRequestURL  httputil.HTTPRequestURL
 	HTTPReferer     httputil.HTTPReferer
 	Clock           clock.Clock
+	Database        *appdb.Handle
 	EventService    EventService
 }
 
@@ -148,7 +150,7 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		userID = *uid
 	}
 
-	_ = s.EventService.DispatchEventImmediately(ctx, &nonblocking.FraudProtectionDecisionRecordedEventPayload{
+	payload := &nonblocking.FraudProtectionDecisionRecordedEventPayload{
 		Record: model.FraudProtectionDecisionRecord{
 			Timestamp:         s.Clock.NowUTC(),
 			Decision:          decision,
@@ -162,7 +164,10 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 			UserID:            userID,
 			GeoLocationCode:   geoCode,
 		},
-	})
+	}
+	if err := s.dispatchEventImmediately(ctx, payload); err != nil {
+		ServiceLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to dispatch fraud protection decision_recorded event")
+	}
 
 	if decision == model.FraudProtectionDecisionBlocked {
 		return ErrBlockedByFraudProtection
@@ -379,4 +384,15 @@ func isPhoneAlwaysAllowed(phoneAllow *config.FraudProtectionPhoneNumberAlwaysAll
 		}
 	}
 	return false
+}
+
+// dispatchEventImmediately dispatches an event, opening a read-only transaction
+// if the caller is not already inside one (same pattern as messaging.Sender).
+func (s *Service) dispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error {
+	if s.Database.IsInTx(ctx) {
+		return s.EventService.DispatchEventImmediately(ctx, payload)
+	}
+	return s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		return s.EventService.DispatchEventImmediately(ctx, payload)
+	})
 }
