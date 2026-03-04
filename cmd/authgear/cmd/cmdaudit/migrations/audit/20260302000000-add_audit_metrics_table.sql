@@ -6,10 +6,10 @@ CREATE TABLE _audit_metrics (
     app_id      TEXT                        NOT NULL,
     name        TEXT                        NOT NULL,
     key         TEXT                        NOT NULL,
-    start_time  TIMESTAMP WITHOUT TIME ZONE NOT NULL
-) PARTITION BY RANGE (start_time);
+    created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL
+) PARTITION BY RANGE (created_at);
 
-CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, key, start_time);
+CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, key, created_at);
 
 CREATE TABLE _audit_metrics_template (LIKE _audit_metrics);
 ALTER TABLE _audit_metrics_template ADD PRIMARY KEY (id);
@@ -24,7 +24,7 @@ BEGIN
   IF pg_partman_version like '5.%' THEN
     PERFORM create_parent(
       p_parent_table := '{{ .SCHEMA }}._audit_metrics',
-      p_control := 'start_time',
+      p_control := 'created_at',
       p_interval := '1 month',
       p_template_table := '{{ .SCHEMA }}._audit_metrics_template'
     );
@@ -32,7 +32,7 @@ BEGIN
     WHERE parent_table = '{{ .SCHEMA }}._audit_metrics';
   ELSIF pg_partman_version like '4.%' THEN
     PERFORM create_parent(
-      '{{ .SCHEMA }}._audit_metrics', 'start_time', 'native', 'monthly',
+      '{{ .SCHEMA }}._audit_metrics', 'created_at', 'native', 'monthly',
       p_template_table := '{{ .SCHEMA }}._audit_metrics_template'
     );
     UPDATE part_config SET retention = '90 days', retention_keep_table = FALSE

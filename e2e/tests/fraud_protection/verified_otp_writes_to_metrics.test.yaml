@@ -29,6 +29,6 @@ steps:
   - name: check audit metrics rows
     action: audit_query
     audit_query: |
-      SELECT id FROM _audit_metrics WHERE app_id = '{{ .AppID }}' AND name = 'sms_otp_verified' ORDER BY start_time
+      SELECT id FROM _audit_metrics WHERE app_id = '{{ .AppID }}' AND name = 'sms_otp_verified' ORDER BY created_at
     audit_query_output:
       rows: '[{"id": "[[string]]"}, {"id": "[[string]]"}]'
