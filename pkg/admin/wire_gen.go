@@ -690,6 +690,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HTTPRequestURL:  httpRequestURL,
 		HTTPReferer:     httpReferer,
 		Clock:           clockClock,
+		Database:        handle,
 		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits

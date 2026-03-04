@@ -1,0 +1,109 @@
+name: Fraud protection - decision_recorded event is written to audit log
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+steps:
+  # Flow 1 - SG number, allowed (level 1, threshold 3)
+  - name: flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 1 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # After flow 1, 1 decision_recorded row should exist with decision=allowed
+  - name: check audit log after flow 1
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'record'->>'decision' AS decision
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'fraud_protection.decision_recorded'
+      ORDER BY decision, created_at
+    audit_query_output:
+      rows: |
+        [{"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"}]
+
+  # Flow 2 - different SG number, succeeds
+  - name: flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230002"}
+  - name: flow 2 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 3 - another SG number, succeeds
+  - name: flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230003"}
+  - name: flow 3 - send sms (allowed)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4 - SG number, blocked by fraud protection
+  - name: flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230004"}
+  - name: flow 4 - send sms (blocked)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
+
+  # After 4 flows, 4 decision_recorded rows: 3 allowed + 1 blocked
+  - name: check audit log after flow 4
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'record'->>'decision' AS decision
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'fraud_protection.decision_recorded'
+      ORDER BY decision, created_at
+    audit_query_output:
+      rows: |
+        [
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
+          {"activity_type": "fraud_protection.decision_recorded", "decision": "blocked"}
+        ]

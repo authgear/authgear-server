@@ -717,6 +717,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		HTTPRequestURL:  httpRequestURL,
 		HTTPReferer:     httpReferer,
 		Clock:           clock,
+		Database:        appdbHandle,
 		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits

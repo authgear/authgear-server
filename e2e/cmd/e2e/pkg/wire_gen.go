@@ -622,6 +622,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		HTTPRequestURL:  httpRequestURL,
 		HTTPReferer:     httpReferer,
 		Clock:           clockClock,
+		Database:        handle,
 		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
