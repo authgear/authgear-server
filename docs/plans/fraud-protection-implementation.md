@@ -859,10 +859,9 @@ var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedBy
 const FraudProtectionDecisionRecorded event.Type = "fraud_protection.decision_recorded"
 
 type FraudProtectionDecisionRecord struct {
-    Timestamp         string            `json:"timestamp"`
-    Decision          string            `json:"decision"`             // "allowed" or "blocked"
-    BlockMode         string            `json:"block_mode,omitempty"` // "error" when blocked
-    Action            string            `json:"action"`               // "send_sms"
+    Timestamp         time.Time         `json:"timestamp"`
+    Decision          string            `json:"decision"` // "allowed" or "blocked"
+    Action            string            `json:"action"`   // "send_sms"
     ActionDetail      map[string]string `json:"action_detail"`
     TriggeredWarnings []string          `json:"triggered_warnings"`
     UserAgent         string            `json:"user_agent,omitempty"`
@@ -891,9 +890,8 @@ Dispatched inside `Service.CheckAndRecord()` after warning evaluation, before th
 ```go
 s.EventService.DispatchEventImmediately(ctx, &nonblocking.FraudProtectionDecisionRecordedEventPayload{
     Record: FraudProtectionDecisionRecord{
-        Timestamp:         s.Clock.NowUTC().Format(time.RFC3339Nano),
-        Decision:          decision,   // "allowed" or "blocked"
-        BlockMode:         blockMode,  // "error" if blocked
+        Timestamp:         s.Clock.NowUTC(),
+        Decision:          decision,  // "allowed" or "blocked"
         Action:            "send_sms",
         ActionDetail:      map[string]string{"recipient": phoneNumber, "type": messageType},
         TriggeredWarnings: triggeredWarningStrings,
