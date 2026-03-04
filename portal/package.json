@@ -23,7 +23,14 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
-  "overrides": {},
+  "overrides": {
+    "@microsoft/tsdoc-config": {
+      "ajv": "^8.18.0"
+    },
+    "eslint-plugin-sonarjs": {
+      "minimatch": "^10.2.4"
+    }
+  },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
     "@graphql-codegen/cli": "^5.0.7",
