@@ -183,6 +183,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(botprotection.EventService), new(*event.Service)),
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(ratelimit.LimiterEventService), new(*event.Service)),
+		wire.Bind(new(fraudprotection.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(

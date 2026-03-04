@@ -52,6 +52,10 @@ func ProvideUserAgentString() httputil.UserAgentString {
 	return "authgear"
 }
 
+func ProvideHTTPReferer() httputil.HTTPReferer {
+	return ""
+}
+
 type AccountDeletionServiceFactory struct {
 	BackgroundProvider *deps.BackgroundProvider
 }
@@ -122,6 +126,7 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	ProvideHTTPReferer,
 	wire.Struct(new(AccountDeletionServiceFactory), "*"),
 	wire.Struct(new(AccountAnonymizationServiceFactory), "*"),
 	wire.Struct(new(AccountStatusServiceFactory), "*"),

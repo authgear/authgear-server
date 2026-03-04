@@ -30,6 +30,10 @@ func ProvideEnd2EndHTTPProto() httputil.HTTPProto {
 	return httputil.HTTPProto("https")
 }
 
+func ProvideEnd2EndHTTPReferer() httputil.HTTPReferer {
+	return httputil.HTTPReferer("")
+}
+
 var End2EndDependencySet = wire.NewSet(
 	deps.AppRootDeps,
 	ProvideEnd2EndHTTPRequest,
@@ -37,4 +41,5 @@ var End2EndDependencySet = wire.NewSet(
 	ProvideEnd2EndUserAgentString,
 	ProvideEnd2EndHTTPHost,
 	ProvideEnd2EndHTTPProto,
+	ProvideEnd2EndHTTPReferer,
 )
