@@ -9,8 +9,12 @@ import (
 	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -18,6 +22,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+type EventService interface {
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
+}
 
 var ServiceLogger = slogutil.NewLogger("fraudprotection")
 
@@ -55,12 +63,16 @@ type LeakyBucketer interface {
 }
 
 type Service struct {
-	AppID       config.AppID
-	Metrics     MetricsQuerier
-	LeakyBucket LeakyBucketer
-	Config      *config.FraudProtectionConfig
-	RemoteIP    httputil.RemoteIP
-	Clock       clock.Clock
+	AppID           config.AppID
+	Metrics         MetricsQuerier
+	LeakyBucket     LeakyBucketer
+	Config          *config.FraudProtectionConfig
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+	HTTPRequestURL  httputil.HTTPRequestURL
+	HTTPReferer     httputil.HTTPReferer
+	Clock           clock.Clock
+	EventService    EventService
 }
 
 // CheckAndRecord is the main entry point called BEFORE sending an SMS.
@@ -115,8 +127,44 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		}
 	}
 
+	decision := model.FraudProtectionDecisionAllowed
 	action := s.Config.Decision.Action
 	if action == config.FraudProtectionDecisionActionDenyIfAnyWarning && len(warnings) > 0 {
+		decision = model.FraudProtectionDecisionBlocked
+	}
+
+	triggeredWarningStrings := make([]string, len(warnings))
+	for i, w := range warnings {
+		triggeredWarningStrings[i] = string(w)
+	}
+
+	var geoCode string
+	if info, ok := geoip.IPString(ip); ok {
+		geoCode = info.CountryCode
+	}
+
+	var userID string
+	if uid := session.GetUserID(ctx); uid != nil {
+		userID = *uid
+	}
+
+	_ = s.EventService.DispatchEventImmediately(ctx, &nonblocking.FraudProtectionDecisionRecordedEventPayload{
+		Record: model.FraudProtectionDecisionRecord{
+			Timestamp:         s.Clock.NowUTC(),
+			Decision:          decision,
+			Action:            model.FraudProtectionActionSendSMS,
+			ActionDetail:      map[string]string{"recipient": phoneNumber, "type": messageType},
+			TriggeredWarnings: triggeredWarningStrings,
+			UserAgent:         string(s.UserAgentString),
+			IPAddress:         ip,
+			HTTPUrl:           string(s.HTTPRequestURL),
+			HTTPReferer:       string(s.HTTPReferer),
+			UserID:            userID,
+			GeoLocationCode:   geoCode,
+		},
+	})
+
+	if decision == model.FraudProtectionDecisionBlocked {
 		return ErrBlockedByFraudProtection
 	}
 
