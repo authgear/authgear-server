@@ -131,6 +131,10 @@ func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
 	return httputil.UserAgentString(r.UserAgent())
 }
 
+func ProvideHTTPReferer(r *http.Request) httputil.HTTPReferer {
+	return httputil.GetReferer(r)
+}
+
 func ProvideRedisQueueHTTPRequest() *http.Request {
 	ctx := contextForRedisQueue
 	r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
@@ -143,6 +147,10 @@ func ProvideRedisQueueRemoteIP() httputil.RemoteIP {
 
 func ProvideRedisQueueUserAgentString() httputil.UserAgentString {
 	return httputil.UserAgentString("redis-queue")
+}
+
+func ProvideRedisQueueHTTPReferer() httputil.HTTPReferer {
+	return httputil.HTTPReferer("")
 }
 
 func ProvideRedisQueueHTTPHost() httputil.HTTPHost {
@@ -164,6 +172,7 @@ var RequestDependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	ProvideHTTPReferer,
 )
 
 var RedisQueueDependencySet = wire.NewSet(
@@ -173,6 +182,7 @@ var RedisQueueDependencySet = wire.NewSet(
 	ProvideRedisQueueUserAgentString,
 	ProvideRedisQueueHTTPHost,
 	ProvideRedisQueueHTTPProto,
+	ProvideRedisQueueHTTPReferer,
 )
 
 var BackgroundDependencySet = wire.NewSet(

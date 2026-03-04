@@ -680,13 +680,18 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := ProvideHTTPReferer()
 	fraudprotectionService := &fraudprotection.Service{
-		AppID:       configAppID,
-		Metrics:     metricsStore,
-		LeakyBucket: leakyBucketStore,
-		Config:      fraudProtectionConfig,
-		RemoteIP:    remoteIP,
-		Clock:       clockClock,
+		AppID:           configAppID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
