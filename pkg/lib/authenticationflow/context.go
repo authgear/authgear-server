@@ -82,4 +82,3 @@ var contextKeySession = contextKeyTypeSession{}
 func GetSession(ctx context.Context) *Session {
 	return ctx.Value(contextKeySession).(*Session)
 }
-

@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	bucketWindowHourly    = 3600
-	bucketWindowDaily     = 86400
-	ipCountriesThreshold  = 3
+	bucketWindowHourly     = 3600
+	bucketWindowDaily      = 86400
+	ipCountriesThreshold   = 3
 	bucketDimensionCountry = "country"
 	bucketDimensionIP      = "ip"
 )
