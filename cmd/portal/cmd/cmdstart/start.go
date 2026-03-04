@@ -11,10 +11,36 @@ import (
 )
 
 var cmdStart = &cobra.Command{
-	Use:   "start",
+	Use:   "start [portal] [superadmin]",
 	Short: "Start server",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctrl := &server.Controller{}
+		// Default: start portal only
+		ctrl := &server.Controller{
+			PortalMode:     true,
+			SuperadminMode: false,
+		}
+
+		// If any args provided, reset defaults and parse them
+		if len(args) > 0 {
+			ctrl.PortalMode = false
+			ctrl.SuperadminMode = false
+
+			// Check each argument
+			for _, arg := range args {
+				switch arg {
+				case "portal":
+					ctrl.PortalMode = true
+				case "superadmin":
+					ctrl.SuperadminMode = true
+				}
+			}
+
+			// If no valid modes were recognized, default to portal
+			if !ctrl.PortalMode && !ctrl.SuperadminMode {
+				ctrl.PortalMode = true
+			}
+		}
+
 		ctrl.Start(cmd.Context())
 	},
 }
