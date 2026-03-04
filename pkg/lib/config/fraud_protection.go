@@ -103,9 +103,9 @@ var _ = Schema.Add("FraudProtectionDecisionAction", `
 `)
 
 type FraudProtectionConfig struct {
-	Enabled  *bool                       `json:"enabled,omitempty"`
-	Warnings []*FraudProtectionWarning   `json:"warnings,omitempty"`
-	Decision *FraudProtectionDecision    `json:"decision,omitempty"`
+	Enabled  *bool                     `json:"enabled,omitempty"`
+	Warnings []*FraudProtectionWarning `json:"warnings,omitempty"`
+	Decision *FraudProtectionDecision  `json:"decision,omitempty"`
 }
 
 func (c *FraudProtectionConfig) SetDefaults() {
