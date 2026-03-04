@@ -62,15 +62,19 @@ For each directory:
    - If the user confirmed breaking changes, run `npm audit fix --force` (only after confirmation).
    - If vulnerabilities are **unfixable via npm audit fix** (i.e. `npm audit fix --dry-run` shows no resolution), check if the vulnerability is in a **transitive dependency** whose parent has not yet released a patch:
      1. Identify the vulnerable transitive package and the minimum safe version that fixes it (from the advisory).
-     2. Check the changelog/release notes between the currently-used version and the safe version:
+     2. Run `npm list <transitive-package> --all` to see **every installed version** of that package across the dependency tree. This is critical — there may be multiple versions installed at different semver ranges (e.g. `3.x`, `9.x`, `10.x`). Only the version(s) that fall in the advisory's vulnerable range need to be overridden.
+     3. Identify the **direct parent package(s)** that pull in the vulnerable version (e.g. `eslint-plugin-sonarjs` → `minimatch@10.1.2`).
+     4. Check the changelog/release notes between the currently-used vulnerable version and the safe version:
         - Look for any breaking changes (API removals, changed behavior, new peer-dep requirements).
-        - If there are **no breaking changes**, add an `overrides` entry to `package.json` to pin the transitive dep to the safe version:
+        - If there are **no breaking changes**, add a **scoped override** to `package.json`, targeting only the parent package that pulls in the vulnerable dep. Do **NOT** use a flat global override — it will forcibly replace all other installed versions (including non-vulnerable ones) and break unrelated packages:
           ```json
           "overrides": {
-            "<transitive-package>": "<safe-version>"
+            "<direct-parent-package>": {
+              "<transitive-package>": "^<safe-version>"
+            }
           }
           ```
-          Then run `npm install` to apply, and run `npm audit` again to confirm the vulnerability is resolved.
+          Then run `npm install` to apply, then `npm list <transitive-package> --all` to verify only the targeted instance changed, and `npm audit` to confirm the vulnerability is resolved.
         - If there **are breaking changes**, do not apply the override. Add the vulnerability to the **Unfixable Issues Report** and explain why the override is unsafe.
 3. After applying fixes in a directory, verify the project still builds:
    - For `portal/`: `npm run build` (or `npm run typecheck` if faster)
