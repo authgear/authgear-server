@@ -278,55 +278,57 @@ func (s *Service) isAlwaysAllowed(cfg *config.FraudProtectionConfig, ip, phoneNu
 		return false
 	}
 	alwaysAllow := cfg.Decision.AlwaysAllow
+	return isIPAlwaysAllowed(alwaysAllow.IPAddress, ip) ||
+		isPhoneAlwaysAllowed(alwaysAllow.PhoneNumber, phoneNumber, phoneCountry)
+}
 
-	// Check IP-based rules.
-	if alwaysAllow.IPAddress != nil {
-		ipAllow := alwaysAllow.IPAddress
-
-		// Check CIDR ranges.
-		parsedIP := net.ParseIP(ip)
-		if parsedIP != nil {
-			for _, cidr := range ipAllow.CIDRs {
-				_, ipNet, err := net.ParseCIDR(cidr)
-				if err != nil {
-					continue
-				}
-				if ipNet.Contains(parsedIP) {
-					return true
-				}
-			}
-		}
-
-		// Check IP geo codes.
-		if len(ipAllow.GeoLocationCodes) > 0 {
-			if info, ok := geoip.IPString(ip); ok {
-				if slices.Contains(ipAllow.GeoLocationCodes, info.CountryCode) {
-					return true
-				}
-			}
+func isIPAlwaysAllowed(ipAllow *config.FraudProtectionIPAlwaysAllow, ip string) bool {
+	if ipAllow == nil {
+		return false
+	}
+	if isIPInCIDRs(ip, ipAllow.CIDRs) {
+		return true
+	}
+	if len(ipAllow.GeoLocationCodes) > 0 {
+		if info, ok := geoip.IPString(ip); ok {
+			return slices.Contains(ipAllow.GeoLocationCodes, info.CountryCode)
 		}
 	}
+	return false
+}
 
-	// Check phone number-based rules.
-	if alwaysAllow.PhoneNumber != nil {
-		phoneAllow := alwaysAllow.PhoneNumber
-
-		// Check phone geo codes.
-		if slices.Contains(phoneAllow.GeoLocationCodes, phoneCountry) {
+func isIPInCIDRs(ip string, cidrs []string) bool {
+	parsedIP := net.ParseIP(ip)
+	if parsedIP == nil {
+		return false
+	}
+	for _, cidr := range cidrs {
+		_, ipNet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			continue
+		}
+		if ipNet.Contains(parsedIP) {
 			return true
 		}
+	}
+	return false
+}
 
-		// Check phone regex patterns.
-		for _, pattern := range phoneAllow.Regex {
-			re, err := regexp.Compile(pattern)
-			if err != nil {
-				continue
-			}
-			if re.MatchString(phoneNumber) {
-				return true
-			}
+func isPhoneAlwaysAllowed(phoneAllow *config.FraudProtectionPhoneNumberAlwaysAllow, phoneNumber, phoneCountry string) bool {
+	if phoneAllow == nil {
+		return false
+	}
+	if slices.Contains(phoneAllow.GeoLocationCodes, phoneCountry) {
+		return true
+	}
+	for _, pattern := range phoneAllow.Regex {
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			continue
+		}
+		if re.MatchString(phoneNumber) {
+			return true
 		}
 	}
-
 	return false
 }
