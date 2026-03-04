@@ -8,10 +8,11 @@ Audit and fix dependency vulnerabilities in this project. Follow the steps below
 
 ## Step 1: Go Vulnerability Check
 
-Run from the project root:
+Run from the project root and from `./k6` (it is a separate Go module with its own `go.mod`):
 
 ```
 make govulncheck
+cd k6 && make govulncheck
 ```
 
 Parse the output:
@@ -25,6 +26,7 @@ Parse the output:
      - `./`
      - `./custombuild`
      - `./e2e`
+     - `./k6`
 
 **Breaking Change Report for Go (major version bumps)** must include:
 - Module name, current version → proposed version
@@ -36,7 +38,7 @@ After updating Go deps:
 - Run `make build` or `go build ./...` to verify the build.
 - If the build breaks, report the compiler errors and ask the user how to proceed. Do not commit.
 - If vulnerabilities cannot be fixed (no fix available), note them in an **Unfixable Issues Report** and notify the user.
-- If fixes were applied and build passes, stage and commit: `git add go.sum go.mod custombuild/go.sum custombuild/go.mod e2e/go.sum e2e/go.mod` and commit with message: `chore: fix Go dependency vulnerabilities`
+- If fixes were applied and build passes, stage and commit: `git add go.sum go.mod custombuild/go.sum custombuild/go.mod e2e/go.sum e2e/go.mod k6/go.sum k6/go.mod` and commit with message: `chore: fix Go dependency vulnerabilities`
 
 ## Step 2: Node.js Audit — directory by directory
 
