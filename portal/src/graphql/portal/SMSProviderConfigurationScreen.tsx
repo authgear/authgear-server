@@ -1189,8 +1189,8 @@ function TwilioForm({ form }: { form: FormModel }) {
       return (
         event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
       ) => {
+        const value = event.currentTarget.value;
         form.setState((prevState) => {
-          const value = event.currentTarget.value;
           const s: FormState = {
             ...prevState,
           };
@@ -1452,8 +1452,8 @@ function WebhookForm({
 
   const onURLChange = useCallback(
     (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = event.currentTarget.value;
       form.setState((prevState) => {
-        const value = event.currentTarget.value;
         return {
           ...prevState,
           webhookURL: value,

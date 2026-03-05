@@ -58,9 +58,10 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
         if (e === undefined) {
           return;
         }
+        const value = e.currentTarget.value;
         onFilterChange((prev) => ({
           ...prev,
-          searchKeyword: e.currentTarget.value,
+          searchKeyword: value,
         }));
       },
       [onFilterChange]
