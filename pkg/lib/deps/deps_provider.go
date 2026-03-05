@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/event"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -100,6 +101,7 @@ var AppRootDeps = wire.NewSet(
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(workflow.ServiceDatabase), new(*appdb.Handle)),
 	wire.Bind(new(authenticationflow.ServiceDatabase), new(*appdb.Handle)),
+	wire.Bind(new(fraudprotection.DatabaseHandle), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),

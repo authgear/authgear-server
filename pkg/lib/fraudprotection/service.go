@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	appdb "github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -26,6 +25,11 @@ import (
 
 type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
+}
+
+type DatabaseHandle interface {
+	IsInTx(ctx context.Context) bool
+	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
 
 var ServiceLogger = slogutil.NewLogger("fraudprotection")
@@ -73,7 +77,7 @@ type Service struct {
 	HTTPRequestURL  httputil.HTTPRequestURL
 	HTTPReferer     httputil.HTTPReferer
 	Clock           clock.Clock
-	Database        *appdb.Handle
+	Database        DatabaseHandle
 	EventService    EventService
 }
 
