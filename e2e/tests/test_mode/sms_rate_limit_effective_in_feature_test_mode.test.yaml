@@ -1,0 +1,69 @@
+name: SMS messaging rate limit is effective when using feature config test mode
+authgear.yaml:
+  override: |
+    messaging:
+      rate_limits:
+        sms_per_ip:
+          enabled: true
+          period: "1h"
+          burst: 1
+steps:
+  # Flow 1: First SMS to +6591230001 - succeeds and consumes the per-IP rate limit.
+  # Feature config test mode suppresses the SMS, but the rate limit is still consumed.
+  - name: flow 1 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230001"
+      }
+  - name: flow 1 - send sms (succeeds, rate limit consumed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 2: Second SMS attempt to a different number from the same IP.
+  # Per-IP rate limit (burst=1) is already exhausted, so this is blocked.
+  - name: flow 2 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230002"
+      }
+  - name: flow 2 - send sms (blocked by rate limit)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "RateLimited",
+          "code": 429
+        }
