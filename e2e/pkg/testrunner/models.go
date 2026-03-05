@@ -30,6 +30,20 @@ type AuthgearYAMLSource struct {
 	Override string `json:"override"`
 }
 
+var _ = TestCaseSchema.Add("AuthgearFeaturesYAMLSource", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"override": { "type": "string", "description": "Inline snippet to override authgear.features.yaml" }
+	}
+}
+`)
+
+type AuthgearFeaturesYAMLSource struct {
+	Override string `json:"override"`
+}
+
 type BeforeHookType string
 
 const (
