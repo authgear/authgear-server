@@ -1,0 +1,136 @@
+name: SMS usage limit is bypassed when using project test mode
+authgear.yaml:
+  override: |
+    test_mode:
+      sms:
+        enabled: true
+        rules:
+        - regex: "^\\+6591230001$"
+          suppressed: true
+        - regex: "^\\+6591230002$"
+          suppressed: true
+authgear.features.yaml:
+  override: |
+    messaging:
+      sms_usage:
+        enabled: true
+        period: "day"
+        quota: 1
+steps:
+  # Flows 1-2: Project test mode numbers (+6591230001, +6591230002).
+  # Project test mode short-circuits before the usage limit check, so the
+  # daily quota is never consumed. Both succeed despite quota=1.
+  - name: flow 1 - create (test mode number)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230001"
+      }
+  - name: flow 1 - send sms (succeeds, usage quota NOT consumed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 2 - create (test mode number)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230002"
+      }
+  - name: flow 2 - send sms (succeeds, usage quota still NOT consumed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 3: Non-test-mode number - goes through the usage limiter normally.
+  # This is the first request to consume the daily quota (1 of 1 used).
+  - name: flow 3 - create (non-test-mode number)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230003"
+      }
+  - name: flow 3 - send sms (succeeds, usage quota consumed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 4: Another non-test-mode number - usage quota is exhausted.
+  - name: flow 4 - create (non-test-mode number)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230004"
+      }
+  - name: flow 4 - send sms (blocked by usage limit)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429
+        }
