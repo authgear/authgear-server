@@ -19,13 +19,13 @@ import (
 
 var BuiltInConfigSourceDir = "./var"
 
-func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceDir string, override string, extraFilesDir string) error {
+func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceDir string, override string, featuresOverride string, extraFilesDir string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
 	}
 
-	configSourceDir, err := c.createTempConfigSource(ctx, appID, baseConfigSourceDir, override)
+	configSourceDir, err := c.createTempConfigSource(ctx, appID, baseConfigSourceDir, override, featuresOverride)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceD
 	return nil
 }
 
-func (c *End2End) createTempConfigSource(ctx context.Context, appID string, baseConfigSource string, overrideYAML string) (string, error) {
+func (c *End2End) createTempConfigSource(ctx context.Context, appID string, baseConfigSource string, overrideYAML string, featuresOverrideYAML string) (string, error) {
 	tempAppDir, err := os.MkdirTemp("", "e2e-")
 	if err != nil {
 		return "", err
@@ -124,7 +124,64 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 		return "", err
 	}
 
+	if featuresOverrideYAML != "" {
+		authgearFeaturesYAMLPath := filepath.Join(tempAppDir, configsource.AuthgearFeatureYAML)
+		authgearFeaturesYAML, err := os.ReadFile(authgearFeaturesYAMLPath)
+		if err != nil {
+			return "", err
+		}
+
+		featuresCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, authgearFeaturesYAML)
+		if err != nil {
+			return "", err
+		}
+
+		var featuresOverrideCfg config.FeatureConfig
+		jsonData, err := yaml.YAMLToJSON([]byte(featuresOverrideYAML))
+		if err != nil {
+			return "", err
+		}
+
+		decoder := json.NewDecoder(bytes.NewReader(jsonData))
+		err = decoder.Decode(&featuresOverrideCfg)
+		if err != nil {
+			return "", err
+		}
+
+		err = mergo.Merge(featuresCfg, &featuresOverrideCfg, mergo.WithOverride)
+		if err != nil {
+			return "", err
+		}
+
+		newFeaturesYAML, err := exportFeaturesConfig(featuresCfg)
+		if err != nil {
+			return "", err
+		}
+
+		err = os.WriteFile(authgearFeaturesYAMLPath, newFeaturesYAML, fs.FileMode(0644))
+		if err != nil {
+			return "", err
+		}
+	}
+
 	return tempAppDir, nil
+}
+
+func exportFeaturesConfig(cfg *config.FeatureConfig) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData := buf.Bytes()
+	yamlData, err := yaml.JSONToYAML(jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return yamlData, nil
 }
 
 func exportConfig(config *config.AppConfig) ([]byte, error) {

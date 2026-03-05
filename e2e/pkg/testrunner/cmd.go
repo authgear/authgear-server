@@ -50,10 +50,11 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 	}
 
 	cmd := fmt.Sprintf(
-		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --config-source-extra-files-directory \"%s\"",
+		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --features-override \"%s\" --config-source-extra-files-directory \"%s\"",
 		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
+		e.TestCase.AuthgearFeaturesYAMLSource.Override,
 		extraFilesDirectory,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
