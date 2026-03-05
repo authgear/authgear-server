@@ -6,7 +6,9 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -49,6 +51,19 @@ func (s *stubLeakyBucket) RecordSMSOTPSent(_ context.Context, _, _ string, _ Lea
 }
 func (s *stubLeakyBucket) RecordSMSOTPVerified(_ context.Context, _, _ string, _ LeakyBucketThresholds, _ int) error {
 	return s.drainErr
+}
+
+type stubEventService struct{}
+
+func (s *stubEventService) DispatchEventImmediately(_ context.Context, _ event.NonBlockingPayload) error {
+	return nil
+}
+
+type stubDatabaseHandle struct{}
+
+func (s *stubDatabaseHandle) IsInTx(_ context.Context) bool { return false }
+func (s *stubDatabaseHandle) ReadOnly(_ context.Context, do func(context.Context) error) error {
+	return do(context.Background())
 }
 
 // --- helpers ---
@@ -319,10 +334,13 @@ func TestCheckAndRecord(t *testing.T) {
 				Action: config.FraudProtectionDecisionActionRecordOnly,
 			}
 			svc := &Service{
-				Config:      recordOnlyCfg,
-				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
-				Metrics:     &stubMetrics{},
-				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:       recordOnlyCfg,
+				RemoteIP:     httputil.RemoteIP("1.2.3.4"),
+				Metrics:      &stubMetrics{},
+				LeakyBucket:  &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Clock:        clock.NewMockClock(),
+				Database:     &stubDatabaseHandle{},
+				EventService: &stubEventService{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
@@ -330,10 +348,13 @@ func TestCheckAndRecord(t *testing.T) {
 
 		Convey("returns ErrBlockedByFraudProtection when warning triggered and action is deny", func() {
 			svc := &Service{
-				Config:      enabledCfg,
-				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
-				Metrics:     &stubMetrics{},
-				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:       enabledCfg,
+				RemoteIP:     httputil.RemoteIP("1.2.3.4"),
+				Metrics:      &stubMetrics{},
+				LeakyBucket:  &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Clock:        clock.NewMockClock(),
+				Database:     &stubDatabaseHandle{},
+				EventService: &stubEventService{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldEqual, ErrBlockedByFraudProtection)
