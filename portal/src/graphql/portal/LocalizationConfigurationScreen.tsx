@@ -35,12 +35,18 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+  RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML,
+  RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT,
+  RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML,
+  RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_TXT,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_VERIFICATION_EMAIL_HTML,
   RESOURCE_VERIFICATION_EMAIL_TXT,
   RESOURCE_VERIFICATION_SMS_TXT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_NEW_USER_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_EXISTING_USER_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT,
@@ -99,6 +105,7 @@ const PIVOT_KEY_FORGOT_PASSWORD_CODE = "forgot_password_code";
 const PIVOT_KEY_VERIFICATION = "verification";
 const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
 const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
+const PIVOT_KEY_WELCOME_MESSAGE = "welcome_message";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
 
@@ -108,6 +115,7 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_VERIFICATION,
   PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
   PIVOT_KEY_PASSWORDLESS_VIA_SMS,
+  PIVOT_KEY_WELCOME_MESSAGE,
 ];
 
 const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
@@ -704,6 +712,97 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
+    const sectionsWelcomeMessage: EditTemplatesWidgetSection[] = [
+      {
+        key: "new-user",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.welcome-message.new-user.title" />
+        ),
+        items: [
+          {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_NEW_USER_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_NEW_USER_SUBJECT
+            ),
+            editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "html-email",
+            title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+            language: "html",
+            value: getValue(RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML),
+            onChange: getOnChange(
+              RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML
+            ),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "plaintext-email",
+            title: (
+              <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
+            ),
+            language: "plaintext",
+            value: getValue(RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT),
+            onChange: getOnChange(RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+      {
+        key: "existing-user",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.welcome-message.existing-user.title" />
+        ),
+        items: [
+          {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_EXISTING_USER_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_EXISTING_USER_SUBJECT
+            ),
+            editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "html-email",
+            title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+            language: "html",
+            value: getValue(RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML),
+            onChange: getOnChange(
+              RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML
+            ),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "plaintext-email",
+            title: (
+              <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
+            ),
+            language: "plaintext",
+            value: getValue(RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_TXT),
+            onChange: getOnChange(
+              RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_TXT
+            ),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+    ];
+
     return (
       <ScreenContent>
         <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
@@ -782,6 +881,14 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
             ) : null}
+            <PivotItem
+              headerText={renderToString(
+                "LocalizationConfigurationScreen.welcome-message.title"
+              )}
+              itemKey={PIVOT_KEY_WELCOME_MESSAGE}
+            >
+              <EditTemplatesWidget sections={sectionsWelcomeMessage} />
+            </PivotItem>
           </AGPivot>
         </Widget>
       </ScreenContent>

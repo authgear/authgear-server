@@ -1110,6 +1110,8 @@
   "LocalizationConfigurationScreen.verification.title": "Verification",
   "LocalizationConfigurationScreen.passwordless-via-email.title": "Passwordless via Email",
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
+  "LocalizationConfigurationScreen.welcome-message.title": "Welcome Message",
+
   "CustomTextConfigurationScreen.title": "Custom Text",
   "CustomTextConfigurationScreen.description": "Customize the text in the AuthUI for different languages",
   "LanguagesConfigurationScreen.title": "Languages",
@@ -1133,6 +1135,9 @@
   "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
   "EditTemplatesWidget.passwordless.setup.title": "Sign up",
   "EditTemplatesWidget.passwordless.login.title": "Login",
+  "EditTemplatesWidget.welcome-message.new-user.title": "New User",
+  "EditTemplatesWidget.welcome-message.existing-user.title": "Existing User",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
