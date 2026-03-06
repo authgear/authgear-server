@@ -35,6 +35,12 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+  RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML,
+  RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT,
+  RESOURCE_SETUP_SECONDARY_OOB_SMS_TXT,
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML,
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT,
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_SMS_TXT,
   RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML,
   RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT,
   RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML,
@@ -51,6 +57,8 @@ import {
   TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT,
 } from "../../resources";
 import {
@@ -95,6 +103,8 @@ interface ResourcesConfigurationContentProps {
   initialSupportedLanguages: string[];
   passwordlessViaEmailEnabled: boolean;
   passwordlessViaSMSEnabled: boolean;
+  mfaViaEmailEnabled: boolean;
+  mfaViaSMSEnabled: boolean;
   passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
   verificationEnabled: boolean;
   messagingFeatureConfig?: MessagingFeatureConfig;
@@ -105,6 +115,8 @@ const PIVOT_KEY_FORGOT_PASSWORD_CODE = "forgot_password_code";
 const PIVOT_KEY_VERIFICATION = "verification";
 const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
 const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
+const PIVOT_KEY_MFA_VIA_EMAIL = "mfa_via_email";
+const PIVOT_KEY_MFA_VIA_SMS = "mfa_via_sms";
 const PIVOT_KEY_WELCOME_MESSAGE = "welcome_message";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
@@ -115,6 +127,8 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_VERIFICATION,
   PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
   PIVOT_KEY_PASSWORDLESS_VIA_SMS,
+  PIVOT_KEY_MFA_VIA_EMAIL,
+  PIVOT_KEY_MFA_VIA_SMS,
   PIVOT_KEY_WELCOME_MESSAGE,
 ];
 
@@ -125,6 +139,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       initialSupportedLanguages,
       passwordlessViaEmailEnabled,
       passwordlessViaSMSEnabled,
+      mfaViaEmailEnabled,
+      mfaViaSMSEnabled,
       passwordlessViaEmailOTPMode,
       verificationEnabled,
       messagingFeatureConfig,
@@ -712,6 +728,128 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
+    const sectionsMFAViaEmail: EditTemplatesWidgetSection[] = [
+      {
+        key: "setup",
+        title: <FormattedMessage id="EditTemplatesWidget.mfa.setup.title" />,
+        items: [
+          {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT
+            ),
+            editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "html-email",
+            title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+            language: "html",
+            value: getValue(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML),
+            onChange: getOnChange(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "plaintext-email",
+            title: (
+              <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
+            ),
+            language: "plaintext",
+            value: getValue(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT),
+            onChange: getOnChange(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+      {
+        key: "login",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.mfa.authenticate.title" />
+        ),
+        items: [
+          {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT
+            ),
+            editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "html-email",
+            title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+            language: "html",
+            value: getValue(RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML),
+            onChange: getOnChange(
+              RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML
+            ),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+          {
+            key: "plaintext-email",
+            title: (
+              <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
+            ),
+            language: "plaintext",
+            value: getValue(RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT),
+            onChange: getOnChange(
+              RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT
+            ),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+    ];
+
+    const sectionsMFAViaSMS: EditTemplatesWidgetSection[] = [
+      {
+        key: "setup",
+        title: <FormattedMessage id="EditTemplatesWidget.mfa.setup.title" />,
+        items: [
+          {
+            key: "sms",
+            title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+            language: "plaintext",
+            value: getValue(RESOURCE_SETUP_SECONDARY_OOB_SMS_TXT),
+            onChange: getOnChange(RESOURCE_SETUP_SECONDARY_OOB_SMS_TXT),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+      {
+        key: "login",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.mfa.authenticate.title" />
+        ),
+        items: [
+          {
+            key: "sms",
+            title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+            language: "plaintext",
+            value: getValue(RESOURCE_AUTHENTICATE_SECONDARY_OOB_SMS_TXT),
+            onChange: getOnChange(RESOURCE_AUTHENTICATE_SECONDARY_OOB_SMS_TXT),
+            editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
+          },
+        ],
+      },
+    ];
+
     const sectionsWelcomeMessage: EditTemplatesWidgetSection[] = [
       {
         key: "new-user",
@@ -881,6 +1019,26 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
             ) : null}
+            {mfaViaEmailEnabled ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LocalizationConfigurationScreen.mfa-via-email.title"
+                )}
+                itemKey={PIVOT_KEY_MFA_VIA_EMAIL}
+              >
+                <EditTemplatesWidget sections={sectionsMFAViaEmail} />
+              </PivotItem>
+            ) : null}
+            {mfaViaSMSEnabled ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LocalizationConfigurationScreen.mfa-via-sms.title"
+                )}
+                itemKey={PIVOT_KEY_MFA_VIA_SMS}
+              >
+                <EditTemplatesWidget sections={sectionsMFAViaSMS} />
+              </PivotItem>
+            ) : null}
             <PivotItem
               headerText={renderToString(
                 "LocalizationConfigurationScreen.welcome-message.title"
@@ -932,6 +1090,22 @@ const LocalizationConfigurationScreen: React.VFC =
     const passwordlessViaSMSEnabled = useMemo(() => {
       return (
         config.effectiveAppConfig?.authentication?.primary_authenticators?.indexOf(
+          "oob_otp_sms"
+        ) !== -1
+      );
+    }, [config.effectiveAppConfig]);
+
+    const mfaViaEmailEnabled = useMemo(() => {
+      return (
+        config.effectiveAppConfig?.authentication?.secondary_authenticators?.indexOf(
+          "oob_otp_email"
+        ) !== -1
+      );
+    }, [config.effectiveAppConfig]);
+
+    const mfaViaSMSEnabled = useMemo(() => {
+      return (
+        config.effectiveAppConfig?.authentication?.secondary_authenticators?.indexOf(
           "oob_otp_sms"
         ) !== -1
       );
@@ -1027,6 +1201,8 @@ const LocalizationConfigurationScreen: React.VFC =
           initialSupportedLanguages={initialSupportedLanguages}
           passwordlessViaEmailEnabled={passwordlessViaEmailEnabled}
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
+          mfaViaEmailEnabled={mfaViaEmailEnabled}
+          mfaViaSMSEnabled={mfaViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
           verificationEnabled={verificationEnabled}
           messagingFeatureConfig={
