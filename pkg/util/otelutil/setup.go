@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	stdlog "log"
 	"os"
 	"strings"
 
@@ -109,13 +110,16 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	logOptions = append(logOptions, log.WithResource(res))
 
 	if otlpEndpoint != "" {
+		stdlog.Printf("otel log exporter: configuring OTLP HTTP endpoint=%q", otlpEndpoint)
 		logExporter, err := otlploghttp.New(ctx,
 			otlploghttp.WithEndpointURL(otlpEndpoint),
 		)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("failed to initialize otlp log exporter endpoint=%q: %w", otlpEndpoint, err)
 		}
 		logOptions = append(logOptions, log.WithProcessor(log.NewBatchProcessor(logExporter)))
+	} else {
+		stdlog.Printf("otel log exporter: LOG_HANDLER_OTLP_ENDPOINT is empty; OTLP log export is disabled")
 	}
 
 	logProvider := log.NewLoggerProvider(logOptions...)
