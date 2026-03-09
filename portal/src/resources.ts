@@ -58,6 +58,46 @@ export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
   fallback: FALLBACK_EFFECTIVE_DATA,
 };
 
+export const RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_secondary_oob_email.html`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_secondary_oob_email.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_SETUP_SECONDARY_OOB_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_secondary_oob_sms.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
+export const RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_secondary_oob_email.html`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_secondary_oob_email.txt`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_AUTHENTICATE_SECONDARY_OOB_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_secondary_oob_sms.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
 export const RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_login_link.html`,
   type: "text",
@@ -143,6 +183,36 @@ export const RESOURCE_VERIFICATION_SMS_TXT: ResourceDefinition = {
   fallback: FALLBACK_EFFECTIVE_DATA,
 };
 
+export const RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/send_password_to_new_user_email.html`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/send_password_to_new_user_email.txt`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+
+export const RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/send_password_to_existing_user_email.html`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_TXT: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/send_password_to_existing_user_email.txt`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+
 export const RESOURCE_APP_LOGO: ResourceDefinition = {
   resourcePath: resourcePath`static/${"locale"}/app_logo${"extension"}`,
   type: "binary",
@@ -189,6 +259,14 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
 
+  RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML,
+  RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT,
+  RESOURCE_SETUP_SECONDARY_OOB_SMS_TXT,
+
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML,
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT,
+  RESOURCE_AUTHENTICATE_SECONDARY_OOB_SMS_TXT,
+
   RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT,
 
@@ -206,6 +284,11 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_VERIFICATION_EMAIL_HTML,
   RESOURCE_VERIFICATION_EMAIL_TXT,
   RESOURCE_VERIFICATION_SMS_TXT,
+
+  RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_HTML,
+  RESOURCE_SEND_PASSWORD_TO_NEW_USER_EMAIL_TXT,
+  RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_HTML,
+  RESOURCE_SEND_PASSWORD_TO_EXISTING_USER_EMAIL_TXT,
 ];
 
 export const RESOURCE_AUTHGEAR_LIGHT_THEME_CSS: ResourceDefinition = {
@@ -274,9 +357,17 @@ export const TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT =
   "email.verification.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT =
   "email.setup-primary-oob.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT =
+  "email.setup-secondary-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT =
   "email.setup-primary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT =
   "email.authenticate-primary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
   "email.authenticate-primary-oob.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT =
+  "email.authenticate-secondary-oob.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_NEW_USER_SUBJECT =
+  "email.send-password-to-new-user.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SEND_PASSWORD_TO_EXISTING_USER_SUBJECT =
+  "email.send-password-to-existing-user.subject";
