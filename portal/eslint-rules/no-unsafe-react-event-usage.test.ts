@@ -2,8 +2,10 @@
  * @jest-environment node
  */
 import { RuleTester } from "eslint";
-import * as parser from "@typescript-eslint/parser";
+import { jest } from "@jest/globals";
 import rule from "./no-unsafe-react-event-usage.cjs";
+
+const parser = jest.requireActual("@typescript-eslint/parser");
 
 const ruleTester = new RuleTester({
   languageOptions: {
