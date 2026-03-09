@@ -40,10 +40,28 @@ const envvar_OTEL_PROPAGATORS = "OTEL_PROPAGATORS"
 
 // SetupOTelSDKGlobally sets up the global propagator and the global meter provider.
 // Setting these globally allows us to define metric globally.
+// It runs fn with the context produced by setup, and always shuts down
+// the initialized SDK components before returning.
+func SetupOTelSDKGlobally(ctx context.Context, fn func(context.Context) error) (err error) {
+	outCtx, shutdown, err := setupOTelSDKGlobally(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = errors.Join(err, shutdown(outCtx))
+	}()
+	if fn == nil {
+		return nil
+	}
+	return fn(outCtx)
+}
+
+// setupOTelSDKGlobally sets up the global propagator and the global meter provider.
+// Setting these globally allows us to define metric globally.
 // Additionally, it returns a context that MUST BE used as the background context.
 // The returned context contains a *sdkresource.Resource.
 // The returned context contains a *otelhttp.Labeler.
-func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown func(context.Context) error, err error) {
+func setupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown func(context.Context) error, err error) {
 	// Set up OTel error handler to log errors to stderr
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		fmt.Fprintf(os.Stderr, "[OTEL_SDK_ERROR] %v\n", err)
