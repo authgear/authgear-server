@@ -2,10 +2,12 @@ package webapp
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -13,6 +15,8 @@ var TemplateWebFeatureDisabledHTML = template.RegisterHTML(
 	"web/authflowv2/error_feature_disabled.html",
 	Components...,
 )
+
+var FeatureDisabledHandlerLogger = slogutil.NewLogger("feature_disabled_handler")
 
 func ConfigureFeatureDisabledRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -43,6 +47,12 @@ func (h *FeatureDisabledHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
+		FeatureDisabledHandlerLogger.GetLogger(ctx).Warn(
+			ctx,
+			"feature disabled page is visited",
+			slog.String("referer", r.Referer()),
+		)
+
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
