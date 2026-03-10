@@ -451,7 +451,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             key: item.urlPrefix,
             name: renderToString(item.textKey),
             url: item.url ?? "",
-            links: item.children.map(navItem),
+            links: item.children.map((child) => navItem(child)),
           };
         }
         case "link": {
