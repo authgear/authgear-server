@@ -9,6 +9,7 @@ import {
 
 export type Plan =
   | "free"
+  | "freev2"
   | "free-approved"
   | "developers"
   | "developers2025"
@@ -20,10 +21,13 @@ export type Plan =
 export const SUBSCRIPTABLE_PLANS: Plan[] = ["startups", "business"];
 
 export const ENTERPRISE_PLAN: Plan = "enterprise";
+export const DEFAULT_FREE_PLAN: Plan = "freev2";
 
 export function isPlan(planName: string): planName is Plan {
   switch (planName) {
     case "free":
+      return true;
+    case "freev2":
       return true;
     case "free-approved":
       return true;
@@ -48,11 +52,15 @@ export function isCustomPlan(planName: string): boolean {
 }
 
 export function isLimitedFreePlan(planName: string): planName is Plan {
-  return planName === "free";
+  return planName === "free" || planName === "freev2";
 }
 
 export function isFreePlan(planName: string): planName is Plan {
-  return planName === "free" || planName === "free-approved";
+  return (
+    planName === "free" ||
+    planName === "freev2" ||
+    planName === "free-approved"
+  );
 }
 
 export function isStripePlan(planName: string): planName is Plan {
@@ -78,6 +86,7 @@ export function getNextPlan(planName: string): Plan | null {
   }
   switch (planName) {
     case "free":
+    case "freev2":
       return "developers2025";
     case "free-approved":
       return "developers2025";
@@ -103,6 +112,7 @@ export function getMAULimit(planName: string): number | undefined {
 function planToNumber(planName: Plan): number {
   switch (planName) {
     case "free":
+    case "freev2":
       return 0;
     case "free-approved":
       return 0;
@@ -171,7 +181,7 @@ export function getCTAVariant(opts: {
   const compareResult = comparePlan(currentPlanName, cardPlanName);
 
   if (subscriptionCancelled) {
-    const isFreeCard = comparePlan(cardPlanName, "free");
+    const isFreeCard = isFreePlan(cardPlanName);
 
     switch (compareResult) {
       case 0:
@@ -179,7 +189,7 @@ export function getCTAVariant(opts: {
       case -1:
         return "reactivate-to-upgrade";
       case 1:
-        return isFreeCard === 0 ? "downgrading" : "reactivate-to-downgrade";
+        return isFreeCard ? "downgrading" : "reactivate-to-downgrade";
     }
   }
 
