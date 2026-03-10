@@ -49,13 +49,11 @@ type HTTPHandler struct {
 //nolint:gocognit
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rootCtx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+	logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
 	defer func() {
-		logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
-		cancel()
 		logger.Debug(rootCtx, "canceled root context")
 	}()
-
-	logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
 
 	doneChan := make(chan struct{}, 2)
 	errChan := make(chan error, 2)
