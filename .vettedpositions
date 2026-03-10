@@ -177,7 +177,7 @@
 /pkg/auth/handler/webapp/enter_recovery_code.go:68:27: requestcontext
 /pkg/auth/handler/webapp/enter_totp.go:68:27: requestcontext
 /pkg/auth/handler/webapp/error.go:42:27: requestcontext
-/pkg/auth/handler/webapp/error_feature_disabled.go:43:27: requestcontext
+/pkg/auth/handler/webapp/error_feature_disabled.go:47:27: requestcontext
 /pkg/auth/handler/webapp/forgot_password.go:76:27: requestcontext
 /pkg/auth/handler/webapp/forgot_password_success.go:57:27: requestcontext
 /pkg/auth/handler/webapp/implementation_switcher.go:50:42: requestcontext
