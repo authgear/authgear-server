@@ -471,7 +471,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const navGroups: INavLinkGroup[] = useMemo(
     () => [
       {
-        links: links.map(navItem),
+        links: links.map((item) => navItem(item)),
       },
     ],
     [navItem, links]
