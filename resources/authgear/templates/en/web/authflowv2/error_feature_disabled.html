@@ -7,8 +7,13 @@
     <h1 class="screen-title">
       {{ include "v2.page.feature-disabled.default.title" . }}
     </h1>
-    <h2 class="screen-description">
-    </h2>
+    {{ if .TrackingID }}
+      <div class="tracking-id-text">
+        {{ include "v2.component.error-tracking-id.default.label" (dict "TrackingID" .TrackingID) }}
+      </div>
+    {{ else }}
+      <div></div>
+    {{ end }}
   </div>
   <div></div>
 </div>
