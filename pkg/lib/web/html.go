@@ -13,16 +13,8 @@ func init() {
 	DirectAccessDisableComponentsHTML = append(DirectAccessDisableComponentsHTML, TemplateWebDirectAccessDisableV2PageFrameHTML)
 }
 
-var TemplateWebHTMLHeadHTML = template.RegisterHTML("web/__html_head.html")
-var TemplateWebGeneratedAssetHTML = template.RegisterHTML("web/__generated_asset.html")
-var TemplateWebHeaderHTML = template.RegisterHTML("web/__header.html")
 var TemplateWebErrorHTML = template.RegisterHTML("web/__error.html")
-var TemplateWebMessageBarHTML = template.RegisterHTML("web/__message_bar.html")
-var TemplateWebPageFrameHTML = template.RegisterHTML("web/__page_frame.html")
-var TemplateWebModalHTML = template.RegisterHTML("web/__modal.html")
-var TemplateWebWatermarkHTML = template.RegisterHTML("web/__watermark.html")
 var TemplateWebRecoveryCodeHTML = template.RegisterHTML("web/__recovery_code.html")
-var TemplateWebTutorialHTML = template.RegisterHTML("web/__tutorial.html")
 var TemplateWebTranslationMessageHTML = template.RegisterHTML("web/__translation_message.html")
 
 // TODO: This file could be overridable per app, depends on the project plan in future
@@ -77,16 +69,8 @@ var TemplateWebAuthflowV2SelectInput = template.RegisterHTML("web/authflowv2/__s
 var TemplateWebDirectAccessDisableV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__direct_access_disable_page_frame.html")
 
 var BaseComponentsHTML = []*template.HTML{
-	TemplateWebHTMLHeadHTML,
-	TemplateWebGeneratedAssetHTML,
-	TemplateWebHeaderHTML,
 	TemplateWebErrorHTML,
-	TemplateWebMessageBarHTML,
-	TemplateWebPageFrameHTML,
-	TemplateWebModalHTML,
-	TemplateWebWatermarkHTML,
 	TemplateWebRecoveryCodeHTML,
-	TemplateWebTutorialHTML,
 	TemplateWebTranslationMessageHTML,
 
 	TemplateWebAuthflowV2LayoutHTML,
