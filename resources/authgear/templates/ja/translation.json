@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "SMSの送信はサポートされていません。管理者に問い合わせてください。",
   "oob-otp-sms-is-not-supported-with-customer-support": "SMSの送信はサポートされていません。<a class=\"link\" target=\"_blank\" href={customerSupportLink}>カスタマーサポート</a>に問い合わせてください。",
   "settings-my-profile-title": "マイプロフィール",
-  "return-page-title": "元の場所に戻る",
-  "return-page-description": "続行するには元の場所に戻ってください。モバイルアプリと連携していた場合はアプリに切り替え、ウェブサイトと連携していた場合はそのタブに切り替えてください。",
   "configure-direct-access-description": "エンドポイントURLへの直接アクセスは許可されていません。システムの設定が正しくない可能性があります。システム管理者に連絡してください。",
   "wechat-auth-title": "WeChat でログイン",
   "wechat-auth-with-qr-code-description": "WeChat アプリでQRコードをスキャンしてサインインしてください。",

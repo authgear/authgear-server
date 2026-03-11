@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "Pengiriman SMS tidak didukung. Silakan hubungi administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Pengiriman SMS tidak didukung. Silakan hubungi <a class=\"link\" target=\"_blank\" href={customerSupportLink}>layanan pelanggan</a>.",
   "settings-my-profile-title": "Profil saya",
-  "return-page-title": "Kembali ke tempat Anda berada",
-  "return-page-description": "Silakan kembali ke tempat Anda berada untuk melanjutkan. Jika Anda berinteraksi dengan aplikasi seluler, silakan beralih kembali ke aplikasi tersebut. Jika Anda berinteraksi dengan situs web, silakan beralih kembali ke tab tersebut.",
   "configure-direct-access-description": "Akses langsung ke URL endpoint tidak diizinkan. Mungkin ada kesalahan konfigurasi dalam sistem. Silakan hubungi admin sistem.",
   "wechat-auth-title": "Login dengan WeChat",
   "wechat-auth-with-qr-code-description": "Silakan pindai kode QR di aplikasi WeChat Anda untuk masuk.",

@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "Wysyłanie SMS-ów nie jest obsługiwane. Skontaktuj się z administratorem.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Wysyłanie SMS-ów nie jest obsługiwane. Skontaktuj się z <a class=\"link\" target=\"_blank\" href={customerSupportLink}>działem obsługi klienta</a>.",
   "settings-my-profile-title": "Mój profil",
-  "return-page-title": "Wróć tam, gdzie byłeś",
-  "return-page-description": "Wróć tam, gdzie byłeś, aby kontynuować. Jeśli korzystałeś z aplikacji mobilnej, przełącz się z powrotem na aplikację. Jeśli korzystałeś ze strony internetowej, przełącz się z powrotem na tę kartę.",
   "configure-direct-access-description": "Bezpośredni dostęp do adresu URL punktu końcowego nie jest dozwolony. Może to być spowodowane nieprawidłową konfiguracją systemu. Skontaktuj się z administratorem systemu.",
   "wechat-auth-title": "Zaloguj się przez WeChat",
   "wechat-auth-with-qr-code-description": "Zeskanuj kod QR w aplikacji WeChat, aby się zalogować.",

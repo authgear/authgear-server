@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "SMS 전송이 지원되지 않습니다. 관리자에게 문의하세요.",
   "oob-otp-sms-is-not-supported-with-customer-support": "SMS 전송이 지원되지 않습니다. <a class=\"link\" target=\"_blank\" href={customerSupportLink}>고객 지원</a>에 문의하세요.",
   "settings-my-profile-title": "내 프로필",
-  "return-page-title": "이전 페이지로 돌아가기",
-  "return-page-description": "계속하려면 이전 페이지로 돌아가세요. 모바일 앱과 상호 작용하고 있었다면 앱으로 돌아가세요. 웹사이트와 상호 작용하고 있었다면 해당 탭으로 돌아가세요.",
   "configure-direct-access-description": "엔드포인트 URL에 대한 직접 액세스가 허용되지 않습니다. 시스템 구성이 잘못되었을 수 있습니다. 시스템 관리자에게 문의하세요.",
   "wechat-auth-title": "WeChat으로 로그인",
   "wechat-auth-with-qr-code-description": "WeChat 앱에서 QR 코드를 스캔하여 로그인하세요.",

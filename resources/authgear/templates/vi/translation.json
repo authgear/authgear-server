@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "Không hỗ trợ gửi SMS. Vui lòng liên hệ với quản trị viên.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Không hỗ trợ gửi SMS. Vui lòng liên hệ <a class=\"link\" target=\"_blank\" href={customerSupportLink}>bộ phận hỗ trợ khách hàng</a>.",
   "settings-my-profile-title": "Hồ sơ của tôi",
-  "return-page-title": "Quay lại nơi bạn đang ở",
-  "return-page-description": "Vui lòng quay lại nơi bạn đang ở để tiếp tục. Nếu bạn đang tương tác với một ứng dụng di động, vui lòng chuyển lại sang ứng dụng. Nếu bạn đang tương tác với một trang web, vui lòng chuyển lại sang tab đó.",
   "configure-direct-access-description": "Không được phép truy cập trực tiếp vào URL điểm cuối. Có thể có sự cấu hình sai trong hệ thống. Vui lòng liên hệ với quản trị viên hệ thống.",
   "wechat-auth-title": "Đăng nhập bằng WeChat",
   "wechat-auth-with-qr-code-description": "Vui lòng quét mã QR trong ứng dụng WeChat của bạn để đăng nhập.",

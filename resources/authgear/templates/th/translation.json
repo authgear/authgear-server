@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "การส่ง SMS ไม่ได้รับการสนับสนุน โปรดติดต่อผู้ดูแลระบบ",
   "oob-otp-sms-is-not-supported-with-customer-support": "การส่ง SMS ไม่ได้รับการสนับสนุน โปรดติดต่อ <a class=\"link\" target=\"_blank\" href={customerSupportLink}>ฝ่ายบริการลูกค้า</a>",
   "settings-my-profile-title": "โปรไฟล์ของฉัน",
-  "return-page-title": "กลับไปที่ที่คุณอยู่",
-  "return-page-description": "โปรดกลับไปที่ที่คุณอยู่เพื่อดำเนินการต่อ หากคุณกำลังโต้ตอบกับแอปมือถือ โปรดสลับกลับไปที่แอป หากคุณกำลังโต้ตอบกับเว็บไซต์ โปรดสลับกลับไปที่แท็บนั้น",
   "configure-direct-access-description": "การเข้าถึงตรง URL ปลายทางไม่ได้รับอนุญาต อาจมีการกำหนดค่าที่ไม่ถูกต้องในระบบ โปรดติดต่อผู้ดูแลระบบ",
   "wechat-auth-title": "เข้าสู่ระบบด้วย WeChat",
   "wechat-auth-with-qr-code-description": "โปรดสแกนรหัส QR ในแอป WeChat ของคุณเพื่อเข้าสู่ระบบ",

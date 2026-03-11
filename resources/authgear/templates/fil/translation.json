@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "Hindi sinusuportahan ang pagpapadala ng SMS. Mangyaring makipag-ugnayan sa administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Hindi sinusuportahan ang pagpapadala ng SMS. Mangyaring makipag-ugnayan sa <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
   "settings-my-profile-title": "Aking profile",
-  "return-page-title": "Bumalik sa kung saan ka naroroon",
-  "return-page-description": "Mangyaring bumalik sa kung saan ka naroroon upang magpatuloy. Kung nakikipag-ugnayan ka sa isang mobile app, mangyaring lumipat pabalik sa app. Kung nakikipag-ugnayan ka sa isang website, mangyaring lumipat pabalik sa tab na iyon.",
   "configure-direct-access-description": "Hindi pinapayagan ang direktang access sa endpoint URL. Maaaring may mali sa configuration ng system. Mangyaring makipag-ugnayan sa systems admin.",
   "wechat-auth-title": "Mag-login gamit ang WeChat",
   "wechat-auth-with-qr-code-description": "Mangyaring i-scan ang QR code sa iyong WeChat app upang mag-sign in.",

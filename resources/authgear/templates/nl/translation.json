@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "Het verzenden van SMS wordt niet ondersteund. Neem contact op met de beheerder.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Het verzenden van SMS wordt niet ondersteund. Neem contact op met <a class=\"link\" target=\"_blank\" href={customerSupportLink}>klantenservice</a>.",
   "settings-my-profile-title": "Mijn profiel",
-  "return-page-title": "Keer terug naar waar u was",
-  "return-page-description": "Ga terug naar waar u was om door te gaan. Als u met een mobiele app bezig was, schakel dan terug naar de app. Als u met een website bezig was, schakel dan terug naar die tab.",
   "configure-direct-access-description": "Directe toegang tot de eindpunt-URL is niet toegestaan. Er kan een misconfiguratie in het systeem zijn. Neem contact op met de systeembeheerder.",
   "wechat-auth-title": "Inloggen met WeChat",
   "wechat-auth-with-qr-code-description": "Scan de QR-code in uw WeChat-app om in te loggen.",

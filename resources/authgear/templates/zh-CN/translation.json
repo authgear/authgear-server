@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "不支持发送短信。请联系管理员。",
   "oob-otp-sms-is-not-supported-with-customer-support": "不支持发送短信。请联系<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客户支持</a>。",
   "settings-my-profile-title": "我的个人资料",
-  "return-page-title": "返回到您之前的位置",
-  "return-page-description": "请返回到您之前的位置以继续。如果您正在与移动应用程序交互,请切换回该应用程序。如果您正在与网站交互,请切换回该选项卡。",
   "configure-direct-access-description": "不允许直接访问端点URL。系统可能配置错误。请联系系统管理员。",
   "wechat-auth-title": "使用微信登录",
   "wechat-auth-with-qr-code-description": "请在您的微信应用程序中扫描二维码以登录。",

@@ -86,8 +86,6 @@
   "oob-otp-sms-is-not-supported": "O envio de SMS não é suportado. Por favor, entre em contato com o administrador.",
   "oob-otp-sms-is-not-supported-with-customer-support": "O envio de SMS não é suportado. Por favor, entre em contato com o <a class=\"link\" target=\"_blank\" href={customerSupportLink}>suporte ao cliente</a>.",
   "settings-my-profile-title": "Meu perfil",
-  "return-page-title": "Retornar de onde você estava",
-  "return-page-description": "Por favor, retorne de onde você estava para continuar. Se você estava interagindo com um aplicativo móvel, por favor, volte para o aplicativo. Se você estava interagindo com um site, por favor, volte para aquela guia.",
   "configure-direct-access-description": "O acesso direto ao URL do endpoint não é permitido. Pode haver uma configuração incorreta no sistema. Por favor, entre em contato com o administrador do sistema.",
   "wechat-auth-title": "Faça login com o WeChat",
   "wechat-auth-with-qr-code-description": "Por favor, escaneie o código QR no seu aplicativo WeChat para fazer login.",
