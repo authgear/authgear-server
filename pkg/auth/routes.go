@@ -91,12 +91,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	oauthStaticChain := httproute.Chain(
 		projectRootChain,
-		p.Middleware(newCORSMiddleware),
-		p.Middleware(newPublicOriginMiddleware),
-	)
-
-	oauthMetadataChain := httproute.Chain(
-		projectRootChain,
 		httproute.MiddlewareFunc(middleware.CORSStar),
 		p.Middleware(newPublicOriginMiddleware),
 	)
@@ -271,7 +265,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	samlStaticRoute := httproute.Route{Middleware: samlStaticChain}
 	samlAPIRoute := httproute.Route{Middleware: samlAPIChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
-	oauthMetadataRoute := httproute.Route{Middleware: oauthMetadataChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	dpopOauthAPIRoute := httproute.Route{Middleware: dpopOAuthAPIChain}
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
@@ -520,8 +513,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(webapphandler.ConfigureCSRFErrorInstructionRoute(webappAPIRoute), p.Handler(newWebAppCSRFErrorInstructionHandler))
 
-	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthMetadataRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthMetadataRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
 	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
 
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAuthzAPIRoute), p.Handler(newOAuthAuthorizeHandler))
