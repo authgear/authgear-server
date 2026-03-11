@@ -193,13 +193,6 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
-func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.WechatAuthHandler)),
-	))
-}
-
 func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
