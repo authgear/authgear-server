@@ -2,7 +2,6 @@ package saml_test
 
 import (
 	"context"
-	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -583,6 +582,8 @@ func TestSAMLService(t *testing.T) {
 				SerialNumber: big.NewInt(1),
 			}, &rsaKey.PublicKey, rsaKey)
 			So(err, ShouldBeNil)
+			cert, err := x509.ParseCertificate(certBytes)
+			So(err, ShouldBeNil)
 
 			svc.SAMLIdpSigningMaterials = &config.SAMLIdpSigningMaterials{
 				Certificates: []*config.SAMLIdpSigningCertificate{
@@ -640,13 +641,8 @@ func TestSAMLService(t *testing.T) {
 			decodedSignature, err := base64.StdEncoding.DecodeString(signature)
 			So(err, ShouldBeNil)
 
-			// 3. Hash the signing value
-			hash := crypto.SHA256.New()
-			_, _ = hash.Write([]byte(expectedSigningValue))
-			hashed := hash.Sum(nil)
-
-			// 4. Verify using the public key directly
-			err = rsa.VerifyPKCS1v15(&rsaKey.PublicKey, crypto.SHA256, hashed, decodedSignature)
+			// 3. Verify the signature using the certificate directly.
+			err = cert.CheckSignature(x509.SHA256WithRSA, []byte(expectedSigningValue), decodedSignature)
 			So(err, ShouldBeNil)
 		})
 	})

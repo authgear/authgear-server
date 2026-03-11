@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -268,9 +269,17 @@ func beginTx(ctx context.Context, conn oteldatabasesql.Conn_, do func(tx *sql.Tx
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
-	// Best practice is to defer tx.Rollback
+	// Best practice is to defer tx.Rollback immediately after BeginTx.
 	// See https://go.dev/doc/database/execute-transactions
-	defer func() { _ = rollbackTx(ctx, tx) }()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			if !errors.Is(err, sql.ErrTxDone) {
+				logger.WithError(err).Error(ctx, "failed to rollback transaction")
+			}
+			return
+		}
+		logger.Debug(ctx, "rollback")
+	}()
 
 	logger.Debug(ctx, "begin")
 	return do(tx)
@@ -302,6 +311,10 @@ func rollbackTx(ctx context.Context, tx *sql.Tx) error {
 
 	err := tx.Rollback()
 	if err != nil {
+		if errors.Is(err, sql.ErrTxDone) {
+			return nil
+		}
+		logger.WithError(err).Error(ctx, "failed to rollback transaction")
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
 	logger.Debug(ctx, "rollback")
