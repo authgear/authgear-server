@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Ο κωδικός πρόσβασης ενημερώθηκε",
   "v2.page.reset-password.default.subtitle": "Δημιουργήστε έναν νέο κωδικό πρόσβασης που να συμμορφώνεται με τις απαιτήσεις ασφαλείας.",
   "v2.page.reset-password.default.title": "Ενημέρωση Κωδικού Πρόσβασης",
+  "v2.page.return.default.description": "Παρακαλούμε επιστρέψτε στο σημείο που βρισκόσασταν για να συνεχίσετε. Αν αλληλεπιδρούσατε με μια εφαρμογή κινητού, παρακαλούμε επιστρέψτε σε αυτήν. Αν αλληλεπιδρούσατε με έναν ιστότοπο, παρακαλούμε επιστρέψτε σε αυτήν την καρτέλα.",
+  "v2.page.return.default.title": "Επιστροφή στο σημείο που βρισκόσασταν",
   "v2.page.select-account.default.description": "Έχετε συνδεθεί με {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Συνεχίστε για να προχωρήσετε.",
   "v2.page.select-account.default.title": "Συνδεθείτε στο {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Χρησιμοποιήστε άλλον λογαριασμό",

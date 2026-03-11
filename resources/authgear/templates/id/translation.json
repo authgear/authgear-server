@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Kata Sandi Diperbarui",
   "v2.page.reset-password.default.subtitle": "Buat kata sandi baru yang memenuhi persyaratan keamanan.",
   "v2.page.reset-password.default.title": "Perbarui Kata Sandi",
+  "v2.page.return.default.description": "Silakan kembali ke tempat Anda berada untuk melanjutkan. Jika Anda berinteraksi dengan aplikasi seluler, silakan beralih kembali ke aplikasi tersebut. Jika Anda berinteraksi dengan situs web, silakan beralih kembali ke tab tersebut.",
+  "v2.page.return.default.title": "Kembali ke tempat Anda berada",
   "v2.page.select-account.default.description": "Anda telah masuk dengan {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Lanjutkan untuk melanjutkan.",
   "v2.page.select-account.default.title": "Masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akun lain",

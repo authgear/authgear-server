@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Hasło zaktualizowane",
   "v2.page.reset-password.default.subtitle": "Utwórz nowe hasło, które spełnia wymagania bezpieczeństwa.",
   "v2.page.reset-password.default.title": "Aktualizuj hasło",
+  "v2.page.return.default.description": "Wróć tam, gdzie byłeś, aby kontynuować. Jeśli korzystałeś z aplikacji mobilnej, przełącz się z powrotem na aplikację. Jeśli korzystałeś ze strony internetowej, przełącz się z powrotem na tę kartę.",
+  "v2.page.return.default.title": "Wróć tam, gdzie byłeś",
   "v2.page.select-account.default.description": "Zalogowałeś się za pomocą {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Kontynuuj, aby przejść dalej.",
   "v2.page.select-account.default.title": "Zaloguj się do {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Użyj innego konta",

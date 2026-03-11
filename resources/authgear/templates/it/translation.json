@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Password aggiornata",
   "v2.page.reset-password.default.subtitle": "Crea una nuova password che sia conforme ai requisiti di sicurezza.",
   "v2.page.reset-password.default.title": "Aggiorna password",
+  "v2.page.return.default.description": "Per favore, torna dove eri per continuare. Se stavi interagendo con un''app mobile, per favore torna all''app. Se stavi interagendo con un sito web, per favore torna a quella scheda.",
+  "v2.page.return.default.title": "Torna dove eri",
   "v2.page.select-account.default.description": "Hai effettuato l''accesso con {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Procedi per continuare.",
   "v2.page.select-account.default.title": "Accedi a {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usa un altro account",

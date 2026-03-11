@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Passwort aktualisiert",
   "v2.page.reset-password.default.subtitle": "Erstellen Sie ein neues Passwort, das den Sicherheitsanforderungen entspricht.",
   "v2.page.reset-password.default.title": "Passwort aktualisieren",
+  "v2.page.return.default.description": "Bitte kehren Sie zu Ihrem vorherigen Standort zurück, um fortzufahren. Wenn Sie mit einer mobilen App interagiert haben, wechseln Sie bitte wieder zu dieser App. Wenn Sie mit einer Website interagiert haben, wechseln Sie bitte wieder zu diesem Tab.",
+  "v2.page.return.default.title": "Zurück zu Ihrem vorherigen Standort",
   "v2.page.select-account.default.description": "Sie haben sich mit {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} angemeldet. Fahren Sie fort, um fortzufahren.",
   "v2.page.select-account.default.title": "Melden Sie sich bei {AppOrClientName} an",
   "v2.page.select-account.default.use-another-account": "Verwenden Sie ein anderes Konto",

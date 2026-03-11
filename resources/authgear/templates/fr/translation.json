@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Mot de passe mis à jour",
   "v2.page.reset-password.default.subtitle": "Créez un nouveau mot de passe conforme aux exigences de sécurité.",
   "v2.page.reset-password.default.title": "Mettre à jour le mot de passe",
+  "v2.page.return.default.description": "Veuillez retourner à l''endroit où vous étiez pour continuer. Si vous interagissiez avec une application mobile, veuillez revenir à l''application. Si vous interagissiez avec un site Web, veuillez revenir à cet onglet.",
+  "v2.page.return.default.title": "Retourner à l''endroit où vous étiez",
   "v2.page.select-account.default.description": "Vous vous êtes connecté avec {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Continuez pour poursuivre.",
   "v2.page.select-account.default.title": "Connectez-vous à {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Utiliser un autre compte",

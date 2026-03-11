@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "비밀번호 업데이트됨",
   "v2.page.reset-password.default.subtitle": "보안 요구 사항을 준수하는 새 비밀번호를 만드세요.",
   "v2.page.reset-password.default.title": "비밀번호 업데이트",
+  "v2.page.return.default.description": "계속하려면 이전 페이지로 돌아가세요. 모바일 앱과 상호 작용하고 있었다면 앱으로 돌아가세요. 웹사이트와 상호 작용하고 있었다면 해당 탭으로 돌아가세요.",
+  "v2.page.return.default.title": "이전 페이지로 돌아가기",
   "v2.page.select-account.default.description": "당신은 {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}로 로그인했습니다. 계속하려면 진행하세요.",
   "v2.page.select-account.default.title": "{AppOrClientName}에 로그인",
   "v2.page.select-account.default.use-another-account": "다른 계정 사용",

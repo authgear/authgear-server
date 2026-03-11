@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "パスワードを更新しました",
   "v2.page.reset-password.default.subtitle": "セキュリティ要件を満たす新しいパスワードを作成してください。",
   "v2.page.reset-password.default.title": "パスワードを更新",
+  "v2.page.return.default.description": "続行するには元の場所に戻ってください。モバイルアプリと連携していた場合はアプリに切り替え、ウェブサイトと連携していた場合はそのタブに切り替えてください。",
+  "v2.page.return.default.title": "元の場所に戻る",
   "v2.page.select-account.default.description": "{email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}でログインしました。続行するにはこのアカウントを使用してください。",
   "v2.page.select-account.default.title": "{AppOrClientName}にログイン",
   "v2.page.select-account.default.use-another-account": "別のアカウントを使用",

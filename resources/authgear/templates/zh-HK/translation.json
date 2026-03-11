@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "成功更新密碼",
   "v2.page.reset-password.default.subtitle": "設立一個符合需求的新密碼",
   "v2.page.reset-password.default.title": "更新密碼",
+  "v2.page.return.default.description": "請返回以繼續。如你正使用移動應用程式，請返回該應用程式；如你正使用網頁，請返回該分頁。",
+  "v2.page.return.default.title": "返回你原來的位置",
   "v2.page.select-account.default.description": "您正在使用 {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} 登入。",
   "v2.page.select-account.default.title": "登入 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用另一個帳戶",

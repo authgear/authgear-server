@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Wachtwoord bijgewerkt",
   "v2.page.reset-password.default.subtitle": "Maak een nieuw wachtwoord aan dat voldoet aan de beveiligingseisen.",
   "v2.page.reset-password.default.title": "Wachtwoord bijwerken",
+  "v2.page.return.default.description": "Ga terug naar waar u was om door te gaan. Als u met een mobiele app bezig was, schakel dan terug naar de app. Als u met een website bezig was, schakel dan terug naar die tab.",
+  "v2.page.return.default.title": "Keer terug naar waar u was",
   "v2.page.select-account.default.description": "U bent ingelogd met {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Ga verder om door te gaan.",
   "v2.page.select-account.default.title": "Log in op {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gebruik een ander account",

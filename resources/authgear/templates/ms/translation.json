@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Kata laluan dikemas kini",
   "v2.page.reset-password.default.subtitle": "Cipta kata laluan baru yang mematuhi keperluan keselamatan.",
   "v2.page.reset-password.default.title": "Kemas kini Kata Laluan",
+  "v2.page.return.default.description": "Sila kembali ke tempat anda berada untuk meneruskan. Jika anda berinteraksi dengan aplikasi mudah alih, sila beralih kembali ke aplikasi tersebut. Jika anda berinteraksi dengan laman web, sila beralih kembali ke tab tersebut.",
+  "v2.page.return.default.title": "Kembali ke tempat anda berada",
   "v2.page.select-account.default.description": "Anda telah log masuk dengan {IdentityDisplayName}. Teruskan untuk meneruskan.",
   "v2.page.select-account.default.title": "Log masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akaun lain",

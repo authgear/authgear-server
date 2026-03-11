@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "อัปเดตรหัสผ่านแล้ว",
   "v2.page.reset-password.default.subtitle": "สร้างรหัสผ่านใหม่ที่เป็นไปตามข้อกำหนดด้านความปลอดภัย",
   "v2.page.reset-password.default.title": "อัปเดตรหัสผ่าน",
+  "v2.page.return.default.description": "โปรดกลับไปที่ที่คุณอยู่เพื่อดำเนินการต่อ หากคุณกำลังโต้ตอบกับแอปมือถือ โปรดสลับกลับไปที่แอป หากคุณกำลังโต้ตอบกับเว็บไซต์ โปรดสลับกลับไปที่แท็บนั้น",
+  "v2.page.return.default.title": "กลับไปที่ที่คุณอยู่",
   "v2.page.select-account.default.description": "คุณได้เข้าสู่ระบบด้วย {IdentityDisplayName} ดำเนินการต่อเพื่อดำเนินการต่อ.",
   "v2.page.select-account.default.title": "เข้าสู่ระบบ {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "ใช้บัญชีอื่น",

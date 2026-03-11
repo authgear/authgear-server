@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "密码已更新",
   "v2.page.reset-password.default.subtitle": "创建一个符合安全要求的新密码。",
   "v2.page.reset-password.default.title": "更新密码",
+  "v2.page.return.default.description": "请返回到您之前的位置以继续。如果您正在与移动应用程序交互,请切换回该应用程序。如果您正在与网站交互,请切换回该选项卡。",
+  "v2.page.return.default.title": "返回到您之前的位置",
   "v2.page.select-account.default.description": "您已使用 {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} 登录。请继续操作。",
   "v2.page.select-account.default.title": "登录到 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用其他帐户",

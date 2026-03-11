@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Senha atualizada",
   "v2.page.reset-password.default.subtitle": "Crie uma nova senha que atenda aos requisitos de segurança.",
   "v2.page.reset-password.default.title": "Atualizar Senha",
+  "v2.page.return.default.description": "Por favor, volte para onde você estava para continuar. Se você estava interagindo com um aplicativo móvel, por favor, volte para o aplicativo. Se você estava interagindo com um site, por favor, volte para essa guia.",
+  "v2.page.return.default.title": "Voltar para onde você estava",
   "v2.page.select-account.default.description": "Você entrou com {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Prossiga para continuar.",
   "v2.page.select-account.default.title": "Entrar no {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usar outra conta",

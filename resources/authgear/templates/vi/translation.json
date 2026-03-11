@@ -748,6 +748,8 @@
   "v2.page.reset-password-success.default.title": "Mật khẩu đã được cập nhật",
   "v2.page.reset-password.default.subtitle": "Tạo một mật khẩu mới tuân thủ các yêu cầu về bảo mật.",
   "v2.page.reset-password.default.title": "Cập nhật Mật khẩu",
+  "v2.page.return.default.description": "Vui lòng quay lại nơi bạn đang ở để tiếp tục. Nếu bạn đang tương tác với một ứng dụng di động, vui lòng chuyển lại sang ứng dụng. Nếu bạn đang tương tác với một trang web, vui lòng chuyển lại sang tab đó.",
+  "v2.page.return.default.title": "Quay lại nơi bạn đang ở",
   "v2.page.select-account.default.description": "Bạn đã đăng nhập với {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Tiếp tục để tiến hành.",
   "v2.page.select-account.default.title": "Đăng nhập vào {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Sử dụng tài khoản khác",
