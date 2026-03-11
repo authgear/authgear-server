@@ -13,7 +13,6 @@ func init() {
 	DirectAccessDisableComponentsHTML = append(DirectAccessDisableComponentsHTML, TemplateWebDirectAccessDisableV2PageFrameHTML)
 }
 
-var TemplateWebErrorHTML = template.RegisterHTML("web/__error.html")
 var TemplateWebRecoveryCodeHTML = template.RegisterHTML("web/__recovery_code.html")
 var TemplateWebTranslationMessageHTML = template.RegisterHTML("web/__translation_message.html")
 
@@ -69,7 +68,6 @@ var TemplateWebAuthflowV2SelectInput = template.RegisterHTML("web/authflowv2/__s
 var TemplateWebDirectAccessDisableV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__direct_access_disable_page_frame.html")
 
 var BaseComponentsHTML = []*template.HTML{
-	TemplateWebErrorHTML,
 	TemplateWebRecoveryCodeHTML,
 	TemplateWebTranslationMessageHTML,
 
