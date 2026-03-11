@@ -1,5 +1,6 @@
 import oursky from "@oursky/eslint-plugin";
 import globals from "globals";
+import localRules from "./eslint-rules/index.cjs";
 
 const js = "src/**/*.{js,jsx,mjs,mjsx}";
 const ts = "src/**/*.{ts,tsx,mts,mtsx}";
@@ -51,7 +52,14 @@ export default [
   },
   {
     files: [js, ts],
+    plugins: {
+      local: localRules,
+    },
+  },
+  {
+    files: [js, ts],
     rules: {
+      "local/no-unsafe-react-event-usage": "error",
       "no-console": ["error", { allow: ["warn", "error"] }],
       complexity: "off",
       "sonarjs/cognitive-complexity": "off",
