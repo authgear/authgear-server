@@ -3,11 +3,7 @@ import { Icon, Text } from "@fluentui/react";
 import styles from "./PlanCard.module.css";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import PrimaryButton from "../../PrimaryButton";
-import {
-  CTAVariant,
-  DEFAULT_FREE_PLAN,
-  getCTAVariant,
-} from "../../util/plan";
+import { CTAVariant, DEFAULT_FREE_PLAN, getCTAVariant } from "../../util/plan";
 import Tooltip from "../../Tooltip";
 import { formatDateOnly } from "../../util/formatDateOnly";
 
