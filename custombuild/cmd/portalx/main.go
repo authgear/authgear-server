@@ -43,21 +43,13 @@ func main() {
 	}
 
 	ctx := context.Background()
-	ctx = slogutil.Setup(ctx)
-
-	ctx, shutdown, err := otelutil.SetupOTelSDKGlobally(ctx)
+	err = otelutil.SetupOTelSDKGlobally(ctx, func(ctx context.Context) error {
+		ctx = slogutil.Setup(ctx)
+		return cmd.Root.ExecuteContext(ctx)
+	})
 	if err != nil {
-		log.Fatalf("failed to setup otel: %v", err)
-	}
-	defer func() {
-		_ = shutdown(ctx)
-
-	}()
-
-	err = cmd.Root.ExecuteContext(ctx)
-	if err != nil {
+		log.Printf("application error: %v", err)
 		os.Exit(1)
-	} else {
-		os.Exit(0)
 	}
+	os.Exit(0)
 }
