@@ -48,7 +48,12 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
-import { isStripePlan, Plan, CTAVariant } from "../../util/plan";
+import {
+  DEFAULT_FREE_PLAN,
+  isStripePlan,
+  Plan,
+  CTAVariant,
+} from "../../util/plan";
 import {
   PlanCardBusiness,
   PlanCardDevelopers,
@@ -261,13 +266,13 @@ function PlansSection({
     (action: CTAVariant) => {
       switch (action) {
         case "downgrade":
-          // Downgrade to free plan means cancel subcription
+          // Downgrade to the default free plan means cancel subscription.
           onClickCancelSubscription();
           break;
         // All other cases should not happen
         default:
           console.error(
-            `action button clicked but action:${action} should not be clickable. plan: free`
+            `action button clicked but action:${action} should not be clickable. plan: ${DEFAULT_FREE_PLAN}`
           );
           break;
       }

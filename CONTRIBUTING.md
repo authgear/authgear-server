@@ -523,14 +523,14 @@ go run ./cmd/portal internal domain create-custom accounts --apex-domain="accoun
 go run ./cmd/portal internal domain create-custom accounts --apex-domain="localhost" --domain="localhost"
 ```
 
-4. Create a free plan
+4. Create a `free2026` plan
 
 This is needed if you want to create new projects.
 
 ```sql
 INSERT INTO "public"."_portal_plan"("id","name","feature_config","created_at","updated_at")
 VALUES
-(E'free',E'free',E'{}',NOW(),NOW());
+(E'free2026',E'free2026',E'{}',NOW(),NOW());
 ```
 
 Restart your server, then it should be running with database config source.

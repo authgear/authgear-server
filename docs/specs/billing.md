@@ -370,7 +370,7 @@ When the developer cancels subscription, the following steps are taken:
 
 - Update the Stripe subscription to set `cancel_at_period_end` to true.
 - Update `_portal_subscription` to set `cancelled_at` to now and `end_at` to the `current_period_end` of the Stripe subscription.
-- Listen for `customer.subscription.deleted`. Downgrade the app to free plan.
+- Listen for `customer.subscription.deleted`. Downgrade the app to the configured default plan.
 
 ### Report [Usage Price](#usage-price) to Stripe
 
