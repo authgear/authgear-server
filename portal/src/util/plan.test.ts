@@ -10,7 +10,7 @@ import {
 describe("getNextPlan", () => {
   it("should work", () => {
     expect(getNextPlan("free")).toEqual("developers2025");
-    expect(getNextPlan("freev2")).toEqual("developers2025");
+    expect(getNextPlan("free2026")).toEqual("developers2025");
     expect(getNextPlan("free-approved")).toEqual("developers2025");
     expect(getNextPlan("developers2025")).toEqual("business2025");
 
@@ -23,10 +23,10 @@ describe("getNextPlan", () => {
 });
 
 describe("plan guards", () => {
-  it("recognizes freev2 as a free plan", () => {
-    expect(isPlan("freev2")).toEqual(true);
-    expect(isFreePlan("freev2")).toEqual(true);
-    expect(isLimitedFreePlan("freev2")).toEqual(true);
+  it("recognizes free2026 as a free plan", () => {
+    expect(isPlan("free2026")).toEqual(true);
+    expect(isFreePlan("free2026")).toEqual(true);
+    expect(isLimitedFreePlan("free2026")).toEqual(true);
   });
 });
 
@@ -61,9 +61,9 @@ describe("getCTAVariant", () => {
 
   it("returns reactivate, downgrading, reactivate-to-upgrade or reactivate-to-downgrade if the plan is cancelled", () => {
     expect(f("developers", "free-approved", true)).toEqual("downgrading");
-    expect(f("developers", "freev2", true)).toEqual("downgrading");
+    expect(f("developers", "free2026", true)).toEqual("downgrading");
     expect(f("free", "developers", true)).toEqual("reactivate-to-upgrade");
-    expect(f("freev2", "developers", true)).toEqual("reactivate-to-upgrade");
+    expect(f("free2026", "developers", true)).toEqual("reactivate-to-upgrade");
     expect(f("business", "developers", true)).toEqual(
       "reactivate-to-downgrade"
     );
@@ -72,7 +72,7 @@ describe("getCTAVariant", () => {
 
   it("returns downgrade if the card is less than the current", () => {
     expect(f("developers", "free", false)).toEqual("downgrade");
-    expect(f("developers", "freev2", false)).toEqual("downgrade");
+    expect(f("developers", "free2026", false)).toEqual("downgrade");
     expect(f("developers", "free-approved", false)).toEqual("downgrade");
     expect(f("startups", "developers", false)).toEqual("downgrade");
     expect(f("business", "startups", false)).toEqual("downgrade");
@@ -80,10 +80,10 @@ describe("getCTAVariant", () => {
 
   it("returns subscribe or upgrade if the card is greater than the current", () => {
     expect(f("free", "developers", false)).toEqual("subscribe");
-    expect(f("freev2", "developers", false)).toEqual("subscribe");
+    expect(f("free2026", "developers", false)).toEqual("subscribe");
     expect(f("free-approved", "developers", false)).toEqual("subscribe");
     expect(f("free", "startups", false)).toEqual("subscribe");
-    expect(f("freev2", "startups", false)).toEqual("subscribe");
+    expect(f("free2026", "startups", false)).toEqual("subscribe");
     expect(f("free-approved", "startups", false)).toEqual("subscribe");
 
     expect(f("startups", "business", false)).toEqual("upgrade");

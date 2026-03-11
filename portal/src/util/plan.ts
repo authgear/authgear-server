@@ -9,7 +9,7 @@ import {
 
 export type Plan =
   | "free"
-  | "freev2"
+  | "free2026"
   | "free-approved"
   | "developers"
   | "developers2025"
@@ -21,13 +21,13 @@ export type Plan =
 export const SUBSCRIPTABLE_PLANS: Plan[] = ["startups", "business"];
 
 export const ENTERPRISE_PLAN: Plan = "enterprise";
-export const DEFAULT_FREE_PLAN: Plan = "freev2";
+export const DEFAULT_FREE_PLAN: Plan = "free2026";
 
 export function isPlan(planName: string): planName is Plan {
   switch (planName) {
     case "free":
       return true;
-    case "freev2":
+    case "free2026":
       return true;
     case "free-approved":
       return true;
@@ -52,13 +52,13 @@ export function isCustomPlan(planName: string): boolean {
 }
 
 export function isLimitedFreePlan(planName: string): planName is Plan {
-  return planName === "free" || planName === "freev2";
+  return planName === "free" || planName === "free2026";
 }
 
 export function isFreePlan(planName: string): planName is Plan {
   return (
     planName === "free" ||
-    planName === "freev2" ||
+    planName === "free2026" ||
     planName === "free-approved"
   );
 }
@@ -86,7 +86,7 @@ export function getNextPlan(planName: string): Plan | null {
   }
   switch (planName) {
     case "free":
-    case "freev2":
+    case "free2026":
       return "developers2025";
     case "free-approved":
       return "developers2025";
@@ -112,7 +112,7 @@ export function getMAULimit(planName: string): number | undefined {
 function planToNumber(planName: Plan): number {
   switch (planName) {
     case "free":
-    case "freev2":
+    case "free2026":
       return 0;
     case "free-approved":
       return 0;

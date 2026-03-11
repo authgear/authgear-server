@@ -172,7 +172,7 @@ function FixedCostSection({
     }
     switch (planName) {
       case "free":
-      case "freev2":
+      case "free2026":
       case "free-approved":
         return renderToString("CurrentPlanCard.plan.free");
       case "developers":
