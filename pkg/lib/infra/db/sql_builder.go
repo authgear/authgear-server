@@ -126,6 +126,11 @@ func (b SelectBuilder) From(from string, alias ...string) SelectBuilder {
 	return b
 }
 
+func (b SelectBuilder) FromSelect(from SelectBuilder, alias string) SelectBuilder {
+	b.builder = b.builder.FromSelect(from.builder, alias)
+	return b
+}
+
 func (b SelectBuilder) Join(from string, alias string, pred string, args ...interface{}) SelectBuilder {
 	join := fmt.Sprintf("%s AS %s ON %s", from, alias, pred)
 	b.builder = b.builder.Join(join, args...)
@@ -152,6 +157,11 @@ func (b SelectBuilder) PrefixExpr(expr sq.Sqlizer) SelectBuilder {
 
 func (b SelectBuilder) OrderBy(orderBy ...string) SelectBuilder {
 	b.builder = b.builder.OrderBy(orderBy...)
+	return b
+}
+
+func (b SelectBuilder) GroupBy(groupBy ...string) SelectBuilder {
+	b.builder = b.builder.GroupBy(groupBy...)
 	return b
 }
 

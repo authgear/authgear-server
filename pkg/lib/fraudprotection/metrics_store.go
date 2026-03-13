@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -99,20 +98,16 @@ func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Cont
 	// Cache miss — query PostgreSQL.
 	since := s.Clock.NowUTC().Add(-14 * 24 * time.Hour)
 	tableName := s.SQLBuilder.TableName(auditMetricsTable)
-	appID := string(s.AppID)
 
-	subquery := sq.Select("DATE_TRUNC('day', created_at) AS day", "COUNT(*) AS daily_count").
+	subquery := s.SQLBuilder.Select("DATE_TRUNC('day', created_at) AS day", "COUNT(*) AS daily_count").
 		From(tableName).
-		Where("app_id = ?", appID).
 		Where("name = ?", metricsNameSMSOTPVerified).
 		Where("key = ?", pgKey).
 		Where("created_at >= ?", since).
-		GroupBy("DATE_TRUNC('day', created_at)").
-		PlaceholderFormat(sq.Dollar)
+		GroupBy("DATE_TRUNC('day', created_at)")
 
-	query := sq.Select("COALESCE(MAX(daily_count), 0)").
-		FromSelect(subquery, "t").
-		PlaceholderFormat(sq.Dollar)
+	query := s.SQLBuilder.Select("COALESCE(MAX(daily_count), 0)").
+		FromSelect(subquery, "t")
 
 	var maxCount int64
 	err = s.AuditReadDatabase.ReadOnly(ctx, func(ctx context.Context) error {
