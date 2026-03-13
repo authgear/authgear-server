@@ -50,10 +50,11 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 	}
 
 	cmd := fmt.Sprintf(
-		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --config-source-extra-files-directory \"%s\"",
+		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --features-override \"%s\" --config-source-extra-files-directory \"%s\"",
 		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
+		e.TestCase.AuthgearFeaturesYAMLSource.Override,
 		extraFilesDirectory,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
@@ -125,6 +126,28 @@ func (e *End2EndCmd) ExecuteCreateChallenge(hook *BeforeHookCreateChallenge) err
 func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",
+		e.AppID,
+		rawSQL,
+	)
+
+	return e.execCmd(cmd)
+}
+
+func (e *End2EndCmd) ExecuteSQLInsertUpdateAuditFile(sqlPath string) error {
+	cmd := fmt.Sprintf(
+		"./dist/e2e exec-sql-insert-update-audit --app-id %s --custom-sql \"%s\"",
+		e.AppID,
+		e.resolvePath(sqlPath),
+	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *End2EndCmd) QuerySQLSelectAuditRaw(rawSQL string) (jsonArrString string, err error) {
+	cmd := fmt.Sprintf(
+		"./dist/e2e query-sql-select-audit --app-id %s --raw-sql \"%s\"",
 		e.AppID,
 		rawSQL,
 	)

@@ -1,0 +1,79 @@
+name: Fraud protection - enabled false disables the feature
+authgear.yaml:
+  extend: ./authgear.yaml
+steps:
+  # Flow 1 - SG number, succeeds
+  - name: flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 1 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 2 - different SG number, succeeds
+  - name: flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230002"}
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 3 - another SG number, succeeds
+  - name: flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230003"}
+  - name: flow 3 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4 - another SG number, succeeds because fraud protection is disabled
+  - name: flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230004"}
+  - name: flow 4 - send sms (succeeds, fraud protection is disabled)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Verify no fraud_protection.decision_recorded events were dispatched
+  - name: check no audit events
+    action: audit_query
+    audit_query: |
+      SELECT id FROM _audit_log WHERE app_id = '{{ .AppID }}' AND activity_type = 'fraud_protection.decision_recorded'
+    audit_query_output:
+      rows: "[]"

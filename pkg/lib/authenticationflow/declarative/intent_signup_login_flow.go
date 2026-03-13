@@ -19,6 +19,7 @@ type IntentSignupLoginFlow struct {
 }
 
 var _ authflow.PublicFlow = &IntentSignupLoginFlow{}
+var _ authflow.EffectGetter = &IntentSignupLoginFlow{}
 
 func (*IntentSignupLoginFlow) Kind() string {
 	return "IntentSignupLoginFlow"
@@ -48,6 +49,12 @@ func (i *IntentSignupLoginFlow) CanReactTo(ctx context.Context, deps *authflow.D
 		return nil, nil
 	}
 	return nil, authflow.ErrEOF
+}
+
+func (i *IntentSignupLoginFlow) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
+	return []authflow.Effect{
+		revertUnverifiedSMSOTPs(flows),
+	}, nil
 }
 
 func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {

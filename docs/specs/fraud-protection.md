@@ -197,7 +197,6 @@ Each sms send request (No matter success or not) will produce a decision record.
 {
   "timestamp": "2026-02-05T11:11:11.025Z",
   "decision": "blocked",
-  "block_mode": "error",
   "action": "send_sms",
   "action_detail": {
     "recipient": "+12341234",
@@ -245,7 +244,6 @@ And audit log:
     "record": {
       "timestamp": "2026-02-05T11:11:11.025Z",
       "decision": "blocked",
-      "block_mode": "error",
       "triggered_warnings": [
         "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED",
         "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED",
@@ -268,9 +266,9 @@ When `action: deny_if_any_warning` and a warning is triggered, an API error will
 
 ```json
 {
-  "name": "Forbidden",
+  "name": "TooManyRequest",
   "reason": "BlockedByFraudProtection",
-  "code": 403
+  "code": 429
 }
 ```
 

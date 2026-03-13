@@ -1,0 +1,78 @@
+name: Fraud protection - SMS phone countries by IP daily blocking
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+steps:
+  # Flow 1 - SG number, succeeds
+  - name: flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 1 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 2 - HK number, succeeds
+  - name: flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85291230001"}
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 3 - MY number, succeeds
+  - name: flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+60123450001"}
+  - name: flow 3 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4 - JP number, blocked by fraud protection
+  - name: flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+819012340001"}
+  - name: flow 4 - send sms (blocked)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }

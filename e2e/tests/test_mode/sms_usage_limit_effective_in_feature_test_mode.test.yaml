@@ -1,0 +1,67 @@
+name: SMS usage limit is effective when using feature config test mode
+authgear.features.yaml:
+  override: |
+    messaging:
+      sms_usage:
+        enabled: true
+        period: "day"
+        quota: 1
+steps:
+  # Flow 1: First SMS - succeeds and consumes the daily usage quota.
+  # Feature config test mode suppresses the SMS, but the usage limit is still consumed.
+  - name: flow 1 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230001"
+      }
+  - name: flow 1 - send sms (succeeds, usage quota consumed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 2: Second SMS attempt - daily usage quota (1) is exhausted.
+  - name: flow 2 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230002"
+      }
+  - name: flow 2 - send sms (blocked by usage limit)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429
+        }

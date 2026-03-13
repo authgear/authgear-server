@@ -21,6 +21,8 @@ import (
 type AcceptResult struct {
 	BotProtectionVerificationResult *BotProtectionVerificationResult `json:"bot_protection,omitempty"`
 	DelayedOneTimeFunctions         []DelayedOneTimeFunction         `json:"-"`
+	// PendingSessionPatches are applied (in order) before delayed functions run.
+	PendingSessionPatches []*Session `json:"-"`
 }
 
 func NewAcceptResult() *AcceptResult {
@@ -177,9 +179,14 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 			switch reactToResult := reactToResult.(type) {
 			case *Node:
 				nodeToReplace = reactToResult
-			case *NodeWithDelayedOneTimeFunction:
+			case *NodeReactToResult:
 				nodeToReplace = reactToResult.Node
-				result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+				if reactToResult.UpdatedSession != nil {
+					result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
+				}
+				if reactToResult.DelayedOneTimeFunction != nil {
+					result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+				}
 			default:
 				panic(fmt.Errorf("failed to update node: uxepected type of ReactToResult %t", reactToResult))
 			}
@@ -244,9 +251,14 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 		switch reactToResult := reactToResult.(type) {
 		case *Node:
 			nextNode = *reactToResult
-		case *NodeWithDelayedOneTimeFunction:
+		case *NodeReactToResult:
 			nextNode = *reactToResult.Node
-			result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+			if reactToResult.UpdatedSession != nil {
+				result.PendingSessionPatches = append(result.PendingSessionPatches, reactToResult.UpdatedSession)
+			}
+			if reactToResult.DelayedOneTimeFunction != nil {
+				result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+			}
 		default:
 			panic(fmt.Errorf("failed to append node: uxepected type of ReactToResult %t", reactToResult))
 		}

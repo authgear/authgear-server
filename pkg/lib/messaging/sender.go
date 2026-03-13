@@ -31,6 +31,10 @@ type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
+type FraudProtectionService interface {
+	CheckAndRecord(ctx context.Context, phoneNumber, messageType string) error
+}
+
 type MailSender interface {
 	PrepareMessage(opts mail.SendOptions) (*gomail.Message, error)
 	Send(*gomail.Message) error
@@ -47,12 +51,13 @@ type WhatsappSender interface {
 }
 
 type Sender struct {
-	Limits         Limits
-	Events         EventService
-	MailSender     MailSender
-	SMSSender      SMSSender
-	WhatsappSender WhatsappSender
-	Database       *appdb.Handle
+	Limits          Limits
+	Events          EventService
+	FraudProtection FraudProtectionService
+	MailSender      MailSender
+	SMSSender       SMSSender
+	WhatsappSender  WhatsappSender
+	Database        *appdb.Handle
 
 	DevMode config.DevMode
 
@@ -77,6 +82,12 @@ type SendWhatsappResultCallback func(ctx context.Context, result *SendWhatsappRe
 type SendWhatsappErrorCallback func(ctx context.Context, err error)
 
 func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
+	if s.TestModeEmailConfig.Enabled {
+		if r, ok := s.TestModeEmailConfig.MatchTarget(opts.Recipient); ok && r.Suppressed {
+			return s.testModeSendEmail(ctx, msgType, opts)
+		}
+	}
+
 	err := s.Limits.checkEmail(ctx, opts.Recipient)
 	if err != nil {
 		return err
@@ -84,12 +95,6 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 
 	if s.FeatureTestModeEmailSuppressed {
 		return s.testModeSendEmail(ctx, msgType, opts)
-	}
-
-	if s.TestModeEmailConfig.Enabled {
-		if r, ok := s.TestModeEmailConfig.MatchTarget(opts.Recipient); ok && r.Suppressed {
-			return s.testModeSendEmail(ctx, msgType, opts)
-		}
 	}
 
 	if s.DevMode {
@@ -202,19 +207,24 @@ func (s *Sender) SendSMSImmediately(ctx context.Context, msgType translation.Mes
 func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions, isAsync bool) error {
 	logger := SenderLogger.GetLogger(ctx)
 
+	if s.TestModeSMSConfig.Enabled {
+		if r, ok := s.TestModeSMSConfig.MatchTarget(opts.To); ok && r.Suppressed {
+			return s.testModeSendSMS(ctx, msgType, opts)
+		}
+	}
+
 	err := s.Limits.checkSMS(ctx, opts.To)
+	if err != nil {
+		return err
+	}
+
+	err = s.FraudProtection.CheckAndRecord(ctx, opts.To, string(msgType))
 	if err != nil {
 		return err
 	}
 
 	if s.FeatureTestModeSMSSuppressed {
 		return s.testModeSendSMS(ctx, msgType, opts)
-	}
-
-	if s.TestModeSMSConfig.Enabled {
-		if r, ok := s.TestModeSMSConfig.MatchTarget(opts.To); ok && r.Suppressed {
-			return s.testModeSendSMS(ctx, msgType, opts)
-		}
 	}
 
 	if s.DevMode {
@@ -337,6 +347,18 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 
 func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, resultCallback SendWhatsappResultCallback, errorCallback SendWhatsappErrorCallback) error {
 	logger := SenderLogger.GetLogger(ctx)
+
+	if s.TestModeWhatsappConfig.Enabled {
+		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
+			result, err := s.testModeSendWhatsapp(ctx, msgType, opts)
+			if err != nil {
+				return err
+			}
+			resultCallback(ctx, result)
+			return nil
+		}
+	}
+
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
 		return err
@@ -349,17 +371,6 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 		}
 		resultCallback(ctx, result)
 		return nil
-	}
-
-	if s.TestModeWhatsappConfig.Enabled {
-		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
-			result, err := s.testModeSendWhatsapp(ctx, msgType, opts)
-			if err != nil {
-				return err
-			}
-			resultCallback(ctx, result)
-			return nil
-		}
 	}
 
 	if s.DevMode {
