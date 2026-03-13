@@ -87,7 +87,7 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}}
 		result.WriteResponse(w, r)
 
 		return nil

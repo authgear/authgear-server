@@ -129,7 +129,7 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 		}
 
 		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI}}
 		result.WriteResponse(w, r)
 
 		return nil

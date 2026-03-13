@@ -68,6 +68,12 @@ func InjectTraceContextToURL(ctx context.Context, u *url.URL) *url.URL {
 	return &newURL
 }
 
+// ClearTraceContext removes trace context query parameters from q.
+func ClearTraceContext(q url.Values) {
+	q.Del(queryNameTraceParent)
+	q.Del(queryNameBaggage)
+}
+
 // GetAuthgearBaggage returns the Authgear-specific baggage from the context.
 // The baggage is expected to contain keys "authgear_sdk_user_id" and "authgear_sdk_device_id".
 func GetAuthgearBaggage(ctx context.Context) map[string]string {

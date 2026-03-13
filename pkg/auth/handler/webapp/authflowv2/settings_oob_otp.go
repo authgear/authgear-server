@@ -131,7 +131,7 @@ func (h *AuthflowV2SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		}
 
 		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI}}
 		result.WriteResponse(w, r)
 
 		return nil

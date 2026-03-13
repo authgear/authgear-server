@@ -214,33 +214,35 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
-		var redirectURI *url.URL
 		if output.RecoveryCodesCreated {
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
+			redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
 			if err != nil {
 				return err
 			}
 			q := redirectURI.Query()
 			q.Set("q_token", output.Token)
 			redirectURI.RawQuery = q.Encode()
-		} else {
-			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(ctx, s, output.Token, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
-			if err != nil {
-				return err
-			}
 
-			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFA)
-			if err != nil {
-				return err
-			}
-			q := redirectURI.Query()
-			q.Set("q_token", output.Token)
-			redirectURI.RawQuery = q.Encode()
+			result := webapp.Result{RedirectURI: redirectURI.String()}
+			result.WriteResponse(w, r)
+			return nil
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
-		result.WriteResponse(w, r)
+		_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(ctx, s, output.Token, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
+		if err != nil {
+			return err
+		}
 
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFA)
+		if err != nil {
+			return err
+		}
+		q := redirectURI.Query()
+		q.Set("q_token", output.Token)
+		redirectURI.RawQuery = q.Encode()
+
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

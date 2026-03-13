@@ -144,7 +144,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 		}
 
 		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI}}
 		result.WriteResponse(w, r)
 
 		return nil
@@ -166,7 +166,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 		}
 
 		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI}}
 		result.WriteResponse(w, r)
 
 		return nil

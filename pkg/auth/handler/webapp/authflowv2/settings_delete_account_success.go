@@ -91,10 +91,10 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 			return nil
 		}
 
-		result := webapp.Result{
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{
 			RedirectURI:      redirectURI,
 			NavigationAction: webapp.NavigationActionRedirect,
-		}
+		}}
 		result.WriteResponse(w, r)
 		return nil
 	})

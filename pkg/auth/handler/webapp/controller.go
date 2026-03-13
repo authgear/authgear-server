@@ -451,7 +451,7 @@ func (c *Controller) FinishSettingsAction(ctx context.Context, userSession sessi
 	return nil
 }
 
-func (c *Controller) CreateSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
+func (c *Controller) CreateSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.SettingsCompletedResult, bool, error) {
 	if webSession == nil || webSession.RedirectURI == "" {
 		return nil, false, nil
 	}
@@ -467,16 +467,18 @@ func (c *Controller) CreateSettingsActionResult(ctx context.Context, webSession 
 		if err != nil {
 			return nil, false, err
 		}
-		result := webapp.Result{
-			RedirectURI:      redirectURI,
-			NavigationAction: webapp.NavigationActionRedirect,
+		result := &webapp.SettingsCompletedResult{
+			Result: &webapp.Result{
+				RedirectURI:      redirectURI,
+				NavigationAction: webapp.NavigationActionRedirect,
+			},
 		}
-		return &result, true, nil
+		return result, true, nil
 	}
 	return nil, false, nil
 }
 
-func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSession session.ResolvedSession, webSession *webapp.Session) (*webapp.Result, error) {
+func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSession session.ResolvedSession, webSession *webapp.Session) (*webapp.SettingsCompletedResult, error) {
 	err := c.FinishSettingsAction(ctx, userSession, webSession)
 	if err != nil {
 		return nil, err

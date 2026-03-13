@@ -244,7 +244,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: "/settings/profile"}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: "/settings/profile"}}
 		result.WriteResponse(w, r)
 		return nil
 	})

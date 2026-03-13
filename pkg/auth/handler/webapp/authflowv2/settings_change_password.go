@@ -129,10 +129,10 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			return nil
 		}
 
-		result := webapp.Result{
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{
 			NavigationAction: webapp.NavigationActionRedirect,
 			RedirectURI:      SettingsV2RouteSettings,
-		}
+		}}
 		result.WriteResponse(w, r)
 		return nil
 	})
