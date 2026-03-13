@@ -445,7 +445,16 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
-		flowResponse, flowErr = client.InputFlow(nil, nil, state, input)
+		inputState := state
+		if step.StateToken != "" {
+			inputState, ok = renderTemplateString(t, cmd, prevSteps, step.StateToken)
+			if !ok {
+				return nil, state, false
+			}
+			inputState = strings.TrimSpace(inputState)
+		}
+
+		flowResponse, flowErr = client.InputFlow(nil, nil, inputState, input)
 
 		if step.Output != nil {
 			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
