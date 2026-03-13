@@ -62,23 +62,21 @@ messaging:
 
 ## Usage Limit Soft Limits
 
-Define soft limits to send when a usage threshold reached.
+Define soft limits to send when a usage threshold is reached.
 
 ```yaml
 enabled: true
 period: "day"
 quota: 5
 soft_limits:
-  - threshold:
-      percentage: 90
+  - threshold: 4
     interval: 24h
     url: https://example.com/your_webhook
 ```
 
 `soft_limits`: A list of soft limits to trigger when usage reaches the configured threshold.
 
-`soft_limits[].threshold`: Required. The threshold to trigger the soft limit. Only percentage threshold is supported at the moment.
-`soft_limits[].threshold.percentage`: Required. Integer. 1 - 100. The percentage of the usage limit to trigger this soft limit.
+`soft_limits[].threshold`: Required. Integer. The usage value to trigger this soft limit.
 `soft_limits[].interval`: Optional. Duration string. Default `24h`. The minimal interval to wait before the next trigger of the same soft limit.
 `soft_limits[].url`: Required. The url we send a request to when the soft limit is triggered.
 
@@ -107,8 +105,7 @@ messaging:
     period: "month"
     quota: 1000
     soft_limits:
-      - threshold:
-          percentage: 90
+      - threshold: 900
         url: https://internal.authgear.cloud/notification
 ```
 
@@ -118,8 +115,7 @@ A feature config of a project:
 messaging:
   sms_usage:
     soft_limits:
-      - threshold:
-          percentage: 80
+      - threshold: 800
         url: https://example.com/another_notification
 ```
 
@@ -132,10 +128,8 @@ messaging:
     period: "month"
     quota: 1000
     soft_limits:
-      - threshold:
-          percentage: 90
+      - threshold: 900
         url: https://internal.authgear.cloud/notification
-      - threshold:
-          percentage: 80
+      - threshold: 800
         url: https://example.com/another_notification
 ```

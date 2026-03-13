@@ -1149,13 +1149,10 @@ Payload:
       "quota": 1000
     },
     "actual_usage": {
-      "value": 900,
-      "percentage": 90
+      "value": 900
     },
     "soft_limit": {
-      "threshold": {
-        "percentage": 90
-      },
+      "threshold": 900,
       "interval": "24h"
     }
   }
@@ -1166,9 +1163,8 @@ Payload:
 - `usage_limit.period`: The usage limit period.
 - `usage_limit.quota`: The configured quota of the usage limit.
 - `actual_usage.value`: The measured usage value in the current period when the event is generated.
-- `actual_usage.percentage`: The integer percentage of quota used when the event is generated.
 - `soft_limit`: The soft limit object from the configured [`soft_limits`](./usage.md#usage-limit-soft-limits) list that triggered this event.
-- `soft_limit.threshold.percentage`: The configured soft limit threshold percentage that has been reached.
+- `soft_limit.threshold`: The configured soft limit threshold value that has been reached.
 - `soft_limit.interval`: The configured minimal interval before the same soft limit can be triggered again.
 
 #### rate_limit.blocked
