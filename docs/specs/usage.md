@@ -92,7 +92,7 @@ The event type is [`usage.soft_limit.reached`](./event.md#usagesoft_limitreached
 
 Soft limits can be defined on plan level feature config, or in project level feature config.
 
-Soft limits defined in the two level will be merged.
+When both are present, the resulting `soft_limits` list is formed by appending the app-level feature config `soft_limits` after the plan-level feature config `soft_limits`.
 
 See the below example:
 
