@@ -10,7 +10,7 @@ import (
 )
 
 var TemplateWebReturnHTML = template.RegisterHTML(
-	"web/return.html",
+	"web/authflowv2/return.html",
 	Components...,
 )
 
@@ -28,7 +28,7 @@ type ReturnHandler struct {
 
 func (h *ReturnHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
