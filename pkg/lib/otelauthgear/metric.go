@@ -139,6 +139,9 @@ var AttributeKeyCSRFHasStrictCookie = attribute.Key("csrf.has_strict_cookie")
 // AttributeKeyGorillaCSRFFailureReason defines the attribute.
 var AttributeKeyGorillaCSRFFailureReason = attribute.Key("gorilla_csrf.failure_reason")
 
+// AttributeKeyFraudProtectionWarningType defines the attribute.
+var AttributeKeyFraudProtectionWarningType = attribute.Key("fraud_protection.warning_type")
+
 // AttributeKeySecFetchBasedStatus defines the attribute.
 var AttributeKeySecFetchBasedStatus = attribute.Key("sec_fetch_based.status")
 
@@ -289,6 +292,15 @@ var CounterDenoRunCount = otelutil.MustInt64Counter(
 	metric.WithUnit("{count}"),
 )
 
+// CounterFraudProtectionWarningCount has the following labels:
+// - AttributeKeyFraudProtectionWarningType
+var CounterFraudProtectionWarningCount = otelutil.MustInt64Counter(
+	meter,
+	"authgear.fraud_protection.warning.count",
+	metric.WithDescription("The number of fraud protection warnings triggered"),
+	metric.WithUnit("{warning}"),
+)
+
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
 var HTTPServerRequestDurationHistogram, _ = httpconv.NewServerRequestDuration(
 	meter,
@@ -402,6 +414,10 @@ func WithCSRFHasStrictCookie(b bool) otelutil.MetricOption {
 
 func WithGorillaCSRFFailureReason(reason string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyGorillaCSRFFailureReason.String(reason)}
+}
+
+func WithFraudProtectionWarningType(warningType string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyFraudProtectionWarningType.String(warningType)}
 }
 
 func WithSecFetchBasedStatusOK() otelutil.MetricOption {

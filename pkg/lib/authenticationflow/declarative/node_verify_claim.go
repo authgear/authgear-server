@@ -34,7 +34,7 @@ type NodeVerifyClaim struct {
 	WebsocketChannelName string                        `json:"websocket_channel_name,omitempty"`
 }
 
-func NewNodeVerifyClaim(ctx context.Context, deps *authflow.Dependencies, n *NodeVerifyClaim) (*authflow.NodeWithDelayedOneTimeFunction, error) {
+func NewNodeVerifyClaim(ctx context.Context, deps *authflow.Dependencies, n *NodeVerifyClaim) (*authflow.NodeReactToResult, error) {
 	n.WebsocketChannelName = authflow.NewWebsocketChannelName()
 
 	kind := n.otpKind(deps)
@@ -47,17 +47,18 @@ func NewNodeVerifyClaim(ctx context.Context, deps *authflow.Dependencies, n *Nod
 		return nil, err
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node: simpleNode,
-		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
 			if code != "" {
-				err := n.SendCode(ctx, deps, code)
+				updated, err := n.SendCode(ctx, deps, code)
 				if err != nil {
-					return err
+					return authflow.DelayedOneTimeFunctionResult{}, err
 				}
+				return authflow.DelayedOneTimeFunctionResult{UpdatedSession: updated}, nil
 			}
 
-			return nil
+			return authflow.DelayedOneTimeFunctionResult{}, nil
 		},
 	}, nil
 }
@@ -112,9 +113,12 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			n.ClaimValue,
 		)
 		verifiedClaim.SetVerifiedByChannel(n.Channel)
-		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
-			Claim: verifiedClaim,
-		}), nil
+		nextNode := authflow.NewNodeSimple(&NodeDoMarkClaimVerified{Claim: verifiedClaim})
+		if n.Channel == model.AuthenticatorOOBChannelSMS {
+			updated := authflow.GetSession(ctx).WithSMSOTPVerifiedCountAdded(n.ClaimValue)
+			return &authflow.NodeReactToResult{Node: nextNode, UpdatedSession: updated}, nil
+		}
+		return nextNode, nil
 	case inputNodeVerifyClaim.IsCheck():
 		emptyCode := ""
 
@@ -140,9 +144,12 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			n.ClaimValue,
 		)
 		verifiedClaim.SetVerifiedByChannel(n.Channel)
-		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
-			Claim: verifiedClaim,
-		}), nil
+		nextNode := authflow.NewNodeSimple(&NodeDoMarkClaimVerified{Claim: verifiedClaim})
+		if n.Channel == model.AuthenticatorOOBChannelSMS {
+			updated := authflow.GetSession(ctx).WithSMSOTPVerifiedCountAdded(n.ClaimValue)
+			return &authflow.NodeReactToResult{Node: nextNode, UpdatedSession: updated}, nil
+		}
+		return nextNode, nil
 	case inputNodeVerifyClaim.IsResend():
 		code, err := n.GenerateCode(ctx, deps)
 		if err != nil {
@@ -150,10 +157,14 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		}
 
 		newSimpleNode := authflow.NewNodeSimple(n)
-		return &authflow.NodeWithDelayedOneTimeFunction{
+		return &authflow.NodeReactToResult{
 			Node: newSimpleNode,
-			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
-				return n.SendCode(ctx, deps, code)
+			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
+				updated, err := n.SendCode(ctx, deps, code)
+				if err != nil {
+					return authflow.DelayedOneTimeFunctionResult{}, err
+				}
+				return authflow.DelayedOneTimeFunctionResult{UpdatedSession: updated}, nil
 			},
 		}, authflow.ErrReplaceNode
 	default:
@@ -242,7 +253,7 @@ func (n *NodeVerifyClaim) GenerateCode(ctx context.Context, deps *authflow.Depen
 	return code, nil
 }
 
-func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependencies, code string) error {
+func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependencies, code string) (*authflow.Session, error) {
 	// Here is a bit tricky.
 	// Normally we should use the given message type to send a message.
 	// However, if the channel is whatsapp, we use the specialized otp.MessageTypeWhatsappCode.
@@ -266,8 +277,12 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		},
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	if n.Channel == model.AuthenticatorOOBChannelSMS {
+		updated := authflow.GetSession(ctx).WithSMSOTPSentCountAdded(n.ClaimValue)
+		return updated, nil
+	}
+	return nil, nil
 }

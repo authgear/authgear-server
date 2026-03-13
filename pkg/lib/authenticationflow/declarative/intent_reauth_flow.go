@@ -93,6 +93,7 @@ func (i *IntentReauthFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 
 		// Reauth does not create new session.
 		// So we do not dispatch user.authenticated here.
+		revertUnverifiedSMSOTPs(flows),
 	}, nil
 }
 

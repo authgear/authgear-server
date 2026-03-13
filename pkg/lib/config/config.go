@@ -538,23 +538,27 @@ func ApplyFeatureConfigConstraints(appConfig *AppConfig, featureConfig *FeatureC
 	// This function filters app config settings based on feature config limits.
 
 	// Filter phone countries based on feature config
-	if appConfig == nil || appConfig.UI == nil || appConfig.UI.PhoneInput == nil {
-		return
-	}
-	if featureConfig == nil || featureConfig.UI == nil || featureConfig.UI.PhoneInput == nil {
-		return
+	if appConfig != nil && appConfig.UI != nil && appConfig.UI.PhoneInput != nil &&
+		featureConfig != nil && featureConfig.UI != nil && featureConfig.UI.PhoneInput != nil {
+		if appConfig.UI.PhoneInput.AllowList != nil {
+			appConfig.UI.PhoneInput.AllowList = IntersectAllowlist(
+				appConfig.UI.PhoneInput.AllowList,
+				featureConfig.UI.PhoneInput.AllowList,
+			)
+		}
+		if appConfig.UI.PhoneInput.PinnedList != nil {
+			appConfig.UI.PhoneInput.PinnedList = IntersectAllowlist(
+				appConfig.UI.PhoneInput.PinnedList,
+				featureConfig.UI.PhoneInput.AllowList,
+			)
+		}
 	}
 
-	if appConfig.UI.PhoneInput.AllowList != nil {
-		appConfig.UI.PhoneInput.AllowList = IntersectAllowlist(
-			appConfig.UI.PhoneInput.AllowList,
-			featureConfig.UI.PhoneInput.AllowList,
-		)
-	}
-	if appConfig.UI.PhoneInput.PinnedList != nil {
-		appConfig.UI.PhoneInput.PinnedList = IntersectAllowlist(
-			appConfig.UI.PhoneInput.PinnedList,
-			featureConfig.UI.PhoneInput.AllowList,
-		)
+	// When fraud protection is not modifiable, reset it to defaults.
+	if featureConfig != nil && featureConfig.FraudProtection != nil &&
+		featureConfig.FraudProtection.IsModifiable != nil && !*featureConfig.FraudProtection.IsModifiable {
+		defaultFP := &FraudProtectionConfig{}
+		SetFieldDefaults(defaultFP)
+		appConfig.FraudProtection = defaultFP
 	}
 }

@@ -148,10 +148,10 @@ CREATE TABLE _audit_metrics (
     app_id      TEXT                        NOT NULL,
     name        TEXT                        NOT NULL,
     key         TEXT                        NOT NULL,
-    start_time  TIMESTAMP WITHOUT TIME ZONE NOT NULL
-) PARTITION BY RANGE (start_time);
+    created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL
+) PARTITION BY RANGE (created_at);
 
-CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, key, start_time);
+CREATE INDEX _audit_metrics_idx ON _audit_metrics (app_id, name, key, created_at);
 
 CREATE TABLE _audit_metrics_template (LIKE _audit_metrics);
 ALTER TABLE _audit_metrics_template ADD PRIMARY KEY (id);
@@ -164,7 +164,7 @@ BEGIN
   IF pg_partman_version like '5.%' THEN
     PERFORM create_parent(
       p_parent_table := '{{ .SCHEMA }}._audit_metrics',
-      p_control := 'start_time',
+      p_control := 'created_at',
       p_interval := '1 month',
       p_template_table := '{{ .SCHEMA }}._audit_metrics_template'
     );
@@ -172,7 +172,7 @@ BEGIN
     WHERE parent_table = '{{ .SCHEMA }}._audit_metrics';
   ELSIF pg_partman_version like '4.%' THEN
     PERFORM create_parent(
-      '{{ .SCHEMA }}._audit_metrics', 'start_time', 'native', 'monthly',
+      '{{ .SCHEMA }}._audit_metrics', 'created_at', 'native', 'monthly',
       p_template_table := '{{ .SCHEMA }}._audit_metrics_template'
     );
     UPDATE part_config SET retention = '90 days', retention_keep_table = FALSE
@@ -194,11 +194,11 @@ DROP TABLE _audit_metrics;
 - `app_id` (`text`): the app tenant identifier
 - `name` (`text`): e.g. `sms_otp_verified`
 - `key` (`text`): dimension and value — `{dimension}:{value}`, e.g. `ip:1.2.3.4` or `phone_country:SG`
-- `start_time` (`timestamp without time zone`): exact event time (UTC); no truncation
+- `created_at` (`timestamp without time zone`): exact event time (UTC); no truncation
 
 **Primary key:** `id` only — declared on the template table so pg_partman propagates it to each child partition. The parent table has no PK constraint (partitioned tables cannot have a unique index on a non-partition-key column). No `count` column; each row represents one verified OTP event (append-only).
 
-**Index:** `(app_id, name, key, start_time)` — on the parent table `_audit_metrics`; PostgreSQL propagates it to child partitions automatically.
+**Index:** `(app_id, name, key, created_at)` — on the parent table `_audit_metrics`; PostgreSQL propagates it to child partitions automatically.
 
 **`key` column format:** `{dimension}:{value}`
 - Examples: `ip:1.2.3.4`, `phone_country:SG`
@@ -207,7 +207,7 @@ DROP TABLE _audit_metrics;
 
 Two rows inserted per event in a single `INSERT ... VALUES (...), (...)` statement:
 
-| Event | `app_id` | `name` | `key` | `start_time` |
+| Event | `app_id` | `name` | `key` | `created_at` |
 |-------|----------|--------|-------|-------------|
 | OTP verified | `{appID}` | `sms_otp_verified` | `ip:{ip}` | event time (UTC) |
 | OTP verified | `{appID}` | `sms_otp_verified` | `phone_country:{alpha2}` | event time (UTC) |
@@ -248,7 +248,7 @@ type MetricsStore struct {
 // bucket via RevertSMSOTPSent and does NOT write to PostgreSQL.
 //
 // SQL:
-//   INSERT INTO _audit_metrics (id, app_id, name, key, start_time)
+//   INSERT INTO _audit_metrics (id, app_id, name, key, created_at)
 //   VALUES
 //     ($1, $2, 'sms_otp_verified', $3, $6),
 //     ($4, $2, 'sms_otp_verified', $5, $6)
@@ -269,7 +269,7 @@ func (s *MetricsStore) RecordVerified(ctx context.Context, ip, phoneCountry stri
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
 //     AND key = $2
-//     AND start_time >= $3
+//     AND created_at >= $3
 //   -- $1 = app_id
 //   -- $2 = "phone_country:{country}"
 //   -- $3 = clock.NowUTC().Add(-24 * time.Hour)
@@ -284,7 +284,7 @@ func (s *MetricsStore) GetVerifiedByCountry24h(ctx context.Context, country stri
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
 //     AND key = $2
-//     AND start_time >= $3
+//     AND created_at >= $3
 //   -- $1 = app_id
 //   -- $2 = "phone_country:{country}"
 //   -- $3 = clock.NowUTC().Add(-1 * time.Hour)
@@ -299,7 +299,7 @@ func (s *MetricsStore) GetVerifiedByCountry1h(ctx context.Context, country strin
 //   WHERE app_id = $1
 //     AND name = 'sms_otp_verified'
 //     AND key = $2
-//     AND start_time >= $3
+//     AND created_at >= $3
 //   -- $1 = app_id
 //   -- $2 = "ip:{ip}"
 //   -- $3 = clock.NowUTC().Add(-24 * time.Hour)
@@ -312,12 +312,12 @@ func (s *MetricsStore) GetVerifiedByIP24h(ctx context.Context, ip string) (int64
 // SQL:
 //   SELECT COALESCE(MAX(daily_count), 0)
 //   FROM (
-//     SELECT DATE_TRUNC('day', start_time) AS day, COUNT(*) AS daily_count
+//     SELECT DATE_TRUNC('day', created_at) AS day, COUNT(*) AS daily_count
 //     FROM _audit_metrics
 //     WHERE app_id = $1
 //       AND name = 'sms_otp_verified'
 //       AND key = $2
-//       AND start_time >= $3
+//       AND created_at >= $3
 //     GROUP BY day
 //   ) t
 //   -- $1 = app_id
@@ -847,9 +847,9 @@ The 6 public flows: `intent_login_flow.go`, `intent_signup_flow.go`, `intent_sig
 
 In `pkg/lib/fraudprotection/service.go`:
 ```go
-var ErrBlockedByFraudProtection = apierrors.Forbidden.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
+var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 ```
-→ `{"name":"Forbidden","reason":"BlockedByFraudProtection","code":403}`
+→ `{"name":"TooManyRequest","reason":"BlockedByFraudProtection","code":429}`
 
 ### 3.2 Audit Log Event
 
@@ -978,7 +978,7 @@ In `pkg/lib/config/configsource/resources_test.go`, add test cases for the new g
 ### Part 2 — Warning Implementation
 
 **Commit 6: `audit/db: add _audit_metrics partitioned table`**
-Add SQL migration creating the `_audit_metrics` table partitioned by `start_time` (monthly, 90-day retention via pg_partman), template table for PK propagation, and `(app_id, name, key, start_time)` index.
+Add SQL migration creating the `_audit_metrics` table partitioned by `created_at` (monthly, 90-day retention via pg_partman), template table for PK propagation, and `(app_id, name, key, created_at)` index.
 
 **Commit 7: `fraudprotection: implement MetricsStore`**
 Create `pkg/lib/fraudprotection/metrics_store.go`. Implements `RecordVerified` (2-row INSERT), `GetVerifiedByCountry24h`, `GetVerifiedByCountry1h`, `GetVerifiedByIP24h`, `GetVerifiedByCountryPast14DaysRollingMax`. All read methods use a 5-minute Redis cache.
@@ -1022,7 +1022,7 @@ Add `before: custom_audit_sql` to `pkg/testrunner/` — identical to `before: cu
 **Commit 18: `e2e: add fraud protection unverified OTP blocking e2e tests`**
 Create `e2e/tests/fraud_protection/` with three test files. Each configures `authgear.yaml` via `override` with `fraud_protection`, `test_mode.oob_otp` (fixed code `111111`), and `test_mode.sms.suppressed`. Flows are run sequentially within a single test case using multiple `action: create` blocks, leaving OTPs unverified between flows. Because each test has a fresh app ID, the leaky bucket starts at 0 and `_audit_metrics` has no history, so adaptive thresholds fall to their minimums (country hourly = 3, IP countries = 3), making each warning reachable in exactly 4 flows.
 
-`sms_unverified_by_phone_country_hourly.test.yaml` — Tests `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to different SG numbers (`+6591230001`–`+6591230003`), each OTP send step succeeds (`verify_oob_otp_data`). The 4th flow's OTP send step for `+6591230004` returns `{"name": "Forbidden", "reason": "BlockedByFraudProtection", "code": 403}`.
+`sms_unverified_by_phone_country_hourly.test.yaml` — Tests `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to different SG numbers (`+6591230001`–`+6591230003`), each OTP send step succeeds (`verify_oob_otp_data`). The 4th flow's OTP send step for `+6591230004` returns `{"name": "TooManyRequest", "reason": "BlockedByFraudProtection", "code": 429}`.
 
 `sms_phone_countries_by_ip_daily.test.yaml` — Tests `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` with `deny_if_any_warning`. Three flows send to distinct countries (SG `+6591230001`, HK `+85291230001`, MY `+60123450001`); each succeeds. The 4th flow to JP `+819012340001` is blocked with the same error.
 
@@ -1035,7 +1035,7 @@ Two more test files in `e2e/tests/fraud_protection/` that exercise the verified 
 
 `verified_otp_writes_to_metrics.test.yaml` — Completes a full SMS OTP signup (identify phone → select channel → submit code `111111` → flow finishes). Then uses `action: audit_query` to assert that exactly 2 rows exist in `_audit_metrics` for this app ID with `name = 'sms_otp_verified'` — one with `key = 'ip:{ip}'` and one with `key = 'phone_country:SG'`. This confirms `RecordSMSOTPVerified` → `MetricsStore.RecordVerified` is wired correctly end-to-end.
 
-`verified_otp_history_raises_threshold.test.yaml` — Uses `before: custom_audit_sql` to insert 30 `sms_otp_verified` rows for `phone_country:SG` with `start_time` in the past 30 minutes. With this history, `GetVerifiedByCountry1h(SG) = 30` → country hourly threshold = `max(3, 20/6, 30×0.2)` = 6. The test then runs 6 signup flows to SG numbers with `deny_if_any_warning`; all 6 OTP send steps succeed (level 6 = threshold 6, not exceeded since trigger condition is `new_level > threshold` strictly). A 7th flow is blocked (level 7 > 6). This directly proves that verified OTP history raises the adaptive threshold: without the pre-populated history the 4th would already be blocked (as shown in `sms_unverified_by_phone_country_hourly.test.yaml`).
+`verified_otp_history_raises_threshold.test.yaml` — Uses `before: custom_audit_sql` to insert 30 `sms_otp_verified` rows for `phone_country:SG` with `created_at` in the past 30 minutes. With this history, `GetVerifiedByCountry1h(SG) = 30` → country hourly threshold = `max(3, 20/6, 30×0.2)` = 6. The test then runs 6 signup flows to SG numbers with `deny_if_any_warning`; all 6 OTP send steps succeed (level 6 = threshold 6, not exceeded since trigger condition is `new_level > threshold` strictly). A 7th flow is blocked (level 7 > 6). This directly proves that verified OTP history raises the adaptive threshold: without the pre-populated history the 4th would already be blocked (as shown in `sms_unverified_by_phone_country_hourly.test.yaml`).
 
 ### Part 3 — Decision Record & Audit Log
 
@@ -1069,5 +1069,5 @@ Add `EventService` interface and field to `Service` struct. In `CheckAndRecord`,
 4. **Integration**: send >3 countries from same IP → `SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED` triggers; send >20 unverified OTPs to a country → country unverified warning triggers
 5. **Leaky bucket recovery**: verify that after the window elapses with no new sends, the leaky bucket level decays to 0 and warnings stop triggering
 6. **Audit log**: `fraud_protection.decision_recorded` event appears after a blocked/allowed SMS attempt
-7. **API error**: `{"name":"Forbidden","reason":"BlockedByFraudProtection","code":403}` when `action: deny_if_any_warning`
+7. **API error**: `{"name":"TooManyRequest","reason":"BlockedByFraudProtection","code":429}` when `action: deny_if_any_warning`
 8. **Always-allow**: whitelisted IP/phone bypasses the check entirely

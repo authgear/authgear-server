@@ -1,0 +1,187 @@
+name: Fraud protection - account recovery verified OTP reverts leaky bucket
+authgear.yaml:
+  override: |
+    # Force blocking mode so bucket exhaustion is visible as a 429 in the test.
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+    # Restrict account recovery to phone/SMS so all requests hit the same SMS fraud
+    # protection path as signup/login SMS OTP.
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: phone
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: sms
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: account_recovery_users.json
+steps:
+  # The default country-hourly threshold floor is 3. Three sends should still pass,
+  # and the fourth send for another SG number should be blocked.
+  - name: flow 1 - create
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230101"
+      }
+  - name: flow 1 - send sms
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }
+
+  - name: flow 2 - create
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230102"
+      }
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }
+
+  - name: flow 3 - create
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 3 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230103"
+      }
+  - name: flow 3 - send sms
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }
+
+  - name: flow 4 - create
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 4 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230104"
+      }
+  - name: flow 4 - send sms blocked before verification
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
+
+  - name: flow 1 - verify recovery code
+    action: input
+    # Jump back to flow 1 and verify its OTP. This should record a verified metric
+    # and drain one unit from the leaky bucket.
+    state_token: |
+      {{ index .steps "flow 1 - send sms" "result" "state_token" }}
+    input: |
+      {
+        "account_recovery_code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "reset_password"
+          }
+        }
+
+  - name: flow 5 - create
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 5 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230104"
+      }
+  - name: flow 5 - send sms succeeds after verification drained the bucket
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }

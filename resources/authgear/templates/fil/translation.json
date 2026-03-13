@@ -939,6 +939,7 @@
   "v2.component.verify-bot-protection.default.title": "Sinusuri ang iyong sistema...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Mukhang ginamit mo na ang {OAuthProviderNameExisting} para mag-login dati.} other {Naka-rehistro na ang {LoginIDNameIncoming} na ito.}}} oauth {Mukhang hindi mo pa naka-link ang account na iyon sa {OAuthProviderNameIncoming}.} other {Naka-rehistro na ang account na ito} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Ang email na ito} phone {Ang numero ng telepono na ito} username {Ang username na ito} other {Ang pagkakakilanlan na ito} }} oauth {Ang email na ito} other {Ang pagkakakilanlan na ito} } ay hindi mahanap. Gusto mo bang gumawa ng account?",
+  "v2.error.blocked-by-fraud-protection": "Ang iyong kahilingan ay na-block. Mangyaring subukan ulit mamaya.",
   "v2.error.bot-protection-cloudflare": "May mali na nangyari sa Cloudflare Turnstile, mangyaring makipag-ugnayan sa suporta.",
   "v2.error.bot-protection-recaptcha-v2": "May mali na nangyari sa Google RecaptchaV2, mangyaring makipag-ugnayan sa suporta.",
   "v2.error.bot-protection-required": "Mangyaring i-verify ang captcha para magpatuloy.<br />Kung hindi mo makita ang widget ng captcha, mangyaring makipag-ugnayan sa suporta.",

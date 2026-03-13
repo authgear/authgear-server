@@ -34,6 +34,7 @@ var ConfigDeps = wire.NewSet(
 		"Captcha",
 		"BotProtection",
 		"NetworkProtection",
+		"FraudProtection",
 		"TestMode",
 		"AuthenticationFlow",
 		"ExternalJWT",

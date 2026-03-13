@@ -69,6 +69,10 @@ type WhatsappService interface {
 	GetMessageStatus(ctx context.Context, messageID string) (*whatsapp.GetMessageStatusResult, error)
 }
 
+type FraudProtectionService interface {
+	RecordSMSOTPVerified(ctx context.Context, phoneNumber string) error
+}
+
 var ServiceLogger = slogutil.NewLogger("otp")
 
 type Service struct {
@@ -83,6 +87,7 @@ type Service struct {
 	AttemptTracker        AttemptTracker
 	RateLimiter           RateLimiter
 	WhatsappService       WhatsappService
+	FraudProtection       FraudProtectionService
 
 	FeatureConfig *config.FeatureConfig
 	EnvConfig     *config.RateLimitsEnvironmentConfig
@@ -272,6 +277,12 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 
 	// Set flag to return reserved rate limit tokens
 	isCodeValid = true
+
+	if code.OOBChannel == model.AuthenticatorOOBChannelSMS {
+		if err := s.FraudProtection.RecordSMSOTPVerified(ctx, target); err != nil {
+			logger.WithError(err).Error(ctx, "failed to record SMS OTP verified for fraud protection")
+		}
+	}
 
 	if !opts.SkipConsume {
 		if err := s.consumeCode(ctx, kind.Purpose(), code); err != nil {
