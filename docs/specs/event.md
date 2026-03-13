@@ -56,7 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
-      - [usage.threshold.reached](#usagethresholdreached)
+      - [usage.soft_limit.reached](#usagesoft_limitreached)
     + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
@@ -542,7 +542,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
-- [usage.threshold.reached](#usagethresholdreached)
+- [usage.soft_limit.reached](#usagesoft_limitreached)
 - [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
@@ -1131,11 +1131,11 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 }
 ```
 
-#### usage.threshold.reached
+#### usage.soft_limit.reached
 
-Occurs when a configured usage limit notification threshold is reached.
+Occurs when a configured usage limit soft limit threshold is reached.
 
-This event is intended for the usage limit notification webhook described in [Usage Limits Notifications](./usage.md#usage-limits-notifications).
+This event is intended for the usage limit soft limit webhook described in [Usage Limit Soft Limits](./usage.md#usage-limit-soft-limits).
 
 `context.triggered_by` is `system`.
 
@@ -1152,7 +1152,7 @@ Payload:
       "value": 900,
       "percentage": 90
     },
-    "notification": {
+    "soft_limit": {
       "threshold": {
         "percentage": 90
       },
@@ -1167,7 +1167,9 @@ Payload:
 - `usage_limit.quota`: The configured quota of the usage limit.
 - `actual_usage.value`: The measured usage value in the current period when the event is generated.
 - `actual_usage.percentage`: The integer percentage of quota used when the event is generated.
-- `notification`: The notification object from the configured [`notifications`](./usage.md#usage-limits-notifications) list that triggered this event.
+- `soft_limit`: The soft limit object from the configured [`soft_limits`](./usage.md#usage-limit-soft-limits) list that triggered this event.
+- `soft_limit.threshold.percentage`: The configured soft limit threshold percentage that has been reached.
+- `soft_limit.interval`: The configured minimal interval before the same soft limit can be triggered again.
 
 #### rate_limit.blocked
 
