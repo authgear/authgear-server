@@ -256,6 +256,7 @@ var _ = TestCaseSchema.Add("Step", `
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
+		"state_token": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
 		"totp_secret": { "type": "string" },
@@ -451,7 +452,8 @@ type Step struct {
 	SleepFor string `json:"sleep_for,omitzero"`
 
 	// `action` == "create" or "input"
-	Input string `json:"input"`
+	Input      string `json:"input"`
+	StateToken string `json:"state_token"`
 
 	// `action` == "oauth_redirect"
 	To          string `json:"to"`
