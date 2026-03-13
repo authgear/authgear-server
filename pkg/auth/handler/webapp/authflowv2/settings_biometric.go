@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -21,6 +22,12 @@ var TemplateWebSettingsV2BiometricHTML = template.RegisterHTML(
 	"web/authflowv2/settings_biometric.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsBiometricRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/biometric")
+}
 
 type BiometricIdentity struct {
 	ID          string
@@ -42,7 +49,7 @@ type AuthflowV2SettingsBiometricHandler struct {
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsViewModel        *viewmodels.SettingsViewModeler
 	Renderer                 handlerwebapp.Renderer
-	Identities               handlerwebapp.SettingsIdentityService
+	Identities               SettingsIdentityService
 	BiometricProvider        BiometricIdentityProvider
 	AccountManagementService *accountmanagement.Service
 }

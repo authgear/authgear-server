@@ -10,11 +10,14 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -22,6 +25,12 @@ var TemplateWebSettingsV2DeleteAccountHTML = template.RegisterHTML(
 	"web/authflowv2/settings_delete_account.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+func ConfigureAuthflowV2SettingsDeleteAccountRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/delete_account")
+}
 
 type AuthflowV2SettingsDeleteAccountViewModel struct {
 	ExpectedAccountDeletionTime time.Time
@@ -35,11 +44,28 @@ type AuthflowV2SettingsDeleteAccountHandler struct {
 	Renderer                  handlerwebapp.Renderer
 	Clock                     clock.Clock
 	Cookies                   handlerwebapp.CookieManager
-	Users                     handlerwebapp.SettingsDeleteAccountUserService
-	Sessions                  handlerwebapp.SettingsDeleteAccountSessionStore
-	OAuthSessions             handlerwebapp.SettingsDeleteAccountOAuthSessionService
+	Users                     SettingsDeleteAccountUserService
+	Sessions                  SettingsDeleteAccountSessionStore
+	OAuthSessions             SettingsDeleteAccountOAuthSessionService
 	AccountDeletion           *config.AccountDeletionConfig
-	AuthenticationInfoService handlerwebapp.SettingsDeleteAccountAuthenticationInfoService
+	AuthenticationInfoService SettingsDeleteAccountAuthenticationInfoService
+}
+
+type SettingsDeleteAccountUserService interface {
+	ScheduleDeletionByEndUser(ctx context.Context, userID string) error
+}
+
+type SettingsDeleteAccountOAuthSessionService interface {
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
+	Save(ctx context.Context, entry *oauthsession.Entry) error
+}
+
+type SettingsDeleteAccountSessionStore interface {
+	Update(ctx context.Context, session *webapp.Session) (err error)
+}
+
+type SettingsDeleteAccountAuthenticationInfoService interface {
+	Save(ctx context.Context, entry *authenticationinfo.Entry) (err error)
 }
 
 func (h *AuthflowV2SettingsDeleteAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

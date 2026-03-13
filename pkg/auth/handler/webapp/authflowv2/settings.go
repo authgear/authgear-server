@@ -18,7 +18,7 @@ var TemplateWebSettingsV2HTML = template.RegisterHTML(
 	handlerwebapp.SettingsComponents...,
 )
 
-func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2SettingsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern(SettingsV2RouteSettings)
@@ -35,7 +35,7 @@ type AuthflowV2SettingsHandler struct {
 	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
 	SettingsViewModel        *viewmodels.SettingsViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
-	Identities               handlerwebapp.SettingsIdentityService
+	Identities               SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
 	AccountDeletion          *config.AccountDeletionConfig
 }

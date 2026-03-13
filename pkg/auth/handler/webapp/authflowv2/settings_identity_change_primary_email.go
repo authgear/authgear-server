@@ -42,8 +42,8 @@ type AuthflowV2SettingsIdentityChangePrimaryEmailHandler struct {
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 handlerwebapp.Renderer
-	Users                    handlerwebapp.SettingsProfileEditUserService
-	StdAttrs                 handlerwebapp.SettingsProfileEditStdAttrsService
+	Users                    SettingsProfileEditUserService
+	StdAttrs                 SettingsProfileEditStdAttrsService
 	Identities               *identityservice.Service
 }
 

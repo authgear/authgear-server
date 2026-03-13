@@ -8,7 +8,6 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -36,7 +35,7 @@ type AuthflowV2SettingsIdentityListUsernameViewModel struct {
 type AuthflowV2SettingsIdentityListUsernameHandler struct {
 	Database          *appdb.Handle
 	LoginIDConfig     *config.LoginIDConfig
-	Identities        *identityservice.Service
+	Identities        SettingsIdentityService
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
@@ -50,16 +49,16 @@ func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Cont
 
 	userID := session.GetUserID(ctx)
 
-	identities, err := h.Identities.LoginID.List(ctx, *userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
 	var usernameIdentities []*identity.LoginID
-	for _, identity := range identities {
-		if identity.LoginIDType == model.LoginIDKeyTypeUsername {
-			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
-				usernameIdentities = append(usernameIdentities, identity)
+	for _, iden := range identities {
+		if iden.Type == model.IdentityTypeLoginID && iden.LoginID.LoginIDType == model.LoginIDKeyTypeUsername {
+			if iden.LoginID.LoginIDKey == loginIDKey {
+				usernameIdentities = append(usernameIdentities, iden.LoginID)
 			}
 		}
 	}

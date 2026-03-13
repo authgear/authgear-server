@@ -115,11 +115,15 @@ func NewSettingsMFAEnterOOBOTPViewModel(oobConfig *config.AuthenticatorOOBConfig
 	}
 }
 
+type SettingsMFAEnterOOBOTPHandlerFlashMessage interface {
+	Flash(w http.ResponseWriter, name string)
+}
+
 type AuthflowV2SettingsMFAEnterOOBOTPHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
-	FlashMessage      handlerwebapp.FlashMessage
+	FlashMessage      SettingsMFAEnterOOBOTPHandlerFlashMessage
 	Clock             clock.Clock
 	Config            *config.AppConfig
 	OTPCode           handlerwebapp.OTPCodeService

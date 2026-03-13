@@ -7,8 +7,10 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -17,14 +19,28 @@ var TemplateWebSettingsV2DeleteAccountSuccessHTML = template.RegisterHTML(
 	handlerwebapp.SettingsComponents...,
 )
 
+func ConfigureAuthflowV2SettingsDeleteAccountSuccessRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/delete_account/success")
+}
+
 type AuthflowV2SettingsDeleteAccountSuccessHandler struct {
 	ControllerFactory         handlerwebapp.ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	Renderer                  handlerwebapp.Renderer
 	AccountDeletion           *config.AccountDeletionConfig
 	Clock                     clock.Clock
-	UIInfoResolver            handlerwebapp.SettingsDeleteAccountSuccessUIInfoResolver
-	AuthenticationInfoService handlerwebapp.SettingsDeleteAccountSuccessAuthenticationInfoService
+	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+	AuthenticationInfoService SettingsDeleteAccountSuccessAuthenticationInfoService
+}
+
+type SettingsDeleteAccountSuccessUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
+type SettingsDeleteAccountSuccessAuthenticationInfoService interface {
+	Get(ctx context.Context, entryID string) (entry *authenticationinfo.Entry, err error)
 }
 
 func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

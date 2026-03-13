@@ -24,6 +24,12 @@ var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 	handlerwebapp.SettingsComponents...,
 )
 
+func ConfigureAuthflowV2SettingsOOBOTPRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/mfa/oob_otp_:channel")
+}
+
 type AuthflowV2SettingsOOBOTPViewModel struct {
 	OOBOTPType           model.AuthenticatorType
 	OOBOTPAuthenticators []*authenticator.OOBOTP

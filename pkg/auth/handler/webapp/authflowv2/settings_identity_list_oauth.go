@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -50,10 +49,10 @@ type AuthflowV2SettingsIdentityListOAuthHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
-	Identities        *identityservice.Service
-	Verification      handlerwebapp.SettingsVerificationService
-	Endpoints         handlerwebapp.SettingsEndpointsProvider
-	OAuthStateStore   handlerwebapp.SettingsOAuthStateStore
+	Identities        SettingsIdentityService
+	Verification      SettingsVerificationService
+	Endpoints         SettingsEndpointsProvider
+	OAuthStateStore   SettingsOAuthStateStore
 	AccountManagement accountmanagement.Service
 }
 

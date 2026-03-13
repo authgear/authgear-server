@@ -22,45 +22,45 @@
         <ul class="list-disc list-inside text-start">
           {{ if (has "https://authgear.com/scopes/full-userinfo" $.Scopes) }}
             <li>
-              {{ template "consent-scopes-full-userinfo" }}
+              {{ include "v2.page.consent.scopes.full-userinfo" nil }}
             </li>
           {{ end }}
 
           {{ if (has "profile" $.Scopes) }}
             <li>
-              {{ template "consent-scopes-profile" }}
+              {{ include "v2.page.consent.scopes.profile" nil }}
             </li>
           {{ end }}
 
           {{ if (has "email" $.Scopes) }}
             <li>
-              {{ template "consent-scopes-email" }}
+              {{ include "v2.page.consent.scopes.email" nil }}
             </li>
           {{ end }}
 
           {{ if (has "phone" $.Scopes) }}
             <li>
-              {{ template "consent-scopes-phone" }}
+              {{ include "v2.page.consent.scopes.phone" nil }}
             </li>
           {{ end }}
 
           {{ if (has "address" $.Scopes) }}
             <li>
-              {{ template "consent-scopes-address" }}
+              {{ include "v2.page.consent.scopes.address" nil }}
             </li>
           {{ end }}
         </ul>
         {{ if (and $.ClientPolicyURI $.ClientTOSURI) }}
           <div class="text-sm primary-txt">
-            {{ template "consent-policy-and-tos-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI "tosURI" $.ClientTOSURI) }}
+            {{ include "v2.page.consent.default.policy-and-tos-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI "tosURI" $.ClientTOSURI) }}
           </div>
         {{ else if $.ClientPolicyURI }}
           <div class="text-sm primary-txt">
-            {{ template "consent-policy-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI) }}
+            {{ include "v2.page.consent.default.policy-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI) }}
           </div>
         {{ else if $.ClientTOSURI }}
           <div class="text-sm primary-txt">
-            {{ template "consent-tos-link-desc" (dict "clientName" $.ClientName "tosURI" $.ClientTOSURI) }}
+            {{ include "v2.page.consent.default.tos-link-desc" (dict "clientName" $.ClientName "tosURI" $.ClientTOSURI) }}
           </div>
         {{ end }}
       </h2>

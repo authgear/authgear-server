@@ -119,12 +119,16 @@ func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
 	}
 }
 
+type EnterOOBOTPHandlerFlashMessage interface {
+	Flash(w http.ResponseWriter, name string)
+}
+
 type AuthflowV2EnterOOBOTPHandler struct {
 	Controller                             *handlerwebapp.AuthflowController
 	BaseViewModel                          *viewmodels.BaseViewModeler
 	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
 	Renderer                               handlerwebapp.Renderer
-	FlashMessage                           handlerwebapp.FlashMessage
+	FlashMessage                           EnterOOBOTPHandlerFlashMessage
 	Clock                                  clock.Clock
 	AuthenticatorConfig                    *config.AuthenticatorConfig
 	IdentityConfig                         *config.IdentityConfig

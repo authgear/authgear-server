@@ -53,7 +53,7 @@ type AuthflowV2SettingsIdentityListEmailHandler struct {
 	Identities               *identityservice.Service
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
-	Verification             handlerwebapp.SettingsVerificationService
+	Verification             SettingsVerificationService
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 handlerwebapp.Renderer
 }
