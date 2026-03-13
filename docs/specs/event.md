@@ -56,6 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+      - [usage.threshold.reached](#usagethresholdreached)
     + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
@@ -541,6 +542,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
+- [usage.threshold.reached](#usagethresholdreached)
 - [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
@@ -1128,6 +1130,44 @@ Occurs when biometric login is disabled. It will be triggered only when the user
   }
 }
 ```
+
+#### usage.threshold.reached
+
+Occurs when a configured usage limit notification threshold is reached.
+
+This event is intended for the usage limit notification webhook described in [Usage Limits Notifications](./usage.md#usage-limits-notifications).
+
+`context.triggered_by` is `system`.
+
+Payload:
+```json5
+{
+  "payload": {
+    "usage_limit": {
+      "name": "messaging.sms_usage",
+      "period": "month",
+      "quota": 1000
+    },
+    "actual_usage": {
+      "value": 900,
+      "percentage": 90
+    },
+    "notification": {
+      "threshold": {
+        "percentage": 90
+      },
+      "interval": "24h"
+    }
+  }
+}
+```
+
+- `usage_limit.name`: The configured usage limit name. Supported values are `admin_api.user_export_usage`, `admin_api.user_import_usage`, `messaging.email_usage`, `messaging.whatsapp_usage`, and `messaging.sms_usage`.
+- `usage_limit.period`: The usage limit period.
+- `usage_limit.quota`: The configured quota of the usage limit.
+- `actual_usage.value`: The measured usage value in the current period when the event is generated.
+- `actual_usage.percentage`: The integer percentage of quota used when the event is generated.
+- `notification`: The notification object from the configured [`notifications`](./usage.md#usage-limits-notifications) list that triggered this event.
 
 #### rate_limit.blocked
 
