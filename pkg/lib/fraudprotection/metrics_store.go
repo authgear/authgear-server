@@ -96,7 +96,8 @@ func (s *MetricsStore) GetVerifiedByCountryPast14DaysRollingMax(ctx context.Cont
 	}
 
 	// Cache miss — query PostgreSQL.
-	since := s.Clock.NowUTC().Add(-14 * 24 * time.Hour)
+	now := s.Clock.NowUTC()
+	since := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(-14 * 24 * time.Hour)
 	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 
 	subquery := s.SQLBuilder.Select("DATE_TRUNC('day', created_at) AS day", "COUNT(*) AS daily_count").
