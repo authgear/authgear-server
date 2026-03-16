@@ -52,6 +52,19 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
+func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
+	corsMatcher := &CORSMatcher{
+		CORSAllowedOrigins: corsAllowedOrigins,
+	}
+	corsMiddleware := &middleware.CORSMiddleware{
+		Matcher: corsMatcher,
+	}
+	return corsMiddleware
+}
+
 func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database

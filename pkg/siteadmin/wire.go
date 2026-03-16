@@ -46,6 +46,14 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Struct(new(middleware.CORSMiddleware), "*"),
+		wire.Bind(new(httproute.Middleware), new(*middleware.CORSMiddleware)),
+	))
+}
+
 func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
