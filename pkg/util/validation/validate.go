@@ -109,13 +109,15 @@ func (v *SchemaValidator) ValidateWithMessage(ctx context.Context, r io.Reader, 
 			}
 
 			keyword := n.Keyword
-			if len(info) == 0 && keyword == "format" {
-				if err, ok := n.Info.(error); ok {
-					info = map[string]interface{}{
-						"error": err.Error(),
+			if keyword == "format" {
+				if len(info) == 0 {
+					if err, ok := n.Info.(error); ok {
+						info = map[string]interface{}{
+							"error": err.Error(),
+						}
+					} else if info == nil {
+						info = map[string]interface{}{}
 					}
-				} else if info == nil {
-					info = map[string]interface{}{}
 				}
 				info["format"] = n.Annotation.(string)
 			}
