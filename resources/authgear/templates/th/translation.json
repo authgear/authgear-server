@@ -939,7 +939,7 @@
   "v2.component.verify-bot-protection.default.title": "กำลังตรวจสอบระบบของคุณ...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {ดูเหมือนว่าคุณใช้ {OAuthProviderNameExisting} เพื่อเข้าสู่ระบบก่อนหน้านี้.} other {ชื่อ {LoginIDNameIncoming} นี้ได้ถูกลงทะเบียนแล้ว.}}} oauth {ดูเหมือนว่าคุณยังไม่ได้เชื่อมโยง {OAuthProviderNameIncoming} บัญชีนี้.} other {บัญชีนี้ได้ถูกลงทะเบียนแล้ว} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {อีเมลนี้} phone {หมายเลขโทรศัพท์นี้} username {ชื่อผู้ใช้นี้} other {ข้อมูลตัวตนนี้} }} oauth {อีเมลนี้} other {ข้อมูลตัวตนนี้} } ไม่พบ คุณต้องการสร้างบัญชีหรือไม่?",
-  "v2.error.blocked-by-fraud-protection": "คำขอของคุณถูกบล็อก โปรดลองอีกครั้งในภายหลัง",
+  "v2.error.blocked-by-fraud-protection": "พยายามมากเกินไป โปรดรอสักครู่ก่อนลองอีกครั้ง",
   "v2.error.bot-protection-cloudflare": "มีบางอย่างผิดพลาดกับ Cloudflare Turnstile โปรดติดต่อฝ่ายสนับสนุน",
   "v2.error.bot-protection-recaptcha-v2": "มีบางอย่างผิดพลาดกับ Google RecaptchaV2 โปรดติดต่อฝ่ายสนับสนุน",
   "v2.error.bot-protection-required": "โปรดยืนยันแคปท์ชาเพื่อดำเนินการต่อ<br />หากคุณไม่สามารถมองเห็นวิดเจ็ตแคปท์ชา โปรดติดต่อฝ่ายสนับสนุน",

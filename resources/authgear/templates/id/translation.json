@@ -939,7 +939,7 @@
   "v2.component.verify-bot-protection.default.title": "Memeriksa sistem Anda...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Sepertinya Anda telah menggunakan {OAuthProviderNameExisting} untuk login sebelumnya.} other {Akun {LoginIDNameIncoming} ini sudah terdaftar.}}} oauth {Sepertinya Anda belum menghubungkan akun {OAuthProviderNameIncoming} tersebut.} other {Akun ini sudah terdaftar} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Email ini} phone {Nomor telepon ini} username {Nama pengguna ini} other {Identitas ini} }} oauth {Email ini} other {Identitas ini} } tidak dapat ditemukan. Apakah Anda ingin membuat akun?",
-  "v2.error.blocked-by-fraud-protection": "Permintaan Anda telah diblokir. Silakan coba lagi nanti.",
+  "v2.error.blocked-by-fraud-protection": "Terlalu banyak percobaan. Harap tunggu sebentar sebelum mencoba lagi.",
   "v2.error.bot-protection-cloudflare": "Terjadi sesuatu yang salah dengan Cloudflare Turnstile, silakan hubungi dukungan.",
   "v2.error.bot-protection-recaptcha-v2": "Terjadi sesuatu yang salah dengan Google RecaptchaV2, silakan hubungi dukungan.",
   "v2.error.bot-protection-required": "Silakan verifikasi captcha untuk melanjutkan.<br />Jika Anda tidak dapat melihat widget captcha, silakan hubungi dukungan.",

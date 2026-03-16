@@ -939,7 +939,7 @@
   "v2.component.verify-bot-protection.default.title": "Comprobando tu sistema...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Parece que usaste {OAuthProviderNameExisting} para iniciar sesión antes.} other {Este {LoginIDNameIncoming} ya está registrado.}}} oauth {Parece que aún no has vinculado esa cuenta de {OAuthProviderNameIncoming}.} other {Esta cuenta ya está registrada} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Este correo electrónico} phone {Este número de teléfono} username {Este nombre de usuario} other {Esta identidad} }} oauth {Este correo electrónico} other {Esta identidad} } no se encuentra. ¿Desea crear una cuenta?",
-  "v2.error.blocked-by-fraud-protection": "Su solicitud ha sido bloqueada. Por favor, intente más tarde.",
+  "v2.error.blocked-by-fraud-protection": "Demasiados intentos. Espere un momento antes de volver a intentarlo.",
   "v2.error.bot-protection-cloudflare": "Algo salió mal con Cloudflare Turnstile, por favor contacte al soporte.",
   "v2.error.bot-protection-recaptcha-v2": "Algo salió mal con Google RecaptchaV2, por favor contacte al soporte.",
   "v2.error.bot-protection-required": "Por favor, verifique el captcha para continuar.<br />Si no puede ver el widget de captcha, póngase en contacto con el soporte técnico.",
