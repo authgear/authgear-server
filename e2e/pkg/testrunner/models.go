@@ -35,6 +35,7 @@ type BeforeHookType string
 const (
 	BeforeHookTypeUserImport      BeforeHookType = "user_import"
 	BeforeHookTypeCustomSQL       BeforeHookType = "custom_sql"
+	BeforeHookTypeCustomAuditSQL  BeforeHookType = "custom_audit_sql"
 	BeforeHookTypeCreateSession   BeforeHookType = "create_session"
 	BeforeHookTypeCreateChallenge BeforeHookType = "create_challenge"
 )
@@ -51,6 +52,21 @@ var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
 `)
 
 type BeforeHookCustomSQL struct {
+	Path string `json:"path"`
+}
+
+var _ = TestCaseSchema.Add("BeforeHookCustomAuditSQL", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"path": { "type": "string", "description": "Path to the custom SQL script for the audit database" }
+	},
+	"required": ["path"]
+}
+`)
+
+type BeforeHookCustomAuditSQL struct {
 	Path string `json:"path"`
 }
 
@@ -104,9 +120,10 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"type": { "type": "string", "enum": ["user_import", "custom_sql", "create_session", "create_challenge"] },
+		"type": { "type": "string", "enum": ["user_import", "custom_sql", "custom_audit_sql", "create_session", "create_challenge"] },
 		"user_import": { "type": "string" },
 		"custom_sql": { "$ref": "#/$defs/BeforeHookCustomSQL" },
+		"custom_audit_sql": { "$ref": "#/$defs/BeforeHookCustomAuditSQL" },
 		"create_session": { "$ref": "#/$defs/BeforeHookCreateSession" },
 		"create_challenge": { "$ref": "#/$defs/BeforeHookCreateChallenge" }
 	},
@@ -122,6 +139,12 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 				"if": { "properties": { "type": { "const": "custom_sql" } } },
 				"then": {
 					"required": ["custom_sql"]
+				}
+			},
+			{
+				"if": { "properties": { "type": { "const": "custom_audit_sql" } } },
+				"then": {
+					"required": ["custom_audit_sql"]
 				}
 			},
 			{
@@ -144,6 +167,7 @@ type BeforeHook struct {
 	Type            BeforeHookType             `json:"type"`
 	UserImport      string                     `json:"user_import"`
 	CustomSQL       *BeforeHookCustomSQL       `json:"custom_sql"`
+	CustomAuditSQL  *BeforeHookCustomAuditSQL  `json:"custom_audit_sql"`
 	CreateSession   *BeforeHookCreateSession   `json:"create_session"`
 	CreateChallenge *BeforeHookCreateChallenge `json:"create_challenge"`
 }
@@ -221,6 +245,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_redirect",
 			"generate_totp_code",
 			"query",
+			"audit_query",
 			"saml_request",
 			"http_request",
 			"oauth_setup",
@@ -231,12 +256,15 @@ var _ = TestCaseSchema.Add("Step", `
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
+		"state_token": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
 		"totp_secret": { "type": "string" },
 		"output": { "$ref": "#/$defs/Output" },
 		"query": { "type": "string" },
 		"query_output": { "$ref": "#/$defs/QueryOutput" },
+		"audit_query": { "type": "string" },
+		"audit_query_output": { "$ref": "#/$defs/QueryOutput" },
 		"saml_output": { "$ref": "#/$defs/SAMLOutput" },
 		"saml_element": { "type": "string" },
 		"saml_element_name": { "type": "string", "enum": ["SAMLRequest", "SAMLResponse"] },
@@ -322,6 +350,16 @@ var _ = TestCaseSchema.Add("Step", `
 					},
 					"then": {
 							"required": ["query"]
+					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "audit_query" }
+							}
+					},
+					"then": {
+							"required": ["audit_query"]
 					}
 				},
 				{
@@ -414,7 +452,8 @@ type Step struct {
 	SleepFor string `json:"sleep_for,omitzero"`
 
 	// `action` == "create" or "input"
-	Input string `json:"input"`
+	Input      string `json:"input"`
+	StateToken string `json:"state_token"`
 
 	// `action` == "oauth_redirect"
 	To          string `json:"to"`
@@ -429,6 +468,10 @@ type Step struct {
 	// `action` == "query"
 	Query       string       `json:"query"`
 	QueryOutput *QueryOutput `json:"query_output"`
+
+	// `action` == "audit_query"
+	AuditQuery       string       `json:"audit_query"`
+	AuditQueryOutput *QueryOutput `json:"audit_query_output"`
 
 	// `action` == "saml_request"
 	SAMLElement              string                `json:"saml_element"`
@@ -474,6 +517,7 @@ const (
 	StepActionOAuthRedirect            StepAction = "oauth_redirect"
 	StepActionGenerateTOTPCode         StepAction = "generate_totp_code"
 	StepActionQuery                    StepAction = "query"
+	StepActionAuditQuery               StepAction = "audit_query"
 	StepActionSAMLRequest              StepAction = "saml_request"
 	StepActionHTTPRequest              StepAction = "http_request"
 	StepActionOAuthSetup               StepAction = "oauth_setup"

@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "正在驗證你的系統...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {似乎您曾使用 {OAuthProviderNameExisting} 進行登入。} other {此 {LoginIDNameIncoming} 已註冊。}}} oauth {此{OAuthProviderNameIncoming}帳號的電郵已用其他方式登記。} other {此帳戶已註冊。} }",
   "v2.error.account-not-found": "找不到{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料} }，需要建立新帳號嗎？",
+  "v2.error.blocked-by-fraud-protection": "您的請求已被阻止。請稍後再試。",
   "v2.error.bot-protection-cloudflare": "Cloudflare Turnstile 出現問。請聯繫支援。",
   "v2.error.bot-protection-recaptcha-v2": "Google RecaptchaV2 出現問題。請聯繫支援。",
   "v2.error.bot-protection-required": "請驗證captcha以繼續。<br />如果您無法看到captcha小工具，請聯繫支援。",

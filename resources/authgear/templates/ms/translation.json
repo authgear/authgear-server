@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "Menyemak sistem anda...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Kelihatannya anda telah menggunakan {OAuthProviderNameExisting} untuk log masuk sebelum ini.} other {Ini {LoginIDNameIncoming} telah didaftarkan.}}} oauth {Kelihatannya anda belum lagi menghubungkan akaun {OAuthProviderNameIncoming} itu.} other {Akaun ini telah didaftarkan} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Emel ini} phone {Nombor telefon ini} username {Nama pengguna ini} other {Identiti ini} }} oauth {Emel ini} other {Identiti ini} } tidak dapat ditemui. Adakah anda ingin membuka akaun?",
+  "v2.error.blocked-by-fraud-protection": "Permintaan anda telah diblokir. Sila cuba lagi kemudian.",
   "v2.error.bot-protection-cloudflare": "Sesuatu yang tidak kena dengan Cloudflare Turnstile, sila hubungi sokongan.",
   "v2.error.bot-protection-recaptcha-v2": "Sesuatu yang tidak kena dengan Google RecaptchaV2, sila hubungi sokongan.",
   "v2.error.bot-protection-required": "Sila sahkan captcha untuk meneruskan.<br />Jika anda tidak dapat melihat widget captcha, sila hubungi sokongan.",

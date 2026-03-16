@@ -45,6 +45,7 @@ import (
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	networkprotection "github.com/authgear/authgear-server/pkg/lib/networkprotection"
@@ -195,6 +196,12 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		networkprotection.DependencySet,
+	),
+
+	wire.NewSet(
+		fraudprotection.DependencySet,
+		wire.Bind(new(messaging.FraudProtectionService), new(*fraudprotection.Service)),
+		wire.Bind(new(otp.FraudProtectionService), new(*fraudprotection.Service)),
 	),
 
 	wire.NewSet(
