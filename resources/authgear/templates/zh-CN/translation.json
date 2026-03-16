@@ -440,7 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "正在检查您的系统...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {似乎您曾使用 {OAuthProviderNameExisting} 进行登入。} other {此 {LoginIDNameIncoming} 已注册。}}} oauth {此{OAuthProviderNameIncoming}帐号的电邮已用其他方式登记。} other {此帐户已注册。} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此电子邮箱} phone {此手机号码} username {此用户名} other {此身份} }} oauth {此电子邮箱} other {此身份} } 找不到。您要创建一个帐户吗?",
-  "v2.error.blocked-by-fraud-protection": "您的请求已被阻止。请稍后重试。",
+  "v2.error.blocked-by-fraud-protection": "尝试次数过多。请稍等片刻后再试。",
   "v2.error.bot-protection-cloudflare": "Cloudflare Turnstile 出现了一些问题,请联系支持。",
   "v2.error.bot-protection-recaptcha-v2": "Google RecaptchaV2 出现了一些问题,请联系支持。Passkey 保持不变。",
   "v2.error.bot-protection-required": "请验证验证码以继续。<br />如果您无法看到验证码小部件,请联系支持。",

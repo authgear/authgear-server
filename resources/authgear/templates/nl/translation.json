@@ -440,7 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "Uw systeem controleren...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Het lijkt erop dat je {OAuthProviderNameExisting} eerder hebt gebruikt voor inloggen.} other {Deze {LoginIDNameIncoming} is al geregistreerd.}}} oauth {Het lijkt erop dat je nog niet gekoppeld bent met dat {OAuthProviderNameIncoming}-account.} other {Dit account is al geregistreerd} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Dit e-mailadres} phone {Dit telefoonnummer} username {Deze gebruikersnaam} other {Deze identiteit} }} oauth {Dit e-mailadres} other {Deze identiteit} } kan niet worden gevonden. Wil je een account aanmaken?",
-  "v2.error.blocked-by-fraud-protection": "Uw aanvraag is geblokkeerd. Probeer het later opnieuw.",
+  "v2.error.blocked-by-fraud-protection": "Te veel pogingen. Wacht even voordat u het opnieuw probeert.",
   "v2.error.bot-protection-cloudflare": "Er is iets misgegaan met Cloudflare Turnstile, neem a.u.b. contact op met de ondersteuning.",
   "v2.error.bot-protection-recaptcha-v2": "Er is iets misgegaan met Google RecaptchaV2, neem a.u.b. contact op met de ondersteuning.",
   "v2.error.bot-protection-required": "Verifieer de captcha om door te gaan.<br />Als u de captcha-widget niet kunt zien, neem dan contact op met de ondersteuning.",
