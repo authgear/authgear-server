@@ -36,6 +36,7 @@ import (
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -554,6 +555,32 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := p.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:       appID,
+		Metrics:     metricsStore,
+		LeakyBucket: leakyBucketStore,
+		Config:      fraudProtectionConfig,
+		RemoteIP:    remoteIP,
+		Clock:       clock,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clock,
@@ -566,6 +593,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -697,6 +725,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,

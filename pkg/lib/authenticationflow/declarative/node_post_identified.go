@@ -43,19 +43,19 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 		return nil, err
 	}
 
-	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
 		err = deps.Events.DispatchEventWithoutTx(ctx, e)
 		if err != nil {
-			return err
+			return authflow.DelayedOneTimeFunctionResult{}, err
 		}
 		n.IsPostIdentifiedInvoked = true
 		n.Constraints = payload.Constraints
 		n.BotProtectionRequirements = payload.BotProtectionRequirements
 		n.RateLimits = payload.RateLimits
-		return nil
+		return authflow.DelayedOneTimeFunctionResult{}, nil
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node:                   authflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil

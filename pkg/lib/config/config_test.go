@@ -22,6 +22,120 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
+func boolPtr(b bool) *bool { return &b }
+
+func TestApplyFeatureConfigConstraints(t *testing.T) {
+	Convey("ApplyFeatureConfigConstraints", t, func() {
+		Convey("phone input allowlist is intersected with feature allowlist", func() {
+			appConfig := &config.AppConfig{
+				UI: &config.UIConfig{
+					PhoneInput: &config.PhoneInputConfig{
+						AllowList: []string{"SG", "MY", "TH"},
+					},
+				},
+			}
+			featureConfig := &config.FeatureConfig{
+				UI: &config.UIFeatureConfig{
+					PhoneInput: &config.PhoneInputFeatureConfig{
+						AllowList: []string{"SG", "MY"},
+					},
+				},
+			}
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+			So(appConfig.UI.PhoneInput.AllowList, ShouldResemble, []string{"SG", "MY"})
+		})
+
+		Convey("phone input pinned list is intersected with feature allowlist", func() {
+			appConfig := &config.AppConfig{
+				UI: &config.UIConfig{
+					PhoneInput: &config.PhoneInputConfig{
+						PinnedList: []string{"SG", "MY"},
+					},
+				},
+			}
+			featureConfig := &config.FeatureConfig{
+				UI: &config.UIFeatureConfig{
+					PhoneInput: &config.PhoneInputFeatureConfig{
+						AllowList: []string{"SG"},
+					},
+				},
+			}
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+			So(appConfig.UI.PhoneInput.PinnedList, ShouldResemble, []string{"SG"})
+		})
+
+		Convey("nil phone input allowlist is left untouched", func() {
+			appConfig := &config.AppConfig{
+				UI: &config.UIConfig{
+					PhoneInput: &config.PhoneInputConfig{
+						AllowList: nil,
+					},
+				},
+			}
+			featureConfig := &config.FeatureConfig{
+				UI: &config.UIFeatureConfig{
+					PhoneInput: &config.PhoneInputFeatureConfig{
+						AllowList: []string{"SG"},
+					},
+				},
+			}
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+			So(appConfig.UI.PhoneInput.AllowList, ShouldBeNil)
+		})
+
+		Convey("does not panic when phone input config is absent", func() {
+			So(func() {
+				config.ApplyFeatureConfigConstraints(&config.AppConfig{}, &config.FeatureConfig{})
+			}, ShouldNotPanic)
+		})
+
+		Convey("fraud protection is reset to defaults when IsModifiable is false", func() {
+			customFP := &config.FraudProtectionConfig{
+				Enabled:  boolPtr(false),
+				Warnings: nil,
+			}
+			appConfig := &config.AppConfig{FraudProtection: customFP}
+			featureConfig := &config.FeatureConfig{
+				FraudProtection: &config.FraudProtectionFeatureConfig{
+					IsModifiable: boolPtr(false),
+				},
+			}
+
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+
+			// Reset to defaults: Enabled=true, all 5 warning types.
+			So(*appConfig.FraudProtection.Enabled, ShouldBeTrue)
+			So(len(appConfig.FraudProtection.Warnings), ShouldEqual, 5)
+		})
+
+		Convey("fraud protection is left unchanged when IsModifiable is true", func() {
+			customFP := &config.FraudProtectionConfig{
+				Enabled:  boolPtr(false),
+				Warnings: nil,
+			}
+			appConfig := &config.AppConfig{FraudProtection: customFP}
+			featureConfig := &config.FeatureConfig{
+				FraudProtection: &config.FraudProtectionFeatureConfig{
+					IsModifiable: boolPtr(true),
+				},
+			}
+
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+
+			So(*appConfig.FraudProtection.Enabled, ShouldBeFalse)
+		})
+
+		Convey("fraud protection is left unchanged when feature config has no fraud protection entry", func() {
+			customFP := &config.FraudProtectionConfig{Enabled: boolPtr(false)}
+			appConfig := &config.AppConfig{FraudProtection: customFP}
+
+			config.ApplyFeatureConfigConstraints(appConfig, &config.FeatureConfig{})
+
+			So(*appConfig.FraudProtection.Enabled, ShouldBeFalse)
+		})
+	})
+}
+
 func TestAppConfig(t *testing.T) {
 	ctx := context.Background()
 	Convey("AppConfig", t, func() {

@@ -31,6 +31,10 @@ type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
+type FraudProtectionService interface {
+	CheckAndRecord(ctx context.Context, phoneNumber, messageType string) error
+}
+
 type MailSender interface {
 	PrepareMessage(opts mail.SendOptions) (*gomail.Message, error)
 	Send(*gomail.Message) error
@@ -47,12 +51,13 @@ type WhatsappSender interface {
 }
 
 type Sender struct {
-	Limits         Limits
-	Events         EventService
-	MailSender     MailSender
-	SMSSender      SMSSender
-	WhatsappSender WhatsappSender
-	Database       *appdb.Handle
+	Limits          Limits
+	Events          EventService
+	FraudProtection FraudProtectionService
+	MailSender      MailSender
+	SMSSender       SMSSender
+	WhatsappSender  WhatsappSender
+	Database        *appdb.Handle
 
 	DevMode config.DevMode
 
@@ -203,6 +208,11 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 	logger := SenderLogger.GetLogger(ctx)
 
 	err := s.Limits.checkSMS(ctx, opts.To)
+	if err != nil {
+		return err
+	}
+
+	err = s.FraudProtection.CheckAndRecord(ctx, opts.To, string(msgType))
 	if err != nil {
 		return err
 	}

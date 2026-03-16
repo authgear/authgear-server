@@ -34,20 +34,20 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 		return nil, err
 	}
 
-	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) error {
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) (authflow.DelayedOneTimeFunctionResult, error) {
 		err = deps.Events.DispatchEventWithoutTx(ctx, e)
 		if err != nil {
-			return err
+			return authflow.DelayedOneTimeFunctionResult{}, err
 		}
 		n.IsPreInitializeInvoked = true
 		n.Constraints = payload.Constraints
 		n.BotProtectionRequirements = payload.BotProtectionRequirements
 		n.RateLimits = payload.RateLimits
 
-		return nil
+		return authflow.DelayedOneTimeFunctionResult{}, nil
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
+	return &authflow.NodeReactToResult{
 		Node:                   authflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil

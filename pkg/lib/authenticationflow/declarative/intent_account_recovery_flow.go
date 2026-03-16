@@ -20,6 +20,7 @@ type IntentAccountRecoveryFlow struct {
 }
 
 var _ authflow.PublicFlow = &IntentAccountRecoveryFlow{}
+var _ authflow.EffectGetter = &IntentAccountRecoveryFlow{}
 
 func (*IntentAccountRecoveryFlow) Kind() string {
 	return "IntentAccountRecoveryFlow"
@@ -40,6 +41,12 @@ func (i *IntentAccountRecoveryFlow) FlowFlowReference() authflow.FlowReference {
 
 func (i *IntentAccountRecoveryFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
 	return GetFlowRootObject(deps.Config, i.FlowReference)
+}
+
+func (i *IntentAccountRecoveryFlow) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
+	return []authflow.Effect{
+		revertUnverifiedSMSOTPs(flows),
+	}, nil
 }
 
 func (*IntentAccountRecoveryFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
