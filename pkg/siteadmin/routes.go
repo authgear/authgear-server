@@ -27,6 +27,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		p.Middleware(newPanicMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
+		p.Middleware(newCORSMiddleware),
 	)
 
 	apiChain := httproute.Chain(
