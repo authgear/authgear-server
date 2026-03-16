@@ -70,23 +70,23 @@ period: "day"
 quota: 5
 soft_limits:
   - threshold: 4
-    interval: 24h
     url: https://example.com/your_webhook
 ```
 
-`soft_limits`: A list of soft limits to trigger when usage reaches the configured threshold.
+`soft_limits`: A list of soft limits to trigger when usage crosses from below to at least the configured threshold.
 
 `soft_limits[].threshold`: Required. Integer. The usage value to trigger this soft limit.
-`soft_limits[].interval`: Optional. Duration string. Default `24h`. The minimal interval to wait before the next trigger of the same soft limit.
 `soft_limits[].url`: Required. The url we send a request to when the soft limit is triggered.
 
 ### The Soft Limit Request
 
-We send a HTTP request to the configured `soft_limits[].url` whenever a threshold is reached.
+We send a HTTP request to the configured `soft_limits[].url` when usage crosses from below to at least the configured threshold.
+
+The same event type is also used when usage crosses the hard limit.
 
 The request body follows the [Event](./event.md) specification.
 
-The event type is [`usage.soft_limit.reached`](./event.md#usagesoft_limitreached).
+The event type is [`usage.warning.triggered`](./event.md#usagewarningtriggered).
 
 ### Merging of usage limit soft limits
 
