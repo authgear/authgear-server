@@ -10,6 +10,16 @@ period: "day" # "month" or "day"
 quota: 5
 ```
 
+## Supported Usage Types
+
+Supported usage types are:
+
+- `user_export`
+- `user_import`
+- `email`
+- `whatsapp`
+- `sms`
+
 ### Admin API - Export User
 
 ```yaml
@@ -176,15 +186,9 @@ usage:
 
 `usage.alert.emails`: Optional. A list of email addresses that receive usage alert notifications for this project.
 
-`usage.<name>.soft_limits` has the same shape and semantics as the feature config `soft_limits`.
+`usage.<name>.soft_limits` has the same shape and semantics as the feature config `soft_limits`. Supported `<name>` values are listed in [Supported Usage Types](#supported-usage-types).
 
-Supported `<name>` values are:
-
-- `user_export`
-- `user_import`
-- `email`
-- `whatsapp`
-- `sms`
+The same values are used in `usage_limit.name` in [`usage.alert.triggered`](./event.md#usagealerttriggered).
 
 If configured, [`usage.alert.triggered`](./event.md#usagealerttriggered) triggers [hooks](./hook.md). Project collaborators can configure deno hooks or webhooks in order to receive usage alerts. If `usage.alert.emails` is set, usage alerts are also sent to the configured email addresses.
 

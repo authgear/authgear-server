@@ -1135,7 +1135,7 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 
 Occurs when usage crosses from below to at least a configured usage limit soft limit threshold, or when usage crosses the hard limit.
 
-This event is intended for the usage limit soft limit webhook described in [Usage Limit Soft Limits](./usage.md#usage-limit-soft-limits). The same event type is also used for the hard limit case.
+This event is intended for the usage alert configuration described in [Usage](./usage.md). It is used for configured soft limits and the hard limit case. If configured, this event triggers [hooks](./hook.md), and it can also be sent to the email addresses in `usage.alert.emails`.
 
 `context.triggered_by` is `system`.
 
@@ -1144,7 +1144,7 @@ Payload:
 {
   "payload": {
     "usage_limit": {
-      "name": "messaging.sms_usage",
+      "name": "sms",
       "period": "month",
       "current_usage": 900,
       "quota": 1000
@@ -1153,7 +1153,7 @@ Payload:
 }
 ```
 
-- `usage_limit.name`: The configured usage limit name. Supported values are `admin_api.user_export_usage`, `admin_api.user_import_usage`, `messaging.email_usage`, `messaging.whatsapp_usage`, and `messaging.sms_usage`.
+- `usage_limit.name`: The configured usage limit name. Supported values are listed in [Supported Usage Types](./usage.md#supported-usage-types).
 - `usage_limit.period`: The usage limit period.
 - `usage_limit.current_usage`: The measured usage value in the current period when the event is generated.
 - `usage_limit.quota`: The configured quota of the usage limit.
