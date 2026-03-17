@@ -158,3 +158,36 @@ usage:
 In other words, `soft_limits` are merged by appending the project-level entries after the plan-level entries, and all merged `soft_limits` share the same effective `usage.alert` config.
 
 When site-wise usage alert is enabled, `usage.alert.enabled: false` in a plan or app explicitly turns off usage alerts for that plan or app.
+
+## Send Usage Alert To Project Owner
+
+We can configure usage alerts to project owners through `authgear.yaml`.
+
+```yaml
+usage:
+  alert:
+    emails:
+      - <project_owner_email_1>
+      - <project_collaborator_email_2>
+  sms:
+    soft_limits:
+      - threshold: 900
+```
+
+`usage.alert.emails`: Optional. A list of email addresses that receive usage alert notifications for this project.
+
+`usage.<name>.soft_limits` has the same shape and semantics as the feature config `soft_limits`.
+
+Supported `<name>` values are:
+
+- `user_export`
+- `user_import`
+- `email`
+- `whatsapp`
+- `sms`
+
+If configured, [`usage.alert.triggered`](./event.md#usagealerttriggered) triggers [hooks](./hook.md). Project collaborators can configure deno hooks or webhooks in order to receive usage alerts. If `usage.alert.emails` is set, usage alerts are also sent to the configured email addresses.
+
+### Portal Configurations
+
+The portal should automatically fill `usage.alert.emails` with the project owner's email when usage alert is enabled.
