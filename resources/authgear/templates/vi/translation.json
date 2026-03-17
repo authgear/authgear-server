@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "Đang kiểm tra hệ thống của bạn...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Có vẻ như bạn đã sử dụng {OAuthProviderNameExisting} để đăng nhập trước đây.} other {Tài khoản {LoginIDNameIncoming} này đã được đăng ký.}}} oauth {Có vẻ như bạn chưa liên kết với tài khoản {OAuthProviderNameIncoming} đó.} other {Tài khoản này đã được đăng ký} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Email này} phone {Số điện thoại này} username {Tên người dùng này} other {Định danh này} }} oauth {Email này} other {Định danh này} } không thể tìm thấy. Bạn có muốn tạo một tài khoản không?",
+  "v2.error.blocked-by-fraud-protection": "Quá nhiều lần thử. Vui lòng đợi một lúc trước khi thử lại.",
   "v2.error.bot-protection-cloudflare": "Đã xảy ra sự cố với Cloudflare Turnstile, vui lòng liên hệ với bộ phận hỗ trợ.",
   "v2.error.bot-protection-recaptcha-v2": "Đã xảy ra sự cố với Google RecaptchaV2, vui lòng liên hệ với bộ phận hỗ trợ.",
   "v2.error.bot-protection-required": "Vui lòng xác minh captcha để tiếp tục.<br />Nếu bạn không thể nhìn thấy widget captcha, vui lòng liên hệ với bộ phận hỗ trợ.",

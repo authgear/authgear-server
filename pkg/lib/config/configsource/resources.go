@@ -235,6 +235,23 @@ func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.
 	}()
 
 	validationCtx.AddError(featureConfigErr)
+
+	// fraud_protection is guarded by is_modifiable.
+	// We allow the save when:
+	//   - incoming == original (unchanged), OR
+	//   - incoming == default (nil / omitted from the YAML, meaning "don't touch it")
+	// This handles plan downgrades: a config customised while is_modifiable=true
+	// can still be saved unchanged after the plan is downgraded.
+	if !*fc.FraudProtection.IsModifiable {
+		defaultFP := &config.FraudProtectionConfig{}
+		config.SetFieldDefaults(defaultFP)
+		incomingFPJSON, _ := json.Marshal(incoming.FraudProtection)
+		originalFPJSON, _ := json.Marshal(original.FraudProtection)
+		defaultFPJSON, _ := json.Marshal(defaultFP)
+		if string(incomingFPJSON) != string(originalFPJSON) && string(incomingFPJSON) != string(defaultFPJSON) {
+			validationCtx.Child("fraud_protection").EmitErrorMessage("fraud_protection config is not modifiable")
+		}
+	}
 }
 
 // Check public origin.

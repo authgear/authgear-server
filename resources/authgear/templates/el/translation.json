@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "Έλεγχος του συστήματός σας...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Φαίνεται ότι χρησιμοποιήσατε {OAuthProviderNameExisting} για σύνδεση πριν.} other {Αυτό το {LoginIDNameIncoming} είναι ήδη καταχωρημένο.}}} oauth {Φαίνεται ότι δεν έχετε συνδέσει ακόμη με αυτόν τον λογαριασμό {OAuthProviderNameIncoming}.} other {Αυτός ο λογαριασμός είναι ήδη καταχωρημένος} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Αυτό το email} phone {Αυτός ο αριθμός τηλεφώνου} username {Αυτό το όνομα χρήστη} other {Αυτή η ταυτότητα} }} oauth {Αυτό το email} other {Αυτή η ταυτότητα} } δεν μπορεί να βρεθεί. Θέλετε να δημιουργήσετε έναν λογαριασμό;",
+  "v2.error.blocked-by-fraud-protection": "Πάρα πολλές προσπάθειες. Περιμένετε λίγο πριν προσπαθήσετε ξανά.",
   "v2.error.bot-protection-cloudflare": "Κάτι πήγε στραβά με το Cloudflare Turnstile, παρακαλώ επικοινωνήστε με την υποστήριξη.",
   "v2.error.bot-protection-recaptcha-v2": "Κάτι πήγε στραβά με το Google RecaptchaV2, παρακαλώ επικοινωνήστε με την υποστήριξη.",
   "v2.error.bot-protection-required": "Παρακαλώ επαληθεύστε το captcha για να συνεχίσετε.<br />Εάν δεν μπορείτε να δείτε το πρόσθετο captcha, παρακαλώ επικοινωνήστε με την υποστήριξη.",

@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "A verificar o seu sistema...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Parece que você usou {OAuthProviderNameExisting} para login antes.} other {Este {LoginIDNameIncoming} já está registrado.}}} oauth {Parece que você ainda não vinculou essa conta {OAuthProviderNameIncoming}.} other {Esta conta já está registrada} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Este email} phone {Este número de telefone} username {Este nome de usuário} other {Esta identidade} }} oauth {Este email} other {Esta identidade} } não pode ser encontrado. Você deseja criar uma conta?",
+  "v2.error.blocked-by-fraud-protection": "Demasiadas tentativas. Aguarde um momento antes de tentar novamente.",
   "v2.error.bot-protection-cloudflare": "Algo correu mal com o Cloudflare Turnstile, por favor contacte o suporte.",
   "v2.error.bot-protection-recaptcha-v2": "Algo correu mal com o Google RecaptchaV2, por favor contacte o suporte.",
   "v2.error.bot-protection-required": "Por favor, verifique o captcha para prosseguir.<br />Se não conseguir ver o widget do captcha, por favor contacte o suporte.",

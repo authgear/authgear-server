@@ -30,6 +30,7 @@ var _ = TestCaseSchema.Add("TestCase", `
 		"name": { "type": "string" },
 		"focus": { "type": "boolean" },
 		"authgear.yaml": { "$ref": "#/$defs/AuthgearYAMLSource" },
+		"authgear.features.yaml": { "$ref": "#/$defs/AuthgearFeaturesYAMLSource" },
 		"extra_files_directory": { "type": "string" },
 		"steps": { "type": "array", "items": { "$ref": "#/$defs/Step" } },
 		"before": { "type": "array", "items": { "$ref": "#/$defs/BeforeHook" } }
@@ -43,11 +44,12 @@ type TestCase struct {
 	Path string `json:"path"`
 	// Applying focus to a test case will make it the only test case to run,
 	// mainly used for debugging new test cases.
-	Focus               bool               `json:"focus"`
-	AuthgearYAMLSource  AuthgearYAMLSource `json:"authgear.yaml"`
-	ExtraFilesDirectory string             `json:"extra_files_directory"`
-	Steps               []Step             `json:"steps"`
-	Before              []BeforeHook       `json:"before"`
+	Focus                      bool                       `json:"focus"`
+	AuthgearYAMLSource         AuthgearYAMLSource         `json:"authgear.yaml"`
+	AuthgearFeaturesYAMLSource AuthgearFeaturesYAMLSource `json:"authgear.features.yaml"`
+	ExtraFilesDirectory        string                     `json:"extra_files_directory"`
+	Steps                      []Step                     `json:"steps"`
+	Before                     []BeforeHook               `json:"before"`
 }
 
 func (tc *TestCase) FullName() string {
@@ -102,6 +104,11 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 			err = cmd.ExecuteSQLInsertUpdateFile(beforeHook.CustomSQL.Path)
 			if err != nil {
 				return fmt.Errorf("failed to execute custom SQL: %w", err)
+			}
+		case BeforeHookTypeCustomAuditSQL:
+			err = cmd.ExecuteSQLInsertUpdateAuditFile(beforeHook.CustomAuditSQL.Path)
+			if err != nil {
+				return fmt.Errorf("failed to execute custom audit SQL: %w", err)
 			}
 		case BeforeHookTypeCreateSession:
 			err = cmd.ExecuteCreateSession(beforeHook.CreateSession)
@@ -239,6 +246,33 @@ func (tc *TestCase) executeStep(
 
 		if step.QueryOutput != nil {
 			ok := validateQueryResult(t, step, rows)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+	case StepActionAuditQuery:
+		jsonArrString, err := cmd.QuerySQLSelectAuditRaw(step.AuditQuery)
+		if err != nil {
+			t.Errorf("failed to execute audit SQL Select query: %v", err)
+			return
+		}
+
+		rowsResult := map[string]interface{}{}
+		var rows []interface{}
+		err = json.Unmarshal([]byte(jsonArrString), &rows)
+		if err != nil {
+			t.Errorf("failed to unmarshal json rows: %v", err)
+			return
+		}
+		rowsResult["rows"] = rows
+		result = &StepResult{
+			Result: rowsResult,
+			Error:  nil,
+		}
+
+		if step.AuditQueryOutput != nil {
+			ok := validateAuditQueryResult(t, step, rows)
 			if !ok {
 				return nil, state, false
 			}
@@ -413,7 +447,16 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
-		flowResponse, flowErr = client.InputFlow(nil, nil, state, input)
+		inputState := state
+		if step.StateToken != "" {
+			inputState, ok = renderTemplateString(t, cmd, prevSteps, step.StateToken)
+			if !ok {
+				return nil, state, false
+			}
+			inputState = strings.TrimSpace(inputState)
+		}
+
+		flowResponse, flowErr = client.InputFlow(nil, nil, inputState, input)
 
 		if step.Output != nil {
 			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
@@ -693,6 +736,27 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 	return true
 
+}
+
+func validateAuditQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) {
+	rowsJSON, _ := json.MarshalIndent(rows, "", "  ")
+	resultViolations, err := MatchOutputQueryResult(*step.AuditQueryOutput, rows)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %s\n", rowsJSON)
+		return false
+	}
+
+	if len(resultViolations) > 0 {
+		t.Errorf("result output mismatch in '%s':\n", step.Name)
+		for _, violation := range resultViolations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", rowsJSON)
+		return false
+	}
+
+	return true
 }
 
 func validateRedirectLocation(t *testing.T, expectedPath string, response *http.Response) (ok bool) {

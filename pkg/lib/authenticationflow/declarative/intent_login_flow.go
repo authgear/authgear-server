@@ -159,6 +159,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 			}
 			return nil
 		}),
+		revertUnverifiedSMSOTPs(flows),
 	}, nil
 }
 

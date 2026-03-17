@@ -1,0 +1,34 @@
+name: Fraud protection - verified OTP writes to audit metrics
+steps:
+  # Verify an SMS OTP to trigger RecordSMSOTPVerified
+  - name: create signup flow
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+
+  - name: identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+
+  - name: send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: verify otp
+    action: input
+    input: |
+      {"code": "111111"}
+
+  # After OTP verification, 2 rows should be written to _audit_metrics:
+  # one for the IP dimension and one for the phone_country dimension.
+  - name: check audit metrics rows
+    action: audit_query
+    audit_query: |
+      SELECT id FROM _audit_metrics WHERE app_id = '{{ .AppID }}' AND name = 'sms_otp_verified' ORDER BY created_at
+    audit_query_output:
+      rows: '[{"id": "[[string]]"}, {"id": "[[string]]"}]'

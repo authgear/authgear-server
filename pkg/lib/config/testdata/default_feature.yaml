@@ -130,3 +130,5 @@ test_mode:
     suppressed: false
   whatsapp:
     suppressed: false
+fraud_protection:
+  is_modifiable: false

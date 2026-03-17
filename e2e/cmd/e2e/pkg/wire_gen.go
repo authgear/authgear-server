@@ -36,6 +36,7 @@ import (
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -592,6 +593,38 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		MessageStore:          messageStore,
 		Credentials:           whatsappCloudAPICredentials,
 	}
+	readHandle := p.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := ProvideEnd2EndHTTPReferer()
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        handle,
+		EventService:    eventService,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -604,6 +637,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
 		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -735,6 +769,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	messagingSender := &messaging.Sender{
 		Limits:                            limits,
 		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
 		MailSender:                        sender,
 		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,

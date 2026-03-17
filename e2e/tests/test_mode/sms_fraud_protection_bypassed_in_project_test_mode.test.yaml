@@ -1,0 +1,160 @@
+name: SMS fraud protection is bypassed when using project test mode
+authgear.yaml:
+  override: |
+    test_mode:
+      sms:
+        enabled: true
+        rules:
+        - regex: "^\\+12\\d+$"
+          suppressed: true
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+steps:
+  # Flows 1-3: Three distinct phone countries from the same IP (HK, MY, JP).
+  # None are matched by project test mode, so fraud protection runs normally.
+  # Each succeeds, reaching the IP daily country threshold (3 countries).
+  - name: flow 1 - create (HK)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone (HK)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85291230001"
+      }
+  - name: flow 1 - send sms (allowed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 2 - create (MY)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone (MY)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+60123450001"
+      }
+  - name: flow 2 - send sms (allowed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 3 - create (JP)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 3 - identify phone (JP)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+819012340001"
+      }
+  - name: flow 3 - send sms (allowed, threshold reached)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 4: US number (+12...) matched by project test mode regex.
+  # Project test mode short-circuits before fraud protection, so even though
+  # the threshold is exceeded, the request succeeds.
+  - name: flow 4 - create (US, matched by project test mode)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 4 - identify phone (US, project test mode)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+12125550001"
+      }
+  - name: flow 4 - send sms (succeeds, fraud protection bypassed by project test mode)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 5: CN number - not matched by project test mode regex.
+  # Fraud protection still applies and blocks this as the 4th distinct non-test-mode country.
+  - name: flow 5 - create (CN, not in project test mode)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 5 - identify phone (CN)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+8613912340001"
+      }
+  - name: flow 5 - send sms (blocked by fraud protection)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }

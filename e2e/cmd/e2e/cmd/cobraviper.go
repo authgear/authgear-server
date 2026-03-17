@@ -61,6 +61,11 @@ var ArgConfigOverride = &cobraviper.StringArgument{
 	Usage:        "Config override",
 }
 
+var ArgFeaturesOverride = &cobraviper.StringArgument{
+	ArgumentName: "features-override",
+	Usage:        "Features config override",
+}
+
 var ArgConfigSourceExtraFilesDirectory = &cobraviper.StringArgument{
 	ArgumentName: "config-source-extra-files-directory",
 	Usage:        "Config source extra files directory",

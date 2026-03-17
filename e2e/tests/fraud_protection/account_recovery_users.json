@@ -1,0 +1,37 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "recovery_sg_1",
+      "phone_number": "+6591230101",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    },
+    {
+      "preferred_username": "recovery_sg_2",
+      "phone_number": "+6591230102",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    },
+    {
+      "preferred_username": "recovery_sg_3",
+      "phone_number": "+6591230103",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    },
+    {
+      "preferred_username": "recovery_sg_4",
+      "phone_number": "+6591230104",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

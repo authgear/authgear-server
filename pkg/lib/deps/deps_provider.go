@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/event"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -100,6 +101,7 @@ var AppRootDeps = wire.NewSet(
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(workflow.ServiceDatabase), new(*appdb.Handle)),
 	wire.Bind(new(authenticationflow.ServiceDatabase), new(*appdb.Handle)),
+	wire.Bind(new(fraudprotection.DatabaseHandle), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
@@ -131,6 +133,10 @@ func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
 	return httputil.UserAgentString(r.UserAgent())
 }
 
+func ProvideHTTPReferer(r *http.Request) httputil.HTTPReferer {
+	return httputil.GetReferer(r)
+}
+
 func ProvideRedisQueueHTTPRequest() *http.Request {
 	ctx := contextForRedisQueue
 	r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
@@ -143,6 +149,10 @@ func ProvideRedisQueueRemoteIP() httputil.RemoteIP {
 
 func ProvideRedisQueueUserAgentString() httputil.UserAgentString {
 	return httputil.UserAgentString("redis-queue")
+}
+
+func ProvideRedisQueueHTTPReferer() httputil.HTTPReferer {
+	return httputil.HTTPReferer("")
 }
 
 func ProvideRedisQueueHTTPHost() httputil.HTTPHost {
@@ -164,6 +174,7 @@ var RequestDependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	ProvideHTTPReferer,
 )
 
 var RedisQueueDependencySet = wire.NewSet(
@@ -173,6 +184,7 @@ var RedisQueueDependencySet = wire.NewSet(
 	ProvideRedisQueueUserAgentString,
 	ProvideRedisQueueHTTPHost,
 	ProvideRedisQueueHTTPProto,
+	ProvideRedisQueueHTTPReferer,
 )
 
 var BackgroundDependencySet = wire.NewSet(

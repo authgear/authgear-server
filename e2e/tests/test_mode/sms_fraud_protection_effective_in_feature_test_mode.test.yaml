@@ -1,0 +1,124 @@
+name: SMS fraud protection is effective when using feature config test mode
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+steps:
+  # Flows 1-3: Three distinct phone countries from the same IP (HK, MY, JP).
+  # Feature config test mode suppresses the SMS, but fraud protection still runs.
+  # Each succeeds, reaching the IP daily country threshold (3 countries).
+  - name: flow 1 - create (HK)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone (HK)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85291230001"
+      }
+  - name: flow 1 - send sms (allowed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 2 - create (MY)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone (MY)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+60123450001"
+      }
+  - name: flow 2 - send sms (allowed)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 3 - create (JP)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 3 - identify phone (JP)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+819012340001"
+      }
+  - name: flow 3 - send sms (allowed, threshold reached)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  # Flow 4: US number - 4th distinct country, exceeds threshold.
+  # Even though feature config test mode would suppress the SMS, fraud protection
+  # runs before feature config test mode and blocks the request.
+  - name: flow 4 - create (US)
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 4 - identify phone (US)
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+12125550001"
+      }
+  - name: flow 4 - send sms (blocked by fraud protection)
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }

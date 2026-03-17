@@ -153,6 +153,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 
 			return nil
 		}),
+		revertUnverifiedSMSOTPs(flows),
 	}, nil
 }
 

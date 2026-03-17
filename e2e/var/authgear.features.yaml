@@ -1,3 +1,12 @@
 test_mode:
+  fixed_oob_otp:
+    enabled: true
+    code: "111111"
   deterministic_link_otp:
     enabled: true
+  sms:
+    suppressed: true
+  whatsapp:
+    suppressed: true
+fraud_protection:
+  is_modifiable: true

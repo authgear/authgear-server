@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "시스템 확인 중...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {이전에 {OAuthProviderNameExisting}로 로그인했던 것 같습니다.} other {이 {LoginIDNameIncoming}는 이미 등록되어 있습니다.}}} oauth {아직 {OAuthProviderNameIncoming} 계정과 연결되지 않은 것 같습니다.} other {이 계정은 이미 등록되어 있습니다.} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {이 이메일} phone {이 전화번호} username {이 사용자명} other {이 계정} }} oauth {이 이메일} other {이 계정} }을(를) 찾을 수 없습니다. 계정을 만드시겠습니까?",
+  "v2.error.blocked-by-fraud-protection": "시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.",
   "v2.error.bot-protection-cloudflare": "Cloudflare Turnstile에 문제가 발생했습니다. 지원팀에 문의하세요.",
   "v2.error.bot-protection-recaptcha-v2": "Google RecaptchaV2에 문제가 발생했습니다. 지원팀에 문의하세요.",
   "v2.error.bot-protection-required": "계속하려면 캡차를 인증하세요.<br />캡차 위젯을 볼 수 없다면 고객지원팀에 문의하세요.",

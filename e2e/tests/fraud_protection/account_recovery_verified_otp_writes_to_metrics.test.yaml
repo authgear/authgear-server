@@ -1,0 +1,89 @@
+name: Fraud protection - account recovery verified OTP writes to audit metrics
+authgear.yaml:
+  override: |
+    # Restrict account recovery to phone/SMS so the flow exercises the SMS OTP
+    # verification path that fraud protection records into _audit_metrics.
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: phone
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: sms
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: account_recovery_users.json
+steps:
+  # Drive a phone-based account recovery flow through successful OTP verification.
+  - name: create recovery flow
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230101"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+
+  - name: send sms
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }
+
+  - name: verify recovery code
+    action: input
+    input: |
+      {
+        "account_recovery_code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "reset_password"
+          }
+        }
+
+  - name: check audit metrics rows
+    action: audit_query
+    audit_query: |
+      -- A verified SMS OTP should write 2 metrics rows: one keyed by IP and one by phone country.
+      SELECT COUNT(*) AS n FROM _audit_metrics
+      WHERE app_id = '{{ .AppID }}' AND name = 'sms_otp_verified'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "n": "2"
+          }
+        ]

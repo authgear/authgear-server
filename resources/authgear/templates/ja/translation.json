@@ -440,6 +440,7 @@
   "v2.component.verify-bot-protection.default.title": "システムを確認しています...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {以前は{OAuthProviderNameExisting}でログインしていたようです。} other {この{LoginIDNameIncoming}はすでに登録されています。}}} oauth {まだその{OAuthProviderNameIncoming}アカウントとリンクされていないようです。} other {このアカウントはすでに登録されています。} }",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {このメールアドレス} phone {この電話番号} username {このユーザー名} other {この認証情報} }} oauth {このメールアドレス} other {この認証情報} } は見つかりませんでした。アカウントを作成しますか?",
+  "v2.error.blocked-by-fraud-protection": "試行回数が多すぎます。しばらく待ってからもう一度お試しください。",
   "v2.error.bot-protection-cloudflare": "Cloudflare Turnstileで何か問題が発生しました。サポートにお問い合わせください。",
   "v2.error.bot-protection-recaptcha-v2": "Google RecaptchaV2で何か問題が発生しました。サポートにお問い合わせください。Passkeyはそのままです。",
   "v2.error.bot-protection-required": "続行するには、キャプチャを検証してください。<br />キャプチャウィジェットが表示されない場合は、サポートにお問い合わせください。",
