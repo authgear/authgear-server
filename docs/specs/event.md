@@ -56,7 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
-      - [usage.warning.triggered](#usagewarningtriggered)
+      - [usage.alert.triggered](#usagealerttriggered)
     + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
@@ -542,7 +542,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
-- [usage.warning.triggered](#usagewarningtriggered)
+- [usage.alert.triggered](#usagealerttriggered)
 - [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
@@ -1131,7 +1131,7 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 }
 ```
 
-#### usage.warning.triggered
+#### usage.alert.triggered
 
 Occurs when usage crosses from below to at least a configured usage limit soft limit threshold, or when usage crosses the hard limit.
 
