@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: Site Admin API
+  version: "1.0"
+  description: Internal API for Site Admin operations.
+
+servers:
+  - url: http://localhost:8100
+    description: Local development (via nginx)
+
+paths:
+  /api/v1/projects:
+    get:
+      operationId: listProjects
+      summary: List all projects
+      parameters:
+        - name: page
+          in: query
+          description: Page number, 1-based. Defaults to 1.
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          description: Number of projects per page. Defaults to 20, maximum 100.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: project_id
+          in: query
+          description: Filter by project ID.
+          schema:
+            type: string
+        - name: owner_email
+          in: query
+          description: Filter by owner email address.
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: A list of projects
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - projects
+                  - total_count
+                  - page
+                  - page_size
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Project"
+                  total_count:
+                    type: integer
+                    description: Total number of projects matching the query.
+                  page:
+                    type: integer
+                    description: Current page number.
+                  page_size:
+                    type: integer
+                    description: Number of projects per page.
+
+  /api/v1/projects/{project_id}:
+    get:
+      operationId: getProject
+      summary: Get project details
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Project not found
+
+components:
+  schemas:
+    Project:
+      type: object
+      required:
+        - id
+        - owner_email
+        - plan
+        - created_at
+      properties:
+        id:
+          type: string
+          description: The project ID
+        owner_email:
+          type: string
+          format: email
+          description: Email address of the project owner
+        plan:
+          type: string
+          description: The plan the project is on
+        created_at:
+          type: string
+          format: date-time
+          description: The time the project was created, in RFC 3339 format
