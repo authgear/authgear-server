@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/fraudprotection"
 
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
@@ -50,6 +51,10 @@ func ProvideHTTPProto() httputil.HTTPProto {
 
 func ProvideUserAgentString() httputil.UserAgentString {
 	return "authgear"
+}
+
+func ProvideHTTPReferer() httputil.HTTPReferer {
+	return ""
 }
 
 type AccountDeletionServiceFactory struct {
@@ -122,6 +127,7 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	ProvideHTTPReferer,
 	wire.Struct(new(AccountDeletionServiceFactory), "*"),
 	wire.Struct(new(AccountAnonymizationServiceFactory), "*"),
 	wire.Struct(new(AccountStatusServiceFactory), "*"),
@@ -131,6 +137,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(accountanonymization.UserServiceFactory), new(*AccountAnonymizationServiceFactory)),
 	wire.Bind(new(accountstatus.UserServiceFactory), new(*AccountStatusServiceFactory)),
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
+	wire.Bind(new(fraudprotection.DatabaseHandle), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),

@@ -158,17 +158,6 @@ oauth:
     name: M2M app
     x_application_type: m2m
     issue_jwt_access_token: true
-test_mode:
-  sms:
-    enabled: true
-    rules:
-    - regex: .*
-      suppressed: true
-  oob_otp:
-    enabled: true
-    rules:
-    - fixed_code: "111111"
-      regex: .*
 ui:
   dark_theme_disabled: false
   forgot_password:

@@ -611,13 +611,19 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Clock: clockClock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := ProvideEnd2EndHTTPReferer()
 	fraudprotectionService := &fraudprotection.Service{
-		AppID:       appID,
-		Metrics:     metricsStore,
-		LeakyBucket: leakyBucketStore,
-		Config:      fraudProtectionConfig,
-		RemoteIP:    remoteIP,
-		Clock:       clockClock,
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        handle,
+		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

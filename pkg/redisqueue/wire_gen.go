@@ -573,13 +573,19 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock: clock,
 	}
 	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := deps.ProvideRedisQueueHTTPReferer()
 	fraudprotectionService := &fraudprotection.Service{
-		AppID:       appID,
-		Metrics:     metricsStore,
-		LeakyBucket: leakyBucketStore,
-		Config:      fraudProtectionConfig,
-		RemoteIP:    remoteIP,
-		Clock:       clock,
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clock,
+		Database:        handle,
+		EventService:    eventService,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
