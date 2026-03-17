@@ -161,5 +161,22 @@ func TestSchemaValidate(t *testing.T) {
 			},
 		})
 
+		err = schema.Validator().Validate(ctx, strings.NewReader("{\n\t\"b\": \"abc://efg``\"\n}"))
+		So(err, ShouldResemble, &validation.AggregatedError{
+			Message: "invalid value",
+			Errors: []validation.Error{
+				{
+					Location: "/b",
+					Keyword:  "format",
+					Info: map[string]interface{}{
+						"Err":    "`",
+						"Op":     "parse",
+						"URL":    "abc://efg``",
+						"format": "http_origin",
+					},
+				},
+			},
+		})
+
 	})
 }

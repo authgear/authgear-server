@@ -216,7 +216,7 @@ const AcceptAdminInvitationScreen: React.VFC =
       return (
         <AcceptAdminInvitationContent
           title={{
-            id: "AcceptAdminInvitationScreen.not-authenticaed.title",
+            id: "AcceptAdminInvitationScreen.not-authenticated.title",
             values: {
               appID: appID!,
               // eslint-disable-next-line react/no-unstable-nested-components
@@ -224,7 +224,7 @@ const AcceptAdminInvitationScreen: React.VFC =
             },
           }}
           descriptions={[
-            { id: "AcceptAdminInvitationScreen.not-authenticaed.description" },
+            { id: "AcceptAdminInvitationScreen.not-authenticated.description" },
           ]}
         >
           <PrimaryButton
