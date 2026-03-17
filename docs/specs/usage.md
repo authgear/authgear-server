@@ -70,9 +70,9 @@ messaging:
     quota: 1000
 ```
 
-## Usage Limit Soft Limits
+## Usage Soft Limits
 
-Define soft limits to send when a usage threshold is reached.
+Define soft limits to send an alert when a usage threshold is reached.
 
 ```yaml
 usage:
@@ -91,13 +91,13 @@ messaging:
 
 `usage.alert.enabled`: Optional. Boolean. Explicitly enable or disable usage alerts for this plan or app. This is used to turn off alerts for a specific plan or app even when site-wise usage alert is enabled.
 
-`usage.alert.url`: Required when usage alerts are enabled and any usage limit config contains `soft_limits`. The url we send a request to when any configured soft limit or hard limit is triggered.
+`usage.alert.url`: Required when usage alerts are enabled. The url we send a request to when a configured feature config soft limit or the hard limit is triggered. It can also be a deno script url.
 
 `soft_limits`: A list of soft limits to trigger when usage crosses from below to at least the configured threshold.
 
 `soft_limits[].threshold`: Required. Integer. The usage value to trigger this soft limit.
 
-### The Soft Limit Request
+### The Alert Request
 
 We send a HTTP request to the configured `usage.alert.url` when usage alerts are enabled and usage crosses from below to at least the configured threshold.
 
@@ -108,6 +108,10 @@ The same event type is also used when usage crosses the hard limit.
 The request body follows the [Event](./event.md) specification.
 
 The event type is [`usage.alert.triggered`](./event.md#usagealerttriggered).
+
+Note that this does not trigger [hook](./hook.md).
+
+When usage crosses the hard limit, it also sends alerts to url configured in `usage.alert.url`.
 
 ### Merging of usage limit soft limits
 
@@ -184,13 +188,15 @@ usage:
       - threshold: 900
 ```
 
-`usage.alert.emails`: Optional. A list of email addresses that receive usage alert notifications for this project.
+`usage.alert.emails`: Optional. A list of email addresses that receive usage alerts for this project.
 
 `usage.<name>.soft_limits` has the same shape and semantics as the feature config `soft_limits`. Supported `<name>` values are listed in [Supported Usage Types](#supported-usage-types).
 
 The same values are used in `usage_limit.name` in [`usage.alert.triggered`](./event.md#usagealerttriggered).
 
-If configured, [`usage.alert.triggered`](./event.md#usagealerttriggered) triggers [hooks](./hook.md). Project collaborators can configure deno hooks or webhooks in order to receive usage alerts. If `usage.alert.emails` is set, usage alerts are also sent to the configured email addresses.
+If configured, `usage.<name>.soft_limits` in `authgear.yaml` trigger [`usage.alert.triggered`](./event.md#usagealerttriggered) and [hooks](./hook.md) when usage reaches a configured soft limit threshold. Project collaborators can configure deno hooks or webhooks in order to receive usage alerts.
+
+When usage reaches the hard limit, it also triggers [`usage.alert.triggered`](./event.md#usagealerttriggered) and [hooks](./hook.md). If `usage.alert.emails` is set, hard limit alerts are also sent to the configured email addresses. If `usage.alert.url` is configured in feature config, the hard limit also triggers that alert.
 
 ### Portal Configurations
 
