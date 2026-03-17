@@ -16,6 +16,11 @@ type Service struct {
 }
 
 func (s *Service) PeekAttestationResponse(ctx context.Context, attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error) {
+	config, err := s.ConfigService.MakeConfig(ctx)
+	if err != nil {
+		return
+	}
+
 	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestationResponse))
 	if err != nil {
 		return
@@ -33,7 +38,37 @@ func (s *Service) PeekAttestationResponse(ctx context.Context, attestationRespon
 	}
 
 	creationOptions = session.CreationOptions
-	credentialID = parsed.ID
+
+	var credParams []protocol.CredentialParameter
+	for _, p := range creationOptions.PublicKey.PublicKeyCredentialParameters {
+		credParams = append(credParams, protocol.CredentialParameter{
+			Type:      p.Type,
+			Algorithm: p.Algorithm,
+		})
+	}
+
+	verifyUser := creationOptions.PublicKey.AuthenticatorSelection.UserVerification == protocol.VerificationRequired
+	verifyUserPresence := true
+	rpOrigins := []string{config.RPOrigin}
+	rpTopOrigins := rpOrigins
+	rpTopOriginVerify := protocol.TopOriginExplicitVerificationMode
+
+	_, err = parsed.Verify(
+		creationOptions.PublicKey.Challenge.String(),
+		verifyUser,
+		verifyUserPresence,
+		config.RPID,
+		rpOrigins,
+		rpTopOrigins,
+		rpTopOriginVerify,
+		nil,
+		credParams,
+	)
+	if err != nil {
+		return
+	}
+
+	credentialID = base64.RawURLEncoding.EncodeToString(parsed.Response.AttestationObject.AuthData.AttData.CredentialID)
 	signCount = int64(parsed.Response.AttestationObject.AuthData.Counter)
 	return
 }
