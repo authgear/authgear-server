@@ -10,12 +10,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/parser"
+
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 const (
@@ -25,6 +32,8 @@ const (
 
 var ErrMethodMustBePost = errors.New("http method must be POST")
 var ErrBodyMustBeNonNil = errors.New("http request body must be non-nil")
+
+const maxMutationFieldsPerRequest = 5
 
 type ResultCallbackFn func(ctx context.Context, params *graphql.Params, result *graphql.Result, responseBody []byte)
 
@@ -138,6 +147,11 @@ func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *
 		panic(err)
 	}
 
+	if err := validateMutationFieldCount(opts.Query, opts.OperationName, maxMutationFieldsPerRequest); err != nil {
+		writeErrorResponse(ctx, w, err)
+		return
+	}
+
 	// execute graphql query
 	params := graphql.Params{
 		Schema:         *h.Schema,
@@ -166,4 +180,133 @@ func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *
 	if h.ResultCallbackFn != nil {
 		h.ResultCallbackFn(ctx, &params, result, buff)
 	}
+}
+
+func writeErrorResponse(ctx context.Context, w http.ResponseWriter, err error) {
+	apiError := apierrors.AsAPIErrorWithContext(ctx, err)
+	logger := logger.GetLogger(ctx)
+	logger.WithError(err).With(
+		slog.Int("status_code", apiError.Code),
+		slog.String("error_name", string(apiError.Kind.Name)),
+		slog.String("error_reason", apiError.Kind.Reason),
+		slog.String("error_message", apiError.Message),
+	).Warn(ctx, "rejecting GraphQL request before execution")
+
+	resp := &api.Response{Error: err}
+	bodyBytes, encodeErr := resp.EncodeToJSON(ctx)
+	if encodeErr != nil {
+		panic(encodeErr)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(apiError.Code)
+	_, writeErr := w.Write(bodyBytes)
+	if writeErr != nil {
+		panic(writeErr)
+	}
+}
+
+func validateMutationFieldCount(query string, operationName string, limit int) error {
+	doc, err := parser.Parse(parser.ParseParams{Source: query})
+	if err != nil {
+		return err
+	}
+
+	operation, err := findOperation(doc, operationName)
+	if err != nil || operation == nil {
+		return err
+	}
+	if operation.Operation != ast.OperationTypeMutation {
+		return nil
+	}
+
+	fragments := make(map[string]*ast.FragmentDefinition)
+	for _, def := range doc.Definitions {
+		fragment, ok := def.(*ast.FragmentDefinition)
+		if !ok || fragment.Name == nil {
+			continue
+		}
+		fragments[fragment.Name.Value] = fragment
+	}
+
+	count, err := countTopLevelFields(operation.SelectionSet, fragments, map[string]bool{})
+	if err != nil {
+		return err
+	}
+	if count > limit {
+		return apierrors.NewBadRequest(
+			fmt.Sprintf("too many mutation fields in one request: got %d, limit is %d", count, limit),
+		)
+	}
+	return nil
+}
+
+func findOperation(doc *ast.Document, operationName string) (*ast.OperationDefinition, error) {
+	var operations []*ast.OperationDefinition
+	for _, def := range doc.Definitions {
+		if op, ok := def.(*ast.OperationDefinition); ok {
+			operations = append(operations, op)
+		}
+	}
+
+	if operationName == "" {
+		if len(operations) == 1 {
+			return operations[0], nil
+		}
+		return nil, nil
+	}
+
+	for _, op := range operations {
+		if op.Name != nil && op.Name.Value == operationName {
+			return op, nil
+		}
+	}
+	return nil, nil
+}
+
+func countTopLevelFields(
+	selectionSet *ast.SelectionSet,
+	fragments map[string]*ast.FragmentDefinition,
+	visiting map[string]bool,
+) (int, error) {
+	if selectionSet == nil {
+		return 0, nil
+	}
+
+	count := 0
+	for _, selection := range selectionSet.Selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			count++
+		case *ast.InlineFragment:
+			n, err := countTopLevelFields(sel.SelectionSet, fragments, visiting)
+			if err != nil {
+				return 0, err
+			}
+			count += n
+		case *ast.FragmentSpread:
+			if sel.Name == nil {
+				continue
+			}
+			name := sel.Name.Value
+			if visiting[name] {
+				return 0, apierrors.NewBadRequest(
+					fmt.Sprintf("graphql fragment cycle detected at %q", name),
+				)
+			}
+			fragment := fragments[name]
+			if fragment == nil {
+				continue
+			}
+			visiting[name] = true
+			n, err := countTopLevelFields(fragment.SelectionSet, fragments, visiting)
+			delete(visiting, name)
+			if err != nil {
+				return 0, err
+			}
+			count += n
+		}
+	}
+
+	return count, nil
 }
