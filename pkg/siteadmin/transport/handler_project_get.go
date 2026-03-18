@@ -1,7 +1,9 @@
 package transport
 
 import (
+	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -26,8 +28,17 @@ func parseProjectGetParams(r *http.Request) ProjectGetParams {
 }
 
 func (h *ProjectGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_ = parseProjectGetParams(r)
+	params := parseProjectGetParams(r)
 
-	// TODO: Replace with real data source.
+	// TODO: Replace with real data source. Search dummy data for now.
+	for _, p := range dummyProjects {
+		if strings.EqualFold(p.Id, params.ProjectID) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(p)
+			return
+		}
+	}
+
 	http.NotFound(w, r)
 }
