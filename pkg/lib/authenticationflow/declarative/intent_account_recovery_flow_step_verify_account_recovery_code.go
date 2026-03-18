@@ -194,6 +194,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 			dest.TargetLoginID,
 			dest.ForgotPasswordCodeChannel(),
 			dest.ForgotPasswordCodeKind(),
+			nil,
 		)
 		if err != nil {
 			return nil, err

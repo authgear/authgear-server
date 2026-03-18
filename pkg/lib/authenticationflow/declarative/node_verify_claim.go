@@ -173,7 +173,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 }
 
 func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), n.ClaimValue)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), n.ClaimValue, nil)
 	if err != nil {
 		return nil, err
 	}

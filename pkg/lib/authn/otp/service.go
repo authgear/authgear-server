@@ -22,6 +22,7 @@ type GenerateOptions struct {
 	WebSessionID                           string
 	WorkflowID                             string
 	AuthenticationFlowWebsocketChannelName string
+	AuthenticationFlowID                   string
 	AuthenticationFlowType                 string
 	AuthenticationFlowName                 string
 	AuthenticationFlowJSONPointer          jsonpointer.T
@@ -151,6 +152,9 @@ func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, 
 
 func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
 	logger := ServiceLogger.GetLogger(ctx)
+	if opts == nil {
+		opts = &GenerateOptions{}
+	}
 
 	if !opts.SkipRateLimits {
 		failed, err := s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldown(target))
@@ -159,6 +163,15 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		}
 		if err := failed.Error(); err != nil {
 			return "", err
+		}
+		if opts.AuthenticationFlowID != "" {
+			failed, err = s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
+			if err != nil {
+				return "", err
+			}
+			if err := failed.Error(); err != nil {
+				return "", err
+			}
 		}
 
 		specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
@@ -322,7 +335,7 @@ func (s *Service) SetSubmittedCode(ctx context.Context, kind Kind, target string
 		return nil, err
 	}
 
-	return s.InspectState(ctx, kind, target)
+	return s.InspectState(ctx, kind, target, nil)
 }
 
 func (s *Service) LookupCode(ctx context.Context, purpose Purpose, code string) (target string, err error) {
@@ -333,7 +346,10 @@ func (s *Service) InspectCode(ctx context.Context, purpose Purpose, target strin
 	return s.getCode(ctx, purpose, target)
 }
 
-func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*State, error) {
+func (s *Service) InspectState(ctx context.Context, kind Kind, target string, opts *InspectStateOptions) (*State, error) {
+	if opts == nil {
+		opts = &InspectStateOptions{}
+	}
 	ferr := s.checkFailedAttemptsRevocation(ctx, kind, target)
 	tooManyAttempts := false
 	if errors.Is(ferr, ErrTooManyAttempts) {
@@ -349,6 +365,15 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		return nil, err
 	}
 	canResendAt = *timeToAct
+	if opts.AuthenticationFlowID != "" {
+		timeToAct, err := s.RateLimiter.GetTimeToAct(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
+		if err != nil {
+			return nil, err
+		}
+		if timeToAct.After(canResendAt) {
+			canResendAt = *timeToAct
+		}
+	}
 
 	state := &State{
 		CanResendAt:           canResendAt,

@@ -90,7 +90,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 
 func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.PhoneNumber
-	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target)
+	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target, nil)
 	if err != nil {
 		return nil, err
 	}

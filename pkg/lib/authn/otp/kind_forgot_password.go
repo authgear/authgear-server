@@ -86,6 +86,24 @@ func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.Bu
 	)
 }
 
+func (k kindForgotPassword) RateLimitTriggerCooldownPerSession(flowID string) ratelimit.BucketSpec {
+	return ratelimit.NewCooldownSpec(
+		selectByChannel(
+			k.channel,
+			ratelimit.ForgotPasswordCooldownEmailPerSession,
+			ratelimit.ForgotPasswordCooldownSMSPerSession,
+			ratelimit.ForgotPasswordCooldownWhatsappPerSession,
+		),
+		selectByChannel(
+			k.channel,
+			k.config.ForgotPassword.RateLimits.Email.TriggerCooldown.Duration(),
+			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown.Duration(),
+			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown.Duration(),
+		),
+		flowID,
+	)
+}
+
 func (k kindForgotPassword) RateLimitValidate(
 	featureConfig *config.FeatureConfig,
 	envConfig *config.RateLimitsEnvironmentConfig,

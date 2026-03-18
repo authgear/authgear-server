@@ -68,6 +68,22 @@ func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.Buck
 	)
 }
 
+func (k kindVerification) RateLimitTriggerCooldownPerSession(flowID string) ratelimit.BucketSpec {
+	return ratelimit.NewCooldownSpec(
+		selectByChannel(k.channel,
+			ratelimit.VerificationCooldownEmailPerSession,
+			ratelimit.VerificationCooldownSMSPerSession,
+			ratelimit.VerificationCooldownWhatsappPerSession,
+		),
+		selectByChannel(k.channel,
+			k.config.Verification.RateLimits.Email.TriggerCooldown,
+			k.config.Verification.RateLimits.SMS.TriggerCooldown,
+			k.config.Verification.RateLimits.SMS.TriggerCooldown,
+		).Duration(),
+		flowID,
+	)
+}
+
 func (k kindVerification) RateLimitValidate(
 	featureConfig *config.FeatureConfig,
 	envConfig *config.RateLimitsEnvironmentConfig,

@@ -203,7 +203,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 
 func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	claimName, claimValue := n.Info.OOBOTP.ToClaimPair()
-	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue, nil)
 	if err != nil {
 		return nil, err
 	}

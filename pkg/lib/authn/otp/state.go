@@ -26,3 +26,7 @@ type State struct {
 	DeliveryStatus model.OTPDeliveryStatus
 	DeliveryError  *apierrors.APIError
 }
+
+type InspectStateOptions struct {
+	AuthenticationFlowID string
+}
