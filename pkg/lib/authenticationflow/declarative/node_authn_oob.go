@@ -203,7 +203,9 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 
 func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	claimName, claimValue := n.Info.OOBOTP.ToClaimPair()
-	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue, nil)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue, &otp.InspectStateOptions{
+		AuthenticationFlowID: authflow.GetSession(ctx).FlowID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -286,6 +288,7 @@ func (n *NodeAuthenticationOOB) GenerateCode(ctx context.Context, deps *authflow
 		n.Form,
 		&otp.GenerateOptions{
 			UserID:                                 n.UserID,
+			AuthenticationFlowID:                   authflow.GetSession(ctx).FlowID,
 			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
 		},
 	)

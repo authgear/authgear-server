@@ -173,7 +173,9 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 }
 
 func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), n.ClaimValue, nil)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), n.ClaimValue, &otp.InspectStateOptions{
+		AuthenticationFlowID: authflow.GetSession(ctx).FlowID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -244,6 +246,7 @@ func (n *NodeVerifyClaim) GenerateCode(ctx context.Context, deps *authflow.Depen
 		n.Form,
 		&otp.GenerateOptions{
 			UserID:                                 n.UserID,
+			AuthenticationFlowID:                   authflow.GetSession(ctx).FlowID,
 			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
 		},
 	)
