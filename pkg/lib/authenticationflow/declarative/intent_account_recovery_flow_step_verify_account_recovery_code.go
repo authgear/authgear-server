@@ -194,7 +194,9 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 			dest.TargetLoginID,
 			dest.ForgotPasswordCodeChannel(),
 			dest.ForgotPasswordCodeKind(),
-			nil,
+			&forgotpassword.InspectStateOptions{
+				AuthenticationFlowID: authflow.GetFlowID(ctx),
+			},
 		)
 		if err != nil {
 			return nil, err
@@ -223,6 +225,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) findDestination
 	if len(ms) == 0 {
 		return nil, false
 	}
-	// Otherwise use the first one we find.
-	return ms[0], true
+	// Use the latest destination milestone so sequential account recovery steps
+	// inspect the destination associated with the current verify step.
+	return ms[len(ms)-1], true
 }

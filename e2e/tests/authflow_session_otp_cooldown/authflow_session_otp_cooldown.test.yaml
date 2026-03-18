@@ -1,0 +1,332 @@
+name: Signup verify phone OTP is rate limited per session across different targets
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        sms:
+          phone_otp_mode: sms
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - name: identify_phone_1
+          type: identify
+          one_of:
+          - identification: phone
+        - type: verify
+          target_step: identify_phone_1
+        - name: identify_phone_2
+          type: identify
+          one_of:
+          - identification: phone
+        - type: verify
+          target_step: identify_phone_2
+        - type: create_authenticator
+          one_of:
+          - authentication: primary_password
+steps:
+  - name: flow 1 - create signup flow
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify first phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85265000001"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: flow 1 - verify first phone code
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - name: flow 1 - identify second phone and hit per-session verification cooldown
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85265000002"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "RateLimited",
+          "code": 429,
+          "info": {
+            "bucket_name": "VerificationCooldownSMSPerSession"
+          }
+        }
+
+---
+name: Signup secondary SMS OOB OTP is rate limited per session across different targets
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        sms:
+          phone_otp_mode: sms
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - name: authenticate_primary_username
+              type: create_authenticator
+              one_of:
+              - authentication: primary_password
+            - name: authenticate_secondary_sms_1
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_sms
+            - name: authenticate_secondary_sms_2
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_sms
+steps:
+  - name: flow 1 - create signup flow
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "session_sms_user@example.com"
+      }
+  - name: flow 1 - create primary password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "Password123!"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+  - name: flow 1 - send first secondary SMS OTP
+    action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target": "+85265000001",
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms"
+            }
+          }
+        }
+  - name: flow 1 - verify first secondary SMS OTP
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+  - name: flow 1 - send second secondary SMS OTP and hit per-session cooldown
+    action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target": "+85265000002",
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "RateLimited",
+          "code": 429,
+          "info": {
+            "bucket_name": "OOBOTPCooldownSMSPerSession"
+          }
+        }
+
+---
+name: Signup secondary phone OOB OTP allows switching from SMS to WhatsApp in same session
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        sms:
+          phone_otp_mode: whatsapp_sms
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - name: authenticate_primary_username
+              type: create_authenticator
+              one_of:
+              - authentication: primary_password
+            - name: authenticate_secondary_sms_1
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_sms
+            - name: authenticate_secondary_sms_2
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_sms
+steps:
+  - name: flow 1 - create signup flow
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "session_whatsapp_user@example.com"
+      }
+  - name: flow 1 - create primary password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "Password123!"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+  - name: flow 1 - start first secondary phone OOB OTP
+    action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target": "+85265000003"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "select_oob_otp_channels_data"
+            }
+          }
+        }
+  - name: flow 1 - choose SMS for first secondary phone OOB OTP
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms"
+            }
+          }
+        }
+  - name: flow 1 - verify first SMS OOB OTP
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+  - name: flow 1 - start second secondary phone OOB OTP
+    action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target": "+85265000004"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "select_oob_otp_channels_data"
+            }
+          }
+        }
+  - name: flow 1 - switch to WhatsApp and bypass SMS per-session cooldown
+    action: input
+    input: |
+      {
+        "channel": "whatsapp"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "whatsapp"
+            }
+          }
+        }

@@ -1,0 +1,108 @@
+name: Account recovery resend is rate limited per session across different targets
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: email
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: shared session - create account recovery flow
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: flow branch 1 - identify first email
+    action: input
+    state_token: |
+      {{ index .steps "shared session - create account recovery flow" "result" "state_token" }}
+    input: |
+      {
+        "identification": "email",
+        "login_id": "recovery1@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+
+  - name: flow branch 1 - choose first destination
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code",
+            "data": {
+              "type": "account_recovery_verify_code_data",
+              "channel": "email",
+              "otp_form": "code",
+              "can_resend_at": "[[string]]"
+            }
+          }
+        }
+
+  - name: flow branch 2 - identify second email with same authflow session
+    action: input
+    state_token: |
+      {{ index .steps "shared session - create account recovery flow" "result" "state_token" }}
+    input: |
+      {
+        "identification": "email",
+        "login_id": "recovery2@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+
+  - name: flow branch 2 - choose second destination and hit per-session cooldown
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "RateLimited",
+          "code": 429,
+          "info": {
+            "bucket_name": "ForgotPasswordCooldownEmailPerSession"
+          }
+        }

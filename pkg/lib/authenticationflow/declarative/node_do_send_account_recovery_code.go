@@ -54,6 +54,7 @@ func (n *NodeDoSendAccountRecoveryCode) Send(
 	ignoreRateLimitError bool,
 ) error {
 	err := deps.ForgotPassword.SendCode(ctx, n.TargetLoginID, &forgotpassword.CodeOptions{
+		AuthenticationFlowID:          authflow.GetFlowID(ctx),
 		AuthenticationFlowType:        string(n.FlowReference.Type),
 		AuthenticationFlowName:        n.FlowReference.Name,
 		AuthenticationFlowJSONPointer: n.ParentJSONPointer,
