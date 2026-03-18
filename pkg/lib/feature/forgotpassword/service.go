@@ -25,6 +25,8 @@ import (
 
 var ForgotPasswordLogger = slogutil.NewLogger("forgot-password")
 
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package forgotpassword
+
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
