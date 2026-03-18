@@ -47,6 +47,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProjectsListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /api/v1/projects/{project_id}:
     get:
@@ -65,11 +69,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Project"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Project not found
+          $ref: "#/components/responses/NotFound"
 
 components:
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: Caller does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+
   schemas:
+    ErrorEnvelope:
+      description: Error response envelope matching the api.Response struct.
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/APIError"
+
+    APIError:
+      description: >
+        Error detail matching the apierrors.APIError struct.
+        name and reason identify the error kind; code mirrors the HTTP status.
+      type: object
+      required:
+        - name
+        - reason
+        - message
+        - code
+      properties:
+        name:
+          type: string
+          description: Error kind name (e.g. BadRequest, Forbidden, NotFound)
+          enum:
+            - BadRequest
+            - Invalid
+            - Unauthorized
+            - Forbidden
+            - NotFound
+            - AlreadyExists
+            - TooManyRequest
+            - InternalError
+            - ServiceUnavailable
+            - RequestEntityTooLarge
+        reason:
+          type: string
+          description: More specific reason within the kind (e.g. ValidationFailed)
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: integer
+          description: HTTP status code
+        tracking_id:
+          type: string
+          description: Opaque ID for correlating errors in logs
+        info:
+          type: object
+          description: Additional structured details about the error
+          additionalProperties: true
+
     ProjectsListResponse:
       type: object
       required:
