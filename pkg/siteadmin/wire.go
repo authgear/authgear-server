@@ -68,3 +68,10 @@ func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.ProjectsListHandler)),
 	))
 }
+
+func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.ProjectGetHandler)),
+	))
+}

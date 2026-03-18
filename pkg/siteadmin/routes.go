@@ -39,6 +39,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 
 	route := httproute.Route{Middleware: apiChain}
 	router.Add(transport.ConfigureProjectsListRoute(route), p.Handler(newProjectsListHandler))
+	router.Add(transport.ConfigureProjectGetRoute(route), p.Handler(newProjectGetHandler))
 
 	return router.HTTPHandler()
 }

@@ -89,3 +89,8 @@ func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
 	projectsListHandler := &transport.ProjectsListHandler{}
 	return projectsListHandler
 }
+
+func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
+	projectGetHandler := &transport.ProjectGetHandler{}
+	return projectGetHandler
+}
