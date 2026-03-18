@@ -4,6 +4,9 @@ generate:
   models: true
 output: gen.go
 output-options:
+  exclude-schemas:
+    - APIError
+    - ErrorEnvelope
   type-mapping:
     string:
       formats:
