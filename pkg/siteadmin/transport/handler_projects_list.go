@@ -3,6 +3,7 @@ package transport
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -16,12 +17,46 @@ type ProjectsListHandler struct {
 	// Add service dependencies here as needed
 }
 
+type ProjectsListParams struct {
+	Page       int
+	PageSize   int
+	ProjectID  string
+	OwnerEmail string
+}
+
+func parseProjectsListParams(r *http.Request) ProjectsListParams {
+	q := r.URL.Query()
+
+	page := 1
+	if v := q.Get("page"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 1 {
+			page = n
+		}
+	}
+
+	pageSize := 20
+	if v := q.Get("page_size"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 100 {
+			pageSize = n
+		}
+	}
+
+	return ProjectsListParams{
+		Page:       page,
+		PageSize:   pageSize,
+		ProjectID:  q.Get("project_id"),
+		OwnerEmail: q.Get("owner_email"),
+	}
+}
+
 type ProjectsListResponse struct {
 	Projects []interface{} `json:"projects"`
 }
 
 func (h *ProjectsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Scaffolding: return empty list for now
+	_ = parseProjectsListParams(r)
+
+	// TODO: Replace with real data source.
 	response := ProjectsListResponse{
 		Projects: []interface{}{},
 	}
