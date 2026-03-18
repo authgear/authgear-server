@@ -134,7 +134,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	)
 
 	route := httproute.Route{Middleware: apiChain}
-	router.AddRoutes(p.Handler(newProjectsListHandler), transport.ConfigureProjectsListRoute(route)...)
+	router.Add(transport.ConfigureProjectsListRoute(route), p.Handler(newProjectsListHandler))
 
 	return router.HTTPHandler()
 }
@@ -147,11 +147,9 @@ package transport
 
 import "github.com/authgear/authgear-server/pkg/util/httproute"
 
-func ConfigureProjectsListRoute(route httproute.Route) []httproute.Route {
-	route = route.WithMethods("GET")
-	return []httproute.Route{
-		route.WithPathPattern("/api/v1/projects"),
-	}
+func ConfigureProjectsListRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("GET").
+		WithPathPattern("/api/v1/projects")
 }
 ```
 

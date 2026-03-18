@@ -7,11 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func ConfigureProjectsListRoute(route httproute.Route) []httproute.Route {
-	route = route.WithMethods("GET")
-	return []httproute.Route{
-		route.WithPathPattern("/api/v1/projects"),
-	}
+func ConfigureProjectsListRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("GET").
+		WithPathPattern("/api/v1/projects")
 }
 
 type ProjectsListHandler struct {
