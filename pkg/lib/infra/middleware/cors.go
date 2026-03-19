@@ -2,12 +2,18 @@ package middleware
 
 import (
 	"net/http"
+
+	"github.com/iawaknahc/originmatcher"
 )
+
+type CORSOriginMatcher interface {
+	PrepareOriginMatcher(r *http.Request) (*originmatcher.T, error)
+}
 
 // CORSMiddleware provides CORS headers by matching request origin with the configured allowed origins
 // The allowed origins are provided through app config and environment variable
 type CORSMiddleware struct {
-	Matcher *CORSMatcher
+	Matcher CORSOriginMatcher
 }
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {

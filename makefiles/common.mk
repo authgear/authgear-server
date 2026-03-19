@@ -37,7 +37,7 @@ start-background:
 
 .PHONY: start-portal
 start-portal:
-	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/${CMD_PORTAL} start
+	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/${CMD_PORTAL} start portal siteadmin
 
 .PHONY: build
 build:
