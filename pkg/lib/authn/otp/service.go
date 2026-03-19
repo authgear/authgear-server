@@ -156,34 +156,51 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		opts = &GenerateOptions{}
 	}
 
+	var reservations []*ratelimit.Reservation
+	commitReservations := false
+	defer func() {
+		if commitReservations {
+			for _, r := range reservations {
+				r.PreventCancel()
+			}
+			return
+		}
+		for _, r := range reservations {
+			s.RateLimiter.Cancel(ctx, r)
+		}
+	}()
+
 	if !opts.SkipRateLimits {
-		failed, err := s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldown(target))
+		resv, failed, err := s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldown(target))
 		if err != nil {
 			return "", err
 		}
 		if err := failed.Error(); err != nil {
 			return "", err
 		}
+		reservations = append(reservations, resv)
 		if opts.AuthenticationFlowID != "" {
-			failed, err = s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
+			resv, failed, err = s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
 			if err != nil {
 				return "", err
 			}
 			if err := failed.Error(); err != nil {
 				return "", err
 			}
+			reservations = append(reservations, resv)
 		}
 
 		specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
 		for _, spec := range specs {
 			spec := *spec
-			failed, err := s.RateLimiter.Allow(ctx, spec)
+			resv, failed, err := s.RateLimiter.Reserve(ctx, spec)
 			if err != nil {
 				return "", err
 			}
 			if err := failed.Error(); err != nil {
 				return "", err
 			}
+			reservations = append(reservations, resv)
 		}
 	}
 
@@ -223,6 +240,8 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		// non-critical error; log and continue
 		logger.WithError(err).Warn(ctx, "failed to reset failed attempts counter")
 	}
+
+	commitReservations = true
 
 	return code.Code, nil
 }

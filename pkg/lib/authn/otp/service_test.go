@@ -76,14 +76,16 @@ func (s *testAttemptTracker) IncrementFailedAttempts(ctx context.Context, kind K
 }
 
 type testRateLimiter struct {
-	usedKeys       map[string]bool
+	usedKeys       map[string]int
+	reservedKeys   map[*ratelimit.Reservation]string
 	oneShotBuckets map[ratelimit.BucketName]bool
 	timeToAct      map[string]time.Time
 }
 
 func newTestRateLimiter() *testRateLimiter {
 	return &testRateLimiter{
-		usedKeys: map[string]bool{},
+		usedKeys:     map[string]int{},
+		reservedKeys: map[*ratelimit.Reservation]string{},
 		oneShotBuckets: map[ratelimit.BucketName]bool{
 			ratelimit.VerificationCooldownSMS:                  true,
 			ratelimit.VerificationCooldownWhatsapp:             true,
@@ -112,19 +114,39 @@ func (l *testRateLimiter) GetTimeToAct(ctx context.Context, spec ratelimit.Bucke
 
 func (l *testRateLimiter) Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error) {
 	if l.oneShotBuckets[spec.Name] {
-		if l.usedKeys[spec.Key()] {
+		if l.usedKeys[spec.Key()] > 0 {
 			return ratelimit.NewFailedReservation(spec), nil
 		}
-		l.usedKeys[spec.Key()] = true
+		l.usedKeys[spec.Key()]++
 	}
 	return nil, nil
 }
 
 func (l *testRateLimiter) Reserve(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error) {
-	return nil, nil, nil
+	if l.oneShotBuckets[spec.Name] {
+		if l.usedKeys[spec.Key()] > 0 {
+			return nil, ratelimit.NewFailedReservation(spec), nil
+		}
+		l.usedKeys[spec.Key()]++
+	}
+	resv := &ratelimit.Reservation{}
+	l.reservedKeys[resv] = spec.Key()
+	return resv, nil, nil
 }
 
-func (l *testRateLimiter) Cancel(ctx context.Context, r *ratelimit.Reservation) {}
+func (l *testRateLimiter) Cancel(ctx context.Context, r *ratelimit.Reservation) {
+	if r == nil {
+		return
+	}
+	key, ok := l.reservedKeys[r]
+	if !ok {
+		return
+	}
+	if l.usedKeys[key] > 0 {
+		l.usedKeys[key]--
+	}
+	delete(l.reservedKeys, r)
+}
 
 func loadTestAppConfig() *config.AppConfig {
 	boolPtr := func(v bool) *bool { return &v }
@@ -193,6 +215,30 @@ func TestGenerateOTPWithSessionCooldown(t *testing.T) {
 
 		_, err = svc.GenerateOTP(context.Background(), kindWhatsapp, "+85265000004", FormCode, &GenerateOptions{
 			AuthenticationFlowID: "flow-1",
+		})
+		So(err, ShouldBeNil)
+	})
+}
+
+func TestGenerateOTPWithSessionCooldownDoesNotConsumeTargetCooldownOnFailure(t *testing.T) {
+	Convey("GenerateOTP cancels target cooldown reservation when session cooldown is blocked", t, func() {
+		cfg := loadTestAppConfig()
+		rateLimiter := newTestRateLimiter()
+		svc := newTestService(rateLimiter)
+		kind := KindVerification(cfg, "sms")
+
+		_, err := svc.GenerateOTP(context.Background(), kind, "+85265000001", FormCode, &GenerateOptions{
+			AuthenticationFlowID: "flow-1",
+		})
+		So(err, ShouldBeNil)
+
+		_, err = svc.GenerateOTP(context.Background(), kind, "+85265000002", FormCode, &GenerateOptions{
+			AuthenticationFlowID: "flow-1",
+		})
+		So(ratelimit.IsRateLimitErrorWithBucketName(err, ratelimit.VerificationCooldownSMSPerSession), ShouldBeTrue)
+
+		_, err = svc.GenerateOTP(context.Background(), kind, "+85265000002", FormCode, &GenerateOptions{
+			AuthenticationFlowID: "flow-2",
 		})
 		So(err, ShouldBeNil)
 	})
