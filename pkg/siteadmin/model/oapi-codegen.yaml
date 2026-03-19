@@ -7,6 +7,9 @@ output-options:
   exclude-schemas:
     - APIError
     - ErrorEnvelope
+    - BadRequest
+    - Forbidden
+    - NotFound
   type-mapping:
     string:
       formats:

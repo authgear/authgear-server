@@ -7,6 +7,59 @@ import (
 	"time"
 )
 
+// Defines values for CollaboratorRole.
+const (
+	Editor CollaboratorRole = "editor"
+	Owner  CollaboratorRole = "owner"
+)
+
+// Valid indicates whether the value is a known member of the CollaboratorRole enum.
+func (e CollaboratorRole) Valid() bool {
+	switch e {
+	case Editor:
+		return true
+	case Owner:
+		return true
+	default:
+		return false
+	}
+}
+
+// AddCollaboratorRequest defines model for AddCollaboratorRequest.
+type AddCollaboratorRequest struct {
+	// UserEmail The email address of the user to add as a collaborator. The role is always editor.
+	UserEmail string `json:"user_email"`
+}
+
+// Collaborator defines model for Collaborator.
+type Collaborator struct {
+	// CreatedAt When the collaborator was added, in RFC 3339 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The collaborator record ID
+	Id string `json:"id"`
+
+	// ProjectId The project this collaborator belongs to
+	ProjectId string `json:"project_id"`
+
+	// Role The role of a collaborator within a project
+	Role CollaboratorRole `json:"role"`
+
+	// UserEmail The email address of the collaborator
+	UserEmail string `json:"user_email"`
+
+	// UserId The user ID of the collaborator
+	UserId string `json:"user_id"`
+}
+
+// CollaboratorRole The role of a collaborator within a project
+type CollaboratorRole string
+
+// CollaboratorsListResponse defines model for CollaboratorsListResponse.
+type CollaboratorsListResponse struct {
+	Collaborators []Collaborator `json:"collaborators"`
+}
+
 // Project defines model for Project.
 type Project struct {
 	// CreatedAt The time the project was created, in RFC 3339 format
@@ -49,3 +102,6 @@ type ListProjectsParams struct {
 	// OwnerEmail Filter by owner email address.
 	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
 }
+
+// AddProjectCollaboratorJSONRequestBody defines body for AddProjectCollaborator for application/json ContentType.
+type AddProjectCollaboratorJSONRequestBody = AddCollaboratorRequest
