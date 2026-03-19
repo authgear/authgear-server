@@ -3,7 +3,9 @@ package transport
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/authgear/authgear-server/pkg/siteadmin/model"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -22,6 +24,45 @@ var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
 		"required": ["user_email"]
 	}
 `)
+
+// TODO: Replace dummy data with real implementation.
+var dummyCollaborators = map[string][]model.Collaborator{
+	"project-alpha": {
+		{
+			Id:        "collab-1",
+			ProjectId: "project-alpha",
+			UserId:    "user-001",
+			UserEmail: "alice@example.com",
+			Role:      model.Owner,
+			CreatedAt: time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC),
+		},
+		{
+			Id:        "collab-2",
+			ProjectId: "project-alpha",
+			UserId:    "user-002",
+			UserEmail: "bob@example.com",
+			Role:      model.Editor,
+			CreatedAt: time.Date(2024, 2, 10, 9, 0, 0, 0, time.UTC),
+		},
+	},
+	"project-beta": {
+		{
+			Id:        "collab-3",
+			ProjectId: "project-beta",
+			UserId:    "user-003",
+			UserEmail: "carol@example.com",
+			Role:      model.Owner,
+			CreatedAt: time.Date(2024, 3, 22, 10, 0, 0, 0, time.UTC),
+		},
+	},
+}
+
+func dummyCollaboratorsForProject(projectID string) []model.Collaborator {
+	if collaborators, ok := dummyCollaborators[projectID]; ok {
+		return collaborators
+	}
+	return []model.Collaborator{}
+}
 
 type CollaboratorAddHandler struct {
 	// Add service dependencies here as needed
@@ -54,8 +95,18 @@ func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		writeError(w, r, err)
 		return
 	}
-	_ = params
 
-	// TODO: implement
-	http.NotFound(w, r)
+	// TODO: Replace with real data source. Return a dummy collaborator now.
+	collaborator := model.Collaborator{
+		Id:        "collab-new",
+		ProjectId: params.ProjectID,
+		UserId:    "user-new",
+		UserEmail: params.UserEmail,
+		Role:      model.Editor,
+		CreatedAt: time.Now().UTC(),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(collaborator)
 }

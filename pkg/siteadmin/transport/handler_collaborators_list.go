@@ -1,8 +1,11 @@
 package transport
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/siteadmin/model"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -26,8 +29,20 @@ func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
 }
 
 func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_ = parseCollaboratorsListParams(r)
+	params := parseCollaboratorsListParams(r)
 
-	// TODO: implement
-	http.NotFound(w, r)
+	// TODO: Replace with real data source. Search dummy data for now.
+	for _, p := range dummyProjects {
+		if p.Id == params.ProjectID {
+			response := model.CollaboratorsListResponse{
+				Collaborators: dummyCollaboratorsForProject(params.ProjectID),
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(response)
+			return
+		}
+	}
+
+	writeError(w, r, apierrors.NewNotFound("project not found"))
 }
