@@ -7,6 +7,7 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(CORSMiddleware), "*"),
 	wire.Struct(new(CORSMatcher), "*"),
+	wire.Bind(new(CORSOriginMatcher), new(*CORSMatcher)),
 
 	wire.Struct(new(PanicMiddleware), "*"),
 
