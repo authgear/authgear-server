@@ -94,3 +94,18 @@ func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
 	projectGetHandler := &transport.ProjectGetHandler{}
 	return projectGetHandler
 }
+
+func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorsListHandler := &transport.CollaboratorsListHandler{}
+	return collaboratorsListHandler
+}
+
+func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorAddHandler := &transport.CollaboratorAddHandler{}
+	return collaboratorAddHandler
+}
+
+func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{}
+	return collaboratorRemoveHandler
+}

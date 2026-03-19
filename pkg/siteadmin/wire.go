@@ -75,3 +75,24 @@ func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.ProjectGetHandler)),
 	))
 }
+
+func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorsListHandler)),
+	))
+}
+
+func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorAddHandler)),
+	))
+}
+
+func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorRemoveHandler)),
+	))
+}
