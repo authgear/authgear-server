@@ -131,3 +131,127 @@ steps:
             "target": "recovery1@example.com"
           }
         ]
+
+---
+name: Account recovery still respects per-target cooldown across different flows
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: email
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: flow 1 - create account recovery flow
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 1 - identify shared email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "recovery1@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+  - name: flow 1 - choose shared destination
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code",
+            "data": {
+              "type": "account_recovery_verify_code_data",
+              "channel": "email",
+              "otp_form": "code"
+            }
+          }
+        }
+  - name: flow 2 - create account recovery flow
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+  - name: flow 2 - identify same email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "recovery1@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+  - name: flow 2 - choose same destination and hit per-target cooldown
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code",
+            "data": {
+              "type": "account_recovery_verify_code_data",
+              "channel": "email",
+              "otp_form": "code",
+              "can_resend_at": "[[string]]"
+            }
+          }
+        }
+  - name: verify same target only triggered one account recovery email across flows
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        CASE
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%recovery1@example.com%' THEN 'recovery1@example.com'
+          ELSE 'unexpected'
+        END AS target
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('email.sent', 'email.suppressed')
+      ORDER BY activity_type, target, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "target": "recovery1@example.com"
+          }
+        ]
