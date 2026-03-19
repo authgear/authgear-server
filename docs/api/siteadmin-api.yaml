@@ -52,6 +52,84 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v1/projects/{project_id}/collaborators:
+    get:
+      operationId: listProjectCollaborators
+      summary: List collaborators of a project
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of collaborators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollaboratorsListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      operationId: addProjectCollaborator
+      summary: Add a collaborator to a project directly
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCollaboratorRequest"
+      responses:
+        "200":
+          description: The newly added collaborator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collaborator"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/projects/{project_id}/collaborators/{collaborator_id}:
+    delete:
+      operationId: removeProjectCollaborator
+      summary: Remove a collaborator from a project
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collaborator_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Collaborator removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v1/projects/{project_id}:
     get:
       operationId: getProject
@@ -148,6 +226,63 @@ components:
           type: object
           description: Additional structured details about the error
           additionalProperties: true
+
+    CollaboratorsListResponse:
+      type: object
+      required:
+        - collaborators
+      properties:
+        collaborators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collaborator"
+
+    Collaborator:
+      type: object
+      required:
+        - id
+        - project_id
+        - user_id
+        - user_email
+        - role
+        - created_at
+      properties:
+        id:
+          type: string
+          description: The collaborator record ID
+        project_id:
+          type: string
+          description: The project this collaborator belongs to
+        user_id:
+          type: string
+          description: The user ID of the collaborator
+        user_email:
+          type: string
+          format: email
+          description: The email address of the collaborator
+        role:
+          $ref: "#/components/schemas/CollaboratorRole"
+        created_at:
+          type: string
+          format: date-time
+          description: When the collaborator was added, in RFC 3339 format
+
+    CollaboratorRole:
+      type: string
+      enum:
+        - owner
+        - editor
+      description: The role of a collaborator within a project
+
+    AddCollaboratorRequest:
+      type: object
+      required:
+        - user_email
+      properties:
+        user_email:
+          type: string
+          format: email
+          description: The email address of the user to add as a collaborator. The role is always editor.
 
     ProjectsListResponse:
       type: object
