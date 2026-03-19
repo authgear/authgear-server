@@ -11,7 +11,7 @@ import (
 )
 
 func ConfigureCollaboratorAddRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("POST").
+	return route.WithMethods("OPTIONS", "POST").
 		WithPathPattern("/api/v1/projects/:projectID/collaborators")
 }
 

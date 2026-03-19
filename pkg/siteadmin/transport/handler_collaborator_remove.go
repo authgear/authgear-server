@@ -9,7 +9,7 @@ import (
 )
 
 func ConfigureCollaboratorRemoveRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("DELETE").
+	return route.WithMethods("OPTIONS", "DELETE").
 		WithPathPattern("/api/v1/projects/:projectID/collaborators/:collaboratorID")
 }
 
