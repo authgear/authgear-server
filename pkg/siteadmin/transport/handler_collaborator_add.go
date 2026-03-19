@@ -70,11 +70,11 @@ type CollaboratorAddHandler struct {
 
 type CollaboratorAddParams struct {
 	ProjectID string
-	UserEmail string
+	model.AddCollaboratorRequest
 }
 
 func parseCollaboratorAddParams(r *http.Request) (CollaboratorAddParams, error) {
-	var body map[string]interface{}
+	var body model.AddCollaboratorRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return CollaboratorAddParams{}, err
 	}
@@ -84,8 +84,8 @@ func parseCollaboratorAddParams(r *http.Request) (CollaboratorAddParams, error) 
 	}
 
 	return CollaboratorAddParams{
-		ProjectID: httproute.GetParam(r, "projectID"),
-		UserEmail: body["user_email"].(string),
+		ProjectID:              httproute.GetParam(r, "projectID"),
+		AddCollaboratorRequest: body,
 	}, nil
 }
 
