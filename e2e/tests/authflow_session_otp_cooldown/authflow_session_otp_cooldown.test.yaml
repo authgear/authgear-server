@@ -67,15 +67,39 @@ steps:
         "login_id": "+85265000002"
       }
     output:
-      error: |
+      result: |
         {
-          "name": "TooManyRequest",
-          "reason": "RateLimited",
-          "code": 429,
-          "info": {
-            "bucket_name": "VerificationCooldownSMSPerSession"
+          "action": {
+            "type": "verify",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms",
+              "can_resend_at": "[[string]]"
+            }
           }
         }
+  - name: verify only first verification SMS was attempted
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        CASE
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000001%' THEN '+85265000001'
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000002%' THEN '+85265000002'
+          ELSE 'unexpected'
+        END AS target
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('sms.sent', 'sms.suppressed')
+      ORDER BY activity_type, target, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "sms.suppressed",
+            "target": "+85265000001"
+          }
+        ]
 
 ---
 name: Signup secondary SMS OOB OTP is rate limited per session across different targets
@@ -177,15 +201,40 @@ steps:
         "channel": "sms"
       }
     output:
-      error: |
+      result: |
         {
-          "name": "TooManyRequest",
-          "reason": "RateLimited",
-          "code": 429,
-          "info": {
-            "bucket_name": "OOBOTPCooldownSMSPerSession"
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms",
+              "can_resend_at": "[[string]]"
+            }
           }
         }
+  - name: verify only first secondary SMS OTP was attempted
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        CASE
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000001%' THEN '+85265000001'
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000002%' THEN '+85265000002'
+          ELSE 'unexpected'
+        END AS target
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('sms.sent', 'sms.suppressed')
+      ORDER BY activity_type, target, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "sms.suppressed",
+            "target": "+85265000001"
+          }
+        ]
 
 ---
 name: Signup secondary phone OOB OTP allows switching from SMS to WhatsApp in same session
@@ -330,3 +379,29 @@ steps:
             }
           }
         }
+  - name: verify sms then whatsapp were both attempted
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        CASE
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000003%' THEN '+85265000003'
+          WHEN COALESCE(data->'payload'->>'recipient', data->'payload'->>'description', '') ILIKE '%+85265000004%' THEN '+85265000004'
+          ELSE 'unexpected'
+        END AS target
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('sms.sent', 'sms.suppressed', 'whatsapp.sent', 'whatsapp.suppressed')
+      ORDER BY activity_type, target, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "sms.suppressed",
+            "target": "+85265000003"
+          },
+          {
+            "activity_type": "whatsapp.suppressed",
+            "target": "+85265000004"
+          }
+        ]

@@ -42,7 +42,8 @@ func NewNodeAuthenticationOOB(ctx context.Context, deps *authflow.Dependencies, 
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 	simpleNode := authflow.NewNodeSimple(n)
 	code, err := n.GenerateCode(ctx, deps)
-	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) ||
+		ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldownPerSession(authflow.GetSession(ctx).FlowID).Name) {
 		// Ignore trigger cooldown rate limit error; continue the flow
 		code = ""
 	} else if err != nil {

@@ -97,7 +97,7 @@ type VerificationService interface {
 }
 
 type ForgotPasswordService interface {
-	IsRateLimitError(err error, target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) bool
+	IsRateLimitError(err error, target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind, flowID string) bool
 	CodeLength(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) int
 
 	SendCode(ctx context.Context, loginID string, options *forgotpassword.CodeOptions) error

@@ -430,9 +430,10 @@ func (s *Service) CodeLength(target string, channel CodeChannel, kind CodeKind) 
 	return form.CodeLength()
 }
 
-func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel, kind CodeKind) bool {
+func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel, kind CodeKind, flowID string) bool {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
-	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name)
+	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name) ||
+		(flowID != "" && ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldownPerSession(flowID).Name))
 }
 
 // InspectState is for external use. It DOES NOT report dummy code as invalid.
