@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -40,5 +41,5 @@ func (h *ProjectGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.NotFound(w, r)
+	writeError(w, r, apierrors.NewNotFound("project not found"))
 }
