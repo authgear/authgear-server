@@ -76,21 +76,17 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	if err != nil {
 		panic(err)
 	}
-	customJar := &JarWorkingAroundGolangIssue38988{
-		Jar:           jar,
-		CorrectedHost: string(httpHost),
-	}
 	var transport = &ProjectHostRewriteTransport{
 		MainEndpoint: mainEndpointURL,
 		HTTPHost:     httpHost,
 	}
 
 	var httpClient = &http.Client{
-		Jar:       customJar,
+		Jar:       jar,
 		Transport: transport,
 	}
 	var noRedirectClient = &http.Client{
-		Jar: customJar,
+		Jar: jar,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -140,7 +136,7 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 
 	return &Client{
 		Context:          ctx,
-		CookieJar:        customJar,
+		CookieJar:        jar,
 		HTTPClient:       httpClient,
 		NoRedirectClient: noRedirectClient,
 		OAuthClient:      oauthClient,
