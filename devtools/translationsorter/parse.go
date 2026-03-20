@@ -80,7 +80,7 @@ func GetKeyValuePairs(jsonStream io.Reader) []KeyValuePair {
 			break
 		}
 		if err != nil {
-			panic(fmt.Sprintf("token error: %w", err))
+			panic(fmt.Errorf("token error: %w", err))
 		}
 
 		tokenType := getTokenType(i)
