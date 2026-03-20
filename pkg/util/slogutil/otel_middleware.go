@@ -32,9 +32,22 @@ func (s *OTelTraceStateHandler) Enabled(ctx context.Context, level slog.Level) b
 func (s *OTelTraceStateHandler) Handle(ctx context.Context, record slog.Record) error {
 	s.setSpanStatus(ctx, record)
 
+	cloned := false
+	sc := trace.SpanContextFromContext(ctx)
+	if sc.IsValid() {
+		record = record.Clone()
+		cloned = true
+		record.AddAttrs(
+			slog.String("trace_id", sc.TraceID().String()),
+			slog.String("span_id", sc.SpanID().String()),
+		)
+	}
+
 	m := otelutil.GetAuthgearBaggage(ctx)
 	if len(m) > 0 {
-		record = record.Clone()
+		if !cloned {
+			record = record.Clone()
+		}
 		for k, v := range m {
 			record.AddAttrs(slog.String(k, v))
 		}
