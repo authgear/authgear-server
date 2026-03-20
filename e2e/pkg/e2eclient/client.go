@@ -76,17 +76,21 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	if err != nil {
 		panic(err)
 	}
+	hostAwareJar := &HostAwareCookieJar{
+		Jar:           jar,
+		CorrectedHost: string(httpHost),
+	}
 	var transport = &ProjectHostRewriteTransport{
 		MainEndpoint: mainEndpointURL,
 		HTTPHost:     httpHost,
 	}
 
 	var httpClient = &http.Client{
-		Jar:       jar,
+		Jar:       hostAwareJar,
 		Transport: transport,
 	}
 	var noRedirectClient = &http.Client{
-		Jar: jar,
+		Jar: hostAwareJar,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -136,7 +140,7 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 
 	return &Client{
 		Context:          ctx,
-		CookieJar:        jar,
+		CookieJar:        hostAwareJar,
 		HTTPClient:       httpClient,
 		NoRedirectClient: noRedirectClient,
 		OAuthClient:      oauthClient,
@@ -414,6 +418,12 @@ func (c *Client) MakeHTTPRequest(
 	req, err := http.NewRequestWithContext(c.Context, method, toURL, buf)
 	if err != nil {
 		return err
+	}
+
+	// Most e2e webapp requests go to the main listen address but must still
+	// carry the per-app host so project-scoped cookies are attached.
+	if req.URL.Host == c.MainEndpoint.Host {
+		req.Host = string(c.HTTPHost)
 	}
 
 	for k, v := range headers {
