@@ -5,6 +5,8 @@ import (
 	"log/slog"
 
 	slogmulti "github.com/samber/slog-multi"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
@@ -28,6 +30,8 @@ func (s *OTelTraceStateHandler) Enabled(ctx context.Context, level slog.Level) b
 }
 
 func (s *OTelTraceStateHandler) Handle(ctx context.Context, record slog.Record) error {
+	s.setSpanStatus(ctx, record)
+
 	m := otelutil.GetAuthgearBaggage(ctx)
 	if len(m) > 0 {
 		record = record.Clone()
@@ -49,4 +53,14 @@ func (s *OTelTraceStateHandler) WithGroup(name string) slog.Handler {
 	return &OTelTraceStateHandler{
 		Next: s.Next.WithGroup(name),
 	}
+}
+
+func (s *OTelTraceStateHandler) setSpanStatus(ctx context.Context, record slog.Record) {
+	if record.Level < slog.LevelWarn {
+		return
+	}
+
+	span := trace.SpanFromContext(ctx)
+
+	span.SetStatus(codes.Error, record.Message)
 }
