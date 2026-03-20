@@ -163,6 +163,7 @@ func (h *EventWebHookImpl) DeliverNonBlockingEvent(ctx context.Context, u *url.U
 func performRequest(
 	client *http.Client,
 	request *http.Request) (resp *http.Response, err error) {
+	// #nosec G704 -- Webhook target URL is validated during webhook configuration.
 	resp, err = client.Do(request)
 	if os.IsTimeout(err) {
 		err = HookDeliveryTimeout.New("webhook delivery timeout")

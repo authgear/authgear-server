@@ -41,12 +41,15 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 	}()
 
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this endpoint contract.
 	err = r.ParseForm()
 	if err != nil {
 		return
 	}
 
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this endpoint contract.
 	conditional := r.FormValue("conditional") == "true"
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this endpoint contract.
 	allowCredentials := r.FormValue("allow_credentials") == "true"
 
 	var requestOptions *model.WebAuthnRequestOptions

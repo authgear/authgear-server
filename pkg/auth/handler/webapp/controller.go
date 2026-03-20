@@ -96,6 +96,7 @@ func (f *ControllerFactory) New(r *http.Request, rw http.ResponseWriter) (*Contr
 		postHandlers: make(map[string]func(ctx context.Context) error),
 	}
 
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this webapp route contract.
 	if err := r.ParseForm(); err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return nil, err

@@ -45,6 +45,7 @@ func (p Prompt[T]) Prompt(ctx context.Context, cmd *cobra.Command) (T, error) {
 	interactive := f.Value.String()
 	switch interactive {
 	case "auto":
+		// #nosec G115 -- File descriptors returned by os.File.Fd fit into int on supported platforms.
 		isInteractive = term.IsTerminal(int(os.Stdin.Fd()))
 	case "true":
 		isInteractive = true

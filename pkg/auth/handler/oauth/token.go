@@ -30,7 +30,7 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseForm() // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB for this token endpoint.
 	if err != nil {
 		http.Error(rw, err.Error(), 400)
 		return

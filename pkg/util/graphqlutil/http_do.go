@@ -33,6 +33,7 @@ func HTTPDo(client *http.Client, r *http.Request, params DoParams) (result *grap
 	r.Header.Set("Content-Length", strconv.Itoa(len(requestBody)))
 	r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 
+	// #nosec G704 -- Request target is constructed by trusted callers of the GraphQL client helper.
 	resp, err := client.Do(r)
 	if err != nil {
 		return

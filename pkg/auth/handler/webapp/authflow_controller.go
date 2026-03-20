@@ -157,7 +157,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseForm(); err != nil { // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this webapp route contract.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -256,7 +256,7 @@ func (c *AuthflowController) HandleResumeOfFlow(
 		}
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseForm(); err != nil { // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this webapp route contract.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -297,7 +297,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseForm(); err != nil { // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this webapp route contract.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -1033,7 +1033,7 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 		case http.MethodGet:
 			err = handlers.GetHandler(r.Context(), s, screen)
 		case http.MethodPost:
-			xAction := r.FormValue("x_action")
+			xAction := r.FormValue("x_action") // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this webapp route contract.
 			switch xAction {
 			case "take_branch":
 				err = c.takeBranch(r.Context(), w, r, s, screen)

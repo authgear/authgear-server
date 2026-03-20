@@ -59,6 +59,7 @@ func GetTokenFromFile(path string) (*oauth2.Token, error) {
 }
 
 func SaveToken(path string, token *oauth2.Token) error {
+	// #nosec G117 -- Persisting the OAuth token to disk is the purpose of this helper.
 	tokenJSON, err := json.Marshal(token)
 	if err != nil {
 		return fmt.Errorf("Unable to encode token to json: %v", err)

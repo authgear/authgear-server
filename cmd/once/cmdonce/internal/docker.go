@@ -189,6 +189,7 @@ func DockerLs(ctx context.Context) ([]DockerContainer, error) {
 }
 
 func DockerStart(ctx context.Context, name string) error {
+	// #nosec G204 -- Container name is an argument to docker, not shell-interpolated.
 	c := exec.CommandContext(ctx, "docker", "start", name)
 	stdout, stderr, err := runCmd(c)
 	if err != nil {
@@ -198,6 +199,7 @@ func DockerStart(ctx context.Context, name string) error {
 }
 
 func DockerStop(ctx context.Context, name string) error {
+	// #nosec G204 -- Container name is an argument to docker, not shell-interpolated.
 	c := exec.CommandContext(ctx, "docker", "stop", name)
 	stdout, stderr, err := runCmd(c)
 	if err != nil {

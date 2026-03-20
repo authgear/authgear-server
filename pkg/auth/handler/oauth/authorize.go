@@ -32,7 +32,7 @@ type AuthorizeHandler struct {
 }
 
 func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseForm() // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of the authorize endpoint contract.
 	if err != nil {
 		http.Error(rw, err.Error(), 400)
 		return
