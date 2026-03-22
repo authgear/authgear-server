@@ -101,7 +101,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.31
 	github.com/minio/minio-go/v7 v7.0.95
 	github.com/rivo/uniseg v0.4.7
-	github.com/russellhaering/goxmldsig v1.5.0
+	github.com/russellhaering/goxmldsig v1.6.0
 	github.com/samber/slog-multi v1.4.1
 	go.opentelemetry.io/contrib/bridges/otelslog v0.14.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
@@ -124,7 +124,7 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/beevik/etree v1.5.1
+	github.com/beevik/etree v1.6.0
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0
 )
