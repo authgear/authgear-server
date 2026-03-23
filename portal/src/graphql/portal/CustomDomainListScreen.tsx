@@ -16,6 +16,7 @@ import {
 } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import {
+  Checkbox,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -124,23 +125,29 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
   ];
 }
 
-const AddDomainSection: React.VFC = function AddDomainSection() {
+interface AddDomainModalProps {
+  isOpen: boolean;
+  onDismiss: () => void;
+}
+
+const AddDomainModal: React.VFC<AddDomainModalProps> = function AddDomainModal(
+  props
+) {
+  const { isOpen, onDismiss } = props;
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
+  const { themes } = useSystemConfig();
 
-  const [newDomain, setNewDomain] = useState("");
-  const { onChange: onNewDomainChange } = useTextField((value) => {
-    setNewDomain(value);
+  const [domain, setDomain] = useState("");
+  const { onChange: onDomainChange } = useTextField((value) => {
+    setDomain(value);
   });
 
-  const [showApexDomain, setShowApexDomain] = useState(false);
-  const onToggleApexDomain = useCallback(() => {
-    setShowApexDomain((v) => !v);
-  }, []);
+  const [isAdvancedChecked, setIsAdvancedChecked] = useState(false);
 
-  const [newApexDomain, setNewApexDomain] = useState("");
-  const { onChange: onNewApexDomainChange } = useTextField((value) => {
-    setNewApexDomain(value);
+  const [verificationDomain, setVerificationDomain] = useState("");
+  const { onChange: onVerificationDomainChange } = useTextField((value) => {
+    setVerificationDomain(value);
   });
 
   const {
@@ -149,35 +156,49 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
     error: createDomainError,
   } = useCreateDomainMutation(appID);
 
-  const onAddClick = useCallback(
-    (ev: React.FormEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
+  const resetState = useCallback(() => {
+    setDomain("");
+    setIsAdvancedChecked(false);
+    setVerificationDomain("");
+  }, []);
 
-      createDomain(newDomain, newApexDomain || undefined)
-        .then((success) => {
-          if (success) {
-            onNewDomainChange(null, "");
-            onNewApexDomainChange(null, "");
-          }
-        })
-        .catch(() => {});
+  const onCancel = useCallback(() => {
+    resetState();
+    onDismiss();
+  }, [resetState, onDismiss]);
+
+  const onCheckboxChange = useCallback(
+    (_ev?: React.FormEvent, checked?: boolean) => {
+      setIsAdvancedChecked(checked ?? false);
+      if (!checked) {
+        setVerificationDomain("");
+      }
     },
-    [
-      createDomain,
-      newDomain,
-      newApexDomain,
-      onNewDomainChange,
-      onNewApexDomainChange,
-    ]
+    []
   );
 
-  const isModified = useMemo(() => {
-    return newDomain !== "";
-  }, [newDomain]);
+  const onAdd = useCallback(() => {
+    const apex =
+      isAdvancedChecked && verificationDomain ? verificationDomain : undefined;
+    createDomain(domain, apex)
+      .then((success) => {
+        if (success) {
+          resetState();
+          onDismiss();
+        }
+      })
+      .catch(() => {});
+  }, [
+    createDomain,
+    domain,
+    isAdvancedChecked,
+    verificationDomain,
+    resetState,
+    onDismiss,
+  ]);
 
-  const domainErrorRules: ErrorParseRule[] = useMemo(() => {
-    return [
+  const domainErrorRules: ErrorParseRule[] = useMemo(
+    () => [
       makeReasonErrorParseRule(
         "DuplicatedDomain",
         "CustomDomainListScreen.add-domain.duplicated-error"
@@ -186,22 +207,23 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
         "InvalidDomain",
         "CustomDomainListScreen.add-domain.invalid-error"
       ),
-    ];
-  }, []);
+    ],
+    []
+  );
 
-  const apexDomainErrorRules: ErrorParseRule[] = useMemo(() => {
-    return [
+  const apexDomainErrorRules: ErrorParseRule[] = useMemo(
+    () => [
       makeReasonErrorParseRule(
         "InvalidApexDomain",
         "CustomDomainListScreen.add-domain.invalid-apex-domain-error"
       ),
-    ];
-  }, []);
+    ],
+    []
+  );
 
-  const errors = useMemo(() => {
-    const apiErrors = parseRawError(createDomainError);
+  const domainErrors = useMemo(() => {
     const { topErrors } = parseAPIErrors(
-      apiErrors,
+      parseRawError(createDomainError),
       [],
       domainErrorRules,
       "CustomDomainListScreen.add-domain.generic-error"
@@ -210,71 +232,96 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
   }, [createDomainError, domainErrorRules]);
 
   const apexDomainErrors = useMemo(() => {
-    const apiErrors = parseRawError(createDomainError);
-    const { topErrors } = parseAPIErrors(apiErrors, [], apexDomainErrorRules, "");
+    const { topErrors } = parseAPIErrors(
+      parseRawError(createDomainError),
+      [],
+      apexDomainErrorRules,
+      ""
+    );
     return topErrors;
   }, [createDomainError, apexDomainErrorRules]);
 
-  // Auto-expand the apex domain section when there is an error on it
+  // Auto-open advanced section when there is an error on the verification domain
   useEffect(() => {
     if (apexDomainErrors.length > 0) {
-      setShowApexDomain(true);
+      setIsAdvancedChecked(true);
     }
   }, [apexDomainErrors]);
 
+  const dialogContentProps: IDialogProps["dialogContentProps"] = useMemo(
+    () => ({
+      title: renderToString("CustomDomainListScreen.add-domain-modal.title"),
+    }),
+    [renderToString]
+  );
+
   return (
-    <form className={styles.addDomain} onSubmit={onAddClick}>
-      <div className={styles.addDomainRow}>
+    <Dialog
+      hidden={!isOpen}
+      onDismiss={onCancel}
+      dialogContentProps={dialogContentProps}
+      modalProps={{ isBlocking: creatingDomain }}
+      minWidth={520}
+    >
+      <div className={styles.modalBody}>
         <TextField
-          className={styles.addDomainField}
-          placeholder={renderToString(
-            "CustomDomainListScreen.domain-list.add-domain.placeholder"
-          )}
-          value={newDomain}
-          onChange={onNewDomainChange}
-          errorMessage={
-            errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
-          }
-        />
-        <ButtonWithLoading
-          type="submit"
-          className={styles.addDomainButton}
-          disabled={!isModified}
-          iconProps={{ iconName: "CircleAdditionSolid" }}
-          loading={creatingDomain}
-          labelId="add"
-        />
-      </div>
-      <ActionButton
-        className={styles.apexDomainToggle}
-        onClick={onToggleApexDomain}
-        iconProps={{ iconName: showApexDomain ? "ChevronDown" : "ChevronRight" }}
-        text={renderToString(
-          "CustomDomainListScreen.domain-list.add-domain.apex-domain.toggle"
-        )}
-      />
-      {showApexDomain ? (
-        <TextField
-          className={styles.addDomainField}
           label={renderToString(
-            "CustomDomainListScreen.domain-list.add-domain.apex-domain.label"
+            "CustomDomainListScreen.add-domain-modal.domain.label"
           )}
           placeholder={renderToString(
-            "CustomDomainListScreen.domain-list.add-domain.apex-domain.placeholder"
+            "CustomDomainListScreen.add-domain-modal.domain.placeholder"
           )}
-          description={renderToString(
-            "CustomDomainListScreen.domain-list.add-domain.apex-domain.description"
-          )}
-          value={newApexDomain}
-          onChange={onNewApexDomainChange}
+          value={domain}
+          onChange={onDomainChange}
           errorMessage={
-            apexDomainErrors.length > 0 ? (
-              <ErrorRenderer errors={apexDomainErrors} />
+            domainErrors.length > 0 ? (
+              <ErrorRenderer errors={domainErrors} />
             ) : undefined
           }
         />
-      ) : null}
-    </form>
+        <Checkbox
+          label={renderToString(
+            "CustomDomainListScreen.add-domain-modal.advanced-checkbox.label"
+          )}
+          checked={isAdvancedChecked}
+          onChange={onCheckboxChange}
+        />
+        {isAdvancedChecked ? (
+          <TextField
+            label={renderToString(
+              "CustomDomainListScreen.add-domain-modal.verification-domain.label"
+            )}
+            placeholder={renderToString(
+              "CustomDomainListScreen.add-domain-modal.verification-domain.placeholder"
+            )}
+            description={renderToString(
+              "CustomDomainListScreen.add-domain-modal.verification-domain.description"
+            )}
+            value={verificationDomain}
+            onChange={onVerificationDomainChange}
+            errorMessage={
+              apexDomainErrors.length > 0 ? (
+                <ErrorRenderer errors={apexDomainErrors} />
+              ) : undefined
+            }
+          />
+        ) : null}
+      </div>
+      <DialogFooter>
+        <ButtonWithLoading
+          theme={themes.actionButton}
+          loading={creatingDomain}
+          disabled={!domain}
+          onClick={onAdd}
+          labelId="add"
+        />
+        <DefaultButton
+          onClick={onCancel}
+          disabled={creatingDomain}
+          text={<FormattedMessage id="cancel" />}
+        />
+      </DialogFooter>
+    </Dialog>
   );
 };
 
@@ -711,20 +758,13 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       return featureConfig?.disabled ?? false;
     }, [featureConfig]);
 
-    const renderDomainListHeader = useCallback<
-      Required<IDetailsListProps>["onRenderDetailsHeader"]
-    >(
-      (props, defaultRenderer) => {
-        const defaultHeaderNode = defaultRenderer?.(props) ?? null;
-        return (
-          <>
-            {defaultHeaderNode}
-            {!customDomainDisabled ? <AddDomainSection /> : null}
-          </>
-        );
-      },
-      [customDomainDisabled]
-    );
+    const [isAddDomainModalOpen, setIsAddDomainModalOpen] = useState(false);
+    const onOpenAddDomainModal = useCallback(() => {
+      setIsAddDomainModalOpen(true);
+    }, []);
+    const onDismissAddDomainModal = useCallback(() => {
+      setIsAddDomainModalOpen(false);
+    }, []);
 
     return (
       <ScreenLayoutScrollView>
@@ -740,12 +780,21 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
                 messageID="FeatureConfig.custom-domain.disabled"
               />
             ) : null}
+            {!customDomainDisabled ? (
+              <div className={styles.tableHeader}>
+                <ButtonWithLoading
+                  loading={false}
+                  iconProps={{ iconName: "CircleAdditionSolid" }}
+                  onClick={onOpenAddDomainModal}
+                  labelId="CustomDomainListScreen.add-domain-button"
+                />
+              </div>
+            ) : null}
             <DetailsList
               columns={domainListColumns}
               items={domainListItems}
               selectionMode={SelectionMode.none}
               onRenderItemColumn={renderDomainListColumn}
-              onRenderDetailsHeader={renderDomainListHeader}
             />
           </div>
           <MessageBar
@@ -766,6 +815,10 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               }}
             />
           </MessageBar>
+          <AddDomainModal
+            isOpen={isAddDomainModalOpen}
+            onDismiss={onDismissAddDomainModal}
+          />
           <DeleteDomainDialog
             domain={deleteDomainDialogData.domain}
             domainID={deleteDomainDialogData.domainID}
