@@ -120,14 +120,29 @@ func (s *DomainService) ListDomains(ctx context.Context, appID string) ([]*apimo
 }
 
 // CreateCustomDomain acquires connection.
-func (s *DomainService) CreateCustomDomain(ctx context.Context, appID string, domain string) (*apimodel.Domain, error) {
+// apexDomain overrides the PSL-derived apex domain used for DNS TXT verification and uniqueness checks.
+// If empty, the apex domain is derived automatically via publicsuffix.EffectiveTLDPlusOne.
+func (s *DomainService) CreateCustomDomain(ctx context.Context, appID string, domain string, apexDomain string) (*apimodel.Domain, error) {
 	var out *apimodel.Domain
 	var err error
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		out, err = s.CreateDomain(ctx, appID, domain, false, true)
+		d, err := newDomain(appID, domain, s.Clock.NowUTC(), true)
 		if err != nil {
 			return err
 		}
+
+		if apexDomain != "" {
+			if err := d.overrideApexDomain(apexDomain); err != nil {
+				return err
+			}
+		}
+
+		err = s.createDomain(ctx, d, false)
+		if err != nil {
+			return err
+		}
+
+		out = d.toModel(false)
 		return nil
 	})
 	if err != nil {
@@ -460,6 +475,16 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 		VerificationNonce: verificationNonce,
 		IsCustom:          isCustom,
 	}, nil
+}
+
+// overrideApexDomain replaces the PSL-derived ApexDomain with a custom value.
+// customApexDomain must be a DNS ancestor of d.Domain (or equal to it).
+func (d *domain) overrideApexDomain(customApexDomain string) error {
+	if customApexDomain == d.Domain || strings.HasSuffix(d.Domain, "."+customApexDomain) {
+		d.ApexDomain = customApexDomain
+		return nil
+	}
+	return InvalidDomain.New(fmt.Sprintf("apex domain must be a parent of the domain: expected a suffix of %q, got %q", d.Domain, customApexDomain))
 }
 
 func (d *domain) toModel(isVerified bool) *apimodel.Domain {
