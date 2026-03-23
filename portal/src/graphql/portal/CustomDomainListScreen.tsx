@@ -286,7 +286,13 @@ const AddDomainModal: React.VFC<AddDomainModalProps> = function AddDomainModal(
           checked={isAdvancedChecked}
           onChange={onCheckboxChange}
         />
-        {isAdvancedChecked ? (
+        <div
+          className={
+            isAdvancedChecked
+              ? styles.verificationDomainVisible
+              : styles.verificationDomainHidden
+          }
+        >
           <TextField
             label={renderToString(
               "CustomDomainListScreen.add-domain-modal.verification-domain.label"
@@ -299,13 +305,14 @@ const AddDomainModal: React.VFC<AddDomainModalProps> = function AddDomainModal(
             )}
             value={verificationDomain}
             onChange={onVerificationDomainChange}
+            tabIndex={isAdvancedChecked ? 0 : -1}
             errorMessage={
               apexDomainErrors.length > 0 ? (
                 <ErrorRenderer errors={apexDomainErrors} />
               ) : undefined
             }
           />
-        ) : null}
+        </div>
       </div>
       <DialogFooter>
         <ButtonWithLoading

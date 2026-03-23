@@ -21,6 +21,14 @@
   gap: 16px;
 }
 
+.verificationDomainHidden {
+  visibility: hidden;
+}
+
+.verificationDomainVisible {
+  visibility: visible;
+}
+
 .verificationDomainDescription {
   font-size: 12px;
   color: #605e5c;
