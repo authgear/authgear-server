@@ -957,6 +957,7 @@
   "CustomDomainListScreen.add-domain.generic-error": "Failed to add domain",
   "CustomDomainListScreen.add-domain.duplicated-error": "Domain is already in use",
   "CustomDomainListScreen.add-domain.invalid-error": "Invalid domain",
+  "CustomDomainListScreen.add-domain.invalid-apex-domain-error": "Must be a DNS parent of the domain above",
   "CustomDomainListScreen.domain-list.header.domain": "Domain",
   "CustomDomainListScreen.domain-list.header.status": "Status",
   "CustomDomainListScreen.domain-list.add-domain.placeholder": "Input New Domain",

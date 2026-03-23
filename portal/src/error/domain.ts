@@ -27,3 +27,8 @@ export interface APIInvalidDomainError {
   errorName: string;
   reason: "InvalidDomain";
 }
+
+export interface APIInvalidApexDomainError {
+  errorName: string;
+  reason: "InvalidApexDomain";
+}

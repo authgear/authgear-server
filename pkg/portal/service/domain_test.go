@@ -5,6 +5,8 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 func testTime() time.Time {
@@ -19,9 +21,10 @@ func TestNewDomain(t *testing.T) {
 			So(d.ApexDomain, ShouldEqual, "example.com")
 		})
 
-		Convey("returns error for an invalid domain", func() {
+		Convey("returns InvalidDomain error for an invalid domain name", func() {
 			_, err := newDomain("app1", "notadomain", testTime(), true)
 			So(err, ShouldNotBeNil)
+			So(apierrors.IsKind(err, InvalidDomain), ShouldBeTrue)
 		})
 	})
 }
@@ -45,11 +48,15 @@ func TestOverrideApexDomain(t *testing.T) {
 			So(d.ApexDomain, ShouldEqual, "auth.example.com")
 		})
 
-		Convey("rejects a domain that is not a parent", func() {
+		Convey("rejects a domain that is not a parent with InvalidApexDomain reason", func() {
 			d, err := newDomain("app1", "auth.example.com", testTime(), true)
 			So(err, ShouldBeNil)
 			err = d.overrideApexDomain("other.com")
 			So(err, ShouldNotBeNil)
+			// Must be InvalidApexDomain (not InvalidDomain) so the frontend
+			// routes the error to the verification domain field, not the domain field.
+			So(apierrors.IsKind(err, InvalidApexDomain), ShouldBeTrue)
+			So(apierrors.IsKind(err, InvalidDomain), ShouldBeFalse)
 			So(err.Error(), ShouldContainSubstring, `expected a suffix of "auth.example.com"`)
 			So(err.Error(), ShouldContainSubstring, `got "other.com"`)
 		})
@@ -60,6 +67,7 @@ func TestOverrideApexDomain(t *testing.T) {
 			So(err, ShouldBeNil)
 			err = d.overrideApexDomain("xample.com")
 			So(err, ShouldNotBeNil)
+			So(apierrors.IsKind(err, InvalidApexDomain), ShouldBeTrue)
 		})
 	})
 }

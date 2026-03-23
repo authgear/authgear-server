@@ -10,6 +10,7 @@ import {
   APIDomainNotCustomError,
   APIDomainVerificationFailedError,
   APIInvalidDomainError,
+  APIInvalidApexDomainError,
 } from "./domain";
 import {
   APIDuplicatedCollaboratorInvitationError,
@@ -146,6 +147,7 @@ export type APIError = { message?: string } & (
   | APIDomainNotCustomError
   | APIDomainVerificationFailedError
   | APIInvalidDomainError
+  | APIInvalidApexDomainError
   | APIDuplicatedCollaboratorInvitationError
   | APICollaboratorSelfDeletionError
   | APICollaboratorInvitationInvalidCodeError

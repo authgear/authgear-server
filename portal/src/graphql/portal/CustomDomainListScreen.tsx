@@ -176,7 +176,7 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
     return newDomain !== "";
   }, [newDomain]);
 
-  const errorRules: ErrorParseRule[] = useMemo(() => {
+  const domainErrorRules: ErrorParseRule[] = useMemo(() => {
     return [
       makeReasonErrorParseRule(
         "DuplicatedDomain",
@@ -189,16 +189,38 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
     ];
   }, []);
 
+  const apexDomainErrorRules: ErrorParseRule[] = useMemo(() => {
+    return [
+      makeReasonErrorParseRule(
+        "InvalidApexDomain",
+        "CustomDomainListScreen.add-domain.invalid-apex-domain-error"
+      ),
+    ];
+  }, []);
+
   const errors = useMemo(() => {
     const apiErrors = parseRawError(createDomainError);
     const { topErrors } = parseAPIErrors(
       apiErrors,
       [],
-      errorRules,
+      domainErrorRules,
       "CustomDomainListScreen.add-domain.generic-error"
     );
     return topErrors;
-  }, [createDomainError, errorRules]);
+  }, [createDomainError, domainErrorRules]);
+
+  const apexDomainErrors = useMemo(() => {
+    const apiErrors = parseRawError(createDomainError);
+    const { topErrors } = parseAPIErrors(apiErrors, [], apexDomainErrorRules, "");
+    return topErrors;
+  }, [createDomainError, apexDomainErrorRules]);
+
+  // Auto-expand the apex domain section when there is an error on it
+  useEffect(() => {
+    if (apexDomainErrors.length > 0) {
+      setShowApexDomain(true);
+    }
+  }, [apexDomainErrors]);
 
   return (
     <form className={styles.addDomain} onSubmit={onAddClick}>
@@ -245,6 +267,11 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
           )}
           value={newApexDomain}
           onChange={onNewApexDomainChange}
+          errorMessage={
+            apexDomainErrors.length > 0 ? (
+              <ErrorRenderer errors={apexDomainErrors} />
+            ) : undefined
+          }
         />
       ) : null}
     </form>

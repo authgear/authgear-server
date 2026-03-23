@@ -41,6 +41,7 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
 var InvalidDomain = apierrors.Invalid.WithReason("InvalidDomain")
+var InvalidApexDomain = apierrors.Invalid.WithReason("InvalidApexDomain")
 
 type DomainConfigService interface {
 	CreateDomain(ctx context.Context, appID string, domainID string, domain string, isCustom bool) error
@@ -484,7 +485,7 @@ func (d *domain) overrideApexDomain(customApexDomain string) error {
 		d.ApexDomain = customApexDomain
 		return nil
 	}
-	return InvalidDomain.New(fmt.Sprintf("apex domain must be a parent of the domain: expected a suffix of %q, got %q", d.Domain, customApexDomain))
+	return InvalidApexDomain.New(fmt.Sprintf("apex domain must be a parent of the domain: expected a suffix of %q, got %q", d.Domain, customApexDomain))
 }
 
 func (d *domain) toModel(isVerified bool) *apimodel.Domain {
