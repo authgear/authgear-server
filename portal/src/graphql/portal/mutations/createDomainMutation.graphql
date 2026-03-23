@@ -1,5 +1,5 @@
-mutation createDomainMutation($appID: ID!, $domain: String!) {
-  createDomain(input: { appID: $appID, domain: $domain }) {
+mutation createDomainMutation($appID: ID!, $domain: String!, $apexDomain: String) {
+  createDomain(input: { appID: $appID, domain: $domain, apexDomain: $apexDomain }) {
     app {
       id
       domains {

@@ -342,6 +342,9 @@ input CreateDomainInput {
 
   """Domain name."""
   domain: String!
+
+  """Override the apex domain used for DNS TXT verification and uniqueness checks. Must be a DNS ancestor of domain. If omitted, derived automatically via Public Suffix List."""
+  apexDomain: String
 }
 
 """"""

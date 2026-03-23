@@ -6,6 +6,7 @@ const defaultOptions = {} as const;
 export type CreateDomainMutationMutationVariables = Types.Exact<{
   appID: Types.Scalars['ID']['input'];
   domain: Types.Scalars['String']['input'];
+  apexDomain?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -13,8 +14,8 @@ export type CreateDomainMutationMutation = { __typename?: 'Mutation', createDoma
 
 
 export const CreateDomainMutationDocument = gql`
-    mutation createDomainMutation($appID: ID!, $domain: String!) {
-  createDomain(input: {appID: $appID, domain: $domain}) {
+    mutation createDomainMutation($appID: ID!, $domain: String!, $apexDomain: String) {
+  createDomain(input: {appID: $appID, domain: $domain, apexDomain: $apexDomain}) {
     app {
       id
       domains {
@@ -58,6 +59,7 @@ export type CreateDomainMutationMutationFn = Apollo.MutationFunction<CreateDomai
  *   variables: {
  *      appID: // value for 'appID'
  *      domain: // value for 'domain'
+ *      apexDomain: // value for 'apexDomain'
  *   },
  * });
  */
