@@ -186,6 +186,10 @@ components:
           $ref: "#/components/schemas/APIError"
 
     APIError:
+      x-go-type: apierrors.APIError
+      x-go-type-import:
+        name: apierrors
+        path: github.com/authgear/authgear-server/pkg/api/apierrors
       description: >
         Error detail matching the apierrors.APIError struct.
         name and reason identify the error kind; code mirrors the HTTP status.
