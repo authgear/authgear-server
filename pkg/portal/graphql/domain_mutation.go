@@ -29,6 +29,10 @@ var createDomainInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Domain name.",
 		},
+		"apexDomain": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Override the apex domain used for DNS TXT verification and uniqueness checks. Must be a DNS ancestor of domain. If omitted, derived automatically via Public Suffix List.",
+		},
 	},
 })
 
@@ -62,6 +66,7 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
 			domain := input["domain"].(string)
+			apexDomain, _ := input["apexDomain"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -86,7 +91,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("custom domain is not supported")
 			}
 
-			domainModel, err := gqlCtx.DomainService.CreateCustomDomain(ctx, appID, domain)
+			domainModel, err := gqlCtx.DomainService.CreateCustomDomain(ctx, appID, domain, apexDomain)
 			if err != nil {
 				return nil, err
 			}
