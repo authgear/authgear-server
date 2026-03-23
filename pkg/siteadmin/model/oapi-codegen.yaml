@@ -4,12 +4,6 @@ generate:
   models: true
 output: gen.go
 output-options:
-  exclude-schemas:
-    - APIError
-    - ErrorEnvelope
-    - BadRequest
-    - Forbidden
-    - NotFound
   type-mapping:
     string:
       formats:

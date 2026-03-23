@@ -5,6 +5,8 @@ package model
 
 import (
 	"time"
+
+	apierrors "github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 // Defines values for CollaboratorRole.
@@ -24,6 +26,9 @@ func (e CollaboratorRole) Valid() bool {
 		return false
 	}
 }
+
+// APIError Error detail matching the apierrors.APIError struct. name and reason identify the error kind; code mirrors the HTTP status.
+type APIError = apierrors.APIError
 
 // AddCollaboratorRequest defines model for AddCollaboratorRequest.
 type AddCollaboratorRequest struct {
@@ -60,6 +65,12 @@ type CollaboratorsListResponse struct {
 	Collaborators []Collaborator `json:"collaborators"`
 }
 
+// ErrorEnvelope Error response envelope matching the api.Response struct.
+type ErrorEnvelope struct {
+	// Error Error detail matching the apierrors.APIError struct. name and reason identify the error kind; code mirrors the HTTP status.
+	Error APIError `json:"error"`
+}
+
 // Project defines model for Project.
 type Project struct {
 	// CreatedAt The time the project was created, in RFC 3339 format
@@ -87,6 +98,15 @@ type ProjectsListResponse struct {
 	// TotalCount Total number of projects matching the query.
 	TotalCount int `json:"total_count"`
 }
+
+// BadRequest Error response envelope matching the api.Response struct.
+type BadRequest = ErrorEnvelope
+
+// Forbidden Error response envelope matching the api.Response struct.
+type Forbidden = ErrorEnvelope
+
+// NotFound Error response envelope matching the api.Response struct.
+type NotFound = ErrorEnvelope
 
 // ListProjectsParams defines parameters for ListProjects.
 type ListProjectsParams struct {
