@@ -146,7 +146,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Project"
+                $ref: "#/components/schemas/ProjectDetail"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -332,3 +332,14 @@ components:
           type: string
           format: date-time
           description: The time the project was created, in RFC 3339 format
+
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/Project"
+        - type: object
+          required:
+            - user_count
+          properties:
+            user_count:
+              type: integer
+              description: Number of users in the project

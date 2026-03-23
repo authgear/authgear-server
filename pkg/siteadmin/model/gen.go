@@ -86,6 +86,24 @@ type Project struct {
 	Plan string `json:"plan"`
 }
 
+// ProjectDetail defines model for ProjectDetail.
+type ProjectDetail struct {
+	// CreatedAt The time the project was created, in RFC 3339 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The project ID
+	Id string `json:"id"`
+
+	// OwnerEmail Email address of the project owner
+	OwnerEmail string `json:"owner_email"`
+
+	// Plan The plan the project is on
+	Plan string `json:"plan"`
+
+	// UserCount Number of users in the project
+	UserCount int `json:"user_count"`
+}
+
 // ProjectsListResponse defines model for ProjectsListResponse.
 type ProjectsListResponse struct {
 	// Page Current page number.
