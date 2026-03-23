@@ -26,6 +26,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(CSRFMiddleware), "*"),
 	wire.Struct(new(CSRFErrorInstructionHandler), "*"),
+	wire.Struct(new(RobotsTXTHandler), "*"),
 
 	wire.Struct(new(AppStaticAssetsHandler), "*"),
 

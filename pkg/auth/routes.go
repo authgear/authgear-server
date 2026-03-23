@@ -68,6 +68,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		httproute.MiddlewareFunc(middleware.CORSStar),
 	)
 
+	robotsTXTChain := httproute.Chain(
+		projectRootChain,
+		httproute.MiddlewareFunc(middleware.CORSStar),
+		p.Middleware(newPublicOriginMiddleware),
+	)
+
 	appStaticChain := httproute.Chain(
 		projectRootChain,
 		p.Middleware(newCORSMiddleware),
@@ -262,6 +268,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
+	robotsTXTRoute := httproute.Route{Middleware: robotsTXTChain}
 	samlStaticRoute := httproute.Route{Middleware: samlStaticChain}
 	samlAPIRoute := httproute.Route{Middleware: samlAPIChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
@@ -464,8 +471,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
+	router.Add(webapphandler.ConfigureRobotsTXTRoute(robotsTXTRoute), p.Handler(newWebAppRobotsTXTHandler))
 	router.Add(webapphandler.ConfigureAppStaticAssetsRoute(appStaticRoute), p.Handler(newWebAppAppStaticAssetsHandler))
-
 	router.Add(webapphandler.ConfigureGeneratedStaticAssetsRoute(generatedStaticRoute), p.RootHandler(newWebAppGeneratedStaticAssetsHandler))
 
 	router.Add(apihandler.ConfigureWorkflowNewRoute(workflowRoute), p.Handler(newAPIWorkflowNewHandler))

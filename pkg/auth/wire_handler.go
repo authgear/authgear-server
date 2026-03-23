@@ -361,6 +361,13 @@ func newWebAppAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppRobotsTXTHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.RobotsTXTHandler)),
+	))
+}
+
 func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

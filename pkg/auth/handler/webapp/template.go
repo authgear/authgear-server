@@ -31,3 +31,8 @@ var TemplateWebDownloadRecoveryCodeTXT = template.RegisterPlainText(
 	"web/download_recovery_code.txt",
 	plainTextComponents...,
 )
+
+var TemplateWebRobotsTXT = template.RegisterPlainText(
+	"web/robots.txt",
+	plainTextComponents...,
+)
