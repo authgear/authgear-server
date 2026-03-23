@@ -1135,7 +1135,7 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 
 Occurs when usage crosses from below to at least a configured `authgear.yaml` usage soft limit threshold, or when usage crosses the hard limit.
 
-This event is intended for the usage alert configuration described in [Usage](./usage.md). It is used for soft limits configured in `authgear.yaml` and the hard limit case. Note that soft limits configured in `authgear.features.yaml` will NOT trigger hook.
+This event is intended for the usage alert configuration described in [Usage](./usage.md).
 
 `context.triggered_by` is `system`.
 

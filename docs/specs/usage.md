@@ -109,8 +109,6 @@ The request body follows the [Event](./event.md) specification.
 
 The event type is [`usage.alert.triggered`](./event.md#usagealerttriggered).
 
-Note that this does not trigger [hook](./hook.md).
-
 When usage crosses the hard limit, it also sends alerts to url configured in `usage.alert.url`.
 
 ### Merging of usage limit soft limits
