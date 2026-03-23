@@ -133,6 +133,16 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
     setNewDomain(value);
   });
 
+  const [showApexDomain, setShowApexDomain] = useState(false);
+  const onToggleApexDomain = useCallback(() => {
+    setShowApexDomain((v) => !v);
+  }, []);
+
+  const [newApexDomain, setNewApexDomain] = useState("");
+  const { onChange: onNewApexDomainChange } = useTextField((value) => {
+    setNewApexDomain(value);
+  });
+
   const {
     createDomain,
     loading: creatingDomain,
@@ -144,15 +154,22 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
       ev.preventDefault();
       ev.stopPropagation();
 
-      createDomain(newDomain)
+      createDomain(newDomain, newApexDomain || undefined)
         .then((success) => {
           if (success) {
             onNewDomainChange(null, "");
+            onNewApexDomainChange(null, "");
           }
         })
         .catch(() => {});
     },
-    [createDomain, newDomain, onNewDomainChange]
+    [
+      createDomain,
+      newDomain,
+      newApexDomain,
+      onNewDomainChange,
+      onNewApexDomainChange,
+    ]
   );
 
   const isModified = useMemo(() => {
@@ -185,25 +202,51 @@ const AddDomainSection: React.VFC = function AddDomainSection() {
 
   return (
     <form className={styles.addDomain} onSubmit={onAddClick}>
-      <TextField
-        className={styles.addDomainField}
-        placeholder={renderToString(
-          "CustomDomainListScreen.domain-list.add-domain.placeholder"
+      <div className={styles.addDomainRow}>
+        <TextField
+          className={styles.addDomainField}
+          placeholder={renderToString(
+            "CustomDomainListScreen.domain-list.add-domain.placeholder"
+          )}
+          value={newDomain}
+          onChange={onNewDomainChange}
+          errorMessage={
+            errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
+          }
+        />
+        <ButtonWithLoading
+          type="submit"
+          className={styles.addDomainButton}
+          disabled={!isModified}
+          iconProps={{ iconName: "CircleAdditionSolid" }}
+          loading={creatingDomain}
+          labelId="add"
+        />
+      </div>
+      <ActionButton
+        className={styles.apexDomainToggle}
+        onClick={onToggleApexDomain}
+        iconProps={{ iconName: showApexDomain ? "ChevronDown" : "ChevronRight" }}
+        text={renderToString(
+          "CustomDomainListScreen.domain-list.add-domain.apex-domain.toggle"
         )}
-        value={newDomain}
-        onChange={onNewDomainChange}
-        errorMessage={
-          errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
-        }
       />
-      <ButtonWithLoading
-        type="submit"
-        className={styles.addDomainButton}
-        disabled={!isModified}
-        iconProps={{ iconName: "CircleAdditionSolid" }}
-        loading={creatingDomain}
-        labelId="add"
-      />
+      {showApexDomain ? (
+        <TextField
+          className={styles.addDomainField}
+          label={renderToString(
+            "CustomDomainListScreen.domain-list.add-domain.apex-domain.label"
+          )}
+          placeholder={renderToString(
+            "CustomDomainListScreen.domain-list.add-domain.apex-domain.placeholder"
+          )}
+          description={renderToString(
+            "CustomDomainListScreen.domain-list.add-domain.apex-domain.description"
+          )}
+          value={newApexDomain}
+          onChange={onNewApexDomainChange}
+        />
+      ) : null}
     </form>
   );
 };

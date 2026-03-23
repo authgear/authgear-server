@@ -11,9 +11,16 @@
 
 .addDomain {
   display: flex;
+  flex-direction: column;
   background-color: #f8f8f8;
   padding: 10px;
   border-bottom: 1px solid #edebe9;
+  gap: 10px;
+}
+
+.addDomainRow {
+  display: flex;
+  align-items: center;
 }
 
 .addDomainField {
@@ -22,6 +29,13 @@
 
 .addDomainButton {
   margin-left: 10px;
+}
+
+.apexDomainToggle {
+  align-self: flex-start;
+  font-size: 12px;
+  height: auto;
+  padding: 0;
 }
 
 .actionButtonContainer {
