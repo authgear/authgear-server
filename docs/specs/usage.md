@@ -76,14 +76,15 @@ Define soft limits to send an alert when a usage threshold is reached.
 
 ```yaml
 alerts:
-  url: https://example.com/your_webhook
+  urls:
+    - https://example.com/your_webhook
   usages:
     sms:
       soft_limits:
         - threshold: 4
 ```
 
-`alerts.url`: Required when usage alerts are enabled. The url we send a request to when a configured feature config soft limit or the hard limit is triggered. It can also be a deno script url.
+`alerts.urlss`: Required when usage alerts are enabled. A list of urls we send requests to when a configured feature config soft limit or the hard limit is triggered. Each url can also be a deno script url.
 
 `alerts.usages.<name>.soft_limits`: A list of soft limits to trigger when usage crosses from below to at least the configured threshold. Supported `<name>` values are listed in [Supported Usage Types](#supported-usage-types).
 
@@ -91,7 +92,7 @@ alerts:
 
 ### The Alert Request
 
-We send a HTTP request to the configured `alerts.url` when usage alerts are enabled and usage crosses from below to at least the configured threshold.
+We send a HTTP request to the configured `alerts.urls` when usage alerts are enabled and usage crosses from below to at least the configured threshold.
 
 The same event type is also used when usage crosses the hard limit.
 
@@ -99,7 +100,7 @@ The request body follows the [Event](./event.md) specification.
 
 The event type is [`usage.alert.triggered`](./event.md#usagealerttriggered).
 
-When usage crosses the hard limit, it also sends alerts to url configured in `alerts.url`.
+When usage crosses the hard limit, it also sends alerts to urls configured in `alerts.urls`.
 
 ### Merging of usage limit soft limits
 
@@ -107,7 +108,7 @@ Soft limits can be defined on plan level feature config, or in project level fea
 
 When both are present, the resulting `alerts.usages.<name>.soft_limits` list is formed by appending the app-level feature config entries after the plan-level feature config entries.
 
-`alerts.url` is shared config across all usage limits. If both plan-level and project-level feature config define it, the project-level value overrides the plan-level value.
+`alerts.urls` follows the same append merge behavior. If both plan-level and project-level feature config define it, the resulting list is formed by appending the project-level entries after the plan-level entries.
 
 See the below example:
 
@@ -115,7 +116,8 @@ A feature config of a plan:
 
 ```yaml
 alerts:
-  url: https://internal.authgear.cloud/notification
+  urls:
+    - https://internal.authgear.cloud/notification
   usages:
     sms:
       soft_limits:
@@ -126,7 +128,8 @@ A feature config of a project:
 
 ```yaml
 alerts:
-  url: https://example.com/another_notification
+  urls:
+    - https://example.com/another_notification
   usages:
     sms:
       soft_limits:
@@ -137,7 +140,9 @@ The resulting config should be:
 
 ```yaml
 alerts:
-  url: https://example.com/another_notification
+  urls:
+    - https://internal.authgear.cloud/notification
+    - https://example.com/another_notification
   usages:
     sms:
       soft_limits:
@@ -145,7 +150,7 @@ alerts:
         - threshold: 800
 ```
 
-In other words, `alerts.usages.<name>.soft_limits` are merged by appending the project-level entries after the plan-level entries, and all merged soft limits share the same effective `alerts.url` config.
+In other words, both `alerts.urls` and `alerts.usages.<name>.soft_limits` are merged by appending the project-level entries after the plan-level entries.
 
 ## Send Usage Alert To Project Owner
 
@@ -170,7 +175,7 @@ The same values are used in `usage_limit.name` in [`usage.alert.triggered`](./ev
 
 If configured, `alerts.usages.<name>.soft_limits` in `authgear.yaml` trigger [`usage.alert.triggered`](./event.md#usagealerttriggered) and [hooks](./hook.md) when usage reaches a configured soft limit threshold. Project collaborators can configure deno hooks or webhooks in order to receive usage alerts.
 
-When usage reaches the hard limit, it also triggers [`usage.alert.triggered`](./event.md#usagealerttriggered) and [hooks](./hook.md). If `alerts.emails` is set, hard limit alerts are also sent to the configured email addresses. If `alerts.url` is configured in feature config, the hard limit also triggers that alert.
+When usage reaches the hard limit, it also triggers [`usage.alert.triggered`](./event.md#usagealerttriggered) and [hooks](./hook.md). If `alerts.emails` is set, hard limit alerts are also sent to the configured email addresses. If `alerts.urls` is configured in feature config, the hard limit also triggers those alerts.
 
 ### Portal Configurations
 
