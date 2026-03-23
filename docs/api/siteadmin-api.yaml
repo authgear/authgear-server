@@ -52,6 +52,96 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v1/projects/{project_id}/usage/messaging:
+    get:
+      operationId: getProjectMessagingUsage
+      summary: Get messaging usage for a project over a date range
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          description: Start of the date range, inclusive. Format YYYY-MM-DD.
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          description: End of the date range, inclusive. Format YYYY-MM-DD.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Messaging usage aggregated over the given date range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagingUsage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/projects/{project_id}/usage/monthly-active-users:
+    get:
+      operationId: getProjectMonthlyActiveUsers
+      summary: Get monthly active users for a project over a range of months
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_year
+          in: query
+          required: true
+          description: The year of the start month, inclusive.
+          schema:
+            type: integer
+        - name: start_month
+          in: query
+          required: true
+          description: The start month, inclusive (1-12).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: end_year
+          in: query
+          required: true
+          description: The year of the end month, inclusive.
+          schema:
+            type: integer
+        - name: end_month
+          in: query
+          required: true
+          description: The end month, inclusive (1-12).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        "200":
+          description: Monthly active user counts for each month in the given range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyActiveUsersUsage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v1/projects/{project_id}/collaborators:
     get:
       operationId: listProjectCollaborators
@@ -230,6 +320,64 @@ components:
           type: object
           description: Additional structured details about the error
           additionalProperties: true
+
+    MessagingUsage:
+      type: object
+      required:
+        - start_date
+        - end_date
+        - sms_north_america_count
+        - sms_other_regions_count
+        - whatsapp_north_america_count
+        - whatsapp_other_regions_count
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Start of the date range, inclusive. Format YYYY-MM-DD.
+        end_date:
+          type: string
+          format: date
+          description: End of the date range, inclusive. Format YYYY-MM-DD.
+        sms_north_america_count:
+          type: integer
+          description: Number of SMS messages sent in North America
+        sms_other_regions_count:
+          type: integer
+          description: Number of SMS messages sent in other regions
+        whatsapp_north_america_count:
+          type: integer
+          description: Number of WhatsApp messages sent in North America
+        whatsapp_other_regions_count:
+          type: integer
+          description: Number of WhatsApp messages sent in other regions
+
+    MonthlyActiveUsersUsage:
+      type: object
+      required:
+        - counts
+      properties:
+        counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyActiveUsersCount"
+
+    MonthlyActiveUsersCount:
+      type: object
+      required:
+        - year
+        - month
+        - count
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        count:
+          type: integer
+          description: Number of monthly active users in this month
 
     CollaboratorsListResponse:
       type: object
