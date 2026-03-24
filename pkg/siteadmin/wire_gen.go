@@ -109,3 +109,13 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{}
 	return collaboratorRemoveHandler
 }
+
+func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
+	messagingUsageHandler := &transport.MessagingUsageHandler{}
+	return messagingUsageHandler
+}
+
+func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
+	monthlyActiveUsersUsageHandler := &transport.MonthlyActiveUsersUsageHandler{}
+	return monthlyActiveUsersUsageHandler
+}

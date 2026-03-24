@@ -96,3 +96,17 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.CollaboratorRemoveHandler)),
 	))
 }
+
+func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.MessagingUsageHandler)),
+	))
+}
+
+func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.MonthlyActiveUsersUsageHandler)),
+	))
+}

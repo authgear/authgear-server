@@ -9,3 +9,5 @@ output-options:
       formats:
         email:
           type: string
+        date:
+          type: string

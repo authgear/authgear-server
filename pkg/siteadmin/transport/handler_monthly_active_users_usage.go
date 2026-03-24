@@ -1,0 +1,82 @@
+package transport
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+)
+
+func ConfigureMonthlyActiveUsersUsageRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("GET").
+		WithPathPattern("/api/v1/projects/:projectID/usage/monthly-active-users")
+}
+
+type MonthlyActiveUsersUsageHandler struct {
+	// Add service dependencies here as needed
+}
+
+type MonthlyActiveUsersUsageParams struct {
+	ProjectID  string
+	StartYear  int
+	StartMonth int
+	EndYear    int
+	EndMonth   int
+}
+
+func parseMonthlyActiveUsersUsageParams(r *http.Request) (MonthlyActiveUsersUsageParams, error) {
+	q := r.URL.Query()
+
+	startYear, err := getIntParam(q, "start_year")
+	if err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+
+	startMonth, err := getIntParam(q, "start_month")
+	if err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+	if err := validateMonth("start_month", startMonth); err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+
+	endYear, err := getIntParam(q, "end_year")
+	if err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+
+	endMonth, err := getIntParam(q, "end_month")
+	if err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+	if err := validateMonth("end_month", endMonth); err != nil {
+		return MonthlyActiveUsersUsageParams{}, err
+	}
+
+	return MonthlyActiveUsersUsageParams{
+		ProjectID:  httproute.GetParam(r, "projectID"),
+		StartYear:  startYear,
+		StartMonth: startMonth,
+		EndYear:    endYear,
+		EndMonth:   endMonth,
+	}, nil
+}
+
+func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	params, err := parseMonthlyActiveUsersUsageParams(r)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	_ = params
+
+	// TODO: Replace with real data source. Return dummy data for now.
+	usage := model.MonthlyActiveUsersUsage{
+		Counts: []model.MonthlyActiveUsersCount{},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(usage)
+}
