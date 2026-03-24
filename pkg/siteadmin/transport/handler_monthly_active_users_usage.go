@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/siteadmin/model"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -52,6 +53,11 @@ func parseMonthlyActiveUsersUsageParams(r *http.Request) (MonthlyActiveUsersUsag
 	}
 	if err := validateMonth("end_month", endMonth); err != nil {
 		return MonthlyActiveUsersUsageParams{}, err
+	}
+
+	totalMonths := (endYear-startYear)*12 + (endMonth - startMonth)
+	if totalMonths < 0 || totalMonths > 11 {
+		return MonthlyActiveUsersUsageParams{}, apierrors.NewBadRequest("date range must be within 1 year")
 	}
 
 	return MonthlyActiveUsersUsageParams{
