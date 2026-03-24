@@ -54,10 +54,10 @@ func (h *MessagingUsageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	usage := model.MessagingUsage{
 		StartDate:                 params.StartDate,
 		EndDate:                   params.EndDate,
-		SmsNorthAmericaCount:      0,
-		SmsOtherRegionsCount:      0,
-		WhatsappNorthAmericaCount: 0,
-		WhatsappOtherRegionsCount: 0,
+		SmsNorthAmericaCount:      120,
+		SmsOtherRegionsCount:      45,
+		WhatsappNorthAmericaCount: 30,
+		WhatsappOtherRegionsCount: 15,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

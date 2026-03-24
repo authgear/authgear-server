@@ -69,12 +69,25 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		writeError(w, r, err)
 		return
 	}
-	_ = params
-
 	// TODO: Replace with real data source. Return dummy data for now.
-	usage := model.MonthlyActiveUsersUsage{
-		Counts: []model.MonthlyActiveUsersCount{},
+	var counts []model.MonthlyActiveUsersCount
+	year, month := params.StartYear, params.StartMonth
+	for {
+		counts = append(counts, model.MonthlyActiveUsersCount{
+			Year:  year,
+			Month: month,
+			Count: 100,
+		})
+		if year == params.EndYear && month == params.EndMonth {
+			break
+		}
+		month++
+		if month > 12 {
+			month = 1
+			year++
+		}
 	}
+	usage := model.MonthlyActiveUsersUsage{Counts: counts}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
