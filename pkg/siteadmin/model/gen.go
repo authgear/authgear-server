@@ -71,6 +71,40 @@ type ErrorEnvelope struct {
 	Error APIError `json:"error"`
 }
 
+// MessagingUsage defines model for MessagingUsage.
+type MessagingUsage struct {
+	// EndDate End of the date range, inclusive. Format YYYY-MM-DD.
+	EndDate string `json:"end_date"`
+
+	// SmsNorthAmericaCount Number of SMS messages sent in North America
+	SmsNorthAmericaCount int `json:"sms_north_america_count"`
+
+	// SmsOtherRegionsCount Number of SMS messages sent in other regions
+	SmsOtherRegionsCount int `json:"sms_other_regions_count"`
+
+	// StartDate Start of the date range, inclusive. Format YYYY-MM-DD.
+	StartDate string `json:"start_date"`
+
+	// WhatsappNorthAmericaCount Number of WhatsApp messages sent in North America
+	WhatsappNorthAmericaCount int `json:"whatsapp_north_america_count"`
+
+	// WhatsappOtherRegionsCount Number of WhatsApp messages sent in other regions
+	WhatsappOtherRegionsCount int `json:"whatsapp_other_regions_count"`
+}
+
+// MonthlyActiveUsersCount defines model for MonthlyActiveUsersCount.
+type MonthlyActiveUsersCount struct {
+	// Count Number of monthly active users in this month
+	Count int `json:"count"`
+	Month int `json:"month"`
+	Year  int `json:"year"`
+}
+
+// MonthlyActiveUsersUsage defines model for MonthlyActiveUsersUsage.
+type MonthlyActiveUsersUsage struct {
+	Counts []MonthlyActiveUsersCount `json:"counts"`
+}
+
 // Project defines model for Project.
 type Project struct {
 	// CreatedAt The time the project was created, in RFC 3339 format
@@ -139,6 +173,30 @@ type ListProjectsParams struct {
 
 	// OwnerEmail Filter by owner email address.
 	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
+}
+
+// GetProjectMessagingUsageParams defines parameters for GetProjectMessagingUsage.
+type GetProjectMessagingUsageParams struct {
+	// StartDate Start of the date range, inclusive. Format YYYY-MM-DD.
+	StartDate string `form:"start_date" json:"start_date"`
+
+	// EndDate End of the date range, inclusive. Format YYYY-MM-DD.
+	EndDate string `form:"end_date" json:"end_date"`
+}
+
+// GetProjectMonthlyActiveUsersParams defines parameters for GetProjectMonthlyActiveUsers.
+type GetProjectMonthlyActiveUsersParams struct {
+	// StartYear The year of the start month, inclusive.
+	StartYear int `form:"start_year" json:"start_year"`
+
+	// StartMonth The start month, inclusive (1-12).
+	StartMonth int `form:"start_month" json:"start_month"`
+
+	// EndYear The year of the end month, inclusive.
+	EndYear int `form:"end_year" json:"end_year"`
+
+	// EndMonth The end month, inclusive (1-12).
+	EndMonth int `form:"end_month" json:"end_month"`
 }
 
 // AddProjectCollaboratorJSONRequestBody defines body for AddProjectCollaborator for application/json ContentType.
