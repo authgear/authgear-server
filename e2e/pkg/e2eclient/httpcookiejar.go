@@ -5,32 +5,24 @@ import (
 	"net/url"
 )
 
-type JarWorkingAroundGolangIssue38988 struct {
+// HostAwareCookieJar makes cookie lookup consistent when the client connects to
+// the local listen address but uses Request.Host for project routing.
+type HostAwareCookieJar struct {
 	Jar           http.CookieJar
 	CorrectedHost string
 }
 
-var _ http.CookieJar = &JarWorkingAroundGolangIssue38988{}
+var _ http.CookieJar = &HostAwareCookieJar{}
 
-func (j *JarWorkingAroundGolangIssue38988) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	u = j.fixURL(u)
-	j.Jar.SetCookies(u, cookies)
-
-}
-func (j *JarWorkingAroundGolangIssue38988) Cookies(u *url.URL) []*http.Cookie {
-	u = j.fixURL(u)
-	return j.Jar.Cookies(u)
+func (j *HostAwareCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	j.Jar.SetCookies(j.fixURL(u), cookies)
 }
 
-func (j *JarWorkingAroundGolangIssue38988) fixURL(u *url.URL) *url.URL {
-	// This is a workaround for this bug
-	// https://github.com/golang/go/issues/38988
-	//
-	// http.Client always pass request.URL to http.CookieJar.
-	// But a more correct behavior should be passing a net.URL
-	// with net.URL.Host = http.Request.Host (if http.Request.Host is non-zero)
-	//
-	// To work around this problem, we correct request.URL.Host
+func (j *HostAwareCookieJar) Cookies(u *url.URL) []*http.Cookie {
+	return j.Jar.Cookies(j.fixURL(u))
+}
+
+func (j *HostAwareCookieJar) fixURL(u *url.URL) *url.URL {
 	uu := *u
 	uu.Host = j.CorrectedHost
 	return &uu

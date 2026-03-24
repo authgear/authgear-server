@@ -42,6 +42,7 @@ func (c ProviderConfig) KeyID() string {
 
 var _ oauthrelyingparty.Provider = Apple{}
 
+// #nosec G101 -- Apple OIDC discovery endpoints are public constants, not credentials.
 var appleOIDCConfig = oauthrelyingpartyutil.OIDCDiscoveryDocument{
 	JWKSUri:               "https://appleid.apple.com/auth/keys",
 	TokenEndpoint:         "https://appleid.apple.com/auth/token",

@@ -109,7 +109,8 @@ var Prompt_SearchImplementation = cliutil.PromptString{
 }
 
 var Prompt_DatabaseURL = cliutil.PromptURL{
-	Title:                       "Database URL",
+	Title: "Database URL",
+	// #nosec G101 -- Local development example DSN shown in interactive prompts.
 	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 	NonInteractiveFlagName:      "database-url",
 }
@@ -121,7 +122,8 @@ var Prompt_DatabaseSchema = cliutil.PromptString{
 }
 
 var Prompt_AuditDatabaseURL = cliutil.PromptURL{
-	Title:                       "Audit Database URL",
+	Title: "Audit Database URL",
+	// #nosec G101 -- Local development example DSN shown in interactive prompts.
 	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 	NonInteractiveFlagName:      "audit-database-url",
 }
@@ -133,7 +135,8 @@ var Prompt_AuditDatabaseSchema = cliutil.PromptString{
 }
 
 var Prompt_SearchDatabaseURL = cliutil.PromptURL{
-	Title:                       "Search Database URL",
+	Title: "Search Database URL",
+	// #nosec G101 -- Local development example DSN shown in interactive prompts.
 	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 	NonInteractiveFlagName:      "search-database-url",
 }

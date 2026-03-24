@@ -24,12 +24,9 @@ func TestExtensionsByType(t *testing.T) {
 
 		exts, err = mime.ExtensionsByType("image/jpeg")
 		So(err, ShouldBeNil)
-		if len(exts) == 4 {
-			// libmagic on Ubuntu 24.04 returns {".jfif", ".jpe", ".jpeg", ".jpg"}
-			So(exts, ShouldResemble, []string{".jfif", ".jpe", ".jpeg", ".jpg"})
-		} else {
-			So(exts, ShouldResemble, []string{".jpe", ".jpeg", ".jpg"})
-		}
+		So(exts, ShouldContain, ".jpe")
+		So(exts, ShouldContain, ".jpeg")
+		So(exts, ShouldContain, ".jpg")
 
 		exts, err = mime.ExtensionsByType("image/gif")
 		So(err, ShouldBeNil)

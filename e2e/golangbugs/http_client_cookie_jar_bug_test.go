@@ -24,10 +24,7 @@ func (o *bugObserver) Cookies(u *url.URL) []*http.Cookie {
 var _ http.CookieJar = &bugObserver{}
 
 // TestHTTPClientCookieJarBug tests if https://github.com/golang/go/issues/38988 is fixed.
-// If that issue is still unfixed, then this test should pass.
-// If that issue is fixed, then this test should fail.
-// When this test fail, then we need to remove the workaround.
-// The workaround is in e2e/pkg/e2eclient/httpcookiejar.go
+// On Go 1.26+, http.Client should pass Request.Host to the CookieJar when it is set.
 func TestHTTPClientCookieJarBug(t *testing.T) {
 	jar := &bugObserver{}
 	client := &http.Client{
@@ -56,7 +53,7 @@ func TestHTTPClientCookieJarBug(t *testing.T) {
 		t.Errorf("unexpected error: %v\n", err)
 	}
 
-	if jar.ObservedURL.String() != "http://127.0.0.1:4000/" {
-		t.Errorf("expected https://github.com/golang/go/issues/38988 to be unfixed\n")
+	if jar.ObservedURL.String() != "http://app.authgeare2e.localhost:4000/" {
+		t.Errorf("expected CookieJar to observe Request.Host, got %q", jar.ObservedURL.String())
 	}
 }

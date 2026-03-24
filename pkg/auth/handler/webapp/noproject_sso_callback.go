@@ -36,11 +36,13 @@ type NoProjectSSOCallbackHandler struct {
 
 func (h *NoProjectSSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this OAuth callback contract.
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this OAuth callback contract.
 	stateToken := r.FormValue("state")
 	state, err := h.OAuthStateStore.RecoverState(ctx, stateToken)
 	if err != nil {

@@ -35,6 +35,7 @@ func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	fileName := fmt.Sprintf("%s-metadata.xml", serviceProviderId)
 	rw.Header().Set("Content-Type", "application/samlmetadata+xml")
 	rw.Header().Set("content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	// #nosec G705 -- The response is generated server-side SAML metadata XML.
 	_, err = rw.Write(metadataBytes)
 	if err != nil {
 		panic(err)

@@ -28,7 +28,7 @@ type RevokeHandler struct {
 }
 
 func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseForm() // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB for this revoke endpoint.
 	if err != nil {
 		http.Error(rw, err.Error(), 400)
 		return

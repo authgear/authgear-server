@@ -32,12 +32,12 @@ type SSOCallbackHandler struct {
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseForm(); err != nil { // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this OAuth callback contract.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	stateToken := r.FormValue("state")
+	stateToken := r.FormValue("state") // #nosec G120 -- BodyLimitMiddleware caps POST bodies to 1MB; query params are part of this OAuth callback contract.
 	state, err := h.OAuthStateStore.PopAndRecoverState(r.Context(), stateToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

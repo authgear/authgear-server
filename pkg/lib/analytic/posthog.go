@@ -363,6 +363,7 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 			Batch:  chunk,
 		}
 
+		// #nosec G117 -- This request intentionally serializes the PostHog API key for the upstream API.
 		bodyBytes, err := json.Marshal(body)
 		if err != nil {
 			return err

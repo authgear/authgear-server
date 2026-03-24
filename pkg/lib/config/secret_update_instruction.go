@@ -243,6 +243,7 @@ func (i *SMTPServerCredentialsUpdateInstruction) set(currentConfig *SecretConfig
 	}
 
 	var data []byte
+	// #nosec G117 -- Secret config updates intentionally serialize SMTP credentials into secret storage.
 	data, err := json.Marshal(credentials)
 	if err != nil {
 		return nil, err

@@ -75,7 +75,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context
 	if hubChallenge != "" {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(hubChallenge))
+		_, _ = w.Write([]byte(hubChallenge)) // #nosec G705 -- WhatsApp webhook verification requires echoing the challenge verbatim.
 		return
 	}
 

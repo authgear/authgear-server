@@ -26,6 +26,7 @@ func FixtureAppConfig(appID string) *config.AppConfig {
 
 func FixtureSecretConfig(seed int64) *config.SecretConfig {
 	return config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{
+		// #nosec G101 -- Local test fixture DSN.
 		DatabaseURL:      "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 		DatabaseSchema:   "public",
 		ElasticsearchURL: "http://127.0.0.1:9200",
