@@ -150,6 +150,81 @@ func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, 
 	return nil
 }
 
+func (s *Service) reserveGenerateOTPRateLimits(ctx context.Context, kind Kind, target string, opts *GenerateOptions) ([]*ratelimit.Reservation, error) {
+	var reservations []*ratelimit.Reservation
+
+	resv, failed, err := s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldown(target))
+	if err != nil {
+		return reservations, err
+	}
+	if err := failed.Error(); err != nil {
+		return reservations, err
+	}
+	reservations = append(reservations, resv)
+
+	if opts.AuthenticationFlowID != "" {
+		resv, failed, err = s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
+		if err != nil {
+			return reservations, err
+		}
+		if err := failed.Error(); err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, resv)
+	}
+
+	specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
+	for _, spec := range specs {
+		spec := *spec
+		resv, failed, err := s.RateLimiter.Reserve(ctx, spec)
+		if err != nil {
+			return reservations, err
+		}
+		if err := failed.Error(); err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, resv)
+	}
+
+	return reservations, nil
+}
+
+func (s *Service) newCode(kind Kind, target string, form Form, opts *GenerateOptions) *Code {
+	return &Code{
+		Target:   target,
+		Purpose:  kind.Purpose(),
+		Form:     form,
+		Code:     form.GenerateCode(s.TestModeConfig, s.TestModeFeatureConfig, target, opts.UserID),
+		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
+
+		UserID:                                 opts.UserID,
+		WorkflowID:                             opts.WorkflowID,
+		AuthenticationFlowWebsocketChannelName: opts.AuthenticationFlowWebsocketChannelName,
+		AuthenticationFlowType:                 opts.AuthenticationFlowType,
+		AuthenticationFlowName:                 opts.AuthenticationFlowName,
+		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
+		WebSessionID:                           opts.WebSessionID,
+
+		// These are unknown until sent
+		WhatsappMessageID: "",
+		OOBChannel:        "",
+	}
+}
+
+func (s *Service) createOTPCode(ctx context.Context, code *Code) error {
+	if err := s.CodeStore.Create(ctx, code.Purpose, code); err != nil {
+		return err
+	}
+
+	if code.Form.AllowLookupByCode() {
+		if err := s.LookupStore.Create(ctx, code.Purpose, code.Code, code.Target, code.ExpireAt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
 	logger := ServiceLogger.GetLogger(ctx)
 	if opts == nil {
@@ -171,69 +246,16 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 	}()
 
 	if !opts.SkipRateLimits {
-		resv, failed, err := s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldown(target))
+		var err error
+		reservations, err = s.reserveGenerateOTPRateLimits(ctx, kind, target, opts)
 		if err != nil {
 			return "", err
 		}
-		if err := failed.Error(); err != nil {
-			return "", err
-		}
-		reservations = append(reservations, resv)
-		if opts.AuthenticationFlowID != "" {
-			resv, failed, err = s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
-			if err != nil {
-				return "", err
-			}
-			if err := failed.Error(); err != nil {
-				return "", err
-			}
-			reservations = append(reservations, resv)
-		}
-
-		specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
-		for _, spec := range specs {
-			spec := *spec
-			resv, failed, err := s.RateLimiter.Reserve(ctx, spec)
-			if err != nil {
-				return "", err
-			}
-			if err := failed.Error(); err != nil {
-				return "", err
-			}
-			reservations = append(reservations, resv)
-		}
 	}
 
-	code := &Code{
-		Target:   target,
-		Purpose:  kind.Purpose(),
-		Form:     form,
-		Code:     form.GenerateCode(s.TestModeConfig, s.TestModeFeatureConfig, target, opts.UserID),
-		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
-
-		UserID:                                 opts.UserID,
-		WorkflowID:                             opts.WorkflowID,
-		AuthenticationFlowWebsocketChannelName: opts.AuthenticationFlowWebsocketChannelName,
-		AuthenticationFlowType:                 opts.AuthenticationFlowType,
-		AuthenticationFlowName:                 opts.AuthenticationFlowName,
-		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
-		WebSessionID:                           opts.WebSessionID,
-
-		// These are unknown until sent
-		WhatsappMessageID: "",
-		OOBChannel:        "",
-	}
-
-	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
-	if err != nil {
+	code := s.newCode(kind, target, form, opts)
+	if err := s.createOTPCode(ctx, code); err != nil {
 		return "", err
-	}
-
-	if form.AllowLookupByCode() {
-		err := s.LookupStore.Create(ctx, code.Purpose, code.Code, code.Target, code.ExpireAt)
-		if err != nil {
-			return "", err
-		}
 	}
 
 	if err := s.AttemptTracker.ResetFailedAttempts(ctx, kind, target); err != nil {
