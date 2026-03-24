@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -25,6 +26,86 @@ func TestNewDomain(t *testing.T) {
 			_, err := newDomain("app1", "notadomain", testTime(), true)
 			So(err, ShouldNotBeNil)
 			So(apierrors.IsKind(err, InvalidDomain), ShouldBeTrue)
+		})
+	})
+}
+
+func TestApexDomainDuplicateCheckNames(t *testing.T) {
+	Convey("apexDomainDuplicateCheckNames", t, func() {
+
+		Convey("Successful extractions", func() {
+			cases := []struct {
+				name     string
+				input    string
+				expected []string
+			}{
+				{
+					name:  "returns apex through registrable domain for a deep custom apex",
+					input: "admin.hanlun-lms-dev.pandawork.com",
+					expected: []string{
+						"admin.hanlun-lms-dev.pandawork.com",
+						"hanlun-lms-dev.pandawork.com",
+						"pandawork.com",
+					},
+				},
+				{
+					name:     "returns a single name when apex is already the registrable domain",
+					input:    "example.com",
+					expected: []string{"example.com"},
+				},
+				{
+					name:     "normalizes ASCII case",
+					input:    "Admin.Example.COM",
+					expected: []string{"admin.example.com", "example.com"},
+				},
+				{
+					name:     "handles complex multi-part TLDs correctly",
+					input:    "admin.example.co.uk",
+					expected: []string{"admin.example.co.uk", "example.co.uk"},
+				},
+				{
+					name:     "strips trailing dots from fully qualified domain names (FQDN)",
+					input:    "admin.example.com.",
+					expected: []string{"admin.example.com", "example.com"},
+				},
+				{
+					name:     "trims leading and trailing whitespace",
+					input:    "  admin.example.com  ",
+					expected: []string{"admin.example.com", "example.com"},
+				},
+			}
+
+			for _, tc := range cases {
+				Convey(tc.name, func() {
+					d := &domain{ApexDomain: tc.input}
+					names, err := d.apexDomainDuplicateCheckNames()
+					So(err, ShouldBeNil)
+					So(names, ShouldResemble, tc.expected)
+				})
+			}
+		})
+
+		Convey("Error conditions", func() {
+			Convey("rejects empty input", func() {
+				d := &domain{ApexDomain: ""}
+				_, err := d.apexDomainDuplicateCheckNames()
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "empty apex domain")
+			})
+
+			Convey("rejects input that becomes empty after trimming", func() {
+				d := &domain{ApexDomain: "   .   "}
+				_, err := d.apexDomainDuplicateCheckNames()
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "empty apex domain")
+			})
+
+			Convey("rejects invalid domain with InvalidDomain kind", func() {
+				d := &domain{ApexDomain: strings.Repeat("x", 300)}
+				_, err := d.apexDomainDuplicateCheckNames()
+				So(err, ShouldNotBeNil)
+				So(apierrors.IsKind(err, InvalidDomain), ShouldBeTrue)
+			})
 		})
 	})
 }
