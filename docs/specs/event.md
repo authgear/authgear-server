@@ -56,7 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
-      - [usage.alert.triggered](#usagealerttriggered)
+      - [threshold.alert.triggered](#thresholdalerttriggered)
     + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
@@ -542,7 +542,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
-- [usage.alert.triggered](#usagealerttriggered)
+- [threshold.alert.triggered](#thresholdalerttriggered)
 - [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
@@ -1131,11 +1131,11 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 }
 ```
 
-#### usage.alert.triggered
+#### threshold.alert.triggered
 
-Occurs when usage crosses from below to at least a configured `authgear.yaml` usage soft limit threshold, or when usage crosses the hard limit.
+Occurs when usage crosses from below to at least a configured threshold, including configured `soft` and `hard` thresholds.
 
-This event is intended for the usage alert configuration described in [Usage](./usage.md).
+This event is intended for the threshold alert configuration described in [Thresholds](./thresholds.md).
 
 `context.triggered_by` is `system`.
 
@@ -1143,20 +1143,22 @@ Payload:
 ```json5
 {
   "payload": {
-    "usage_limit": {
-      "name": "sms",
+    "threshold": {
+      "name": "sms_usage",
+      "type": "soft",
       "period": "month",
-      "current_usage": 900,
-      "quota": 1000
+      "threshold": 900,
+      "current_value": 900
     }
   }
 }
 ```
 
-- `usage_limit.name`: The configured usage limit name. Supported values are listed in [Supported Usage Types](./usage.md#supported-usage-types).
-- `usage_limit.period`: The usage limit period.
-- `usage_limit.current_usage`: The measured usage value in the current period when the event is generated.
-- `usage_limit.quota`: The configured quota of the usage limit.
+- `threshold.name`: The configured threshold name. Supported values are listed in [Supported Threshold Names](./thresholds.md#supported-threshold-names).
+- `threshold.type`: The configured threshold type. Supported values are `soft` and `hard`.
+- `threshold.period`: The threshold period.
+- `threshold.threshold`: The configured threshold value that was triggered.
+- `threshold.current_value`: The measured usage value in the current period when the event is generated.
 
 #### rate_limit.blocked
 
