@@ -9,6 +9,7 @@
   - [email](#email)
 - [Feature Config Merging of Threshold Alerts](#feature-config-merging-of-threshold-alerts)
 - [Portal Configurations](#portal-configurations)
+- [Deprecated Usage Configs](#deprecated-usage-configs)
 
 ## Supported Threshold Names
 
@@ -239,3 +240,42 @@ In other words, project-level config overrides plan-level config, and plan-level
 ## Portal Configurations
 
 The portal should automatically fill `thresholds.alert_channels` with the project owner's email address.
+
+## Deprecated Usage Configs
+
+The old usage configs in feature config are deprecated in favor of the `thresholds` section and will be removed.
+
+The deprecated configs are:
+
+- `admin_api.user_export_usage`
+- `admin_api.user_import_usage`
+- `messaging.email_usage`
+- `messaging.whatsapp_usage`
+- `messaging.sms_usage`
+
+Example:
+
+```yaml
+admin_api:
+  user_export_usage:
+    enabled: true
+    period: day
+    quota: 24
+  user_import_usage:
+    enabled: true
+    period: day
+    quota: 10000
+messaging:
+  email_usage:
+    enabled: true
+    period: month
+    quota: 1000
+  whatsapp_usage:
+    enabled: true
+    period: month
+    quota: 1000
+  sms_usage:
+    enabled: true
+    period: month
+    quota: 1000
+```

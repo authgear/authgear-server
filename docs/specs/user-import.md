@@ -27,8 +27,10 @@ User Import allows the developer to bulk import users from an existing system to
 
 ## The usage limit
 
-The usage limit is specified in `authgear.features.yaml`.
-The following example shows the default usage limit.
+This config is deprecated. Use the [`thresholds`](./thresholds.md) section in `authgear.features.yaml` instead.
+
+The old usage limit config is specified in `authgear.features.yaml`.
+The following example shows the deprecated usage limit config.
 
 ```yaml
 admin_api:
