@@ -178,6 +178,8 @@ In `authgear.yaml`, the only supported channel type is `email`.
 
 `thresholds.alert_channels[].threshold_name`: Required. The threshold name this channel subscribes to. Supported values are listed in [Supported Threshold Names](#supported-threshold-names), and `*`.
 
+These alert emails are not counted in `email_usage`, to prevent recurring usage caused by the alert itself.
+
 ## Event and Hook
 
 When a threshold is triggered, Authgear emits the [`threshold.alert.triggered`](./event.md#thresholdalerttriggered) event.
