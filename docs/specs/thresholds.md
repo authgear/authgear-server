@@ -8,7 +8,7 @@
   - [url](#url)
   - [email](#email)
 - [Event and Hook](#event-and-hook)
-- [Feature Config Merging of Threshold Alerts](#feature-config-merging-of-threshold-alerts)
+- [Feature Config Merging of Thresholds](#feature-config-merging-of-thresholds)
 - [Portal Configurations](#portal-configurations)
 - [Deprecated Usage Configs](#deprecated-usage-configs)
 
@@ -190,9 +190,9 @@ In `authgear.yaml`, `hook.non_blocking_handlers` can also be used to listen to t
 
 Read [Event](./event.md#thresholdalerttriggered) for the event payload.
 
-## Feature Config Merging of Threshold Alerts
+## Feature Config Merging of Thresholds
 
-Threshold alerts can be defined on site-level feature config, plan-level feature config, or project-level feature config.
+The `thresholds` section in feature config can be defined at site level, plan level, or project level.
 
 `thresholds.alert_channels` is overridden by higher-precedence config.
 
@@ -200,9 +200,9 @@ Each `thresholds.<threshold_name>_thresholds` list is also overridden by higher-
 
 The precedence order is:
 
-1. project-level
-2. plan-level
-3. site-level
+1. project-level feature config
+2. plan-level feature config
+3. site-level feature config
 
 See the below example:
 
@@ -248,7 +248,7 @@ thresholds:
       type: soft
 ```
 
-In other words, project-level config overrides plan-level config, and plan-level config overrides site-level config, for both `thresholds.alert_channels` and each `thresholds.<threshold_name>_thresholds` list.
+In other words, project-level feature config overrides plan-level feature config, and plan-level feature config overrides site-level feature config, for both `thresholds.alert_channels` and each `thresholds.<threshold_name>_thresholds` list.
 
 ## Portal Configurations
 
