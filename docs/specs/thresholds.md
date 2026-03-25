@@ -7,6 +7,7 @@
 - [Alert Channels](#alert-channels)
   - [url](#url)
   - [email](#email)
+- [Event and Hook](#event-and-hook)
 - [Feature Config Merging of Threshold Alerts](#feature-config-merging-of-threshold-alerts)
 - [Portal Configurations](#portal-configurations)
 - [Deprecated Usage Configs](#deprecated-usage-configs)
@@ -176,6 +177,16 @@ In `authgear.yaml`, the only supported channel type is `email`.
 `thresholds.alert_channels[].email`: Required when `type` is `email`. The email address to receive the alert.
 
 `thresholds.alert_channels[].threshold_name`: Required. The threshold name this channel subscribes to. Supported values are listed in [Supported Threshold Names](#supported-threshold-names), and `*`.
+
+## Event and Hook
+
+When a threshold is triggered, Authgear emits the [`threshold.alert.triggered`](./event.md#thresholdalerttriggered) event.
+
+For `url` alert channels, the configured `url` is used to trigger a hook for this event. Read [Hook](./hook.md) for details.
+
+In `authgear.yaml`, `hook.non_blocking_handlers` can also be used to listen to this event.
+
+Read [Event](./event.md#thresholdalerttriggered) for the event payload.
 
 ## Feature Config Merging of Threshold Alerts
 
