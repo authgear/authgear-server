@@ -17,7 +17,7 @@
     "luxon": "3.4.4",
     "mjml": "5.0.0-beta.1",
     "tzdata": "1.0.44",
-    "cspell": "^9.2.1"
+    "cspell": "^9.7.0"
   },
   "dependencies": {}
 }
