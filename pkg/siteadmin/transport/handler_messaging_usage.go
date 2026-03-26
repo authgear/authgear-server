@@ -10,7 +10,7 @@ import (
 
 func ConfigureMessagingUsageRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("GET").
-		WithPathPattern("/api/v1/projects/:projectID/usage/messaging")
+		WithPathPattern("/api/v1/apps/:appID/usage/messaging")
 }
 
 type MessagingUsageHandler struct {
@@ -18,7 +18,7 @@ type MessagingUsageHandler struct {
 }
 
 type MessagingUsageParams struct {
-	ProjectID string
+	AppID     string
 	StartDate string
 	EndDate   string
 }
@@ -37,7 +37,7 @@ func parseMessagingUsageParams(r *http.Request) (MessagingUsageParams, error) {
 	}
 
 	return MessagingUsageParams{
-		ProjectID: httproute.GetParam(r, "projectID"),
+		AppID:     httproute.GetParam(r, "appID"),
 		StartDate: startDate,
 		EndDate:   endDate,
 	}, nil

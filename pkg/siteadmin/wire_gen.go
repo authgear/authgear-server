@@ -85,14 +85,14 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	return handler
 }
 
-func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
-	projectsListHandler := &transport.ProjectsListHandler{}
-	return projectsListHandler
+func newAppsListHandler(p *deps.RequestProvider) http.Handler {
+	appsListHandler := &transport.AppsListHandler{}
+	return appsListHandler
 }
 
-func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
-	projectGetHandler := &transport.ProjectGetHandler{}
-	return projectGetHandler
+func newAppGetHandler(p *deps.RequestProvider) http.Handler {
+	appGetHandler := &transport.AppGetHandler{}
+	return appGetHandler
 }
 
 func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {

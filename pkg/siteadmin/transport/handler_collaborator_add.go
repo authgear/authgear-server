@@ -12,7 +12,7 @@ import (
 
 func ConfigureCollaboratorAddRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("OPTIONS", "POST").
-		WithPathPattern("/api/v1/projects/:projectID/collaborators")
+		WithPathPattern("/api/v1/apps/:appID/collaborators")
 }
 
 var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
@@ -27,10 +27,10 @@ var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
 
 // TODO: Replace dummy data with real implementation.
 var dummyCollaborators = map[string][]siteadmin.Collaborator{
-	"project-alpha": {
+	"app-alpha": {
 		{
 			Id:        "collab-1",
-			ProjectId: "project-alpha",
+			AppId:     "app-alpha",
 			UserId:    "user-001",
 			UserEmail: "alice@example.com",
 			Role:      siteadmin.Owner,
@@ -38,17 +38,17 @@ var dummyCollaborators = map[string][]siteadmin.Collaborator{
 		},
 		{
 			Id:        "collab-2",
-			ProjectId: "project-alpha",
+			AppId:     "app-alpha",
 			UserId:    "user-002",
 			UserEmail: "bob@example.com",
 			Role:      siteadmin.Editor,
 			CreatedAt: time.Date(2024, 2, 10, 9, 0, 0, 0, time.UTC),
 		},
 	},
-	"project-beta": {
+	"app-beta": {
 		{
 			Id:        "collab-3",
-			ProjectId: "project-beta",
+			AppId:     "app-beta",
 			UserId:    "user-003",
 			UserEmail: "carol@example.com",
 			Role:      siteadmin.Owner,
@@ -57,8 +57,8 @@ var dummyCollaborators = map[string][]siteadmin.Collaborator{
 	},
 }
 
-func dummyCollaboratorsForProject(projectID string) []siteadmin.Collaborator {
-	if collaborators, ok := dummyCollaborators[projectID]; ok {
+func dummyCollaboratorsForApp(appID string) []siteadmin.Collaborator {
+	if collaborators, ok := dummyCollaborators[appID]; ok {
 		return collaborators
 	}
 	return []siteadmin.Collaborator{}
@@ -69,7 +69,7 @@ type CollaboratorAddHandler struct {
 }
 
 type CollaboratorAddParams struct {
-	ProjectID string
+	AppID string
 	siteadmin.AddCollaboratorRequest
 }
 
@@ -84,7 +84,7 @@ func parseCollaboratorAddParams(r *http.Request) (CollaboratorAddParams, error) 
 	}
 
 	return CollaboratorAddParams{
-		ProjectID:              httproute.GetParam(r, "projectID"),
+		AppID:                  httproute.GetParam(r, "appID"),
 		AddCollaboratorRequest: body,
 	}, nil
 }
@@ -99,7 +99,7 @@ func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	// TODO: Replace with real data source. Return a dummy collaborator now.
 	collaborator := siteadmin.Collaborator{
 		Id:        "collab-new",
-		ProjectId: params.ProjectID,
+		AppId:     params.AppID,
 		UserId:    "user-new",
 		UserEmail: params.UserEmail,
 		Role:      siteadmin.Editor,

@@ -11,7 +11,7 @@ import (
 
 func ConfigureMonthlyActiveUsersUsageRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("GET").
-		WithPathPattern("/api/v1/projects/:projectID/usage/monthly-active-users")
+		WithPathPattern("/api/v1/apps/:appID/usage/monthly-active-users")
 }
 
 type MonthlyActiveUsersUsageHandler struct {
@@ -19,7 +19,7 @@ type MonthlyActiveUsersUsageHandler struct {
 }
 
 type MonthlyActiveUsersUsageParams struct {
-	ProjectID  string
+	AppID      string
 	StartYear  int
 	StartMonth int
 	EndYear    int
@@ -61,7 +61,7 @@ func parseMonthlyActiveUsersUsageParams(r *http.Request) (MonthlyActiveUsersUsag
 	}
 
 	return MonthlyActiveUsersUsageParams{
-		ProjectID:  httproute.GetParam(r, "projectID"),
+		AppID:      httproute.GetParam(r, "appID"),
 		StartYear:  startYear,
 		StartMonth: startMonth,
 		EndYear:    endYear,

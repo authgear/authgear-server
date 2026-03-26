@@ -10,7 +10,7 @@ import (
 
 func ConfigureCollaboratorRemoveRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("OPTIONS", "DELETE").
-		WithPathPattern("/api/v1/projects/:projectID/collaborators/:collaboratorID")
+		WithPathPattern("/api/v1/apps/:appID/collaborators/:collaboratorID")
 }
 
 type CollaboratorRemoveHandler struct {
@@ -18,13 +18,13 @@ type CollaboratorRemoveHandler struct {
 }
 
 type CollaboratorRemoveParams struct {
-	ProjectID      string
+	AppID          string
 	CollaboratorID string
 }
 
 func parseCollaboratorRemoveParams(r *http.Request) CollaboratorRemoveParams {
 	return CollaboratorRemoveParams{
-		ProjectID:      httproute.GetParam(r, "projectID"),
+		AppID:          httproute.GetParam(r, "appID"),
 		CollaboratorID: httproute.GetParam(r, "collaboratorID"),
 	}
 }
@@ -33,7 +33,7 @@ func (h *CollaboratorRemoveHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	params := parseCollaboratorRemoveParams(r)
 
 	// TODO: Replace with real data source. Search dummy data for now.
-	for _, c := range dummyCollaboratorsForProject(params.ProjectID) {
+	for _, c := range dummyCollaboratorsForApp(params.AppID) {
 		if c.Id == params.CollaboratorID {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)

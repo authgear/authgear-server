@@ -11,23 +11,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func ConfigureProjectsListRoute(route httproute.Route) httproute.Route {
+func ConfigureAppsListRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("GET").
-		WithPathPattern("/api/v1/projects")
+		WithPathPattern("/api/v1/apps")
 }
 
-type ProjectsListHandler struct {
+type AppsListHandler struct {
 	// Add service dependencies here as needed
 }
 
-type ProjectsListParams struct {
+type AppsListParams struct {
 	Page       int
 	PageSize   int
-	ProjectID  string
+	AppID      string
 	OwnerEmail string
 }
 
-func parseProjectsListParams(r *http.Request) ProjectsListParams {
+func parseAppsListParams(r *http.Request) AppsListParams {
 	q := r.URL.Query()
 
 	page := 1
@@ -44,61 +44,61 @@ func parseProjectsListParams(r *http.Request) ProjectsListParams {
 		}
 	}
 
-	return ProjectsListParams{
+	return AppsListParams{
 		Page:       page,
 		PageSize:   pageSize,
-		ProjectID:  q.Get("project_id"),
+		AppID:      q.Get("app_id"),
 		OwnerEmail: q.Get("owner_email"),
 	}
 }
 
 // TODO: Replace dummy data with real implementation.
-var dummyProjects = []siteadmin.Project{
+var dummyApps = []siteadmin.App{
 	{
-		Id:         "project-alpha",
+		Id:         "app-alpha",
 		OwnerEmail: "alice@example.com",
 		Plan:       "enterprise",
 		CreatedAt:  time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC),
 	},
 	{
-		Id:         "project-beta",
+		Id:         "app-beta",
 		OwnerEmail: "bob@example.com",
 		Plan:       "startups",
 		CreatedAt:  time.Date(2024, 3, 22, 10, 30, 0, 0, time.UTC),
 	},
 	{
-		Id:         "project-gamma",
+		Id:         "app-gamma",
 		OwnerEmail: "carol@example.com",
 		Plan:       "free",
 		CreatedAt:  time.Date(2024, 6, 5, 14, 0, 0, 0, time.UTC),
 	},
 	{
-		Id:         "project-delta",
+		Id:         "app-delta",
 		OwnerEmail: "alice@example.com",
 		Plan:       "startups",
 		CreatedAt:  time.Date(2024, 8, 10, 9, 0, 0, 0, time.UTC),
 	},
 	{
-		Id:         "project-epsilon",
+		Id:         "app-epsilon",
 		OwnerEmail: "eve@example.com",
 		Plan:       "free",
 		CreatedAt:  time.Date(2024, 11, 1, 12, 0, 0, 0, time.UTC),
 	},
 }
 
-func (h *ProjectsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	params := parseProjectsListParams(r)
+func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	params := parseAppsListParams(r)
 
 	// TODO: Replace with real data source. Filter and paginate dummy data for now.
-	filtered := make([]siteadmin.Project, 0, len(dummyProjects))
-	for _, p := range dummyProjects {
-		if params.ProjectID != "" && !strings.EqualFold(p.Id, params.ProjectID) {
+	filtered := make([]siteadmin.App, 0, len(dummyApps))
+	for _, a := range dummyApps {
+		if params.AppID != "" && !strings.EqualFold(a.Id, params.AppID) {
 			continue
 		}
-		if params.OwnerEmail != "" && !strings.EqualFold(p.OwnerEmail, params.OwnerEmail) {
+		if params.OwnerEmail != "" && !strings.EqualFold(a.OwnerEmail, params.OwnerEmail) {
 			continue
 		}
-		filtered = append(filtered, p)
+		filtered = append(filtered, a)
 	}
 
 	totalCount := len(filtered)
@@ -111,8 +111,8 @@ func (h *ProjectsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		end = totalCount
 	}
 
-	response := siteadmin.ProjectsListResponse{
-		Projects:   filtered[start:end],
+	response := siteadmin.AppsListResponse{
+		Apps:       filtered[start:end],
 		TotalCount: totalCount,
 		Page:       params.Page,
 		PageSize:   params.PageSize,
