@@ -25,6 +25,8 @@ import (
 
 var ForgotPasswordLogger = slogutil.NewLogger("forgot-password")
 
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package forgotpassword
+
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
@@ -47,7 +49,7 @@ type AuthenticatorService interface {
 type OTPCodeService interface {
 	GenerateOTP(ctx context.Context, kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
 	VerifyOTP(ctx context.Context, kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
-	InspectState(ctx context.Context, kind otp.Kind, target string) (*otp.State, error)
+	InspectState(ctx context.Context, kind otp.Kind, target string, opts *otp.InspectStateOptions) (*otp.State, error)
 	LookupCode(ctx context.Context, purpose otp.Purpose, code string) (target string, err error)
 	ConsumeCode(ctx context.Context, purpose otp.Purpose, target string) error
 }
@@ -90,9 +92,14 @@ type CodeOptions struct {
 	AuthenticationFlowType        string
 	AuthenticationFlowName        string
 	AuthenticationFlowJSONPointer jsonpointer.T
+	AuthenticationFlowID          string
 	Kind                          CodeKind
 	Channel                       CodeChannel
 	IsAdminAPIResetPassword       bool
+}
+
+type InspectStateOptions struct {
+	AuthenticationFlowID string
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -182,6 +189,7 @@ func (s *Service) generateDummyOTP(ctx context.Context, target string, options *
 		otpForm,
 		&otp.GenerateOptions{
 			UserID:                        "",
+			AuthenticationFlowID:          options.AuthenticationFlowID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
 			AuthenticationFlowName:        options.AuthenticationFlowName,
 			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
@@ -208,6 +216,7 @@ func (s *Service) sendEmail(ctx context.Context, email string, userID string, op
 		otpForm,
 		&otp.GenerateOptions{
 			UserID:                        userID,
+			AuthenticationFlowID:          options.AuthenticationFlowID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
 			AuthenticationFlowName:        options.AuthenticationFlowName,
 			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
@@ -268,6 +277,7 @@ func (s *Service) sendToPhone(ctx context.Context, phone string, userID string, 
 		otpForm,
 		&otp.GenerateOptions{
 			UserID:                        userID,
+			AuthenticationFlowID:          options.AuthenticationFlowID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
 			AuthenticationFlowName:        options.AuthenticationFlowName,
 			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
@@ -344,7 +354,7 @@ func (s *Service) doVerifyCodeWithTarget(ctx context.Context, target string, cod
 	//
 	// If test mode is enabled, the dummy code is not actually sent but a magic code can be used instead.
 	// The user ID associated with the magic code is empty, violating the assumption of this package.
-	state, err = s.OTPCodes.InspectState(ctx, kind, target)
+	state, err = s.OTPCodes.InspectState(ctx, kind, target, nil)
 	if errors.Is(err, otp.ErrConsumedCode) {
 		err = ErrUsedCode
 		return
@@ -420,15 +430,21 @@ func (s *Service) CodeLength(target string, channel CodeChannel, kind CodeKind) 
 	return form.CodeLength()
 }
 
-func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel, kind CodeKind) bool {
+func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel, kind CodeKind, flowID string) bool {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
-	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name)
+	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name) ||
+		(flowID != "" && ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldownPerSession(flowID).Name))
 }
 
 // InspectState is for external use. It DOES NOT report dummy code as invalid.
-func (s *Service) InspectState(ctx context.Context, target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
+func (s *Service) InspectState(ctx context.Context, target string, channel CodeChannel, kind CodeKind, opts *InspectStateOptions) (*otp.State, error) {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
-	return s.OTPCodes.InspectState(ctx, otpKind, target)
+	if opts == nil {
+		opts = &InspectStateOptions{}
+	}
+	return s.OTPCodes.InspectState(ctx, otpKind, target, &otp.InspectStateOptions{
+		AuthenticationFlowID: opts.AuthenticationFlowID,
+	})
 }
 
 // ResetPasswordByEndUser consumes code and reset password to newPassword.

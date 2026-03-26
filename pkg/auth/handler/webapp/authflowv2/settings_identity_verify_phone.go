@@ -122,7 +122,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(ctx context.Conte
 		MaskedClaimValue: phone.Mask(token.Identity.PhoneNumber),
 	}
 
-	state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, channel), token.Identity.PhoneNumber)
+	state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, channel), token.Identity.PhoneNumber, nil)
 	if err != nil {
 		return nil, err
 	}

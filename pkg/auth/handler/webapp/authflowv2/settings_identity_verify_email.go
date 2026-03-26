@@ -105,7 +105,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(ctx context.Conte
 		MaskedClaimValue: mail.MaskAddress(token.Identity.Email),
 	}
 
-	state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), token.Identity.Email)
+	state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), token.Identity.Email, nil)
 	if err != nil {
 		return nil, err
 	}

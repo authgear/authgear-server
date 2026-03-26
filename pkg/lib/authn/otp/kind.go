@@ -26,6 +26,7 @@ type Kind interface {
 	) []*ratelimit.BucketSpec
 
 	RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
+	RateLimitTriggerCooldownPerSession(flowID string) ratelimit.BucketSpec
 	RevocationMaxFailedAttempts() int
 }
 

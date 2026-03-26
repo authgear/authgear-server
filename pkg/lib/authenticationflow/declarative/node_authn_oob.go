@@ -42,7 +42,8 @@ func NewNodeAuthenticationOOB(ctx context.Context, deps *authflow.Dependencies, 
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 	simpleNode := authflow.NewNodeSimple(n)
 	code, err := n.GenerateCode(ctx, deps)
-	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) ||
+		ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldownPerSession(authflow.GetSession(ctx).FlowID).Name) {
 		// Ignore trigger cooldown rate limit error; continue the flow
 		code = ""
 	} else if err != nil {
@@ -203,7 +204,9 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 
 func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	claimName, claimValue := n.Info.OOBOTP.ToClaimPair()
-	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue, &otp.InspectStateOptions{
+		AuthenticationFlowID: authflow.GetSession(ctx).FlowID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -286,6 +289,7 @@ func (n *NodeAuthenticationOOB) GenerateCode(ctx context.Context, deps *authflow
 		n.Form,
 		&otp.GenerateOptions{
 			UserID:                                 n.UserID,
+			AuthenticationFlowID:                   authflow.GetSession(ctx).FlowID,
 			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
 		},
 	)

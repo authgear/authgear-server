@@ -22,6 +22,7 @@ type GenerateOptions struct {
 	WebSessionID                           string
 	WorkflowID                             string
 	AuthenticationFlowWebsocketChannelName string
+	AuthenticationFlowID                   string
 	AuthenticationFlowType                 string
 	AuthenticationFlowName                 string
 	AuthenticationFlowJSONPointer          jsonpointer.T
@@ -149,32 +150,47 @@ func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, 
 	return nil
 }
 
-func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
-	logger := ServiceLogger.GetLogger(ctx)
+func (s *Service) reserveGenerateOTPRateLimits(ctx context.Context, kind Kind, target string, opts *GenerateOptions) ([]*ratelimit.Reservation, error) {
+	var reservations []*ratelimit.Reservation
 
-	if !opts.SkipRateLimits {
-		failed, err := s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldown(target))
+	resv, failed, err := s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldown(target))
+	if err != nil {
+		return reservations, err
+	}
+	if err := failed.Error(); err != nil {
+		return reservations, err
+	}
+	reservations = append(reservations, resv)
+
+	if opts.AuthenticationFlowID != "" {
+		resv, failed, err = s.RateLimiter.Reserve(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
 		if err != nil {
-			return "", err
+			return reservations, err
 		}
 		if err := failed.Error(); err != nil {
-			return "", err
+			return reservations, err
 		}
-
-		specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
-		for _, spec := range specs {
-			spec := *spec
-			failed, err := s.RateLimiter.Allow(ctx, spec)
-			if err != nil {
-				return "", err
-			}
-			if err := failed.Error(); err != nil {
-				return "", err
-			}
-		}
+		reservations = append(reservations, resv)
 	}
 
-	code := &Code{
+	specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
+	for _, spec := range specs {
+		spec := *spec
+		resv, failed, err := s.RateLimiter.Reserve(ctx, spec)
+		if err != nil {
+			return reservations, err
+		}
+		if err := failed.Error(); err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, resv)
+	}
+
+	return reservations, nil
+}
+
+func (s *Service) newCode(kind Kind, target string, form Form, opts *GenerateOptions) *Code {
+	return &Code{
 		Target:   target,
 		Purpose:  kind.Purpose(),
 		Form:     form,
@@ -193,23 +209,61 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		WhatsappMessageID: "",
 		OOBChannel:        "",
 	}
+}
 
-	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
-	if err != nil {
-		return "", err
+func (s *Service) createOTPCode(ctx context.Context, code *Code) error {
+	if err := s.CodeStore.Create(ctx, code.Purpose, code); err != nil {
+		return err
 	}
 
-	if form.AllowLookupByCode() {
-		err := s.LookupStore.Create(ctx, code.Purpose, code.Code, code.Target, code.ExpireAt)
+	if code.Form.AllowLookupByCode() {
+		if err := s.LookupStore.Create(ctx, code.Purpose, code.Code, code.Target, code.ExpireAt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
+	logger := ServiceLogger.GetLogger(ctx)
+	if opts == nil {
+		opts = &GenerateOptions{}
+	}
+
+	var reservations []*ratelimit.Reservation
+	commitReservations := false
+	defer func() {
+		if commitReservations {
+			for _, r := range reservations {
+				r.PreventCancel()
+			}
+			return
+		}
+		for _, r := range reservations {
+			s.RateLimiter.Cancel(ctx, r)
+		}
+	}()
+
+	if !opts.SkipRateLimits {
+		var err error
+		reservations, err = s.reserveGenerateOTPRateLimits(ctx, kind, target, opts)
 		if err != nil {
 			return "", err
 		}
+	}
+
+	code := s.newCode(kind, target, form, opts)
+	if err := s.createOTPCode(ctx, code); err != nil {
+		return "", err
 	}
 
 	if err := s.AttemptTracker.ResetFailedAttempts(ctx, kind, target); err != nil {
 		// non-critical error; log and continue
 		logger.WithError(err).Warn(ctx, "failed to reset failed attempts counter")
 	}
+
+	commitReservations = true
 
 	return code.Code, nil
 }
@@ -322,7 +376,7 @@ func (s *Service) SetSubmittedCode(ctx context.Context, kind Kind, target string
 		return nil, err
 	}
 
-	return s.InspectState(ctx, kind, target)
+	return s.InspectState(ctx, kind, target, nil)
 }
 
 func (s *Service) LookupCode(ctx context.Context, purpose Purpose, code string) (target string, err error) {
@@ -333,7 +387,10 @@ func (s *Service) InspectCode(ctx context.Context, purpose Purpose, target strin
 	return s.getCode(ctx, purpose, target)
 }
 
-func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*State, error) {
+func (s *Service) InspectState(ctx context.Context, kind Kind, target string, opts *InspectStateOptions) (*State, error) {
+	if opts == nil {
+		opts = &InspectStateOptions{}
+	}
 	ferr := s.checkFailedAttemptsRevocation(ctx, kind, target)
 	tooManyAttempts := false
 	if errors.Is(ferr, ErrTooManyAttempts) {
@@ -349,6 +406,15 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		return nil, err
 	}
 	canResendAt = *timeToAct
+	if opts.AuthenticationFlowID != "" {
+		timeToAct, err := s.RateLimiter.GetTimeToAct(ctx, kind.RateLimitTriggerCooldownPerSession(opts.AuthenticationFlowID))
+		if err != nil {
+			return nil, err
+		}
+		if timeToAct.After(canResendAt) {
+			canResendAt = *timeToAct
+		}
+	}
 
 	state := &State{
 		CanResendAt:           canResendAt,
