@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -53,7 +53,7 @@ func parseProjectsListParams(r *http.Request) ProjectsListParams {
 }
 
 // TODO: Replace dummy data with real implementation.
-var dummyProjects = []model.Project{
+var dummyProjects = []siteadmin.Project{
 	{
 		Id:         "project-alpha",
 		OwnerEmail: "alice@example.com",
@@ -90,7 +90,7 @@ func (h *ProjectsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	params := parseProjectsListParams(r)
 
 	// TODO: Replace with real data source. Filter and paginate dummy data for now.
-	filtered := make([]model.Project, 0, len(dummyProjects))
+	filtered := make([]siteadmin.Project, 0, len(dummyProjects))
 	for _, p := range dummyProjects {
 		if params.ProjectID != "" && !strings.EqualFold(p.Id, params.ProjectID) {
 			continue
@@ -111,7 +111,7 @@ func (h *ProjectsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		end = totalCount
 	}
 
-	response := model.ProjectsListResponse{
+	response := siteadmin.ProjectsListResponse{
 		Projects:   filtered[start:end],
 		TotalCount: totalCount,
 		Page:       params.Page,

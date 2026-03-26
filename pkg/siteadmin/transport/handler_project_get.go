@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -35,7 +35,7 @@ func (h *ProjectGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// TODO: Replace with real data source. Search dummy data for now.
 	for _, p := range dummyProjects {
 		if strings.EqualFold(p.Id, params.ProjectID) {
-			detail := model.ProjectDetail{
+			detail := siteadmin.ProjectDetail{
 				Id:         p.Id,
 				OwnerEmail: p.OwnerEmail,
 				Plan:       p.Plan,

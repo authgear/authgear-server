@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -76,10 +76,10 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 	// TODO: Replace with real data source. Return dummy data for now.
-	var counts []model.MonthlyActiveUsersCount
+	var counts []siteadmin.MonthlyActiveUsersCount
 	year, month := params.StartYear, params.StartMonth
 	for {
-		counts = append(counts, model.MonthlyActiveUsersCount{
+		counts = append(counts, siteadmin.MonthlyActiveUsersCount{
 			Year:  year,
 			Month: month,
 			Count: 100,
@@ -93,7 +93,7 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			year++
 		}
 	}
-	usage := model.MonthlyActiveUsersUsage{Counts: counts}
+	usage := siteadmin.MonthlyActiveUsersUsage{Counts: counts}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
