@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -51,7 +51,7 @@ func (h *MessagingUsageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	// TODO: Replace with real data source. Return dummy data for now.
-	usage := model.MessagingUsage{
+	usage := siteadmin.MessagingUsage{
 		StartDate:                 params.StartDate,
 		EndDate:                   params.EndDate,
 		SmsNorthAmericaCount:      120,

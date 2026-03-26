@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -34,7 +34,7 @@ func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	// TODO: Replace with real data source. Search dummy data for now.
 	for _, p := range dummyProjects {
 		if p.Id == params.ProjectID {
-			response := model.CollaboratorsListResponse{
+			response := siteadmin.CollaboratorsListResponse{
 				Collaborators: dummyCollaboratorsForProject(params.ProjectID),
 			}
 			w.Header().Set("Content-Type", "application/json")

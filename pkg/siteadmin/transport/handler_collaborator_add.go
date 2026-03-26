@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/siteadmin/model"
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -26,14 +26,14 @@ var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
 `)
 
 // TODO: Replace dummy data with real implementation.
-var dummyCollaborators = map[string][]model.Collaborator{
+var dummyCollaborators = map[string][]siteadmin.Collaborator{
 	"project-alpha": {
 		{
 			Id:        "collab-1",
 			ProjectId: "project-alpha",
 			UserId:    "user-001",
 			UserEmail: "alice@example.com",
-			Role:      model.Owner,
+			Role:      siteadmin.Owner,
 			CreatedAt: time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC),
 		},
 		{
@@ -41,7 +41,7 @@ var dummyCollaborators = map[string][]model.Collaborator{
 			ProjectId: "project-alpha",
 			UserId:    "user-002",
 			UserEmail: "bob@example.com",
-			Role:      model.Editor,
+			Role:      siteadmin.Editor,
 			CreatedAt: time.Date(2024, 2, 10, 9, 0, 0, 0, time.UTC),
 		},
 	},
@@ -51,17 +51,17 @@ var dummyCollaborators = map[string][]model.Collaborator{
 			ProjectId: "project-beta",
 			UserId:    "user-003",
 			UserEmail: "carol@example.com",
-			Role:      model.Owner,
+			Role:      siteadmin.Owner,
 			CreatedAt: time.Date(2024, 3, 22, 10, 0, 0, 0, time.UTC),
 		},
 	},
 }
 
-func dummyCollaboratorsForProject(projectID string) []model.Collaborator {
+func dummyCollaboratorsForProject(projectID string) []siteadmin.Collaborator {
 	if collaborators, ok := dummyCollaborators[projectID]; ok {
 		return collaborators
 	}
-	return []model.Collaborator{}
+	return []siteadmin.Collaborator{}
 }
 
 type CollaboratorAddHandler struct {
@@ -70,11 +70,11 @@ type CollaboratorAddHandler struct {
 
 type CollaboratorAddParams struct {
 	ProjectID string
-	model.AddCollaboratorRequest
+	siteadmin.AddCollaboratorRequest
 }
 
 func parseCollaboratorAddParams(r *http.Request) (CollaboratorAddParams, error) {
-	var body model.AddCollaboratorRequest
+	var body siteadmin.AddCollaboratorRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return CollaboratorAddParams{}, err
 	}
@@ -97,12 +97,12 @@ func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	// TODO: Replace with real data source. Return a dummy collaborator now.
-	collaborator := model.Collaborator{
+	collaborator := siteadmin.Collaborator{
 		Id:        "collab-new",
 		ProjectId: params.ProjectID,
 		UserId:    "user-new",
 		UserEmail: params.UserEmail,
-		Role:      model.Editor,
+		Role:      siteadmin.Editor,
 		CreatedAt: time.Now().UTC(),
 	}
 
