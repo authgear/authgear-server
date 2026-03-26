@@ -36,18 +36,65 @@ type AddCollaboratorRequest struct {
 	UserEmail string `json:"user_email"`
 }
 
+// App defines model for App.
+type App struct {
+	// CreatedAt The time the app was created, in RFC 3339 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The app ID
+	Id string `json:"id"`
+
+	// OwnerEmail Email address of the app owner
+	OwnerEmail string `json:"owner_email"`
+
+	// Plan The plan the app is on
+	Plan string `json:"plan"`
+}
+
+// AppDetail defines model for AppDetail.
+type AppDetail struct {
+	// CreatedAt The time the app was created, in RFC 3339 format
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id The app ID
+	Id string `json:"id"`
+
+	// OwnerEmail Email address of the app owner
+	OwnerEmail string `json:"owner_email"`
+
+	// Plan The plan the app is on
+	Plan string `json:"plan"`
+
+	// UserCount Number of users in the app
+	UserCount int `json:"user_count"`
+}
+
+// AppsListResponse defines model for AppsListResponse.
+type AppsListResponse struct {
+	Apps []App `json:"apps"`
+
+	// Page Current page number.
+	Page int `json:"page"`
+
+	// PageSize Number of apps per page.
+	PageSize int `json:"page_size"`
+
+	// TotalCount Total number of apps matching the query.
+	TotalCount int `json:"total_count"`
+}
+
 // Collaborator defines model for Collaborator.
 type Collaborator struct {
+	// AppId The app this collaborator belongs to
+	AppId string `json:"app_id"`
+
 	// CreatedAt When the collaborator was added, in RFC 3339 format
 	CreatedAt time.Time `json:"created_at"`
 
 	// Id The collaborator record ID
 	Id string `json:"id"`
 
-	// ProjectId The project this collaborator belongs to
-	ProjectId string `json:"project_id"`
-
-	// Role The role of a collaborator within a project
+	// Role The role of a collaborator within an app
 	Role CollaboratorRole `json:"role"`
 
 	// UserEmail The email address of the collaborator
@@ -57,7 +104,7 @@ type Collaborator struct {
 	UserId string `json:"user_id"`
 }
 
-// CollaboratorRole The role of a collaborator within a project
+// CollaboratorRole The role of a collaborator within an app
 type CollaboratorRole string
 
 // CollaboratorsListResponse defines model for CollaboratorsListResponse.
@@ -105,52 +152,6 @@ type MonthlyActiveUsersUsage struct {
 	Counts []MonthlyActiveUsersCount `json:"counts"`
 }
 
-// Project defines model for Project.
-type Project struct {
-	// CreatedAt The time the project was created, in RFC 3339 format
-	CreatedAt time.Time `json:"created_at"`
-
-	// Id The project ID
-	Id string `json:"id"`
-
-	// OwnerEmail Email address of the project owner
-	OwnerEmail string `json:"owner_email"`
-
-	// Plan The plan the project is on
-	Plan string `json:"plan"`
-}
-
-// ProjectDetail defines model for ProjectDetail.
-type ProjectDetail struct {
-	// CreatedAt The time the project was created, in RFC 3339 format
-	CreatedAt time.Time `json:"created_at"`
-
-	// Id The project ID
-	Id string `json:"id"`
-
-	// OwnerEmail Email address of the project owner
-	OwnerEmail string `json:"owner_email"`
-
-	// Plan The plan the project is on
-	Plan string `json:"plan"`
-
-	// UserCount Number of users in the project
-	UserCount int `json:"user_count"`
-}
-
-// ProjectsListResponse defines model for ProjectsListResponse.
-type ProjectsListResponse struct {
-	// Page Current page number.
-	Page int `json:"page"`
-
-	// PageSize Number of projects per page.
-	PageSize int       `json:"page_size"`
-	Projects []Project `json:"projects"`
-
-	// TotalCount Total number of projects matching the query.
-	TotalCount int `json:"total_count"`
-}
-
 // BadRequest Error response envelope matching the api.Response struct.
 type BadRequest = ErrorEnvelope
 
@@ -160,23 +161,23 @@ type Forbidden = ErrorEnvelope
 // NotFound Error response envelope matching the api.Response struct.
 type NotFound = ErrorEnvelope
 
-// ListProjectsParams defines parameters for ListProjects.
-type ListProjectsParams struct {
+// ListAppsParams defines parameters for ListApps.
+type ListAppsParams struct {
 	// Page Page number, 1-based. Defaults to 1.
 	Page *int `form:"page,omitempty" json:"page,omitempty"`
 
-	// PageSize Number of projects per page. Defaults to 20, maximum 100.
+	// PageSize Number of apps per page. Defaults to 20, maximum 100.
 	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
 
-	// ProjectId Filter by project ID.
-	ProjectId *string `form:"project_id,omitempty" json:"project_id,omitempty"`
+	// AppId Filter by app ID.
+	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
 	// OwnerEmail Filter by owner email address.
 	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
 }
 
-// GetProjectMessagingUsageParams defines parameters for GetProjectMessagingUsage.
-type GetProjectMessagingUsageParams struct {
+// GetAppMessagingUsageParams defines parameters for GetAppMessagingUsage.
+type GetAppMessagingUsageParams struct {
 	// StartDate Start of the date range, inclusive. Format YYYY-MM-DD.
 	StartDate string `form:"start_date" json:"start_date"`
 
@@ -184,8 +185,8 @@ type GetProjectMessagingUsageParams struct {
 	EndDate string `form:"end_date" json:"end_date"`
 }
 
-// GetProjectMonthlyActiveUsersParams defines parameters for GetProjectMonthlyActiveUsers.
-type GetProjectMonthlyActiveUsersParams struct {
+// GetAppMonthlyActiveUsersParams defines parameters for GetAppMonthlyActiveUsers.
+type GetAppMonthlyActiveUsersParams struct {
 	// StartYear The year of the start month, inclusive.
 	StartYear int `form:"start_year" json:"start_year"`
 
@@ -199,5 +200,5 @@ type GetProjectMonthlyActiveUsersParams struct {
 	EndMonth int `form:"end_month" json:"end_month"`
 }
 
-// AddProjectCollaboratorJSONRequestBody defines body for AddProjectCollaborator for application/json ContentType.
-type AddProjectCollaboratorJSONRequestBody = AddCollaboratorRequest
+// AddAppCollaboratorJSONRequestBody defines body for AddAppCollaborator for application/json ContentType.
+type AddAppCollaboratorJSONRequestBody = AddCollaboratorRequest

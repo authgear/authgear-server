@@ -62,17 +62,17 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
+func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*transport.ProjectsListHandler)),
+		wire.Bind(new(http.Handler), new(*transport.AppsListHandler)),
 	))
 }
 
-func newProjectGetHandler(p *deps.RequestProvider) http.Handler {
+func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*transport.ProjectGetHandler)),
+		wire.Bind(new(http.Handler), new(*transport.AppGetHandler)),
 	))
 }
 

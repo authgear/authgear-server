@@ -9,10 +9,10 @@ servers:
     description: Local development (via nginx)
 
 paths:
-  /api/v1/projects:
+  /api/v1/apps:
     get:
-      operationId: listProjects
-      summary: List all projects
+      operationId: listApps
+      summary: List all apps
       parameters:
         - name: page
           in: query
@@ -23,15 +23,15 @@ paths:
             minimum: 1
         - name: page_size
           in: query
-          description: Number of projects per page. Defaults to 20, maximum 100.
+          description: Number of apps per page. Defaults to 20, maximum 100.
           schema:
             type: integer
             default: 20
             minimum: 1
             maximum: 100
-        - name: project_id
+        - name: app_id
           in: query
-          description: Filter by project ID.
+          description: Filter by app ID.
           schema:
             type: string
         - name: owner_email
@@ -42,22 +42,22 @@ paths:
             format: email
       responses:
         "200":
-          description: A list of projects
+          description: A list of apps
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProjectsListResponse"
+                $ref: "#/components/schemas/AppsListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /api/v1/projects/{project_id}/usage/messaging:
+  /api/v1/apps/{app_id}/usage/messaging:
     get:
-      operationId: getProjectMessagingUsage
-      summary: Get messaging usage for a project over a date range
+      operationId: getAppMessagingUsage
+      summary: Get messaging usage for an app over a date range
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
@@ -90,12 +90,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v1/projects/{project_id}/usage/monthly-active-users:
+  /api/v1/apps/{app_id}/usage/monthly-active-users:
     get:
-      operationId: getProjectMonthlyActiveUsers
-      summary: Get monthly active users for a project over a range of months
+      operationId: getAppMonthlyActiveUsers
+      summary: Get monthly active users for an app over a range of months
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
@@ -142,12 +142,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v1/projects/{project_id}/collaborators:
+  /api/v1/apps/{app_id}/collaborators:
     get:
-      operationId: listProjectCollaborators
-      summary: List collaborators of a project
+      operationId: listAppCollaborators
+      summary: List collaborators of an app
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
@@ -165,10 +165,10 @@ paths:
           $ref: "#/components/responses/NotFound"
 
     post:
-      operationId: addProjectCollaborator
-      summary: Add a collaborator to a project directly
+      operationId: addAppCollaborator
+      summary: Add a collaborator to an app directly
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
@@ -193,12 +193,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v1/projects/{project_id}/collaborators/{collaborator_id}:
+  /api/v1/apps/{app_id}/collaborators/{collaborator_id}:
     delete:
-      operationId: removeProjectCollaborator
-      summary: Remove a collaborator from a project
+      operationId: removeAppCollaborator
+      summary: Remove a collaborator from an app
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
@@ -220,23 +220,23 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v1/projects/{project_id}:
+  /api/v1/apps/{app_id}:
     get:
-      operationId: getProject
-      summary: Get project details
+      operationId: getApp
+      summary: Get app details
       parameters:
-        - name: project_id
+        - name: app_id
           in: path
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: Project details
+          description: App details
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProjectDetail"
+                $ref: "#/components/schemas/AppDetail"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -393,7 +393,7 @@ components:
       type: object
       required:
         - id
-        - project_id
+        - app_id
         - user_id
         - user_email
         - role
@@ -402,9 +402,9 @@ components:
         id:
           type: string
           description: The collaborator record ID
-        project_id:
+        app_id:
           type: string
-          description: The project this collaborator belongs to
+          description: The app this collaborator belongs to
         user_id:
           type: string
           description: The user ID of the collaborator
@@ -424,7 +424,7 @@ components:
       enum:
         - owner
         - editor
-      description: The role of a collaborator within a project
+      description: The role of a collaborator within an app
 
     AddCollaboratorRequest:
       type: object
@@ -436,29 +436,29 @@ components:
           format: email
           description: The email address of the user to add as a collaborator. The role is always editor.
 
-    ProjectsListResponse:
+    AppsListResponse:
       type: object
       required:
-        - projects
+        - apps
         - total_count
         - page
         - page_size
       properties:
-        projects:
+        apps:
           type: array
           items:
-            $ref: "#/components/schemas/Project"
+            $ref: "#/components/schemas/App"
         total_count:
           type: integer
-          description: Total number of projects matching the query.
+          description: Total number of apps matching the query.
         page:
           type: integer
           description: Current page number.
         page_size:
           type: integer
-          description: Number of projects per page.
+          description: Number of apps per page.
 
-    Project:
+    App:
       type: object
       required:
         - id
@@ -468,26 +468,26 @@ components:
       properties:
         id:
           type: string
-          description: The project ID
+          description: The app ID
         owner_email:
           type: string
           format: email
-          description: Email address of the project owner
+          description: Email address of the app owner
         plan:
           type: string
-          description: The plan the project is on
+          description: The plan the app is on
         created_at:
           type: string
           format: date-time
-          description: The time the project was created, in RFC 3339 format
+          description: The time the app was created, in RFC 3339 format
 
-    ProjectDetail:
+    AppDetail:
       allOf:
-        - $ref: "#/components/schemas/Project"
+        - $ref: "#/components/schemas/App"
         - type: object
           required:
             - user_count
           properties:
             user_count:
               type: integer
-              description: Number of users in the project
+              description: Number of users in the app
