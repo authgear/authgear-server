@@ -46,7 +46,7 @@ type <Name>Params struct {
 
 func parse<Name>Params(r *http.Request) (<Name>Params, error) {
     // parse path params via httproute.GetParam(r, "paramName")
-    // for GET query params: validate manually with apierrors.NewBadRequest
+    // for GET query params: use helpers from params.go (getIntParam, getDateParam, etc.)
     // for POST: decode JSON body into generated request model, validate with validation.NewSimpleSchema
 }
 
@@ -67,7 +67,13 @@ Key rules:
 - DELETE routes must include `"OPTIONS"` in `WithMethods` for CORS preflight
 - Use `writeError(w, r, err)` for all error responses
 - Use `apierrors.NewNotFound(...)` for 404s
-- For GET query param validation, use manual checks with `apierrors.NewBadRequest`: check for missing values, parse types (`time.Parse` for dates, `strconv.Atoi` for integers), and validate ranges explicitly. Do NOT use JSON schema for query params — query params arrive as strings so schema type/format checks don't apply cleanly.
+- For GET query param validation, use the helpers in `pkg/siteadmin/transport/params.go` — they return `ValidationFailed` errors:
+  - `getIntParam(q, name)` / `getOptionalIntParam(q, name)` — required/optional integer
+  - `getDateParam(q, name)` / `getOptionalDateParam(q, name)` — required/optional `YYYY-MM-DD` date
+  - `validateMonth(name, v)` — validates value is 1–12
+  - For custom range/business-rule errors, use `makeValidationError(func(ctx *validation.Context) { ... })`
+  - Do NOT use `apierrors.NewBadRequest` for query param errors
+  - Do NOT use JSON schema for query params — query params arrive as strings so schema type/format checks don't apply cleanly
 - For POST body validation, use `validation.NewSimpleSchema` and `ValidateValue(r.Context(), body)`
 - Embed generated request model in params struct instead of copying fields
 

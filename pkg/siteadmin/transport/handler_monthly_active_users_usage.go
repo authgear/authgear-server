@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func ConfigureMonthlyActiveUsersUsageRoute(route httproute.Route) httproute.Route {
@@ -57,7 +57,9 @@ func parseMonthlyActiveUsersUsageParams(r *http.Request) (MonthlyActiveUsersUsag
 
 	totalMonths := (endYear-startYear)*12 + (endMonth - startMonth)
 	if totalMonths < 0 || totalMonths > 11 {
-		return MonthlyActiveUsersUsageParams{}, apierrors.NewBadRequest("date range must be within 1 year")
+		return MonthlyActiveUsersUsageParams{}, makeValidationError(func(ctx *validation.Context) {
+			ctx.EmitError("range", map[string]interface{}{"details": "date range must be within 1 year"})
+		})
 	}
 
 	return MonthlyActiveUsersUsageParams{
