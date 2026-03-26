@@ -56,6 +56,7 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+      - [usage.alert.triggered](#usagealerttriggered)
     + [Events that support audit log](#events-that-support-audit-log)
   * [Trigger Points Diagrams](#trigger-points-diagrams)
     + [Signup](#signup)
@@ -541,6 +542,7 @@ Use this event to add custom fields to the ID token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
+- [usage.alert.triggered](#usagealerttriggered)
 - [rate_limit.blocked](#rate_limitblocked)
 
 #### user.created
@@ -1128,6 +1130,35 @@ Occurs when biometric login is disabled. It will be triggered only when the user
   }
 }
 ```
+
+#### usage.alert.triggered
+
+Occurs when usage crosses from below to at least a configured usage limit, including configured `alert` and `block` actions.
+
+This event is intended for the usage configuration described in [Usage](./usage.md).
+
+`context.triggered_by` is `system`.
+
+Payload:
+```json5
+{
+  "payload": {
+    "usage": {
+      "name": "sms",
+      "action": "block",
+      "period": "month",
+      "quota": 900,
+      "current_value": 900
+    }
+  }
+}
+```
+
+- `usage.name`: The configured usage name. Supported values are listed in [Supported Usage Names](./usage.md#supported-usage-names).
+- `usage.action`: The configured action. Supported values are `alert` and `block`.
+- `usage.period`: The usage period.
+- `usage.quota`: The configured quota that was triggered.
+- `usage.current_value`: The measured usage value in the current period when the event is generated.
 
 #### rate_limit.blocked
 
