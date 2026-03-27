@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+package: siteadmin
+generate:
+  models: true
+output: gen.go
+output-options:
+  type-mapping:
+    string:
+      formats:
+        email:
+          type: string
+        date:
+          type: string

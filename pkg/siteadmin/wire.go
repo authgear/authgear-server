@@ -62,9 +62,51 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
+func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*transport.ProjectsListHandler)),
+		wire.Bind(new(http.Handler), new(*transport.AppsListHandler)),
+	))
+}
+
+func newAppGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AppGetHandler)),
+	))
+}
+
+func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorsListHandler)),
+	))
+}
+
+func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorAddHandler)),
+	))
+}
+
+func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorRemoveHandler)),
+	))
+}
+
+func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.MessagingUsageHandler)),
+	))
+}
+
+func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.MonthlyActiveUsersUsageHandler)),
 	))
 }

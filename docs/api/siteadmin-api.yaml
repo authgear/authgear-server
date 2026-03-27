@@ -1,0 +1,493 @@
+openapi: 3.0.3
+info:
+  title: Site Admin API
+  version: "1.0"
+  description: Internal API for Site Admin operations.
+
+servers:
+  - url: http://localhost:8100
+    description: Local development (via nginx)
+
+paths:
+  /api/v1/apps:
+    get:
+      operationId: listApps
+      summary: List all apps
+      parameters:
+        - name: page
+          in: query
+          description: Page number, 1-based. Defaults to 1.
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          description: Number of apps per page. Defaults to 20, maximum 100.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: app_id
+          in: query
+          description: Filter by app ID.
+          schema:
+            type: string
+        - name: owner_email
+          in: query
+          description: Filter by owner email address.
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: A list of apps
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppsListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/apps/{app_id}/usage/messaging:
+    get:
+      operationId: getAppMessagingUsage
+      summary: Get messaging usage for an app over a date range
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          description: Start of the date range, inclusive. Format YYYY-MM-DD.
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          description: End of the date range, inclusive. Format YYYY-MM-DD.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Messaging usage aggregated over the given date range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagingUsage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/apps/{app_id}/usage/monthly-active-users:
+    get:
+      operationId: getAppMonthlyActiveUsers
+      summary: Get monthly active users for an app over a range of months
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_year
+          in: query
+          required: true
+          description: The year of the start month, inclusive.
+          schema:
+            type: integer
+        - name: start_month
+          in: query
+          required: true
+          description: The start month, inclusive (1-12).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: end_year
+          in: query
+          required: true
+          description: The year of the end month, inclusive.
+          schema:
+            type: integer
+        - name: end_month
+          in: query
+          required: true
+          description: The end month, inclusive (1-12).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        "200":
+          description: Monthly active user counts for each month in the given range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyActiveUsersUsage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/apps/{app_id}/collaborators:
+    get:
+      operationId: listAppCollaborators
+      summary: List collaborators of an app
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of collaborators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollaboratorsListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      operationId: addAppCollaborator
+      summary: Add a collaborator to an app directly
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCollaboratorRequest"
+      responses:
+        "200":
+          description: The newly added collaborator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collaborator"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/apps/{app_id}/collaborators/{collaborator_id}:
+    delete:
+      operationId: removeAppCollaborator
+      summary: Remove a collaborator from an app
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collaborator_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Collaborator removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/apps/{app_id}:
+    get:
+      operationId: getApp
+      summary: Get app details
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: App details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: Caller does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+
+  schemas:
+    ErrorEnvelope:
+      description: Error response envelope matching the api.Response struct.
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/APIError"
+
+    APIError:
+      x-go-type: apierrors.APIError
+      x-go-type-import:
+        name: apierrors
+        path: github.com/authgear/authgear-server/pkg/api/apierrors
+      description: >
+        Error detail matching the apierrors.APIError struct.
+        name and reason identify the error kind; code mirrors the HTTP status.
+      type: object
+      required:
+        - name
+        - reason
+        - message
+        - code
+      properties:
+        name:
+          type: string
+          description: Error kind name (e.g. BadRequest, Forbidden, NotFound)
+          enum:
+            - BadRequest
+            - Invalid
+            - Unauthorized
+            - Forbidden
+            - NotFound
+            - AlreadyExists
+            - TooManyRequest
+            - InternalError
+            - ServiceUnavailable
+            - RequestEntityTooLarge
+        reason:
+          type: string
+          description: More specific reason within the kind (e.g. ValidationFailed)
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: integer
+          description: HTTP status code
+        tracking_id:
+          type: string
+          description: Opaque ID for correlating errors in logs
+        info:
+          type: object
+          description: Additional structured details about the error
+          additionalProperties: true
+
+    MessagingUsage:
+      type: object
+      required:
+        - start_date
+        - end_date
+        - sms_north_america_count
+        - sms_other_regions_count
+        - whatsapp_north_america_count
+        - whatsapp_other_regions_count
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Start of the date range, inclusive. Format YYYY-MM-DD.
+        end_date:
+          type: string
+          format: date
+          description: End of the date range, inclusive. Format YYYY-MM-DD.
+        sms_north_america_count:
+          type: integer
+          description: Number of SMS messages sent in North America
+        sms_other_regions_count:
+          type: integer
+          description: Number of SMS messages sent in other regions
+        whatsapp_north_america_count:
+          type: integer
+          description: Number of WhatsApp messages sent in North America
+        whatsapp_other_regions_count:
+          type: integer
+          description: Number of WhatsApp messages sent in other regions
+
+    MonthlyActiveUsersUsage:
+      type: object
+      required:
+        - counts
+      properties:
+        counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyActiveUsersCount"
+
+    MonthlyActiveUsersCount:
+      type: object
+      required:
+        - year
+        - month
+        - count
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        count:
+          type: integer
+          description: Number of monthly active users in this month
+
+    CollaboratorsListResponse:
+      type: object
+      required:
+        - collaborators
+      properties:
+        collaborators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collaborator"
+
+    Collaborator:
+      type: object
+      required:
+        - id
+        - app_id
+        - user_id
+        - user_email
+        - role
+        - created_at
+      properties:
+        id:
+          type: string
+          description: The collaborator record ID
+        app_id:
+          type: string
+          description: The app this collaborator belongs to
+        user_id:
+          type: string
+          description: The user ID of the collaborator
+        user_email:
+          type: string
+          format: email
+          description: The email address of the collaborator
+        role:
+          $ref: "#/components/schemas/CollaboratorRole"
+        created_at:
+          type: string
+          format: date-time
+          description: When the collaborator was added, in RFC 3339 format
+
+    CollaboratorRole:
+      type: string
+      enum:
+        - owner
+        - editor
+      description: The role of a collaborator within an app
+
+    AddCollaboratorRequest:
+      type: object
+      required:
+        - user_email
+      properties:
+        user_email:
+          type: string
+          format: email
+          description: The email address of the user to add as a collaborator. The role is always editor.
+
+    AppsListResponse:
+      type: object
+      required:
+        - apps
+        - total_count
+        - page
+        - page_size
+      properties:
+        apps:
+          type: array
+          items:
+            $ref: "#/components/schemas/App"
+        total_count:
+          type: integer
+          description: Total number of apps matching the query.
+        page:
+          type: integer
+          description: Current page number.
+        page_size:
+          type: integer
+          description: Number of apps per page.
+
+    App:
+      type: object
+      required:
+        - id
+        - owner_email
+        - plan
+        - created_at
+      properties:
+        id:
+          type: string
+          description: The app ID
+        owner_email:
+          type: string
+          format: email
+          description: Email address of the app owner
+        plan:
+          type: string
+          description: The plan the app is on
+        created_at:
+          type: string
+          format: date-time
+          description: The time the app was created, in RFC 3339 format
+
+    AppDetail:
+      allOf:
+        - $ref: "#/components/schemas/App"
+        - type: object
+          required:
+            - user_count
+          properties:
+            user_count:
+              type: integer
+              description: Number of users in the app
