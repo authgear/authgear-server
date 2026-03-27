@@ -38,7 +38,13 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	)
 
 	route := httproute.Route{Middleware: apiChain}
-	router.Add(transport.ConfigureProjectsListRoute(route), p.Handler(newProjectsListHandler))
+	router.Add(transport.ConfigureAppsListRoute(route), p.Handler(newAppsListHandler))
+	router.Add(transport.ConfigureAppGetRoute(route), p.Handler(newAppGetHandler))
+	router.Add(transport.ConfigureCollaboratorsListRoute(route), p.Handler(newCollaboratorsListHandler))
+	router.Add(transport.ConfigureCollaboratorAddRoute(route), p.Handler(newCollaboratorAddHandler))
+	router.Add(transport.ConfigureCollaboratorRemoveRoute(route), p.Handler(newCollaboratorRemoveHandler))
+	router.Add(transport.ConfigureMessagingUsageRoute(route), p.Handler(newMessagingUsageHandler))
+	router.Add(transport.ConfigureMonthlyActiveUsersUsageRoute(route), p.Handler(newMonthlyActiveUsersUsageHandler))
 
 	return router.HTTPHandler()
 }

@@ -85,7 +85,37 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	return handler
 }
 
-func newProjectsListHandler(p *deps.RequestProvider) http.Handler {
-	projectsListHandler := &transport.ProjectsListHandler{}
-	return projectsListHandler
+func newAppsListHandler(p *deps.RequestProvider) http.Handler {
+	appsListHandler := &transport.AppsListHandler{}
+	return appsListHandler
+}
+
+func newAppGetHandler(p *deps.RequestProvider) http.Handler {
+	appGetHandler := &transport.AppGetHandler{}
+	return appGetHandler
+}
+
+func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorsListHandler := &transport.CollaboratorsListHandler{}
+	return collaboratorsListHandler
+}
+
+func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorAddHandler := &transport.CollaboratorAddHandler{}
+	return collaboratorAddHandler
+}
+
+func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{}
+	return collaboratorRemoveHandler
+}
+
+func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
+	messagingUsageHandler := &transport.MessagingUsageHandler{}
+	return messagingUsageHandler
+}
+
+func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
+	monthlyActiveUsersUsageHandler := &transport.MonthlyActiveUsersUsageHandler{}
+	return monthlyActiveUsersUsageHandler
 }
