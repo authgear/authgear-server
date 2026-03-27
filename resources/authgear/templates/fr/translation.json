@@ -530,7 +530,7 @@
   "v2.error.totp-code-required": "Veuillez saisir le code à 6 chiffres de l''application / du périphérique d''authentification.",
   "v2.error.type": "Veuillez saisir {expected, select, number{un nombre} integer{un entier} other{}}",
   "v2.error.unexpected-user": "Il semble que vous vous soyez connecté avec un compte différent. Veuillez réessayer.",
-  "v2.error.unknown": "Une erreur inconnue s''est produite. Si le problème persiste, veuillez demander de l''aide sur notre <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum communautaire</a> ou contactez-nous à <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
+  "v2.error.unknown": "Une erreur inconnue s''est produite. Si le problème persiste, veuillez demander de l''aide sur notre <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum communautaire</a> ou contactez-nous à <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>{HasTrackingID, select, true{\n<br/><span class=\"tracking-id-text\">ID de suivi: {TrackingID}</span>} other{}}",
   "v2.error.uri-format": "L''URL que vous avez saisie n''est pas au bon format. Les URL commencent généralement par https://, par exemple https://example.com/",
   "v2.error.usage-limit-exceeded": "[Au Développeur] Votre projet a dépassé la limite d''utilisation des messages. Veuillez vérifier votre abonnement.",
   "v2.error.user-outside-valid-period": "Ce compte est en dehors de sa période d''accès valide.",
