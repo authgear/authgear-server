@@ -8,7 +8,7 @@ import {
 } from "./createDomainMutation.generated";
 
 export function useCreateDomainMutation(appID: string): {
-  createDomain: (domain: string) => Promise<boolean>;
+  createDomain: (domain: string, apexDomain?: string) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
@@ -18,9 +18,9 @@ export function useCreateDomainMutation(appID: string): {
       client,
     });
   const createDomain = useCallback(
-    async (domain: string) => {
+    async (domain: string, apexDomain?: string) => {
       const result = await mutationFunction({
-        variables: { appID, domain },
+        variables: { appID, domain, apexDomain },
       });
 
       return result.data != null;

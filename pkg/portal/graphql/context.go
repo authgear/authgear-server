@@ -70,7 +70,7 @@ type AppService interface {
 
 type DomainService interface {
 	ListDomains(ctx context.Context, appID string) ([]*apimodel.Domain, error)
-	CreateCustomDomain(ctx context.Context, appID string, domain string) (*apimodel.Domain, error)
+	CreateCustomDomain(ctx context.Context, appID string, domain string, apexDomain string) (*apimodel.Domain, error)
 	DeleteDomain(ctx context.Context, appID string, id string) error
 	VerifyDomain(ctx context.Context, appID string, id string) (*apimodel.Domain, error)
 }

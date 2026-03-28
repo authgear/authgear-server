@@ -41,6 +41,7 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
 var InvalidDomain = apierrors.Invalid.WithReason("InvalidDomain")
+var InvalidApexDomain = apierrors.Invalid.WithReason("InvalidApexDomain")
 
 type DomainConfigService interface {
 	CreateDomain(ctx context.Context, appID string, domainID string, domain string, isCustom bool) error
@@ -120,14 +121,29 @@ func (s *DomainService) ListDomains(ctx context.Context, appID string) ([]*apimo
 }
 
 // CreateCustomDomain acquires connection.
-func (s *DomainService) CreateCustomDomain(ctx context.Context, appID string, domain string) (*apimodel.Domain, error) {
+// apexDomain overrides the PSL-derived apex domain used for DNS TXT verification and uniqueness checks.
+// If empty, the apex domain is derived automatically via publicsuffix.EffectiveTLDPlusOne.
+func (s *DomainService) CreateCustomDomain(ctx context.Context, appID string, domain string, apexDomain string) (*apimodel.Domain, error) {
 	var out *apimodel.Domain
 	var err error
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		out, err = s.CreateDomain(ctx, appID, domain, false, true)
+		d, err := newDomain(appID, domain, s.Clock.NowUTC(), true)
 		if err != nil {
 			return err
 		}
+
+		if apexDomain != "" {
+			if err := d.overrideApexDomain(apexDomain); err != nil {
+				return err
+			}
+		}
+
+		err = s.createDomain(ctx, d, false)
+		if err != nil {
+			return err
+		}
+
+		out = d.toModel(false)
 		return nil
 	})
 	if err != nil {
@@ -337,11 +353,16 @@ func (s *DomainService) getDomain(ctx context.Context, appID string, id string, 
 
 func (s *DomainService) createDomain(ctx context.Context, d *domain, isVerified bool) error {
 	tableName := domainTableName(isVerified)
+	apexNames, err := d.apexDomainDuplicateCheckNames()
+	if err != nil {
+		return err
+	}
+
 	dupeQuery := s.SQLBuilder.
 		Select("COUNT(*)").
 		From(s.SQLBuilder.TableName(tableName))
 
-	dupeQuery = dupeQuery.Where("apex_domain = ?", d.ApexDomain)
+	dupeQuery = dupeQuery.Where("apex_domain = ANY (?)", pq.Array(apexNames))
 	if !isVerified {
 		// Limit duplication query to within app for pending domains
 		dupeQuery = dupeQuery.Where("app_id = ?", d.AppID)
@@ -460,6 +481,50 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 		VerificationNonce: verificationNonce,
 		IsCustom:          isCustom,
 	}, nil
+}
+
+// overrideApexDomain replaces the PSL-derived ApexDomain with a custom value.
+// customApexDomain must be a DNS ancestor of d.Domain (or equal to it).
+func (d *domain) overrideApexDomain(customApexDomain string) error {
+	if customApexDomain == d.Domain || strings.HasSuffix(d.Domain, "."+customApexDomain) {
+		d.ApexDomain = customApexDomain
+		return nil
+	}
+	return InvalidApexDomain.New(fmt.Sprintf("apex domain must be a parent of the domain: expected a suffix of %q, got %q", d.Domain, customApexDomain))
+}
+
+// apexDomainDuplicateCheckNames lists apex_domain values that must not already exist
+// when registering this domain: the apex itself and each DNS parent down to the
+// registrable domain (effective TLD + 1). For example, admin.hanlun-lms-dev.pandawork.com
+// yields admin.hanlun-lms-dev.pandawork.com, hanlun-lms-dev.pandawork.com, pandawork.com.
+func (d *domain) apexDomainDuplicateCheckNames() ([]string, error) {
+	apex := strings.TrimSpace(d.ApexDomain)
+	apex = strings.TrimSuffix(apex, ".")
+	if apex == "" {
+		return nil, fmt.Errorf("empty apex domain")
+	}
+	apex = strings.ToLower(apex)
+
+	etld1, err := publicsuffix.EffectiveTLDPlusOne(apex)
+	if err != nil {
+		// Cleaned up the error wrapping to avoid message stuttering
+		return nil, errors.Join(InvalidDomain.New("invalid apex domain"), err)
+	}
+
+	// Pre-allocated with a small capacity to reduce re-allocations
+	names := make([]string, 0, 3)
+	for cur := apex; cur != ""; {
+		names = append(names, cur)
+		if cur == etld1 {
+			break
+		}
+		i := strings.IndexByte(cur, '.')
+		if i < 0 {
+			break
+		}
+		cur = cur[i+1:]
+	}
+	return names, nil
 }
 
 func (d *domain) toModel(isVerified bool) *apimodel.Domain {

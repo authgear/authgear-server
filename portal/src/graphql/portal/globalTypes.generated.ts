@@ -252,6 +252,8 @@ export type CreateCollaboratorInvitationPayload = {
 };
 
 export type CreateDomainInput = {
+  /** Override the apex domain used for DNS TXT verification and uniqueness checks. Must be a DNS ancestor of domain. If omitted, derived automatically via Public Suffix List. */
+  apexDomain?: InputMaybe<Scalars['String']['input']>;
   /** Target app ID. */
   appID: Scalars['ID']['input'];
   /** Domain name. */
