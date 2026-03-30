@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -92,6 +93,34 @@ func TestSink(t *testing.T) {
 				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
 				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
 			})
+		})
+
+		Convey("delivering non-blocking events to extra hook URLs", func() {
+			cfg.NonBlockingHandlers = nil
+
+			e := &event.Event{
+				ID:   "event-id",
+				Type: nonblocking.UsageAlertTriggered,
+				Payload: &nonblocking.UsageAlertTriggeredEventPayload{
+					Usage: nonblocking.UsageAlertPayload{
+						Name:         model.UsageNameSMS,
+						Action:       model.UsageLimitActionAlert,
+						Period:       model.UsageLimitPeriodMonth,
+						Quota:        10,
+						CurrentValue: 10,
+					},
+					HookURLs: []string{"https://example.com/usage"},
+				},
+				IsNonBlocking: true,
+			}
+
+			ctx := context.Background()
+
+			webhook.EXPECT().SupportURL(mustURL("https://example.com/usage")).Return(true)
+			webhook.EXPECT().DeliverNonBlockingEvent(ctx, mustURL("https://example.com/usage"), e).Return(nil)
+
+			err := s.ReceiveNonBlockingEvent(ctx, e)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("delivering blocking events", func() {
