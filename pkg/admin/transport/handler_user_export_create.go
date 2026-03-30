@@ -39,7 +39,7 @@ const (
 )
 
 type UserExportUsageLimiter interface {
-	Reserve(ctx context.Context, name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name usage.LimitName, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
 }
 
 type UserExportCreateHandler struct {
