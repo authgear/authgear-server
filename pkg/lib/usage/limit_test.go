@@ -9,12 +9,23 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
 
+	apievent "github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+type testEventService struct {
+	payloads []apievent.NonBlockingPayload
+}
+
+func (s *testEventService) DispatchEventImmediately(ctx context.Context, payload apievent.NonBlockingPayload) error {
+	s.payloads = append(s.payloads, payload)
+	return nil
+}
 
 func TestComputeResetTime(t *testing.T) {
 	Convey("compute reset time of quota", t, func() {
@@ -213,5 +224,107 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 		So(daily, ShouldEqual, "0")
 		_, err = mr.Get("app:test-app:usage-limit:SMS")
 		So(err, ShouldNotBeNil)
+	})
+}
+
+func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
+	Convey("Limiter dispatches usage alert triggered with matched hook URLs", t, func() {
+		ctx := context.Background()
+		mr := miniredis.RunT(t)
+		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
+		mr.SetTime(now)
+
+		pool := redis.NewPool()
+		rh := redis.NewHandle(pool, redis.ConnectionOptions{
+			RedisURL:              "redis://" + mr.Addr(),
+			MaxOpenConnection:     func(i int) *int { return &i }(10),
+			MaxIdleConnection:     func(i int) *int { return &i }(5),
+			IdleConnectionTimeout: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(300),
+			MaxConnectionLifetime: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(900),
+		})
+
+		eventService := &testEventService{}
+		limiter := &Limiter{
+			Clock:        clock.NewMockClockAtTime(now),
+			AppID:        "test-app",
+			Redis:        &appredis.Handle{Handle: rh},
+			EventService: eventService,
+			EffectiveConfig: &config.Config{
+				FeatureConfig: &config.FeatureConfig{
+					Usage: &config.FeatureUsageConfig{
+						Hooks: []config.FeatureUsageHookConfig{
+							{URL: "https://example.com/sms", Match: "sms"},
+							{URL: "https://example.com/all", Match: "*"},
+							{URL: "https://example.com/email", Match: "email"},
+						},
+						Limits: &config.FeatureUsageLimitsConfig{
+							SMS: []config.FeatureUsageLimitConfig{
+								{Quota: 1, Period: model.UsageLimitPeriodMonth, Action: model.UsageLimitActionAlert},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		r, err := limiter.Reserve(ctx, model.UsageNameSMS, 1)
+		So(err, ShouldBeNil)
+		So(r, ShouldNotBeNil)
+		So(eventService.payloads, ShouldHaveLength, 1)
+
+		payload := eventService.payloads[0].(*nonblocking.UsageAlertTriggeredEventPayload)
+		So(payload.Usage.Name, ShouldEqual, model.UsageNameSMS)
+		So(payload.Usage.Action, ShouldEqual, model.UsageLimitActionAlert)
+		So(payload.Usage.Period, ShouldEqual, model.UsageLimitPeriodMonth)
+		So(payload.Usage.CurrentValue, ShouldEqual, 1)
+		So(payload.HookURLs, ShouldResemble, []string{
+			"https://example.com/sms",
+			"https://example.com/all",
+		})
+	})
+}
+
+func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
+	Convey("Limiter does not dispatch duplicate alerts when a block limit rejects without crossing", t, func() {
+		ctx := context.Background()
+		mr := miniredis.RunT(t)
+		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
+		mr.SetTime(now)
+
+		pool := redis.NewPool()
+		rh := redis.NewHandle(pool, redis.ConnectionOptions{
+			RedisURL:              "redis://" + mr.Addr(),
+			MaxOpenConnection:     func(i int) *int { return &i }(10),
+			MaxIdleConnection:     func(i int) *int { return &i }(5),
+			IdleConnectionTimeout: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(300),
+			MaxConnectionLifetime: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(900),
+		})
+
+		eventService := &testEventService{}
+		limiter := &Limiter{
+			Clock:        clock.NewMockClockAtTime(now),
+			AppID:        "test-app",
+			Redis:        &appredis.Handle{Handle: rh},
+			EventService: eventService,
+			EffectiveConfig: &config.Config{
+				FeatureConfig: &config.FeatureConfig{
+					Usage: &config.FeatureUsageConfig{
+						Limits: &config.FeatureUsageLimitsConfig{
+							SMS: []config.FeatureUsageLimitConfig{
+								{Quota: 1, Period: model.UsageLimitPeriodMonth, Action: model.UsageLimitActionBlock},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		_, err := limiter.Reserve(ctx, model.UsageNameSMS, 1)
+		So(err, ShouldBeNil)
+		So(eventService.payloads, ShouldHaveLength, 1)
+
+		_, err = limiter.Reserve(ctx, model.UsageNameSMS, 1)
+		So(err, ShouldNotBeNil)
+		So(eventService.payloads, ShouldHaveLength, 1)
 	})
 }

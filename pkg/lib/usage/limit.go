@@ -7,6 +7,8 @@ import (
 
 	goredis "github.com/redis/go-redis/v9"
 
+	apievent "github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -79,6 +81,11 @@ type Limiter struct {
 	AppID           config.AppID
 	Redis           *appredis.Handle
 	EffectiveConfig *config.Config
+	EventService    EventService
+}
+
+type EventService interface {
+	DispatchEventImmediately(ctx context.Context, payload apievent.NonBlockingPayload) error
 }
 
 func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Reservation, error) {
@@ -177,11 +184,11 @@ func (l *Limiter) incrementWithoutQuota(ctx context.Context, key string, n int, 
 }
 
 func (l *Limiter) evaluateUsageTriggers(ctx context.Context, name model.UsageName, period model.UsageLimitPeriod, before, after int, rejected bool, limits []EffectiveUsageLimit) error {
-	_ = ctx
-	_ = name
-	_ = period
-	_ = rejected
-	_ = crossedUsageLimits(before, after, limits)
+	for _, limit := range crossedUsageLimits(before, after, limits) {
+		if err := l.maybeDispatchUsageAlert(ctx, limit, after, rejected); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -274,6 +281,46 @@ func (l *Limiter) limitsForPeriod(limits []EffectiveUsageLimit, period model.Usa
 		}
 	}
 	return filtered
+}
+
+func (l *Limiter) usageHookURLs(name model.UsageName) []string {
+	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.FeatureConfig == nil || l.EffectiveConfig.FeatureConfig.Usage == nil {
+		return nil
+	}
+
+	var urls []string
+	for _, hook := range l.EffectiveConfig.FeatureConfig.Usage.Hooks {
+		if hook.Match == "*" || hook.Match == string(name) {
+			urls = append(urls, hook.URL)
+		}
+	}
+	return urls
+}
+
+func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, currentValue int) *nonblocking.UsageAlertTriggeredEventPayload {
+	return &nonblocking.UsageAlertTriggeredEventPayload{
+		Usage: nonblocking.UsageAlertPayload{
+			Name:         limit.Name,
+			Action:       limit.Action,
+			Period:       limit.Period,
+			Quota:        limit.Quota,
+			CurrentValue: currentValue,
+		},
+		HookURLs: l.usageHookURLs(limit.Name),
+	}
+}
+
+func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUsageLimit, currentValue int, rejected bool) error {
+	_ = rejected
+	if l == nil || l.EventService == nil {
+		return nil
+	}
+
+	payload := l.makeUsageAlertTriggeredPayload(limit, currentValue)
+	if err := l.EventService.DispatchEventImmediately(ctx, payload); err != nil {
+		logger.GetLogger(ctx).WithError(err).Warn(ctx, "failed to dispatch usage alert event")
+	}
+	return nil
 }
 
 func (l *Limiter) minBlockQuota(limits []EffectiveUsageLimit) (int, bool) {
