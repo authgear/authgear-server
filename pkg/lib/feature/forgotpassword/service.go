@@ -98,10 +98,6 @@ type CodeOptions struct {
 	IsAdminAPIResetPassword       bool
 }
 
-type InspectStateOptions struct {
-	AuthenticationFlowID string
-}
-
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
 // For each looked up login ID, a code is generated and delivered asynchronously.
 func (s *Service) SendCode(ctx context.Context, loginID string, options *CodeOptions) error {
@@ -437,14 +433,9 @@ func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel
 }
 
 // InspectState is for external use. It DOES NOT report dummy code as invalid.
-func (s *Service) InspectState(ctx context.Context, target string, channel CodeChannel, kind CodeKind, opts *InspectStateOptions) (*otp.State, error) {
+func (s *Service) InspectState(ctx context.Context, target string, channel CodeChannel, kind CodeKind, opts *otp.InspectStateOptions) (*otp.State, error) {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
-	if opts == nil {
-		opts = &InspectStateOptions{}
-	}
-	return s.OTPCodes.InspectState(ctx, otpKind, target, &otp.InspectStateOptions{
-		AuthenticationFlowID: opts.AuthenticationFlowID,
-	})
+	return s.OTPCodes.InspectState(ctx, otpKind, target, opts)
 }
 
 // ResetPasswordByEndUser consumes code and reset password to newPassword.

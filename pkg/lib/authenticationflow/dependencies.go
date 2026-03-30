@@ -101,7 +101,7 @@ type ForgotPasswordService interface {
 	CodeLength(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) int
 
 	SendCode(ctx context.Context, loginID string, options *forgotpassword.CodeOptions) error
-	InspectState(ctx context.Context, target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind, opts *forgotpassword.InspectStateOptions) (*otp.State, error)
+	InspectState(ctx context.Context, target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind, opts *otp.InspectStateOptions) (*otp.State, error)
 }
 
 type ResetPasswordService interface {

@@ -194,7 +194,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 			dest.TargetLoginID,
 			dest.ForgotPasswordCodeChannel(),
 			dest.ForgotPasswordCodeKind(),
-			&forgotpassword.InspectStateOptions{
+			&otp.InspectStateOptions{
 				AuthenticationFlowID: authflow.GetFlowID(ctx),
 			},
 		)
