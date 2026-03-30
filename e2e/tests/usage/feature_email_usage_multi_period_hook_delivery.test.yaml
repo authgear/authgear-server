@@ -1,12 +1,16 @@
-name: Feature usage hooks receive month email usage alert events
+name: Feature usage hooks receive multi-period email usage alert events
+extra_files_directory: ./var
 authgear.features.yaml:
   override: |
     usage:
       hooks:
-      - url: 'http://127.0.0.1:2626/[[.AppID]]/email-month'
+      - url: 'authgeardeno:///deno/routeemailusageperiod.ts'
         match: "email"
       limits:
         email:
+        - quota: 1
+          period: "day"
+          action: "alert"
         - quota: 1
           period: "month"
           action: "alert"
@@ -23,7 +27,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "e2e_usage_email_month@example.com"
+        "login_id": "e2e_usage_email_multi_period@example.com"
       }
     output:
       result: |
@@ -35,9 +39,28 @@ steps:
   - name: wait for hook delivery
     action: sleep
     sleep_for: 2s
-  - name: query hook server
+  - name: query day hook server
     action: hook_server_query
-    hook_server_path: "{{ .AppID }}/email-month"
+    hook_server_path: "deno/{{ .AppID }}/email-day"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "email",
+                "action": "alert",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          }
+        ]
+  - name: query month hook server
+    action: hook_server_query
+    hook_server_path: "deno/{{ .AppID }}/email-month"
     hook_server_output:
       rows: |
         [
