@@ -9,12 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-const (
-	usageLimitEmail    usage.LimitName = "Email"
-	usageLimitSMS      usage.LimitName = "SMS"
-	usageLimitWhatsapp usage.LimitName = "Whatsapp"
-)
-
 type Reservation struct {
 	UsageReservation      *usage.Reservation
 	RateLimitReservations []*ratelimit.Reservation
@@ -82,7 +76,7 @@ func (l *Limits) checkEmail(ctx context.Context, email string) (err error) {
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usageLimitEmail, l.FeatureConfig.Messaging.EmailUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameEmail, l.FeatureConfig.Messaging.EmailUsage)
 	if err != nil {
 		return
 	}
@@ -113,7 +107,7 @@ func (l *Limits) checkSMS(ctx context.Context, phoneNumber string) (err error) {
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usageLimitSMS, l.FeatureConfig.Messaging.SMSUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameSMS, l.FeatureConfig.Messaging.SMSUsage)
 	if err != nil {
 		return
 	}
@@ -144,7 +138,7 @@ func (l *Limits) checkWhatsapp(ctx context.Context, phoneNumber string) (err err
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usageLimitWhatsapp, l.FeatureConfig.Messaging.WhatsappUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameWhatsapp, l.FeatureConfig.Messaging.WhatsappUsage)
 	if err != nil {
 		return
 	}

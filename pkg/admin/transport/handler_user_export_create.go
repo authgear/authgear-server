@@ -34,10 +34,6 @@ type UserExportCreateHandlerUserExportService interface {
 	ParseExportRequest(w http.ResponseWriter, r *http.Request) (*userexport.Request, error)
 }
 
-const (
-	usageLimitUserExport usage.LimitName = "UserExport"
-)
-
 type UserExportUsageLimiter interface {
 	Reserve(ctx context.Context, name usage.LimitName, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
 }
@@ -77,7 +73,7 @@ func (h *UserExportCreateHandler) handle(ctx context.Context, w http.ResponseWri
 
 	_, err = h.UsageLimiter.Reserve(
 		ctx,
-		usageLimitUserExport,
+		usage.LimitNameUserExport,
 		h.AdminAPIFeatureConfig.UserExportUsage,
 	)
 	if err != nil {
