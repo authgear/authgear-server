@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+已触发 {{ .Usage.Name }} 的使用提醒
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} 已达到为 {{ .Usage.Period }} {{ .Usage.Name }} 配置的使用阈值。
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+操作：{{ .Usage.Action }}
+配额：{{ .Usage.Quota }}
+当前值：{{ .Usage.CurrentValue }}

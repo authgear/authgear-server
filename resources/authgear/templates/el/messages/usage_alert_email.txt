@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Ενέργεια: {{ .Usage.Action }}
+Ποσόστωση: {{ .Usage.Quota }}
+Τρέχουσα τιμή: {{ .Usage.CurrentValue }}

@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Gebruikswaarschuwing geactiveerd voor {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} heeft de geconfigureerde gebruiksdrempel voor {{ .Usage.Period }} {{ .Usage.Name }} bereikt.
 
-Action: {{ .Usage.Action }}
+Actie: {{ .Usage.Action }}
 Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Huidige waarde: {{ .Usage.CurrentValue }}

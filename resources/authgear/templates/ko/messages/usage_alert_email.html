@@ -107,7 +107,7 @@
                                       color: #000000;
                                     "
                                   >
-                                    Usage alert triggered for {{ .Usage.Name }}
+                                    {{ .Usage.Name }} 사용량 알림이 트리거되었습니다
                                   </div>
                                 </td>
                               </tr>
@@ -143,7 +143,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+                                    {{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.
                                   </div>
                                 </td>
                               </tr>
@@ -165,7 +165,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Action: {{ .Usage.Action }}
+                                    작업: {{ .Usage.Action }}
                                   </div>
                                 </td>
                               </tr>
@@ -187,7 +187,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Quota: {{ .Usage.Quota }}
+                                    할당량: {{ .Usage.Quota }}
                                   </div>
                                 </td>
                               </tr>
@@ -209,7 +209,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Current value: {{ .Usage.CurrentValue }}
+                                    현재 값: {{ .Usage.CurrentValue }}
                                   </div>
                                 </td>
                               </tr>

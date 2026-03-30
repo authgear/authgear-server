@@ -7,12 +7,12 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Usage alert triggered for {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Action: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Quota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Current value: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Hành động: {{ .Usage.Action }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Hạn mức: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Giá trị hiện tại: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

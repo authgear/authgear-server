@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Amaran penggunaan dicetuskan untuk {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasikan untuk {{ .Usage.Period }} {{ .Usage.Name }}.
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Tindakan: {{ .Usage.Action }}
+Kuota: {{ .Usage.Quota }}
+Nilai semasa: {{ .Usage.CurrentValue }}
