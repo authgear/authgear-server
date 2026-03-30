@@ -8,6 +8,7 @@ import (
 
 	goredis "github.com/redis/go-redis/v9"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -21,7 +22,7 @@ type LimitName string
 
 type Reservation struct {
 	taken  int
-	name   LimitName
+	name   model.UsageName
 	config *config.Deprecated_UsageLimitConfig
 }
 
@@ -64,28 +65,26 @@ func reserve(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n in
 }
 
 type Limiter struct {
-	Clock clock.Clock
-	AppID config.AppID
-	Redis *appredis.Handle
+	Clock           clock.Clock
+	AppID           config.AppID
+	Redis           *appredis.Handle
+	EffectiveConfig *config.Config
 }
 
 func (l *Limiter) getResetTime(c *config.Deprecated_UsageLimitConfig) time.Time {
 	return ComputeResetTime(l.Clock.NowUTC(), c.Period)
 }
 
-func (l *Limiter) Reserve(ctx context.Context, name LimitName, config *config.Deprecated_UsageLimitConfig) (*Reservation, error) {
-	return l.ReserveN(ctx, name, 1, config)
-}
-
-func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *config.Deprecated_UsageLimitConfig) (*Reservation, error) {
+func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Reservation, error) {
 	logger := logger.GetLogger(ctx)
+	config := l.effectiveDeprecatedUsageLimit(name)
 	enabled := config.IsEnabled()
 	if !enabled {
 		return &Reservation{taken: 0, name: name, config: config}, nil
 	}
 
 	quota := config.GetQuota()
-	key := redisLimitKey(l.AppID, name)
+	key := redisLimitKey(l.AppID, legacyLimitName(name))
 
 	pass := false
 	tokens := int64(0)
@@ -105,7 +104,7 @@ func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *c
 	).Debug(ctx, "check usage limit")
 
 	if !pass {
-		return nil, ErrUsageLimitExceeded(name)
+		return nil, ErrUsageLimitExceeded(name, model.UsageLimitPeriod(config.Period))
 	}
 
 	return &Reservation{taken: n, name: name, config: config}, nil
@@ -117,7 +116,7 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 		return
 	}
 
-	key := redisLimitKey(l.AppID, r.name)
+	key := redisLimitKey(l.AppID, legacyLimitName(r.name))
 
 	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.IncrBy(ctx, key, -int64(r.taken)).Result()
@@ -143,6 +142,55 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 
 func redisLimitKey(appID config.AppID, name LimitName) string {
 	return fmt.Sprintf("app:%s:usage-limit:%s", appID, name)
+}
+
+func (l *Limiter) effectiveDeprecatedUsageLimit(name model.UsageName) *config.Deprecated_UsageLimitConfig {
+	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.FeatureConfig == nil {
+		return nil
+	}
+
+	featureConfig := l.EffectiveConfig.FeatureConfig
+	switch name {
+	case model.UsageNameEmail:
+		if featureConfig.Messaging != nil {
+			return featureConfig.Messaging.EmailUsage
+		}
+	case model.UsageNameSMS:
+		if featureConfig.Messaging != nil {
+			return featureConfig.Messaging.SMSUsage
+		}
+	case model.UsageNameWhatsapp:
+		if featureConfig.Messaging != nil {
+			return featureConfig.Messaging.WhatsappUsage
+		}
+	case model.UsageNameUserImport:
+		if featureConfig.AdminAPI != nil {
+			return featureConfig.AdminAPI.UserImportUsage
+		}
+	case model.UsageNameUserExport:
+		if featureConfig.AdminAPI != nil {
+			return featureConfig.AdminAPI.UserExportUsage
+		}
+	}
+
+	return nil
+}
+
+func legacyLimitName(name model.UsageName) LimitName {
+	switch name {
+	case model.UsageNameEmail:
+		return LimitNameEmail
+	case model.UsageNameSMS:
+		return LimitNameSMS
+	case model.UsageNameWhatsapp:
+		return LimitNameWhatsapp
+	case model.UsageNameUserImport:
+		return LimitNameUserImport
+	case model.UsageNameUserExport:
+		return LimitNameUserExport
+	default:
+		panic("usage: unknown usage name: " + string(name))
+	}
 }
 
 func ComputeResetTime(now time.Time, period config.Deprecated_UsageLimitPeriod) time.Time {

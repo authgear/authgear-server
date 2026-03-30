@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -28,7 +29,7 @@ type TaskProducer interface {
 }
 
 type UsageLimiter interface {
-	ReserveN(ctx context.Context, name usage.LimitName, n int, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name model.UsageName, n int) (*usage.Reservation, error)
 }
 
 type JobManager struct {
@@ -42,11 +43,10 @@ type JobManager struct {
 }
 
 func (m *JobManager) EnqueueJob(ctx context.Context, request *Request) (*Response, error) {
-	_, err := m.UsageLimiter.ReserveN(
+	_, err := m.UsageLimiter.Reserve(
 		ctx,
-		usage.LimitNameUserImport,
+		model.UsageNameUserImport,
 		len(request.Records),
-		m.AdminAPIFeatureConfig.UserImportUsage,
 	)
 	if err != nil {
 		return nil, err
