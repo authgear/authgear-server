@@ -14,7 +14,6 @@ function setup {( set -e
     go build -o dist/e2e ./cmd/e2e
     go build -o dist/e2e-proxy ./cmd/proxy
     go build -o dist/e2e-smtp ./cmd/smtp
-    go build -o dist/e2e-hook ./cmd/hookserver
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
@@ -61,22 +60,6 @@ function setup {( set -e
         sleep 1
     done
 
-    echo "[ ] Starting e2e-hook..."
-    e2e-hook > ./logs/e2e-hook.log 2>&1 &
-    success=false
-    for i in $(seq 10); do \
-        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:2626/healthz)" = "200" ]; then
-            echo "    - started e2e-hook."
-            success=true
-            break
-        fi
-        sleep 1
-    done
-    if [ "$success" = false ]; then
-        echo "Error: Failed to start e2e-hook."
-        exit 1
-    fi
-
     echo "[ ] DB migration..."
     authgear database migrate up
     authgear audit database migrate up
@@ -89,7 +72,6 @@ function teardown {( set -e
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:2525) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:2626) > /dev/null 2>&1 || true
     docker compose down
 )}
 
