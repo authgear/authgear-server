@@ -27,6 +27,19 @@ func (s *testEventService) DispatchEventImmediately(ctx context.Context, payload
 	return nil
 }
 
+type testUsageAlertEmailService struct {
+	recipients [][]string
+	payloads   []*nonblocking.UsageAlertTriggeredEventPayload
+	err        error
+}
+
+func (s *testUsageAlertEmailService) Send(ctx context.Context, recipients []string, payload *nonblocking.UsageAlertTriggeredEventPayload) error {
+	copiedRecipients := append([]string(nil), recipients...)
+	s.recipients = append(s.recipients, copiedRecipients)
+	s.payloads = append(s.payloads, payload)
+	return s.err
+}
+
 func TestComputeResetTime(t *testing.T) {
 	Convey("compute reset time of quota", t, func() {
 		test := func(now string, day string, month string) {
@@ -244,11 +257,13 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 		})
 
 		eventService := &testEventService{}
+		emailService := &testUsageAlertEmailService{}
 		limiter := &Limiter{
-			Clock:        clock.NewMockClockAtTime(now),
-			AppID:        "test-app",
-			Redis:        &appredis.Handle{Handle: rh},
-			EventService: eventService,
+			Clock:                  clock.NewMockClockAtTime(now),
+			AppID:                  "test-app",
+			Redis:                  &appredis.Handle{Handle: rh},
+			EventService:           eventService,
+			UsageAlertEmailService: emailService,
 			EffectiveConfig: &config.Config{
 				FeatureConfig: &config.FeatureConfig{
 					Usage: &config.FeatureUsageConfig{
@@ -261,6 +276,16 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 							SMS: []config.FeatureUsageLimitConfig{
 								{Quota: 1, Period: model.UsageLimitPeriodMonth, Action: model.UsageLimitActionAlert},
 							},
+						},
+					},
+				},
+				AppConfig: &config.AppConfig{
+					Usage: &config.UsageConfig{
+						Alerts: []config.UsageAlertConfig{
+							{Type: "email", Email: "sms@example.com", Match: "sms"},
+							{Type: "email", Email: "all@example.com", Match: "*"},
+							{Type: "email", Email: "sms@example.com", Match: "*"},
+							{Type: "webhook", Email: "ignored@example.com", Match: "sms"},
 						},
 					},
 				},
@@ -281,6 +306,10 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 			"https://example.com/sms",
 			"https://example.com/all",
 		})
+		So(emailService.recipients, ShouldResemble, [][]string{{
+			"sms@example.com",
+			"all@example.com",
+		}})
 	})
 }
 
@@ -301,11 +330,13 @@ func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 		})
 
 		eventService := &testEventService{}
+		emailService := &testUsageAlertEmailService{}
 		limiter := &Limiter{
-			Clock:        clock.NewMockClockAtTime(now),
-			AppID:        "test-app",
-			Redis:        &appredis.Handle{Handle: rh},
-			EventService: eventService,
+			Clock:                  clock.NewMockClockAtTime(now),
+			AppID:                  "test-app",
+			Redis:                  &appredis.Handle{Handle: rh},
+			EventService:           eventService,
+			UsageAlertEmailService: emailService,
 			EffectiveConfig: &config.Config{
 				FeatureConfig: &config.FeatureConfig{
 					Usage: &config.FeatureUsageConfig{
@@ -316,15 +347,24 @@ func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 						},
 					},
 				},
+				AppConfig: &config.AppConfig{
+					Usage: &config.UsageConfig{
+						Alerts: []config.UsageAlertConfig{
+							{Type: "email", Email: "ops@example.com", Match: "*"},
+						},
+					},
+				},
 			},
 		}
 
 		_, err := limiter.Reserve(ctx, model.UsageNameSMS, 1)
 		So(err, ShouldBeNil)
 		So(eventService.payloads, ShouldHaveLength, 1)
+		So(emailService.recipients, ShouldHaveLength, 1)
 
 		_, err = limiter.Reserve(ctx, model.UsageNameSMS, 1)
 		So(err, ShouldNotBeNil)
 		So(eventService.payloads, ShouldHaveLength, 1)
+		So(emailService.recipients, ShouldHaveLength, 1)
 	})
 }

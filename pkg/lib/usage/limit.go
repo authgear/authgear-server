@@ -77,11 +77,12 @@ return {1, usage_before, usage_after}
 `)
 
 type Limiter struct {
-	Clock           clock.Clock
-	AppID           config.AppID
-	Redis           *appredis.Handle
-	EffectiveConfig *config.Config
-	EventService    EventService
+	Clock                  clock.Clock
+	AppID                  config.AppID
+	Redis                  *appredis.Handle
+	EffectiveConfig        *config.Config
+	EventService           EventService
+	UsageAlertEmailService UsageAlertEmailService
 }
 
 type EventService interface {
@@ -297,6 +298,29 @@ func (l *Limiter) usageHookURLs(name model.UsageName) []string {
 	return urls
 }
 
+func (l *Limiter) usageAlertRecipients(name model.UsageName) []string {
+	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.AppConfig == nil || l.EffectiveConfig.AppConfig.Usage == nil {
+		return nil
+	}
+
+	seen := map[string]struct{}{}
+	var recipients []string
+	for _, alert := range l.EffectiveConfig.AppConfig.Usage.Alerts {
+		if alert.Type != "email" {
+			continue
+		}
+		if alert.Match != "*" && alert.Match != string(name) {
+			continue
+		}
+		if _, ok := seen[alert.Email]; ok {
+			continue
+		}
+		seen[alert.Email] = struct{}{}
+		recipients = append(recipients, alert.Email)
+	}
+	return recipients
+}
+
 func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, currentValue int) *nonblocking.UsageAlertTriggeredEventPayload {
 	return &nonblocking.UsageAlertTriggeredEventPayload{
 		Usage: nonblocking.UsageAlertPayload{
@@ -312,13 +336,22 @@ func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, curr
 
 func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUsageLimit, currentValue int, rejected bool) error {
 	_ = rejected
-	if l == nil || l.EventService == nil {
+	if l == nil {
 		return nil
 	}
 
+	logger := logger.GetLogger(ctx)
 	payload := l.makeUsageAlertTriggeredPayload(limit, currentValue)
-	if err := l.EventService.DispatchEventImmediately(ctx, payload); err != nil {
-		logger.GetLogger(ctx).WithError(err).Warn(ctx, "failed to dispatch usage alert event")
+	if l.EventService != nil {
+		if err := l.EventService.DispatchEventImmediately(ctx, payload); err != nil {
+			logger.WithError(err).Warn(ctx, "failed to dispatch usage alert event")
+		}
+	}
+	if l.UsageAlertEmailService != nil {
+		recipients := l.usageAlertRecipients(limit.Name)
+		if err := l.UsageAlertEmailService.Send(ctx, recipients, payload); err != nil {
+			logger.WithError(err).Warn(ctx, "failed to send usage alert email")
+		}
 	}
 	return nil
 }

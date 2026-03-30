@@ -694,10 +694,24 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RateLimiter:     limiter,
 		Lockout:         mfaLockout,
 	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
 	usageLimiter := &usage.Limiter{
-		Clock: clockClock,
-		AppID: appID,
-		Redis: appredisHandle,
+		Clock:                  clockClock,
+		AppID:                  appID,
+		Redis:                  appredisHandle,
+		EffectiveConfig:        config,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
 	}
 	limits := messaging.Limits{
 		RateLimiter:   limiter,
@@ -706,11 +720,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Config:        appConfig,
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
-	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	sender := &mail.Sender{
-		GomailDialer: dialer,
 	}
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -758,7 +767,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
 	}
-	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email

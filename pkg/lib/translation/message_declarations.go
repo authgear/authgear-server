@@ -13,6 +13,7 @@ const (
 	MessageTypeForgotPassword             MessageType = "forgot-password"
 	MessageTypeSendPasswordToExistingUser MessageType = "send-password-to-existing-user"
 	MessageTypeSendPasswordToNewUser      MessageType = "send-password-to-new-user"
+	MessageTypeUsageAlert                 MessageType = "usage-alert"
 	MessageTypeWhatsappCode               MessageType = "whatsapp-code"
 )
 
@@ -64,6 +65,9 @@ var (
 
 	TemplateMessageSendPasswordToNewUserTXT       = template.RegisterMessagePlainText("messages/send_password_to_new_user_email.txt")
 	TemplateMessageSendPasswordToNewUserEmailHTML = template.RegisterMessageHTML("messages/send_password_to_new_user_email.html")
+
+	TemplateMessageUsageAlertEmailTXT  = template.RegisterMessagePlainText("messages/usage_alert_email.txt")
+	TemplateMessageUsageAlertEmailHTML = template.RegisterMessageHTML("messages/usage_alert_email.html")
 )
 
 type SpecName string
@@ -84,6 +88,7 @@ const (
 	SpecNameWhatsappCode                   SpecName = "whatsapp-code"
 	SpecNameSendPasswordToExistingUser     SpecName = "send-password-to-existing-user"
 	SpecNameSendPasswordToNewUser          SpecName = "send-password-to-new-user"
+	SpecNameUsageAlert                     SpecName = "usage-alert"
 )
 
 var (
@@ -176,5 +181,11 @@ var (
 		Name:              SpecNameSendPasswordToNewUser,
 		TXTEmailTemplate:  TemplateMessageSendPasswordToNewUserTXT,
 		HTMLEmailTemplate: TemplateMessageSendPasswordToNewUserEmailHTML,
+	}
+	MessageUsageAlert = &MessageSpec{
+		MessageType:       MessageTypeUsageAlert,
+		Name:              SpecNameUsageAlert,
+		TXTEmailTemplate:  TemplateMessageUsageAlertEmailTXT,
+		HTMLEmailTemplate: TemplateMessageUsageAlertEmailHTML,
 	}
 )
