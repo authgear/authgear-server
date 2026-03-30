@@ -21,9 +21,10 @@ var logger = slogutil.NewLogger("usage-limit")
 type LimitName string
 
 type Reservation struct {
-	taken  int
-	name   model.UsageName
-	config *config.Deprecated_UsageLimitConfig
+	taken   int
+	name    model.UsageName
+	config  *config.Deprecated_UsageLimitConfig
+	periods []model.UsageLimitPeriod
 }
 
 var reserveLuaScript = goredis.NewScript(`
@@ -72,7 +73,7 @@ type Limiter struct {
 }
 
 func (l *Limiter) getResetTime(c *config.Deprecated_UsageLimitConfig) time.Time {
-	return ComputeResetTime(l.Clock.NowUTC(), c.Period)
+	return ComputeResetTime(l.Clock.NowUTC(), model.UsageLimitPeriod(c.Period))
 }
 
 func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Reservation, error) {
@@ -84,13 +85,32 @@ func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Re
 	}
 
 	quota := config.GetQuota()
-	key := redisLimitKey(l.AppID, legacyLimitName(name))
+	configuredPeriod := model.UsageLimitPeriod(config.Period)
+	key := redisLimitKey(l.AppID, name, configuredPeriod)
 
 	pass := false
 	tokens := int64(0)
 	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		pass, tokens, err = reserve(ctx, conn, key, n, quota, l.getResetTime(config))
+		pass, tokens, err = reserve(ctx, conn, key, n, quota, ComputeResetTime(l.Clock.NowUTC(), configuredPeriod))
+		if err != nil {
+			return err
+		}
+		if !pass {
+			return nil
+		}
+		for _, period := range usagePeriods() {
+			if period == configuredPeriod {
+				continue
+			}
+			otherKey := redisLimitKey(l.AppID, name, period)
+			if _, err = conn.IncrBy(ctx, otherKey, int64(n)).Result(); err != nil {
+				return err
+			}
+			if _, err = conn.PExpireAt(ctx, otherKey, ComputeResetTime(l.Clock.NowUTC(), period)).Result(); err != nil {
+				return err
+			}
+		}
 		return err
 	})
 	if err != nil {
@@ -107,7 +127,7 @@ func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Re
 		return nil, ErrUsageLimitExceeded(name, model.UsageLimitPeriod(config.Period))
 	}
 
-	return &Reservation{taken: n, name: name, config: config}, nil
+	return &Reservation{taken: n, name: name, config: config, periods: usagePeriods()}, nil
 }
 
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
@@ -116,17 +136,18 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 		return
 	}
 
-	key := redisLimitKey(l.AppID, legacyLimitName(r.name))
-
 	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.IncrBy(ctx, key, -int64(r.taken)).Result()
-		if err != nil {
-			return err
-		}
+		for _, period := range r.periods {
+			key := redisLimitKey(l.AppID, r.name, period)
+			_, err := conn.IncrBy(ctx, key, -int64(r.taken)).Result()
+			if err != nil {
+				return err
+			}
 
-		resetTime := l.getResetTime(r.config)
-		// Ignore error
-		_, _ = conn.PExpireAt(ctx, key, resetTime).Result()
+			resetTime := ComputeResetTime(l.Clock.NowUTC(), period)
+			// Ignore error
+			_, _ = conn.PExpireAt(ctx, key, resetTime).Result()
+		}
 
 		return nil
 	})
@@ -134,14 +155,18 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
-		logger.WithError(err).With(slog.String("key", key)).Warn(ctx, "failed to cancel reservation")
+		logger.WithError(err).Warn(ctx, "failed to cancel reservation")
 	}
 
 	r.taken = 0
 }
 
-func redisLimitKey(appID config.AppID, name LimitName) string {
-	return fmt.Sprintf("app:%s:usage-limit:%s", appID, name)
+func redisLimitKey(appID config.AppID, name model.UsageName, period model.UsageLimitPeriod) string {
+	legacyName := legacyLimitName(name)
+	if period == model.UsageLimitPeriodMonth {
+		return fmt.Sprintf("app:%s:usage-limit:%s", appID, legacyName)
+	}
+	return fmt.Sprintf("app:%s:usage-limit:%s:%s", appID, legacyName, period)
 }
 
 func (l *Limiter) effectiveDeprecatedUsageLimit(name model.UsageName) *config.Deprecated_UsageLimitConfig {
@@ -193,13 +218,20 @@ func legacyLimitName(name model.UsageName) LimitName {
 	}
 }
 
-func ComputeResetTime(now time.Time, period config.Deprecated_UsageLimitPeriod) time.Time {
+func ComputeResetTime(now time.Time, period model.UsageLimitPeriod) time.Time {
 	switch period {
-	case config.Deprecated_UsageLimitPeriodDay:
+	case model.UsageLimitPeriodDay:
 		return now.Truncate(24*time.Hour).AddDate(0, 0, 1)
-	case config.Deprecated_UsageLimitPeriodMonth:
+	case model.UsageLimitPeriodMonth:
 		return now.Truncate(24*time.Hour).AddDate(0, 1, -now.Day()+1)
 	default:
 		panic("usage: unknown usage limit period: " + period)
+	}
+}
+
+func usagePeriods() []model.UsageLimitPeriod {
+	return []model.UsageLimitPeriod{
+		model.UsageLimitPeriodDay,
+		model.UsageLimitPeriodMonth,
 	}
 }
