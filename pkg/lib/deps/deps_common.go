@@ -184,6 +184,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(ratelimit.LimiterEventService), new(*event.Service)),
 		wire.Bind(new(fraudprotection.EventService), new(*event.Service)),
+		wire.Bind(new(usage.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -551,6 +552,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
 		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
+		wire.Bind(new(usage.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -615,6 +617,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		mail.DependencySet,
 		wire.Bind(new(messaging.MailSender), new(*mail.Sender)),
+		wire.Bind(new(usage.MailSender), new(*mail.Sender)),
 	),
 
 	wire.NewSet(

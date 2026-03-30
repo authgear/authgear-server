@@ -1,5 +1,15 @@
 package translation
 
+import "github.com/authgear/authgear-server/pkg/api/model"
+
+type UsageAlertTemplateVariables struct {
+	Name         model.UsageName
+	Action       model.UsageLimitAction
+	Period       model.UsageLimitPeriod
+	Quota        int
+	CurrentValue int
+}
+
 type PartialTemplateVariables struct {
 	// OTP
 	Email string
@@ -14,6 +24,9 @@ type PartialTemplateVariables struct {
 
 	// Forgot password
 	Password string
+
+	// Usage alert
+	Usage *UsageAlertTemplateVariables
 }
 
 type PreparedTemplateVariables struct {
@@ -31,5 +44,6 @@ type PreparedTemplateVariables struct {
 	StaticAssetURL func(id string) (url string, err error)
 	UILocales      string
 	URL            string
+	Usage          *UsageAlertTemplateVariables
 	XState         string
 }
