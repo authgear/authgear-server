@@ -174,6 +174,45 @@ func TestLimitReserve(t *testing.T) {
 	})
 }
 
+func TestLimitRollback(t *testing.T) {
+	s := miniredis.RunT(t)
+
+	Convey("rollback tokens", t, func() {
+		ctx := context.Background()
+		s.FlushAll()
+
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn()
+
+		now := time.UnixMilli(epoch).UTC()
+		s.SetTime(now)
+		resetTime := time.UnixMilli(epoch).UTC().Add(12 * time.Hour)
+
+		before, after, err := runRollbackScript(ctx, conn, testKey, 1, resetTime)
+		So(err, ShouldBeNil)
+		So(before, ShouldEqual, 0)
+		So(after, ShouldEqual, 0)
+		So(s.Exists(testKey), ShouldBeFalse)
+
+		_, _, _, err = runReserveScript(ctx, conn, testKey, 3, resetTime, -1)
+		So(err, ShouldBeNil)
+
+		before, after, err = runRollbackScript(ctx, conn, testKey, 1, resetTime)
+		So(err, ShouldBeNil)
+		So(before, ShouldEqual, 3)
+		So(after, ShouldEqual, 2)
+		current, err := s.Get(testKey)
+		So(err, ShouldBeNil)
+		So(current, ShouldEqual, "2")
+
+		before, after, err = runRollbackScript(ctx, conn, testKey, 5, resetTime)
+		So(err, ShouldBeNil)
+		So(before, ShouldEqual, 2)
+		So(after, ShouldEqual, 0)
+		So(s.Exists(testKey), ShouldBeFalse)
+	})
+}
+
 func TestRedisLimitKey(t *testing.T) {
 	Convey("redisLimitKey", t, func() {
 		appID := config.AppID("test-app")
@@ -310,11 +349,58 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		So(r, ShouldBeNil)
 
-		daily, err := mr.Get("app:test-app:usage-limit:SMS:day")
-		So(err, ShouldBeNil)
-		So(daily, ShouldEqual, "0")
+		_, err = mr.Get("app:test-app:usage-limit:SMS:day")
+		So(err, ShouldNotBeNil)
 		_, err = mr.Get("app:test-app:usage-limit:SMS")
 		So(err, ShouldNotBeNil)
+	})
+}
+
+func TestLimiterCancelRemovesCounterWhenRollbackReachesZero(t *testing.T) {
+	Convey("Limiter cancel removes counter when rollback reaches zero", t, func() {
+		ctx := context.Background()
+		mr := miniredis.RunT(t)
+		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
+		mr.SetTime(now)
+
+		pool := redis.NewPool()
+		rh := redis.NewHandle(pool, redis.ConnectionOptions{
+			RedisURL:              "redis://" + mr.Addr(),
+			MaxOpenConnection:     func(i int) *int { return &i }(10),
+			MaxIdleConnection:     func(i int) *int { return &i }(5),
+			IdleConnectionTimeout: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(300),
+			MaxConnectionLifetime: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(900),
+		})
+
+		limiter := &Limiter{
+			Clock:    clock.NewMockClockAtTime(now),
+			AppID:    "test-app",
+			Redis:    &appredis.Handle{Handle: rh},
+			Database: newTestAppDBHandle(t),
+			EffectiveConfig: &config.Config{
+				FeatureConfig: &config.FeatureConfig{
+					Usage: &config.FeatureUsageConfig{
+						Limits: &config.FeatureUsageLimitsConfig{
+							SMS: []config.FeatureUsageLimitConfig{
+								{Quota: 10, Period: model.UsageLimitPeriodMonth, Action: model.UsageLimitActionAlert},
+							},
+						},
+					},
+				},
+				AppConfig: &config.AppConfig{},
+			},
+		}
+
+		r, err := limiter.Reserve(ctx, model.UsageNameSMS, 1)
+		So(err, ShouldBeNil)
+		So(r, ShouldNotBeNil)
+		current, err := mr.Get("app:test-app:usage-limit:SMS")
+		So(err, ShouldBeNil)
+		So(current, ShouldEqual, "1")
+
+		limiter.Cancel(ctx, r)
+
+		So(mr.Exists("app:test-app:usage-limit:SMS"), ShouldBeFalse)
 	})
 }
 
