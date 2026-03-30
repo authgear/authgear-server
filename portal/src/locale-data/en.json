@@ -1412,6 +1412,7 @@
   "AuditLogActivityType.USER_ANONYMIZATION_UNSCHEDULED": "Account deletion unscheduled",
   "AuditLogActivityType.BOT_PROTECTION_VERIFICATION_FAILED": "Bot protection verification failed",
   "AuditLogActivityType.RATE_LIMIT_BLOCKED": "Rate limit blocked",
+  "AuditLogActivityType.USAGE_ALERT_TRIGGERED": "Usage alert triggered",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
   "AuditLogActivityType.WHATSAPP_SENT": "Whatsapp sent",
