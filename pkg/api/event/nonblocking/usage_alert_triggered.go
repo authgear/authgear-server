@@ -41,7 +41,7 @@ func (e *UsageAlertTriggeredEventPayload) ForHook() bool {
 }
 
 func (e *UsageAlertTriggeredEventPayload) ForAudit() bool {
-	return false
+	return true
 }
 
 func (e *UsageAlertTriggeredEventPayload) RequireReindexUserIDs() []string {
