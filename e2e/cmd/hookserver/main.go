@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"sync"
-
-	"github.com/authgear/authgear-server/pkg/util/debug"
+	"syscall"
 )
 
 type recorder struct {
@@ -39,8 +39,26 @@ func (r *recorder) get(key string) []map[string]interface{} {
 	return out
 }
 
+func trapSIGQUIT() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGQUIT)
+	go func() {
+		for range c {
+			buf := make([]byte, 1024)
+			for {
+				n := runtime.Stack(buf, true)
+				if n < len(buf) {
+					_, _ = os.Stderr.Write(buf[:n])
+					break
+				}
+				buf = make([]byte, 2*len(buf))
+			}
+		}
+	}()
+}
+
 func main() {
-	debug.TrapSIGQUIT()
+	trapSIGQUIT()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -81,7 +99,7 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:    "127.0.0.1:2626",
+		Addr:    "0.0.0.0:2626",
 		Handler: mux,
 	}
 
