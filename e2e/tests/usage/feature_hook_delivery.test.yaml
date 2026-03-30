@@ -44,40 +44,36 @@ steps:
     action: sleep
     sleep_for: 2s
   - name: query hook server
-    action: http_request
-    http_request_method: GET
-    http_request_url: http://127.0.0.1:2626/{{ .AppID }}/usage
-    http_output:
-      http_status: 200
-      json_body: |
-        {
-          "requests": [
-            {
-              "type": "usage.alert.triggered",
-              "payload": {
-                "usage": {
-                  "name": "sms",
-                  "action": "alert",
-                  "period": "day",
-                  "quota": 1,
-                  "current_value": 1
-                }
-              }
-            },
-            {
-              "type": "usage.alert.triggered",
-              "payload": {
-                "usage": {
-                  "name": "sms",
-                  "action": "alert",
-                  "period": "day",
-                  "quota": 1,
-                  "current_value": 1
-                }
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/usage"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "sms",
+                "action": "alert",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
               }
             }
-          ]
-        }
+          },
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "sms",
+                "action": "alert",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          }
+        ]
 ---
 name: Feature block usage hook fires once on threshold crossing
 authgear.features.yaml:
@@ -144,31 +140,33 @@ steps:
         {
           "name": "TooManyRequest",
           "reason": "UsageLimitExceeded",
-          "code": 429
+          "code": 429,
+          "info": {
+            "FlowType": "signup",
+            "name": "SMS",
+            "usage_name": "sms",
+            "period": "day"
+          }
         }
   - name: wait for hook delivery
     action: sleep
     sleep_for: 2s
   - name: query hook server
-    action: http_request
-    http_request_method: GET
-    http_request_url: http://127.0.0.1:2626/{{ .AppID }}/usage
-    http_output:
-      http_status: 200
-      json_body: |
-        {
-          "requests": [
-            {
-              "type": "usage.alert.triggered",
-              "payload": {
-                "usage": {
-                  "name": "sms",
-                  "action": "block",
-                  "period": "day",
-                  "quota": 1,
-                  "current_value": 1
-                }
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/usage"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "sms",
+                "action": "block",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
               }
             }
-          ]
-        }
+          }
+        ]

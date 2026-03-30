@@ -350,6 +350,30 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 
+	case StepActionHookServerQuery:
+		path, ok := renderTemplateString(t, cmd, prevSteps, step.HookServerPath)
+		if !ok {
+			return nil, state, false
+		}
+		rows, err := cmd.QueryHookServer(path)
+		if err != nil {
+			t.Errorf("failed to query hook server: %v", err)
+			return nil, state, false
+		}
+		if step.HookServerOutput != nil {
+			ok := validateQueryResult(t, Step{
+				Name:        step.Name,
+				QueryOutput: step.HookServerOutput,
+			}, rows)
+			if !ok {
+				return nil, state, false
+			}
+		}
+		result = &StepResult{
+			Result: map[string]interface{}{"rows": rows},
+			Error:  nil,
+		}
+
 	case StepActionSMTPLogQuery:
 		subject, ok := renderTemplateString(t, cmd, prevSteps, step.SMTPLogSubject)
 		if !ok {

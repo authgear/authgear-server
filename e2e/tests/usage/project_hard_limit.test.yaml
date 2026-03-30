@@ -61,5 +61,11 @@ steps:
         {
           "name": "TooManyRequest",
           "reason": "UsageLimitExceeded",
-          "code": 429
+          "code": 429,
+          "info": {
+            "FlowType": "signup",
+            "name": "SMS",
+            "usage_name": "sms",
+            "period": "day"
+          }
         }

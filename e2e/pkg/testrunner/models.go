@@ -262,6 +262,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"audit_query",
 			"saml_request",
 			"http_request",
+			"hook_server_query",
 			"smtp_log_query",
 			"oauth_setup",
 			"oauth_exchange_code",
@@ -298,6 +299,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_form_urlencoded_body": { "type": "object" },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
+		"hook_server_path": { "type": "string" },
+		"hook_server_output": { "$ref": "#/$defs/QueryOutput" },
 		"smtp_log_subject": { "type": "string" },
 		"smtp_log_recipient": { "type": "string" },
 		"smtp_log_output": { "$ref": "#/$defs/QueryOutput" },
@@ -405,6 +408,19 @@ var _ = TestCaseSchema.Add("Step", `
 							"required": [
 								"http_request_method",
 								"http_request_url"
+							]
+					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "hook_server_query" }
+							}
+					},
+					"then": {
+							"required": [
+								"hook_server_path",
+								"hook_server_output"
 							]
 					}
 				},
@@ -524,6 +540,10 @@ type Step struct {
 	HTTPRequestSessionCookie      *SessionCookie    `json:"http_request_session_cookie"`
 	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
+	// `action` == "hook_server_query"
+	HookServerPath   string       `json:"hook_server_path"`
+	HookServerOutput *QueryOutput `json:"hook_server_output"`
+
 	// `action` == "smtp_log_query"
 	SMTPLogSubject   string       `json:"smtp_log_subject"`
 	SMTPLogRecipient string       `json:"smtp_log_recipient"`
@@ -557,6 +577,7 @@ const (
 	StepActionAuditQuery               StepAction = "audit_query"
 	StepActionSAMLRequest              StepAction = "saml_request"
 	StepActionHTTPRequest              StepAction = "http_request"
+	StepActionHookServerQuery          StepAction = "hook_server_query"
 	StepActionSMTPLogQuery             StepAction = "smtp_log_query"
 	StepActionOAuthSetup               StepAction = "oauth_setup"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
