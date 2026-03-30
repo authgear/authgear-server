@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -56,11 +57,11 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		extraFilesDirectory = e.resolvePath(e.TestCase.ExtraFilesDirectory)
 	}
 
-	configOverride, err := execTemplate(e, nil, e.TestCase.AuthgearYAMLSource.Override)
+	configOverride, err := renderConfigOverrideTemplate(e, e.TestCase.AuthgearYAMLSource.Override)
 	if err != nil {
 		return nil, err
 	}
-	featuresOverride, err := execTemplate(e, nil, e.TestCase.AuthgearFeaturesYAMLSource.Override)
+	featuresOverride, err := renderConfigOverrideTemplate(e, e.TestCase.AuthgearFeaturesYAMLSource.Override)
 	if err != nil {
 		return nil, err
 	}
@@ -281,4 +282,23 @@ func e2eLoopbackEnv() []string {
 		"REDIS_URL=redis://127.0.0.1:16379/0",
 		"ANALYTIC_REDIS_URL=redis://127.0.0.1:16379/1",
 	}
+}
+
+func renderConfigOverrideTemplate(cmd *End2EndCmd, content string) (string, error) {
+	tmpl := texttemplate.New("").Delims("[[", "]]")
+	tmpl.Funcs(makeTemplateFuncMap(cmd))
+	if _, err := tmpl.Parse(content); err != nil {
+		return "", err
+	}
+
+	data := map[string]any{
+		"AppID": cmd.AppID,
+	}
+
+	var buf strings.Builder
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

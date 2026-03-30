@@ -3,9 +3,9 @@ authgear.features.yaml:
   override: |
     usage:
       hooks:
-      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/usage'
         match: "sms"
-      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/usage'
         match: "*"
       limits:
         sms:
@@ -80,7 +80,7 @@ authgear.features.yaml:
   override: |
     usage:
       hooks:
-      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/usage'
         match: "sms"
       limits:
         sms:
