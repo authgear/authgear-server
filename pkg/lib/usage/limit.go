@@ -3,7 +3,6 @@ package usage
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -20,11 +19,28 @@ var logger = slogutil.NewLogger("usage-limit")
 
 type LimitName string
 
+type EffectiveUsageLimit struct {
+	Name   model.UsageName
+	Quota  int
+	Period model.UsageLimitPeriod
+	Action model.UsageLimitAction
+}
+
 type Reservation struct {
-	taken   int
 	name    model.UsageName
-	config  *config.Deprecated_UsageLimitConfig
-	periods []model.UsageLimitPeriod
+	taken   int
+	results []periodReservationResult
+}
+
+type periodReservationResult struct {
+	Period    model.UsageLimitPeriod
+	Limits    []EffectiveUsageLimit
+	Key       string
+	ResetTime time.Time
+	Pass      bool
+	Before    int
+	After     int
+	Taken     int
 }
 
 var reserveLuaScript = goredis.NewScript(`
@@ -32,38 +48,31 @@ redis.replicate_commands()
 
 local usage_limit_key = KEYS[1]
 local n = tonumber(ARGV[1])
-local quota = tonumber(ARGV[2])
-local reset_time = tonumber(ARGV[3])
+local reset_time = tonumber(ARGV[2])
+local quota = tonumber(ARGV[3])
 
 local usage = redis.pcall("GET", usage_limit_key)
-if not usage then  		-- key not found
+if not usage then
 	usage = 0
-elseif usage["err"] then  -- expired usage
+elseif usage["err"] then
 	usage = 0
 else
 	usage = tonumber(usage)
 end
 
-local pass = usage + n <= quota
-if pass then
-	redis.call("SET", usage_limit_key, usage + n)
-	redis.call("EXPIREAT", usage_limit_key, reset_time)
-	usage = usage + n
+local usage_before = usage
+local usage_after = usage
+
+if quota >= 0 and usage_before + n > quota then
+	return {0, usage_before, usage_after}
 end
 
-return {pass and 1 or 0, quota - usage}
+usage_after = usage_before + n
+redis.call("SET", usage_limit_key, usage_after)
+redis.call("EXPIREAT", usage_limit_key, reset_time)
+
+return {1, usage_before, usage_after}
 `)
-
-func reserve(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n int, quota int, resetTime time.Time) (bool, int64, error) {
-	result, err := reserveLuaScript.Run(ctx, conn, []string{key}, n, quota, resetTime.Unix()).Slice()
-	if err != nil {
-		return false, 0, err
-	}
-
-	pass := result[0].(int64) == 1
-	tokens := result[1].(int64)
-	return pass, tokens, nil
-}
 
 type Limiter struct {
 	Clock           clock.Clock
@@ -72,101 +81,222 @@ type Limiter struct {
 	EffectiveConfig *config.Config
 }
 
-func (l *Limiter) getResetTime(c *config.Deprecated_UsageLimitConfig) time.Time {
-	return ComputeResetTime(l.Clock.NowUTC(), model.UsageLimitPeriod(c.Period))
-}
-
 func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Reservation, error) {
 	logger := logger.GetLogger(ctx)
-	config := l.effectiveDeprecatedUsageLimit(name)
-	enabled := config.IsEnabled()
-	if !enabled {
-		return &Reservation{taken: 0, name: name, config: config}, nil
+	limits := l.effectiveUsageLimits(name)
+	if len(limits) == 0 {
+		return &Reservation{name: name}, nil
 	}
 
-	quota := config.GetQuota()
-	configuredPeriod := model.UsageLimitPeriod(config.Period)
-	key := redisLimitKey(l.AppID, name, configuredPeriod)
+	reservation := &Reservation{
+		name:  name,
+		taken: n,
+	}
 
-	pass := false
-	tokens := int64(0)
-	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		var err error
-		pass, tokens, err = reserve(ctx, conn, key, n, quota, ComputeResetTime(l.Clock.NowUTC(), configuredPeriod))
+	for _, period := range l.usagePeriods() {
+		periodLimits := l.limitsForPeriod(limits, period)
+		result, err := l.reservePeriod(ctx, name, period, n, periodLimits)
 		if err != nil {
-			return err
+			l.Cancel(ctx, reservation)
+			return nil, err
 		}
-		if !pass {
-			return nil
+		if !result.Pass {
+			if err := l.rollbackPeriodResults(ctx, reservation.results); err != nil {
+				logger.WithError(err).Warn(ctx, "failed to rollback usage reservation")
+			}
+			_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, true, result.Limits)
+			return nil, ErrUsageLimitExceeded(name, result.Period)
 		}
-		for _, period := range usagePeriods() {
-			if period == configuredPeriod {
-				continue
-			}
-			otherKey := redisLimitKey(l.AppID, name, period)
-			if _, err = conn.IncrBy(ctx, otherKey, int64(n)).Result(); err != nil {
-				return err
-			}
-			if _, err = conn.PExpireAt(ctx, otherKey, ComputeResetTime(l.Clock.NowUTC(), period)).Result(); err != nil {
-				return err
-			}
+		reservation.results = append(reservation.results, *result)
+	}
+
+	for _, result := range reservation.results {
+		_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, false, result.Limits)
+	}
+
+	return reservation, nil
+}
+
+func (l *Limiter) reservePeriod(ctx context.Context, name model.UsageName, period model.UsageLimitPeriod, n int, limits []EffectiveUsageLimit) (*periodReservationResult, error) {
+	resetTime := ComputeResetTime(l.Clock.NowUTC(), period)
+	key := l.redisLimitKey(name, period)
+	blockQuota, hasBlockQuota := l.minBlockQuota(limits)
+
+	result := &periodReservationResult{
+		Period:    period,
+		Limits:    limits,
+		Key:       key,
+		ResetTime: resetTime,
+		Taken:     n,
+	}
+
+	if hasBlockQuota {
+		pass, before, after, err := l.reserveWithQuota(ctx, key, n, blockQuota, resetTime)
+		if err != nil {
+			return nil, err
 		}
-		return err
-	})
+		result.Pass = pass
+		result.Before = before
+		result.After = after
+		return result, nil
+	}
+
+	before, after, err := l.incrementWithoutQuota(ctx, key, n, resetTime)
 	if err != nil {
 		return nil, err
 	}
+	result.Pass = true
+	result.Before = before
+	result.After = after
+	return result, nil
+}
 
-	logger.With(
-		slog.String("key", key),
-		slog.Int64("tokens", tokens),
-		slog.Bool("pass", pass),
-	).Debug(ctx, "check usage limit")
+func (l *Limiter) reserveWithQuota(ctx context.Context, key string, n int, quota int, resetTime time.Time) (pass bool, before int, after int, err error) {
+	err = l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		var innerErr error
+		pass, before, after, innerErr = runReserveScript(ctx, conn, key, n, resetTime, quota)
+		return innerErr
+	})
+	return
+}
 
-	if !pass {
-		return nil, ErrUsageLimitExceeded(name, model.UsageLimitPeriod(config.Period))
+func (l *Limiter) incrementWithoutQuota(ctx context.Context, key string, n int, resetTime time.Time) (before int, after int, err error) {
+	var pass bool
+	err = l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		var innerErr error
+		pass, before, after, innerErr = runReserveScript(ctx, conn, key, n, resetTime, -1)
+		return innerErr
+	})
+	if err != nil {
+		return 0, 0, err
 	}
+	if !pass {
+		panic("usage: incrementWithoutQuota unexpectedly failed")
+	}
+	return before, after, nil
+}
 
-	return &Reservation{taken: n, name: name, config: config, periods: usagePeriods()}, nil
+func (l *Limiter) evaluateUsageTriggers(ctx context.Context, name model.UsageName, period model.UsageLimitPeriod, before, after int, rejected bool, limits []EffectiveUsageLimit) error {
+	_ = ctx
+	_ = name
+	_ = period
+	_ = rejected
+	_ = crossedUsageLimits(before, after, limits)
+	return nil
 }
 
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	logger := logger.GetLogger(ctx)
-	if r == nil || r.taken == 0 {
+	if r == nil || r.taken == 0 || len(r.results) == 0 {
 		return
 	}
 
-	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		for _, period := range r.periods {
-			key := redisLimitKey(l.AppID, r.name, period)
-			_, err := conn.IncrBy(ctx, key, -int64(r.taken)).Result()
-			if err != nil {
-				return err
-			}
-
-			resetTime := ComputeResetTime(l.Clock.NowUTC(), period)
-			// Ignore error
-			_, _ = conn.PExpireAt(ctx, key, resetTime).Result()
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		// Errors here are non-critical and non-recoverable;
-		// log and continue.
+	if err := l.rollbackPeriodResults(ctx, r.results); err != nil {
 		logger.WithError(err).Warn(ctx, "failed to cancel reservation")
 	}
 
 	r.taken = 0
+	r.results = nil
 }
 
-func redisLimitKey(appID config.AppID, name model.UsageName, period model.UsageLimitPeriod) string {
+func (l *Limiter) rollbackPeriodResults(ctx context.Context, results []periodReservationResult) error {
+	if len(results) == 0 {
+		return nil
+	}
+
+	return l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		for i := len(results) - 1; i >= 0; i-- {
+			result := results[i]
+			if _, err := conn.IncrBy(ctx, result.Key, -int64(result.Taken)).Result(); err != nil {
+				return err
+			}
+			_, _ = conn.PExpireAt(ctx, result.Key, result.ResetTime).Result()
+		}
+		return nil
+	})
+}
+
+func (l *Limiter) effectiveUsageLimits(name model.UsageName) []EffectiveUsageLimit {
+	var limits []EffectiveUsageLimit
+
+	if l != nil && l.EffectiveConfig != nil {
+		if l.EffectiveConfig.FeatureConfig != nil && l.EffectiveConfig.FeatureConfig.Usage != nil && l.EffectiveConfig.FeatureConfig.Usage.Limits != nil {
+			for _, limit := range l.EffectiveConfig.FeatureConfig.Usage.Limits.Limits(name) {
+				limits = append(limits, EffectiveUsageLimit{
+					Name:   name,
+					Quota:  limit.Quota,
+					Period: limit.Period,
+					Action: limit.Action,
+				})
+			}
+		}
+
+		if l.EffectiveConfig.AppConfig != nil && l.EffectiveConfig.AppConfig.Usage != nil && l.EffectiveConfig.AppConfig.Usage.Limits != nil {
+			for _, limit := range l.EffectiveConfig.AppConfig.Usage.Limits.Limits(name) {
+				limits = append(limits, EffectiveUsageLimit{
+					Name:   name,
+					Quota:  limit.Quota,
+					Period: limit.Period,
+					Action: limit.Action,
+				})
+			}
+		}
+	}
+
+	if len(limits) > 0 {
+		return limits
+	}
+
+	if legacy := l.effectiveDeprecatedUsageLimit(name); legacy != nil && legacy.IsEnabled() {
+		return []EffectiveUsageLimit{{
+			Name:   name,
+			Quota:  legacy.GetQuota(),
+			Period: model.UsageLimitPeriod(legacy.Period),
+			Action: model.UsageLimitActionBlock,
+		}}
+	}
+
+	return nil
+}
+
+func (l *Limiter) usagePeriods() []model.UsageLimitPeriod {
+	return []model.UsageLimitPeriod{
+		model.UsageLimitPeriodDay,
+		model.UsageLimitPeriodMonth,
+	}
+}
+
+func (l *Limiter) limitsForPeriod(limits []EffectiveUsageLimit, period model.UsageLimitPeriod) []EffectiveUsageLimit {
+	var filtered []EffectiveUsageLimit
+	for _, limit := range limits {
+		if limit.Period == period {
+			filtered = append(filtered, limit)
+		}
+	}
+	return filtered
+}
+
+func (l *Limiter) minBlockQuota(limits []EffectiveUsageLimit) (int, bool) {
+	minQuota := 0
+	found := false
+	for _, limit := range limits {
+		if limit.Action != model.UsageLimitActionBlock {
+			continue
+		}
+		if !found || limit.Quota < minQuota {
+			minQuota = limit.Quota
+			found = true
+		}
+	}
+	return minQuota, found
+}
+
+func (l *Limiter) redisLimitKey(name model.UsageName, period model.UsageLimitPeriod) string {
 	legacyName := legacyLimitName(name)
 	if period == model.UsageLimitPeriodMonth {
-		return fmt.Sprintf("app:%s:usage-limit:%s", appID, legacyName)
+		return fmt.Sprintf("app:%s:usage-limit:%s", l.AppID, legacyName)
 	}
-	return fmt.Sprintf("app:%s:usage-limit:%s:%s", appID, legacyName, period)
+	return fmt.Sprintf("app:%s:usage-limit:%s:%s", l.AppID, legacyName, period)
 }
 
 func (l *Limiter) effectiveDeprecatedUsageLimit(name model.UsageName) *config.Deprecated_UsageLimitConfig {
@@ -201,6 +331,28 @@ func (l *Limiter) effectiveDeprecatedUsageLimit(name model.UsageName) *config.De
 	return nil
 }
 
+func runReserveScript(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n int, resetTime time.Time, quota int) (pass bool, before int, after int, err error) {
+	result, err := reserveLuaScript.Run(ctx, conn, []string{key}, n, resetTime.Unix(), quota).Slice()
+	if err != nil {
+		return false, 0, 0, err
+	}
+
+	pass = result[0].(int64) == 1
+	before = int(result[1].(int64))
+	after = int(result[2].(int64))
+	return pass, before, after, nil
+}
+
+func crossedUsageLimits(before int, after int, limits []EffectiveUsageLimit) []EffectiveUsageLimit {
+	var crossed []EffectiveUsageLimit
+	for _, limit := range limits {
+		if before < limit.Quota && after >= limit.Quota {
+			crossed = append(crossed, limit)
+		}
+	}
+	return crossed
+}
+
 func legacyLimitName(name model.UsageName) LimitName {
 	switch name {
 	case model.UsageNameEmail:
@@ -226,12 +378,5 @@ func ComputeResetTime(now time.Time, period model.UsageLimitPeriod) time.Time {
 		return now.Truncate(24*time.Hour).AddDate(0, 1, -now.Day()+1)
 	default:
 		panic("usage: unknown usage limit period: " + period)
-	}
-}
-
-func usagePeriods() []model.UsageLimitPeriod {
-	return []model.UsageLimitPeriod{
-		model.UsageLimitPeriodDay,
-		model.UsageLimitPeriodMonth,
 	}
 }
