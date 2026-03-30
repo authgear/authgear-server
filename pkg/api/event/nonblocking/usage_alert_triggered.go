@@ -15,6 +15,7 @@ type UsageAlertPayload struct {
 	Period       model.UsageLimitPeriod `json:"period"`
 	Quota        int                    `json:"quota"`
 	CurrentValue int                    `json:"current_value"`
+	PlanName     string                 `json:"plan_name"`
 }
 
 type UsageAlertTriggeredEventPayload struct {

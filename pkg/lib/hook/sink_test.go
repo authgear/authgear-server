@@ -108,6 +108,7 @@ func TestSink(t *testing.T) {
 						Period:       model.UsageLimitPeriodMonth,
 						Quota:        10,
 						CurrentValue: 10,
+						PlanName:     "limited",
 					},
 					HookURLs: []string{"https://example.com/usage"},
 				},
