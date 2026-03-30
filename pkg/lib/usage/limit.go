@@ -323,7 +323,7 @@ func (l *Limiter) usageAlertRecipients(name model.UsageName) []string {
 	return recipients
 }
 
-func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, currentValue int) *nonblocking.UsageAlertTriggeredEventPayload {
+func (l *Limiter) makeUsageAlertTriggeredPayload(ctx context.Context, limit EffectiveUsageLimit, currentValue int) *nonblocking.UsageAlertTriggeredEventPayload {
 	return &nonblocking.UsageAlertTriggeredEventPayload{
 		Usage: nonblocking.UsageAlertPayload{
 			Name:         limit.Name,
@@ -331,6 +331,7 @@ func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, curr
 			Period:       limit.Period,
 			Quota:        limit.Quota,
 			CurrentValue: currentValue,
+			PlanName:     usagePlanName(ctx),
 		},
 		HookURLs: l.usageHookURLs(limit.Name),
 	}
@@ -338,7 +339,7 @@ func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, curr
 
 func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUsageLimit, currentValue int) error {
 	logger := logger.GetLogger(ctx)
-	payload := l.makeUsageAlertTriggeredPayload(limit, currentValue)
+	payload := l.makeUsageAlertTriggeredPayload(ctx, limit, currentValue)
 	if err := l.dispatchEventImmediately(ctx, payload); err != nil {
 		logger.WithError(err).Warn(ctx, "failed to dispatch usage alert event")
 	}
@@ -349,6 +350,14 @@ func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUs
 		}
 	}
 	return nil
+}
+
+func usagePlanName(ctx context.Context) string {
+	appCtx, ok := config.GetAppContext(ctx)
+	if !ok || appCtx == nil {
+		return ""
+	}
+	return appCtx.PlanName
 }
 
 func (l *Limiter) dispatchEventImmediately(ctx context.Context, payload apievent.NonBlockingPayload) error {

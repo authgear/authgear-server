@@ -321,6 +321,7 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 	Convey("Limiter dispatches usage alert triggered with matched hook URLs", t, func() {
 		ctx := context.Background()
+		ctx = config.WithAppContext(ctx, &config.AppContext{PlanName: "limited"})
 		mr := miniredis.RunT(t)
 		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
 		mr.SetTime(now)
@@ -381,6 +382,7 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 		So(payload.Usage.Action, ShouldEqual, model.UsageLimitActionAlert)
 		So(payload.Usage.Period, ShouldEqual, model.UsageLimitPeriodMonth)
 		So(payload.Usage.CurrentValue, ShouldEqual, 1)
+		So(payload.Usage.PlanName, ShouldEqual, "limited")
 		So(payload.HookURLs, ShouldResemble, []string{
 			"https://example.com/sms",
 			"https://example.com/all",
@@ -396,6 +398,7 @@ func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 	Convey("Limiter does not dispatch duplicate alerts when a block limit rejects without crossing", t, func() {
 		var w strings.Builder
 		ctx := context.Background()
+		ctx = config.WithAppContext(ctx, &config.AppContext{PlanName: "limited"})
 		ctx = slogutil.SetContextLogger(ctx, slog.New(slogutil.NewHandlerForTesting(slog.LevelDebug, &w)))
 		mr := miniredis.RunT(t)
 		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)

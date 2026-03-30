@@ -1148,7 +1148,8 @@ Payload:
       "action": "block",
       "period": "month",
       "quota": 900,
-      "current_value": 900
+      "current_value": 900,
+      "plan_name": "limited"
     }
   }
 }
@@ -1159,6 +1160,7 @@ Payload:
 - `usage.period`: The usage period.
 - `usage.quota`: The configured quota that was triggered.
 - `usage.current_value`: The measured usage value in the current period when the event is generated.
+- `usage.plan_name`: The plan name of the app when the event is generated, if available.
 
 #### rate_limit.blocked
 
