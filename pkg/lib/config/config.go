@@ -31,6 +31,7 @@ var _ = Schema.Add("AppConfig", `
 		"ui": { "$ref": "#/$defs/UIConfig" },
 		"localization": { "$ref": "#/$defs/LocalizationConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingConfig" },
+		"usage": { "$ref": "#/$defs/UsageConfig" },
 		"search": { "$ref": "#/$defs/SearchConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },

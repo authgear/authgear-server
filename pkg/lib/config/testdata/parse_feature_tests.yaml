@@ -165,6 +165,52 @@ config:
       quota: 0
       period: month
 ---
+name: usage-config-valid
+error: null
+config:
+  usage:
+    hooks:
+      - url: https://example.com/usage
+        match: sms
+      - url: https://example.com/all-usage
+        match: "*"
+    limits:
+      sms:
+        - quota: 4
+          period: month
+          action: alert
+        - quota: 900
+          period: month
+          action: block
+      user_import:
+        - quota: 5
+          period: day
+          action: alert
+---
+name: usage-config-invalid-hook-match
+error: |-
+  invalid feature config:
+  /usage/hooks/0/match: enum
+    map[actual:push expected:[* user_export user_import email whatsapp sms]]
+config:
+  usage:
+    hooks:
+      - url: https://example.com/usage
+        match: push
+---
+name: usage-config-invalid-limit-action
+error: |-
+  invalid feature config:
+  /usage/limits/sms/0/action: enum
+    map[actual:notify expected:[alert block]]
+config:
+  usage:
+    limits:
+      sms:
+        - quota: 4
+          period: month
+          action: notify
+---
 name: fraud-protection-is-modifiable-true
 error: null
 config:
