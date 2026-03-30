@@ -79,6 +79,38 @@ redis.call("EXPIREAT", usage_limit_key, reset_time)
 return {1, usage_before, usage_after}
 `)
 
+var rollbackLuaScript = goredis.NewScript(`
+redis.replicate_commands()
+
+local usage_limit_key = KEYS[1]
+local n = tonumber(ARGV[1])
+local reset_time = tonumber(ARGV[2])
+
+local usage = redis.pcall("GET", usage_limit_key)
+if not usage then
+	usage = 0
+elseif usage["err"] then
+	usage = 0
+else
+	usage = tonumber(usage)
+end
+
+local usage_before = usage
+local usage_after = usage_before - n
+if usage_after < 0 then
+	usage_after = 0
+end
+
+if usage_after == 0 then
+	redis.call("DEL", usage_limit_key)
+else
+	redis.call("SET", usage_limit_key, usage_after)
+	redis.call("EXPIREAT", usage_limit_key, reset_time)
+end
+
+return {usage_before, usage_after}
+`)
+
 type Limiter struct {
 	Clock                  clock.Clock
 	Database               *appdb.Handle
@@ -228,10 +260,9 @@ func (l *Limiter) rollbackPeriodResults(ctx context.Context, results []periodRes
 	return l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		for i := len(results) - 1; i >= 0; i-- {
 			result := results[i]
-			if _, err := conn.IncrBy(ctx, result.Key, -int64(result.Taken)).Result(); err != nil {
+			if _, _, err := runRollbackScript(ctx, conn, result.Key, result.Taken, result.ResetTime); err != nil {
 				return err
 			}
-			_, _ = conn.PExpireAt(ctx, result.Key, result.ResetTime).Result()
 		}
 		return nil
 	})
@@ -403,6 +434,17 @@ func runReserveScript(ctx context.Context, conn redis.Redis_6_0_Cmdable, key str
 	before = int(result[1].(int64))
 	after = int(result[2].(int64))
 	return pass, before, after, nil
+}
+
+func runRollbackScript(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n int, resetTime time.Time) (before int, after int, err error) {
+	result, err := rollbackLuaScript.Run(ctx, conn, []string{key}, n, resetTime.Unix()).Slice()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	before = int(result[0].(int64))
+	after = int(result[1].(int64))
+	return before, after, nil
 }
 
 func crossedUsageLimits(before int, after int, limits []EffectiveUsageLimit) []EffectiveUsageLimit {
