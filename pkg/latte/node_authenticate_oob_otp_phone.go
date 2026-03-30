@@ -85,6 +85,7 @@ func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *work
 	state, err := deps.OTPCodes.InspectState(ctx,
 		otp.KindOOBOTPCode(deps.Config, model.AuthenticatorOOBChannelSMS),
 		target,
+		nil,
 	)
 	if err != nil {
 		return nil, err

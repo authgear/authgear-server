@@ -54,6 +54,7 @@ func (n *NodeDoSendAccountRecoveryCode) Send(
 	ignoreRateLimitError bool,
 ) error {
 	err := deps.ForgotPassword.SendCode(ctx, n.TargetLoginID, &forgotpassword.CodeOptions{
+		AuthenticationFlowID:          authflow.GetFlowID(ctx),
 		AuthenticationFlowType:        string(n.FlowReference.Type),
 		AuthenticationFlowName:        n.FlowReference.Name,
 		AuthenticationFlowJSONPointer: n.ParentJSONPointer,
@@ -61,7 +62,7 @@ func (n *NodeDoSendAccountRecoveryCode) Send(
 		Channel:                       n.CodeChannel,
 	})
 
-	if ignoreRateLimitError && deps.ForgotPassword.IsRateLimitError(err, n.TargetLoginID, n.CodeChannel, n.CodeKind) {
+	if ignoreRateLimitError && deps.ForgotPassword.IsRateLimitError(err, n.TargetLoginID, n.CodeChannel, n.CodeKind, authflow.GetFlowID(ctx)) {
 		// Ignore trigger cooldown rate limit error; continue the flow
 	} else if errors.Is(err, forgotpassword.ErrUserNotFound) {
 		// Do not tell user the user doen't exist

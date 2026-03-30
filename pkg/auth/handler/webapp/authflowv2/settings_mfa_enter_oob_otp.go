@@ -137,7 +137,7 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(ctx context.Context, r
 	channel := tokenAuthenticator.OOBOTPChannel
 	target := tokenAuthenticator.OOBOTPTarget
 
-	state, err := h.OTPCode.InspectState(ctx, otp.KindVerification(h.Config, channel), target)
+	state, err := h.OTPCode.InspectState(ctx, otp.KindVerification(h.Config, channel), target, nil)
 	if err != nil {
 		return nil, err
 	}

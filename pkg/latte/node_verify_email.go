@@ -80,7 +80,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 
 func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Email
-	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
+	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target, nil)
 	if err != nil {
 		return nil, err
 	}

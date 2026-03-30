@@ -86,6 +86,7 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 	state, err := deps.OTPCodes.InspectState(ctx,
 		otp.KindOOBOTPLink(deps.Config, model.AuthenticatorOOBChannelEmail),
 		target,
+		nil,
 	)
 	if err != nil {
 		return nil, err

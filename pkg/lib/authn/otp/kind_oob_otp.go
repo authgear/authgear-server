@@ -93,6 +93,22 @@ func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
 	)
 }
 
+func (k kindOOBOTP) RateLimitTriggerCooldownPerSession(flowID string) ratelimit.BucketSpec {
+	return ratelimit.NewCooldownSpec(
+		selectByChannel(k.channel,
+			ratelimit.OOBOTPCooldownEmailPerSession,
+			ratelimit.OOBOTPCooldownSMSPerSession,
+			ratelimit.OOBOTPCooldownWhatsappPerSession,
+		),
+		selectByChannel(k.channel,
+			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
+			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
+			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
+		).Duration(),
+		string(k.purpose), flowID,
+	)
+}
+
 func (k kindOOBOTP) RateLimitValidate(
 	featureConfig *config.FeatureConfig,
 	envConfig *config.RateLimitsEnvironmentConfig,
