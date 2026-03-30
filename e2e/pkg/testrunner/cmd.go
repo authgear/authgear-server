@@ -27,7 +27,6 @@ type End2EndCmd struct {
 	Client   *e2eclient.Client
 	TestCase TestCase
 	Test     testing.TB
-	ExtraEnv []string
 }
 
 func generateAppID() string {
@@ -49,7 +48,6 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		AppID:    generateAppID(),
 		TestCase: *options.TestCase,
 		Test:     options.Test,
-		ExtraEnv: e2eLoopbackEnv(),
 	}
 
 	extraFilesDirectory := ""
@@ -242,7 +240,6 @@ func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	execCmd := exec.Command("sh", "-c", cmd)
 	execCmd.Stderr = &errb
 	execCmd.Dir = "../../"
-	execCmd.Env = append(os.Environ(), e.ExtraEnv...)
 	output, err := execCmd.Output()
 	if err != nil {
 		e.Test.Errorf("failed to execute command %s: %v\n%s", cmd, err, errb.String())
@@ -257,7 +254,6 @@ func (e *End2EndCmd) execCmdArgs(args ...string) (string, error) {
 	execCmd := exec.Command(args[0], args[1:]...)
 	execCmd.Stderr = &errb
 	execCmd.Dir = "../../"
-	execCmd.Env = append(os.Environ(), e.ExtraEnv...)
 	output, err := execCmd.Output()
 	if err != nil {
 		e.Test.Errorf("failed to execute command %s: %v\n%s", strings.Join(quoteArgs(args), " "), err, errb.String())
@@ -273,15 +269,6 @@ func quoteArgs(args []string) []string {
 		out = append(out, strconv.Quote(arg))
 	}
 	return out
-}
-
-func e2eLoopbackEnv() []string {
-	return []string{
-		"DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/postgres?sslmode=disable",
-		"AUDIT_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/postgres?sslmode=disable",
-		"REDIS_URL=redis://127.0.0.1:16379/0",
-		"ANALYTIC_REDIS_URL=redis://127.0.0.1:16379/1",
-	}
 }
 
 func renderConfigOverrideTemplate(cmd *End2EndCmd, content string) (string, error) {
