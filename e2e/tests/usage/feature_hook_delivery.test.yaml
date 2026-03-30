@@ -75,6 +75,72 @@ steps:
           }
         ]
 ---
+name: Feature usage hooks support deno hooks in feature config
+extra_files_directory: ./var
+authgear.features.yaml:
+  override: |
+    usage:
+      hooks:
+      - url: 'authgeardeno:///deno/allowed.ts'
+        match: "sms"
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/deno-usage'
+        match: "sms"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "alert"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231601"
+      }
+  - name: send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: wait for mixed hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query hook server
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/deno-usage"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "sms",
+                "action": "alert",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          }
+        ]
+---
 name: Feature block usage hook fires once on threshold crossing
 authgear.features.yaml:
   override: |
