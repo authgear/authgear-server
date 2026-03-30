@@ -23,12 +23,34 @@ configs:
         enabled: true
         period: month
         quota: 5
+  - usage:
+      hooks:
+        - url: https://site.example.com/sms
+          match: sms
+      limits:
+        sms:
+          - quota: 4
+            period: month
+            action: alert
+        email:
+          - quota: 20
+            period: month
+            action: alert
   - admin_api:
       create_session_enabled: false
       user_export_usage:
         enabled: false
         period: month
         quota: 1
+  - usage:
+      hooks:
+        - url: https://project.example.com/all
+          match: "*"
+      limits:
+        sms:
+          - quota: 8
+            period: month
+            action: block
   - admin_api:
       user_import_usage:
         enabled: true
@@ -68,3 +90,18 @@ result:
       enabled: true
       period: month
       quota: 5
+  usage:
+    hooks:
+      - url: https://site.example.com/sms
+        match: sms
+      - url: https://project.example.com/all
+        match: "*"
+    limits:
+      sms:
+        - quota: 8
+          period: month
+          action: block
+      email:
+        - quota: 20
+          period: month
+          action: alert

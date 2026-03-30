@@ -25,6 +25,7 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" },
 		"rate_limits": { "$ref": "#/$defs/RateLimitsFeatureConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingFeatureConfig" },
+		"usage": { "$ref": "#/$defs/FeatureUsageConfig" },
 		"collaborator": { "$ref": "#/$defs/CollaboratorFeatureConfig" },
 		"web3": { "$ref": "#/$defs/Web3FeatureConfig" },
 		"admin_api": { "$ref": "#/$defs/AdminAPIFeatureConfig" },
