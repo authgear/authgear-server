@@ -2,6 +2,8 @@ package usage
 
 import (
 	"context"
+	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type testEventService struct {
@@ -391,7 +394,9 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 
 func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 	Convey("Limiter does not dispatch duplicate alerts when a block limit rejects without crossing", t, func() {
+		var w strings.Builder
 		ctx := context.Background()
+		ctx = slogutil.SetContextLogger(ctx, slog.New(slogutil.NewHandlerForTesting(slog.LevelDebug, &w)))
 		mr := miniredis.RunT(t)
 		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
 		mr.SetTime(now)
@@ -443,5 +448,6 @@ func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		So(eventService.payloads, ShouldHaveLength, 1)
 		So(emailService.recipients, ShouldHaveLength, 1)
+		So(w.String(), ShouldContainSubstring, "usage reservation blocked")
 	})
 }
