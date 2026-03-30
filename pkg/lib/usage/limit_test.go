@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	_ "github.com/mattn/go-sqlite3"
 	goredis "github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
-	_ "github.com/mattn/go-sqlite3"
 
 	apievent "github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -200,9 +200,9 @@ func TestLimiterReserveCountsDayAndMonth(t *testing.T) {
 		enabled := true
 		quota := 10
 		limiter := &Limiter{
-			Clock: clock.NewMockClockAtTime(now),
-			AppID: "test-app",
-			Redis: &appredis.Handle{Handle: rh},
+			Clock:    clock.NewMockClockAtTime(now),
+			AppID:    "test-app",
+			Redis:    &appredis.Handle{Handle: rh},
 			Database: newTestAppDBHandle(t),
 			EffectiveConfig: &config.Config{
 				FeatureConfig: (&config.FeatureConfig{
@@ -284,9 +284,9 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 		})
 
 		limiter := &Limiter{
-			Clock: clock.NewMockClockAtTime(now),
-			AppID: "test-app",
-			Redis: &appredis.Handle{Handle: rh},
+			Clock:    clock.NewMockClockAtTime(now),
+			AppID:    "test-app",
+			Redis:    &appredis.Handle{Handle: rh},
 			Database: newTestAppDBHandle(t),
 			EffectiveConfig: &config.Config{
 				FeatureConfig: &config.FeatureConfig{
