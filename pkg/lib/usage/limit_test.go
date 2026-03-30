@@ -194,6 +194,40 @@ func TestLimiterReserveCountsDayAndMonth(t *testing.T) {
 	})
 }
 
+func TestLimiterEffectiveUsageLimitsPrefersUnifiedConfigOverDeprecated(t *testing.T) {
+	Convey("Limiter uses unified usage config instead of deprecated feature usage config", t, func() {
+		enabled := true
+		quota := 10
+		limiter := &Limiter{
+			EffectiveConfig: &config.Config{
+				FeatureConfig: &config.FeatureConfig{
+					Messaging: &config.MessagingFeatureConfig{
+						SMSUsage: &config.Deprecated_UsageLimitConfig{
+							Enabled: &enabled,
+							Period:  config.Deprecated_UsageLimitPeriodMonth,
+							Quota:   &quota,
+						},
+					},
+					Usage: &config.FeatureUsageConfig{
+						Limits: &config.FeatureUsageLimitsConfig{
+							SMS: []config.FeatureUsageLimitConfig{
+								{Quota: 3, Period: model.UsageLimitPeriodDay, Action: model.UsageLimitActionAlert},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		So(limiter.effectiveUsageLimits(model.UsageNameSMS), ShouldResemble, []EffectiveUsageLimit{{
+			Name:   model.UsageNameSMS,
+			Quota:  3,
+			Period: model.UsageLimitPeriodDay,
+			Action: model.UsageLimitActionAlert,
+		}})
+	})
+}
+
 func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 	Convey("Limiter rolls back earlier period when a later period blocks", t, func() {
 		ctx := context.Background()
