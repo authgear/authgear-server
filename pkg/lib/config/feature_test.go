@@ -71,6 +71,7 @@ func TestParseFeatureConfig(t *testing.T) {
 			mergedConfig = mergedConfig.Merge(cfg)
 		}
 		config.SetFieldDefaults(mergedConfig)
+		mergedConfig = mergedConfig.Migrate()
 
 		So(mergedConfig, ShouldResemble, expected)
 	})
