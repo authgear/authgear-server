@@ -27,10 +27,6 @@ type TaskProducer interface {
 	GetTask(ctx context.Context, item *redisqueue.QueueItem) (*redisqueue.Task, error)
 }
 
-const (
-	usageLimitUserImport usage.LimitName = "UserImport"
-)
-
 type UsageLimiter interface {
 	ReserveN(ctx context.Context, name usage.LimitName, n int, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
 }
@@ -48,7 +44,7 @@ type JobManager struct {
 func (m *JobManager) EnqueueJob(ctx context.Context, request *Request) (*Response, error) {
 	_, err := m.UsageLimiter.ReserveN(
 		ctx,
-		usageLimitUserImport,
+		usage.LimitNameUserImport,
 		len(request.Records),
 		m.AdminAPIFeatureConfig.UserImportUsage,
 	)
