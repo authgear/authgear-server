@@ -106,7 +106,7 @@ func ParseFeatureConfig(ctx context.Context, inputYAML []byte) (*FeatureConfig, 
 
 	SetFieldDefaults(config)
 
-	return config, nil
+	return config.Migrate(), nil
 }
 
 func NewEffectiveDefaultFeatureConfig() *FeatureConfig {
