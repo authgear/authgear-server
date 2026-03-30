@@ -9,6 +9,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -130,6 +131,9 @@ func createDefaultDomain(ctx context.Context, tx *sql.Tx, appID string, domain s
 
 	_, err = tx.ExecContext(ctx, q, args...)
 	if err != nil {
+		if databaseutil.IsDuplicateKeyError(err) {
+			return nil
+		}
 		return err
 	}
 

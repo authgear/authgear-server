@@ -6,7 +6,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -46,6 +48,7 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		AppID:    generateAppID(),
 		TestCase: *options.TestCase,
 		Test:     options.Test,
+		ExtraEnv: e2eLoopbackEnv(),
 	}
 
 	extraFilesDirectory := ""
@@ -217,6 +220,22 @@ func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string) ([]interface
 	return rows, nil
 }
 
+func (e *End2EndCmd) QueryHookServer(path string) ([]interface{}, error) {
+	resp, err := http.Get("http://127.0.0.1:2626/" + strings.TrimPrefix(path, "/"))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var payload struct {
+		Requests []interface{} `json:"requests"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	return payload.Requests, nil
+}
+
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	var errb bytes.Buffer
 	execCmd := exec.Command("sh", "-c", cmd)
@@ -253,4 +272,13 @@ func quoteArgs(args []string) []string {
 		out = append(out, strconv.Quote(arg))
 	}
 	return out
+}
+
+func e2eLoopbackEnv() []string {
+	return []string{
+		"DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/postgres?sslmode=disable",
+		"AUDIT_DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/postgres?sslmode=disable",
+		"REDIS_URL=redis://127.0.0.1:16379/0",
+		"ANALYTIC_REDIS_URL=redis://127.0.0.1:16379/1",
+	}
 }
