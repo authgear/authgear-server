@@ -3,6 +3,7 @@ package messaging
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -15,7 +16,7 @@ type Reservation struct {
 }
 
 type UsageLimiter interface {
-	Reserve(ctx context.Context, name usage.LimitName, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name model.UsageName, n int) (*usage.Reservation, error)
 	Cancel(ctx context.Context, r *usage.Reservation)
 }
 
@@ -76,7 +77,7 @@ func (l *Limits) checkEmail(ctx context.Context, email string) (err error) {
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameEmail, l.FeatureConfig.Messaging.EmailUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, model.UsageNameEmail, 1)
 	if err != nil {
 		return
 	}
@@ -107,7 +108,7 @@ func (l *Limits) checkSMS(ctx context.Context, phoneNumber string) (err error) {
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameSMS, l.FeatureConfig.Messaging.SMSUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, model.UsageNameSMS, 1)
 	if err != nil {
 		return
 	}
@@ -138,7 +139,7 @@ func (l *Limits) checkWhatsapp(ctx context.Context, phoneNumber string) (err err
 		}
 	}()
 
-	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, usage.LimitNameWhatsapp, l.FeatureConfig.Messaging.WhatsappUsage)
+	r.UsageReservation, err = l.UsageLimiter.Reserve(ctx, model.UsageNameWhatsapp, 1)
 	if err != nil {
 		return
 	}
