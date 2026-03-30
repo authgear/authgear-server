@@ -3,6 +3,7 @@ package usage
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -40,6 +41,7 @@ type periodReservationResult struct {
 	Limits    []EffectiveUsageLimit
 	Key       string
 	ResetTime time.Time
+	Quota     int
 	Pass      bool
 	Before    int
 	After     int
@@ -111,6 +113,14 @@ func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Re
 			return nil, err
 		}
 		if !result.Pass {
+			logger.With(
+				slog.String("usage_name", string(name)),
+				slog.String("period", string(result.Period)),
+				slog.Int("taken", result.Taken),
+				slog.Int("quota", result.Quota),
+				slog.Int("before", result.Before),
+				slog.Int("after", result.After),
+			).Warn(ctx, "usage reservation blocked")
 			if err := l.rollbackPeriodResults(ctx, reservation.results); err != nil {
 				logger.WithError(err).Warn(ctx, "failed to rollback usage reservation")
 			}
@@ -141,6 +151,7 @@ func (l *Limiter) reservePeriod(ctx context.Context, name model.UsageName, perio
 	}
 
 	if hasBlockQuota {
+		result.Quota = blockQuota
 		pass, before, after, err := l.reserveWithQuota(ctx, key, n, blockQuota, resetTime)
 		if err != nil {
 			return nil, err
