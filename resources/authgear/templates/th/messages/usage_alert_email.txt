@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+มีการแจ้งเตือนการใช้งานสำหรับ {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} ถึงเกณฑ์การใช้งานที่กำหนดสำหรับ {{ .Usage.Period }} {{ .Usage.Name }} แล้ว
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+การดำเนินการ: {{ .Usage.Action }}
+โควตา: {{ .Usage.Quota }}
+ค่าปัจจุบัน: {{ .Usage.CurrentValue }}

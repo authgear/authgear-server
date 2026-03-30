@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Hành động: {{ .Usage.Action }}
+Hạn mức: {{ .Usage.Quota }}
+Giá trị hiện tại: {{ .Usage.CurrentValue }}

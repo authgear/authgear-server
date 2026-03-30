@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Se activó una alerta de uso para {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }} ha alcanzado el umbral de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Acción: {{ .Usage.Action }}
+Cuota: {{ .Usage.Quota }}
+Valor actual: {{ .Usage.CurrentValue }}

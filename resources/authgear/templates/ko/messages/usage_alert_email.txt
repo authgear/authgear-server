@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+{{ .Usage.Name }} 사용량 알림이 트리거되었습니다
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+작업: {{ .Usage.Action }}
+할당량: {{ .Usage.Quota }}
+현재 값: {{ .Usage.CurrentValue }}

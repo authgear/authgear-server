@@ -107,7 +107,7 @@
                                       color: #000000;
                                     "
                                   >
-                                    Usage alert triggered for {{ .Usage.Name }}
+                                    มีการแจ้งเตือนการใช้งานสำหรับ {{ .Usage.Name }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,7 +143,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+                                    {{ template "app.name" }} ถึงเกณฑ์การใช้งานที่กำหนดสำหรับ {{ .Usage.Period }} {{ .Usage.Name }} แล้ว
                                   </div>
                                 </td>
                               </tr>
@@ -165,7 +165,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Action: {{ .Usage.Action }}
+                                    การดำเนินการ: {{ .Usage.Action }}
                                   </div>
                                 </td>
                               </tr>
@@ -187,7 +187,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Quota: {{ .Usage.Quota }}
+                                    โควตา: {{ .Usage.Quota }}
                                   </div>
                                 </td>
                               </tr>
@@ -209,7 +209,7 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Current value: {{ .Usage.CurrentValue }}
+                                    ค่าปัจจุบัน: {{ .Usage.CurrentValue }}
                                   </div>
                                 </td>
                               </tr>

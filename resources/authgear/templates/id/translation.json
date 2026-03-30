@@ -354,6 +354,7 @@
   "language-zh-HK": "繁體中文(香港)",
   "language-zh-TW": "繁體中文(台灣)",
   "language-zu": "isiZulu",
+  "email.usage-alert.subject": "[{AppName}] Peringatan penggunaan dipicu",
   "v2.component.authflow-branch.default.enter-email-otp-code-instead": "Kirim kode melalui Email",
   "v2.component.authflow-branch.default.enter-password-instead": "Masukkan kata sandi",
   "v2.component.authflow-branch.default.enter-phone-otp-sms-instead": "Kirim kode melalui SMS",

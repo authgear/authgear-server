@@ -1,7 +1,7 @@
-Usage alert triggered for {{ .Usage.Name }}
+Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.
 
-Action: {{ .Usage.Action }}
+Aksyon: {{ .Usage.Action }}
 Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Kasalukuyang halaga: {{ .Usage.CurrentValue }}

@@ -185,5 +185,12 @@
     "PasswordLabel": "Tu contraseña temporal:",
     "Password": "{{ .Password }}",
     "Instruction": "Inicia sesión en {{ template \"app.name\" }} con tu correo electrónico y contraseña temporal. Por favor, cambia tu contraseña después de iniciar sesión."
+  },
+  "UsageAlertEmail": {
+    "Title": "Se ha activado una alerta de uso para {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} ha alcanzado el umbral de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Acción: {{ .Usage.Action }}",
+    "Quota": "Cuota: {{ .Usage.Quota }}",
+    "CurrentValue": "Valor actual: {{ .Usage.CurrentValue }}"
   }
 }
