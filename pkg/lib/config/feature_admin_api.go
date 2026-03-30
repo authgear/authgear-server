@@ -15,9 +15,9 @@ var _ = FeatureConfigSchema.Add("AdminAPIFeatureConfig", `
 type AdminAPIFeatureConfig struct {
 	CreateSessionEnabled *bool `json:"create_session_enabled,omitempty"`
 	// UserImportUsage is the usage limit on user import API, measured by number of imported users.
-	UserImportUsage *UsageLimitConfig `json:"user_import_usage,omitempty"`
+	UserImportUsage *Deprecated_UsageLimitConfig `json:"user_import_usage,omitempty"`
 	// UserExportUsage is the usage limit on user export API, measured by number of export requests.
-	UserExportUsage *UsageLimitConfig `json:"user_export_usage,omitempty"`
+	UserExportUsage *Deprecated_UsageLimitConfig `json:"user_export_usage,omitempty"`
 }
 
 var _ MergeableFeatureConfig = &AdminAPIFeatureConfig{}
@@ -52,12 +52,12 @@ func (c *AdminAPIFeatureConfig) SetDefaults() {
 		c.CreateSessionEnabled = newBool(false)
 	}
 	if c.UserImportUsage.Enabled == nil {
-		c.UserImportUsage = &UsageLimitConfig{
+		c.UserImportUsage = &Deprecated_UsageLimitConfig{
 			Enabled: newBool(false),
 		}
 	}
 	if c.UserExportUsage.Enabled == nil {
-		c.UserExportUsage = &UsageLimitConfig{
+		c.UserExportUsage = &Deprecated_UsageLimitConfig{
 			Enabled: newBool(false),
 		}
 	}

@@ -21,7 +21,7 @@ type Reservation struct {
 }
 
 type UsageLimiter interface {
-	Reserve(ctx context.Context, name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name usage.LimitName, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
 	Cancel(ctx context.Context, r *usage.Reservation)
 }
 

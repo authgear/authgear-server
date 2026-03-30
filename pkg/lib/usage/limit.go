@@ -22,7 +22,7 @@ type LimitName string
 type Reservation struct {
 	taken  int
 	name   LimitName
-	config *config.UsageLimitConfig
+	config *config.Deprecated_UsageLimitConfig
 }
 
 var reserveLuaScript = goredis.NewScript(`
@@ -69,15 +69,15 @@ type Limiter struct {
 	Redis *appredis.Handle
 }
 
-func (l *Limiter) getResetTime(c *config.UsageLimitConfig) time.Time {
+func (l *Limiter) getResetTime(c *config.Deprecated_UsageLimitConfig) time.Time {
 	return ComputeResetTime(l.Clock.NowUTC(), c.Period)
 }
 
-func (l *Limiter) Reserve(ctx context.Context, name LimitName, config *config.UsageLimitConfig) (*Reservation, error) {
+func (l *Limiter) Reserve(ctx context.Context, name LimitName, config *config.Deprecated_UsageLimitConfig) (*Reservation, error) {
 	return l.ReserveN(ctx, name, 1, config)
 }
 
-func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *config.UsageLimitConfig) (*Reservation, error) {
+func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *config.Deprecated_UsageLimitConfig) (*Reservation, error) {
 	logger := logger.GetLogger(ctx)
 	enabled := config.IsEnabled()
 	if !enabled {
@@ -145,11 +145,11 @@ func redisLimitKey(appID config.AppID, name LimitName) string {
 	return fmt.Sprintf("app:%s:usage-limit:%s", appID, name)
 }
 
-func ComputeResetTime(now time.Time, period config.UsageLimitPeriod) time.Time {
+func ComputeResetTime(now time.Time, period config.Deprecated_UsageLimitPeriod) time.Time {
 	switch period {
-	case config.UsageLimitPeriodDay:
+	case config.Deprecated_UsageLimitPeriodDay:
 		return now.Truncate(24*time.Hour).AddDate(0, 0, 1)
-	case config.UsageLimitPeriodMonth:
+	case config.Deprecated_UsageLimitPeriodMonth:
 		return now.Truncate(24*time.Hour).AddDate(0, 1, -now.Day()+1)
 	default:
 		panic("usage: unknown usage limit period: " + period)

@@ -32,7 +32,7 @@ const (
 )
 
 type UsageLimiter interface {
-	ReserveN(ctx context.Context, name usage.LimitName, n int, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	ReserveN(ctx context.Context, name usage.LimitName, n int, config *config.Deprecated_UsageLimitConfig) (*usage.Reservation, error)
 }
 
 type JobManager struct {

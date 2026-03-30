@@ -17,12 +17,12 @@ func TestComputeResetTime(t *testing.T) {
 		test := func(now string, day string, month string) {
 			t, _ := time.Parse(time.RFC3339, now)
 			So(
-				ComputeResetTime(t, config.UsageLimitPeriodDay).Format(time.RFC3339),
+				ComputeResetTime(t, config.Deprecated_UsageLimitPeriodDay).Format(time.RFC3339),
 				ShouldEqual,
 				day,
 			)
 			So(
-				ComputeResetTime(t, config.UsageLimitPeriodMonth).Format(time.RFC3339),
+				ComputeResetTime(t, config.Deprecated_UsageLimitPeriodMonth).Format(time.RFC3339),
 				ShouldEqual,
 				month,
 			)

@@ -46,6 +46,7 @@ type FeatureConfig struct {
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
 	RateLimits       *RateLimitsFeatureConfig       `json:"rate_limits,omitempty"`
 	Messaging        *MessagingFeatureConfig        `json:"messaging,omitempty"`
+	Usage            *FeatureUsageConfig            `json:"usage,omitempty" nullable:"true"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
 	Deprecated_Web3  *Deprecated_Web3FeatureConfig  `json:"web3,omitempty"`
 	AdminAPI         *AdminAPIFeatureConfig         `json:"admin_api,omitempty"`
