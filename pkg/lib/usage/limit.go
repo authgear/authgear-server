@@ -114,14 +114,14 @@ func (l *Limiter) Reserve(ctx context.Context, name model.UsageName, n int) (*Re
 			if err := l.rollbackPeriodResults(ctx, reservation.results); err != nil {
 				logger.WithError(err).Warn(ctx, "failed to rollback usage reservation")
 			}
-			_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, true, result.Limits)
+			_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, result.Limits)
 			return nil, ErrUsageLimitExceeded(name, result.Period)
 		}
 		reservation.results = append(reservation.results, *result)
 	}
 
 	for _, result := range reservation.results {
-		_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, false, result.Limits)
+		_ = l.evaluateUsageTriggers(ctx, name, result.Period, result.Before, result.After, result.Limits)
 	}
 
 	return reservation, nil
@@ -186,9 +186,9 @@ func (l *Limiter) incrementWithoutQuota(ctx context.Context, key string, n int, 
 	return before, after, nil
 }
 
-func (l *Limiter) evaluateUsageTriggers(ctx context.Context, name model.UsageName, period model.UsageLimitPeriod, before, after int, rejected bool, limits []EffectiveUsageLimit) error {
+func (l *Limiter) evaluateUsageTriggers(ctx context.Context, name model.UsageName, period model.UsageLimitPeriod, before, after int, limits []EffectiveUsageLimit) error {
 	for _, limit := range crossedUsageLimits(before, after, limits) {
-		if err := l.maybeDispatchUsageAlert(ctx, limit, after, rejected); err != nil {
+		if err := l.maybeDispatchUsageAlert(ctx, limit, after); err != nil {
 			return err
 		}
 	}
@@ -229,41 +229,30 @@ func (l *Limiter) rollbackPeriodResults(ctx context.Context, results []periodRes
 func (l *Limiter) effectiveUsageLimits(name model.UsageName) []EffectiveUsageLimit {
 	var limits []EffectiveUsageLimit
 
-	if l != nil && l.EffectiveConfig != nil {
-		if l.EffectiveConfig.FeatureConfig != nil && l.EffectiveConfig.FeatureConfig.Usage != nil && l.EffectiveConfig.FeatureConfig.Usage.Limits != nil {
-			for _, limit := range l.EffectiveConfig.FeatureConfig.Usage.Limits.Limits(name) {
-				limits = append(limits, EffectiveUsageLimit{
-					Name:   name,
-					Quota:  limit.Quota,
-					Period: limit.Period,
-					Action: limit.Action,
-				})
-			}
+	if l.EffectiveConfig.FeatureConfig.Usage != nil && l.EffectiveConfig.FeatureConfig.Usage.Limits != nil {
+		for _, limit := range l.EffectiveConfig.FeatureConfig.Usage.Limits.Limits(name) {
+			limits = append(limits, EffectiveUsageLimit{
+				Name:   name,
+				Quota:  limit.Quota,
+				Period: limit.Period,
+				Action: limit.Action,
+			})
 		}
+	}
 
-		if l.EffectiveConfig.AppConfig != nil && l.EffectiveConfig.AppConfig.Usage != nil && l.EffectiveConfig.AppConfig.Usage.Limits != nil {
-			for _, limit := range l.EffectiveConfig.AppConfig.Usage.Limits.Limits(name) {
-				limits = append(limits, EffectiveUsageLimit{
-					Name:   name,
-					Quota:  limit.Quota,
-					Period: limit.Period,
-					Action: limit.Action,
-				})
-			}
+	if l.EffectiveConfig.AppConfig.Usage != nil && l.EffectiveConfig.AppConfig.Usage.Limits != nil {
+		for _, limit := range l.EffectiveConfig.AppConfig.Usage.Limits.Limits(name) {
+			limits = append(limits, EffectiveUsageLimit{
+				Name:   name,
+				Quota:  limit.Quota,
+				Period: limit.Period,
+				Action: limit.Action,
+			})
 		}
 	}
 
 	if len(limits) > 0 {
 		return limits
-	}
-
-	if legacy := l.effectiveDeprecatedUsageLimit(name); legacy != nil && legacy.IsEnabled() {
-		return []EffectiveUsageLimit{{
-			Name:   name,
-			Quota:  legacy.GetQuota(),
-			Period: model.UsageLimitPeriod(legacy.Period),
-			Action: model.UsageLimitActionBlock,
-		}}
 	}
 
 	return nil
@@ -287,7 +276,7 @@ func (l *Limiter) limitsForPeriod(limits []EffectiveUsageLimit, period model.Usa
 }
 
 func (l *Limiter) usageHookURLs(name model.UsageName) []string {
-	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.FeatureConfig == nil || l.EffectiveConfig.FeatureConfig.Usage == nil {
+	if l.EffectiveConfig.FeatureConfig.Usage == nil {
 		return nil
 	}
 
@@ -301,7 +290,7 @@ func (l *Limiter) usageHookURLs(name model.UsageName) []string {
 }
 
 func (l *Limiter) usageAlertRecipients(name model.UsageName) []string {
-	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.AppConfig == nil || l.EffectiveConfig.AppConfig.Usage == nil {
+	if l.EffectiveConfig.AppConfig.Usage == nil {
 		return nil
 	}
 
@@ -336,18 +325,11 @@ func (l *Limiter) makeUsageAlertTriggeredPayload(limit EffectiveUsageLimit, curr
 	}
 }
 
-func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUsageLimit, currentValue int, rejected bool) error {
-	_ = rejected
-	if l == nil {
-		return nil
-	}
-
+func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUsageLimit, currentValue int) error {
 	logger := logger.GetLogger(ctx)
 	payload := l.makeUsageAlertTriggeredPayload(limit, currentValue)
-	if l.EventService != nil {
-		if err := l.dispatchEventImmediately(ctx, payload); err != nil {
-			logger.WithError(err).Warn(ctx, "failed to dispatch usage alert event")
-		}
+	if err := l.dispatchEventImmediately(ctx, payload); err != nil {
+		logger.WithError(err).Warn(ctx, "failed to dispatch usage alert event")
 	}
 	if l.UsageAlertEmailService != nil {
 		recipients := l.usageAlertRecipients(limit.Name)
@@ -359,11 +341,7 @@ func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUs
 }
 
 func (l *Limiter) dispatchEventImmediately(ctx context.Context, payload apievent.NonBlockingPayload) error {
-	if l == nil || l.EventService == nil {
-		return nil
-	}
-
-	if l.Database == nil || l.Database.IsInTx(ctx) {
+	if l.Database.IsInTx(ctx) {
 		return l.EventService.DispatchEventImmediately(ctx, payload)
 	}
 
@@ -393,38 +371,6 @@ func (l *Limiter) redisLimitKey(name model.UsageName, period model.UsageLimitPer
 		return fmt.Sprintf("app:%s:usage-limit:%s", l.AppID, legacyName)
 	}
 	return fmt.Sprintf("app:%s:usage-limit:%s:%s", l.AppID, legacyName, period)
-}
-
-func (l *Limiter) effectiveDeprecatedUsageLimit(name model.UsageName) *config.Deprecated_UsageLimitConfig {
-	if l == nil || l.EffectiveConfig == nil || l.EffectiveConfig.FeatureConfig == nil {
-		return nil
-	}
-
-	featureConfig := l.EffectiveConfig.FeatureConfig
-	switch name {
-	case model.UsageNameEmail:
-		if featureConfig.Messaging != nil {
-			return featureConfig.Messaging.EmailUsage
-		}
-	case model.UsageNameSMS:
-		if featureConfig.Messaging != nil {
-			return featureConfig.Messaging.SMSUsage
-		}
-	case model.UsageNameWhatsapp:
-		if featureConfig.Messaging != nil {
-			return featureConfig.Messaging.WhatsappUsage
-		}
-	case model.UsageNameUserImport:
-		if featureConfig.AdminAPI != nil {
-			return featureConfig.AdminAPI.UserImportUsage
-		}
-	case model.UsageNameUserExport:
-		if featureConfig.AdminAPI != nil {
-			return featureConfig.AdminAPI.UserExportUsage
-		}
-	}
-
-	return nil
 }
 
 func runReserveScript(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n int, resetTime time.Time, quota int) (pass bool, before int, after int, err error) {

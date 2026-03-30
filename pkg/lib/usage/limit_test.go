@@ -8,14 +8,18 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	goredis "github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
+	_ "github.com/mattn/go-sqlite3"
 
 	apievent "github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	dbinfra "github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
 type testEventService struct {
@@ -38,6 +42,38 @@ func (s *testUsageAlertEmailService) Send(ctx context.Context, recipients []stri
 	s.recipients = append(s.recipients, copiedRecipients)
 	s.payloads = append(s.payloads, payload)
 	return s.err
+}
+
+type testPool struct {
+	connPool oteldatabasesql.ConnPool_
+}
+
+func (p *testPool) Open(info dbinfra.ConnectionInfo, opts dbinfra.ConnectionOptions) (oteldatabasesql.ConnPool_, error) {
+	return p.connPool, nil
+}
+
+func (p *testPool) Close() error {
+	return nil
+}
+
+func newTestAppDBHandle(t *testing.T) *appdb.Handle {
+	t.Helper()
+
+	connPool, err := oteldatabasesql.Open(oteldatabasesql.OpenOptions{
+		DriverName: "sqlite3",
+		DSN:        ":memory:",
+	})
+	So(err, ShouldBeNil)
+	connPool.SetMaxOpenConns(1)
+	connPool.SetMaxIdleConns(0)
+	connPool.SetConnMaxLifetime(0)
+	connPool.SetConnMaxIdleTime(0)
+
+	return &appdb.Handle{
+		HookHandle: &dbinfra.HookHandle{
+			Pool: &testPool{connPool: connPool},
+		},
+	}
 }
 
 func TestComputeResetTime(t *testing.T) {
@@ -167,8 +203,9 @@ func TestLimiterReserveCountsDayAndMonth(t *testing.T) {
 			Clock: clock.NewMockClockAtTime(now),
 			AppID: "test-app",
 			Redis: &appredis.Handle{Handle: rh},
+			Database: newTestAppDBHandle(t),
 			EffectiveConfig: &config.Config{
-				FeatureConfig: &config.FeatureConfig{
+				FeatureConfig: (&config.FeatureConfig{
 					Messaging: &config.MessagingFeatureConfig{
 						SMSUsage: &config.Deprecated_UsageLimitConfig{
 							Enabled: &enabled,
@@ -176,7 +213,8 @@ func TestLimiterReserveCountsDayAndMonth(t *testing.T) {
 							Quota:   &quota,
 						},
 					},
-				},
+				}).Migrate(),
+				AppConfig: &config.AppConfig{},
 			},
 		}
 
@@ -200,7 +238,7 @@ func TestLimiterEffectiveUsageLimitsPrefersUnifiedConfigOverDeprecated(t *testin
 		quota := 10
 		limiter := &Limiter{
 			EffectiveConfig: &config.Config{
-				FeatureConfig: &config.FeatureConfig{
+				FeatureConfig: (&config.FeatureConfig{
 					Messaging: &config.MessagingFeatureConfig{
 						SMSUsage: &config.Deprecated_UsageLimitConfig{
 							Enabled: &enabled,
@@ -215,7 +253,8 @@ func TestLimiterEffectiveUsageLimitsPrefersUnifiedConfigOverDeprecated(t *testin
 							},
 						},
 					},
-				},
+				}).Migrate(),
+				AppConfig: &config.AppConfig{},
 			},
 		}
 
@@ -248,6 +287,7 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 			Clock: clock.NewMockClockAtTime(now),
 			AppID: "test-app",
 			Redis: &appredis.Handle{Handle: rh},
+			Database: newTestAppDBHandle(t),
 			EffectiveConfig: &config.Config{
 				FeatureConfig: &config.FeatureConfig{
 					Usage: &config.FeatureUsageConfig{
@@ -259,6 +299,7 @@ func TestLimiterReserveRollsBackEarlierPeriodOnLaterBlock(t *testing.T) {
 						},
 					},
 				},
+				AppConfig: &config.AppConfig{},
 			},
 		}
 
@@ -296,6 +337,7 @@ func TestLimiterDispatchesUsageAlertTriggeredEvent(t *testing.T) {
 			Clock:                  clock.NewMockClockAtTime(now),
 			AppID:                  "test-app",
 			Redis:                  &appredis.Handle{Handle: rh},
+			Database:               newTestAppDBHandle(t),
 			EventService:           eventService,
 			UsageAlertEmailService: emailService,
 			EffectiveConfig: &config.Config{
@@ -369,6 +411,7 @@ func TestLimiterDoesNotDispatchUsageAlertOnRejectedBlock(t *testing.T) {
 			Clock:                  clock.NewMockClockAtTime(now),
 			AppID:                  "test-app",
 			Redis:                  &appredis.Handle{Handle: rh},
+			Database:               newTestAppDBHandle(t),
 			EventService:           eventService,
 			UsageAlertEmailService: emailService,
 			EffectiveConfig: &config.Config{
