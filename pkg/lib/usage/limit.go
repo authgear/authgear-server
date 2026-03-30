@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -78,6 +79,7 @@ return {1, usage_before, usage_after}
 
 type Limiter struct {
 	Clock                  clock.Clock
+	Database               *appdb.Handle
 	AppID                  config.AppID
 	Redis                  *appredis.Handle
 	EffectiveConfig        *config.Config
@@ -343,7 +345,7 @@ func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUs
 	logger := logger.GetLogger(ctx)
 	payload := l.makeUsageAlertTriggeredPayload(limit, currentValue)
 	if l.EventService != nil {
-		if err := l.EventService.DispatchEventImmediately(ctx, payload); err != nil {
+		if err := l.dispatchEventImmediately(ctx, payload); err != nil {
 			logger.WithError(err).Warn(ctx, "failed to dispatch usage alert event")
 		}
 	}
@@ -354,6 +356,20 @@ func (l *Limiter) maybeDispatchUsageAlert(ctx context.Context, limit EffectiveUs
 		}
 	}
 	return nil
+}
+
+func (l *Limiter) dispatchEventImmediately(ctx context.Context, payload apievent.NonBlockingPayload) error {
+	if l == nil || l.EventService == nil {
+		return nil
+	}
+
+	if l.Database == nil || l.Database.IsInTx(ctx) {
+		return l.EventService.DispatchEventImmediately(ctx, payload)
+	}
+
+	return l.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		return l.EventService.DispatchEventImmediately(ctx, payload)
+	})
 }
 
 func (l *Limiter) minBlockQuota(limits []EffectiveUsageLimit) (int, bool) {

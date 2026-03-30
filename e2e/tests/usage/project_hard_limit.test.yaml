@@ -1,0 +1,65 @@
+name: Project usage hard limit blocks requests after threshold
+authgear.yaml:
+  override: |
+    usage:
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "block"
+steps:
+  - name: flow 1 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231301"
+      }
+  - name: flow 1 - send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: flow 2 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231302"
+      }
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429
+        }

@@ -822,6 +822,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	usageLimiter := &usage.Limiter{
 		Clock:                  clockClock,
+		Database:               handle,
 		AppID:                  appID,
 		Redis:                  appredisHandle,
 		EffectiveConfig:        configConfig,
@@ -1410,6 +1411,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
+	appdbHandle := appProvider.AppDatabase
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1419,7 +1421,6 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	appdbHandle := appProvider.AppDatabase
 	localizationConfig := appConfig.Localization
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -1830,6 +1831,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	limiter := &usage.Limiter{
 		Clock:                  clockClock,
+		Database:               appdbHandle,
 		AppID:                  appID,
 		Redis:                  handle,
 		EffectiveConfig:        configConfig,
@@ -1865,6 +1867,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
+	appdbHandle := appProvider.AppDatabase
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1874,7 +1877,6 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	appdbHandle := appProvider.AppDatabase
 	localizationConfig := appConfig.Localization
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -2285,6 +2287,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	limiter := &usage.Limiter{
 		Clock:                  clockClock,
+		Database:               appdbHandle,
 		AppID:                  appID,
 		Redis:                  handle,
 		EffectiveConfig:        configConfig,
@@ -2321,6 +2324,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	appdbHandle := appProvider.AppDatabase
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -2330,7 +2334,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	appdbHandle := appProvider.AppDatabase
 	localizationConfig := appConfig.Localization
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -2741,6 +2744,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	limiter := &usage.Limiter{
 		Clock:                  clockClock,
+		Database:               appdbHandle,
 		AppID:                  appID,
 		Redis:                  handle,
 		EffectiveConfig:        configConfig,

@@ -802,6 +802,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	usageLimiter := &usage.Limiter{
 		Clock:                  clock,
+		Database:               appdbHandle,
 		AppID:                  appID,
 		Redis:                  handle,
 		EffectiveConfig:        config,

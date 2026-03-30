@@ -669,6 +669,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	usageLimiter := &usage.Limiter{
 		Clock:                  clock,
+		Database:               handle,
 		AppID:                  appID,
 		Redis:                  appredisHandle,
 		EffectiveConfig:        config,

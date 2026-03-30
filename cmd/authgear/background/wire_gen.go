@@ -776,6 +776,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	usageLimiter := &usage.Limiter{
 		Clock:                  clockClock,
+		Database:               handle,
 		AppID:                  configAppID,
 		Redis:                  appredisHandle,
 		EffectiveConfig:        configConfig,

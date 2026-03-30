@@ -1,0 +1,174 @@
+name: Feature usage hooks receive usage alert events
+authgear.features.yaml:
+  override: |
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+        match: "sms"
+      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+        match: "*"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "alert"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231401"
+      }
+  - name: send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: wait for hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query hook server
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:2626/{{ .AppID }}/usage
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "requests": [
+            {
+              "type": "usage.alert.triggered",
+              "payload": {
+                "usage": {
+                  "name": "sms",
+                  "action": "alert",
+                  "period": "day",
+                  "quota": 1,
+                  "current_value": 1
+                }
+              }
+            },
+            {
+              "type": "usage.alert.triggered",
+              "payload": {
+                "usage": {
+                  "name": "sms",
+                  "action": "alert",
+                  "period": "day",
+                  "quota": 1,
+                  "current_value": 1
+                }
+              }
+            }
+          ]
+        }
+---
+name: Feature block usage hook fires once on threshold crossing
+authgear.features.yaml:
+  override: |
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/{{ .AppID }}/usage'
+        match: "sms"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "block"
+steps:
+  - name: flow 1 create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 1 identify
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231501"
+      }
+  - name: flow 1 send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: flow 2 create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 identify
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231502"
+      }
+  - name: flow 2 send sms blocked
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429
+        }
+  - name: wait for hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query hook server
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:2626/{{ .AppID }}/usage
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "requests": [
+            {
+              "type": "usage.alert.triggered",
+              "payload": {
+                "usage": {
+                  "name": "sms",
+                  "action": "block",
+                  "period": "day",
+                  "quota": 1,
+                  "current_value": 1
+                }
+              }
+            }
+          ]
+        }
