@@ -9,7 +9,11 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 func TestComputeResetTime(t *testing.T) {
@@ -17,12 +21,12 @@ func TestComputeResetTime(t *testing.T) {
 		test := func(now string, day string, month string) {
 			t, _ := time.Parse(time.RFC3339, now)
 			So(
-				ComputeResetTime(t, config.Deprecated_UsageLimitPeriodDay).Format(time.RFC3339),
+				ComputeResetTime(t, model.UsageLimitPeriodDay).Format(time.RFC3339),
 				ShouldEqual,
 				day,
 			)
 			So(
-				ComputeResetTime(t, config.Deprecated_UsageLimitPeriodMonth).Format(time.RFC3339),
+				ComputeResetTime(t, model.UsageLimitPeriodMonth).Format(time.RFC3339),
 				ShouldEqual,
 				month,
 			)
@@ -97,5 +101,63 @@ func TestLimitReserve(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(pass, ShouldBeTrue)
 		So(tokens, ShouldEqual, 9)
+	})
+}
+
+func TestRedisLimitKey(t *testing.T) {
+	Convey("redisLimitKey", t, func() {
+		appID := config.AppID("test-app")
+
+		So(redisLimitKey(appID, model.UsageNameSMS, model.UsageLimitPeriodMonth), ShouldEqual, "app:test-app:usage-limit:SMS")
+		So(redisLimitKey(appID, model.UsageNameSMS, model.UsageLimitPeriodDay), ShouldEqual, "app:test-app:usage-limit:SMS:day")
+	})
+}
+
+func TestLimiterReserveCountsDayAndMonth(t *testing.T) {
+	Convey("Limiter reserves both day and month counters", t, func() {
+		ctx := context.Background()
+		mr := miniredis.RunT(t)
+		now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
+		mr.SetTime(now)
+
+		pool := redis.NewPool()
+		rh := redis.NewHandle(pool, redis.ConnectionOptions{
+			RedisURL:              "redis://" + mr.Addr(),
+			MaxOpenConnection:     func(i int) *int { return &i }(10),
+			MaxIdleConnection:     func(i int) *int { return &i }(5),
+			IdleConnectionTimeout: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(300),
+			MaxConnectionLifetime: func(d config.DurationSeconds) *config.DurationSeconds { return &d }(900),
+		})
+
+		enabled := true
+		quota := 10
+		limiter := &Limiter{
+			Clock: clock.NewMockClockAtTime(now),
+			AppID: "test-app",
+			Redis: &appredis.Handle{Handle: rh},
+			EffectiveConfig: &config.Config{
+				FeatureConfig: &config.FeatureConfig{
+					Messaging: &config.MessagingFeatureConfig{
+						SMSUsage: &config.Deprecated_UsageLimitConfig{
+							Enabled: &enabled,
+							Period:  config.Deprecated_UsageLimitPeriodMonth,
+							Quota:   &quota,
+						},
+					},
+				},
+			},
+		}
+
+		r, err := limiter.Reserve(ctx, model.UsageNameSMS, 1)
+		So(err, ShouldBeNil)
+		So(r, ShouldNotBeNil)
+
+		monthly, err := mr.Get("app:test-app:usage-limit:SMS")
+		So(err, ShouldBeNil)
+		So(monthly, ShouldEqual, "1")
+
+		daily, err := mr.Get("app:test-app:usage-limit:SMS:day")
+		So(err, ShouldBeNil)
+		So(daily, ShouldEqual, "1")
 	})
 }
