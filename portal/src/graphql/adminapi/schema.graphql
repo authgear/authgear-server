@@ -481,6 +481,9 @@ enum AuditLogActivityType {
   SMS_SUPPRESSED
 
   """"""
+  USAGE_ALERT_TRIGGERED
+
+  """"""
   USER_ANONYMIZATION_SCHEDULED
 
   """"""
