@@ -74,7 +74,7 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) (err
 		return
 	}
 
-	if s.WillDeliverNonBlockingEvent(e.Type) {
+	if s.WillDeliverNonBlockingEvent(e.Type) || len(extraHookURLs(payload)) > 0 {
 		err = s.DeliverNonBlockingEvent(ctx, e)
 		if err != nil {
 			return
@@ -167,6 +167,15 @@ func (s *Sink) DeliverNonBlockingEvent(ctx context.Context, e *event.Event) erro
 		}
 	}
 
+	for _, hookURL := range extraHookURLsFromEvent(e) {
+		errToIgnore := s.deliverNonBlockingEvent(ctx, config.NonBlockingHandlersConfig{
+			URL: hookURL,
+		}, e)
+		if errToIgnore != nil {
+			logger.WithError(errToIgnore).Error(ctx, "failed to dispatch non blocking event")
+		}
+	}
+
 	return nil
 }
 
@@ -221,4 +230,20 @@ func (s *Sink) deliverNonBlockingEvent(ctx context.Context, cfg config.NonBlocki
 	default:
 		return fmt.Errorf("unsupported hook URL: %v", u)
 	}
+}
+
+func extraHookURLs(payload event.NonBlockingPayload) []string {
+	provider, ok := payload.(event.ExtraHookURLsProvider)
+	if !ok {
+		return nil
+	}
+	return provider.ExtraHookURLs()
+}
+
+func extraHookURLsFromEvent(e *event.Event) []string {
+	payload, ok := e.Payload.(event.NonBlockingPayload)
+	if !ok {
+		return nil
+	}
+	return extraHookURLs(payload)
 }
