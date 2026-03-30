@@ -17,8 +17,9 @@ var cmdInternalDomain = &cobra.Command{
 }
 
 var cmdInternalDomainCreateDefault = &cobra.Command{
-	Use:   "create-default",
-	Short: "Create default domain for all apps. It does NOT create duplicate records.",
+	Use:   "create-default [app-id]",
+	Short: "Create default domain for all apps, or a specific app when app-id is given. It does NOT create duplicate records.",
+	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := portalcmd.GetBinder()
 
@@ -42,10 +43,16 @@ var cmdInternalDomainCreateDefault = &cobra.Command{
 			return fmt.Errorf("%s: %w", portalcmd.ArgDefaultDomainSuffix.ArgumentName, err)
 		}
 
+		appID := ""
+		if len(args) > 0 {
+			appID = args[0]
+		}
+
 		return internal.CreateDefaultDomain(cmd.Context(), internal.CreateDefaultDomainOptions{
 			DatabaseURL:         dbURL,
 			DatabaseSchema:      dbSchema,
 			DefaultDomainSuffix: suffix,
+			AppID:               appID,
 		})
 	},
 }
