@@ -1,0 +1,7 @@
+Usage alert triggered for {{ .Usage.Name }}
+
+{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+
+Action: {{ .Usage.Action }}
+Quota: {{ .Usage.Quota }}
+Current value: {{ .Usage.CurrentValue }}
