@@ -16,9 +16,10 @@ func CreatePortalConfigSource(dbURL string, dbSchema string, resourceDir string)
 	return ExecCmd(cmd)
 }
 
-func CreatePortalDefaultDomain(dbURL string, dbSchema string, defaultDomainSuffix string) error {
+func CreatePortalDefaultDomain(dbURL string, dbSchema string, defaultDomainSuffix string, appID string) error {
 	cmd := fmt.Sprintf(
-		"../dist/authgear-portal internal domain create-default --database-url=\"%s\" --database-schema=\"%s\" --default-domain-suffix=\"%s\"",
+		"../dist/authgear-portal internal domain create-default %s --database-url=\"%s\" --database-schema=\"%s\" --default-domain-suffix=\"%s\"",
+		appID,
 		dbURL,
 		dbSchema,
 		defaultDomainSuffix,

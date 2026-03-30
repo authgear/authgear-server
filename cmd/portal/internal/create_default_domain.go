@@ -9,7 +9,6 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/portal/service"
-	"github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -17,6 +16,7 @@ type CreateDefaultDomainOptions struct {
 	DatabaseURL         string
 	DatabaseSchema      string
 	DefaultDomainSuffix string
+	AppID               string
 }
 
 func CreateDefaultDomain(ctx context.Context, opts CreateDefaultDomainOptions) (err error) {
@@ -29,13 +29,21 @@ func CreateDefaultDomain(ctx context.Context, opts CreateDefaultDomainOptions) (
 		}
 	}()
 
-	allConfigSourceList, err := selectConfigSources(ctx, tx, nil)
-	if err != nil {
-		return
+	var appIDs []string
+	if opts.AppID != "" {
+		appIDs = []string{opts.AppID}
+	} else {
+		allConfigSourceList, selectErr := selectConfigSources(ctx, tx, nil)
+		if selectErr != nil {
+			err = selectErr
+			return
+		}
+		for _, configSource := range allConfigSourceList {
+			appIDs = append(appIDs, configSource.AppID)
+		}
 	}
 
-	for _, configSource := range allConfigSourceList {
-		appID := configSource.AppID
+	for _, appID := range appIDs {
 		domain := makeDefaultDomain(appID, opts.DefaultDomainSuffix)
 
 		var exists bool
@@ -131,9 +139,6 @@ func createDefaultDomain(ctx context.Context, tx *sql.Tx, appID string, domain s
 
 	_, err = tx.ExecContext(ctx, q, args...)
 	if err != nil {
-		if databaseutil.IsDuplicateKeyError(err) {
-			return nil
-		}
 		return err
 	}
 
