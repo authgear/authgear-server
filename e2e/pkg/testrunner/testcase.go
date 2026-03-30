@@ -65,7 +65,6 @@ func (tc *TestCase) Run(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err.Error())
 	}
-
 	err = tc.executeBeforeAll(cmd)
 	if err != nil {
 		t.Errorf("failed to execute before hooks: %v", err)
@@ -348,6 +347,34 @@ func (tc *TestCase) executeStep(
 		}
 		result = &StepResult{
 			Result: httpResult,
+			Error:  nil,
+		}
+
+	case StepActionSMTPLogQuery:
+		subject, ok := renderTemplateString(t, cmd, prevSteps, step.SMTPLogSubject)
+		if !ok {
+			return nil, state, false
+		}
+		recipient, ok := renderTemplateString(t, cmd, prevSteps, step.SMTPLogRecipient)
+		if !ok {
+			return nil, state, false
+		}
+		rows, err := cmd.QuerySMTPLog(subject, recipient)
+		if err != nil {
+			t.Errorf("failed to query smtp log: %v", err)
+			return nil, state, false
+		}
+		if step.SMTPLogOutput != nil {
+			ok := validateQueryResult(t, Step{
+				Name:        step.Name,
+				QueryOutput: step.SMTPLogOutput,
+			}, rows)
+			if !ok {
+				return nil, state, false
+			}
+		}
+		result = &StepResult{
+			Result: map[string]interface{}{"rows": rows},
 			Error:  nil,
 		}
 
@@ -679,7 +706,6 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
 		return relay.ToGlobalID(nodeType, uuid)
 	}
-
 	return templateFuncMap
 }
 

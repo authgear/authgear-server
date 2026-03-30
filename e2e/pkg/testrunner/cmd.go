@@ -1,6 +1,7 @@
 package testrunner
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -9,6 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
@@ -49,15 +53,24 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		extraFilesDirectory = e.resolvePath(e.TestCase.ExtraFilesDirectory)
 	}
 
-	cmd := fmt.Sprintf(
-		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --features-override \"%s\" --config-source-extra-files-directory \"%s\"",
-		e.AppID,
-		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
-		e.TestCase.AuthgearYAMLSource.Override,
-		e.TestCase.AuthgearFeaturesYAMLSource.Override,
-		extraFilesDirectory,
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+	configOverride, err := execTemplate(e, nil, e.TestCase.AuthgearYAMLSource.Override)
+	if err != nil {
+		return nil, err
+	}
+	featuresOverride, err := execTemplate(e, nil, e.TestCase.AuthgearFeaturesYAMLSource.Override)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"create-configsource",
+		"--app-id", e.AppID,
+		"--config-source", e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
+		"--config-override", configOverride,
+		"--features-override", featuresOverride,
+		"--config-source-extra-files-directory", extraFilesDirectory,
+	); err != nil {
 		return nil, err
 	}
 
@@ -72,106 +85,104 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 }
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {
-	cmd := fmt.Sprintf(
-		"./dist/e2e import-users %s --app-id %s",
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"import-users",
 		e.resolvePath(jsonPath),
-		e.AppID,
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+		"--app-id", e.AppID,
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
-	cmd := fmt.Sprintf(
-		"./dist/e2e exec-sql-insert-update --app-id %s --custom-sql \"%s\"",
-		e.AppID,
-		e.resolvePath(sqlPath),
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"exec-sql-insert-update",
+		"--app-id", e.AppID,
+		"--custom-sql", e.resolvePath(sqlPath),
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *End2EndCmd) ExecuteCreateSession(hook *BeforeHookCreateSession) error {
-	cmd := fmt.Sprintf(
-		"./dist/e2e create-session --app-id %s --session-type \"%s\" --session-id \"%s\" --token \"%s\" --select-user-id-sql \"%s\"",
-		e.AppID,
-		hook.SessionType,
-		hook.SessionID,
-		hook.Token,
-		hook.SelectUserIDSQL,
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"create-session",
+		"--app-id", e.AppID,
+		"--session-type", hook.SessionType,
+		"--session-id", hook.SessionID,
+		"--token", hook.Token,
+		"--select-user-id-sql", hook.SelectUserIDSQL,
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *End2EndCmd) ExecuteCreateChallenge(hook *BeforeHookCreateChallenge) error {
-	cmd := fmt.Sprintf(
-		"./dist/e2e create-challenge --app-id %s --purpose \"%s\" --token \"%s\"",
-		e.AppID,
-		hook.Purpose,
-		hook.Token,
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"create-challenge",
+		"--app-id", e.AppID,
+		"--purpose", string(hook.Purpose),
+		"--token", hook.Token,
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
-	cmd := fmt.Sprintf(
-		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",
-		e.AppID,
-		rawSQL,
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"query-sql-select",
+		"--app-id", e.AppID,
+		"--raw-sql", rawSQL,
 	)
-
-	return e.execCmd(cmd)
 }
 
 func (e *End2EndCmd) ExecuteSQLInsertUpdateAuditFile(sqlPath string) error {
-	cmd := fmt.Sprintf(
-		"./dist/e2e exec-sql-insert-update-audit --app-id %s --custom-sql \"%s\"",
-		e.AppID,
-		e.resolvePath(sqlPath),
-	)
-	if _, err := e.execCmd(cmd); err != nil {
+	if _, err := e.execCmdArgs(
+		"./dist/e2e",
+		"exec-sql-insert-update-audit",
+		"--app-id", e.AppID,
+		"--custom-sql", e.resolvePath(sqlPath),
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (e *End2EndCmd) QuerySQLSelectAuditRaw(rawSQL string) (jsonArrString string, err error) {
-	cmd := fmt.Sprintf(
-		"./dist/e2e query-sql-select-audit --app-id %s --raw-sql \"%s\"",
-		e.AppID,
-		rawSQL,
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"query-sql-select-audit",
+		"--app-id", e.AppID,
+		"--raw-sql", rawSQL,
 	)
-
-	return e.execCmd(cmd)
 }
 
 func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {
-	cmd := fmt.Sprintf(
-		"./dist/e2e link-otp-code %s %s --app-id %s",
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"link-otp-code",
 		claim,
 		value,
-		e.AppID,
+		"--app-id", e.AppID,
 	)
-	return e.execCmd(cmd)
 }
 
 func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
-	cmd := fmt.Sprintf(
-		"./dist/e2e generate-id-token %s --app-id %s",
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"generate-id-token",
 		userID,
-		e.AppID,
+		"--app-id", e.AppID,
 	)
-	return e.execCmd(cmd)
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
@@ -179,6 +190,31 @@ func (e *End2EndCmd) resolvePath(p string) string {
 		return p
 	}
 	return path.Join("./tests", path.Dir(e.TestCase.Path), p)
+}
+
+func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string) ([]interface{}, error) {
+	file, err := os.Open(filepath.Join("../../logs", "e2e-smtp.log"))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var rows []interface{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "Subject:["+subject) && strings.Contains(line, "To:["+recipient) {
+			rows = append(rows, map[string]interface{}{
+				"subject":   subject,
+				"recipient": recipient,
+			})
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }
 
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {
@@ -194,4 +230,27 @@ func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	}
 
 	return string(output), nil
+}
+
+func (e *End2EndCmd) execCmdArgs(args ...string) (string, error) {
+	var errb bytes.Buffer
+	execCmd := exec.Command(args[0], args[1:]...)
+	execCmd.Stderr = &errb
+	execCmd.Dir = "../../"
+	execCmd.Env = append(os.Environ(), e.ExtraEnv...)
+	output, err := execCmd.Output()
+	if err != nil {
+		e.Test.Errorf("failed to execute command %s: %v\n%s", strings.Join(quoteArgs(args), " "), err, errb.String())
+		return "", err
+	}
+
+	return string(output), nil
+}
+
+func quoteArgs(args []string) []string {
+	out := make([]string, 0, len(args))
+	for _, arg := range args {
+		out = append(out, strconv.Quote(arg))
+	}
+	return out
 }
