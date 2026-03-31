@@ -13,7 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/siteadmin/transport"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"net/http"
 )
@@ -118,4 +121,43 @@ func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
 func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	monthlyActiveUsersUsageHandler := &transport.MonthlyActiveUsersUsageHandler{}
 	return monthlyActiveUsersUsageHandler
+}
+
+func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	authgearConfig := rootProvider.AuthgearConfig
+	httpClient := session.NewHTTPClient()
+	clock := _wireSystemClockValue
+	sessionInfoMiddleware := &session.SessionInfoMiddleware{
+		AuthgearConfig: authgearConfig,
+		HTTPClient:     httpClient,
+		Clock:          clock,
+	}
+	return sessionInfoMiddleware
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
+
+func newAuthzMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	authgearConfig := rootProvider.AuthgearConfig
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.Database
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	collaboratorService := &service.CollaboratorService{
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    sqlExecutor,
+		GlobalDatabase: handle,
+	}
+	authzMiddleware := &transport.AuthzMiddleware{
+		AuthgearConfig: authgearConfig,
+		Collaborators:  collaboratorService,
+	}
+	return authzMiddleware
 }
