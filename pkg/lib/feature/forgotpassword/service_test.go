@@ -90,7 +90,7 @@ func TestServicePassesAuthenticationFlowIDToInspectState(t *testing.T) {
 				return &otp.State{CanResendAt: time.Unix(1700000000, 0).UTC()}, nil
 			})
 
-		_, err := svc.InspectState(context.Background(), "user@example.com", CodeChannelEmail, CodeKindShortCode, &InspectStateOptions{
+		_, err := svc.InspectState(context.Background(), "user@example.com", CodeChannelEmail, CodeKindShortCode, &otp.InspectStateOptions{
 			AuthenticationFlowID: "flow-1",
 		})
 		So(err, ShouldBeNil)
