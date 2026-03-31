@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/portal"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
@@ -16,7 +17,10 @@ import (
 
 var logger = slogutil.NewLogger("authgear-portal")
 
-type Controller struct{}
+type Controller struct {
+	ServePortal    bool
+	ServeSiteadmin bool
+}
 
 func (c *Controller) Start(ctx context.Context) {
 	logger := logger.GetLogger(ctx)
@@ -73,15 +77,32 @@ func (c *Controller) Start(ctx context.Context) {
 	p.ConfigSourceController = configSrcController
 
 	var specs []signalutil.Daemon
-	specs = append(specs, server.NewSpec(ctx, &server.Spec{
-		Name:          "authgear-portal",
-		ListenAddress: cfg.PortalListenAddr,
-		Handler:       portal.NewRouter(p),
-	}))
-	specs = append(specs, server.NewSpec(ctx, &server.Spec{
-		Name:          "authgear-portal-internal",
-		ListenAddress: cfg.PortalInternalListenAddr,
-		Handler:       pprofutil.NewServeMux(),
-	}))
+
+	if c.ServePortal {
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-portal",
+			ListenAddress: cfg.PortalListenAddr,
+			Handler:       portal.NewRouter(p),
+		}))
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-portal-internal",
+			ListenAddress: cfg.PortalInternalListenAddr,
+			Handler:       pprofutil.NewServeMux(),
+		}))
+	}
+
+	if c.ServeSiteadmin {
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-portal-siteadmin",
+			ListenAddress: cfg.SiteadminListenAddr,
+			Handler:       siteadmin.NewRouter(p),
+		}))
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-portal-siteadmin-internal",
+			ListenAddress: cfg.SiteadminInternalListenAddr,
+			Handler:       pprofutil.NewServeMux(),
+		}))
+	}
+
 	signalutil.Start(ctx, specs...)
 }
