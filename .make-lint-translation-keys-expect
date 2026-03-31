@@ -1,3 +1,4 @@
+resources/authgear/templates/en/web/authflowv2/__alert_message.html:18:37: translation key not defined: "%s"
 resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:41:12: template translation is forbidden: `page-frame-content`
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:27: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:6:21: translation key not defined: "dialog-content"
@@ -48,5 +49,5 @@ resources/authgear/templates/en/web/authflowv2/settings_sessions.html:47:29: tra
 resources/authgear/templates/en/web/authflowv2/signup.html:97:26: translation key not defined: "v2.page.signup-login.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:106:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:282:35: translation key not defined: "%s-icon"
-50 errors found
+51 errors found
 exit status 1
