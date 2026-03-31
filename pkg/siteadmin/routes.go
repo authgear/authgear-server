@@ -33,6 +33,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	apiChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newSessionInfoMiddleware),
+		p.Middleware(newAuthzMiddleware),
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
