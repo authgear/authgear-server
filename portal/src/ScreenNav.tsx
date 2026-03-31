@@ -309,6 +309,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
+            textKey: "ScreenNav.fraud-protection",
+            url: `/project/${appID}/attack-protection/fraud-protection`,
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.ip-blocklist",
             url: `/project/${appID}/attack-protection/ip-blocklist`,
           },
