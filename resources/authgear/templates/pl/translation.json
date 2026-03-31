@@ -530,7 +530,7 @@
   "v2.error.totp-code-required": "Wprowadź 6-cyfrowy kod z aplikacji / urządzenia uwierzytelniającego.",
   "v2.error.type": "Wprowadź {expected, select, number{liczbę} integer{liczbę całkowitą} other{}}",
   "v2.error.unexpected-user": "Wygląda na to, że zalogowałeś się na inne konto. Spróbuj ponownie.",
-  "v2.error.unknown": "Wystąpił nieznany błąd. Jeśli problem będzie się powtarzać, poszukaj pomocy na naszym <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum społeczności</a> lub skontaktuj się z nami pod adresem <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
+  "v2.error.unknown": "Wystąpił nieznany błąd. Jeśli problem będzie się powtarzać, poszukaj pomocy na naszym <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum społeczności</a> lub skontaktuj się z nami pod adresem <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>{HasTrackingID, select, true{\n<br/><span class=\"tracking-id-text\">Identyfikator śledzenia: {TrackingID}</span>} other{}}",
   "v2.error.uri-format": "Wprowadzony adres URL nie ma prawidłowego formatu. Adresy URL zwykle zaczynają się od https://, np. https://example.com/",
   "v2.error.usage-limit-exceeded": "[Do Programisty] Twój projekt przekroczył limit użycia wiadomości. Proszę sprawdź swoją subskrypcję.",
   "v2.error.user-outside-valid-period": "To konto jest poza okresem ważności dostępu.",
