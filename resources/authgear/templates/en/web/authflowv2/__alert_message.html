@@ -15,14 +15,14 @@
   data-bot-protection-cloudflare="{{ include "v2.error.bot-protection-cloudflare" nil }}"
   data-bot-protection-recaptcha-v2="{{ include "v2.error.bot-protection-recaptcha-v2" nil }}"
   {{ if $message }}
-    data-error-message="{{ htmlattr (printf "%s" .Message) }}"
+    data-error-message="{{ htmlattr (printf "%s" $message) }}"
   {{ end }}
 >
   <span class="alert-message__icon material-icons material-icons--filled">
     {{ if eq $.Type "error" }}error{{ end }}
   </span>
   <span class="alert-message__text" data-alert-message-target="message">
-    {{ .Message }}
+    {{ $message }}
   </span>
 </div>
 {{ end }}
