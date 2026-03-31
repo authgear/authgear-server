@@ -32,7 +32,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 
 	apiChain := httproute.Chain(
 		rootChain,
-		// TODO: Authorization will be handled later
+		p.Middleware(newSessionInfoMiddleware),
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
