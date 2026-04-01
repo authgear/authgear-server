@@ -222,6 +222,7 @@ export enum AuditLogActivityType {
   EmailError = 'EMAIL_ERROR',
   EmailSent = 'EMAIL_SENT',
   EmailSuppressed = 'EMAIL_SUPPRESSED',
+  FraudProtectionDecisionRecorded = 'FRAUD_PROTECTION_DECISION_RECORDED',
   IdentityBiometricDisabled = 'IDENTITY_BIOMETRIC_DISABLED',
   IdentityBiometricEnabled = 'IDENTITY_BIOMETRIC_ENABLED',
   IdentityEmailAdded = 'IDENTITY_EMAIL_ADDED',
@@ -628,6 +629,23 @@ export type Entity = {
   id: Scalars['ID']['output'];
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
+};
+
+export type FraudProtectionOverview = {
+  __typename?: 'FraudProtectionOverview';
+  allowedActions: Scalars['Int']['output'];
+  blockedActions: Scalars['Int']['output'];
+  topSourceIPs: Array<FraudProtectionOverviewTopSourceIp>;
+  totalActions: Scalars['Int']['output'];
+  warnedActions: Scalars['Int']['output'];
+};
+
+export type FraudProtectionOverviewTopSourceIp = {
+  __typename?: 'FraudProtectionOverviewTopSourceIP';
+  blockedActions: Scalars['Int']['output'];
+  ipAddress: Scalars['String']['output'];
+  totalActions: Scalars['Int']['output'];
+  warnedActions: Scalars['Int']['output'];
 };
 
 export type GenerateOobotpCodeInput = {
@@ -1192,6 +1210,8 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Fraud protection overview */
+  fraudProtectionOverview: FraudProtectionOverview;
   /** Get user by Login ID. */
   getUserByLoginID?: Maybe<User>;
   /** Get user by OAuth Alias and user ID. */
@@ -1225,6 +1245,12 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryFraudProtectionOverviewArgs = {
+  rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 

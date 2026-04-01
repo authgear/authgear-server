@@ -376,6 +376,9 @@ enum AuditLogActivityType {
   EMAIL_SUPPRESSED
 
   """"""
+  FRAUD_PROTECTION_DECISION_RECORDED
+
+  """"""
   IDENTITY_BIOMETRIC_DISABLED
 
   """"""
@@ -1024,6 +1027,39 @@ interface Entity {
 }
 
 """"""
+type FraudProtectionOverview {
+  """"""
+  allowedActions: Int!
+
+  """"""
+  blockedActions: Int!
+
+  """"""
+  topSourceIPs: [FraudProtectionOverviewTopSourceIP!]!
+
+  """"""
+  totalActions: Int!
+
+  """"""
+  warnedActions: Int!
+}
+
+""""""
+type FraudProtectionOverviewTopSourceIP {
+  """"""
+  blockedActions: Int!
+
+  """"""
+  ipAddress: String!
+
+  """"""
+  totalActions: Int!
+
+  """"""
+  warnedActions: Int!
+}
+
+""""""
 input GenerateOOBOTPCodeInput {
   """Purpose of the generated OTP code."""
   purpose: OTPPurpose
@@ -1385,6 +1421,9 @@ type PageInfo {
 type Query {
   """Audit logs"""
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
+
+  """Fraud protection overview"""
+  fraudProtectionOverview(rangeFrom: DateTime, rangeTo: DateTime): FraudProtectionOverview!
 
   """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User
