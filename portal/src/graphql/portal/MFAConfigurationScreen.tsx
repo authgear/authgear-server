@@ -677,7 +677,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
 
   const state = useMemo<FormState>(() => {
     return {
-      featureConfig: featureConfig.effectiveFeatureConfig,
+      featureConfig: featureConfig.effectiveFeatureConfig ?? undefined,
       smsProviderConfigured:
         secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
           null ||
