@@ -1,0 +1,23 @@
+.widget {
+  @apply col-span-12 tablet:col-span-full;
+}
+
+.content {
+  @apply col-span-full w-full min-w-0 tablet:col-span-full;
+}
+
+.page {
+  @apply flex w-full max-w-[56rem] min-w-0 flex-col gap-8 pt-6;
+}
+
+.pageOverview {
+  @apply max-w-none;
+}
+
+.settings {
+  @apply flex flex-col gap-8;
+}
+
+.section {
+  @apply flex flex-col gap-6;
+}

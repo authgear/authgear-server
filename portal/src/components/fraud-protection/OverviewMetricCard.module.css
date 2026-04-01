@@ -1,0 +1,76 @@
+.metricCardPrimary {
+  @apply flex flex-col rounded-lg border border-[#edebe9] bg-white px-[14px] py-4;
+}
+
+.metricCard {
+  @apply flex flex-col rounded-lg border border-[#edebe9] bg-white px-[14px] py-4;
+}
+
+.metricCardHeader {
+  @apply flex items-start gap-3;
+}
+
+.metricIcon,
+.metricIconSuccess,
+.metricIconWarning,
+.metricIconBlocked {
+  @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-[16px];
+}
+
+.metricIcon {
+  @apply bg-[#edf6ff] text-[#176df3];
+}
+
+.metricIconSuccess {
+  @apply bg-[#eef6ef] text-[#16a34a];
+}
+
+.metricIconWarning {
+  @apply bg-[#fff4ce] text-[#d97706];
+}
+
+.metricIconBlocked {
+  @apply bg-[#fef2f2] text-[#dc2626];
+}
+
+.metricHeadingGroup {
+  @apply flex min-w-0 flex-1 flex-col gap-0.5;
+}
+
+.metricTitleRow {
+  @apply flex items-center gap-2;
+}
+
+.metricTitle {
+  color: #201f1e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.metricInfoIcon {
+  @apply flex-none;
+  color: #176df3;
+}
+
+.metricInfoTooltip {
+}
+
+.metricValue {
+  color: #201f1e;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.metricDescription {
+  color: #605e5c;
+}
+
+.metricLink {
+  @apply mt-1 w-fit appearance-none border-0 bg-transparent p-0 text-left text-[14px] leading-5;
+  color: #176df3;
+  font-weight: 400;
+}
+
+.metricLink:hover {
+  text-decoration: none;
+}
