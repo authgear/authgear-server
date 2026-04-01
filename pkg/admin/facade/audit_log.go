@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -14,6 +15,7 @@ import (
 
 type AuditLogQuery interface {
 	Count(ctx context.Context, opts audit.QueryPageOptions) (uint64, error)
+	GetFraudProtectionOverview(ctx context.Context, opts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error)
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 }
 
@@ -25,14 +27,7 @@ type AuditLogFacade struct {
 }
 
 func (f *AuditLogFacade) QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	// bounded the from time, if retrieve days of audit log is configured in the feature config
-	if *f.AuditLogFeatureConfig.RetrievalDays != -1 {
-		days := *f.AuditLogFeatureConfig.RetrievalDays
-		boundedByTime := f.Clock.NowUTC().Add(time.Duration(-days) * (24 * time.Hour))
-		if opts.RangeFrom == nil || opts.RangeFrom.Before(boundedByTime) {
-			opts.RangeFrom = &boundedByTime
-		}
-	}
+	f.boundRangeFrom(&opts)
 
 	var refs []model.PageItemRef
 	var count uint64
@@ -56,4 +51,32 @@ func (f *AuditLogFacade) QueryPage(ctx context.Context, opts audit.QueryPageOpti
 	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
 		return count, nil
 	})), nil
+}
+
+func (f *AuditLogFacade) GetFraudProtectionOverview(ctx context.Context, queryOpts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error) {
+	queryOpts.ActivityTypes = []string{string(nonblocking.FraudProtectionDecisionRecorded)}
+	f.boundRangeFrom(&queryOpts)
+
+	var result *audit.FraudProtectionOverview
+	err := f.AuditDatabase.ReadOnly(ctx, func(ctx context.Context) error {
+		var err error
+		result, err = f.AuditLogQuery.GetFraudProtectionOverview(ctx, queryOpts)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (f *AuditLogFacade) boundRangeFrom(opts *audit.QueryPageOptions) {
+	// bounded the from time, if retrieve days of audit log is configured in the feature config
+	if *f.AuditLogFeatureConfig.RetrievalDays != -1 {
+		days := *f.AuditLogFeatureConfig.RetrievalDays
+		boundedByTime := f.Clock.NowUTC().Add(time.Duration(-days) * (24 * time.Hour))
+		if opts.RangeFrom == nil || opts.RangeFrom.Before(boundedByTime) {
+			opts.RangeFrom = &boundedByTime
+		}
+	}
 }
