@@ -30,6 +30,14 @@ func (q *Query) Count(ctx context.Context, opts QueryPageOptions) (uint64, error
 	return q.Store.Count(ctx, opts)
 }
 
+func (q *Query) GetFraudProtectionOverview(ctx context.Context, opts QueryPageOptions) (*FraudProtectionOverview, error) {
+	if q.Database == nil {
+		return &FraudProtectionOverview{}, nil
+	}
+
+	return q.Store.GetFraudProtectionOverview(ctx, opts)
+}
+
 func (q *Query) QueryPage(ctx context.Context, opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
 	if q.Database == nil {
 		return nil, nil

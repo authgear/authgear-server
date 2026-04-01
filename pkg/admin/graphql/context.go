@@ -62,6 +62,7 @@ type ScopeLoader interface {
 }
 
 type AuditLogFacade interface {
+	GetFraudProtectionOverview(ctx context.Context, opts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error)
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
 

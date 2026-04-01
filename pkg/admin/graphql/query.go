@@ -348,6 +348,36 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
+		"fraudProtectionOverview": &graphql.Field{
+			Description: "Fraud protection overview",
+			Type:        graphql.NewNonNull(fraudProtectionOverviewType),
+			Args: graphql.FieldConfigArgument{
+				"rangeFrom": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+				"rangeTo": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+				var rangeFrom *time.Time
+				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
+					rangeFrom = &t
+				}
+
+				var rangeTo *time.Time
+				if t, ok := p.Args["rangeTo"].(time.Time); ok {
+					rangeTo = &t
+				}
+
+				return gqlCtx.AuditLogFacade.GetFraudProtectionOverview(ctx, audit.QueryPageOptions{
+					RangeFrom: rangeFrom,
+					RangeTo:   rangeTo,
+				})
+			},
+		},
 		"resources": &graphql.Field{
 			Description: "All resources",
 			Type:        connResource.ConnectionType,
