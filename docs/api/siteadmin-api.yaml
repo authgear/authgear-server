@@ -8,6 +8,9 @@ servers:
   - url: http://localhost:8100
     description: Local development (via nginx)
 
+security:
+  - authgear: [openid, email, offline_access]
+
 paths:
   /api/v1/apps:
     get:
@@ -245,6 +248,18 @@ paths:
           $ref: "#/components/responses/NotFound"
 
 components:
+  securitySchemes:
+    authgear:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: http://accounts.portal.localhost:3100/oauth2/authorize
+          tokenUrl: http://accounts.portal.localhost:3100/oauth2/token
+          scopes:
+            openid: OpenID Connect identity token
+            email: User email address
+            offline_access: Refresh token for offline access
+
   responses:
     BadRequest:
       description: Invalid request parameters
