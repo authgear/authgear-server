@@ -507,7 +507,7 @@ var nodeApp = node(
 			"effectiveFeatureConfig": &graphql.Field{
 				Type: graphql.NewNonNull(FeatureConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*model.App).Context.Config.FeatureConfig, nil
+					return model.NewPortalFeatureConfig(p.Source.(*model.App).Context.Config.FeatureConfig), nil
 				},
 			},
 			"usage": &graphql.Field{

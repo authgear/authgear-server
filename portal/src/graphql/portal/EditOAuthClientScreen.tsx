@@ -779,8 +779,10 @@ const EditOAuthClientScreen1: React.VFC<{
     if (featureConfig.isLoading) {
       return false;
     }
-    return featureConfig.effectiveFeatureConfig?.oauth?.client
-      ?.custom_ui_enabled;
+    return (
+      featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled ??
+      false
+    );
   }, [
     featureConfig.isLoading,
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
@@ -790,7 +792,10 @@ const EditOAuthClientScreen1: React.VFC<{
     if (featureConfig.isLoading) {
       return false;
     }
-    return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;
+    return (
+      featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled ??
+      false
+    );
   }, [featureConfig]);
 
   const samlIdPSigningCertificates = useMemo(() => {

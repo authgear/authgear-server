@@ -515,7 +515,7 @@ interface ConfigFormState {
 interface FeatureConfigFormState {
   planName: string | null;
   phoneLoginIDDisabled: boolean;
-  passwordPolicyFeatureConfig: PasswordPolicyFeatureConfig;
+  passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
   phoneInputFeatureConfig?: PhoneInputFeatureConfig;
 }
 
