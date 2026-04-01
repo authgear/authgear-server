@@ -11,7 +11,7 @@ import (
 )
 
 func ConfigureAppGetRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("GET").
+	return route.WithMethods("OPTIONS", "GET").
 		WithPathPattern("/api/v1/apps/:appID")
 }
 

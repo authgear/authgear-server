@@ -12,7 +12,7 @@ import (
 )
 
 func ConfigureAppsListRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("GET").
+	return route.WithMethods("OPTIONS", "GET").
 		WithPathPattern("/api/v1/apps")
 }
 
