@@ -95,12 +95,12 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 
 func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
+	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
@@ -141,6 +141,7 @@ func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appServiceHTTPClient := service.NewHTTPClient()
 	appService := &service.AppService{
+		GlobalDatabase:    handle,
 		ConfigSourceStore: store,
 		OwnerStore:        appOwnerStore,
 		AdminAPI:          adminAPIService,
@@ -161,12 +162,12 @@ var (
 
 func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
+	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
@@ -207,6 +208,7 @@ func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appServiceHTTPClient := service.NewHTTPClient()
 	appService := &service.AppService{
+		GlobalDatabase:    handle,
 		ConfigSourceStore: store,
 		OwnerStore:        appOwnerStore,
 		AdminAPI:          adminAPIService,

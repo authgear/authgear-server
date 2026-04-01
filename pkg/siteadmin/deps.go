@@ -34,6 +34,7 @@ var DependencySet = wire.NewSet(
 
 	// siteadmin service layer
 	siteadminservice.DependencySet,
+	wire.Bind(new(siteadminservice.AppServiceDatabase), new(*globaldb.Handle)),
 
 	// adminauthz.Adder satisfies portalservice.AuthzAdder
 	wire.Struct(new(adminauthz.Adder), "Clock"),
