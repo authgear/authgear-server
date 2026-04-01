@@ -113,6 +113,14 @@ func (f *fakeOwnerStore) ListAppIDsByOwnerUserIDPaged(_ context.Context, userID 
 	return appIDs[offset:end], nil
 }
 
+// fakeDatabase satisfies AppServiceDatabase by directly executing the callback
+// without a real DB transaction — suitable for unit tests that use in-memory fakes.
+type fakeDatabase struct{}
+
+func (fakeDatabase) WithTx(ctx context.Context, do func(context.Context) error) error {
+	return do(ctx)
+}
+
 type fakeAdminAPI struct {
 	serverURL string
 }
@@ -175,6 +183,7 @@ func TestAppService(t *testing.T) {
 
 	makeService := func(svr *httptest.Server, cs *fakeConfigSourceStore, os *fakeOwnerStore) *AppService {
 		return &AppService{
+			GlobalDatabase:    fakeDatabase{},
 			ConfigSourceStore: cs,
 			OwnerStore:        os,
 			AdminAPI:          &fakeAdminAPI{serverURL: svr.URL},

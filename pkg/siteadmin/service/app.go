@@ -27,6 +27,10 @@ const maxPageSize = 20
 
 // ---- Narrow interfaces -------------------------------------------------------
 
+type AppServiceDatabase interface {
+	WithTx(ctx context.Context, do func(ctx context.Context) error) error
+}
+
 type AppServiceConfigSourceStore interface {
 	GetDatabaseSourceByAppID(ctx context.Context, appID string) (*configsource.DatabaseSource, error)
 	CountAll(ctx context.Context) (int, error)
@@ -167,6 +171,7 @@ type ListAppsResult struct {
 }
 
 type AppService struct {
+	GlobalDatabase    AppServiceDatabase
 	ConfigSourceStore AppServiceConfigSourceStore
 	OwnerStore        AppServiceOwnerStore
 	AdminAPI          AppServiceAdminAPI
@@ -198,37 +203,44 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 // is unique within an Authgear app. We therefore treat the result as a single
 // user and apply LIMIT/OFFSET directly against that user's owned apps.
 func (s *AppService) listAppsByOwnerEmail(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
+	// Admin API call — must happen outside a DB transaction.
 	userIDs, err := s.findUserIDsByEmail(ctx, params.OwnerEmail)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(userIDs) == 0 {
-		// User not found by email — return empty result.
 		return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
 	}
 
 	// Email is unique — take the first (and expected only) match.
 	userID := userIDs[0]
 
-	totalCount, err := s.OwnerStore.CountAppsByOwnerUserID(ctx, userID)
+	var totalCount int
+	var sources []*configsource.DatabaseSource
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		totalCount, e = s.OwnerStore.CountAppsByOwnerUserID(ctx, userID)
+		if e != nil {
+			return e
+		}
+		if totalCount == 0 {
+			return nil
+		}
+		offset := (params.Page - 1) * params.PageSize
+		appIDs, e := s.OwnerStore.ListAppIDsByOwnerUserIDPaged(ctx, userID, params.PageSize, offset)
+		if e != nil {
+			return e
+		}
+		sources, e = s.ConfigSourceStore.GetManyByAppIDs(ctx, appIDs)
+		return e
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	if totalCount == 0 {
 		return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
-	}
-
-	offset := (params.Page - 1) * params.PageSize
-	appIDs, err := s.OwnerStore.ListAppIDsByOwnerUserIDPaged(ctx, userID, params.PageSize, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	sources, err := s.ConfigSourceStore.GetManyByAppIDs(ctx, appIDs)
-	if err != nil {
-		return nil, err
 	}
 
 	apps := make([]siteadmin.App, len(sources))
@@ -246,7 +258,20 @@ func (s *AppService) listAppsByOwnerEmail(ctx context.Context, params ListAppsPa
 
 // listAppsByAppID fetches a single app and optionally verifies owner_email.
 func (s *AppService) listAppsByAppID(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
-	src, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(ctx, params.AppID)
+	var src *configsource.DatabaseSource
+	var ownerUserID string
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		src, e = s.ConfigSourceStore.GetDatabaseSourceByAppID(ctx, params.AppID)
+		if e != nil {
+			return e
+		}
+		ownerUserID, e = s.OwnerStore.GetOwnerByAppID(ctx, params.AppID)
+		if errors.Is(e, ErrOwnerNotFound) {
+			return nil
+		}
+		return e
+	})
 	if err != nil {
 		if errors.Is(err, configsource.ErrAppNotFound) {
 			return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
@@ -254,11 +279,7 @@ func (s *AppService) listAppsByAppID(ctx context.Context, params ListAppsParams)
 		return nil, err
 	}
 
-	ownerUserID, err := s.OwnerStore.GetOwnerByAppID(ctx, params.AppID)
-	if err != nil && !errors.Is(err, ErrOwnerNotFound) {
-		return nil, err
-	}
-
+	// Admin API call — outside the DB transaction.
 	ownerEmail := ""
 	if ownerUserID != "" {
 		emailMap, err := s.resolveUserEmails(ctx, []string{ownerUserID})
@@ -283,27 +304,32 @@ func (s *AppService) listAppsByAppID(ctx context.Context, params ListAppsParams)
 
 // listAppsPaged uses DB-level pagination; resolves emails only for the current page.
 func (s *AppService) listAppsPaged(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
-	totalCount, err := s.ConfigSourceStore.CountAll(ctx)
+	var totalCount int
+	var sources []*configsource.DatabaseSource
+	var ownerMap map[string]string
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		totalCount, e = s.ConfigSourceStore.CountAll(ctx)
+		if e != nil {
+			return e
+		}
+		offset := (params.Page - 1) * params.PageSize
+		sources, e = s.ConfigSourceStore.ListPaged(ctx, params.PageSize, offset)
+		if e != nil {
+			return e
+		}
+		appIDs := make([]string, len(sources))
+		for i, src := range sources {
+			appIDs[i] = src.AppID
+		}
+		ownerMap, e = s.OwnerStore.GetOwnersByAppIDs(ctx, appIDs)
+		return e
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	offset := (params.Page - 1) * params.PageSize
-	sources, err := s.ConfigSourceStore.ListPaged(ctx, params.PageSize, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	appIDs := make([]string, len(sources))
-	for i, src := range sources {
-		appIDs[i] = src.AppID
-	}
-
-	ownerMap, err := s.OwnerStore.GetOwnersByAppIDs(ctx, appIDs)
-	if err != nil {
-		return nil, err
-	}
-
+	// Admin API call — outside the DB transaction.
 	userIDs := uniqueValues(ownerMap)
 	emailMap, err := s.resolveUserEmails(ctx, userIDs)
 	if err != nil {
@@ -325,16 +351,25 @@ func (s *AppService) listAppsPaged(ctx context.Context, params ListAppsParams) (
 }
 
 func (s *AppService) GetApp(ctx context.Context, appID string) (*siteadmin.AppDetail, error) {
-	src, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(ctx, appID)
+	var src *configsource.DatabaseSource
+	var ownerUserID string
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		src, e = s.ConfigSourceStore.GetDatabaseSourceByAppID(ctx, appID)
+		if e != nil {
+			return e
+		}
+		ownerUserID, e = s.OwnerStore.GetOwnerByAppID(ctx, appID)
+		if errors.Is(e, ErrOwnerNotFound) {
+			return nil
+		}
+		return e
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	ownerUserID, err := s.OwnerStore.GetOwnerByAppID(ctx, appID)
-	if err != nil && !errors.Is(err, ErrOwnerNotFound) {
-		return nil, err
-	}
-
+	// Admin API call — outside the DB transaction.
 	ownerEmail := ""
 	if ownerUserID != "" {
 		emailMap, err := s.resolveUserEmails(ctx, []string{ownerUserID})
