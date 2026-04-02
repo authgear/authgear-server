@@ -159,7 +159,11 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 			Timestamp:         s.Clock.NowUTC(),
 			Decision:          decision,
 			Action:            model.FraudProtectionActionSendSMS,
-			ActionDetail:      map[string]string{"recipient": phoneNumber, "type": messageType},
+			ActionDetail: model.FraudProtectionDecisionActionDetail{
+				Recipient:              phoneNumber,
+				Type:                   messageType,
+				PhoneNumberCountryCode: phoneCountry,
+			},
 			TriggeredWarnings: triggeredWarningStrings,
 			UserAgent:         string(s.UserAgentString),
 			IPAddress:         ip,

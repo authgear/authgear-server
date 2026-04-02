@@ -157,6 +157,81 @@ func (s *ReadStore) GetByIDs(ctx context.Context, ids []string) ([]*Log, error) 
 	return logs, nil
 }
 
+func (s *ReadStore) countFraudProtectionDecisionRecordsQuery(
+	opts FraudProtectionDecisionRecordQueryOptions,
+) db.SelectBuilder {
+	query := s.SQLBuilder.
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_audit_log"))
+	return opts.Apply(query)
+}
+
+func (s *ReadStore) queryFraudProtectionDecisionRecordsBase(
+	opts FraudProtectionDecisionRecordQueryOptions,
+) db.SelectBuilder {
+	query := s.SQLBuilder.
+		Select("id", "created_at", "data").
+		From(s.SQLBuilder.TableName("_audit_log"))
+	return opts.Apply(query)
+}
+
+func (s *ReadStore) CountFraudProtectionDecisionRecords(
+	ctx context.Context,
+	opts FraudProtectionDecisionRecordQueryOptions,
+) (uint64, error) {
+	query := s.countFraudProtectionDecisionRecordsQuery(opts)
+
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	if err := scanner.Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *ReadStore) QueryFraudProtectionDecisionRecordsPage(
+	ctx context.Context,
+	opts FraudProtectionDecisionRecordQueryOptions,
+	pageArgs graphqlutil.PageArgs,
+) ([]*FraudProtectionDecisionRecord, uint64, error) {
+	query := s.queryFraudProtectionDecisionRecordsBase(opts)
+
+	sortDirection := opts.SortDirection
+	if sortDirection == model.SortDirectionDefault {
+		sortDirection = model.SortDirectionDesc
+	}
+	query = query.OrderBy(fmt.Sprintf("created_at %s", sortDirection))
+
+	query, offset, err := db.ApplyPageArgs(query, pageArgs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var records []*FraudProtectionDecisionRecord
+	for rows.Next() {
+		record, err := s.scanFraudProtectionDecisionRecord(rows)
+		if err != nil {
+			return nil, 0, err
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return records, offset, nil
+}
+
 func (s *ReadStore) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
@@ -197,4 +272,25 @@ func (s *ReadStore) scan(scn db.Scanner) (*Log, error) {
 	}
 
 	return l, nil
+}
+
+func (s *ReadStore) scanFraudProtectionDecisionRecord(
+	scn db.Scanner,
+) (*FraudProtectionDecisionRecord, error) {
+	record := &FraudProtectionDecisionRecord{}
+	var raw []byte
+	if err := scn.Scan(&record.ID, &record.CreatedAt, &raw); err != nil {
+		return nil, err
+	}
+
+	var payload struct {
+		Payload struct {
+			Record model.FraudProtectionDecisionRecord `json:"record"`
+		} `json:"payload"`
+	}
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return nil, err
+	}
+	record.Record = payload.Payload.Record
+	return record, nil
 }
