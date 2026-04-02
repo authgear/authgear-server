@@ -38,6 +38,29 @@ func (q *Query) GetFraudProtectionOverview(ctx context.Context, opts QueryPageOp
 	return q.Store.GetFraudProtectionOverview(ctx, opts)
 }
 
+func (q *Query) CountFraudProtectionDecisionRecords(
+	ctx context.Context,
+	opts FraudProtectionDecisionRecordQueryOptions,
+) (uint64, error) {
+	if q.Database == nil {
+		return 0, nil
+	}
+
+	return q.Store.CountFraudProtectionDecisionRecords(ctx, opts)
+}
+
+func (q *Query) QueryFraudProtectionDecisionRecordsPage(
+	ctx context.Context,
+	opts FraudProtectionDecisionRecordQueryOptions,
+	pageArgs graphqlutil.PageArgs,
+) ([]*FraudProtectionDecisionRecord, uint64, error) {
+	if q.Database == nil {
+		return nil, 0, nil
+	}
+
+	return q.Store.QueryFraudProtectionDecisionRecordsPage(ctx, opts, pageArgs)
+}
+
 func (q *Query) QueryPage(ctx context.Context, opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
 	if q.Database == nil {
 		return nil, nil

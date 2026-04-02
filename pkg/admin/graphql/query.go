@@ -13,6 +13,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -376,6 +377,58 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					RangeFrom: rangeFrom,
 					RangeTo:   rangeTo,
 				})
+			},
+		},
+		"fraudProtectionLogs": &graphql.Field{
+			Description: "Fraud protection decision records",
+			Type:        connFraudProtectionDecisionRecord.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"rangeFrom": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+				"rangeTo": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+				"sortDirection": &graphql.ArgumentConfig{
+					Type: sortDirection,
+				},
+				"verdicts": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(fraudProtectionDecisionEnum)),
+				},
+				"reasonCodes": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
+				"search": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				items, offset, result, err := gqlCtx.AuditLogFacade.QueryFraudProtectionDecisionRecordsPage(
+					ctx,
+					fraudProtectionDecisionRecordQueryOptionsFromArgs(p),
+					pageArgs,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				lazyItems := make([]graphqlutil.LazyItem, 0, len(items))
+				for i, item := range items {
+					cursor, err := (&db.PageKey{Offset: offset + uint64(i)}).ToPageCursor()
+					if err != nil {
+						return nil, err
+					}
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   graphqlutil.NewLazyValue(item),
+						Cursor: graphqlutil.Cursor(cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
 		"resources": &graphql.Field{
