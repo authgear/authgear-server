@@ -1029,9 +1029,6 @@ interface Entity {
 """"""
 type FraudProtectionOverview {
   """"""
-  allowedActions: Int!
-
-  """"""
   blockedActions: Int!
 
   """"""

@@ -10,7 +10,6 @@ import (
 
 type FraudProtectionOverview struct {
 	TotalActions   int                           `json:"totalActions"`
-	AllowedActions int                           `json:"allowedActions"`
 	BlockedActions int                           `json:"blockedActions"`
 	WarnedActions int                           `json:"warnedActions"`
 	TopSourceIPs  []FraudProtectionOverviewIP `json:"topSourceIPs"`
@@ -45,7 +44,6 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 	totalQuery := s.SQLBuilder.
 		Select(
 			"COUNT(*) AS total_actions",
-			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count = 0) AS allowed_actions",
 			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
 			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
 		).
@@ -57,10 +55,9 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 	}
 
 	var totalActions int64
-	var allowedActions int64
 	var blockedActions int64
 	var warnedActions int64
-	if err := row.Scan(&totalActions, &allowedActions, &blockedActions, &warnedActions); err != nil {
+	if err := row.Scan(&totalActions, &blockedActions, &warnedActions); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +104,6 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 
 	return &FraudProtectionOverview{
 		TotalActions:   int(totalActions),
-		AllowedActions: int(allowedActions),
 		BlockedActions: int(blockedActions),
 		WarnedActions: int(warnedActions),
 		TopSourceIPs:   topSourceIPs,

@@ -1844,7 +1844,6 @@
   "FraudProtectionConfigurationScreen.overview.enforcement.observe.description": "Allow all actions and observe only.",
   "FraudProtectionConfigurationScreen.overview.enforcement.block.value": "Block mode",
   "FraudProtectionConfigurationScreen.overview.enforcement.block.description": "Block high risk actions",
-  "FraudProtectionConfigurationScreen.overview.allowed.title": "Allowed Actions",
   "FraudProtectionConfigurationScreen.overview.challenged.title": "Warnings",
   "FraudProtectionConfigurationScreen.overview.blocked.title": "Blocked Actions",
   "FraudProtectionConfigurationScreen.overview.total.title": "Total Actions",

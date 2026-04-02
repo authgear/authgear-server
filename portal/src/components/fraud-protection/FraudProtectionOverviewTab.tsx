@@ -164,14 +164,6 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 />
               </div>
               <OverviewMetricCard
-                iconName="Accept"
-                iconVariant="success"
-                title={renderToString(
-                  "FraudProtectionConfigurationScreen.overview.allowed.title"
-                )}
-                value={formatCount(overview?.allowedActions)}
-              />
-              <OverviewMetricCard
                 iconName="Warning"
                 iconVariant="warning"
                 title={renderToString(

@@ -682,7 +682,6 @@ export type FraudProtectionDecisionSendSmsActionDetail = {
 
 export type FraudProtectionOverview = {
   __typename?: 'FraudProtectionOverview';
-  allowedActions: Scalars['Int']['output'];
   blockedActions: Scalars['Int']['output'];
   topSourceIPs: Array<FraudProtectionOverviewTopSourceIp>;
   totalActions: Scalars['Int']['output'];
