@@ -1,9 +1,12 @@
 package graphql
 
 import (
+	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/graphql-go/graphql"
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -47,6 +50,11 @@ var fraudProtectionWarningTypeEnum = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
+var fraudProtectionDecisionRecordData = graphqlutil.NewJSONObjectScalar(
+	"FraudProtectionDecisionRecordData",
+	"The `FraudProtectionDecisionRecordData` scalar type represents the raw fraud protection decision record payload.",
+)
+
 var fraudProtectionDecisionSendSMSActionDetailType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "FraudProtectionDecisionSendSMSActionDetail",
 	Fields: graphql.Fields{
@@ -89,74 +97,94 @@ var fraudProtectionDecisionActionDetailUnion = graphql.NewUnion(graphql.UnionCon
 	},
 })
 
-var fraudProtectionDecisionRecordType = graphql.NewObject(graphql.ObjectConfig{
-	Name: "FraudProtectionDecisionRecord",
-	Fields: graphql.Fields{
-		"id": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.ID),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.ID, nil
+const typeFraudProtectionDecisionRecord = "FraudProtectionDecisionRecord"
+
+var fraudProtectionDecisionRecordType = node(
+	graphql.NewObject(graphql.ObjectConfig{
+		Name: typeFraudProtectionDecisionRecord,
+		Interfaces: []*graphql.Interface{
+			nodeDefs.NodeInterface,
+		},
+		Fields: graphql.Fields{
+			"id": relay.GlobalIDField(typeFraudProtectionDecisionRecord, nil),
+			"createdAt": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.DateTime),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.CreatedAt, nil
+				},
+			},
+			"decision": &graphql.Field{
+				Type: graphql.NewNonNull(fraudProtectionDecisionEnum),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.Decision, nil
+				},
+			},
+			"action": &graphql.Field{
+				Type: graphql.NewNonNull(fraudProtectionActionEnum),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.Action, nil
+				},
+			},
+			"actionDetail": &graphql.Field{
+				Type: graphql.NewNonNull(fraudProtectionDecisionActionDetailUnion),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.ActionDetail, nil
+				},
+			},
+			"triggeredWarnings": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(fraudProtectionWarningTypeEnum))),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.TriggeredWarnings, nil
+				},
+			},
+			"userAgent": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.UserAgent, nil
+				},
+			},
+			"ipAddress": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.IPAddress, nil
+				},
+			},
+			"geoLocationCode": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					return source.Record.GeoLocationCode, nil
+				},
+			},
+			"data": &graphql.Field{
+				Type: fraudProtectionDecisionRecordData,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.FraudProtectionDecisionRecord)
+					var m map[string]interface{}
+					b, err := json.Marshal(source.Record)
+					if err != nil {
+						return nil, err
+					}
+					if err := json.Unmarshal(b, &m); err != nil {
+						return nil, err
+					}
+					return m, nil
+				},
 			},
 		},
-		"createdAt": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.DateTime),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.CreatedAt, nil
-			},
-		},
-		"decision": &graphql.Field{
-			Type: graphql.NewNonNull(fraudProtectionDecisionEnum),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.Decision, nil
-			},
-		},
-		"action": &graphql.Field{
-			Type: graphql.NewNonNull(fraudProtectionActionEnum),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.Action, nil
-			},
-		},
-		"actionDetail": &graphql.Field{
-			Type: graphql.NewNonNull(fraudProtectionDecisionActionDetailUnion),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.ActionDetail, nil
-			},
-		},
-		"triggeredWarnings": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(fraudProtectionWarningTypeEnum))),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.TriggeredWarnings, nil
-			},
-		},
-		"userAgent": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.UserAgent, nil
-			},
-		},
-		"ipAddress": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.IPAddress, nil
-			},
-		},
-		"geoLocationCode": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionDecisionRecord)
-				return source.Record.GeoLocationCode, nil
-			},
-		},
+	}),
+	&audit.FraudProtectionDecisionRecord{},
+	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+		return gqlCtx.AuditLogFacade.GetFraudProtectionDecisionRecordByID(ctx, id)
 	},
-})
+)
 
 var connFraudProtectionDecisionRecord = graphqlutil.NewConnectionDef(fraudProtectionDecisionRecordType)
 

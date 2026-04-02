@@ -232,6 +232,26 @@ func (s *ReadStore) QueryFraudProtectionDecisionRecordsPage(
 	return records, offset, nil
 }
 
+func (s *ReadStore) GetFraudProtectionDecisionRecordByID(
+	ctx context.Context,
+	id string,
+) (*FraudProtectionDecisionRecord, error) {
+	query := s.queryFraudProtectionDecisionRecordsBase(FraudProtectionDecisionRecordQueryOptions{}).
+		Where("id = ?", id).
+		Limit(1)
+
+	row, err := s.SQLExecutor.QueryRowWith(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	record, err := s.scanFraudProtectionDecisionRecord(row)
+	if err != nil {
+		return nil, err
+	}
+	return record, nil
+}
+
 func (s *ReadStore) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
