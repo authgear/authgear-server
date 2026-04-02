@@ -56,14 +56,16 @@ const FraudProtectionLogEntryScreen: React.VFC =
         : null;
 
     const createdAt =
-      node != null ? (formatDatetime(locale, node.createdAt) ?? "—") : "—";
+      node != null ? formatDatetime(locale, node.createdAt) ?? "—" : "—";
     const action = (() => {
       if (node == null) {
         return "—";
       }
       switch (node.action) {
         case "send_sms":
-          return renderToString("FraudProtectionConfigurationScreen.logs.action.smsotp");
+          return renderToString(
+            "FraudProtectionConfigurationScreen.logs.action.smsotp"
+          );
         default:
           return node.action;
       }
@@ -191,7 +193,9 @@ const FraudProtectionLogEntryScreen: React.VFC =
                 <span className={styles.detailLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.phone" />
                 </span>
-                <span className={styles.detailValueMonospace}>{phoneNumber}</span>
+                <span className={styles.detailValueMonospace}>
+                  {phoneNumber}
+                </span>
               </div>
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>

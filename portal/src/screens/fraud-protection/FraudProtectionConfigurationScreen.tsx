@@ -156,7 +156,10 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     const isModifiable = fraudProtectionFeatureConfig?.is_modifiable ?? false;
 
     const onEnableChange = useCallback(
-      (_event: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+      (
+        _event: React.FormEvent<HTMLElement | HTMLInputElement>,
+        checked?: boolean
+      ) => {
         setState((current) => ({
           ...current,
           enabled: checked ?? false,
@@ -166,7 +169,10 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
 
     const onEnforcementModeChange = useCallback(
-      (_event: React.FormEvent<HTMLElement | HTMLInputElement> | undefined, option?: IChoiceGroupOption) => {
+      (
+        _event: React.FormEvent<HTMLElement | HTMLInputElement> | undefined,
+        option?: IChoiceGroupOption
+      ) => {
         const key = option?.key;
         if (key !== "record_only" && key !== "deny_if_any_warning") {
           return;
@@ -180,7 +186,10 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
 
     const onIPAllowlistChange = useCallback(
-      (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
+      (
+        _event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
         setState((current) => ({
           ...current,
           ipAllowlist: value ?? "",
@@ -190,7 +199,10 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
 
     const onPhoneAllowlistChange = useCallback(
-      (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
+      (
+        _event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
         setState((current) => ({
           ...current,
           phoneAllowlist: value ?? "",
@@ -217,9 +229,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
           <div
             className={`${styles.page} ${
               selectedKey === "overview" ? styles.pageOverview : ""
-            } ${
-              selectedKey === "logs" ? styles.pageLogs : ""
-            }`}
+            } ${selectedKey === "logs" ? styles.pageLogs : ""}`}
           >
             <Toggle
               checked={state.enabled}
@@ -259,9 +269,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
                     onChangeToSettings={() => onChangeKey("settings")}
                   />
                 ) : null}
-                {selectedKey === "logs" ? (
-                  <FraudProtectionLogsTab />
-                ) : null}
+                {selectedKey === "logs" ? <FraudProtectionLogsTab /> : null}
                 {selectedKey === "settings" ? (
                   <FraudProtectionSettingsTab
                     isModifiable={isModifiable}

@@ -12,8 +12,8 @@ import (
 )
 
 type FraudProtectionDecisionRecord struct {
-	ID        string                            `json:"id"`
-	CreatedAt time.Time                         `json:"createdAt"`
+	ID        string                              `json:"id"`
+	CreatedAt time.Time                           `json:"createdAt"`
 	Record    model.FraudProtectionDecisionRecord `json:"record"`
 }
 
