@@ -57,6 +57,7 @@ const OverviewTopSourceIPs: React.VFC<OverviewTopSourceIPsProps> =
             </Text>
           </div>
           <ActionButton
+            styles={{ root: { height: "auto" } }}
             theme={themes.actionButton}
             onClick={toggleShowAll}
             text={renderToString(

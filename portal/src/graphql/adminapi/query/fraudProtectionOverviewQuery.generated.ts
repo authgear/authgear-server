@@ -9,14 +9,13 @@ export type FraudProtectionOverviewQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type FraudProtectionOverviewQueryQuery = { __typename?: 'Query', fraudProtectionOverview: { __typename?: 'FraudProtectionOverview', totalActions: number, allowedActions: number, blockedActions: number, warnedActions: number, topSourceIPs: Array<{ __typename?: 'FraudProtectionOverviewTopSourceIP', ipAddress: string, totalActions: number, blockedActions: number, warnedActions: number }> } };
+export type FraudProtectionOverviewQueryQuery = { __typename?: 'Query', fraudProtectionOverview: { __typename?: 'FraudProtectionOverview', totalActions: number, blockedActions: number, warnedActions: number, topSourceIPs: Array<{ __typename?: 'FraudProtectionOverviewTopSourceIP', ipAddress: string, totalActions: number, blockedActions: number, warnedActions: number }> } };
 
 
 export const FraudProtectionOverviewQueryDocument = gql`
     query fraudProtectionOverviewQuery($rangeFrom: DateTime, $rangeTo: DateTime) {
   fraudProtectionOverview(rangeFrom: $rangeFrom, rangeTo: $rangeTo) {
     totalActions
-    allowedActions
     blockedActions
     warnedActions
     topSourceIPs {

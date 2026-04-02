@@ -52,13 +52,6 @@ var fraudProtectionOverviewType = graphql.NewObject(graphql.ObjectConfig{
 				return source.TotalActions, nil
 			},
 		},
-		"allowedActions": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionOverview)
-				return source.AllowedActions, nil
-			},
-		},
 		"blockedActions": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
