@@ -7,14 +7,19 @@
 package siteadmin
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
-	"github.com/authgear/authgear-server/pkg/portal/service"
+	service2 "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/siteadmin/service"
 	"github.com/authgear/authgear-server/pkg/siteadmin/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -89,12 +94,132 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAppsListHandler(p *deps.RequestProvider) http.Handler {
-	appsListHandler := &transport.AppsListHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	store := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appOwnerStore := &service.AppOwnerStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	clock := _wireSystemClockValue
+	adder := &authz.Adder{
+		Clock: clock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	appServiceHTTPClient := service.NewHTTPClient()
+	appService := &service.AppService{
+		GlobalDatabase:    handle,
+		ConfigSourceStore: store,
+		OwnerStore:        appOwnerStore,
+		AdminAPI:          adminAPIService,
+		AuditDatabase:     readHandle,
+		AuditStore:        auditDBReadStore,
+		HTTPClient:        appServiceHTTPClient,
+		Clock:             clock,
+	}
+	appsListHandler := &transport.AppsListHandler{
+		AppsList: appService,
+	}
 	return appsListHandler
 }
 
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
+
 func newAppGetHandler(p *deps.RequestProvider) http.Handler {
-	appGetHandler := &transport.AppGetHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	store := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appOwnerStore := &service.AppOwnerStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	clockClock := _wireSystemClockValue
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	appServiceHTTPClient := service.NewHTTPClient()
+	appService := &service.AppService{
+		GlobalDatabase:    handle,
+		ConfigSourceStore: store,
+		OwnerStore:        appOwnerStore,
+		AdminAPI:          adminAPIService,
+		AuditDatabase:     readHandle,
+		AuditStore:        auditDBReadStore,
+		HTTPClient:        appServiceHTTPClient,
+		Clock:             clockClock,
+	}
+	appGetHandler := &transport.AppGetHandler{
+		AppGet: appService,
+	}
 	return appGetHandler
 }
 
@@ -127,18 +252,14 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
 	httpClient := session.NewHTTPClient()
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	sessionInfoMiddleware := &session.SessionInfoMiddleware{
 		AuthgearConfig: authgearConfig,
 		HTTPClient:     httpClient,
-		Clock:          clock,
+		Clock:          clockClock,
 	}
 	return sessionInfoMiddleware
 }
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)
 
 func newAuthzMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
@@ -150,7 +271,7 @@ func newAuthzMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
-	collaboratorService := &service.CollaboratorService{
+	collaboratorService := &service2.CollaboratorService{
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
 		GlobalDatabase: handle,

@@ -9,7 +9,11 @@ include ./makefiles/check-files-outdated.mk
 
 .PHONY: siteadmin-api-docs
 siteadmin-api-docs:
-	docker run --rm -p 8101:8080 -e SWAGGER_JSON=/api/siteadmin-api.yaml -v $(PWD)/docs/api:/api swaggerapi/swagger-ui
+	docker run --rm -p 8101:8080 \
+		-e SWAGGER_JSON=/api/siteadmin-api.yaml \
+		-e OAUTH_USE_PKCE=true \
+		-v $(PWD)/docs/api:/api \
+		swaggerapi/swagger-ui
 
 .PHONY: authgearonce-start
 authgearonce-start: GO_RUN_TAGS += authgearonce
