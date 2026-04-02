@@ -123,7 +123,7 @@
     "react-helmet-async": "2.0.5",
     "react-intl": "^6.8.9",
     "react-router-dom": "7.12.0",
-    "tzdata": "1.0.44",
+    "tzdata": "1.0.48",
     "uuid": "9.0.1",
     "zxcvbn": "4.4.2"
   }
