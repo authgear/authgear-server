@@ -325,6 +325,7 @@
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/resolver/handler/resolve.go:40:9: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:82:67: requestcontext
+/pkg/siteadmin/transport/middleware_authz.go:25:10: requestcontext
 /pkg/siteadmin/transport/response.go:12:44: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext
 /pkg/util/httproute/httproute.go:142:6: requestcontext

@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/siteadmin/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -108,5 +109,19 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*transport.MonthlyActiveUsersUsageHandler)),
+	))
+}
+
+func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*session.SessionInfoMiddleware)),
+	))
+}
+
+func newAuthzMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*transport.AuthzMiddleware)),
 	))
 }
