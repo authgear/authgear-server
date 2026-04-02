@@ -61,6 +61,17 @@ func (q *Query) QueryFraudProtectionDecisionRecordsPage(
 	return q.Store.QueryFraudProtectionDecisionRecordsPage(ctx, opts, pageArgs)
 }
 
+func (q *Query) GetFraudProtectionDecisionRecordByID(
+	ctx context.Context,
+	id string,
+) (*FraudProtectionDecisionRecord, error) {
+	if q.Database == nil {
+		return nil, nil
+	}
+
+	return q.Store.GetFraudProtectionDecisionRecordByID(ctx, id)
+}
+
 func (q *Query) QueryPage(ctx context.Context, opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
 	if q.Database == nil {
 		return nil, nil

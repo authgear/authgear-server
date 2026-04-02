@@ -16,6 +16,7 @@ import (
 type AuditLogQuery interface {
 	Count(ctx context.Context, opts audit.QueryPageOptions) (uint64, error)
 	CountFraudProtectionDecisionRecords(ctx context.Context, opts audit.FraudProtectionDecisionRecordQueryOptions) (uint64, error)
+	GetFraudProtectionDecisionRecordByID(ctx context.Context, id string) (*audit.FraudProtectionDecisionRecord, error)
 	GetFraudProtectionOverview(ctx context.Context, opts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error)
 	QueryFraudProtectionDecisionRecordsPage(ctx context.Context, opts audit.FraudProtectionDecisionRecordQueryOptions, pageArgs graphqlutil.PageArgs) ([]*audit.FraudProtectionDecisionRecord, uint64, error)
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
@@ -99,6 +100,22 @@ func (f *AuditLogFacade) QueryFraudProtectionDecisionRecordsPage(
 	return items, offset, graphqlutil.NewPageResult(pageArgs, len(items), graphqlutil.NewLazy(func() (interface{}, error) {
 		return count, nil
 	})), nil
+}
+
+func (f *AuditLogFacade) GetFraudProtectionDecisionRecordByID(
+	ctx context.Context,
+	id string,
+) (*audit.FraudProtectionDecisionRecord, error) {
+	var item *audit.FraudProtectionDecisionRecord
+	err := f.AuditDatabase.ReadOnly(ctx, func(ctx context.Context) error {
+		var err error
+		item, err = f.AuditLogQuery.GetFraudProtectionDecisionRecordByID(ctx, id)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item, nil
 }
 
 func (f *AuditLogFacade) boundRangeFrom(opts *audit.QueryPageOptions) {
