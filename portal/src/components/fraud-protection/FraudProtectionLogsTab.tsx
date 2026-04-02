@@ -18,11 +18,13 @@ import {
   IDetailsList,
   IDetailsRowProps,
   IDropdownOption,
+  IconButton,
   MessageBar,
   SearchBox,
   SelectionMode,
   ShimmeredDetailsList,
 } from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import ShowError from "../../ShowError";
@@ -89,6 +91,20 @@ interface FraudProtectionLogDetailRow {
 type FraudProtectionLogRowItem =
   | FraudProtectionLogPrimaryRow
   | FraudProtectionLogDetailRow;
+
+function ensureFraudDecisionNodeID(id: string): string {
+  try {
+    const padding = "=".repeat((4 - (id.length % 4)) % 4);
+    const decoded = atob(id.replace(/-/g, "+").replace(/_/g, "/") + padding);
+    if (decoded.startsWith("FraudProtectionDecisionRecord:")) {
+      return id;
+    }
+  } catch {
+    // Not a base64url node ID.
+  }
+  const raw = `FraudProtectionDecisionRecord:${id}`;
+  return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
 
 function parseEntry(
   node: NonNullable<
@@ -251,6 +267,13 @@ export interface FraudProtectionLogsTabProps {}
 
 const columns: IColumn[] = [
   {
+    key: "expand",
+    name: "",
+    minWidth: 32,
+    maxWidth: 32,
+    columnActionsMode: ColumnActionsMode.disabled,
+  },
+  {
     key: "timestamp",
     name: "Timestamp",
     fieldName: "createdAt",
@@ -290,6 +313,8 @@ const columns: IColumn[] = [
 const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
   function FraudProtectionLogsTab() {
     const { renderToString, locale } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
 
     const [offset, setOffset] = useState(0);
     const [sortDirection] = useState(SortDirection.Desc);
@@ -539,6 +564,16 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
       setExpandedRowId((prev) => (prev === id ? null : id));
     }, []);
 
+    const onClickRow = useCallback(
+      (id: string) => {
+        const nodeID = ensureFraudDecisionNodeID(id);
+        navigate(
+          `/project/${appID}/attack-protection/fraud-protection/logs/${nodeID}`
+        );
+      },
+      [appID, navigate]
+    );
+
     const onRenderItemColumn = useCallback(
       (item?: FraudProtectionLogRowItem, _index?: number, column?: IColumn) => {
         if (item == null) return null;
@@ -548,6 +583,19 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
         }
         const entry = item.entry;
         switch (column?.key) {
+          case "expand":
+            return (
+              <IconButton
+                className={styles.expandButton}
+                iconProps={{
+                  iconName: entry.isExpanded ? "ChevronDown" : "ChevronRight",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleRow(entry.id);
+                }}
+              />
+            );
           case "action":
             return (
               <span className={styles.actionCell}>
@@ -575,7 +623,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           }
         }
       },
-      []
+      [onToggleRow]
     );
 
     const onRenderRow = useCallback(
@@ -589,19 +637,26 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           return <LogRowDetails entry={item.entry} />;
         }
         return (
-          <button
-            type="button"
-            className="contents"
-            onClick={() => onToggleRow(item.entry.id)}
+          <div
+            className={styles.logRow}
+            onClick={() => onClickRow(item.entry.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClickRow(item.entry.id);
+              }
+            }}
           >
             <DetailsRow
               {...rowProps}
               className={item.entry.isExpanded ? styles.expandedRow : undefined}
             />
-          </button>
+          </div>
         );
       },
-      [onToggleRow]
+      [onClickRow]
     );
 
     const onChangeOffset = useCallback((newOffset: number) => {
@@ -612,9 +667,12 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
       () =>
         columns.map((col) => ({
           ...col,
-          name: renderToString(
-            `FraudProtectionConfigurationScreen.logs.column.${col.key}`
-          ),
+          name:
+            col.key === "expand"
+              ? ""
+              : renderToString(
+                  `FraudProtectionConfigurationScreen.logs.column.${col.key}`
+                ),
         })),
       [renderToString]
     );

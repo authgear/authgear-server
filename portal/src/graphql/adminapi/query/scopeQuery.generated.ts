@@ -8,7 +8,7 @@ export type ScopeQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type ScopeQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog' } | { __typename: 'Authenticator' } | { __typename: 'Authorization' } | { __typename: 'Group' } | { __typename: 'Identity' } | { __typename: 'Resource' } | { __typename: 'Role' } | { __typename: 'Scope', id: string, scope: string, description?: string | null, resourceID: string, createdAt: any, updatedAt: any } | { __typename: 'Session' } | { __typename: 'User' } | null };
+export type ScopeQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog' } | { __typename: 'Authenticator' } | { __typename: 'Authorization' } | { __typename: 'FraudProtectionDecisionRecord' } | { __typename: 'Group' } | { __typename: 'Identity' } | { __typename: 'Resource' } | { __typename: 'Role' } | { __typename: 'Scope', id: string, scope: string, description?: string | null, resourceID: string, createdAt: any, updatedAt: any } | { __typename: 'Session' } | { __typename: 'User' } | null };
 
 
 export const ScopeQueryDocument = gql`

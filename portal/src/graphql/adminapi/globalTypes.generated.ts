@@ -18,6 +18,8 @@ export type Scalars = {
   AuthenticatorClaims: { input: GQL_AuthenticatorClaims; output: GQL_AuthenticatorClaims; }
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
   DateTime: { input: GQL_DateTime; output: GQL_DateTime; }
+  /** The `FraudProtectionDecisionRecordData` scalar type represents the raw fraud protection decision record payload. */
+  FraudProtectionDecisionRecordData: { input: any; output: any; }
   /** The `IdentityClaims` scalar type represents a set of claims belonging to an identity */
   IdentityClaims: { input: GQL_IdentityClaims; output: GQL_IdentityClaims; }
   /** The `UserCustomAttributes` scalar type represents the custom attributes of the user */
@@ -642,22 +644,25 @@ export enum FraudProtectionDecision {
 
 export type FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSmsActionDetail;
 
-export type FraudProtectionDecisionRecord = {
+export type FraudProtectionDecisionRecord = Node & {
   __typename?: 'FraudProtectionDecisionRecord';
   action: FraudProtectionAction;
   actionDetail: FraudProtectionDecisionActionDetail;
   createdAt: Scalars['DateTime']['output'];
+  data?: Maybe<Scalars['FraudProtectionDecisionRecordData']['output']>;
   decision: FraudProtectionDecision;
   geoLocationCode?: Maybe<Scalars['String']['output']>;
+  /** The ID of an object */
   id: Scalars['ID']['output'];
   ipAddress?: Maybe<Scalars['String']['output']>;
   triggeredWarnings: Array<FraudProtectionWarningType>;
   userAgent?: Maybe<Scalars['String']['output']>;
 };
 
+/** A connection to a list of items. */
 export type FraudProtectionDecisionRecordConnection = {
   __typename?: 'FraudProtectionDecisionRecordConnection';
-  /** A list of edges. */
+  /** Information to aid in pagination. */
   edges?: Maybe<Array<Maybe<FraudProtectionDecisionRecordEdge>>>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
@@ -665,11 +670,12 @@ export type FraudProtectionDecisionRecordConnection = {
   totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
+/** An edge in a connection */
 export type FraudProtectionDecisionRecordEdge = {
   __typename?: 'FraudProtectionDecisionRecordEdge';
-  /** A cursor for use in pagination. */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
-  /** The item at the end of the edge. */
+  /** The item at the end of the edge */
   node?: Maybe<FraudProtectionDecisionRecord>;
 };
 
