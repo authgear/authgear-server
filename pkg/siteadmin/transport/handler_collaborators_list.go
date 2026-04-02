@@ -10,6 +10,7 @@ import (
 )
 
 func ConfigureCollaboratorsListRoute(route httproute.Route) httproute.Route {
+	// The OPTIONS request is handled in CollaboratorAddRoute
 	return route.WithMethods("GET").
 		WithPathPattern("/api/v1/apps/:appID/collaborators")
 }
