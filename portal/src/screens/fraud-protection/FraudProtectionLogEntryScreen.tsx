@@ -61,7 +61,9 @@ const FraudProtectionLogEntryScreen: React.VFC =
       if (node == null) {
         return "—";
       }
-      return renderToString("FraudProtectionConfigurationScreen.logs.action.smsotp");
+      return renderToString(
+        "FraudProtectionConfigurationScreen.logs.action.smsotp"
+      );
     })();
     const verdict = (() => {
       if (node == null) {
