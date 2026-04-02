@@ -30,8 +30,9 @@
 }
 
 .overviewMain {
-  @apply grid grid-cols-1 gap-4 flex-1;
+  @apply grid grid-cols-1 gap-4;
   min-width: min(100%, 480px);
+  flex: 2 1 0px;
 }
 
 @media (min-width: 640px) {
@@ -52,13 +53,6 @@
 
 .overviewSide {
   @apply flex flex-none flex-col self-start;
-  flex: 1 1 300px;
+  flex: 1 1 0px;
   min-width: min(100%, 300px);
-  max-width: 100%;
-}
-
-@media (min-width: 1081px) {
-  .overviewSide {
-    max-width: 300px;
-  }
 }
