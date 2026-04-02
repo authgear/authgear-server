@@ -1045,6 +1045,84 @@ type FraudProtectionOverview {
 }
 
 """"""
+enum FraudProtectionAction {
+  send_sms
+}
+
+""""""
+enum FraudProtectionDecision {
+  allowed
+
+  blocked
+}
+
+""""""
+union FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSMSActionDetail
+
+""""""
+type FraudProtectionDecisionSendSMSActionDetail {
+  """"""
+  phoneNumberCountryCode: String
+
+  """"""
+  recipient: String!
+
+  """"""
+  type: String!
+}
+
+""""""
+type FraudProtectionDecisionRecord {
+  """"""
+  action: FraudProtectionAction!
+
+  """"""
+  actionDetail: FraudProtectionDecisionActionDetail!
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  decision: FraudProtectionDecision!
+
+  """"""
+  geoLocationCode: String
+
+  """"""
+  id: ID!
+
+  """"""
+  ipAddress: String
+
+  """"""
+  triggeredWarnings: [FraudProtectionWarningType!]!
+
+  """"""
+  userAgent: String
+}
+
+""""""
+type FraudProtectionDecisionRecordConnection {
+  """A list of edges."""
+  edges: [FraudProtectionDecisionRecordEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+""""""
+type FraudProtectionDecisionRecordEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: FraudProtectionDecisionRecord
+}
+
+""""""
 type FraudProtectionOverviewTopSourceIP {
   """"""
   blockedActions: Int!
@@ -1057,6 +1135,15 @@ type FraudProtectionOverviewTopSourceIP {
 
   """"""
   warnedActions: Int!
+}
+
+""""""
+enum FraudProtectionWarningType {
+  SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+  SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+  SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
 }
 
 """"""
@@ -1424,6 +1511,9 @@ type Query {
 
   """Fraud protection overview"""
   fraudProtectionOverview(rangeFrom: DateTime, rangeTo: DateTime): FraudProtectionOverview!
+
+  """Fraud protection decision records"""
+  fraudProtectionLogs(after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection
 
   """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User

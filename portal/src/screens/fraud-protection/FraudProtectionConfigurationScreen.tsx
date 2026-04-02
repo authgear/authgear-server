@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { IChoiceGroupOption, PivotItem, Text } from "@fluentui/react";
+import { IChoiceGroupOption, PivotItem } from "@fluentui/react";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
@@ -27,6 +27,7 @@ import { useAppFeatureConfigQuery } from "../../graphql/portal/query/appFeatureC
 import FeatureDisabledMessageBar from "../../graphql/portal/FeatureDisabledMessageBar";
 import { AGPivot } from "../../components/common/AGPivot";
 import FraudProtectionOverviewTab from "../../components/fraud-protection/FraudProtectionOverviewTab";
+import FraudProtectionLogsTab from "../../components/fraud-protection/FraudProtectionLogsTab";
 import FraudProtectionSettingsTab from "../../components/fraud-protection/FraudProtectionSettingsTab";
 import styles from "./FraudProtectionConfigurationScreen.module.css";
 
@@ -216,6 +217,8 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
           <div
             className={`${styles.page} ${
               selectedKey === "overview" ? styles.pageOverview : ""
+            } ${
+              selectedKey === "logs" ? styles.pageLogs : ""
             }`}
           >
             <Toggle
@@ -257,14 +260,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
                   />
                 ) : null}
                 {selectedKey === "logs" ? (
-                  <section className={styles.section}>
-                    <Text as="h2" variant="xLarge" block={true}>
-                      <FormattedMessage id="FraudProtectionConfigurationScreen.tab.logs.title" />
-                    </Text>
-                    <Text block={true}>
-                      <FormattedMessage id="FraudProtectionConfigurationScreen.tab.logs.description" />
-                    </Text>
-                  </section>
+                  <FraudProtectionLogsTab />
                 ) : null}
                 {selectedKey === "settings" ? (
                   <FraudProtectionSettingsTab
