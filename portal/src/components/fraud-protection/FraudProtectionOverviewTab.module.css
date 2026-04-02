@@ -1,0 +1,58 @@
+.section {
+  @apply flex flex-col gap-6;
+}
+
+.overviewHeaderRow {
+  @apply flex items-end justify-between gap-4;
+}
+
+.overviewTimeRange {
+  @apply flex items-center gap-3 text-xs;
+  color: #605e5c;
+}
+
+.overviewTimeRangeGroup {
+  @apply inline-flex items-center rounded-[6px] bg-[#f3f2f1] p-[2px];
+}
+
+.overviewTimeRangeButton {
+  @apply appearance-none border-0 bg-transparent px-[14px] py-[5px] text-sm leading-5;
+  color: #605e5c;
+}
+
+.overviewTimeRangeButtonSelected {
+  @apply rounded-[4px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] font-medium;
+  color: #176df3;
+}
+
+.overviewLayout {
+  @apply flex flex-wrap gap-4;
+}
+
+.overviewMain {
+  @apply grid grid-cols-1 gap-4;
+  min-width: min(100%, 480px);
+  flex: 2 1 0px;
+}
+
+@media (min-width: 640px) {
+  .overviewMain {
+    @apply grid-cols-2;
+  }
+}
+
+.overviewMainRow1 {
+  @apply col-span-1 grid grid-cols-1 gap-4;
+}
+
+@media (min-width: 640px) {
+  .overviewMainRow1 {
+    @apply col-span-2 grid-cols-2;
+  }
+}
+
+.overviewSide {
+  @apply flex flex-none flex-col self-start;
+  flex: 1 1 0px;
+  min-width: min(100%, 300px);
+}

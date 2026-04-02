@@ -1,0 +1,13 @@
+query fraudProtectionOverviewQuery($rangeFrom: DateTime, $rangeTo: DateTime) {
+  fraudProtectionOverview(rangeFrom: $rangeFrom, rangeTo: $rangeTo) {
+    totalActions
+    blockedActions
+    warnedActions
+    topSourceIPs {
+      ipAddress
+      totalActions
+      blockedActions
+      warnedActions
+    }
+  }
+}
