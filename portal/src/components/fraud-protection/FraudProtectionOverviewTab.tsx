@@ -181,10 +181,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
               />
             </div>
             <div className={styles.overviewSide}>
-              <OverviewTopSourceIPs
-                sourceIPs={sourceIPs}
-                maxTotal={maxTotal}
-              />
+              <OverviewTopSourceIPs sourceIPs={sourceIPs} maxTotal={maxTotal} />
             </div>
           </div>
         )}

@@ -179,7 +179,8 @@ const BotProtectionConfigurationScreen = lazy(
   async () => import("./graphql/portal/BotProtectionConfigurationScreen")
 );
 const FraudProtectionConfigurationScreen = lazy(
-  async () => import("./screens/fraud-protection/FraudProtectionConfigurationScreen")
+  async () =>
+    import("./screens/fraud-protection/FraudProtectionConfigurationScreen")
 );
 const FraudProtectionLogEntryScreen = lazy(
   async () => import("./screens/fraud-protection/FraudProtectionLogEntryScreen")

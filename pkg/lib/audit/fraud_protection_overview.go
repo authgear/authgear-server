@@ -9,17 +9,17 @@ import (
 )
 
 type FraudProtectionOverview struct {
-	TotalActions   int                           `json:"totalActions"`
-	BlockedActions int                           `json:"blockedActions"`
-	WarnedActions int                           `json:"warnedActions"`
-	TopSourceIPs  []FraudProtectionOverviewIP `json:"topSourceIPs"`
+	TotalActions   int                         `json:"totalActions"`
+	BlockedActions int                         `json:"blockedActions"`
+	WarnedActions  int                         `json:"warnedActions"`
+	TopSourceIPs   []FraudProtectionOverviewIP `json:"topSourceIPs"`
 }
 
 type FraudProtectionOverviewIP struct {
 	IPAddress      string `json:"ipAddress"`
 	TotalActions   int    `json:"totalActions"`
 	BlockedActions int    `json:"blockedActions"`
-	WarnedActions int    `json:"warnedActions"`
+	WarnedActions  int    `json:"warnedActions"`
 }
 
 func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
@@ -105,7 +105,7 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 	return &FraudProtectionOverview{
 		TotalActions:   int(totalActions),
 		BlockedActions: int(blockedActions),
-		WarnedActions: int(warnedActions),
+		WarnedActions:  int(warnedActions),
 		TopSourceIPs:   topSourceIPs,
 	}, nil
 }
