@@ -136,6 +136,7 @@ func (s *AppOwnerStore) ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID
 		Select("app_id").
 		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
 		Where("user_id = ? AND role = ?", userID, "owner").
+		OrderBy("created_at DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
