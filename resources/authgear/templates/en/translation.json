@@ -17,6 +17,7 @@
   "email.authenticate-secondary-login-link.subject": "Log in to {AppName}",
   "email.send-password-to-new-user.subject": "Get Started With {AppName}",
   "email.send-password-to-existing-user.subject": "[{AppName}] Your password has been changed",
+  "email.usage-alert.subject": "[{AppName}] Usage alert triggered",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Female",

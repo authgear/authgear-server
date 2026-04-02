@@ -185,5 +185,12 @@
     "PasswordLabel": "您的临时密码:",
     "Password": "{{ .Password }}",
     "Instruction": "使用您的电子邮件和临时密码登录 {{ template \"app.name\" }}。登录后请更改您的密码。"
+  },
+  "UsageAlertEmail": {
+    "Title": "已触发 {{ .Usage.Name }} 的使用提醒",
+    "Body": "{{ template \"app.name\" }} 已达到为 {{ .Usage.Period }} {{ .Usage.Name }} 配置的使用阈值。",
+    "Action": "操作：{{ .Usage.Action }}",
+    "Quota": "配额：{{ .Usage.Quota }}",
+    "CurrentValue": "当前值：{{ .Usage.CurrentValue }}"
   }
 }

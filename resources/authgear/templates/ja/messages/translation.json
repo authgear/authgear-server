@@ -185,5 +185,12 @@
     "PasswordLabel": "一時的なパスワード:",
     "Password": "{{ .Password }}",
     "Instruction": "メールアドレスと一時的なパスワードで{{ template \"app.name\" }}にログインしてください。ログイン後、パスワードを変更してください。"
+  },
+  "UsageAlertEmail": {
+    "Title": "{{ .Usage.Name }} の使用量アラートがトリガーされました",
+    "Body": "{{ template \"app.name\" }} は、設定された {{ .Usage.Period }} {{ .Usage.Name }} の使用量しきい値に達しました。",
+    "Action": "アクション: {{ .Usage.Action }}",
+    "Quota": "クォータ: {{ .Usage.Quota }}",
+    "CurrentValue": "現在値: {{ .Usage.CurrentValue }}"
   }
 }

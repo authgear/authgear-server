@@ -1,0 +1,7 @@
+Avviso di utilizzo attivato per {{ .Usage.Name }}
+
+{{ template "app.name" }} ha raggiunto la soglia di utilizzo configurata per {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Azione: {{ .Usage.Action }}
+Quota: {{ .Usage.Quota }}
+Valore attuale: {{ .Usage.CurrentValue }}

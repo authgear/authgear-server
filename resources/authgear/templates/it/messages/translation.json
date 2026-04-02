@@ -185,5 +185,12 @@
     "PasswordLabel": "La tua password temporanea:",
     "Password": "{{ .Password }}",
     "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
+  },
+  "UsageAlertEmail": {
+    "Title": "Avviso di utilizzo attivato per {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} ha raggiunto la soglia di utilizzo configurata per {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Azione: {{ .Usage.Action }}",
+    "Quota": "Quota: {{ .Usage.Quota }}",
+    "CurrentValue": "Valore attuale: {{ .Usage.CurrentValue }}"
   }
 }

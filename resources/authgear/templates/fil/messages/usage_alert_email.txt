@@ -1,0 +1,7 @@
+Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}
+
+Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Aksyon: {{ .Usage.Action }}
+Quota: {{ .Usage.Quota }}
+Kasalukuyang halaga: {{ .Usage.CurrentValue }}

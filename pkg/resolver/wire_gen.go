@@ -789,10 +789,25 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RateLimiter:     limiter,
 		Lockout:         mfaLockout,
 	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
 	usageLimiter := &usage.Limiter{
-		Clock: clock,
-		AppID: appID,
-		Redis: handle,
+		Clock:                  clock,
+		Database:               appdbHandle,
+		AppID:                  appID,
+		Redis:                  handle,
+		EffectiveConfig:        config,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
 	}
 	limits := messaging.Limits{
 		RateLimiter:   limiter,
@@ -801,11 +816,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:        appConfig,
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
-	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	sender := &mail.Sender{
-		GomailDialer: dialer,
 	}
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -853,7 +863,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
 	}
-	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email

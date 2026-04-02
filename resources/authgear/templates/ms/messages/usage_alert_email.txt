@@ -1,0 +1,7 @@
+Amaran penggunaan dicetuskan untuk {{ .Usage.Name }}
+
+{{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasikan untuk {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Tindakan: {{ .Usage.Action }}
+Kuota: {{ .Usage.Quota }}
+Nilai semasa: {{ .Usage.CurrentValue }}

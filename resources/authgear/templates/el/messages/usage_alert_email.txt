@@ -1,0 +1,7 @@
+Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}
+
+Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Ενέργεια: {{ .Usage.Action }}
+Ποσόστωση: {{ .Usage.Quota }}
+Τρέχουσα τιμή: {{ .Usage.CurrentValue }}

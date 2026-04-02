@@ -1,0 +1,7 @@
+Nutzungswarnung für {{ .Usage.Name }} ausgelöst
+
+{{ template "app.name" }} hat den konfigurierten Schwellenwert für {{ .Usage.Period }} {{ .Usage.Name }} erreicht.
+
+Aktion: {{ .Usage.Action }}
+Kontingent: {{ .Usage.Quota }}
+Aktueller Wert: {{ .Usage.CurrentValue }}

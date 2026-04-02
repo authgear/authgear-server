@@ -21,20 +21,20 @@ var _ = FeatureConfigSchema.Add("UsageLimitPeriod", `
 }
 `)
 
-type UsageLimitPeriod string
+type Deprecated_UsageLimitPeriod string
 
 const (
-	UsageLimitPeriodDay   UsageLimitPeriod = "day"
-	UsageLimitPeriodMonth UsageLimitPeriod = "month"
+	Deprecated_UsageLimitPeriodDay   Deprecated_UsageLimitPeriod = "day"
+	Deprecated_UsageLimitPeriodMonth Deprecated_UsageLimitPeriod = "month"
 )
 
-type UsageLimitConfig struct {
-	Enabled *bool            `json:"enabled,omitempty"`
-	Period  UsageLimitPeriod `json:"period,omitempty"`
-	Quota   *int             `json:"quota,omitempty"`
+type Deprecated_UsageLimitConfig struct {
+	Enabled *bool                       `json:"enabled,omitempty"`
+	Period  Deprecated_UsageLimitPeriod `json:"period,omitempty"`
+	Quota   *int                        `json:"quota,omitempty"`
 }
 
-func (c *UsageLimitConfig) IsEnabled() bool {
+func (c *Deprecated_UsageLimitConfig) IsEnabled() bool {
 	if c == nil {
 		return false
 	}
@@ -44,7 +44,7 @@ func (c *UsageLimitConfig) IsEnabled() bool {
 	return *c.Enabled
 }
 
-func (c *UsageLimitConfig) GetQuota() int {
+func (c *Deprecated_UsageLimitConfig) GetQuota() int {
 	if c == nil {
 		return 0
 	}

@@ -25,6 +25,7 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" },
 		"rate_limits": { "$ref": "#/$defs/RateLimitsFeatureConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingFeatureConfig" },
+		"usage": { "$ref": "#/$defs/FeatureUsageConfig" },
 		"collaborator": { "$ref": "#/$defs/CollaboratorFeatureConfig" },
 		"web3": { "$ref": "#/$defs/Web3FeatureConfig" },
 		"admin_api": { "$ref": "#/$defs/AdminAPIFeatureConfig" },
@@ -46,6 +47,7 @@ type FeatureConfig struct {
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
 	RateLimits       *RateLimitsFeatureConfig       `json:"rate_limits,omitempty"`
 	Messaging        *MessagingFeatureConfig        `json:"messaging,omitempty"`
+	Usage            *FeatureUsageConfig            `json:"usage,omitempty" nullable:"true"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
 	Deprecated_Web3  *Deprecated_Web3FeatureConfig  `json:"web3,omitempty"`
 	AdminAPI         *AdminAPIFeatureConfig         `json:"admin_api,omitempty"`
@@ -105,7 +107,7 @@ func ParseFeatureConfig(ctx context.Context, inputYAML []byte) (*FeatureConfig, 
 
 	SetFieldDefaults(config)
 
-	return config, nil
+	return config.Migrate(), nil
 }
 
 func NewEffectiveDefaultFeatureConfig() *FeatureConfig {

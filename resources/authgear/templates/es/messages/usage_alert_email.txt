@@ -1,0 +1,7 @@
+Se ha activado una alerta de uso para {{ .Usage.Name }}
+
+{{ template "app.name" }} ha alcanzado el umbral de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Acción: {{ .Usage.Action }}
+Cuota: {{ .Usage.Quota }}
+Valor actual: {{ .Usage.CurrentValue }}

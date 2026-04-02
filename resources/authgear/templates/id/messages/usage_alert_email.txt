@@ -1,0 +1,7 @@
+Peringatan penggunaan dipicu untuk {{ .Usage.Name }}
+
+{{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasi untuk {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Tindakan: {{ .Usage.Action }}
+Kuota: {{ .Usage.Quota }}
+Nilai saat ini: {{ .Usage.CurrentValue }}

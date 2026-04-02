@@ -185,5 +185,12 @@
     "PasswordLabel": "Kata sandi sementara Anda:",
     "Password": "{{ .Password }}",
     "Instruction": "Login ke {{ template \"app.name\" }} dengan email dan kata sandi sementara Anda. Harap ubah kata sandi Anda setelah login."
+  },
+  "UsageAlertEmail": {
+    "Title": "Peringatan penggunaan dipicu untuk {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} telah mencapai ambang penggunaan yang dikonfigurasi untuk {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Tindakan: {{ .Usage.Action }}",
+    "Quota": "Kuota: {{ .Usage.Quota }}",
+    "CurrentValue": "Nilai saat ini: {{ .Usage.CurrentValue }}"
   }
 }

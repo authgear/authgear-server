@@ -185,5 +185,12 @@
     "PasswordLabel": "Sua senha temporária:",
     "Password": "{{ .Password }}",
     "Instruction": "Faça login em {{ template \"app.name\" }} com seu e-mail e senha temporária. Por favor, mude sua senha após o login."
+  },
+  "UsageAlertEmail": {
+    "Title": "Alerta de utilização acionado para {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} atingiu o limite de utilização configurado para {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Ação: {{ .Usage.Action }}",
+    "Quota": "Quota: {{ .Usage.Quota }}",
+    "CurrentValue": "Valor atual: {{ .Usage.CurrentValue }}"
   }
 }

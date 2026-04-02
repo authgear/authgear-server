@@ -185,5 +185,12 @@
     "PasswordLabel": "Dein temporäres Passwort:",
     "Password": "{{ .Password }}",
     "Instruction": "Melde dich bei {{ template \"app.name\" }} mit deiner E-Mail-Adresse und deinem temporären Passwort an. Bitte ändere dein Passwort nach der Anmeldung."
+  },
+  "UsageAlertEmail": {
+    "Title": "Nutzungswarnung für {{ .Usage.Name }} ausgelöst",
+    "Body": "{{ template \"app.name\" }} hat den konfigurierten Schwellenwert für {{ .Usage.Period }} {{ .Usage.Name }} erreicht.",
+    "Action": "Aktion: {{ .Usage.Action }}",
+    "Quota": "Kontingent: {{ .Usage.Quota }}",
+    "CurrentValue": "Aktueller Wert: {{ .Usage.CurrentValue }}"
   }
 }

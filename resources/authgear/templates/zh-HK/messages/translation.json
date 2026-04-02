@@ -185,5 +185,12 @@
     "PasswordLabel": "您的臨時密碼：",
     "Password": "{{ .Password }}",
     "Instruction": "使用您的電子郵件和臨時密碼登錄 {{ template \"app.name\" }}。登錄後請更改您的密碼。"
+  },
+  "UsageAlertEmail": {
+    "Title": "已觸發 {{ .Usage.Name }} 的用量提醒",
+    "Body": "{{ template \"app.name\" }} 已達到為 {{ .Usage.Period }} {{ .Usage.Name }} 設定的用量門檻。",
+    "Action": "動作：{{ .Usage.Action }}",
+    "Quota": "配額：{{ .Usage.Quota }}",
+    "CurrentValue": "目前值：{{ .Usage.CurrentValue }}"
   }
 }

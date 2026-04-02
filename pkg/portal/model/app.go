@@ -10,6 +10,58 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+// PortalFeatureConfig is the portal API representation of FeatureConfig.
+// It contains only the fields relevant to the portal UI.
+type PortalFeatureConfig struct {
+	Identity         *config.IdentityFeatureConfig         `json:"identity,omitempty"`
+	Authentication   *config.AuthenticationFeatureConfig   `json:"authentication,omitempty"`
+	Authenticator    *config.AuthenticatorFeatureConfig    `json:"authenticator,omitempty"`
+	CustomDomain     *config.CustomDomainFeatureConfig     `json:"custom_domain,omitempty"`
+	UI               *config.UIFeatureConfig               `json:"ui,omitempty"`
+	OAuth            *config.OAuthFeatureConfig            `json:"oauth,omitempty"`
+	Hook             *config.HookFeatureConfig             `json:"hook,omitempty"`
+	AuditLog         *config.AuditLogFeatureConfig         `json:"audit_log,omitempty"`
+	GoogleTagManager *config.GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
+	Messaging        *PortalMessagingFeatureConfig         `json:"messaging,omitempty"`
+	Collaborator     *config.CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
+	FraudProtection  *config.FraudProtectionFeatureConfig  `json:"fraud_protection,omitempty"`
+}
+
+// PortalMessagingFeatureConfig exposes only the messaging feature flags
+// relevant to the portal UI (rate limits and usage fields are excluded).
+type PortalMessagingFeatureConfig struct {
+	TemplateCustomizationDisabled *bool `json:"template_customization_disabled,omitempty"`
+	CustomSMTPDisabled            *bool `json:"custom_smtp_disabled,omitempty"`
+	CustomSMSProviderDisabled     *bool `json:"custom_sms_provider_disabled,omitempty"`
+}
+
+func NewPortalFeatureConfig(c *config.FeatureConfig) *PortalFeatureConfig {
+	if c == nil {
+		return nil
+	}
+	out := &PortalFeatureConfig{
+		Identity:         c.Identity,
+		Authentication:   c.Authentication,
+		Authenticator:    c.Authenticator,
+		CustomDomain:     c.CustomDomain,
+		UI:               c.UI,
+		OAuth:            c.OAuth,
+		Hook:             c.Hook,
+		AuditLog:         c.AuditLog,
+		GoogleTagManager: c.GoogleTagManager,
+		Collaborator:     c.Collaborator,
+		FraudProtection:  c.FraudProtection,
+	}
+	if c.Messaging != nil {
+		out.Messaging = &PortalMessagingFeatureConfig{
+			TemplateCustomizationDisabled: c.Messaging.TemplateCustomizationDisabled,
+			CustomSMTPDisabled:            c.Messaging.CustomSMTPDisabled,
+			CustomSMSProviderDisabled:     c.Messaging.CustomSMSProviderDisabled,
+		}
+	}
+	return out
+}
+
 type AppListItem struct {
 	AppID        string `json:"appID,omitempty"`
 	PublicOrigin string `json:"publicOrigin,omitempty"`

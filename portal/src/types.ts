@@ -465,6 +465,8 @@ export interface MessagingConfig {
 
 export interface MessagingFeatureConfig {
   template_customization_disabled?: boolean;
+  custom_smtp_disabled?: boolean;
+  custom_sms_provider_disabled?: boolean;
 }
 
 export interface MessagingRateLimitsConfig {
@@ -913,6 +915,7 @@ export interface PortalAPIFeatureConfig {
   hook?: HookFeatureConfig;
   audit_log?: AuditLogFeatureConfig;
   google_tag_manager?: GoogleTagManagerFeatureConfig;
+  messaging?: MessagingFeatureConfig;
   collaborator?: CollaboratorFeatureConfig;
 }
 
@@ -936,6 +939,7 @@ export interface PasswordPolicyItemFeatureConfig {
 
 export interface CollaboratorFeatureConfig {
   maximum?: number;
+  soft_maximum?: number;
 }
 
 export interface GoogleTagManagerFeatureConfig {
@@ -1019,7 +1023,9 @@ export interface OAuthFeatureConfig {
 
 export interface OAuthClientFeatureConfig {
   maximum?: number;
-  custom_ui_enabled: boolean;
+  soft_maximum?: number;
+  custom_ui_enabled?: boolean;
+  app2app_enabled?: boolean;
 }
 
 export interface HookFeatureConfig {

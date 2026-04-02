@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -34,12 +35,8 @@ type UserExportCreateHandlerUserExportService interface {
 	ParseExportRequest(w http.ResponseWriter, r *http.Request) (*userexport.Request, error)
 }
 
-const (
-	usageLimitUserExport usage.LimitName = "UserExport"
-)
-
 type UserExportUsageLimiter interface {
-	Reserve(ctx context.Context, name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name model.UsageName, n int) (*usage.Reservation, error)
 }
 
 type UserExportCreateHandler struct {
@@ -77,8 +74,8 @@ func (h *UserExportCreateHandler) handle(ctx context.Context, w http.ResponseWri
 
 	_, err = h.UsageLimiter.Reserve(
 		ctx,
-		usageLimitUserExport,
-		h.AdminAPIFeatureConfig.UserExportUsage,
+		model.UsageNameUserExport,
+		1,
 	)
 	if err != nil {
 		return err

@@ -1,0 +1,59 @@
+name: Project usage alert email is delivered once with deduplicated recipients
+authgear.yaml:
+  override: |
+    usage:
+      alerts:
+      - type: "email"
+        email: "usage-alert@example.com"
+        match: "sms"
+      - type: "email"
+        email: "usage-alert@example.com"
+        match: "*"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "alert"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231601"
+      }
+  - name: send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: wait for email delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query smtp log
+    action: smtp_log_query
+    smtp_log_subject: "[Authgear] Usage alert triggered"
+    smtp_log_recipient: "usage-alert@example.com"
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "[Authgear] Usage alert triggered",
+            "recipient": "usage-alert@example.com"
+          }
+        ]

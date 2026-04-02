@@ -63,7 +63,6 @@ func BenchmarkUserImport(b *testing.B) {
 		},
 		Test: b,
 	})
-	cmd.ExtraEnv = append(cmd.ExtraEnv, "DATABASE_CONFIG_USE_PREPARED_STATEMENTS=1")
 
 	b.ResetTimer()
 
