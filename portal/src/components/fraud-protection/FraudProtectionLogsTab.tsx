@@ -118,7 +118,7 @@ function parseEntry(
   >,
   locale: string
 ): FraudProtectionLogEntry {
-  const phoneNumber = node.actionDetail.recipient ?? "";
+  const phoneNumber = node.actionDetail.recipient;
   return {
     id: node.id,
     createdAt: formatDatetime(locale, node.createdAt) ?? "",
