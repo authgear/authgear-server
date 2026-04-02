@@ -630,6 +630,55 @@ export type Entity = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export enum FraudProtectionAction {
+  SendSms = 'send_sms'
+}
+
+export enum FraudProtectionDecision {
+  Allowed = 'allowed',
+  Blocked = 'blocked'
+}
+
+export type FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSmsActionDetail;
+
+export type FraudProtectionDecisionRecord = {
+  __typename?: 'FraudProtectionDecisionRecord';
+  action: FraudProtectionAction;
+  actionDetail: FraudProtectionDecisionActionDetail;
+  createdAt: Scalars['DateTime']['output'];
+  decision: FraudProtectionDecision;
+  geoLocationCode?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  triggeredWarnings: Array<FraudProtectionWarningType>;
+  userAgent?: Maybe<Scalars['String']['output']>;
+};
+
+export type FraudProtectionDecisionRecordConnection = {
+  __typename?: 'FraudProtectionDecisionRecordConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<Maybe<FraudProtectionDecisionRecordEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type FraudProtectionDecisionRecordEdge = {
+  __typename?: 'FraudProtectionDecisionRecordEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node?: Maybe<FraudProtectionDecisionRecord>;
+};
+
+export type FraudProtectionDecisionSendSmsActionDetail = {
+  __typename?: 'FraudProtectionDecisionSendSMSActionDetail';
+  phoneNumberCountryCode?: Maybe<Scalars['String']['output']>;
+  recipient: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
 export type FraudProtectionOverview = {
   __typename?: 'FraudProtectionOverview';
   allowedActions: Scalars['Int']['output'];
@@ -646,6 +695,14 @@ export type FraudProtectionOverviewTopSourceIp = {
   totalActions: Scalars['Int']['output'];
   warnedActions: Scalars['Int']['output'];
 };
+
+export enum FraudProtectionWarningType {
+  SmsPhoneCountriesByIpDailyThresholdExceeded = 'SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByIpDailyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByIpHourlyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByPhoneCountryDailyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByPhoneCountryHourlyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED'
+}
 
 export type GenerateOobotpCodeInput = {
   /** Purpose of the generated OTP code. */
@@ -1209,6 +1266,8 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Fraud protection decision records */
+  fraudProtectionLogs?: Maybe<FraudProtectionDecisionRecordConnection>;
   /** Fraud protection overview */
   fraudProtectionOverview: FraudProtectionOverview;
   /** Get user by Login ID. */
@@ -1244,6 +1303,20 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryFraudProtectionLogsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
+  reasonCodes?: InputMaybe<Array<Scalars['String']['input']>>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sortDirection?: InputMaybe<SortDirection>;
+  verdicts?: InputMaybe<Array<FraudProtectionDecision>>;
 };
 
 

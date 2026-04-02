@@ -1,0 +1,43 @@
+query FraudProtectionLogsQuery(
+  $pageSize: Int!
+  $cursor: String
+  $rangeFrom: DateTime
+  $rangeTo: DateTime
+  $sortDirection: SortDirection
+  $verdicts: [FraudProtectionDecision!]
+  $reasonCodes: [String!]
+  $search: String
+) {
+  fraudProtectionLogs(
+    first: $pageSize
+    after: $cursor
+    rangeFrom: $rangeFrom
+    rangeTo: $rangeTo
+    sortDirection: $sortDirection
+    verdicts: $verdicts
+    reasonCodes: $reasonCodes
+    search: $search
+  ) {
+    edges {
+      node {
+        id
+        createdAt
+        decision
+        action
+        actionDetail {
+          __typename
+          ... on FraudProtectionDecisionSendSMSActionDetail {
+            recipient
+            type
+            phoneNumberCountryCode
+          }
+        }
+        triggeredWarnings
+        userAgent
+        ipAddress
+        geoLocationCode
+      }
+    }
+    totalCount
+  }
+}
