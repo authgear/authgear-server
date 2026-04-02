@@ -115,7 +115,6 @@
   font-size: 11px;
   font-weight: 400;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .rawLogHeader {
@@ -137,7 +136,7 @@
 .rawLogPre {
   @apply m-0 p-3;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   font-size: 12px;
 }
 
