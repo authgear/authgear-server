@@ -1,0 +1,26 @@
+fragment FraudProtectionLogEntry on FraudProtectionDecisionRecord {
+  id
+  createdAt
+  decision
+  action
+  actionDetail {
+    __typename
+    ... on FraudProtectionDecisionSendSMSActionDetail {
+      recipient
+      type
+      phoneNumberCountryCode
+    }
+  }
+  triggeredWarnings
+  userAgent
+  ipAddress
+  geoLocationCode
+  data
+}
+
+query FraudProtectionLogEntryQuery($logID: ID!) {
+  node(id: $logID) {
+    __typename
+    ...FraudProtectionLogEntry
+  }
+}

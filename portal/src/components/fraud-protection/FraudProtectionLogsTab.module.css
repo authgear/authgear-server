@@ -40,6 +40,21 @@
   @apply border-0;
 }
 
+.logRow {
+  cursor: pointer;
+}
+
+.expandButton {
+  @apply h-6 w-6;
+  color: #605e5c;
+}
+
+.expandButton :global(.ms-Button-icon) {
+  color: #605e5c;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .expandedRow {
   background-color: #f9f8f6;
 }
