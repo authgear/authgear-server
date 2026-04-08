@@ -8,37 +8,61 @@ Audit and fix dependency vulnerabilities in this project. Follow the steps below
 
 ## Step 1: Go Vulnerability Check
 
-Run from the project root and from `./k6` (it is a separate Go module with its own `go.mod`):
+Run `govulncheck` in every Go module in the repository:
 
 ```
 make govulncheck
+cd custombuild && make govulncheck
+cd e2e && make govulncheck
 cd k6 && make govulncheck
+cd packagetracker && make govulncheck
 ```
+Use the module's own `make govulncheck` target if it exists; otherwise run `go tool govulncheck ./...` from that module root.
 
 Parse the output:
 - If there are **no vulnerabilities**, note it and move on.
 - If there are **vulnerabilities**, for each affected module:
-  1. Run `go list -m -u <module>` to find the latest available version.
-  2. Compare the current version with the latest version:
-     - If the major version changes (e.g. `v1.x.x` → `v2.x.x`), this is a **major version upgrade**. Generate a **Breaking Change Report** for it (see below) and ask the user to confirm before proceeding with that module.
+   1. Run `go list -m -u <module>` to find the latest available version.
+   2. Compare the current version with the latest version:
+     - If the major version changes (e.g. `v1.x.x` → `v2.x.x`), this is a **major version upgrade**. Generate a **Breaking Change Report** for it (see below), defer the upgrade, and continue with any other patchable work.
      - If only minor/patch version changes, proceed automatically.
-  3. After user confirmation (if needed), run `go get <module>@latest` then `go mod tidy` in all relevant directories:
-     - `./`
-     - `./custombuild`
-     - `./e2e`
-     - `./k6`
+   3. After all patchable fixes are applied and any deferred major upgrades have been presented to the user for a decision, run `go get <module>@latest` then `go mod tidy` in all relevant directories:
+      - `./`
+      - `./custombuild`
+      - `./e2e`
+      - `./k6`
+      - `./packagetracker`
+
+Important:
+- `go get <module>@latest` is for Go module dependencies only. Do **not** use it to change the Go toolchain version.
+- If the requested fix is a Go version bump, update the repository's Go version files and generated inputs directly instead of trying to solve it with `go get`:
+  - `flake.nix`
+  - `.tool-versions`
+  - `go.mod`
+  - `custombuild/go.mod`
+  - `e2e/go.mod`
+  - `k6/go.mod`
+  - `packagetracker/go.mod.tpl`
+  - `custombuild/cmd/authgearx/Dockerfile`
+  - `custombuild/cmd/portalx/Dockerfile`
+  - `cmd/portal/Dockerfile`
+  - `cmd/authgear/Dockerfile`
+  - `once/partial.dockerfile`
+  - regenerate `once/Dockerfile` with `make once/Dockerfile`
+  - run `make go-mod-tidy`
+- If a Go version bump is needed, verify the repository-specific generation and build steps after editing the version files. Do not commit a toolchain bump that only changes `go.mod` without updating the other affected files.
 
 **Breaking Change Report for Go (major version bumps)** must include:
 - Module name, current version → proposed version
 - Link to the module's changelog or migration guide if available (check the module's repository)
 - Known incompatibilities (import path changes, removed/renamed symbols)
-- Ask: "Do you want to apply this major version upgrade? (yes/no)"
+- Note that the upgrade is deferred until the end of the patchable-fix pass, then ask: "Do you want to apply this major version upgrade? (yes/no)"
 
 After updating Go deps:
 - Run `make build` or `go build ./...` to verify the build.
 - If the build breaks, report the compiler errors and ask the user how to proceed. Do not commit.
 - If vulnerabilities cannot be fixed (no fix available), note them in an **Unfixable Issues Report** and notify the user.
-- If fixes were applied and build passes, stage and commit: `git add go.sum go.mod custombuild/go.sum custombuild/go.mod e2e/go.sum e2e/go.mod k6/go.sum k6/go.mod` and commit with message: `chore: fix Go dependency vulnerabilities`
+- If fixes were applied and build passes, stage and commit all affected Go module files, including `go.sum`, `go.mod`, `custombuild/go.sum`, `custombuild/go.mod`, `e2e/go.sum`, `e2e/go.mod`, `k6/go.sum`, `k6/go.mod`, and `packagetracker/go.sum`/`packagetracker/go.mod` when they change, with commit message: `chore: fix Go dependency vulnerabilities`
 
 ## Step 2: Node.js Audit — directory by directory
 
@@ -64,12 +88,13 @@ For each directory:
        - Package name, current version → proposed version
        - Semver change type (major bump)
        - Any notes from the advisory about incompatible changes
-     - Present the report and ask the user to confirm before applying those upgrades.
+     - Do not apply the major upgrade automatically. Defer it, continue with any patchable fixes in other packages/directories, and report it in the final summary for a user decision.
    - For fixes with only minor/patch version bumps, run `npm audit fix` automatically.
-   - If the user confirmed breaking changes, run `npm audit fix --force` (only after confirmation).
+   - If the user later confirms the breaking changes, run `npm audit fix --force` (only after confirmation), then verify build and commit that directory.
+   - If a vulnerability can only be fixed by a major version bump, do not apply it automatically. Record it in the Breaking Change Report and revisit it only after all patchable fixes have been applied.
    - If vulnerabilities are **unfixable via npm audit fix** (i.e. `npm audit fix --dry-run` shows no resolution), check if the vulnerability is in a **transitive dependency** whose parent has not yet released a patch:
-     1. Identify the vulnerable transitive package and the minimum safe version that fixes it (from the advisory).
-     2. Run `npm list <transitive-package> --all` to see **every installed version** of that package across the dependency tree. This is critical — there may be multiple versions installed at different semver ranges (e.g. `3.x`, `9.x`, `10.x`). Only the version(s) that fall in the advisory's vulnerable range need to be overridden.
+      1. Identify the vulnerable transitive package and the minimum safe version that fixes it (from the advisory).
+      2. Run `npm list <transitive-package> --all` to see **every installed version** of that package across the dependency tree. This is critical — there may be multiple versions installed at different semver ranges (e.g. `3.x`, `9.x`, `10.x`). Only the version(s) that fall in the advisory's vulnerable range need to be overridden.
      3. Identify the **direct parent package(s)** that pull in the vulnerable version (e.g. `eslint-plugin-sonarjs` → `minimatch@10.1.2`).
      4. Check the changelog/release notes between the currently-used vulnerable version and the safe version:
         - Look for any breaking changes (API removals, changed behavior, new peer-dep requirements).

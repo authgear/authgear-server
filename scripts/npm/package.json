@@ -9,7 +9,11 @@
     "import-v2-translations": "node import-v2-translations.mjs",
     "check-spell-translations": "cspell ../../resources/authgear/templates/en/translation.json"
   },
-  "overrides": {},
+  "overrides": {
+    "mjml": {
+      "lodash": "^4.18.1"
+    }
+  },
   "devDependencies": {
     "cldr-localenames-modern": "45.0.0",
     "cspell": "^9.2.1",
