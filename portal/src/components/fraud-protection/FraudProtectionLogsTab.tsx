@@ -50,7 +50,7 @@ import styles from "./FraudProtectionLogsTab.module.css";
 
 const PAGE_SIZE = 20;
 
-type ResultFilterKey = "all" | "allowed" | "blocked";
+type ResultFilterKey = "all" | "allowed" | "flagged" | "blocked";
 type ActionFilterKey = "smsotp";
 
 const KNOWN_REASON_CODES = [
@@ -132,16 +132,22 @@ function parseEntry(
   };
 }
 
-function getResultQueryVariables(
-  resultFilter: ResultFilterKey
-): FraudProtectionDecision[] | undefined {
+function getResultQueryVariables(resultFilter: ResultFilterKey): {
+  minimumWarningCount?: number;
+  verdicts?: FraudProtectionDecision[];
+} {
   switch (resultFilter) {
     case "allowed":
-      return [FraudProtectionDecision.Allowed];
+      return { verdicts: [FraudProtectionDecision.Allowed] };
+    case "flagged":
+      return {
+        verdicts: [FraudProtectionDecision.Allowed],
+        minimumWarningCount: 1,
+      };
     case "blocked":
-      return [FraudProtectionDecision.Blocked];
+      return { verdicts: [FraudProtectionDecision.Blocked] };
     case "all":
-      return undefined;
+      return {};
   }
 }
 
@@ -171,9 +177,7 @@ interface ResultCellProps {
   entry: FraudProtectionLogEntry;
 }
 
-const ResultCell: React.VFC<ResultCellProps> = function ResultCell({
-  entry,
-}) {
+const ResultCell: React.VFC<ResultCellProps> = function ResultCell({ entry }) {
   const { renderToString } = useContext(Context);
   return (
     <span className={`${styles.resultBadge} ${getResultClassName(entry)}`}>
@@ -376,6 +380,10 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
     const cursor = useMemo(() => encodeOffsetToCursor(offset), [offset]);
 
     const [debouncedSearch] = useDebounced(searchText, 300);
+    const resultQueryVariables = useMemo(
+      () => getResultQueryVariables(resultFilter),
+      [resultFilter]
+    );
 
     const { data, previousData, loading, error, refetch } =
       useFraudProtectionLogsQueryQuery({
@@ -385,9 +393,10 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           rangeFrom: queryRangeFrom,
           rangeTo: queryRangeTo,
           sortDirection,
-          verdicts: getResultQueryVariables(resultFilter),
+          verdicts: resultQueryVariables.verdicts,
           reasonCodes:
             selectedReasonCodes.length > 0 ? selectedReasonCodes : undefined,
+          minimumWarningCount: resultQueryVariables.minimumWarningCount,
           search:
             debouncedSearch.trim() !== "" ? debouncedSearch.trim() : undefined,
         },
@@ -506,6 +515,12 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           key: "allowed",
           text: renderToString(
             "FraudProtectionConfigurationScreen.logs.result.allowed"
+          ),
+        },
+        {
+          key: "flagged",
+          text: renderToString(
+            "FraudProtectionConfigurationScreen.logs.result.flagged"
           ),
         },
         {

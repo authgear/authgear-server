@@ -18,12 +18,13 @@ type FraudProtectionDecisionRecord struct {
 }
 
 type FraudProtectionDecisionRecordQueryOptions struct {
-	RangeFrom     *time.Time
-	RangeTo       *time.Time
-	SortDirection model.SortDirection
-	Decisions     []model.FraudProtectionDecision
-	Search        *string
-	ReasonCodes   []string
+	RangeFrom           *time.Time
+	RangeTo             *time.Time
+	SortDirection       model.SortDirection
+	Decisions           []model.FraudProtectionDecision
+	Search              *string
+	ReasonCodes         []string
+	MinimumWarningCount *int
 }
 
 func (o FraudProtectionDecisionRecordQueryOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
@@ -61,6 +62,12 @@ func (o FraudProtectionDecisionRecordQueryOptions) Apply(q db.SelectBuilder) db.
 				WHERE warning.code = ANY (?)
 			)`,
 			pq.Array(o.ReasonCodes),
+		)
+	}
+	if o.MinimumWarningCount != nil {
+		q = q.Where(
+			"COALESCE(jsonb_array_length(data->'payload'->'record'->'triggered_warnings'), 0) >= ?",
+			*o.MinimumWarningCount,
 		)
 	}
 

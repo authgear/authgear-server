@@ -6,6 +6,7 @@ query FraudProtectionLogsQuery(
   $sortDirection: SortDirection
   $verdicts: [FraudProtectionDecision!]
   $reasonCodes: [String!]
+  $minimumWarningCount: Int
   $search: String
 ) {
   fraudProtectionLogs(
@@ -16,6 +17,7 @@ query FraudProtectionLogsQuery(
     sortDirection: $sortDirection
     verdicts: $verdicts
     reasonCodes: $reasonCodes
+    minimumWarningCount: $minimumWarningCount
     search: $search
   ) {
     edges {

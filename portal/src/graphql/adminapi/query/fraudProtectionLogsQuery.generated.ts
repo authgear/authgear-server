@@ -11,6 +11,7 @@ export type FraudProtectionLogsQueryQueryVariables = Types.Exact<{
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
   verdicts?: Types.InputMaybe<Array<Types.FraudProtectionDecision> | Types.FraudProtectionDecision>;
   reasonCodes?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  minimumWarningCount?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
@@ -19,7 +20,7 @@ export type FraudProtectionLogsQueryQuery = { __typename?: 'Query', fraudProtect
 
 
 export const FraudProtectionLogsQueryDocument = gql`
-    query FraudProtectionLogsQuery($pageSize: Int!, $cursor: String, $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection, $verdicts: [FraudProtectionDecision!], $reasonCodes: [String!], $search: String) {
+    query FraudProtectionLogsQuery($pageSize: Int!, $cursor: String, $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection, $verdicts: [FraudProtectionDecision!], $reasonCodes: [String!], $minimumWarningCount: Int, $search: String) {
   fraudProtectionLogs(
     first: $pageSize
     after: $cursor
@@ -28,6 +29,7 @@ export const FraudProtectionLogsQueryDocument = gql`
     sortDirection: $sortDirection
     verdicts: $verdicts
     reasonCodes: $reasonCodes
+    minimumWarningCount: $minimumWarningCount
     search: $search
   ) {
     edges {
@@ -74,6 +76,7 @@ export const FraudProtectionLogsQueryDocument = gql`
  *      sortDirection: // value for 'sortDirection'
  *      verdicts: // value for 'verdicts'
  *      reasonCodes: // value for 'reasonCodes'
+ *      minimumWarningCount: // value for 'minimumWarningCount'
  *      search: // value for 'search'
  *   },
  * });

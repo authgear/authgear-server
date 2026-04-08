@@ -225,12 +225,18 @@ func fraudProtectionDecisionRecordQueryOptionsFromArgs(
 		return out
 	}
 
+	var minimumWarningCount *int
+	if n, ok := p.Args["minimumWarningCount"].(int); ok {
+		minimumWarningCount = &n
+	}
+
 	return audit.FraudProtectionDecisionRecordQueryOptions{
-		RangeFrom:     rangeFrom,
-		RangeTo:       rangeTo,
-		SortDirection: sortDirection,
-		Decisions:     decisions,
-		ReasonCodes:   toStringSlice("reasonCodes"),
+		RangeFrom:           rangeFrom,
+		RangeTo:             rangeTo,
+		SortDirection:       sortDirection,
+		Decisions:           decisions,
+		ReasonCodes:         toStringSlice("reasonCodes"),
+		MinimumWarningCount: minimumWarningCount,
 		Search: func() *string {
 			search, _ := p.Args["search"].(string)
 			if search == "" {

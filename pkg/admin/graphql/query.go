@@ -398,6 +398,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"reasonCodes": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 				},
+				"minimumWarningCount": &graphql.ArgumentConfig{
+					Type: graphql.Int,
+				},
 				"search": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
