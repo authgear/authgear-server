@@ -1,1 +1,1 @@
-- Refer to @./.cursor/rules/go.mdc
+AGENTS.md
