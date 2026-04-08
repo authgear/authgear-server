@@ -9,7 +9,7 @@ export interface SourceIPRow {
   ip: string;
   total: number;
   blocked: number;
-  warnings: number;
+  flagged: number;
 }
 
 export interface OverviewTopSourceIPsProps {
@@ -33,7 +33,7 @@ const OverviewTopSourceIPs: React.VFC<OverviewTopSourceIPsProps> =
     const displaySourceIPs = useMemo(() => {
       const list = sourceIPs.slice(0, maxSlots);
       while (list.length < maxSlots) {
-        list.push({ ip: "—", total: 0, blocked: 0, warnings: 0 });
+        list.push({ ip: "—", total: 0, blocked: 0, flagged: 0 });
       }
       return list;
     }, [sourceIPs, maxSlots]);
@@ -87,11 +87,11 @@ const OverviewTopSourceIPs: React.VFC<OverviewTopSourceIPsProps> =
                       )}
                     </div>
                   ) : null}
-                  {row.blocked === 0 && row.warnings > 0 ? (
-                    <div className={styles.challengedStatus}>
+                  {row.blocked === 0 && row.flagged > 0 ? (
+                    <div className={styles.flaggedStatus}>
                       {renderToString(
-                        "FraudProtectionConfigurationScreen.overview.topSourceIPs.warningStatus",
-                        { count: row.warnings }
+                        "FraudProtectionConfigurationScreen.overview.topSourceIPs.flaggedStatus",
+                        { count: row.flagged }
                       )}
                     </div>
                   ) : null}

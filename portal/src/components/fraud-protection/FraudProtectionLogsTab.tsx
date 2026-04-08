@@ -50,7 +50,7 @@ import styles from "./FraudProtectionLogsTab.module.css";
 
 const PAGE_SIZE = 20;
 
-type VerdictFilterKey = "all" | "allowed" | "blocked";
+type ResultFilterKey = "all" | "allowed" | "blocked";
 type ActionFilterKey = "smsotp";
 
 const KNOWN_REASON_CODES = [
@@ -132,10 +132,10 @@ function parseEntry(
   };
 }
 
-function getVerdictQueryVariables(
-  verdictFilter: VerdictFilterKey
+function getResultQueryVariables(
+  resultFilter: ResultFilterKey
 ): FraudProtectionDecision[] | undefined {
-  switch (verdictFilter) {
+  switch (resultFilter) {
     case "allowed":
       return [FraudProtectionDecision.Allowed];
     case "blocked":
@@ -145,30 +145,39 @@ function getVerdictQueryVariables(
   }
 }
 
-// ---- VerdictCell ----
+function getResultMessageID(entry: FraudProtectionLogEntry): string {
+  if (entry.decision === FraudProtectionDecision.Blocked) {
+    return "FraudProtectionConfigurationScreen.logs.result.blocked";
+  }
+  if (entry.reasonCodes.length > 0) {
+    return "FraudProtectionConfigurationScreen.logs.result.flagged";
+  }
+  return "FraudProtectionConfigurationScreen.logs.result.allowed";
+}
 
-interface VerdictCellProps {
+function getResultClassName(entry: FraudProtectionLogEntry): string {
+  if (entry.decision === FraudProtectionDecision.Blocked) {
+    return styles.resultBlocked;
+  }
+  if (entry.reasonCodes.length > 0) {
+    return styles.resultFlagged;
+  }
+  return styles.resultAllowed;
+}
+
+// ---- ResultCell ----
+
+interface ResultCellProps {
   entry: FraudProtectionLogEntry;
 }
 
-const VerdictCell: React.VFC<VerdictCellProps> = function VerdictCell({
+const ResultCell: React.VFC<ResultCellProps> = function ResultCell({
   entry,
 }) {
   const { renderToString } = useContext(Context);
-  if (entry.decision === FraudProtectionDecision.Blocked) {
-    return (
-      <span className={`${styles.verdictBadge} ${styles.verdictBlocked}`}>
-        {renderToString(
-          "FraudProtectionConfigurationScreen.logs.verdict.blocked"
-        )}
-      </span>
-    );
-  }
   return (
-    <span className={`${styles.verdictBadge} ${styles.verdictAllowed}`}>
-      {renderToString(
-        "FraudProtectionConfigurationScreen.logs.verdict.allowed"
-      )}
+    <span className={`${styles.resultBadge} ${getResultClassName(entry)}`}>
+      {renderToString(getResultMessageID(entry))}
     </span>
   );
 };
@@ -289,8 +298,8 @@ const columns: IColumn[] = [
     columnActionsMode: ColumnActionsMode.disabled,
   },
   {
-    key: "verdict",
-    name: "Verdict",
+    key: "result",
+    name: "Result",
     minWidth: 80,
     maxWidth: 100,
     columnActionsMode: ColumnActionsMode.disabled,
@@ -319,7 +328,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
     const [offset, setOffset] = useState(0);
     const [sortDirection] = useState(SortDirection.Desc);
     const [actionFilter] = useState<ActionFilterKey>("smsotp");
-    const [verdictFilter, setVerdictFilter] = useState<VerdictFilterKey>("all");
+    const [resultFilter, setResultFilter] = useState<ResultFilterKey>("all");
     const [selectedReasonCodes, setSelectedReasonCodes] = useState<string[]>(
       []
     );
@@ -376,7 +385,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           rangeFrom: queryRangeFrom,
           rangeTo: queryRangeTo,
           sortDirection,
-          verdicts: getVerdictQueryVariables(verdictFilter),
+          verdicts: getResultQueryVariables(resultFilter),
           reasonCodes:
             selectedReasonCodes.length > 0 ? selectedReasonCodes : undefined,
           search:
@@ -424,7 +433,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
 
     useEffect(() => {
       setOffset(0);
-    }, [verdictFilter, selectedReasonCodes, debouncedSearch]);
+    }, [resultFilter, selectedReasonCodes, debouncedSearch]);
 
     const onClickRefresh = useCallback(() => {
       setLastUpdatedAt(new Date());
@@ -485,34 +494,34 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
       [setRangeTo, setRangeFrom, uncommittedRangeFrom]
     );
 
-    const verdictOptions = useMemo<IDropdownOption[]>(
+    const resultOptions = useMemo<IDropdownOption[]>(
       () => [
         {
           key: "all",
           text: renderToString(
-            "FraudProtectionConfigurationScreen.logs.verdict.all"
+            "FraudProtectionConfigurationScreen.logs.result.all"
           ),
         },
         {
           key: "allowed",
           text: renderToString(
-            "FraudProtectionConfigurationScreen.logs.verdict.allowed"
+            "FraudProtectionConfigurationScreen.logs.result.allowed"
           ),
         },
         {
           key: "blocked",
           text: renderToString(
-            "FraudProtectionConfigurationScreen.logs.verdict.blocked"
+            "FraudProtectionConfigurationScreen.logs.result.blocked"
           ),
         },
       ],
       [renderToString]
     );
 
-    const onChangeVerdict = useCallback(
+    const onChangeResult = useCallback(
       (_e: unknown, option?: IDropdownOption) => {
         if (option?.key != null) {
-          setVerdictFilter(option.key as VerdictFilterKey);
+          setResultFilter(option.key as ResultFilterKey);
         }
       },
       []
@@ -602,8 +611,8 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
                 <FormattedMessage id="FraudProtectionConfigurationScreen.logs.action.smsotp" />
               </span>
             );
-          case "verdict":
-            return <VerdictCell entry={entry} />;
+          case "result":
+            return <ResultCell entry={entry} />;
           case "reasonCodes":
             return (
               <span>
@@ -706,10 +715,10 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
                 disabled={true}
               />
               <Dropdown
-                className={styles.verdictDropdown}
-                selectedKey={verdictFilter}
-                options={verdictOptions}
-                onChange={onChangeVerdict}
+                className={styles.resultDropdown}
+                selectedKey={resultFilter}
+                options={resultOptions}
+                onChange={onChangeResult}
               />
               <ComboBox
                 className={styles.reasonCodeComboBox}

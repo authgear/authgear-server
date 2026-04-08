@@ -61,7 +61,7 @@
   color: #dc2626;
 }
 
-.challengedStatus {
+.flaggedStatus {
   @apply text-[11px];
   color: #d97706;
 }

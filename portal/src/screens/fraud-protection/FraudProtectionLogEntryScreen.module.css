@@ -51,6 +51,11 @@
   background: #eef6ef;
 }
 
+.summaryBadgeFlagged {
+  color: #c2410c;
+  background: #fff7ed;
+}
+
 .summaryBadgeBlocked {
   color: #dc2626;
   background: #fef2f2;

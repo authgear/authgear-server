@@ -15,6 +15,19 @@ import {
 } from "../../graphql/adminapi/query/fraudProtectionLogEntryQuery.generated";
 import styles from "./FraudProtectionLogEntryScreen.module.css";
 
+function getResultMessageID(
+  decision: FraudProtectionDecision,
+  triggeredWarnings: readonly unknown[]
+): string {
+  if (decision === FraudProtectionDecision.Blocked) {
+    return "FraudProtectionConfigurationScreen.logs.result.blocked";
+  }
+  if (triggeredWarnings.length > 0) {
+    return "FraudProtectionConfigurationScreen.logs.result.flagged";
+  }
+  return "FraudProtectionConfigurationScreen.logs.result.allowed";
+}
+
 const FraudProtectionLogEntryScreen: React.VFC =
   function FraudProtectionLogEntryScreen() {
     const { logID, appID } = useParams() as { logID: string; appID: string };
@@ -69,28 +82,18 @@ const FraudProtectionLogEntryScreen: React.VFC =
       if (node == null) {
         return "—";
       }
-      switch (node.decision) {
-        case FraudProtectionDecision.Blocked:
-          return renderToString(
-            "FraudProtectionConfigurationScreen.logs.verdict.blocked"
-          );
-        case FraudProtectionDecision.Allowed:
-          return renderToString(
-            "FraudProtectionConfigurationScreen.logs.verdict.allowed"
-          );
-        default:
-          return node.decision;
-      }
+      return renderToString(
+        getResultMessageID(node.decision, node.triggeredWarnings)
+      );
     })();
     const verdictClassName = (() => {
-      switch (node?.decision) {
-        case FraudProtectionDecision.Blocked:
-          return styles.summaryBadgeBlocked;
-        case FraudProtectionDecision.Allowed:
-          return styles.summaryBadgeAllowed;
-        default:
-          return styles.summaryBadgeAllowed;
+      if (node?.decision === FraudProtectionDecision.Blocked) {
+        return styles.summaryBadgeBlocked;
       }
+      if ((node?.triggeredWarnings.length ?? 0) > 0) {
+        return styles.summaryBadgeFlagged;
+      }
+      return styles.summaryBadgeAllowed;
     })();
 
     const phoneNumber = (() => {
@@ -140,7 +143,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.verdict" />
+                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.result" />
                 </span>
                 <span className={`${styles.summaryBadge} ${verdictClassName}`}>
                   {verdict}

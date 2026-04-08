@@ -48,7 +48,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
         {
           key: "deny_if_any_warning",
           text: renderToString(
-            "FraudProtectionConfigurationScreen.enforcement.block.label"
+            "FraudProtectionConfigurationScreen.enforcement.protect.label"
           ),
         },
       ];
@@ -58,7 +58,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       <section className={styles.section}>
         <ChoiceGroup
           label={renderToString(
-            "FraudProtectionConfigurationScreen.enforcement.title"
+            "FraudProtectionConfigurationScreen.enforcement.mode.title"
           )}
           disabled={!isModifiable}
           selectedKey={enforcementMode}

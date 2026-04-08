@@ -22,7 +22,7 @@
   min-width: 140px;
 }
 
-.verdictDropdown {
+.resultDropdown {
   min-width: 140px;
 }
 
@@ -64,17 +64,21 @@
   font-size: 14px;
 }
 
-/* Verdict badges */
+/* Result badges */
 
-.verdictBadge {
+.resultBadge {
   @apply inline-flex items-center rounded px-2 py-0.5 text-xs font-medium;
 }
 
-.verdictAllowed {
+.resultAllowed {
   @apply bg-[#eef6ef] text-[#16a34a];
 }
 
-.verdictBlocked {
+.resultFlagged {
+  @apply bg-[#fff7ed] text-[#c2410c];
+}
+
+.resultBlocked {
   @apply bg-[#fef2f2] text-[#dc2626];
 }
 

@@ -68,12 +68,14 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
     }, []);
 
     const enforcementTitle = renderToString(
-      "FraudProtectionConfigurationScreen.overview.enforcement.title"
+      enabled
+        ? "FraudProtectionConfigurationScreen.overview.enforcement.enabled.title"
+        : "FraudProtectionConfigurationScreen.overview.enforcement.disabled.title"
     );
     const enforcementDescription = renderToString(
       isObserveMode
         ? "FraudProtectionConfigurationScreen.overview.enforcement.observe.description"
-        : "FraudProtectionConfigurationScreen.overview.enforcement.block.description"
+        : "FraudProtectionConfigurationScreen.overview.enforcement.protect.description"
     );
 
     const sourceIPs = useMemo<SourceIPRow[]>(() => {
@@ -82,7 +84,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
           ip: sourceIP.ipAddress,
           total: sourceIP.totalActions,
           blocked: sourceIP.blockedActions,
-          warnings: sourceIP.warnedActions,
+          flagged: sourceIP.warnedActions,
         })) ?? []
       );
     }, [overview]);
@@ -167,7 +169,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 iconName="Warning"
                 iconVariant="warning"
                 title={renderToString(
-                  "FraudProtectionConfigurationScreen.overview.challenged.title"
+                  "FraudProtectionConfigurationScreen.overview.flagged.title"
                 )}
                 value={formatCount(overview?.warnedActions)}
               />
