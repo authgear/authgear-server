@@ -27,6 +27,7 @@
     "@microsoft/tsdoc-config": {
       "ajv": "^8.18.0"
     },
+    "lodash": "^4.18.1",
     "eslint-plugin-sonarjs": {
       "minimatch": "^10.2.4"
     }
