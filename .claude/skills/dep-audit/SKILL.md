@@ -8,12 +8,16 @@ Audit and fix dependency vulnerabilities in this project. Follow the steps below
 
 ## Step 1: Go Vulnerability Check
 
-Run from the project root and from `./k6` (it is a separate Go module with its own `go.mod`):
+Run `govulncheck` in every Go module in the repository:
 
 ```
 make govulncheck
+cd custombuild && make govulncheck
+cd e2e && make govulncheck
 cd k6 && make govulncheck
+cd packagetracker && make govulncheck
 ```
+Use the module's own `make govulncheck` target if it exists; otherwise run `go tool govulncheck ./...` from that module root.
 
 Parse the output:
 - If there are **no vulnerabilities**, note it and move on.
@@ -27,6 +31,7 @@ Parse the output:
      - `./custombuild`
      - `./e2e`
      - `./k6`
+     - `./packagetracker`
 
 Important:
 - `go get <module>@latest` is for Go module dependencies only. Do **not** use it to change the Go toolchain version.
@@ -57,7 +62,7 @@ After updating Go deps:
 - Run `make build` or `go build ./...` to verify the build.
 - If the build breaks, report the compiler errors and ask the user how to proceed. Do not commit.
 - If vulnerabilities cannot be fixed (no fix available), note them in an **Unfixable Issues Report** and notify the user.
-- If fixes were applied and build passes, stage and commit: `git add go.sum go.mod custombuild/go.sum custombuild/go.mod e2e/go.sum e2e/go.mod k6/go.sum k6/go.mod` and commit with message: `chore: fix Go dependency vulnerabilities`
+- If fixes were applied and build passes, stage and commit all affected Go module files, including `go.sum`, `go.mod`, `custombuild/go.sum`, `custombuild/go.mod`, `e2e/go.sum`, `e2e/go.mod`, `k6/go.sum`, `k6/go.mod`, and `packagetracker/go.sum`/`packagetracker/go.mod` when they change, with commit message: `chore: fix Go dependency vulnerabilities`
 
 ## Step 2: Node.js Audit — directory by directory
 
