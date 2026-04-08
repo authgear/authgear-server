@@ -1,0 +1,7 @@
+已触发 {{ .Usage.Name }} 的使用提醒
+
+{{ template "app.name" }} 已达到为 {{ .Usage.Period }} {{ .Usage.Name }} 配置的使用阈值。
+
+操作：{{ .Usage.Action }}
+配额：{{ .Usage.Quota }}
+当前值：{{ .Usage.CurrentValue }}

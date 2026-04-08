@@ -1,0 +1,56 @@
+name: Feature usage hooks receive email usage alert events
+authgear.features.yaml:
+  override: |
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/email'
+        match: "email"
+      limits:
+        email:
+        - quota: 1
+          period: "day"
+          action: "alert"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_usage_email@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: wait for hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query hook server
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/email"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "email",
+                "action": "alert",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          }
+        ]

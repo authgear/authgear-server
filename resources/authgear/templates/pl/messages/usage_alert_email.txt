@@ -1,0 +1,7 @@
+Wyzwolono alert użycia dla {{ .Usage.Name }}
+
+{{ template "app.name" }} osiągnął skonfigurowany próg użycia dla {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Działanie: {{ .Usage.Action }}
+Limit: {{ .Usage.Quota }}
+Bieżąca wartość: {{ .Usage.CurrentValue }}

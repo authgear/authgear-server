@@ -31,6 +31,7 @@ var _ = Schema.Add("AppConfig", `
 		"ui": { "$ref": "#/$defs/UIConfig" },
 		"localization": { "$ref": "#/$defs/LocalizationConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingConfig" },
+		"usage": { "$ref": "#/$defs/UsageConfig" },
 		"search": { "$ref": "#/$defs/SearchConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
@@ -70,6 +71,7 @@ type AppConfig struct {
 	UI           *UIConfig           `json:"ui,omitempty"`
 	Localization *LocalizationConfig `json:"localization,omitempty"`
 	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
+	Usage        *UsageConfig        `json:"usage,omitempty" nullable:"true"`
 	Search       *SearchConfig       `json:"search,omitempty"`
 
 	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`

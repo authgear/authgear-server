@@ -185,5 +185,12 @@
     "PasswordLabel": "Your temporary password:",
     "Password": "{{ .Password }}",
     "Instruction": "Login to {{ template \"app.name\" }} with your email and temporary password. Please change your password after login."
+  },
+  "UsageAlertEmail": {
+    "Title": "Usage alert triggered for {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.",
+    "Action": "Action: {{ .Usage.Action }}",
+    "Quota": "Quota: {{ .Usage.Quota }}",
+    "CurrentValue": "Current value: {{ .Usage.CurrentValue }}"
   }
 }

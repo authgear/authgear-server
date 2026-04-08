@@ -185,5 +185,12 @@
     "PasswordLabel": "Mật khẩu tạm thời của bạn:",
     "Password": "{{ .Password }}",
     "Instruction": "Đăng nhập vào {{ template \"app.name\" }} với email và mật khẩu tạm thời của bạn. Vui lòng đổi mật khẩu sau khi đăng nhập."
+  },
+  "UsageAlertEmail": {
+    "Title": "Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Hành động: {{ .Usage.Action }}",
+    "Quota": "Hạn mức: {{ .Usage.Quota }}",
+    "CurrentValue": "Giá trị hiện tại: {{ .Usage.CurrentValue }}"
   }
 }

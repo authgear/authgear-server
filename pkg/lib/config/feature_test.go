@@ -12,6 +12,7 @@ import (
 	goyaml "go.yaml.in/yaml/v2"
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -71,6 +72,7 @@ func TestParseFeatureConfig(t *testing.T) {
 			mergedConfig = mergedConfig.Merge(cfg)
 		}
 		config.SetFieldDefaults(mergedConfig)
+		mergedConfig = mergedConfig.Migrate()
 
 		So(mergedConfig, ShouldResemble, expected)
 	})
@@ -113,5 +115,60 @@ func TestParseFeatureConfig(t *testing.T) {
 				}
 			})
 		}
+	})
+}
+
+func TestFeatureConfigMigrate(t *testing.T) {
+	Convey("Migrate converts deprecated usage limits when unified usage config is absent", t, func() {
+		enabled := true
+		quota := 24
+		cfg := (&config.FeatureConfig{
+			Messaging: &config.MessagingFeatureConfig{
+				SMSUsage: &config.Deprecated_UsageLimitConfig{
+					Enabled: &enabled,
+					Period:  config.Deprecated_UsageLimitPeriodMonth,
+					Quota:   &quota,
+				},
+			},
+		}).Migrate()
+
+		So(cfg.Usage, ShouldNotBeNil)
+		So(cfg.Usage.Limits, ShouldNotBeNil)
+		So(cfg.Usage.Limits.SMS, ShouldResemble, []config.FeatureUsageLimitConfig{{
+			Quota:  24,
+			Period: model.UsageLimitPeriodMonth,
+			Action: model.UsageLimitActionBlock,
+		}})
+	})
+
+	Convey("Migrate keeps unified usage limits when deprecated usage config also exists", t, func() {
+		enabled := true
+		quota := 24
+		cfg := (&config.FeatureConfig{
+			Messaging: &config.MessagingFeatureConfig{
+				SMSUsage: &config.Deprecated_UsageLimitConfig{
+					Enabled: &enabled,
+					Period:  config.Deprecated_UsageLimitPeriodMonth,
+					Quota:   &quota,
+				},
+			},
+			Usage: &config.FeatureUsageConfig{
+				Limits: &config.FeatureUsageLimitsConfig{
+					SMS: []config.FeatureUsageLimitConfig{{
+						Quota:  3,
+						Period: model.UsageLimitPeriodDay,
+						Action: model.UsageLimitActionAlert,
+					}},
+				},
+			},
+		}).Migrate()
+
+		So(cfg.Usage, ShouldNotBeNil)
+		So(cfg.Usage.Limits, ShouldNotBeNil)
+		So(cfg.Usage.Limits.SMS, ShouldResemble, []config.FeatureUsageLimitConfig{{
+			Quota:  3,
+			Period: model.UsageLimitPeriodDay,
+			Action: model.UsageLimitActionAlert,
+		}})
 	})
 }

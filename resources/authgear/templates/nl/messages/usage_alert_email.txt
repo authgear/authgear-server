@@ -1,0 +1,7 @@
+Gebruikswaarschuwing geactiveerd voor {{ .Usage.Name }}
+
+{{ template "app.name" }} heeft de geconfigureerde gebruiksdrempel voor {{ .Usage.Period }} {{ .Usage.Name }} bereikt.
+
+Actie: {{ .Usage.Action }}
+Quota: {{ .Usage.Quota }}
+Huidige waarde: {{ .Usage.CurrentValue }}

@@ -16,5 +16,13 @@ services:
 
   deno:
     image: quay.io/theauthgear/authgear-deno:git-d45155d1627d
+    environment:
+      DISALLOW_PRIVATE: "false"
     ports:
       - "18090:8090"
+
+  hook:
+    build:
+      context: ./cmd/hookserver
+    ports:
+      - "2626:2626"

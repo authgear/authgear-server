@@ -1,0 +1,7 @@
+{{ .Usage.Name }} の使用量アラートがトリガーされました
+
+{{ template "app.name" }} は、設定された {{ .Usage.Period }} {{ .Usage.Name }} の使用量しきい値に達しました。
+
+アクション: {{ .Usage.Action }}
+クォータ: {{ .Usage.Quota }}
+現在値: {{ .Usage.CurrentValue }}

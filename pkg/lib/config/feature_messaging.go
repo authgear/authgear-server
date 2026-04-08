@@ -21,9 +21,9 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 type MessagingFeatureConfig struct {
 	RateLimits *MessagingRateLimitsFeatureConfig `json:"rate_limits,omitempty"`
 
-	SMSUsage      *UsageLimitConfig `json:"sms_usage,omitempty"`
-	EmailUsage    *UsageLimitConfig `json:"email_usage,omitempty"`
-	WhatsappUsage *UsageLimitConfig `json:"whatsapp_usage,omitempty"`
+	SMSUsage      *Deprecated_UsageLimitConfig `json:"sms_usage,omitempty"`
+	EmailUsage    *Deprecated_UsageLimitConfig `json:"email_usage,omitempty"`
+	WhatsappUsage *Deprecated_UsageLimitConfig `json:"whatsapp_usage,omitempty"`
 
 	SMSUsageCountDisabled      *bool `json:"sms_usage_count_disabled,omitempty"`
 	WhatsappUsageCountDisabled *bool `json:"whatsapp_usage_count_disabled,omitempty"`
@@ -77,17 +77,17 @@ func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureCon
 
 func (c *MessagingFeatureConfig) SetDefaults() {
 	if c.SMSUsage.Enabled == nil {
-		c.SMSUsage = &UsageLimitConfig{
+		c.SMSUsage = &Deprecated_UsageLimitConfig{
 			Enabled: newBool(false),
 		}
 	}
 	if c.EmailUsage.Enabled == nil {
-		c.EmailUsage = &UsageLimitConfig{
+		c.EmailUsage = &Deprecated_UsageLimitConfig{
 			Enabled: newBool(false),
 		}
 	}
 	if c.WhatsappUsage.Enabled == nil {
-		c.WhatsappUsage = &UsageLimitConfig{
+		c.WhatsappUsage = &Deprecated_UsageLimitConfig{
 			Enabled: newBool(false),
 		}
 	}

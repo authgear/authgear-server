@@ -56,6 +56,10 @@ type NonBlockingPayload interface {
 	DeletedUserIDs() []string
 }
 
+type ExtraHookURLsProvider interface {
+	ExtraHookURLs() []string
+}
+
 type Event struct {
 	ID            string  `json:"id"`
 	Seq           int64   `json:"seq"`

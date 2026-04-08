@@ -1,0 +1,7 @@
+Alerte d'utilisation déclenchée pour {{ .Usage.Name }}
+
+{{ template "app.name" }} a atteint le seuil d’utilisation configuré pour {{ .Usage.Period }} {{ .Usage.Name }}.
+
+Action : {{ .Usage.Action }}
+Quota : {{ .Usage.Quota }}
+Valeur actuelle : {{ .Usage.CurrentValue }}

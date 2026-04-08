@@ -1,0 +1,7 @@
+[[ .T.UsageAlertEmail.Title ]]
+
+[[ .T.UsageAlertEmail.Body ]]
+
+[[ .T.UsageAlertEmail.Action ]]
+[[ .T.UsageAlertEmail.Quota ]]
+[[ .T.UsageAlertEmail.CurrentValue ]]

@@ -1,0 +1,19 @@
+<mjml lang="ko" dir="ltr">
+<mj-head>
+  <mj-attributes>
+    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+  </mj-attributes>
+</mj-head>
+<mj-body background-color="#f3f3f3">
+  <mj-section>
+    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ .Usage.Name }} 사용량 알림이 트리거되었습니다</mj-text>
+      <mj-divider border-width="1px" border-color="#c7c7c7" />
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">작업: {{ .Usage.Action }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">할당량: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">현재 값: {{ .Usage.CurrentValue }}</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>

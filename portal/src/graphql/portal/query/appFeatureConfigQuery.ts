@@ -8,13 +8,14 @@ import {
   AppFeatureConfigQueryDocument,
 } from "./appFeatureConfigQuery.generated";
 import { Loadable } from "../../../hook/useLoadableView";
+import { PortalAPIFeatureConfig } from "../../../types";
 
 interface AppFeatureConfigQueryResult extends Loadable {
   refetch: QueryResult<
     AppFeatureConfigQueryQuery,
     AppFeatureConfigQueryQueryVariables
   >["refetch"];
-  effectiveFeatureConfig: AppFeatureConfigFragment["effectiveFeatureConfig"];
+  effectiveFeatureConfig: PortalAPIFeatureConfig | null;
   planName: AppFeatureConfigFragment["planName"] | null;
 }
 

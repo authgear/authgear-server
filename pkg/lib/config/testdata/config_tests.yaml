@@ -770,7 +770,7 @@ name: invalid-non-blocking-hook
 error: |-
   invalid configuration:
   /hook/non_blocking_handlers/0/events/0: enum
-    map[actual:invalid_name expected:[* user.created user.authenticated user.reauthenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deletion_scheduled user.deletion_unscheduled user.deleted user.anonymization_scheduled user.anonymization_unscheduled user.anonymized identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected identity.biometric.enabled identity.biometric.disabled]]
+    map[actual:invalid_name expected:[* user.created user.authenticated user.reauthenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deletion_scheduled user.deletion_unscheduled user.deleted user.anonymization_scheduled user.anonymization_unscheduled user.anonymized identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected identity.biometric.enabled identity.biometric.disabled usage.alert.triggered]]
 config:
   id: test
   http:
@@ -781,6 +781,77 @@ config:
           - "invalid_name"
           - "user.created"
         url: http://webhook
+---
+name: valid-usage-config
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  usage:
+    alerts:
+      - type: email
+        email: ops@example.com
+        match: sms
+      - type: email
+        email: all@example.com
+        match: "*"
+    limits:
+      sms:
+        - quota: 4
+          period: month
+          action: alert
+        - quota: 900
+          period: month
+          action: block
+      user_export:
+        - quota: 5
+          period: day
+          action: alert
+---
+name: invalid-usage-alert-type
+error: |-
+  invalid configuration:
+  /usage/alerts/0/type: enum
+    map[actual:webhook expected:[email]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  usage:
+    alerts:
+      - type: webhook
+        match: sms
+---
+name: invalid-usage-alert-missing-email
+error: |-
+  invalid configuration:
+  /usage/alerts/0: required
+    map[actual:[match type] expected:[email] missing:[email]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  usage:
+    alerts:
+      - type: email
+        match: sms
+---
+name: invalid-usage-limit-action
+error: |-
+  invalid configuration:
+  /usage/limits/sms/0/action: enum
+    map[actual:notify expected:[alert block]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  usage:
+    limits:
+      sms:
+        - quota: 4
+          period: month
+          action: notify
 ---
 name: invalid-standard-attributes-pointer
 error: |-
@@ -1633,4 +1704,3 @@ config:
           action: deny
           source:
             geo_location_codes: ["USA"]
-

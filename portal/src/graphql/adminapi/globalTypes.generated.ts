@@ -257,6 +257,7 @@ export enum AuditLogActivityType {
   SmsError = 'SMS_ERROR',
   SmsSent = 'SMS_SENT',
   SmsSuppressed = 'SMS_SUPPRESSED',
+  UsageAlertTriggered = 'USAGE_ALERT_TRIGGERED',
   UserAnonymizationScheduled = 'USER_ANONYMIZATION_SCHEDULED',
   UserAnonymizationUnscheduled = 'USER_ANONYMIZATION_UNSCHEDULED',
   UserAnonymized = 'USER_ANONYMIZED',

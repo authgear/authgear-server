@@ -1,0 +1,95 @@
+name: Feature usage hooks support deprecated feature config
+authgear.features.yaml:
+  override: |
+    messaging:
+      sms_usage:
+        enabled: true
+        period: "day"
+        quota: 1
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/legacy-usage'
+        match: "sms"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231701"
+      }
+  - name: send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: flow 2 create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 identify
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231702"
+      }
+  - name: flow 2 send sms blocked
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429,
+          "info": {
+            "FlowType": "signup",
+            "name": "SMS",
+            "usage_name": "sms",
+            "period": "day"
+          }
+        }
+  - name: wait for deprecated hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query deprecated hook server
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/legacy-usage"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "sms",
+                "action": "block",
+                "period": "day",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          }
+        ]

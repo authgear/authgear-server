@@ -1,0 +1,7 @@
+{{ .Usage.Name }} 사용량 알림이 트리거되었습니다
+
+{{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.
+
+작업: {{ .Usage.Action }}
+할당량: {{ .Usage.Quota }}
+현재 값: {{ .Usage.CurrentValue }}

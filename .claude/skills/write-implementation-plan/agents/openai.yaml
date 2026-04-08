@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Implementation Plan"
+  short_description: "Draft detailed implementation plans."
+  default_prompt: "Create or update a detailed implementation plan with exact files, methods, call flows, compatibility requirements, tests, and atomic commits."

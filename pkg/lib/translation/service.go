@@ -299,6 +299,7 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 		},
 		UILocales: uiParams.UILocales,
 		URL:       v.URL,
+		Usage:     v.Usage,
 		XState:    uiParams.XState,
 	}, nil
 }

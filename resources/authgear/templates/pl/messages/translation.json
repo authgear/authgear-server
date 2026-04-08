@@ -185,5 +185,12 @@
     "PasswordLabel": "Twoje tymczasowe hasło:",
     "Password": "{{ .Password }}",
     "Instruction": "Zaloguj się do {{ template \"app.name\" }} za pomocą swojego adresu e-mail i tymczasowego hasła. Po zalogowaniu zmień swoje hasło."
+  },
+  "UsageAlertEmail": {
+    "Title": "Wyzwolono alert użycia dla {{ .Usage.Name }}",
+    "Body": "{{ template \"app.name\" }} osiągnął skonfigurowany próg użycia dla {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Działanie: {{ .Usage.Action }}",
+    "Quota": "Limit: {{ .Usage.Quota }}",
+    "CurrentValue": "Bieżąca wartość: {{ .Usage.CurrentValue }}"
   }
 }

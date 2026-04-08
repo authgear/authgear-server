@@ -81,8 +81,8 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
 
   const inviteButtonProps = useMemo(() => {
     let disabled = false;
-    if (effectiveFeatureConfig?.collaborator.maximum != null) {
-      const maximum = effectiveFeatureConfig?.collaborator.maximum;
+    if (effectiveFeatureConfig?.collaborator?.maximum != null) {
+      const maximum = effectiveFeatureConfig.collaborator.maximum;
       const length1 = collaborators?.length ?? 0;
       const length2 = collaboratorInvitations?.length ?? 0;
       if (length1 + length2 >= maximum) {

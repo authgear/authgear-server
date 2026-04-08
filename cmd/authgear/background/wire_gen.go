@@ -763,10 +763,25 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		RateLimiter:     limiter,
 		Lockout:         mfaLockout,
 	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
 	usageLimiter := &usage.Limiter{
-		Clock: clockClock,
-		AppID: configAppID,
-		Redis: appredisHandle,
+		Clock:                  clockClock,
+		Database:               handle,
+		AppID:                  configAppID,
+		Redis:                  appredisHandle,
+		EffectiveConfig:        configConfig,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
 	}
 	limits := messaging.Limits{
 		RateLimiter:   limiter,
@@ -775,11 +790,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Config:        appConfig,
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
-	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	sender := &mail.Sender{
-		GomailDialer: dialer,
 	}
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -827,7 +837,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
 	}
-	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email

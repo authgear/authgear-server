@@ -74,9 +74,6 @@ function teardown {( set -e
     kill -9 $(lsof -ti:4002) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:2525) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:14000) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:14001) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:14002) > /dev/null 2>&1 || true
     docker compose down
 )}
 

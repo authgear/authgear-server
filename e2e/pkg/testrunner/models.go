@@ -262,6 +262,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"audit_query",
 			"saml_request",
 			"http_request",
+			"hook_server_query",
+			"smtp_log_query",
 			"oauth_setup",
 			"oauth_exchange_code",
 			"admin_api_graphql",
@@ -297,6 +299,11 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_form_urlencoded_body": { "type": "object" },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
+		"hook_server_path": { "type": "string" },
+		"hook_server_output": { "$ref": "#/$defs/QueryOutput" },
+		"smtp_log_subject": { "type": "string" },
+		"smtp_log_recipient": { "type": "string" },
+		"smtp_log_output": { "$ref": "#/$defs/QueryOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
@@ -405,6 +412,33 @@ var _ = TestCaseSchema.Add("Step", `
 					}
 				},
 				{
+				  "if": {
+							"properties": {
+									"action": { "const": "hook_server_query" }
+							}
+					},
+					"then": {
+							"required": [
+								"hook_server_path",
+								"hook_server_output"
+							]
+					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "smtp_log_query" }
+							}
+					},
+					"then": {
+							"required": [
+								"smtp_log_subject",
+								"smtp_log_recipient",
+								"smtp_log_output"
+							]
+					}
+				},
+				{
 					"if": {
 						"properties": {
 							"action": { "const": "oauth_exchange_code" }
@@ -506,6 +540,15 @@ type Step struct {
 	HTTPRequestSessionCookie      *SessionCookie    `json:"http_request_session_cookie"`
 	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
+	// `action` == "hook_server_query"
+	HookServerPath   string       `json:"hook_server_path"`
+	HookServerOutput *QueryOutput `json:"hook_server_output"`
+
+	// `action` == "smtp_log_query"
+	SMTPLogSubject   string       `json:"smtp_log_subject"`
+	SMTPLogRecipient string       `json:"smtp_log_recipient"`
+	SMTPLogOutput    *QueryOutput `json:"smtp_log_output"`
+
 	// `action` == "oauth_exchange_code"
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
@@ -534,6 +577,8 @@ const (
 	StepActionAuditQuery               StepAction = "audit_query"
 	StepActionSAMLRequest              StepAction = "saml_request"
 	StepActionHTTPRequest              StepAction = "http_request"
+	StepActionHookServerQuery          StepAction = "hook_server_query"
+	StepActionSMTPLogQuery             StepAction = "smtp_log_query"
 	StepActionOAuthSetup               StepAction = "oauth_setup"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"

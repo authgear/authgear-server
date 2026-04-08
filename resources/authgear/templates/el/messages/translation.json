@@ -185,5 +185,12 @@
     "PasswordLabel": "Ο προσωρινός κωδικός πρόσβασής σας:",
     "Password": "{{ .Password }}",
     "Instruction": "Συνδεθείτε στο {{ template \"app.name\" }} με το email και τον προσωρινό κωδικό πρόσβασης. Παρακαλούμε αλλάξτε τον κωδικό πρόσβασής σας μετά τη σύνδεση."
+  },
+  "UsageAlertEmail": {
+    "Title": "Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}",
+    "Body": "Το {{ template \"app.name\" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.",
+    "Action": "Ενέργεια: {{ .Usage.Action }}",
+    "Quota": "Ποσόστωση: {{ .Usage.Quota }}",
+    "CurrentValue": "Τρέχουσα τιμή: {{ .Usage.CurrentValue }}"
   }
 }

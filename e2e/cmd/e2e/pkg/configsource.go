@@ -50,6 +50,7 @@ func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceD
 		cfg.GlobalDatabase.DatabaseURL,
 		cfg.GlobalDatabase.DatabaseSchema,
 		".authgeare2e.localhost",
+		appID,
 	)
 	if err != nil {
 		return err
