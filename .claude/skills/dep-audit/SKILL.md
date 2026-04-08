@@ -28,6 +28,25 @@ Parse the output:
      - `./e2e`
      - `./k6`
 
+Important:
+- `go get <module>@latest` is for Go module dependencies only. Do **not** use it to change the Go toolchain version.
+- If the requested fix is a Go version bump, update the repository's Go version files and generated inputs directly instead of trying to solve it with `go get`:
+  - `flake.nix`
+  - `.tool-versions`
+  - `go.mod`
+  - `custombuild/go.mod`
+  - `e2e/go.mod`
+  - `k6/go.mod`
+  - `packagetracker/go.mod.tpl`
+  - `custombuild/cmd/authgearx/Dockerfile`
+  - `custombuild/cmd/portalx/Dockerfile`
+  - `cmd/portal/Dockerfile`
+  - `cmd/authgear/Dockerfile`
+  - `once/partial.dockerfile`
+  - regenerate `once/Dockerfile` with `make once/Dockerfile`
+  - run `make go-mod-tidy`
+- If a Go version bump is needed, verify the repository-specific generation and build steps after editing the version files. Do not commit a toolchain bump that only changes `go.mod` without updating the other affected files.
+
 **Breaking Change Report for Go (major version bumps)** must include:
 - Module name, current version → proposed version
 - Link to the module's changelog or migration guide if available (check the module's repository)
