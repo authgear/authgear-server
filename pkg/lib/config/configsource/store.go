@@ -230,11 +230,11 @@ func (s *Store) CountAll(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (s *Store) ListPaged(ctx context.Context, limit int, offset int) ([]*DatabaseSource, error) {
+func (s *Store) ListPaged(ctx context.Context, limit uint64, offset uint64) ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery().
 		OrderBy("created_at DESC").
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
+		Limit(limit).
+		Offset(offset)
 
 	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {

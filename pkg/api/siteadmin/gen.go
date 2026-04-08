@@ -9,6 +9,10 @@ import (
 	apierrors "github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
+const (
+	AuthgearScopes = "authgear.Scopes"
+)
+
 // Defines values for CollaboratorRole.
 const (
 	Editor CollaboratorRole = "editor"
@@ -74,10 +78,10 @@ type AppsListResponse struct {
 	Apps []App `json:"apps"`
 
 	// Page Current page number.
-	Page int `json:"page"`
+	Page uint64 `json:"page"`
 
 	// PageSize Number of apps per page.
-	PageSize int `json:"page_size"`
+	PageSize uint64 `json:"page_size"`
 
 	// TotalCount Total number of apps matching the query.
 	TotalCount int `json:"total_count"`

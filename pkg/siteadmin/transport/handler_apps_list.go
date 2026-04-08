@@ -25,8 +25,8 @@ type AppsListHandler struct {
 }
 
 type AppsListParams struct {
-	Page       int
-	PageSize   int
+	Page       uint64
+	PageSize   uint64
 	AppID      string
 	OwnerEmail string
 }
@@ -34,16 +34,16 @@ type AppsListParams struct {
 func parseAppsListParams(r *http.Request) AppsListParams {
 	q := r.URL.Query()
 
-	page := 1
+	page := uint64(1)
 	if v := q.Get("page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 1 {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
 			page = n
 		}
 	}
 
-	pageSize := 20
+	pageSize := uint64(20)
 	if v := q.Get("page_size"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 100 {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 && n <= 100 {
 			pageSize = n
 		}
 	}

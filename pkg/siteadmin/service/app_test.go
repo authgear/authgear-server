@@ -13,8 +13,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -40,15 +40,15 @@ func (f *fakeConfigSourceStore) CountAll(_ context.Context) (int, error) {
 	return f.totalCount, nil
 }
 
-func (f *fakeConfigSourceStore) ListPaged(_ context.Context, limit int, offset int) ([]*configsource.DatabaseSource, error) {
-	if offset >= len(f.sources) {
+func (f *fakeConfigSourceStore) ListPaged(_ context.Context, limit uint64, offset uint64) ([]*configsource.DatabaseSource, error) {
+	if offset >= uint64(len(f.sources)) {
 		return nil, nil
 	}
 	end := offset + limit
-	if end > len(f.sources) {
-		end = len(f.sources)
+	if end > uint64(len(f.sources)) {
+		end = uint64(len(f.sources))
 	}
-	return f.sources[offset:end], nil
+	return f.sources[int(offset):int(end)], nil
 }
 
 func (f *fakeConfigSourceStore) GetManyByAppIDs(_ context.Context, appIDs []string) ([]*configsource.DatabaseSource, error) {
@@ -96,21 +96,21 @@ func (f *fakeOwnerStore) CountAppsByOwnerUserID(_ context.Context, userID string
 	return count, nil
 }
 
-func (f *fakeOwnerStore) ListAppIDsByOwnerUserIDPaged(_ context.Context, userID string, limit int, offset int) ([]string, error) {
+func (f *fakeOwnerStore) ListAppIDsByOwnerUserIDPaged(_ context.Context, userID string, limit uint64, offset uint64) ([]string, error) {
 	var appIDs []string
 	for appID, uid := range f.owners {
 		if uid == userID {
 			appIDs = append(appIDs, appID)
 		}
 	}
-	if offset >= len(appIDs) {
+	if offset >= uint64(len(appIDs)) {
 		return nil, nil
 	}
 	end := offset + limit
-	if end > len(appIDs) {
-		end = len(appIDs)
+	if end > uint64(len(appIDs)) {
+		end = uint64(len(appIDs))
 	}
-	return appIDs[offset:end], nil
+	return appIDs[int(offset):int(end)], nil
 }
 
 // fakeDatabase satisfies AppServiceDatabase by directly executing the callback

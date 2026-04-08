@@ -18,4 +18,3 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AppService), "*"),
 	NewHTTPClient,
 )
-

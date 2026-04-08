@@ -10,8 +10,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -34,7 +34,7 @@ type AppServiceDatabase interface {
 type AppServiceConfigSourceStore interface {
 	GetDatabaseSourceByAppID(ctx context.Context, appID string) (*configsource.DatabaseSource, error)
 	CountAll(ctx context.Context) (int, error)
-	ListPaged(ctx context.Context, limit int, offset int) ([]*configsource.DatabaseSource, error)
+	ListPaged(ctx context.Context, limit uint64, offset uint64) ([]*configsource.DatabaseSource, error)
 	GetManyByAppIDs(ctx context.Context, appIDs []string) ([]*configsource.DatabaseSource, error)
 }
 
@@ -42,7 +42,7 @@ type AppServiceOwnerStore interface {
 	GetOwnerByAppID(ctx context.Context, appID string) (string, error)
 	GetOwnersByAppIDs(ctx context.Context, appIDs []string) (map[string]string, error)
 	CountAppsByOwnerUserID(ctx context.Context, userID string) (int, error)
-	ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit int, offset int) ([]string, error)
+	ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit uint64, offset uint64) ([]string, error)
 }
 
 type AppServiceAdminAPI interface {
@@ -131,14 +131,14 @@ func (s *AppOwnerStore) CountAppsByOwnerUserID(ctx context.Context, userID strin
 	return count, nil
 }
 
-func (s *AppOwnerStore) ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit int, offset int) ([]string, error) {
+func (s *AppOwnerStore) ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit uint64, offset uint64) ([]string, error) {
 	q := s.SQLBuilder.
 		Select("app_id").
 		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
 		Where("user_id = ? AND role = ?", userID, "owner").
 		OrderBy("created_at DESC").
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
+		Limit(limit).
+		Offset(offset)
 
 	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
@@ -160,8 +160,8 @@ func (s *AppOwnerStore) ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID
 // ---- AppService ----------------------------------------------------------------
 
 type ListAppsParams struct {
-	Page       int
-	PageSize   int
+	Page       uint64
+	PageSize   uint64
 	AppID      string
 	OwnerEmail string
 }
@@ -183,7 +183,10 @@ type AppService struct {
 }
 
 func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
-	if params.PageSize <= 0 || params.PageSize > maxPageSize {
+	if params.Page == 0 {
+		params.Page = 1
+	}
+	if params.PageSize == 0 || params.PageSize > maxPageSize {
 		params.PageSize = maxPageSize
 	}
 

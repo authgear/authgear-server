@@ -468,9 +468,11 @@ components:
           description: Total number of apps matching the query.
         page:
           type: integer
+          format: uint64
           description: Current page number.
         page_size:
           type: integer
+          format: uint64
           description: Number of apps per page.
 
     App:
