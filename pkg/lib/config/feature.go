@@ -7,6 +7,8 @@ import (
 	"reflect"
 
 	"sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 var _ = FeatureConfigSchema.Add("FeatureConfig", `
@@ -108,6 +110,24 @@ func ParseFeatureConfig(ctx context.Context, inputYAML []byte) (*FeatureConfig, 
 	SetFieldDefaults(config)
 
 	return config.Migrate(), nil
+}
+
+func (c *FeatureConfig) Migrate() *FeatureConfig {
+	if c == nil {
+		return nil
+	}
+
+	if c.Messaging != nil {
+		c.migrateDeprecatedUsageLimit(model.UsageNameSMS, c.Messaging.SMSUsage)
+		c.migrateDeprecatedUsageLimit(model.UsageNameEmail, c.Messaging.EmailUsage)
+		c.migrateDeprecatedUsageLimit(model.UsageNameWhatsapp, c.Messaging.WhatsappUsage)
+	}
+	if c.AdminAPI != nil {
+		c.migrateDeprecatedUsageLimit(model.UsageNameUserImport, c.AdminAPI.UserImportUsage)
+		c.migrateDeprecatedUsageLimit(model.UsageNameUserExport, c.AdminAPI.UserExportUsage)
+	}
+
+	return c
 }
 
 func NewEffectiveDefaultFeatureConfig() *FeatureConfig {

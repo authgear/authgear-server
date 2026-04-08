@@ -134,24 +134,6 @@ func (c *FeatureUsageConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig 
 	return merged
 }
 
-func (c *FeatureConfig) Migrate() *FeatureConfig {
-	if c == nil {
-		return nil
-	}
-
-	if c.Messaging != nil {
-		c.migrateDeprecatedUsageLimit(model.UsageNameSMS, c.Messaging.SMSUsage)
-		c.migrateDeprecatedUsageLimit(model.UsageNameEmail, c.Messaging.EmailUsage)
-		c.migrateDeprecatedUsageLimit(model.UsageNameWhatsapp, c.Messaging.WhatsappUsage)
-	}
-	if c.AdminAPI != nil {
-		c.migrateDeprecatedUsageLimit(model.UsageNameUserImport, c.AdminAPI.UserImportUsage)
-		c.migrateDeprecatedUsageLimit(model.UsageNameUserExport, c.AdminAPI.UserExportUsage)
-	}
-
-	return c
-}
-
 func (c *FeatureConfig) migrateDeprecatedUsageLimit(name model.UsageName, legacy *Deprecated_UsageLimitConfig) {
 	if legacy == nil || !legacy.IsEnabled() {
 		return
