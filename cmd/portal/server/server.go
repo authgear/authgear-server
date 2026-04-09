@@ -25,7 +25,10 @@ type Controller struct {
 func (c *Controller) Start(ctx context.Context) {
 	logger := logger.GetLogger(ctx)
 
-	cfg, err := LoadConfigFromEnv()
+	cfg, err := LoadConfigFromEnv(LoadConfigOptions{
+		ServePortal:    c.ServePortal,
+		ServeSiteadmin: c.ServeSiteadmin,
+	})
 	if err != nil {
 		err = fmt.Errorf("failed to load server config: %w", err)
 		panic(err)
@@ -92,10 +95,22 @@ func (c *Controller) Start(ctx context.Context) {
 	}
 
 	if c.ServeSiteadmin {
+		// Shallow-copy the RootProvider so that the siteadmin server can use a
+		// different AuthgearConfig (different AppID, Endpoint, etc.) without
+		// affecting the portal server.
+		//
+		// A shallow copy is sufficient because:
+		//   - Only AuthgearConfig needs to differ between portal and siteadmin.
+		//   - All other fields (Database, RedisPool, ConfigSourceController, …)
+		//     are pointers to shared infrastructure that both servers should reuse.
+		//   - Dereferencing `p` copies the struct value, so overriding
+		//     AuthgearConfig on the copy does not touch p.AuthgearConfig.
+		siteadminProvider := *p
+		siteadminProvider.AuthgearConfig = &cfg.SiteadminAuthgear
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
 			Name:          "authgear-portal-siteadmin",
 			ListenAddress: cfg.SiteadminListenAddr,
-			Handler:       siteadmin.NewRouter(p),
+			Handler:       siteadmin.NewRouter(&siteadminProvider),
 		}))
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
 			Name:          "authgear-portal-siteadmin-internal",

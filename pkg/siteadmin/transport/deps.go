@@ -10,4 +10,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CollaboratorRemoveHandler), "*"),
 	wire.Struct(new(MessagingUsageHandler), "*"),
 	wire.Struct(new(MonthlyActiveUsersUsageHandler), "*"),
+	wire.Struct(new(AuthzMiddleware), "*"),
 )

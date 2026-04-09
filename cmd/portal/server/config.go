@@ -23,6 +23,9 @@ type Config struct {
 	ConfigSource *configsource.Config `envconfig:"CONFIG_SOURCE"`
 	// Authgear configures Authgear acting as authentication server for the portal.
 	Authgear portalconfig.AuthgearConfig `envconfig:"AUTHGEAR"`
+	// SiteadminAuthgear configures Authgear for the Site Admin API.
+	// Allows the siteadmin server to authenticate against a different Authgear app than the portal.
+	SiteadminAuthgear portalconfig.AuthgearConfig `envconfig:"SITEADMIN_AUTHGEAR"`
 	// AdminAPI configures how portal interacts with Authgear Admin API.
 	AdminAPI portalconfig.AdminAPIConfig `envconfig:"ADMIN_API"`
 	// App configures the managed apps.
@@ -67,7 +70,12 @@ type Config struct {
 	*config.EnvironmentConfig
 }
 
-func LoadConfigFromEnv() (*Config, error) {
+type LoadConfigOptions struct {
+	ServePortal    bool
+	ServeSiteadmin bool
+}
+
+func LoadConfigFromEnv(opts LoadConfigOptions) (*Config, error) {
 	config := &Config{}
 
 	err := envconfig.Process("", config)
@@ -75,7 +83,7 @@ func LoadConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("cannot load server config: %w", err)
 	}
 
-	err = config.Validate()
+	err = config.Validate(opts)
 	if err != nil {
 		return nil, fmt.Errorf("invalid server config: %w", err)
 	}
@@ -83,7 +91,7 @@ func LoadConfigFromEnv() (*Config, error) {
 	return config, nil
 }
 
-func (c *Config) Validate() error {
+func (c *Config) Validate(opts LoadConfigOptions) error {
 	ctx := &validation.Context{}
 
 	sourceTypes := make([]string, len(configsource.Types))
@@ -101,15 +109,26 @@ func (c *Config) Validate() error {
 		)
 	}
 
-	if c.Authgear.ClientID == "" {
-		ctx.Child("AUTHGEAR_CLIENT_ID").EmitErrorMessage("missing authgear client ID")
-	}
-	if c.Authgear.Endpoint == "" {
-		ctx.Child("AUTHGEAR_ENDPOINT").EmitErrorMessage("missing authgear endpoint")
-	}
-
 	if c.GlobalDatabase.DatabaseURL == "" {
 		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
+	}
+
+	if opts.ServePortal {
+		if c.Authgear.ClientID == "" {
+			ctx.Child("AUTHGEAR_CLIENT_ID").EmitErrorMessage("missing authgear client ID")
+		}
+		if c.Authgear.Endpoint == "" {
+			ctx.Child("AUTHGEAR_ENDPOINT").EmitErrorMessage("missing authgear endpoint")
+		}
+	}
+
+	if opts.ServeSiteadmin {
+		if c.SiteadminAuthgear.AppID == "" {
+			ctx.Child("SITEADMIN_AUTHGEAR_APP_ID").EmitErrorMessage("missing siteadmin authgear app ID")
+		}
+		if c.SiteadminAuthgear.Endpoint == "" {
+			ctx.Child("SITEADMIN_AUTHGEAR_ENDPOINT").EmitErrorMessage("missing siteadmin authgear endpoint")
+		}
 	}
 
 	// Stripe config is optional
