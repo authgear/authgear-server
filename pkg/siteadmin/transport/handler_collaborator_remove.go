@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,7 +15,11 @@ func ConfigureCollaboratorRemoveRoute(route httproute.Route) httproute.Route {
 }
 
 type CollaboratorRemoveHandler struct {
-	// Add service dependencies here as needed
+	Service CollaboratorRemoveService
+}
+
+type CollaboratorRemoveService interface {
+	RemoveCollaborator(ctx context.Context, appID string, collaboratorID string) error
 }
 
 type CollaboratorRemoveParams struct {
@@ -32,7 +37,6 @@ func parseCollaboratorRemoveParams(r *http.Request) CollaboratorRemoveParams {
 func (h *CollaboratorRemoveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorRemoveParams(r)
 
-	// TODO: Replace with real data source. Search dummy data for now.
 	for _, c := range dummyCollaboratorsForApp(params.AppID) {
 		if c.Id == params.CollaboratorID {
 			w.Header().Set("Content-Type", "application/json")

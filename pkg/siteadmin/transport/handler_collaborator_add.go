@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -25,7 +26,6 @@ var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-// TODO: Replace dummy data with real implementation.
 var dummyCollaborators = map[string][]siteadmin.Collaborator{
 	"app-alpha": {
 		{
@@ -64,8 +64,12 @@ func dummyCollaboratorsForApp(appID string) []siteadmin.Collaborator {
 	return []siteadmin.Collaborator{}
 }
 
+type CollaboratorAddService interface {
+	AddCollaborator(ctx context.Context, appID string, userEmail string) (*siteadmin.Collaborator, error)
+}
+
 type CollaboratorAddHandler struct {
-	// Add service dependencies here as needed
+	Service CollaboratorAddService
 }
 
 type CollaboratorAddParams struct {
@@ -96,7 +100,6 @@ func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: Replace with real data source. Return a dummy collaborator now.
 	collaborator := siteadmin.Collaborator{
 		Id:        "collab-new",
 		AppId:     params.AppID,

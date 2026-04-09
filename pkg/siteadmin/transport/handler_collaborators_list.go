@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -15,7 +16,11 @@ func ConfigureCollaboratorsListRoute(route httproute.Route) httproute.Route {
 }
 
 type CollaboratorsListHandler struct {
-	// Add service dependencies here as needed
+	Service CollaboratorsListService
+}
+
+type CollaboratorsListService interface {
+	ListCollaborators(ctx context.Context, appID string) ([]siteadmin.Collaborator, error)
 }
 
 type CollaboratorsListParams struct {
@@ -31,7 +36,6 @@ func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
 func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorsListParams(r)
 
-	// TODO: Replace with real data source.
 	response := siteadmin.CollaboratorsListResponse{
 		Collaborators: dummyCollaboratorsForApp(params.AppID),
 	}
