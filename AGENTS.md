@@ -23,9 +23,9 @@ This repository is Authgear Server. Use the repo docs and skills below as the so
 
 Use existing repo skills instead of one-off instructions when they fit:
 
-- `api-design`
-- `dep-audit`
-- `new-siteadmin-api`
+- `api_design`
+- `dep_audit`
+- `new_siteadmin_api`
 - `write_e2e_test`
 - Repo-local skills for Go tests, Portal GraphQL operations, Go version updates, important-module updates, and vetted-position updates
 
