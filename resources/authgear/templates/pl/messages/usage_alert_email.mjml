@@ -11,8 +11,8 @@
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} osiągnął skonfigurowany próg użycia dla {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Działanie: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Limit: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Bieżąca wartość: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Limit: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Bieżąca wartość: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

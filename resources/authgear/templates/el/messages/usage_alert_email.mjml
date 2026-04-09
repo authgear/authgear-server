@@ -11,8 +11,8 @@
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ενέργεια: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Ποσόστωση: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Τρέχουσα τιμή: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ποσόστωση: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Τρέχουσα τιμή: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
