@@ -1,5 +1,5 @@
 ---
-name: new-siteadmin-api
+name: new_siteadmin_api
 description: Scaffold a new Site Admin API endpoint. Use when adding a new route to the site admin server.
 disable-model-invocation: true
 ---

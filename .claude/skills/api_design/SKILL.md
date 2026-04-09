@@ -1,5 +1,5 @@
 ---
-name: api-design
+name: api_design
 description: Review or design APIs for Authgear. In review mode, evaluates a design draft against the checklist. In ideation mode, develops a design from a description and self-reviews it.
 argument-hint: "<design draft or feature description>"
 ---

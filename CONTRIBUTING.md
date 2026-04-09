@@ -544,37 +544,14 @@ Restart your server, then it should be running with database config source.
 
 # Agentic coding
 
-We are trying out agentic coding workflow in this repository.
+Reusable agent instructions live in the skill directories:
 
-There are 2 types of reusable prompts:
+- `./.claude/skills/`
+- `./.agents/skills/`
 
-- Always
-- Manual
+Root-level agent guidance lives in `AGENTS.md`.
 
-## Always prompts
-
-The Always reusable prompts live in ./.cursor/.rules/
-
-These rules have the following frontmatter at the beginning of the file
-
-```
----
-alwaysApply: true
----
-```
-
-When you add a new rule, you need to update ./CLAUDE.md to include that rule.
-
-## Manual prompts
-
-Another type of reusable prompts is Manual.
-
-They have to be explicitly referenced by you.
-They live in ./.claude/commands/
-
-In Claude Code, they are custom slash commands, and you use them as such.
-
-In Cursor, you need to reference them with `@`.
+Add new reusable workflows as skills so both agent entrypoints can use the same instructions.
 
 # Logging
 
