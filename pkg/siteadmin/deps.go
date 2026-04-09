@@ -51,7 +51,7 @@ var DependencySet = wire.NewSet(
 
 	// AdminAPIService wires up SelfDirector used by AppService
 	wire.Struct(new(portalservice.AdminAPIService), "AuthgearConfig", "AdminAPIConfig", "ConfigSource", "AuthzAdder", "DefaultDomains"),
-	wire.Bind(new(siteadminservice.AppServiceAdminAPI), new(*portalservice.AdminAPIService)),
+	wire.Bind(new(siteadminservice.SiteAdminAdminAPI), new(*portalservice.AdminAPIService)),
 
 	// configsource.Store satisfies AppServiceConfigSourceStore
 	wire.Struct(new(configsource.Store), "*"),
@@ -65,4 +65,7 @@ var DependencySet = wire.NewSet(
 	// transport bindings
 	wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),
 	wire.Bind(new(transport.AppGetService), new(*siteadminservice.AppService)),
+	wire.Bind(new(transport.CollaboratorsListService), new(*siteadminservice.CollaboratorService)),
+	wire.Bind(new(transport.CollaboratorAddService), new(*siteadminservice.CollaboratorService)),
+	wire.Bind(new(transport.CollaboratorRemoveService), new(*siteadminservice.CollaboratorService)),
 )
