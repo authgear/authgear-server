@@ -15,7 +15,7 @@ The three endpoints affected are:
 
 | Field | Source |
 |---|---|
-| `id`, `app_id`, `user_id`, `created_at`, `role` | `_portal_app_collaborator` table via `portalservice.CollaboratorService` |
+| `id`, `app_id`, `user_id`, `created_at`, `role` | `_portal_app_collaborator` table via `siteadminservice.CollaboratorStore` |
 | `user_email` | Admin API GraphQL (`getUserNodes` for list; `getUsersByStandardAttribute` for add) |
 
 **Design decisions:**
@@ -33,14 +33,19 @@ The three endpoints affected are:
 - The actor user ID for Admin API calls is obtained from the validated session in the
   request context (`session.GetValidSessionInfo(ctx).UserID`), identical to how the
   `AuthzMiddleware` works.
+- A shared `siteadminservice.AdminAPIService` owns all Site Admin API GraphQL calls.
+  `AppService` and `CollaboratorService` both delegate to it instead of embedding their
+  own request construction and response parsing logic.
 - `CollaboratorService` owns the transaction boundary. Store reads and writes run inside
   `GlobalDatabase.WithTx`, but Admin API calls (`resolveUserEmails`,
   `getUsersByStandardAttribute`) must run after the transaction is closed, so the site
   admin handler does not hold a global DB connection while synchronously waiting for the
   Admin API handler to acquire one.
-- SQL operations are delegated to `portalservice.CollaboratorService` via a narrow
-  interface, reusing the existing partial struct already wired for AuthzMiddleware (we
-  add `Clock` to the partial struct to support `NewCollaborator`).
+- The siteadmin collaborators path does **not** reuse `portalservice.CollaboratorService`
+  for CRUD. That portal service already opens its own transactions, so wrapping it in
+  siteadmin service transactions would reintroduce nested transaction behavior. Instead,
+  Site Admin uses a local `CollaboratorStore` that operates on the existing transaction
+  context directly.
 
 ---
 
@@ -52,15 +57,14 @@ CollaboratorsListHandler / CollaboratorAddHandler / CollaboratorRemoveHandler (t
     ▼
 CollaboratorService (pkg/siteadmin/service/collaborator.go)
     │  depends on
-    ├── CollaboratorServiceStore  → *portalservice.CollaboratorService  (SQL CRUD)
-    ├── CollaboratorServiceAdminAPI → *portalservice.AdminAPIService    (email resolution)
-    └── CollaboratorServiceHTTPClient                                   (HTTP for GraphQL)
+    ├── CollaboratorServiceStore → *siteadminservice.CollaboratorStore  (SQL CRUD)
+    └── AdminAPIService          → shared siteadmin Admin API helper    (GraphQL)
 ```
 
 ### `ListCollaborators` flow
 
 ```
-1. portalservice.CollaboratorService.ListCollaborators(ctx, appID) → []*model.Collaborator
+1. GlobalDatabase.WithTx + CollaboratorStore.ListCollaborators(ctx, appID) → []*model.Collaborator
 2. Collect all userIDs from result
 3. After the DB work is finished, Admin API batch call: getUserNodes(userIDs) → map[userID]email
 4. Map each *model.Collaborator → siteadmin.Collaborator (fill UserEmail)
@@ -75,9 +79,9 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 3. If empty → 404 Not Found ("user not found")
 4. Take first userID (email is unique within an Authgear app)
 5. GlobalDatabase.WithTx:
-   a. GetCollaboratorByAppAndUser(appID, userID) — if found → 409 Duplicate
-   b. NewCollaborator(appID, userID, "editor")
-   c. CreateCollaborator(c)
+   a. CollaboratorStore.GetCollaboratorByAppAndUser(appID, userID) — if found → 409 Duplicate
+   b. CollaboratorStore.NewCollaborator(appID, userID, "editor")
+   c. CollaboratorStore.CreateCollaborator(c)
 6. Return siteadmin.Collaborator (UserEmail filled from input)
 ```
 
@@ -85,9 +89,9 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 
 ```
 1. GlobalDatabase.WithTx:
-   a. GetCollaborator(collaboratorID) — if not found → 404
+   a. CollaboratorStore.GetCollaborator(collaboratorID) — if not found → 404
    b. Verify collaborator.AppID == appID → if mismatch → 404
-   c. DeleteCollaborator(collaborator)
+   c. CollaboratorStore.DeleteCollaborator(collaborator)
 2. Return {} (empty JSON object)
 ```
 
@@ -97,563 +101,57 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 
 | What | Where |
 |---|---|
-| `portalservice.CollaboratorService` | `pkg/portal/service/collaborator.go` |
-| `portalservice.CollaboratorService.ListCollaborators` | list all collaborators for an app |
-| `portalservice.CollaboratorService.GetCollaboratorByAppAndUser` | check duplicate on add |
-| `portalservice.CollaboratorService.NewCollaborator` | build collaborator struct (needs `Clock`) |
-| `portalservice.CollaboratorService.CreateCollaborator` | persist new collaborator |
-| `portalservice.CollaboratorService.GetCollaborator` | fetch by ID on remove |
-| `portalservice.CollaboratorService.DeleteCollaborator` | remove from DB |
+| `siteadminservice.AdminAPIService` | `pkg/siteadmin/service/admin_api.go` |
+| `siteadminservice.CollaboratorStore` | `pkg/siteadmin/service/collaborator.go` |
+| `siteadminservice.CollaboratorService` | `pkg/siteadmin/service/collaborator.go` |
 | `portalservice.ErrCollaboratorNotFound` | `pkg/portal/service/collaborator.go` |
 | `portalservice.ErrCollaboratorDuplicate` | `pkg/portal/service/collaborator.go` |
 | `portalservice.AdminAPIService.SelfDirector` | `pkg/portal/service/admin_api.go` |
 | `session.GetValidSessionInfo` | `pkg/portal/session/context.go` |
-| `relay.ToGlobalID` / `relay.FromGlobalID` | `pkg/graphqlgo/relay` |
-| `graphqlutil.DoParams` / `graphqlutil.HTTPDo` | `pkg/util/graphqlutil/http_do.go` |
 | `model.CollaboratorRoleEditor` | `pkg/portal/model/collaborator.go` |
 | `siteadmin.Collaborator` | `pkg/api/siteadmin/gen.go` |
 
 ---
 
-## Files to Create
-
-### 1. `pkg/siteadmin/service/collaborator.go`
-
-```go
-package service
-
-import (
-	"context"
-	"net/http"
-
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
-	"github.com/authgear/authgear-server/pkg/api/siteadmin"
-	"github.com/authgear/authgear-server/pkg/portal/model"
-	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
-	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-)
-
-// ---- Narrow interfaces -------------------------------------------------------
-
-type CollaboratorServiceStore interface {
-	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)
-	GetCollaborator(ctx context.Context, id string) (*model.Collaborator, error)
-	GetCollaboratorByAppAndUser(ctx context.Context, appID string, userID string) (*model.Collaborator, error)
-	NewCollaborator(appID string, userID string, role model.CollaboratorRole) *model.Collaborator
-	CreateCollaborator(ctx context.Context, c *model.Collaborator) error
-	DeleteCollaborator(ctx context.Context, c *model.Collaborator) error
-}
-
-type CollaboratorServiceAdminAPI interface {
-	SelfDirector(ctx context.Context, actorUserID string, usage portalservice.Usage) (func(*http.Request), error)
-}
-
-// ---- CollaboratorService -----------------------------------------------------
-
-type CollaboratorService struct {
-	GlobalDatabase AppServiceDatabase
-	Store          CollaboratorServiceStore
-	AdminAPI       CollaboratorServiceAdminAPI
-	HTTPClient     AppServiceHTTPClient
-}
-
-func (s *CollaboratorService) ListCollaborators(ctx context.Context, appID string) ([]siteadmin.Collaborator, error) {
-	collaborators, err := s.Store.ListCollaborators(ctx, appID)
-	if err != nil {
-		return nil, err
-	}
-	if len(collaborators) == 0 {
-		return []siteadmin.Collaborator{}, nil
-	}
-
-	userIDs := make([]string, len(collaborators))
-	for i, c := range collaborators {
-		userIDs[i] = c.UserID
-	}
-
-	// Admin API call — outside a DB transaction.
-	sessionInfo := session.GetValidSessionInfo(ctx)
-	actorUserID := sessionInfo.UserID
-	emailMap, err := s.resolveUserEmails(ctx, actorUserID, userIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]siteadmin.Collaborator, len(collaborators))
-	for i, c := range collaborators {
-		result[i] = siteadmin.Collaborator{
-			Id:        c.ID,
-			AppId:     c.AppID,
-			UserId:    c.UserID,
-			UserEmail: emailMap[c.UserID],
-			Role:      siteadmin.CollaboratorRole(c.Role),
-			CreatedAt: c.CreatedAt,
-		}
-	}
-	return result, nil
-}
-
-func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string, userEmail string) (*siteadmin.Collaborator, error) {
-	sessionInfo := session.GetValidSessionInfo(ctx)
-	actorUserID := sessionInfo.UserID
-
-	// Admin API call — must happen outside a DB transaction.
-	userIDs, err := s.findUserIDsByEmail(ctx, actorUserID, userEmail)
-	if err != nil {
-		return nil, err
-	}
-	if len(userIDs) == 0 {
-		return nil, portalservice.ErrCollaboratorNotFound
-	}
-	targetUserID := userIDs[0]
-
-	var newCollab *model.Collaborator
-	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		_, e := s.Store.GetCollaboratorByAppAndUser(ctx, appID, targetUserID)
-		if e == nil {
-			return portalservice.ErrCollaboratorDuplicate
-		}
-		if !isNotFound(e) {
-			return e
-		}
-
-		newCollab = s.Store.NewCollaborator(appID, targetUserID, model.CollaboratorRoleEditor)
-		return s.Store.CreateCollaborator(ctx, newCollab)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	out := siteadmin.Collaborator{
-		Id:        newCollab.ID,
-		AppId:     newCollab.AppID,
-		UserId:    newCollab.UserID,
-		UserEmail: userEmail, // already known from input
-		Role:      siteadmin.CollaboratorRole(newCollab.Role),
-		CreatedAt: newCollab.CreatedAt,
-	}
-	return &out, nil
-}
-
-func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID string, collaboratorID string) error {
-	return s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		c, err := s.Store.GetCollaborator(ctx, collaboratorID)
-		if err != nil {
-			return err
-		}
-		if c.AppID != appID {
-			// Treat a cross-app mismatch as not found to avoid leaking info.
-			return portalservice.ErrCollaboratorNotFound
-		}
-		return s.Store.DeleteCollaborator(ctx, c)
-	})
-}
-
-// resolveUserEmails batch-fetches emails for the given user IDs via Admin API.
-// Reuses the same getUserNodes GraphQL query as AppService.resolveUserEmails.
-func (s *CollaboratorService) resolveUserEmails(ctx context.Context, actorUserID string, userIDs []string) (map[string]string, error) {
-	if len(userIDs) == 0 {
-		return map[string]string{}, nil
-	}
-
-	globalIDs := make([]string, len(userIDs))
-	for i, id := range userIDs {
-		globalIDs[i] = relay.ToGlobalID("User", id)
-	}
-
-	params := graphqlutil.DoParams{
-		OperationName: "getUserNodes",
-		Query: `
-		query getUserNodes($ids: [ID!]!) {
-			nodes(ids: $ids) {
-				... on User {
-					id
-					standardAttributes
-				}
-			}
-		}
-		`,
-		Variables: map[string]interface{}{
-			"ids": globalIDs,
-		},
-	}
-
-	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, portalservice.UsageInternal)
-	if err != nil {
-		return nil, err
-	}
-	director(r)
-
-	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
-	if err != nil {
-		return nil, err
-	}
-	if result.HasErrors() {
-		return nil, fmt.Errorf("unexpected graphql errors: %v", result.Errors)
-	}
-
-	emailMap := make(map[string]string, len(userIDs))
-	data := result.Data.(map[string]interface{})
-	nodes, _ := data["nodes"].([]interface{})
-	for _, node := range nodes {
-		n, ok := node.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		globalID, _ := n["id"].(string)
-		resolved := relay.FromGlobalID(globalID)
-		if resolved == nil || resolved.ID == "" {
-			continue
-		}
-		attrs, _ := n["standardAttributes"].(map[string]interface{})
-		email, _ := attrs["email"].(string)
-		emailMap[resolved.ID] = email
-	}
-	return emailMap, nil
-}
-
-// findUserIDsByEmail calls Admin API getUsersByStandardAttribute to find users
-// matching the given email. Returns their raw (non-global) user IDs.
-func (s *CollaboratorService) findUserIDsByEmail(ctx context.Context, actorUserID string, email string) ([]string, error) {
-	params := graphqlutil.DoParams{
-		OperationName: "getUsersByStandardAttribute",
-		Query: `
-		query getUsersByStandardAttribute($name: String!, $value: String!) {
-			users: getUsersByStandardAttribute(attributeName: $name, attributeValue: $value) {
-				id
-			}
-		}
-		`,
-		Variables: map[string]interface{}{
-			"name":  "email",
-			"value": email,
-		},
-	}
-
-	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, portalservice.UsageInternal)
-	if err != nil {
-		return nil, err
-	}
-	director(r)
-
-	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
-	if err != nil {
-		return nil, err
-	}
-	if result.HasErrors() {
-		return nil, fmt.Errorf("unexpected graphql errors: %v", result.Errors)
-	}
-
-	data := result.Data.(map[string]interface{})
-	users, _ := data["users"].([]interface{})
-	var ids []string
-	for _, u := range users {
-		m, ok := u.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		globalID, _ := m["id"].(string)
-		resolved := relay.FromGlobalID(globalID)
-		if resolved == nil || resolved.ID == "" {
-			continue
-		}
-		ids = append(ids, resolved.ID)
-	}
-	return ids, nil
-}
-
-// isNotFound returns true for ErrCollaboratorNotFound so the add flow can
-// distinguish "not found" (expected on fresh add) from other errors.
-func isNotFound(err error) bool {
-	return errors.Is(err, portalservice.ErrCollaboratorNotFound)
-}
-```
-
-> **Note:** `fmt` and `errors` imports are required. `AppServiceDatabase` and
-> `AppServiceHTTPClient` are already defined in `app.go` in the same package — no
-> duplication needed.
-
----
-
-## Files to Modify
-
-### `pkg/siteadmin/service/deps.go`
-
-Add `CollaboratorService` to the dependency set:
-
-```go
-var DependencySet = wire.NewSet(
-	wire.Struct(new(AppOwnerStore), "*"),
-	wire.Bind(new(AppServiceOwnerStore), new(*AppOwnerStore)),
-	wire.Struct(new(AppService), "*"),
-	NewHTTPClient,
-	wire.Struct(new(CollaboratorService), "*"),  // NEW
-)
-```
-
-### `pkg/siteadmin/deps.go`
-
-Three changes:
-
-**1. Add `Clock` to the partial `portalservice.CollaboratorService` struct** (needed by
-`NewCollaborator`):
-
-```go
-// Before:
-wire.Struct(new(portalservice.CollaboratorService), "SQLBuilder", "SQLExecutor", "GlobalDatabase"),
-
-// After:
-wire.Struct(new(portalservice.CollaboratorService), "SQLBuilder", "SQLExecutor", "GlobalDatabase", "Clock"),
-```
-
-**2. Add second binding** for the siteadmin service layer interface:
-
-```go
-wire.Bind(new(transport.AuthzCollaboratorService), new(*portalservice.CollaboratorService)),
-wire.Bind(new(siteadminservice.CollaboratorServiceStore), new(*portalservice.CollaboratorService)),  // NEW
-```
-
-**3. Add transport bindings** for the three handler interfaces and the admin API binding:
-
-```go
-// transport bindings
-wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),
-wire.Bind(new(transport.AppGetService), new(*siteadminservice.AppService)),
-wire.Bind(new(transport.CollaboratorsListService), new(*siteadminservice.CollaboratorService)),  // NEW
-wire.Bind(new(transport.CollaboratorAddService), new(*siteadminservice.CollaboratorService)),    // NEW
-wire.Bind(new(transport.CollaboratorRemoveService), new(*siteadminservice.CollaboratorService)), // NEW
-
-// adminAPI binding for CollaboratorService (reuse same AdminAPIService)
-wire.Bind(new(siteadminservice.CollaboratorServiceAdminAPI), new(*portalservice.AdminAPIService)), // NEW
-```
-
-### `pkg/siteadmin/transport/handler_collaborators_list.go`
-
-Replace the stub with a real implementation:
-
-```go
-package transport
-
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/api/siteadmin"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
-)
-
-func ConfigureCollaboratorsListRoute(route httproute.Route) httproute.Route {
-	// The OPTIONS request is handled in CollaboratorAddRoute
-	return route.WithMethods("GET").
-		WithPathPattern("/api/v1/apps/:appID/collaborators")
-}
-
-type CollaboratorsListService interface {
-	ListCollaborators(ctx context.Context, appID string) ([]siteadmin.Collaborator, error)
-}
-
-type CollaboratorsListHandler struct {
-	Service CollaboratorsListService
-}
-
-type CollaboratorsListParams struct {
-	AppID string
-}
-
-func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
-	return CollaboratorsListParams{
-		AppID: httproute.GetParam(r, "appID"),
-	}
-}
-
-func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	params := parseCollaboratorsListParams(r)
-
-	collaborators, err := h.Service.ListCollaborators(r.Context(), params.AppID)
-	if err != nil {
-		writeError(w, r, err)
-		return
-	}
-
-	response := siteadmin.CollaboratorsListResponse{
-		Collaborators: collaborators,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
-}
-```
-
-### `pkg/siteadmin/transport/handler_collaborator_add.go`
-
-Replace the dummy data and stub with a real implementation. Remove all `dummyCollaborators`
-map and related helpers (they will no longer be referenced by any handler):
-
-```go
-package transport
-
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/api/siteadmin"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/validation"
-)
-
-func ConfigureCollaboratorAddRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "POST").
-		WithPathPattern("/api/v1/apps/:appID/collaborators")
-}
-
-var CollaboratorAddRequestSchema = validation.NewSimpleSchema(`
-	{
-		"type": "object",
-		"properties": {
-			"user_email": { "type": "string", "format": "email" }
-		},
-		"required": ["user_email"]
-	}
-`)
-
-type CollaboratorAddService interface {
-	AddCollaborator(ctx context.Context, appID string, userEmail string) (*siteadmin.Collaborator, error)
-}
-
-type CollaboratorAddHandler struct {
-	Service CollaboratorAddService
-}
-
-type CollaboratorAddParams struct {
-	AppID string
-	siteadmin.AddCollaboratorRequest
-}
-
-func parseCollaboratorAddParams(r *http.Request) (CollaboratorAddParams, error) {
-	var body siteadmin.AddCollaboratorRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return CollaboratorAddParams{}, err
-	}
-
-	if err := CollaboratorAddRequestSchema.Validator().ValidateValue(r.Context(), body); err != nil {
-		return CollaboratorAddParams{}, err
-	}
-
-	return CollaboratorAddParams{
-		AppID:                  httproute.GetParam(r, "appID"),
-		AddCollaboratorRequest: body,
-	}, nil
-}
-
-func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	params, err := parseCollaboratorAddParams(r)
-	if err != nil {
-		writeError(w, r, err)
-		return
-	}
-
-	collaborator, err := h.Service.AddCollaborator(r.Context(), params.AppID, params.UserEmail)
-	if err != nil {
-		writeError(w, r, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(collaborator)
-}
-```
-
-### `pkg/siteadmin/transport/handler_collaborator_remove.go`
-
-Replace the stub with a real implementation:
-
-```go
-package transport
-
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/util/httproute"
-)
-
-func ConfigureCollaboratorRemoveRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "DELETE").
-		WithPathPattern("/api/v1/apps/:appID/collaborators/:collaboratorID")
-}
-
-type CollaboratorRemoveService interface {
-	RemoveCollaborator(ctx context.Context, appID string, collaboratorID string) error
-}
-
-type CollaboratorRemoveHandler struct {
-	Service CollaboratorRemoveService
-}
-
-type CollaboratorRemoveParams struct {
-	AppID          string
-	CollaboratorID string
-}
-
-func parseCollaboratorRemoveParams(r *http.Request) CollaboratorRemoveParams {
-	return CollaboratorRemoveParams{
-		AppID:          httproute.GetParam(r, "appID"),
-		CollaboratorID: httproute.GetParam(r, "collaboratorID"),
-	}
-}
-
-func (h *CollaboratorRemoveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	params := parseCollaboratorRemoveParams(r)
-
-	if err := h.Service.RemoveCollaborator(r.Context(), params.AppID, params.CollaboratorID); err != nil {
-		writeError(w, r, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(struct{}{})
-}
-```
-
-### `pkg/siteadmin/transport/deps.go`
-
-Update structs to use `"*"` now that `Service` fields exist:
-
-```go
-var DependencySet = wire.NewSet(
-	wire.Struct(new(AppsListHandler), "*"),
-	wire.Struct(new(AppGetHandler), "*"),
-	wire.Struct(new(CollaboratorsListHandler), "*"),
-	wire.Struct(new(CollaboratorAddHandler), "*"),
-	wire.Struct(new(CollaboratorRemoveHandler), "*"),
-	wire.Struct(new(MessagingUsageHandler), "*"),
-	wire.Struct(new(MonthlyActiveUsersUsageHandler), "*"),
-	wire.Struct(new(AuthzMiddleware), "*"),
-)
-```
-
-> The struct entry format does not change (already `"*"`). The wiring becomes valid once
-> `Service` fields are present on the handler structs and bound in `pkg/siteadmin/deps.go`.
-
-### `pkg/siteadmin/wire_gen.go`
-
-Regenerated via `wire gen ./pkg/siteadmin/...` after the deps changes. Do **not** hand-edit.
+## Implemented Files
+
+### Created
+
+- `pkg/siteadmin/service/admin_api.go` — shared Site Admin `AdminAPIService` with
+  `FindUserIDsByEmail` and `ResolveUserEmails`
+- `pkg/siteadmin/service/collaborator.go` — `CollaboratorStore`,
+  `CollaboratorService`, collaborator scanning helpers, and duplicate detection
+- `pkg/siteadmin/service/collaborator_test.go` — service-level tests for list, add,
+  remove, and transaction-boundary behavior
+
+### Modified
+
+- `pkg/siteadmin/service/app.go` — delegates Admin API lookups to the shared
+  `AdminAPIService`
+- `pkg/siteadmin/service/deps.go` — wires `AdminAPIService`, `CollaboratorStore`,
+  `CollaboratorService`, and the shared HTTP client
+- `pkg/siteadmin/deps.go` — binds `portalservice.AdminAPIService` into
+  `siteadminservice.SiteAdminAdminAPI` and adds transport bindings for the collaborator
+  handlers
+- `pkg/siteadmin/transport/handler_collaborators_list.go` — real list handler via
+  `CollaboratorsListService`
+- `pkg/siteadmin/transport/handler_collaborator_add.go` — real add handler via
+  `CollaboratorAddService`, removing all dummy data
+- `pkg/siteadmin/transport/handler_collaborator_remove.go` — real remove handler via
+  `CollaboratorRemoveService`
+- `pkg/siteadmin/wire_gen.go` — regenerated after DI changes
+
+### Implementation Notes
+
+- The shared Site Admin HTTP client type is `SiteAdminHTTPClient`, not
+  `AppServiceHTTPClient`.
+- `AppService` and `CollaboratorService` both depend on `*siteadminservice.AdminAPIService`.
+- `AuthzMiddleware` still reuses `*portalservice.CollaboratorService` for the existing
+  authorization check. The new collaborators CRUD path is separate and uses
+  `CollaboratorStore`.
+- `AddCollaborator` still does a pre-check for an existing collaborator, but
+  `CollaboratorStore.CreateCollaborator` also maps the database unique constraint to
+  `portalservice.ErrCollaboratorDuplicate` so the write path is safe against races.
 
 ---
 
@@ -681,11 +179,12 @@ service as `AppService` instead of duplicating GraphQL request code.
 - `pkg/siteadmin/service/collaborator.go`
 
 **Files Modified:**
-- `pkg/siteadmin/service/deps.go` — add `wire.Struct(new(CollaboratorService), "*")`
+- `pkg/siteadmin/service/deps.go` — add `CollaboratorStore` binding, `AdminAPIService`,
+  and `wire.Struct(new(CollaboratorService), "*")`
 
 **Scope:** Business logic only — no DI wiring, no handler changes.
 
-**Commit Message:** `"Add siteadmin CollaboratorService with list/add/remove"`
+**Commit Message:** `"Add siteadmin collaborator service layer"`
 
 ---
 
@@ -699,7 +198,7 @@ service as `AppService` instead of duplicating GraphQL request code.
 **Scope:** Handler structs updated; service interfaces declared. The handlers now compile
 only when a `Service` field is provided. `deps.go` bindings are added in the next commit.
 
-**Build note:** `go build ./pkg/siteadmin/transport/...` will fail until Commit 3
+**Build note:** `go build ./pkg/siteadmin/transport/...` will fail until Commit 4
 provides the wire bindings; `pkg/siteadmin/transport/...` itself compiles fine in
 isolation.
 
@@ -710,7 +209,7 @@ isolation.
 ### **Commit 4: Wire CollaboratorService into DI and regenerate**
 
 **Files Modified:**
-- `pkg/siteadmin/deps.go` — extend partial `portalservice.CollaboratorService` with `Clock`; add `CollaboratorServiceStore` binding; add `CollaboratorServiceAdminAPI` binding; add transport bindings for the three handler service interfaces
+- `pkg/siteadmin/deps.go` — bind `siteadminservice.SiteAdminAdminAPI` to `*portalservice.AdminAPIService`; add transport bindings for the three collaborator handler service interfaces
 - `pkg/siteadmin/wire_gen.go` — regenerated
 
 **Build Steps:**
