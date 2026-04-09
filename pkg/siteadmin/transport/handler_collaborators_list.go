@@ -36,8 +36,14 @@ func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
 func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorsListParams(r)
 
+	collaborators, err := h.Service.ListCollaborators(r.Context(), params.AppID)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+
 	response := siteadmin.CollaboratorsListResponse{
-		Collaborators: dummyCollaboratorsForApp(params.AppID),
+		Collaborators: collaborators,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -37,14 +36,12 @@ func parseCollaboratorRemoveParams(r *http.Request) CollaboratorRemoveParams {
 func (h *CollaboratorRemoveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorRemoveParams(r)
 
-	for _, c := range dummyCollaboratorsForApp(params.AppID) {
-		if c.Id == params.CollaboratorID {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(struct{}{})
-			return
-		}
+	if err := h.Service.RemoveCollaborator(r.Context(), params.AppID, params.CollaboratorID); err != nil {
+		writeError(w, r, err)
+		return
 	}
 
-	writeError(w, r, apierrors.NewNotFound("collaborator not found"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(struct{}{})
 }
