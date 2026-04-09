@@ -8,6 +8,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -15,6 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+var ErrCollaboratorOwnerDeletion = apierrors.Forbidden.WithReason("CollaboratorOwnerDeletion").New("cannot remove owner collaborator")
 
 type CollaboratorServiceStore interface {
 	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)
@@ -206,6 +209,9 @@ func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID stri
 		}
 		if c.AppID != appID {
 			return portalservice.ErrCollaboratorNotFound
+		}
+		if c.Role == model.CollaboratorRoleOwner {
+			return ErrCollaboratorOwnerDeletion
 		}
 		return s.Store.DeleteCollaborator(ctx, c)
 	})

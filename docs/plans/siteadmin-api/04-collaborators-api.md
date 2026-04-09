@@ -30,6 +30,8 @@ The three endpoints affected are:
   user to already exist.
 - `RemoveCollaborator` verifies the collaborator belongs to the given `appID` before
   deleting (guards against cross-app ID manipulation in the URL).
+- `RemoveCollaborator` must reject deletion of an `owner` collaborator with `403
+  Forbidden`.
 - The actor user ID for Admin API calls is obtained from the validated session in the
   request context (`session.GetValidSessionInfo(ctx).UserID`), identical to how the
   `AuthzMiddleware` works.
@@ -91,7 +93,8 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 1. GlobalDatabase.WithTx:
    a. CollaboratorStore.GetCollaborator(collaboratorID) — if not found → 404
    b. Verify collaborator.AppID == appID → if mismatch → 404
-   c. CollaboratorStore.DeleteCollaborator(collaborator)
+   c. Verify collaborator.Role != "owner" → if owner → 403 Forbidden
+   d. CollaboratorStore.DeleteCollaborator(collaborator)
 2. Return {} (empty JSON object)
 ```
 
@@ -120,7 +123,8 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 - `pkg/siteadmin/service/admin_api.go` — shared Site Admin `AdminAPIService` with
   `FindUserIDsByEmail` and `ResolveUserEmails`
 - `pkg/siteadmin/service/collaborator.go` — `CollaboratorStore`,
-  `CollaboratorService`, collaborator scanning helpers, and duplicate detection
+  `CollaboratorService`, collaborator scanning helpers, duplicate detection, and
+  owner-removal guard
 - `pkg/siteadmin/service/collaborator_test.go` — service-level tests for list, add,
   remove, and transaction-boundary behavior
 
@@ -152,6 +156,8 @@ CollaboratorService (pkg/siteadmin/service/collaborator.go)
 - `AddCollaborator` still does a pre-check for an existing collaborator, but
   `CollaboratorStore.CreateCollaborator` also maps the database unique constraint to
   `portalservice.ErrCollaboratorDuplicate` so the write path is safe against races.
+- `RemoveCollaborator` returns a dedicated forbidden error when the target collaborator
+  has role `owner`.
 
 ---
 
