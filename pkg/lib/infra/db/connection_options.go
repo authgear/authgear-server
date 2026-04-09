@@ -7,11 +7,12 @@ import (
 type ConnectionPurpose string
 
 const (
-	ConnectionPurposeGlobal         = "global"
-	ConnectionPurposeApp            = "app"
-	ConnectionPurposeAuditReadOnly  = "audit_read_only"
-	ConnectionPurposeAuditReadWrite = "audit_read_write"
-	ConnectionPurposeSearch         = "search"
+	ConnectionPurposeGlobal          = "global"
+	ConnectionPurposeSiteadminGlobal = "siteadmin_global"
+	ConnectionPurposeApp             = "app"
+	ConnectionPurposeAuditReadOnly   = "audit_read_only"
+	ConnectionPurposeAuditReadWrite  = "audit_read_write"
+	ConnectionPurposeSearch          = "search"
 )
 
 type ConnectionInfo struct {

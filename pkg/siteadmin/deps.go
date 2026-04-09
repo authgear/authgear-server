@@ -22,7 +22,12 @@ import (
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
 	clock.DependencySet,
-	globaldb.DependencySet,
+	// Use a dedicated connection pool for siteadmin (ConnectionPurposeSiteadminGlobal)
+	// so siteadmin traffic cannot exhaust the global DB connections of other components
+	// (portal, APIs, etc.).
+	newSiteadminGlobalHandle,
+	globaldb.NewSQLExecutor,
+	globaldb.NewSQLBuilder,
 	globalredis.DependencySet,
 	session.DependencySet,
 	transport.DependencySet,
