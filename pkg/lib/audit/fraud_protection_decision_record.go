@@ -24,6 +24,7 @@ type FraudProtectionDecisionRecordQueryOptions struct {
 	Decisions           []model.FraudProtectionDecision
 	Search              *string
 	ReasonCodes         []string
+	MaximumWarningCount *int
 	MinimumWarningCount *int
 }
 
@@ -62,6 +63,12 @@ func (o FraudProtectionDecisionRecordQueryOptions) Apply(q db.SelectBuilder) db.
 				WHERE warning.code = ANY (?)
 			)`,
 			pq.Array(o.ReasonCodes),
+		)
+	}
+	if o.MaximumWarningCount != nil {
+		q = q.Where(
+			"COALESCE(jsonb_array_length(data->'payload'->'record'->'triggered_warnings'), 0) <= ?",
+			*o.MaximumWarningCount,
 		)
 	}
 	if o.MinimumWarningCount != nil {

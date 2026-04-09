@@ -133,12 +133,16 @@ function parseEntry(
 }
 
 function getResultQueryVariables(resultFilter: ResultFilterKey): {
+  maximumWarningCount?: number;
   minimumWarningCount?: number;
   verdicts?: FraudProtectionDecision[];
 } {
   switch (resultFilter) {
     case "allowed":
-      return { verdicts: [FraudProtectionDecision.Allowed] };
+      return {
+        verdicts: [FraudProtectionDecision.Allowed],
+        maximumWarningCount: 0,
+      };
     case "flagged":
       return {
         verdicts: [FraudProtectionDecision.Allowed],
@@ -396,6 +400,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
           verdicts: resultQueryVariables.verdicts,
           reasonCodes:
             selectedReasonCodes.length > 0 ? selectedReasonCodes : undefined,
+          maximumWarningCount: resultQueryVariables.maximumWarningCount,
           minimumWarningCount: resultQueryVariables.minimumWarningCount,
           search:
             debouncedSearch.trim() !== "" ? debouncedSearch.trim() : undefined,

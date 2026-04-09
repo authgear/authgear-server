@@ -225,6 +225,11 @@ func fraudProtectionDecisionRecordQueryOptionsFromArgs(
 		return out
 	}
 
+	var maximumWarningCount *int
+	if n, ok := p.Args["maximumWarningCount"].(int); ok {
+		maximumWarningCount = &n
+	}
+
 	var minimumWarningCount *int
 	if n, ok := p.Args["minimumWarningCount"].(int); ok {
 		minimumWarningCount = &n
@@ -236,6 +241,7 @@ func fraudProtectionDecisionRecordQueryOptionsFromArgs(
 		SortDirection:       sortDirection,
 		Decisions:           decisions,
 		ReasonCodes:         toStringSlice("reasonCodes"),
+		MaximumWarningCount: maximumWarningCount,
 		MinimumWarningCount: minimumWarningCount,
 		Search: func() *string {
 			search, _ := p.Args["search"].(string)
