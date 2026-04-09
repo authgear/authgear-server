@@ -1317,6 +1317,8 @@ export type QueryFraudProtectionLogsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  maximumWarningCount?: InputMaybe<Scalars['Int']['input']>;
+  minimumWarningCount?: InputMaybe<Scalars['Int']['input']>;
   rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   reasonCodes?: InputMaybe<Array<Scalars['String']['input']>>;

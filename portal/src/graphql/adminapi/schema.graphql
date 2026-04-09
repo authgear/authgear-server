@@ -1527,7 +1527,7 @@ type Query {
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
   """Fraud protection decision records"""
-  fraudProtectionLogs(after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!], maximumWarningCount: Int, minimumWarningCount: Int): FraudProtectionDecisionRecordConnection
+  fraudProtectionLogs(after: String, before: String, first: Int, last: Int, maximumWarningCount: Int, minimumWarningCount: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection
 
   """Fraud protection overview"""
   fraudProtectionOverview(rangeFrom: DateTime, rangeTo: DateTime): FraudProtectionOverview!
