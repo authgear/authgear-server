@@ -174,6 +174,12 @@ use flake
        - "http://portal.localhost:8000/"
        # This redirect URI is used by the portal production build.
        - "http://portal.localhost:8010/"
+     - client_id: siteadmin
+       name: Site Admin
+       redirect_uris:
+       - "http://localhost:3005/oauth-redirect"
+       post_logout_redirect_uris:
+       - "http://localhost:3005/"
    ```
 
 3. Set up `.localhost`
