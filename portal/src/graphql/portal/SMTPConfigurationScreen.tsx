@@ -52,6 +52,7 @@ import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError, APISMTPTestFailedError } from "../../error/error";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen } from "../../RedMessageBar";
+import { useCalloutToast } from "../../components/v2/Callout/Callout";
 
 interface LocationState {
   isEdit: boolean;
@@ -285,6 +286,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     const { sendTestEmail, loading } = sendTestEmailHandle;
 
     const { isAuthgearOnce } = useSystemConfig();
+    const { showToast } = useCalloutToast();
 
     const [isDialogHidden, setIsDialogHidden] = useState(true);
     const [toAddress, setToAddress] = useState("");
@@ -470,6 +472,12 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
 
         sendTestEmail(input).then(
           () => {
+            showToast({
+              type: "success",
+              text: (
+                <FormattedMessage id="SMTPConfigurationScreen.send-test-email.toast.success" />
+              ),
+            });
             setIsDialogHidden(true);
           },
           () => {
@@ -477,7 +485,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           }
         );
       },
-      [sendTestEmail, state, toAddress]
+      [sendTestEmail, showToast, state, toAddress]
     );
 
     const onChangeToAddress = useCallback((_, value?: string) => {
