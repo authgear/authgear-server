@@ -2,6 +2,8 @@ package mail
 
 import (
 	"errors"
+	"fmt"
+	netmail "net/mail"
 
 	"gopkg.in/gomail.v2"
 
@@ -80,9 +82,39 @@ func (s *Sender) Send(message *gomail.Message) (err error) {
 	return nil
 }
 
-func (s *Sender) applyFrom(opts *SendOptions, message *gomail.Message) error {
-	message.SetHeader("From", opts.Sender)
+// SetFromHeader sets the RFC 5322 From header so that only the display
+// name is RFC 2047 encoded, not the angle-addr literal.
+//
+// gomail's SetHeader("From", sender) encodes the whole value as one encoded
+// word when it contains non-ASCII, turning
+//
+//	"範例 <noreply@example.com>"
+//
+// into
+//
+//	=?UTF-8?q?=E7=AF=84=E4=BE=8B_<noreply@example.com>?=
+//
+// which is invalid — RFC 5322 §3.4 requires the addr-spec to appear outside
+// any encoded word. SetAddressHeader encodes only the display name, producing:
+//
+//	=?UTF-8?q?=E7=AF=84=E4=BE=8B?= <noreply@example.com>
+//
+// See RFC 5322 §3.4 (https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) and
+// RFC 2047 (https://datatracker.ietf.org/doc/html/rfc2047) for the encoding rules.
+// RFC 6532 (https://datatracker.ietf.org/doc/html/rfc6532) would allow raw UTF-8
+// in headers, but requires the SMTPUTF8 extension (RFC 6531) on the relay; RFC 2047
+// encoded words are used here for compatibility with all SMTP servers.
+func SetFromHeader(message *gomail.Message, sender string) error {
+	addr, err := netmail.ParseAddress(sender)
+	if err != nil {
+		return fmt.Errorf("invalid sender address %q: %w", sender, err)
+	}
+	message.SetAddressHeader("From", addr.Address, addr.Name)
 	return nil
+}
+
+func (s *Sender) applyFrom(opts *SendOptions, message *gomail.Message) error {
+	return SetFromHeader(message, opts.Sender)
 }
 
 func applyTo(opts *SendOptions, message *gomail.Message) error {
