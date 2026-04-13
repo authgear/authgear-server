@@ -1,5 +1,5 @@
 ---
-name: add_go_test
+name: add-go-test
 description: Write or extend Go unit tests in this repo. Use when the user asks to add or update Go tests.
 argument-hint: "<package or behavior>"
 ---

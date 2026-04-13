@@ -1,5 +1,5 @@
 ---
-name: add_portal_admin_api_mutation
+name: add-portal-admin-api-mutation
 description: Add a Portal Admin GraphQL mutation under portal/src/graphql/adminapi/mutations.
 argument-hint: "<mutation name>"
 ---

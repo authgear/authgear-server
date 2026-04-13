@@ -1,5 +1,5 @@
 ---
-name: dep_audit
+name: dep-audit
 description: Audit and fix dependency vulnerabilities in Go and Node.js packages. Runs govulncheck for Go and npm audit for each package.json directory. Commits fixes directory by directory.
 argument-hint: "--fix"
 ---
