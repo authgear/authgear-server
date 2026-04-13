@@ -11,8 +11,8 @@
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} hat den konfigurierten Schwellenwert für {{ .Usage.Period }} {{ .Usage.Name }} erreicht.</mj-text>
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Aktion: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Kontingent: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Aktueller Wert: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Kontingent: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Aktueller Wert: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

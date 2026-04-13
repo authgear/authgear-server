@@ -11,8 +11,8 @@
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.</mj-text>
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">작업: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">할당량: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">현재 값: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">할당량: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">현재 값: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

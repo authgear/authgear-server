@@ -11,8 +11,8 @@
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} ha raggiunto la soglia di utilizzo configurata per {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
       <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Azione: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Quota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding="0">Valore attuale: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Quota: {{ .Usage.Quota }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Valore attuale: {{ .Usage.CurrentValue }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
