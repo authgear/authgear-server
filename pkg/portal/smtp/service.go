@@ -60,8 +60,18 @@ func (s *Service) SendRealEmail(ctx context.Context, opts mail.SendOptions) (err
 	return
 }
 
-func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options SendTestEmailOptions) (err error) {
+func buildTestMessage(appID string, options SendTestEmailOptions) (*gomail.Message, error) {
+	message := gomail.NewMessage()
+	if err := mail.SetFromHeader(message, options.SMTPSender); err != nil {
+		return nil, err
+	}
+	message.SetHeader("To", options.To)
+	message.SetHeader("Subject", "[Test] Authgear email")
+	message.SetBody("text/plain", fmt.Sprintf("This email was successfully sent from %s", appID))
+	return message, nil
+}
 
+func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options SendTestEmailOptions) (err error) {
 	dialer := gomail.NewDialer(
 		options.SMTPHost,
 		options.SMTPPort,
@@ -70,11 +80,10 @@ func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options Sen
 	)
 	// Do not set dialer.SSL so that SSL mode is inferred from the given port.
 
-	message := gomail.NewMessage()
-	message.SetHeader("From", options.SMTPSender)
-	message.SetHeader("To", options.To)
-	message.SetHeader("Subject", "[Test] Authgear email")
-	message.SetBody("text/plain", fmt.Sprintf("This email was successfully sent from %s", app.ID))
+	message, err := buildTestMessage(app.ID, options)
+	if err != nil {
+		return
+	}
 
 	err = dialer.DialAndSend(message)
 	if err != nil {

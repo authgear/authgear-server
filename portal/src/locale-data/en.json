@@ -1592,6 +1592,7 @@
   "SMTPConfigurationScreen.send-test-email.label": "Send Test Email",
   "SMTPConfigurationScreen.send-test-email-dialog.title": "Enter the recipient email address",
   "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMTP configuration by sending an email to the given address.",
+  "SMTPConfigurationScreen.send-test-email.toast.success": "Test email sent successfully!",
   "SMTPConfigurationScreen.provider.sendgrid": "SendGrid",
   "SMTPConfigurationScreen.provider.custom": "SMTP Provider",
   "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SendGrid account and generate a SendGrid API Key. Check <DocLink>our instructions</DocLink> if you need help.",
