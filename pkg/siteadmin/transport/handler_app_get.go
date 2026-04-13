@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -48,7 +47,5 @@ func (h *AppGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(detail)
+	SiteAdminAPISuccessResponse{Body: detail}.WriteTo(w)
 }

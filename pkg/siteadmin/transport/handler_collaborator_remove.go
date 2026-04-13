@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -41,7 +40,5 @@ func (h *CollaboratorRemoveHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(struct{}{})
+	SiteAdminAPISuccessResponse{Body: struct{}{}}.WriteTo(w)
 }

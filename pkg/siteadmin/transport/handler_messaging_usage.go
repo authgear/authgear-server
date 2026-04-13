@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -60,7 +59,5 @@ func (h *MessagingUsageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		WhatsappOtherRegionsCount: 15,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(usage)
+	SiteAdminAPISuccessResponse{Body: usage}.WriteTo(w)
 }

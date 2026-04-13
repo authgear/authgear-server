@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -97,7 +96,5 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	}
 	usage := siteadmin.MonthlyActiveUsersUsage{Counts: counts}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(usage)
+	SiteAdminAPISuccessResponse{Body: usage}.WriteTo(w)
 }

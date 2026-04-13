@@ -67,7 +67,5 @@ func (h *CollaboratorAddHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(collaborator)
+	SiteAdminAPISuccessResponse{Body: collaborator}.WriteTo(w)
 }

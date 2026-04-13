@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -45,7 +44,5 @@ func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	response := siteadmin.CollaboratorsListResponse{
 		Collaborators: collaborators,
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+	SiteAdminAPISuccessResponse{Body: response}.WriteTo(w)
 }
