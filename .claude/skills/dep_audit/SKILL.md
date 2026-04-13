@@ -78,7 +78,9 @@ For each directory:
    - Identify what vulnerability or issue the override was originally added to fix (check git log: `git log --oneline -10 -- <dir>/package.json`).
    - Run `npm list <overridden-package> --all` to see the currently resolved versions.
    - Check if the parent package that originally required the vulnerable version has since released a patch that bundles a safe version on its own (i.e. the override is no longer needed to satisfy the advisory).
-   - If the override is no longer needed, remove it, run `npm install`, and confirm with `npm audit` that there are no regressions before proceeding. Include the removal in the same commit as any other fixes for this directory.
+   - If the override is no longer needed, remove it only after you have evidence that the vulnerable resolved versions are gone. Then run `npm install` and confirm with `npm audit` that there are no regressions before proceeding. Include the removal in the same commit as any other fixes for this directory.
+   - Do **not** remove an override speculatively just to "see what happens". If removing it causes `npm audit` to re-report the vulnerability, restore the override and treat it as still required.
+   - If `npm list` shows a vulnerable transitive version that is still being suppressed by an override, keep the override unless you can point to a non-vulnerable resolved version or an upstream package release that makes the override redundant.
 2. `cd` into it and run `npm audit --json`.
 2. Parse the output:
    - If **no vulnerabilities**, note it and move on to the next directory.
