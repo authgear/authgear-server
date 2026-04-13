@@ -1,13 +1,13 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
+	service "github.com/authgear/authgear-server/pkg/siteadmin/service"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -16,13 +16,17 @@ func ConfigureAppsListRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/api/v1/apps")
 }
 
+type AppsListService interface {
+	ListApps(ctx context.Context, params service.ListAppsParams) (*service.ListAppsResult, error)
+}
+
 type AppsListHandler struct {
-	// Add service dependencies here as needed
+	AppsList AppsListService
 }
 
 type AppsListParams struct {
-	Page       int
-	PageSize   int
+	Page       uint64
+	PageSize   uint64
 	AppID      string
 	OwnerEmail string
 }
@@ -30,16 +34,16 @@ type AppsListParams struct {
 func parseAppsListParams(r *http.Request) AppsListParams {
 	q := r.URL.Query()
 
-	page := 1
+	page := uint64(1)
 	if v := q.Get("page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 1 {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
 			page = n
 		}
 	}
 
-	pageSize := 20
+	pageSize := uint64(20)
 	if v := q.Get("page_size"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 100 {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 && n <= 100 {
 			pageSize = n
 		}
 	}
@@ -52,68 +56,23 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 	}
 }
 
-// TODO: Replace dummy data with real implementation.
-var dummyApps = []siteadmin.App{
-	{
-		Id:         "app-alpha",
-		OwnerEmail: "alice@example.com",
-		Plan:       "enterprise",
-		CreatedAt:  time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC),
-	},
-	{
-		Id:         "app-beta",
-		OwnerEmail: "bob@example.com",
-		Plan:       "startups",
-		CreatedAt:  time.Date(2024, 3, 22, 10, 30, 0, 0, time.UTC),
-	},
-	{
-		Id:         "app-gamma",
-		OwnerEmail: "carol@example.com",
-		Plan:       "free",
-		CreatedAt:  time.Date(2024, 6, 5, 14, 0, 0, 0, time.UTC),
-	},
-	{
-		Id:         "app-delta",
-		OwnerEmail: "alice@example.com",
-		Plan:       "startups",
-		CreatedAt:  time.Date(2024, 8, 10, 9, 0, 0, 0, time.UTC),
-	},
-	{
-		Id:         "app-epsilon",
-		OwnerEmail: "eve@example.com",
-		Plan:       "free",
-		CreatedAt:  time.Date(2024, 11, 1, 12, 0, 0, 0, time.UTC),
-	},
-}
-
 func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseAppsListParams(r)
 
-	// TODO: Replace with real data source. Filter and paginate dummy data for now.
-	filtered := make([]siteadmin.App, 0, len(dummyApps))
-	for _, a := range dummyApps {
-		if params.AppID != "" && !strings.EqualFold(a.Id, params.AppID) {
-			continue
-		}
-		if params.OwnerEmail != "" && !strings.EqualFold(a.OwnerEmail, params.OwnerEmail) {
-			continue
-		}
-		filtered = append(filtered, a)
-	}
-
-	totalCount := len(filtered)
-	start := (params.Page - 1) * params.PageSize
-	end := start + params.PageSize
-	if start > totalCount {
-		start = totalCount
-	}
-	if end > totalCount {
-		end = totalCount
+	result, err := h.AppsList.ListApps(r.Context(), service.ListAppsParams{
+		Page:       params.Page,
+		PageSize:   params.PageSize,
+		AppID:      params.AppID,
+		OwnerEmail: params.OwnerEmail,
+	})
+	if err != nil {
+		writeError(w, r, err)
+		return
 	}
 
 	response := siteadmin.AppsListResponse{
-		Apps:       filtered[start:end],
-		TotalCount: totalCount,
+		Apps:       result.Apps,
+		TotalCount: result.TotalCount,
 		Page:       params.Page,
 		PageSize:   params.PageSize,
 	}

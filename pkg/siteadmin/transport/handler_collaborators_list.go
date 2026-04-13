@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -32,18 +31,11 @@ func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
 func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorsListParams(r)
 
-	// TODO: Replace with real data source. Search dummy data for now.
-	for _, a := range dummyApps {
-		if a.Id == params.AppID {
-			response := siteadmin.CollaboratorsListResponse{
-				Collaborators: dummyCollaboratorsForApp(params.AppID),
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(response)
-			return
-		}
+	// TODO: Replace with real data source.
+	response := siteadmin.CollaboratorsListResponse{
+		Collaborators: dummyCollaboratorsForApp(params.AppID),
 	}
-
-	writeError(w, r, apierrors.NewNotFound("app not found"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
 }

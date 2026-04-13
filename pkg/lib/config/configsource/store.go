@@ -213,6 +213,72 @@ func (s *Store) ListAll(ctx context.Context) ([]*DatabaseSource, error) {
 	return items, nil
 }
 
+func (s *Store) CountAll(ctx context.Context) (int, error) {
+	q := s.SQLBuilder.
+		Select("COUNT(*)").
+		From(s.SQLBuilder.TableName("_portal_config_source"))
+
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return 0, err
+	}
+
+	var count int
+	if err := scanner.Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *Store) ListPaged(ctx context.Context, limit uint64, offset uint64) ([]*DatabaseSource, error) {
+	builder := s.selectConfigSourceQuery().
+		OrderBy("created_at DESC").
+		Limit(limit).
+		Offset(offset)
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*DatabaseSource
+	for rows.Next() {
+		item, err := s.scanConfigSource(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (s *Store) GetManyByAppIDs(ctx context.Context, appIDs []string) ([]*DatabaseSource, error) {
+	if len(appIDs) == 0 {
+		return nil, nil
+	}
+
+	builder := s.selectConfigSourceQuery().
+		Where(sq.Eq{"app_id": appIDs}).
+		OrderBy("created_at DESC")
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*DatabaseSource
+	for rows.Next() {
+		item, err := s.scanConfigSource(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
 func (s *Store) ListByPlan(ctx context.Context, planName string) ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery().
 		Where("plan_name = ?", planName)

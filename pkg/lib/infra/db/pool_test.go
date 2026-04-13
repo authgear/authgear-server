@@ -40,6 +40,10 @@ func TestPool(t *testing.T) {
 			Purpose:     ConnectionPurposeAuditReadWrite,
 			DatabaseURL: "postgresql://localhost:5432/db1",
 		}
+		siteadminGlobal := ConnectionInfo{
+			Purpose:     ConnectionPurposeSiteadminGlobal,
+			DatabaseURL: "postgresql://localhost:5432/db1",
+		}
 		search := ConnectionInfo{
 			Purpose:     ConnectionPurposeSearch,
 			DatabaseURL: "postgresql://localhost:5432/db1",
@@ -64,6 +68,10 @@ func TestPool(t *testing.T) {
 		auditdb_Write, err := pool.Open(auditWrite, opts)
 		So(err, ShouldBeNil)
 		So(auditdb_Write, ShouldNotBeNil)
+
+		siteadmindb, err := pool.Open(siteadminGlobal, opts)
+		So(err, ShouldBeNil)
+		So(siteadmindb, ShouldNotBeNil)
 
 		searchdb, err := pool.Open(search, opts)
 		So(err, ShouldBeNil)
@@ -90,11 +98,18 @@ func TestPool(t *testing.T) {
 		So(auditdb_Write != appdb2, ShouldBeTrue)
 		So(auditdb_Write != auditdb_Read, ShouldBeTrue)
 
+		So(siteadmindb != globaldb, ShouldBeTrue)
+		So(siteadmindb != appdb1, ShouldBeTrue)
+		So(siteadmindb != appdb2, ShouldBeTrue)
+		So(siteadmindb != auditdb_Read, ShouldBeTrue)
+		So(siteadmindb != auditdb_Write, ShouldBeTrue)
+
 		So(searchdb != globaldb, ShouldBeTrue)
 		So(searchdb != appdb1, ShouldBeTrue)
 		So(searchdb != appdb2, ShouldBeTrue)
 		So(searchdb != auditdb_Read, ShouldBeTrue)
 		So(searchdb != auditdb_Write, ShouldBeTrue)
+		So(searchdb != siteadmindb, ShouldBeTrue)
 
 		So(appdb3 != globaldb, ShouldBeTrue)
 		So(appdb3 == appdb1, ShouldBeTrue)
