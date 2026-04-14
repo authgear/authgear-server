@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"encoding/json"
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -15,7 +15,11 @@ func ConfigureCollaboratorsListRoute(route httproute.Route) httproute.Route {
 }
 
 type CollaboratorsListHandler struct {
-	// Add service dependencies here as needed
+	Service CollaboratorsListService
+}
+
+type CollaboratorsListService interface {
+	ListCollaborators(ctx context.Context, appID string) ([]siteadmin.Collaborator, error)
 }
 
 type CollaboratorsListParams struct {
@@ -31,11 +35,14 @@ func parseCollaboratorsListParams(r *http.Request) CollaboratorsListParams {
 func (h *CollaboratorsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseCollaboratorsListParams(r)
 
-	// TODO: Replace with real data source.
-	response := siteadmin.CollaboratorsListResponse{
-		Collaborators: dummyCollaboratorsForApp(params.AppID),
+	collaborators, err := h.Service.ListCollaborators(r.Context(), params.AppID)
+	if err != nil {
+		writeError(w, r, err)
+		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+
+	response := siteadmin.CollaboratorsListResponse{
+		Collaborators: collaborators,
+	}
+	SiteAdminAPISuccessResponse{Body: response}.WriteTo(w)
 }

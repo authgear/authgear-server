@@ -186,11 +186,13 @@ func TestAppService(t *testing.T) {
 			GlobalDatabase:    fakeDatabase{},
 			ConfigSourceStore: cs,
 			OwnerStore:        os,
-			AdminAPI:          &fakeAdminAPI{serverURL: svr.URL},
-			AuditDatabase:     nil,
-			AuditStore:        nil,
-			HTTPClient:        AppServiceHTTPClient{Client: &http.Client{}},
-			Clock:             fixedClock,
+			AdminAPI: &AdminAPIService{
+				AdminAPI:   &fakeAdminAPI{serverURL: svr.URL},
+				HTTPClient: SiteAdminHTTPClient{Client: &http.Client{}},
+			},
+			AuditDatabase: nil,
+			AuditStore:    nil,
+			Clock:         fixedClock,
 		}
 	}
 

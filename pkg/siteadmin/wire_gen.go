@@ -131,6 +131,11 @@ func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 		DefaultDomains: defaultDomainService,
 	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
@@ -139,15 +144,13 @@ func newAppsListHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
-	appServiceHTTPClient := service.NewHTTPClient()
 	appService := &service.AppService{
 		GlobalDatabase:    handle,
 		ConfigSourceStore: store,
 		OwnerStore:        appOwnerStore,
-		AdminAPI:          adminAPIService,
+		AdminAPI:          serviceAdminAPIService,
 		AuditDatabase:     readHandle,
 		AuditStore:        auditDBReadStore,
-		HTTPClient:        appServiceHTTPClient,
 		Clock:             clock,
 	}
 	appsListHandler := &transport.AppsListHandler{
@@ -198,6 +201,11 @@ func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 		DefaultDomains: defaultDomainService,
 	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
@@ -206,15 +214,13 @@ func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
-	appServiceHTTPClient := service.NewHTTPClient()
 	appService := &service.AppService{
 		GlobalDatabase:    handle,
 		ConfigSourceStore: store,
 		OwnerStore:        appOwnerStore,
-		AdminAPI:          adminAPIService,
+		AdminAPI:          serviceAdminAPIService,
 		AuditDatabase:     readHandle,
 		AuditStore:        auditDBReadStore,
-		HTTPClient:        appServiceHTTPClient,
 		Clock:             clockClock,
 	}
 	appGetHandler := &transport.AppGetHandler{
@@ -224,17 +230,155 @@ func newAppGetHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
-	collaboratorsListHandler := &transport.CollaboratorsListHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	clockClock := _wireSystemClockValue
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	collaboratorStore := &service.CollaboratorStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	collaboratorService := &service.CollaboratorService{
+		GlobalDatabase: handle,
+		Store:          collaboratorStore,
+		AdminAPI:       serviceAdminAPIService,
+	}
+	collaboratorsListHandler := &transport.CollaboratorsListHandler{
+		Service: collaboratorService,
+	}
 	return collaboratorsListHandler
 }
 
 func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
-	collaboratorAddHandler := &transport.CollaboratorAddHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	clockClock := _wireSystemClockValue
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	collaboratorStore := &service.CollaboratorStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	collaboratorService := &service.CollaboratorService{
+		GlobalDatabase: handle,
+		Store:          collaboratorStore,
+		AdminAPI:       serviceAdminAPIService,
+	}
+	collaboratorAddHandler := &transport.CollaboratorAddHandler{
+		Service: collaboratorService,
+	}
 	return collaboratorAddHandler
 }
 
 func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
-	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	clockClock := _wireSystemClockValue
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	collaboratorStore := &service.CollaboratorStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	collaboratorService := &service.CollaboratorService{
+		GlobalDatabase: handle,
+		Store:          collaboratorStore,
+		AdminAPI:       serviceAdminAPIService,
+	}
+	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{
+		Service: collaboratorService,
+	}
 	return collaboratorRemoveHandler
 }
 

@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -76,8 +75,5 @@ func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Page:       params.Page,
 		PageSize:   params.PageSize,
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+	SiteAdminAPISuccessResponse{Body: response}.WriteTo(w)
 }
