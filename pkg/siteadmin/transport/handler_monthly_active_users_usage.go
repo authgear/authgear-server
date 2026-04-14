@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -13,8 +14,12 @@ func ConfigureMonthlyActiveUsersUsageRoute(route httproute.Route) httproute.Rout
 		WithPathPattern("/api/v1/apps/:appID/usage/monthly-active-users")
 }
 
+type MonthlyActiveUsersUsageService interface {
+	GetMonthlyActiveUsersUsage(ctx context.Context, appID string, startYear int, startMonth int, endYear int, endMonth int) (*siteadmin.MonthlyActiveUsersUsage, error)
+}
+
 type MonthlyActiveUsersUsageHandler struct {
-	// Add service dependencies here as needed
+	Service MonthlyActiveUsersUsageService
 }
 
 type MonthlyActiveUsersUsageParams struct {
