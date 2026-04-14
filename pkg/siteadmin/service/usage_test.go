@@ -19,8 +19,18 @@ type fakeGlobalDBStore struct {
 	err    error
 }
 
-func (f *fakeGlobalDBStore) FetchUsageRecordsInRange(_ context.Context, _ string, name usage.RecordName, _ periodical.Type, _, _ time.Time) ([]*usage.UsageRecord, error) {
-	return f.byName[name], f.err
+func (f *fakeGlobalDBStore) FetchUsageRecordsInRange(_ context.Context, _ string, name usage.RecordName, _ periodical.Type, from, toExclusive time.Time) ([]*usage.UsageRecord, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	var out []*usage.UsageRecord
+	for _, r := range f.byName[name] {
+		t := r.StartTime.UTC().Truncate(24 * time.Hour)
+		if !t.Before(from) && t.Before(toExclusive) {
+			out = append(out, r)
+		}
+	}
+	return out, nil
 }
 
 // fakeDB runs the closure immediately (no real transaction).
@@ -46,10 +56,12 @@ func TestUsageService(t *testing.T) {
 		})
 
 		Convey("sums counts per record name independently", func() {
+			day1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+			day2 := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
 			store := &fakeGlobalDBStore{byName: map[usage.RecordName][]*usage.UsageRecord{
-				usage.RecordNameSMSSentNorthAmerica:      {{Count: 10}, {Count: 5}},
-				usage.RecordNameSMSSentOtherRegions:      {{Count: 3}},
-				usage.RecordNameWhatsappSentNorthAmerica: {{Count: 7}},
+				usage.RecordNameSMSSentNorthAmerica:      {{StartTime: day1, Count: 10}, {StartTime: day2, Count: 5}},
+				usage.RecordNameSMSSentOtherRegions:      {{StartTime: day1, Count: 3}},
+				usage.RecordNameWhatsappSentNorthAmerica: {{StartTime: day1, Count: 7}},
 				usage.RecordNameWhatsappSentOtherRegions: {},
 			}}
 			svc := &UsageService{GlobalDatabase: &fakeDB{}, GlobalDBStore: store}
