@@ -1,5 +1,5 @@
 ---
-name: add_portal_admin_api_query
+name: add-portal-admin-api-query
 description: Add a Portal Admin GraphQL query under portal/src/graphql/adminapi/query.
 argument-hint: "<query name>"
 ---

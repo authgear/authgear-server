@@ -1,5 +1,5 @@
 ---
-name: update_go_version
+name: update-go-version
 description: Update the Go toolchain version across the repo.
 argument-hint: "<new Go version>"
 ---

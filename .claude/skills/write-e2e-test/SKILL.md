@@ -1,5 +1,5 @@
 ---
-name: write_e2e_test
+name: write-e2e-test
 description: Write end-to-end (e2e) tests for authgear-server. Use when the user asks to write, add, or create e2e tests. The tests live in e2e/tests/ and are YAML-driven.
 ---
 

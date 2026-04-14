@@ -1,5 +1,5 @@
 ---
-name: update_vettedpositions
+name: update-vettedpositions
 description: Update .vettedpositions after harmless line-number moves in goanalysis output.
 argument-hint: "<changed files or analysis output>"
 ---

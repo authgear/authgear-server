@@ -1,5 +1,5 @@
 ---
-name: update_important_modules
+name: update-important-modules
 description: Refresh the repo's important Go modules when the dependency set drifts.
 argument-hint: "<module names or audit target>"
 ---
