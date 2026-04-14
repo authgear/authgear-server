@@ -80,11 +80,11 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
 
     const sourceIPs = useMemo<SourceIPRow[]>(() => {
       return (
-        overview?.topSourceIPs.map((sourceIP) => ({
+        overview?.sendSMS.topSourceIPs.map((sourceIP) => ({
           ip: sourceIP.ipAddress,
-          total: sourceIP.totalActions,
-          blocked: sourceIP.blockedActions,
-          flagged: sourceIP.warnedActions,
+          total: sourceIP.total,
+          blocked: sourceIP.blocked,
+          flagged: sourceIP.flagged,
         })) ?? []
       );
     }, [overview]);
@@ -162,7 +162,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                   title={renderToString(
                     "FraudProtectionConfigurationScreen.overview.total.title"
                   )}
-                  value={formatCount(overview?.totalActions)}
+                  value={formatCount(overview?.sendSMS.total)}
                 />
               </div>
               <OverviewMetricCard
@@ -171,7 +171,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.flagged.title"
                 )}
-                value={formatCount(overview?.warnedActions)}
+                value={formatCount(overview?.sendSMS.flagged)}
               />
               <OverviewMetricCard
                 iconName="BlockContact"
@@ -179,7 +179,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.blocked.title"
                 )}
-                value={formatCount(overview?.blockedActions)}
+                value={formatCount(overview?.sendSMS.blocked)}
               />
             </div>
             <div className={styles.overviewSide}>

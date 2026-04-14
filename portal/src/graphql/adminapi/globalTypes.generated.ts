@@ -688,18 +688,23 @@ export type FraudProtectionDecisionSendSmsActionDetail = {
 
 export type FraudProtectionOverview = {
   __typename?: 'FraudProtectionOverview';
-  blockedActions: Scalars['Int']['output'];
+  sendSMS: FraudProtectionOverviewSendSms;
+};
+
+export type FraudProtectionOverviewSendSms = {
+  __typename?: 'FraudProtectionOverviewSendSMS';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
   topSourceIPs: Array<FraudProtectionOverviewTopSourceIp>;
-  totalActions: Scalars['Int']['output'];
-  warnedActions: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
 };
 
 export type FraudProtectionOverviewTopSourceIp = {
   __typename?: 'FraudProtectionOverviewTopSourceIP';
-  blockedActions: Scalars['Int']['output'];
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
   ipAddress: Scalars['String']['output'];
-  totalActions: Scalars['Int']['output'];
-  warnedActions: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
 };
 
 export enum FraudProtectionWarningType {

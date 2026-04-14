@@ -9,6 +9,10 @@ import (
 )
 
 type FraudProtectionOverview struct {
+	SendSMS FraudProtectionOverviewSendSMS `json:"sendSMS"`
+}
+
+type FraudProtectionOverviewSendSMS struct {
 	TotalActions   int                         `json:"totalActions"`
 	BlockedActions int                         `json:"blockedActions"`
 	WarnedActions  int                         `json:"warnedActions"`
@@ -16,10 +20,10 @@ type FraudProtectionOverview struct {
 }
 
 type FraudProtectionOverviewIP struct {
-	IPAddress      string `json:"ipAddress"`
-	TotalActions   int    `json:"totalActions"`
-	BlockedActions int    `json:"blockedActions"`
-	WarnedActions  int    `json:"warnedActions"`
+	IPAddress string `json:"ipAddress"`
+	Total     int    `json:"total"`
+	Blocked   int    `json:"blocked"`
+	Flagged   int    `json:"flagged"`
 }
 
 func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
@@ -93,9 +97,9 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 		if ip.Valid {
 			item.IPAddress = ip.String
 		}
-		item.TotalActions = int(total)
-		item.BlockedActions = int(blocked)
-		item.WarnedActions = int(warnings)
+		item.Total = int(total)
+		item.Blocked = int(blocked)
+		item.Flagged = int(warnings)
 		topSourceIPs = append(topSourceIPs, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -103,9 +107,11 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPa
 	}
 
 	return &FraudProtectionOverview{
-		TotalActions:   int(totalActions),
-		BlockedActions: int(blockedActions),
-		WarnedActions:  int(warnedActions),
-		TopSourceIPs:   topSourceIPs,
+		SendSMS: FraudProtectionOverviewSendSMS{
+			TotalActions:   int(totalActions),
+			BlockedActions: int(blockedActions),
+			WarnedActions:  int(warnedActions),
+			TopSourceIPs:   topSourceIPs,
+		},
 	}, nil
 }

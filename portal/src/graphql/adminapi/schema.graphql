@@ -1118,31 +1118,37 @@ type FraudProtectionDecisionSendSMSActionDetail {
 """"""
 type FraudProtectionOverview {
   """"""
-  blockedActions: Int!
+  sendSMS: FraudProtectionOverviewSendSMS!
+}
+
+""""""
+type FraudProtectionOverviewSendSMS {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
 
   """"""
   topSourceIPs: [FraudProtectionOverviewTopSourceIP!]!
 
   """"""
-  totalActions: Int!
-
-  """"""
-  warnedActions: Int!
+  total: Int!
 }
 
 """"""
 type FraudProtectionOverviewTopSourceIP {
   """"""
-  blockedActions: Int!
+  blocked: Int!
+
+  """"""
+  flagged: Int!
 
   """"""
   ipAddress: String!
 
   """"""
-  totalActions: Int!
-
-  """"""
-  warnedActions: Int!
+  total: Int!
 }
 
 """"""

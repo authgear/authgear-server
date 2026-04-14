@@ -18,25 +18,59 @@ var fraudProtectionOverviewTopSourceIPType = graphql.NewObject(graphql.ObjectCon
 				return source.IPAddress, nil
 			},
 		},
-		"totalActions": &graphql.Field{
+		"total": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				source := p.Source.(audit.FraudProtectionOverviewIP)
+				return source.Total, nil
+			},
+		},
+		"blocked": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(audit.FraudProtectionOverviewIP)
+				return source.Blocked, nil
+			},
+		},
+		"flagged": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(audit.FraudProtectionOverviewIP)
+				return source.Flagged, nil
+			},
+		},
+	},
+})
+
+var fraudProtectionOverviewSendSMSType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "FraudProtectionOverviewSendSMS",
+	Fields: graphql.Fields{
+		"total": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(audit.FraudProtectionOverviewSendSMS)
 				return source.TotalActions, nil
 			},
 		},
-		"blockedActions": &graphql.Field{
+		"blocked": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(audit.FraudProtectionOverviewIP)
+				source := p.Source.(audit.FraudProtectionOverviewSendSMS)
 				return source.BlockedActions, nil
 			},
 		},
-		"warnedActions": &graphql.Field{
+		"flagged": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(audit.FraudProtectionOverviewIP)
+				source := p.Source.(audit.FraudProtectionOverviewSendSMS)
 				return source.WarnedActions, nil
+			},
+		},
+		"topSourceIPs": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(fraudProtectionOverviewTopSourceIPType))),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(audit.FraudProtectionOverviewSendSMS)
+				return source.TopSourceIPs, nil
 			},
 		},
 	},
@@ -45,32 +79,11 @@ var fraudProtectionOverviewTopSourceIPType = graphql.NewObject(graphql.ObjectCon
 var fraudProtectionOverviewType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "FraudProtectionOverview",
 	Fields: graphql.Fields{
-		"totalActions": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+		"sendSMS": &graphql.Field{
+			Type: graphql.NewNonNull(fraudProtectionOverviewSendSMSType),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				source := p.Source.(*audit.FraudProtectionOverview)
-				return source.TotalActions, nil
-			},
-		},
-		"blockedActions": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionOverview)
-				return source.BlockedActions, nil
-			},
-		},
-		"warnedActions": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionOverview)
-				return source.WarnedActions, nil
-			},
-		},
-		"topSourceIPs": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(fraudProtectionOverviewTopSourceIPType))),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source := p.Source.(*audit.FraudProtectionOverview)
-				return source.TopSourceIPs, nil
+				return source.SendSMS, nil
 			},
 		},
 	},
