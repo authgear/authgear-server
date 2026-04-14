@@ -81,25 +81,16 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		writeError(w, r, err)
 		return
 	}
-	// TODO: Replace with real data source. Return dummy data for now.
-	var counts []siteadmin.MonthlyActiveUsersCount
-	year, month := params.StartYear, params.StartMonth
-	for {
-		counts = append(counts, siteadmin.MonthlyActiveUsersCount{
-			Year:  year,
-			Month: month,
-			Count: 100,
-		})
-		if year == params.EndYear && month == params.EndMonth {
-			break
-		}
-		month++
-		if month > 12 {
-			month = 1
-			year++
-		}
+
+	usage, err := h.Service.GetMonthlyActiveUsersUsage(
+		r.Context(), params.AppID,
+		params.StartYear, params.StartMonth,
+		params.EndYear, params.EndMonth,
+	)
+	if err != nil {
+		writeError(w, r, err)
+		return
 	}
-	usage := siteadmin.MonthlyActiveUsersUsage{Counts: counts}
 
 	SiteAdminAPISuccessResponse{Body: usage}.WriteTo(w)
 }

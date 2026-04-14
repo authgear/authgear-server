@@ -330,6 +330,8 @@
 /pkg/siteadmin/transport/handler_collaborator_add.go:64:49: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_remove.go:38:41: requestcontext
 /pkg/siteadmin/transport/handler_collaborators_list.go:38:52: requestcontext
+/pkg/siteadmin/transport/handler_messaging_usage.go:78:44: requestcontext
+/pkg/siteadmin/transport/handler_monthly_active_users_usage.go:86:3: requestcontext
 /pkg/siteadmin/transport/middleware_authz.go:25:10: requestcontext
 /pkg/siteadmin/transport/response.go:24:44: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext

@@ -75,14 +75,10 @@ func (h *MessagingUsageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO: Replace with real data source. Return dummy data for now.
-	usage := siteadmin.MessagingUsage{
-		StartDate:                 params.StartDate,
-		EndDate:                   params.EndDate,
-		SmsNorthAmericaCount:      120,
-		SmsOtherRegionsCount:      45,
-		WhatsappNorthAmericaCount: 30,
-		WhatsappOtherRegionsCount: 15,
+	usage, err := h.Service.GetMessagingUsage(r.Context(), params.AppID, params.StartDate, params.EndDate)
+	if err != nil {
+		writeError(w, r, err)
+		return
 	}
 
 	SiteAdminAPISuccessResponse{Body: usage}.WriteTo(w)
