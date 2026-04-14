@@ -96,18 +96,19 @@ func (s *UsageService) GetMonthlyActiveUsersUsage(ctx context.Context, appID str
 		byMonth[r.StartTime.UTC().Truncate(24*time.Hour)] = r.Count
 	}
 
-	var counts []siteadmin.MonthlyActiveUsersCount
+	totalMonths := (endYear-startYear)*12 + (endMonth - startMonth) + 1
+	if totalMonths <= 0 {
+		return &siteadmin.MonthlyActiveUsersUsage{Counts: nil}, nil
+	}
+	counts := make([]siteadmin.MonthlyActiveUsersCount, 0, totalMonths)
 	year, month := startYear, startMonth
-	for {
+	for i := 0; i < totalMonths; i++ {
 		t := timeutil.FirstDayOfTheMonth(time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC))
 		counts = append(counts, siteadmin.MonthlyActiveUsersCount{
 			Year:  year,
 			Month: month,
 			Count: byMonth[t],
 		})
-		if year == endYear && month == endMonth {
-			break
-		}
 		month++
 		if month > 12 {
 			month = 1

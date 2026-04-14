@@ -103,6 +103,13 @@ func TestUsageService(t *testing.T) {
 			So(result.Counts[1].Count, ShouldEqual, 400)
 		})
 
+		Convey("returns empty counts when start is after end", func() {
+			svc := &UsageService{GlobalDatabase: &fakeDB{}, GlobalDBStore: &fakeGlobalDBStore{}}
+			result, err := svc.GetMonthlyActiveUsersUsage(context.Background(), "app1", 2024, 6, 2024, 3)
+			So(err, ShouldBeNil)
+			So(result.Counts, ShouldBeEmpty)
+		})
+
 		Convey("endMonth=12 computes correct exclusive upper bound", func() {
 			// time.Month(13) normalises to January of the next year in time.Date — no special case needed.
 			dec := time.Date(2024, 12, 1, 0, 0, 0, 0, time.UTC)
