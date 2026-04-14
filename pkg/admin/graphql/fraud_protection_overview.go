@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"time"
-
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -88,29 +86,3 @@ var fraudProtectionOverviewType = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
-
-var fraudProtectionOverviewArgs = graphql.FieldConfigArgument{
-	"rangeFrom": &graphql.ArgumentConfig{
-		Type: graphql.DateTime,
-	},
-	"rangeTo": &graphql.ArgumentConfig{
-		Type: graphql.DateTime,
-	},
-}
-
-func fraudProtectionOverviewResolveOpts(p graphql.ResolveParams) audit.QueryPageOptions {
-	var rangeFrom *time.Time
-	if t, ok := p.Args["rangeFrom"].(time.Time); ok {
-		rangeFrom = &t
-	}
-
-	var rangeTo *time.Time
-	if t, ok := p.Args["rangeTo"].(time.Time); ok {
-		rangeTo = &t
-	}
-
-	return audit.QueryPageOptions{
-		RangeFrom: rangeFrom,
-		RangeTo:   rangeTo,
-	}
-}
