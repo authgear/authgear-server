@@ -1,9 +1,12 @@
 import React, { useContext, useMemo } from "react";
-import { ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
-import { Context } from "../../intl";
+import { Context, FormattedMessage } from "../../intl";
 import { FraudProtectionDecisionAction } from "../../types";
 import FormTextField from "../../FormTextField";
+import ChoiceGroupWithDescriptions, {
+  ChoiceGroupWithDescriptionOption,
+} from "../common/ChoiceGroupWithDescriptions";
 import styles from "./FraudProtectionSettingsTab.module.css";
+import { IChoiceGroupOption } from "@fluentui/react";
 
 export interface FraudProtectionSettingsTabProps {
   isModifiable: boolean;
@@ -37,12 +40,17 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
     } = props;
     const { renderToString } = useContext(Context);
 
-    const enforcementModeOptions = useMemo<IChoiceGroupOption[]>(() => {
+    const enforcementModeOptions = useMemo<
+      ChoiceGroupWithDescriptionOption[]
+    >(() => {
       return [
         {
           key: "record_only",
           text: renderToString(
             "FraudProtectionConfigurationScreen.enforcement.observe.label"
+          ),
+          description: (
+            <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.observe.description" />
           ),
         },
         {
@@ -50,13 +58,16 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           text: renderToString(
             "FraudProtectionConfigurationScreen.enforcement.protect.label"
           ),
+          description: (
+            <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.protect.description" />
+          ),
         },
       ];
     }, [renderToString]);
 
     return (
       <section className={styles.section}>
-        <ChoiceGroup
+        <ChoiceGroupWithDescriptions
           label={renderToString(
             "FraudProtectionConfigurationScreen.enforcement.mode.title"
           )}
