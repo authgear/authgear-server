@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
+	usagepkg "github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -62,10 +63,16 @@ var DependencySet = wire.NewSet(
 	auditdb.NewReadHandle,
 	wire.Struct(new(analytic.AuditDBReadStore), "*"),
 
+	// usage.GlobalDBStore satisfies UsageServiceGlobalDBStore
+	wire.Struct(new(usagepkg.GlobalDBStore), "SQLBuilder", "SQLExecutor"),
+	wire.Bind(new(siteadminservice.UsageServiceGlobalDBStore), new(*usagepkg.GlobalDBStore)),
+
 	// transport bindings
 	wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),
 	wire.Bind(new(transport.AppGetService), new(*siteadminservice.AppService)),
 	wire.Bind(new(transport.CollaboratorsListService), new(*siteadminservice.CollaboratorService)),
 	wire.Bind(new(transport.CollaboratorAddService), new(*siteadminservice.CollaboratorService)),
 	wire.Bind(new(transport.CollaboratorRemoveService), new(*siteadminservice.CollaboratorService)),
+	wire.Bind(new(transport.MessagingUsageService), new(*siteadminservice.UsageService)),
+	wire.Bind(new(transport.MonthlyActiveUsersUsageService), new(*siteadminservice.UsageService)),
 )
