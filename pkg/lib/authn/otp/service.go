@@ -112,6 +112,14 @@ func (s *Service) consumeCode(ctx context.Context, purpose Purpose, code *Code) 
 	if err := s.CodeStore.Update(ctx, purpose, code); err != nil {
 		return err
 	}
+
+	if code.OOBChannel == model.AuthenticatorOOBChannelSMS {
+		if err := s.FraudProtection.RecordSMSOTPVerified(ctx, code.Target); err != nil {
+			logger := ServiceLogger.GetLogger(ctx)
+			logger.WithError(err).Error(ctx, "failed to record SMS OTP verified for fraud protection")
+		}
+	}
+
 	// No need delete from lookup store;
 	// lookup entry is invalidated since target is no longer exist.
 	return nil
@@ -331,12 +339,6 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 
 	// Set flag to return reserved rate limit tokens
 	isCodeValid = true
-
-	if code.OOBChannel == model.AuthenticatorOOBChannelSMS {
-		if err := s.FraudProtection.RecordSMSOTPVerified(ctx, target); err != nil {
-			logger.WithError(err).Error(ctx, "failed to record SMS OTP verified for fraud protection")
-		}
-	}
 
 	if !opts.SkipConsume {
 		if err := s.consumeCode(ctx, kind.Purpose(), code); err != nil {

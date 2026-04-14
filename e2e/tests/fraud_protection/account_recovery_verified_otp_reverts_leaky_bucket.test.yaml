@@ -158,6 +158,22 @@ steps:
           }
         }
 
+  - name: flow 1 - reset password
+    action: input
+    state_token: |
+      {{ index .steps "flow 1 - verify recovery code" "result" "state_token" }}
+    input: |
+      {
+        "new_password": "Password123!"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
   - name: flow 5 - create
     action: create
     input: |
