@@ -64,6 +64,11 @@ func TestValidateAppID(t *testing.T) {
 			So(service.validateAppID(ctx, "us-east-1"), ShouldBeError, ErrAppIDReserved)
 		})
 
+		Convey("siteadmin and site-admin are reserved", func() {
+			So(service.validateAppID(ctx, "siteadmin"), ShouldBeError, ErrAppIDReserved)
+			So(service.validateAppID(ctx, "site-admin"), ShouldBeError, ErrAppIDReserved)
+		})
+
 		Convey("some examples of valid app ID", func() {
 			So(service.validateAppID(ctx, "myapp"), ShouldBeNil)
 			So(service.validateAppID(ctx, "this-app"), ShouldBeNil)

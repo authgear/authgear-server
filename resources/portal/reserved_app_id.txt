@@ -370,6 +370,8 @@ shopping
 show
 sip
 site
+site-admin
+siteadmin
 sitebuilder
 sitemap
 sites
