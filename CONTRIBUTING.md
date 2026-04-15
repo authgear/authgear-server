@@ -40,6 +40,10 @@ It also covers some common development tasks.
 This project supports asdf, and there is a .tool-versions file at the project root.
 
 1. Install asdf
+
+   Follow the official getting started guide for installation:
+   https://asdf-vm.com/guide/getting-started.html
+
 2. Run the following to install all dependencies in .tool-versions
 
    ```sh
@@ -48,7 +52,45 @@ This project supports asdf, and there is a .tool-versions file at the project ro
    asdf plugin add python
    asdf install
    ```
-3. Install pkg-config
+
+   Ensure the asdf shims are in your `PATH`, otherwise `go` may still resolve to the system version after installation.
+   Preferably add the following to your shell startup script.
+
+   ```sh
+   export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+   ```
+
+   You can verify the active Go binary with:
+
+   ```sh
+   which go
+   go version
+   ```
+
+3. On macOS, install required command-line tools
+
+   a. Install GNU Make.
+   The `make` version bundled with macOS is too old. GNU Make 4+ is required.
+
+   ```sh
+   brew install make
+   ```
+
+   Homebrew usually installs GNU Make as `gmake`.
+   If you want `make` to resolve to the Homebrew version as well, add the following to your shell startup script:
+
+   ```sh
+   export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+   ```
+
+   b. Install `coreutils`.
+   `basenc` is required later in this guide, and it is provided by `coreutils`.
+
+   ```sh
+   brew install coreutils
+   ```
+
+   c. Install `pkg-config`.
 
    ```sh
    brew install pkg-config
@@ -134,17 +176,17 @@ use flake
 2. Generate config files
 
    ```sh
-   $ go run ./cmd/authgear init \
-      --interactive false \
-      --output-folder ./var \
-      --purpose portal \
-      --app-id accounts \
-      --public-origin 'http://accounts.portal.localhost:3100' \
-      --portal-origin 'http://portal.localhost:8000' \
-      --portal-client-id portal \
-      --phone-otp-mode sms \
-      --disable-email-verification true \
-      --search-implementation postgresql
+   go run ./cmd/authgear init \
+     --interactive false \
+     --output-folder ./var \
+     --purpose portal \
+     --app-id accounts \
+     --public-origin 'http://accounts.portal.localhost:3100' \
+     --portal-origin 'http://portal.localhost:8000' \
+     --portal-client-id portal \
+     --phone-otp-mode sms \
+     --disable-email-verification true \
+     --search-implementation postgresql
    ```
 
    You need to make changes according to the example shown above.
@@ -191,6 +233,13 @@ use flake
 
    You can either do this by editing `/etc/hosts` or using `dnsmasq`.
 
+   Example `/etc/hosts` entries:
+
+   ```text
+   127.0.0.1 portal.localhost
+   127.0.0.1 accounts.portal.localhost
+   ```
+
 ## Set up the database
 
 1. Start the database
@@ -208,6 +257,14 @@ use flake
    go run ./cmd/authgear images database migrate up
    go run ./cmd/authgear search database migrate up
    go run ./cmd/portal database migrate up
+   ```
+
+3. Create the initial portal app config source in the database
+
+   Run this after `go run ./cmd/authgear init ...` has generated `./var`.
+
+   ```sh
+   go run ./cmd/portal internal configsource create ./var
    ```
 
 
@@ -240,7 +297,7 @@ mc mb local/userexport
    The following command assumes everything is running, as it invokes the Admin API server to create an account!
 
    ```sh
-   $ go run ./cmd/authgear internal admin-api invoke \
+   go run ./cmd/authgear internal admin-api invoke \
      --app-id accounts \
      --endpoint "http://localhost:3002" \
      --host "accounts.portal.localhost:3100" \
@@ -512,7 +569,7 @@ CONFIG_SOURCE_TYPE=database
 CUSTOM_RESOURCE_DIRECTORY=./var
 ```
 
-2. Create a row in `_portal_config_source`:
+2. If you have not already done so during the initial local setup, create a row in `_portal_config_source`:
 
 ```sh
 go run ./cmd/portal internal configsource create ./var
