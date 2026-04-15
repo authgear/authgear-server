@@ -3,6 +3,7 @@
 ## Prerequisite
 
 You need the following to setup whatsapp cloud api in authgear:
+
 - A facebook business
 - A facebook app
 - A whatsapp business account with a verified phone number
@@ -40,6 +41,31 @@ YOUR_APP_SECRET can be found in "App Settings" -> "Basic".
 - Ensure your facebook app is "Live" (Not "Development").
 - In the "WhatsApp" tab, click "Configuration". You should see a "Webhook" section.
 - In the "Webhook" section, fill in "Callback URL". It should be `{AUTHGEAR_ENDPOINT}/whatsapp/webhook`.
-- In the "Webhook" section, fill in "Verify token
-". It should be `YOUR_VERIFY_TOKEN` you've configured in the secrets.
+- In the "Webhook" section, fill in "Verify token". It should be `YOUR_VERIFY_TOKEN` you've configured in the secrets.
 - In "Webhook fields", subscribe to "messages".
+
+### Subscribe to the whatsapp business account
+
+This step is required to let your facebook app to receive notifications from your whatsapp business account.
+
+Note, you must be logged in to an account with access to both your facebook app and whatsapp business account to perform these steps:
+
+- Go to https://developers.facebook.com/tools/explorer
+- In "Add a permission", select:
+  - whatsapp_business_management
+  - whatsapp_business_messaging
+- Press Generate Access Token
+- Then, type `{WABA_ID}/subscribed_apps` as the request path. Replace `{WABA_ID}` with your whatsapp business account ID.
+- Change the request method to `POST`.
+- Press "Submit"
+- Change the request method to `GET`, submit and confirm a new item is created. You should an item like this:
+
+```json
+{
+  "whatsapp_business_api_data": {
+    "link": "https://www.facebook.com/games/?app_id=1234567890987654",
+    "name": "YOUR APP NAME",
+    "id": "1234567890987654"
+  }
+},
+```
