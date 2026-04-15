@@ -206,6 +206,8 @@ func (s *GlobalDBStore) FetchUsageRecords(
 	return out, nil
 }
 
+// FetchUsageRecordsInRange returns usage records whose start_time falls in [fromStartTime, toEndTime).
+// toEndTime is exclusive.
 func (s *GlobalDBStore) FetchUsageRecordsInRange(
 	ctx context.Context,
 	appID string,

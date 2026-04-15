@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
@@ -13,8 +14,12 @@ func ConfigureMonthlyActiveUsersUsageRoute(route httproute.Route) httproute.Rout
 		WithPathPattern("/api/v1/apps/:appID/usage/monthly-active-users")
 }
 
+type MonthlyActiveUsersUsageService interface {
+	GetMonthlyActiveUsersUsage(ctx context.Context, appID string, startYear int, startMonth int, endYear int, endMonth int) (*siteadmin.MonthlyActiveUsersUsage, error)
+}
+
 type MonthlyActiveUsersUsageHandler struct {
-	// Add service dependencies here as needed
+	Service MonthlyActiveUsersUsageService
 }
 
 type MonthlyActiveUsersUsageParams struct {
@@ -76,25 +81,16 @@ func (h *MonthlyActiveUsersUsageHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		writeError(w, r, err)
 		return
 	}
-	// TODO: Replace with real data source. Return dummy data for now.
-	var counts []siteadmin.MonthlyActiveUsersCount
-	year, month := params.StartYear, params.StartMonth
-	for {
-		counts = append(counts, siteadmin.MonthlyActiveUsersCount{
-			Year:  year,
-			Month: month,
-			Count: 100,
-		})
-		if year == params.EndYear && month == params.EndMonth {
-			break
-		}
-		month++
-		if month > 12 {
-			month = 1
-			year++
-		}
+
+	usage, err := h.Service.GetMonthlyActiveUsersUsage(
+		r.Context(), params.AppID,
+		params.StartYear, params.StartMonth,
+		params.EndYear, params.EndMonth,
+	)
+	if err != nil {
+		writeError(w, r, err)
+		return
 	}
-	usage := siteadmin.MonthlyActiveUsersUsage{Counts: counts}
 
 	SiteAdminAPISuccessResponse{Body: usage}.WriteTo(w)
 }
