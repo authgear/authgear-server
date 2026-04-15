@@ -471,15 +471,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    const showEndpoint = useMemo(
-      () =>
-        !clientConfig.x_application_type ||
-        clientConfig.x_application_type === "spa" ||
-        clientConfig.x_application_type === "traditional_webapp" ||
-        clientConfig.x_application_type === "native",
-      [clientConfig.x_application_type]
-    );
-
     const refreshTokenHelpText = useMemo(() => {
       if (clientConfig.refresh_token_idle_timeout_enabled) {
         return renderToString(
@@ -598,13 +589,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={clientConfig.client_id}
             readOnly={true}
           />
-          {showEndpoint ? (
-            <TextFieldWithCopyButton
-              label={renderToString("EditOAuthClientForm.endpoint.label")}
-              value={publicOrigin}
-              readOnly={true}
-            />
-          ) : null}
+          <TextFieldWithCopyButton
+            label={renderToString("EditOAuthClientForm.endpoint.label")}
+            value={publicOrigin}
+            readOnly={true}
+          />
           <TextField
             label={renderToString("EditOAuthClientForm.application-type.label")}
             value={applicationTypeLabel}
