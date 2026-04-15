@@ -170,6 +170,37 @@ func (p PromptURL) DefineFlag(cmd *cobra.Command) {
 	_ = cmd.Flags().String(p.NonInteractiveFlagName, p.InteractiveDefaultUserInput, p.Title)
 }
 
+type PromptOptionalURL struct {
+	Title                  string
+	NonInteractiveFlagName string
+	Validate               func(ctx context.Context, value *url.URL) error
+}
+
+func (p PromptOptionalURL) Prompt(ctx context.Context, cmd *cobra.Command) (*url.URL, error) {
+	return Prompt[*url.URL]{
+		Title:                  p.Title,
+		NonInteractiveFlagName: p.NonInteractiveFlagName,
+		Parse: func(ctx context.Context, userInput string) (*url.URL, error) {
+			if userInput == "" {
+				return nil, nil
+			}
+			u, err := url.Parse(userInput)
+			if err != nil {
+				return nil, err
+			}
+			if u.Scheme == "" || u.Host == "" {
+				return nil, fmt.Errorf("URL must be absolute: %v", userInput)
+			}
+			return u, nil
+		},
+		Validate: p.Validate,
+	}.Prompt(ctx, cmd)
+}
+
+func (p PromptOptionalURL) DefineFlag(cmd *cobra.Command) {
+	_ = cmd.Flags().String(p.NonInteractiveFlagName, "", p.Title)
+}
+
 type PromptBool struct {
 	Title                       string
 	InteractiveDefaultUserInput bool

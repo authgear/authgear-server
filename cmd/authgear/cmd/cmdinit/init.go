@@ -81,7 +81,7 @@ var cmdInit = &cobra.Command{
 			return err
 		}
 
-		var oauthClientConfigOpts *libconfig.GenerateOAuthClientConfigOptions
+		var oauthClientConfigOpts []libconfig.GenerateOAuthClientConfigOptions
 		if purpose == "portal" {
 			oauthClientConfigOpts, err = config.ReadOAuthClientConfigsFromConsole(ctx, cmd)
 			if err != nil {
@@ -109,8 +109,8 @@ var cmdInit = &cobra.Command{
 		appConfig := libconfig.GenerateAppConfigFromOptions(appConfigOpts)
 
 		// generate oauth client for the portal
-		if oauthClientConfigOpts != nil {
-			oauthClientConfig, err := libconfig.GenerateOAuthConfigFromOptions(oauthClientConfigOpts)
+		for _, opt := range oauthClientConfigOpts {
+			oauthClientConfig, err := libconfig.GenerateOAuthConfigFromOptions(&opt)
 			if err != nil {
 				return err
 			}
@@ -197,6 +197,9 @@ func init() {
 	config.Prompt_PublicOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalClientID.DefineFlag(cmdInit)
+	config.Prompt_SiteadminClientID.DefineFlag(cmdInit)
+	config.Prompt_SiteadminRedirectURI.DefineFlag(cmdInit)
+	config.Prompt_SiteadminPostLogoutRedirectURI.DefineFlag(cmdInit)
 	config.Prompt_DisablePublicSignup.DefineFlag(cmdInit)
 	config.Prompt_PhoneOTPMode.DefineFlag(cmdInit)
 	config.Prompt_DisableEmailVerification.DefineFlag(cmdInit)

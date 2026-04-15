@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 
@@ -32,6 +34,22 @@ var Prompt_PortalClientID = cliutil.PromptString{
 	Title:                       "The client ID of portal. If left empty, generate a random one.",
 	InteractiveDefaultUserInput: "",
 	NonInteractiveFlagName:      "portal-client-id",
+}
+
+var Prompt_SiteadminClientID = cliutil.PromptString{
+	Title:                       "The client ID of siteadmin. If left empty, do not generate the siteadmin client.",
+	InteractiveDefaultUserInput: "",
+	NonInteractiveFlagName:      "siteadmin-client-id",
+}
+
+var Prompt_SiteadminRedirectURI = cliutil.PromptOptionalURL{
+	Title:                  "Siteadmin redirect URI",
+	NonInteractiveFlagName: "siteadmin-redirect-uri",
+}
+
+var Prompt_SiteadminPostLogoutRedirectURI = cliutil.PromptOptionalURL{
+	Title:                  "Siteadmin post logout redirect URI",
+	NonInteractiveFlagName: "siteadmin-post-logout-redirect-uri",
 }
 
 var Prompt_PhoneOTPMode = cliutil.PromptString{
@@ -183,29 +201,97 @@ func ReadAppConfigOptionsFromConsole(ctx context.Context, cmd *cobra.Command) (*
 	return opts, nil
 }
 
-func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) (*config.GenerateOAuthClientConfigOptions, error) {
-	u, err := Prompt_PortalOrigin.Prompt(ctx, cmd)
+func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) ([]config.GenerateOAuthClientConfigOptions, error) {
+	portalOrigin, err := Prompt_PortalOrigin.Prompt(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
 
-	u.Path = "/oauth-redirect"
-	redirectURI := u.String()
-
-	u.Path = "/"
-	postLogoutRedirectURI := u.String()
-
-	clientID, err := Prompt_PortalClientID.Prompt(ctx, cmd)
+	portalRedirectURI, portalPostLogoutRedirectURI, err := makePortalOAuthEndpoints(portalOrigin)
 	if err != nil {
 		return nil, err
 	}
 
-	return &config.GenerateOAuthClientConfigOptions{
+	portalClientID, err := Prompt_PortalClientID.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	siteadminClientID, err := Prompt_SiteadminClientID.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	siteadminRedirectURI, err := Prompt_SiteadminRedirectURI.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	siteadminPostLogoutRedirectURI, err := Prompt_SiteadminPostLogoutRedirectURI.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []config.GenerateOAuthClientConfigOptions
+
+	opts = append(opts, config.GenerateOAuthClientConfigOptions{
 		Name:                  "Portal",
-		ClientID:              clientID,
-		RedirectURI:           redirectURI,
-		PostLogoutRedirectURI: postLogoutRedirectURI,
+		ClientID:              portalClientID,
+		RedirectURI:           portalRedirectURI,
+		PostLogoutRedirectURI: portalPostLogoutRedirectURI,
 		ApplicationType:       config.OAuthClientApplicationTypeTraditionalWeb,
+	})
+
+	// Siteadmin is opt-in because many deployments do not need it.
+	// Requiring an explicit client ID avoids seeding production configs with
+	// localhost redirect URIs when siteadmin is not actually intended to be used.
+	siteadminOpts, err := makeOAuthClientConfigOptions(
+		"siteadmin",
+		"Site Admin",
+		siteadminClientID,
+		siteadminRedirectURI,
+		siteadminPostLogoutRedirectURI,
+		config.OAuthClientApplicationTypeSPA,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if siteadminOpts != nil {
+		opts = append(opts, *siteadminOpts)
+	}
+
+	return opts, nil
+}
+
+func makePortalOAuthEndpoints(origin *url.URL) (string, string, error) {
+	if origin == nil {
+		return "", "", fmt.Errorf("portal origin is required")
+	}
+	redirectURI := *origin
+	redirectURI.Path = "/oauth-redirect"
+
+	postLogoutRedirectURI := *origin
+	postLogoutRedirectURI.Path = "/"
+
+	return redirectURI.String(), postLogoutRedirectURI.String(), nil
+}
+
+func makeOAuthClientConfigOptions(clientKind string, displayName string, clientID string, redirectURI *url.URL, postLogoutRedirectURI *url.URL, applicationType config.OAuthClientApplicationType) (*config.GenerateOAuthClientConfigOptions, error) {
+	if clientID == "" {
+		return nil, nil
+	}
+	if redirectURI == nil {
+		return nil, fmt.Errorf("%s redirect uri is required when %s-client-id is provided", clientKind, clientKind)
+	}
+	if postLogoutRedirectURI == nil {
+		return nil, fmt.Errorf("%s post logout redirect uri is required when %s-client-id is provided", clientKind, clientKind)
+	}
+	return &config.GenerateOAuthClientConfigOptions{
+		Name:                  displayName,
+		ClientID:              clientID,
+		RedirectURI:           redirectURI.String(),
+		PostLogoutRedirectURI: postLogoutRedirectURI.String(),
+		ApplicationType:       applicationType,
 	}, nil
 }
 

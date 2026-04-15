@@ -142,6 +142,9 @@ use flake
       --public-origin 'http://accounts.portal.localhost:3100' \
       --portal-origin 'http://portal.localhost:8000' \
       --portal-client-id portal \
+      --siteadmin-client-id siteadmin \
+      --siteadmin-redirect-uri 'http://localhost:8101/oauth2-redirect.html' \
+      --siteadmin-post-logout-redirect-uri 'http://localhost:8101' \
       --phone-otp-mode sms \
       --disable-email-verification true \
       --search-implementation postgresql
@@ -155,6 +158,8 @@ use flake
    oauth:
      clients:
      - client_id: portal
+       issue_jwt_access_token: true
+       name: Portal
        redirect_uris:
        # See nginx.conf for the difference between 8000, 8001, 8010, and 8011
        - "http://portal.localhost:8000/oauth-redirect"
@@ -174,12 +179,15 @@ use flake
        - "http://portal.localhost:8000/"
        # This redirect URI is used by the portal production build.
        - "http://portal.localhost:8010/"
+       x_application_type: traditional_webapp
      - client_id: siteadmin
+       issue_jwt_access_token: true
        name: Site Admin
-       redirect_uris:
-       - "http://localhost:3005/oauth-redirect"
        post_logout_redirect_uris:
-       - "http://localhost:3005/"
+       - "http://localhost:8101"
+       redirect_uris:
+       - "http://localhost:8101/oauth2-redirect.html"
+       x_application_type: spa
    ```
 
 3. Set up `.localhost`
