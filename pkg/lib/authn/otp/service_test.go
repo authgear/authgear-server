@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -73,6 +74,15 @@ func (s *testAttemptTracker) GetFailedAttempts(ctx context.Context, kind Kind, t
 
 func (s *testAttemptTracker) IncrementFailedAttempts(ctx context.Context, kind Kind, target string) (int, error) {
 	return 1, nil
+}
+
+type testFraudProtection struct {
+	recorded []string
+}
+
+func (s *testFraudProtection) RecordSMSOTPVerified(ctx context.Context, phoneNumber string) error {
+	s.recorded = append(s.recorded, phoneNumber)
+	return nil
 }
 
 type testRateLimiter struct {
@@ -183,13 +193,28 @@ func newTestService(rateLimiter *testRateLimiter) *Service {
 			FixedOOBOTP:          &config.TestModeFixedOOBOTPFeatureConfig{},
 			DeterministicLinkOTP: &config.TestModeDeterministicLinkOTPFeatureConfig{},
 		},
-		CodeStore:      newTestCodeStore(),
-		LookupStore:    &testLookupStore{},
-		AttemptTracker: &testAttemptTracker{},
-		RateLimiter:    rateLimiter,
-		FeatureConfig:  &config.FeatureConfig{},
-		EnvConfig:      &config.RateLimitsEnvironmentConfig{},
+		CodeStore:       newTestCodeStore(),
+		LookupStore:     &testLookupStore{},
+		AttemptTracker:  &testAttemptTracker{},
+		RateLimiter:     rateLimiter,
+		FraudProtection: &testFraudProtection{},
+		FeatureConfig:   &config.FeatureConfig{},
+		EnvConfig:       &config.RateLimitsEnvironmentConfig{},
 	}
+}
+
+func seedTestOTPCode(svc *Service, kind Kind, target string, code string, channel model.AuthenticatorOOBChannel) *Code {
+	c := &Code{
+		Target:     target,
+		Purpose:    kind.Purpose(),
+		Form:       FormCode,
+		Code:       code,
+		ExpireAt:   time.Unix(1700000300, 0).UTC(),
+		OOBChannel: channel,
+		Consumed:   false,
+	}
+	svc.CodeStore.(*testCodeStore).codes[svc.CodeStore.(*testCodeStore).key(kind.Purpose(), target)] = c
+	return c
 }
 
 func TestGenerateOTPWithSessionCooldown(t *testing.T) {
@@ -266,5 +291,31 @@ func TestInspectStateWithSessionCooldown(t *testing.T) {
 		state, err = svc.InspectState(context.Background(), kind, "+85265000001", nil)
 		So(err, ShouldBeNil)
 		So(state.CanResendAt, ShouldResemble, targetTime)
+	})
+}
+
+func TestVerifyOTPRecordsSMSOTPVerifiedOnlyOnConsume(t *testing.T) {
+	Convey("VerifyOTP records SMS verified metrics only when the code is consumed", t, func() {
+		cfg := loadTestAppConfig()
+		rateLimiter := newTestRateLimiter()
+		svc := newTestService(rateLimiter)
+		fraud := svc.FraudProtection.(*testFraudProtection)
+		kind := KindVerification(cfg, model.AuthenticatorOOBChannelSMS)
+
+		seedTestOTPCode(svc, kind, "+85265000001", "111111", model.AuthenticatorOOBChannelSMS)
+
+		err := svc.VerifyOTP(context.Background(), kind, "+85265000001", "111111", &VerifyOptions{
+			SkipConsume: true,
+		})
+		So(err, ShouldBeNil)
+		So(fraud.recorded, ShouldBeEmpty)
+
+		err = svc.ConsumeCode(context.Background(), kind.Purpose(), "+85265000001")
+		So(err, ShouldBeNil)
+		So(fraud.recorded, ShouldResemble, []string{"+85265000001"})
+
+		code, err := svc.InspectCode(context.Background(), kind.Purpose(), "+85265000001")
+		So(err, ShouldBeNil)
+		So(code.Consumed, ShouldBeTrue)
 	})
 }

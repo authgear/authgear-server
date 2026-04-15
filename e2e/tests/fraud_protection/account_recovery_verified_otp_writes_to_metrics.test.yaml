@@ -74,6 +74,20 @@ steps:
           }
         }
 
+  - name: reset password
+    action: input
+    input: |
+      {
+        "new_password": "Password123!"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
   - name: check audit metrics rows
     action: audit_query
     audit_query: |
