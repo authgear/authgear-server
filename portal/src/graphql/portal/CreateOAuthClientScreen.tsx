@@ -6,7 +6,8 @@ import {
   IChoiceGroupOptionProps,
   Text,
 } from "@fluentui/react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import PortalLink from "../../Link";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
@@ -197,7 +198,7 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
       );
     });
 
-    const onRenderLabel = useCallback((description: string) => {
+    const onRenderLabel = useCallback((description: React.ReactNode) => {
       return (option?: IChoiceGroupOption | IChoiceGroupOptionProps) => {
         return (
           <div className={styles.optionLabel}>
@@ -267,27 +268,25 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
           key: "m2m",
           text: renderToString("oauth-client.application-type.m2m"),
           onRenderLabel: onRenderLabel(
-            (
-              <FormattedMessage
-                id={
-                  hasNoAPIResources
-                    ? "CreateOAuthClientScreen.application-type.description.m2m.disabled"
-                    : "CreateOAuthClientScreen.application-type.description.m2m"
-                }
-                values={{
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  reactRouterLink: (chunks: React.ReactNode) => (
-                    <Link
-                      to={`/project/${encodeURIComponent(
-                        appNodeID
-                      )}/api-resources/create`}
-                    >
-                      {chunks}
-                    </Link>
-                  ),
-                }}
-              />
-            ) as any as string
+            <FormattedMessage
+              id={
+                hasNoAPIResources
+                  ? "CreateOAuthClientScreen.application-type.description.m2m.disabled"
+                  : "CreateOAuthClientScreen.application-type.description.m2m"
+              }
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                reactRouterLink: (chunks: React.ReactNode) => (
+                  <PortalLink
+                    to={`/project/${encodeURIComponent(
+                      appNodeID
+                    )}/api-resources/create`}
+                  >
+                    {chunks}
+                  </PortalLink>
+                ),
+              }}
+            />
           ),
           disabled: hasNoAPIResources,
         },

@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ExternalLink from "../../ExternalLink";
+import PortalLink from "../../Link";
 
 import { useEndpoints } from "../../hook/useEndpoints";
 
@@ -972,9 +973,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   hostname: publicOrigin,
                   // eslint-disable-next-line react/no-unstable-nested-components
                   reactRouterLink: (chunks: React.ReactNode) => (
-                    <Link to={`/project/${appID}/advanced/session`}>
+                    <PortalLink to={`/project/${appID}/advanced/session`}>
                       {chunks}
-                    </Link>
+                    </PortalLink>
                   ),
                 }}
               />
