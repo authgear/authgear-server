@@ -51,6 +51,8 @@ This step is required to let your facebook app to receive notifications from you
 Note, you must be logged in to an account with access to both your facebook app and whatsapp business account to perform these steps:
 
 - Go to https://developers.facebook.com/tools/explorer
+- In "Meta App", select your facebook app
+- In User or Page, select "User Token"
 - In "Add a permission", select:
   - whatsapp_business_management
   - whatsapp_business_messaging
