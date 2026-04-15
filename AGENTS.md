@@ -130,6 +130,10 @@ The **PR number is appended** to the subject of the squash-merge commit (added b
 
 ### Pull requests
 
+- Push branches to your **personal fork**, not to `origin` (the upstream repo).
+  - Add your fork as a remote if it isn't already: `git remote add <your-github-username> git@github.com:<your-github-username>/authgear-server.git`
+  - Push with `git push <your-github-username> <branch-name>`.
+  - Open PRs from `<your-github-username>:<branch-name>` targeting `authgear/authgear-server:main`.
 - PRs are **squash-merged** into `main`.
 - Keep the PR title identical to the intended squash-merge subject (without the `#N` suffix — GitHub adds that).
 - Reference the Linear ticket in the PR description if one exists.
