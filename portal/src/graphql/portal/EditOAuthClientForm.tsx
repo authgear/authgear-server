@@ -302,9 +302,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       (description: string) =>
         // eslint-disable-next-line react/no-unstable-nested-components
         (option?: IChoiceGroupOption) => (
-          <div>
-            <Text block={true}>{option?.text}</Text>
-            <Text block={true} variant="small" style={{ color: "#605e5c" }}>
+          <div style={{ paddingLeft: "26px" }}>
+            <Text block={true} style={{ lineHeight: "20px", marginBottom: "4px" }}>{option?.text}</Text>
+            <Text block={true} variant="small" style={{ color: "#605e5c", lineHeight: "20px", marginBottom: "12px" }}>
               {description}
             </Text>
           </div>
@@ -315,17 +315,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const authModeOptions: IChoiceGroupOption[] = useMemo(
       () => [
         {
-          key: "cookie_session",
-          text: renderToString(
-            "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
-          ),
-          onRenderLabel: renderAuthModeLabel(
-            renderToString(
-              "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.description"
-            )
-          ),
-        },
-        {
           key: "server_side_sdk",
           text: renderToString(
             "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.label"
@@ -333,6 +322,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           onRenderLabel: renderAuthModeLabel(
             renderToString(
               "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.description"
+            )
+          ),
+        },
+        {
+          key: "cookie_session",
+          text: renderToString(
+            "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
+          ),
+          onRenderLabel: renderAuthModeLabel(
+            renderToString(
+              "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.description"
             )
           ),
         },
