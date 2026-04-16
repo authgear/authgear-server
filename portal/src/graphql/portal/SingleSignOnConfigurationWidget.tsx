@@ -26,7 +26,8 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import styles from "./SingleSignOnConfigurationWidget.module.css";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
+import FoldableDiv from "../../FoldableDiv";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import {
   OAuthProviderFormModel,
   SSOProviderFormState,
@@ -508,10 +509,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       inactiveMessageId,
       docUrl,
     } = oauthProviders[providerItemKey];
-    const [isAdvancedOpen, setIsAdvancedOpen] = useState(
-      () => secret.originalAlias != null
+    const [advancedFolded, setAdvancedFolded] = useState(
+      () => secret.originalAlias == null
     );
-    const toggleAdvanced = useCallback(() => setIsAdvancedOpen((v) => !v), []);
     const redirectURL = useMemo(() => {
       if (!publicOrigin || !config.alias) {
         return "";
@@ -668,10 +668,18 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             <OAuthClientIcon providerItemKey={providerItemKey} />
           </div>
           <Label>{renderToString(messageID)}</Label>
-          <ExternalLink href={docUrl} className="ml-auto text-sm">
-            <FormattedMessage id="SingleSignOnConfigurationWidget.setupGuide" />
-          </ExternalLink>
         </div>
+        <Text variant="small" className={styles.setupGuide}>
+          <FormattedMessage
+            id="SingleSignOnConfigurationWidget.setupGuide"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              docLink: (chunks: React.ReactNode) => (
+                <ExternalLink href={docUrl}>{chunks}</ExternalLink>
+              ),
+            }}
+          />
+        </Text>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
@@ -709,12 +717,14 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         {credentialStatus !== "demo" ? (
           <>
             {redirectURL ? (
-              <div className="flex flex-col gap-1">
-                <Label>
-                  <FormattedMessage id="SingleSignOnConfigurationWidget.redirectUrl.label" />
-                </Label>
-                <TextWithCopyButton text={redirectURL} />
-              </div>
+              <TextFieldWithCopyButton
+                className={styles.textField}
+                label={renderToString(
+                  "SingleSignOnConfigurationWidget.redirectUrl.label"
+                )}
+                value={redirectURL}
+                readOnly={true}
+              />
             ) : null}
             {visibleFields.has("client_id") ? (
               <FormTextField
@@ -942,32 +952,27 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               />
             ) : null}
             {visibleFields.has("alias") ? (
-              <>
-                <ActionButton
-                  className="mt-2"
-                  text={renderToString(
-                    "SingleSignOnConfigurationWidget.advancedOptions"
+              <FoldableDiv
+                className={styles.advancedSection}
+                label={
+                  <FormattedMessage id="SingleSignOnConfigurationWidget.advancedOptions" />
+                }
+                folded={advancedFolded}
+                setFolded={setAdvancedFolded}
+              >
+                <FormTextField
+                  parentJSONPointer={jsonPointer}
+                  fieldName="alias"
+                  label={renderToString(
+                    "SingleSignOnConfigurationScreen.widget.alias"
                   )}
-                  iconProps={{
-                    iconName: isAdvancedOpen ? "ChevronUp" : "ChevronDown",
-                  }}
-                  onClick={toggleAdvanced}
+                  className={styles.textField}
+                  styles={TEXT_FIELD_STYLE}
+                  value={config.alias}
+                  onChange={onAliasChange}
+                  disabled={noneditable}
                 />
-                {isAdvancedOpen ? (
-                  <FormTextField
-                    parentJSONPointer={jsonPointer}
-                    fieldName="alias"
-                    label={renderToString(
-                      "SingleSignOnConfigurationScreen.widget.alias"
-                    )}
-                    className={styles.textField}
-                    styles={TEXT_FIELD_STYLE}
-                    value={config.alias}
-                    onChange={onAliasChange}
-                    disabled={noneditable}
-                  />
-                ) : null}
-              </>
+              </FoldableDiv>
             ) : null}
           </>
         ) : null}
