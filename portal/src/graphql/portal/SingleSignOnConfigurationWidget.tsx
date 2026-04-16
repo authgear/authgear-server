@@ -26,6 +26,7 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import styles from "./SingleSignOnConfigurationWidget.module.css";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import {
   OAuthProviderFormModel,
   SSOProviderFormState,
@@ -54,6 +55,7 @@ interface SingleSignOnConfigurationWidgetProps {
   ) => void;
 
   disabled: boolean;
+  publicOrigin: string;
 }
 
 type WidgetTextFieldKey =
@@ -71,6 +73,7 @@ interface OAuthProviderInfo {
   subtitleId?: string;
   descriptionId: string;
   inactiveMessageId: string;
+  docUrl: string;
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
@@ -97,6 +100,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     descriptionId: "AddSingleSignOnConfigurationScreen.card.apple.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.apple.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/apple",
   },
   google: {
     providerType: "google",
@@ -113,6 +118,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     descriptionId: "AddSingleSignOnConfigurationScreen.card.google.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.google.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/google",
   },
   facebook: {
     providerType: "facebook",
@@ -130,6 +137,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.facebook.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.facebook.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/facebook",
   },
   github: {
     providerType: "github",
@@ -147,6 +156,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     descriptionId: "AddSingleSignOnConfigurationScreen.card.github.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.github.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/github",
   },
   linkedin: {
     providerType: "linkedin",
@@ -164,6 +175,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.linkedin.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.linkedin.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/linkedin",
   },
   azureadv2: {
     providerType: "azureadv2",
@@ -183,6 +196,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.azureadv2.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.azureadv2.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/azureadv2",
   },
   azureadb2c: {
     providerType: "azureadb2c",
@@ -204,6 +219,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.azureadb2c.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.azureadb2c.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/azureadb2c",
   },
   adfs: {
     providerType: "adfs",
@@ -222,6 +239,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     descriptionId: "AddSingleSignOnConfigurationScreen.card.adfs.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.adfs.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/adfs",
   },
   "wechat.web": {
     providerType: "wechat",
@@ -243,6 +262,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.wechat.web.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.wechat.web.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/wechat-web",
   },
   "wechat.mobile": {
     providerType: "wechat",
@@ -265,6 +286,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.wechat.mobile.description",
     inactiveMessageId:
       "SingleSignOnConfigurationWidget.providers.wechat.mobile.inactiveMessage",
+    docUrl:
+      "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/wechat-mobile",
   },
 };
 
@@ -326,7 +349,7 @@ export function useSingleSignOnConfigurationWidget(
   form: OAuthProviderFormModel,
   effectiveSecretConfig: EffectiveSecretConfig | undefined,
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
-): SingleSignOnConfigurationWidgetProps {
+): Omit<SingleSignOnConfigurationWidgetProps, "className" | "publicOrigin"> {
   const {
     state: { providers },
     setState,
@@ -467,6 +490,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       secret,
       onChange,
       disabled: featureDisabled,
+      publicOrigin,
     } = props;
     const isMissingCredential =
       config.credentials_behavior === "use_demo_credentials";
@@ -482,7 +506,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       isSecretFieldTextArea,
       fields: visibleFields,
       inactiveMessageId,
+      docUrl,
     } = oauthProviders[providerItemKey];
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState(
+      () => secret.originalAlias != null
+    );
+    const toggleAdvanced = useCallback(() => setIsAdvancedOpen((v) => !v), []);
+    const redirectURL = useMemo(() => {
+      if (!publicOrigin || !config.alias) {
+        return "";
+      }
+      const normalizedOrigin = publicOrigin.replace(/\/+$/, "");
+      return `${normalizedOrigin}/sso/oauth2/callback/${encodeURIComponent(
+        config.alias
+      )}`;
+    }, [publicOrigin, config.alias]);
 
     const messageID = "OAuthBranding." + providerItemKey;
 
@@ -630,6 +668,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             <OAuthClientIcon providerItemKey={providerItemKey} />
           </div>
           <Label>{renderToString(messageID)}</Label>
+          <ExternalLink href={docUrl} className="ml-auto text-sm">
+            <FormattedMessage id="SingleSignOnConfigurationWidget.setupGuide" />
+          </ExternalLink>
         </div>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
@@ -667,19 +708,13 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         ) : null}
         {credentialStatus !== "demo" ? (
           <>
-            {visibleFields.has("alias") ? (
-              <FormTextField
-                parentJSONPointer={jsonPointer}
-                fieldName="alias"
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.alias"
-                )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
-                value={config.alias}
-                onChange={onAliasChange}
-                disabled={noneditable}
-              />
+            {redirectURL ? (
+              <div className="flex flex-col gap-1">
+                <Label>
+                  <FormattedMessage id="SingleSignOnConfigurationWidget.redirectUrl.label" />
+                </Label>
+                <TextWithCopyButton text={redirectURL} />
+              </div>
             ) : null}
             {visibleFields.has("client_id") ? (
               <FormTextField
@@ -905,6 +940,34 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 onChange={onDeleteDisabledChange}
                 disabled={noneditable}
               />
+            ) : null}
+            {visibleFields.has("alias") ? (
+              <>
+                <ActionButton
+                  className="mt-2"
+                  text={renderToString(
+                    "SingleSignOnConfigurationWidget.advancedOptions"
+                  )}
+                  iconProps={{
+                    iconName: isAdvancedOpen ? "ChevronUp" : "ChevronDown",
+                  }}
+                  onClick={toggleAdvanced}
+                />
+                {isAdvancedOpen ? (
+                  <FormTextField
+                    parentJSONPointer={jsonPointer}
+                    fieldName="alias"
+                    label={renderToString(
+                      "SingleSignOnConfigurationScreen.widget.alias"
+                    )}
+                    className={styles.textField}
+                    styles={TEXT_FIELD_STYLE}
+                    value={config.alias}
+                    onChange={onAliasChange}
+                    disabled={noneditable}
+                  />
+                ) : null}
+              </>
             ) : null}
           </>
         ) : null}
