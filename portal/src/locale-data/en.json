@@ -648,6 +648,7 @@
   "SingleSignOnConfigurationScreen.header.provider": "Provider",
   "SingleSignOnConfigurationScreen.header.configuration": "Configuration",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
+  "SingleSignOnConfigurationScreen.widget.alias.description": "A unique identifier for this provider. It appears in the authorized redirect URL and cannot be changed after users have connected their accounts.",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
   "SingleSignOnConfigurationScreen.widget.tenant": "Tenant",

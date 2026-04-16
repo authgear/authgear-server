@@ -966,6 +966,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                   label={renderToString(
                     "SingleSignOnConfigurationScreen.widget.alias"
                   )}
+                  description={renderToString(
+                    "SingleSignOnConfigurationScreen.widget.alias.description"
+                  )}
                   className={styles.textField}
                   styles={TEXT_FIELD_STYLE}
                   value={config.alias}
