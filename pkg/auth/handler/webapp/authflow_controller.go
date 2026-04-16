@@ -343,6 +343,21 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 	handler.ServeHTTP(w, r)
 }
 
+func (c *AuthflowController) HandleWithoutScreenAllowCompleted(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
+		return
+	}
+
+	session := webapp.GetSession(ctx)
+	if session == nil {
+		c.renderError(ctx, w, r, webapp.ErrSessionNotFound)
+		return
+	}
+
+	handler := c.makeHTTPHandler(session, nil, handlers)
+	handler.ServeHTTP(w, r)
+}
+
 func (c *AuthflowController) HandleWithoutSession(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
@@ -686,7 +701,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 func (c *AuthflowController) Finish(ctx context.Context, r *http.Request, s *webapp.Session) (*webapp.Result, error) {
 	if s == nil {
 		// This is panic because caller of Finish should have checked session is not nil
-		// Likely by using `HandleWithoutScreen`
+		// Likely by using `HandleWithoutScreenAllowCompleted`
 		panic(fmt.Errorf("unexpected: session is missing in Finish"))
 	}
 	if s.Authflow == nil {
