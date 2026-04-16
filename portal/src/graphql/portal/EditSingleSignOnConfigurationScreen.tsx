@@ -48,6 +48,7 @@ interface OAuthClientItemProps {
   form: OAuthProviderFormModel;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
   effectiveSecretConfig: EffectiveSecretConfig | undefined;
+  publicOrigin: string;
 }
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
@@ -58,6 +59,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
       form,
       oauthSSOFeatureConfig,
       effectiveSecretConfig,
+      publicOrigin,
     } = props;
     const widgetProps = useSingleSignOnConfigurationWidget(
       initialAlias,
@@ -70,6 +72,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
       <SingleSignOnConfigurationWidget
         className={styles.widget}
         {...widgetProps}
+        publicOrigin={publicOrigin}
       />
     );
   };
@@ -80,6 +83,7 @@ interface EditSingleSignOnConfigurationContentProps {
   providerItemKey: OAuthSSOProviderItemKey;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
   effectiveSecretConfig: EffectiveSecretConfig | undefined;
+  publicOrigin: string;
 }
 
 const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurationContentProps> =
@@ -90,6 +94,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       providerItemKey,
       oauthSSOFeatureConfig,
       effectiveSecretConfig,
+      publicOrigin,
     } = props;
 
     const navBreadcrumbItems = useMemo(() => {
@@ -129,6 +134,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             form={form}
             oauthSSOFeatureConfig={oauthSSOFeatureConfig}
             effectiveSecretConfig={effectiveSecretConfig}
+            publicOrigin={publicOrigin}
           />
         </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
@@ -195,6 +201,9 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
     loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
     isLoading: !isReadyToEdit,
     render: ([form, featureConfigQuery, effectiveSecretConfigQuery]) => {
+      const publicOrigin =
+        effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
+        "";
       return (
         <FormContainer form={form} afterSave={onSaveSuccess}>
           <EditSingleSignOnConfigurationContent
@@ -207,6 +216,7 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
             effectiveSecretConfig={
               effectiveSecretConfigQuery.effectiveSecretConfig
             }
+            publicOrigin={publicOrigin}
           />
         </FormContainer>
       );
