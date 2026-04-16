@@ -26,6 +26,7 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import styles from "./SingleSignOnConfigurationWidget.module.css";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import WidgetDescription from "../../WidgetDescription";
 import FoldableDiv from "../../FoldableDiv";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import {
@@ -667,7 +668,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           </div>
           <Label>{renderToString(messageID)}</Label>
         </div>
-        <Text variant="small" className={styles.setupGuide}>
+        <WidgetDescription className={styles.setupGuide}>
           <FormattedMessage
             id="SingleSignOnConfigurationWidget.setupGuide"
             values={{
@@ -677,7 +678,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               ),
             }}
           />
-        </Text>
+        </WidgetDescription>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
