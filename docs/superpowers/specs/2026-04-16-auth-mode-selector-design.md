@@ -81,10 +81,47 @@ This field is only meaningful for `application_type = traditional_webapp`. It ha
 
 ---
 
+---
+
+## Application creation wizard
+
+### New wizard step: Select Authentication Mode
+
+When the user selects **Traditional Web Application** in the creation wizard (`/configuration/apps/add`) and clicks Next/Save, a new step — **Select Authentication Mode** — is inserted before the final save.
+
+**Wizard step order:**
+- `traditional_webapp`: SelectType → **SelectAuthMode** (new) → Save
+- `m2m`: SelectType → AuthorizeResource → Save
+- All other types: SelectType → Save
+
+### Step UI
+
+The step presents the same two radio options as on the detail page:
+
+**Cookie Session** *(pre-selected)*
+> Authgear manages cookies on your project domain. Session lifetime is configured in Cookie Session Settings.
+
+**Server-side SDK**
+> The SDK manages tokens server-side. Session lifetime is set by access token & refresh token settings. e.g. authgear-sdk-nextjs for Next.js.
+
+Buttons: **Save** (primary) | **Back** (navigates back to SelectType).
+
+No inline note is needed here — the user is making the choice for the first time, not switching an existing setting.
+
+### Implementation notes
+
+- Add `SelectAuthMode = "select_auth_mode"` to the `FormStep` enum in `CreateOAuthClientScreen.tsx`.
+- Update `getNextStep()`: return `FormStep.SelectAuthMode` when `x_application_type === "traditional_webapp"` and current step is `SelectType`.
+- Add `x_traditional_webapp_auth_mode: "cookie_session" | "server_side_sdk"` to `FormState.newClient` (via `OAuthClientConfig`); default to `"cookie_session"`.
+- Update `constructConfig()` to write the `x_traditional_webapp_auth_mode` field into the client config when `x_application_type === "traditional_webapp"`.
+
+---
+
 ## Scope
 
 **In scope:**
 - Authentication Mode radio group on `EditOAuthClientForm` for `traditional_webapp` type
+- Authentication Mode step in the application creation wizard for `traditional_webapp` type
 - Conditional rendering of Cookie Session section vs. Token Lifetime sections based on selected mode
 - Inline note on mode switch
 - Default to Cookie Session for all existing and new Traditional Web Application clients
@@ -103,9 +140,10 @@ This field is only meaningful for `application_type = traditional_webapp`. It ha
 | File | Change |
 |---|---|
 | `portal/src/graphql/portal/EditOAuthClientForm.tsx` | Add Authentication Mode radio group; conditionally show/hide sections |
+| `portal/src/graphql/portal/CreateOAuthClientScreen.tsx` | Add `SelectAuthMode` step; update `getNextStep`, `constructConfig`, `FormState` |
 | `portal/src/locale-data/en.json` | Add translation keys for new labels and inline note |
-| `pkg/lib/config/` | Add new field to OAuth client config schema |
-| Portal GraphQL mutation | Include new field in update mutation |
+| `pkg/lib/config/` | Add `x_traditional_webapp_auth_mode` field to OAuth client config schema |
+| Portal GraphQL mutation | Include new field in create and update mutations |
 
 ---
 
@@ -117,4 +155,6 @@ This field is only meaningful for `application_type = traditional_webapp`. It ha
 - [ ] Existing apps default to Cookie Session with no user action required
 - [ ] Switching from SDK → Cookie Session shows the inline note; switching back removes it
 - [ ] Token lifetime values are preserved (not deleted) when switching to Cookie Session mode
+- [ ] Authentication Mode step added to creation wizard; appears only when Traditional Web Application is selected
+- [ ] Mode selected in wizard is saved into the OAuth client config (`x_traditional_webapp_auth_mode`)
 - [ ] `npm run typecheck` passes clean
