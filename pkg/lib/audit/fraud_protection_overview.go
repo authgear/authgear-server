@@ -33,7 +33,7 @@ func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
 			"user_id",
 			"activity_type",
 			"data",
-			"COALESCE(data#>>'{payload,record,ip_address}', '') AS ip_address",
+			"COALESCE(ip_address::text, '') AS ip_address",
 			"COALESCE(data#>>'{payload,record,decision}', '') AS decision",
 			"COALESCE(jsonb_array_length((data->'payload'->'record'->'triggered_warnings')::jsonb), 0) AS warning_count",
 		).

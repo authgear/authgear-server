@@ -34,7 +34,7 @@ CREATE INDEX _audit_log_idx_fraud_decision_app_id_geo_country_created_at
 CREATE INDEX _audit_log_idx_fraud_decision_app_id_ip_created_at
   ON _audit_log (
     app_id,
-    (data #>> '{payload,record,ip_address}') text_pattern_ops,
+    (ip_address::text) text_pattern_ops,
     created_at DESC
   )
   WHERE activity_type = 'fraud_protection.decision_recorded';

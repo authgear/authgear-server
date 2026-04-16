@@ -48,7 +48,7 @@ func (o FraudProtectionDecisionRecordQueryOptions) Apply(q db.SelectBuilder) db.
 		search := strings.TrimSpace(*o.Search)
 		searchUpper := strings.ToUpper(search)
 		q = q.Where(
-			"(data#>>'{payload,record,action_detail,recipient}' LIKE ? OR data#>>'{payload,record,action_detail,phone_number_country_code}' LIKE ? OR data#>>'{payload,record,geo_location_code}' LIKE ? OR data#>>'{payload,record,ip_address}' LIKE ?)",
+			"(data#>>'{payload,record,action_detail,recipient}' LIKE ? OR data#>>'{payload,record,action_detail,phone_number_country_code}' LIKE ? OR data#>>'{payload,record,geo_location_code}' LIKE ? OR ip_address::text LIKE ?)",
 			search+"%",
 			searchUpper+"%",
 			searchUpper+"%",
