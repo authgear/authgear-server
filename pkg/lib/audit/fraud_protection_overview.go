@@ -3,8 +3,12 @@ package audit
 import (
 	"context"
 	"database/sql"
+	"time"
+
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
@@ -26,6 +30,33 @@ type FraudProtectionOverviewIP struct {
 	Flagged   int    `json:"flagged"`
 }
 
+type FraudProtectionOverviewQueryOptions struct {
+	RangeFrom *time.Time
+	RangeTo   *time.Time
+	Actions   []model.FraudProtectionAction
+}
+
+func (o FraudProtectionOverviewQueryOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
+	if o.RangeFrom != nil {
+		q = q.Where("created_at >= ?", o.RangeFrom)
+	}
+	if o.RangeTo != nil {
+		q = q.Where("created_at < ?", o.RangeTo)
+	}
+
+	q = q.Where("activity_type = ?", string(nonblocking.FraudProtectionDecisionRecorded))
+
+	if len(o.Actions) > 0 {
+		actions := make([]string, 0, len(o.Actions))
+		for _, action := range o.Actions {
+			actions = append(actions, string(action))
+		}
+		q = q.Where("data#>>'{payload,record,action}' = ANY (?)", pq.Array(actions))
+	}
+
+	return q
+}
+
 func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
@@ -40,9 +71,8 @@ func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
 		From(s.SQLBuilder.TableName("_audit_log"))
 }
 
-func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts QueryPageOptions) (*FraudProtectionOverview, error) {
+func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudProtectionOverviewQueryOptions) (*FraudProtectionOverview, error) {
 	baseQuery := s.fraudProtectionDecisionRecordsQuery()
-	opts.ActivityTypes = []string{string(nonblocking.FraudProtectionDecisionRecorded)}
 	baseQuery = opts.Apply(baseQuery)
 
 	totalQuery := s.SQLBuilder.

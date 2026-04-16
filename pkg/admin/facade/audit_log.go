@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -17,7 +16,7 @@ type AuditLogQuery interface {
 	Count(ctx context.Context, opts audit.QueryPageOptions) (uint64, error)
 	CountFraudProtectionDecisionRecords(ctx context.Context, opts audit.FraudProtectionDecisionRecordQueryOptions) (uint64, error)
 	GetFraudProtectionDecisionRecordByID(ctx context.Context, id string) (*audit.FraudProtectionDecisionRecord, error)
-	GetFraudProtectionOverview(ctx context.Context, opts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error)
+	GetFraudProtectionOverview(ctx context.Context, opts audit.FraudProtectionOverviewQueryOptions) (*audit.FraudProtectionOverview, error)
 	QueryFraudProtectionDecisionRecordsPage(ctx context.Context, opts audit.FraudProtectionDecisionRecordQueryOptions, pageArgs graphqlutil.PageArgs) ([]*audit.FraudProtectionDecisionRecord, uint64, error)
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 }
@@ -56,9 +55,8 @@ func (f *AuditLogFacade) QueryPage(ctx context.Context, opts audit.QueryPageOpti
 	})), nil
 }
 
-func (f *AuditLogFacade) GetFraudProtectionOverview(ctx context.Context, queryOpts audit.QueryPageOptions) (*audit.FraudProtectionOverview, error) {
-	queryOpts.ActivityTypes = []string{string(nonblocking.FraudProtectionDecisionRecorded)}
-	f.boundRangeFrom(&queryOpts)
+func (f *AuditLogFacade) GetFraudProtectionOverview(ctx context.Context, queryOpts audit.FraudProtectionOverviewQueryOptions) (*audit.FraudProtectionOverview, error) {
+	f.boundFraudProtectionOverviewRangeFrom(&queryOpts)
 
 	var result *audit.FraudProtectionOverview
 	err := f.AuditDatabase.ReadOnly(ctx, func(ctx context.Context) error {
@@ -130,6 +128,16 @@ func (f *AuditLogFacade) boundRangeFrom(opts *audit.QueryPageOptions) {
 }
 
 func (f *AuditLogFacade) boundFraudProtectionDecisionRecordRangeFrom(opts *audit.FraudProtectionDecisionRecordQueryOptions) {
+	if *f.AuditLogFeatureConfig.RetrievalDays != -1 {
+		days := *f.AuditLogFeatureConfig.RetrievalDays
+		boundedByTime := f.Clock.NowUTC().Add(time.Duration(-days) * (24 * time.Hour))
+		if opts.RangeFrom == nil || opts.RangeFrom.Before(boundedByTime) {
+			opts.RangeFrom = &boundedByTime
+		}
+	}
+}
+
+func (f *AuditLogFacade) boundFraudProtectionOverviewRangeFrom(opts *audit.FraudProtectionOverviewQueryOptions) {
 	if *f.AuditLogFeatureConfig.RetrievalDays != -1 {
 		days := *f.AuditLogFeatureConfig.RetrievalDays
 		boundedByTime := f.Clock.NowUTC().Add(time.Duration(-days) * (24 * time.Hour))

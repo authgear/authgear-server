@@ -373,9 +373,10 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					rangeTo = &t
 				}
 
-				return gqlCtx.AuditLogFacade.GetFraudProtectionOverview(ctx, audit.QueryPageOptions{
+				return gqlCtx.AuditLogFacade.GetFraudProtectionOverview(ctx, audit.FraudProtectionOverviewQueryOptions{
 					RangeFrom: rangeFrom,
 					RangeTo:   rangeTo,
+					Actions:   []apimodel.FraudProtectionAction{apimodel.FraudProtectionActionSendSMS},
 				})
 			},
 		},

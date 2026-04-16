@@ -30,7 +30,7 @@ func (q *Query) Count(ctx context.Context, opts QueryPageOptions) (uint64, error
 	return q.Store.Count(ctx, opts)
 }
 
-func (q *Query) GetFraudProtectionOverview(ctx context.Context, opts QueryPageOptions) (*FraudProtectionOverview, error) {
+func (q *Query) GetFraudProtectionOverview(ctx context.Context, opts FraudProtectionOverviewQueryOptions) (*FraudProtectionOverview, error) {
 	if q.Database == nil {
 		return &FraudProtectionOverview{}, nil
 	}
