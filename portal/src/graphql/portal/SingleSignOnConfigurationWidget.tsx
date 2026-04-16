@@ -76,6 +76,7 @@ interface OAuthProviderInfo {
   descriptionId: string;
   inactiveMessageId: string;
   docUrl: string;
+  redirectUrlLabelId: string | null;
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
@@ -104,6 +105,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.apple.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/apple",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.apple",
   },
   google: {
     providerType: "google",
@@ -122,6 +125,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.google.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/google",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.google",
   },
   facebook: {
     providerType: "facebook",
@@ -141,6 +146,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.facebook.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/facebook",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.facebook",
   },
   github: {
     providerType: "github",
@@ -160,6 +167,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.github.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/github",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.github",
   },
   linkedin: {
     providerType: "linkedin",
@@ -179,6 +188,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.linkedin.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/linkedin",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.linkedin",
   },
   azureadv2: {
     providerType: "azureadv2",
@@ -200,6 +211,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.azureadv2.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/azureadv2",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.azure",
   },
   azureadb2c: {
     providerType: "azureadb2c",
@@ -223,6 +236,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.azureadb2c.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/azureadb2c",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.azure",
   },
   adfs: {
     providerType: "adfs",
@@ -243,6 +258,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.adfs.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/enterprise-login-providers/adfs",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.azure",
   },
   "wechat.web": {
     providerType: "wechat",
@@ -266,6 +283,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.wechat.web.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/wechat-web",
+    redirectUrlLabelId:
+      "SingleSignOnConfigurationWidget.redirectUrl.label.wechat",
   },
   "wechat.mobile": {
     providerType: "wechat",
@@ -290,6 +309,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "SingleSignOnConfigurationWidget.providers.wechat.mobile.inactiveMessage",
     docUrl:
       "https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers/social-login-providers/wechat-mobile",
+    redirectUrlLabelId: null,
   },
 };
 
@@ -509,6 +529,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       fields: visibleFields,
       inactiveMessageId,
       docUrl,
+      redirectUrlLabelId,
     } = oauthProviders[providerItemKey];
     const [advancedFolded, setAdvancedFolded] = useState(true);
     const redirectURL = useMemo(() => {
@@ -715,12 +736,10 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         ) : null}
         {credentialStatus !== "demo" ? (
           <>
-            {redirectURL ? (
+            {redirectURL && redirectUrlLabelId ? (
               <div className={styles.textField}>
                 <TextFieldWithCopyButton
-                  label={renderToString(
-                    "SingleSignOnConfigurationWidget.redirectUrl.label"
-                  )}
+                  label={renderToString(redirectUrlLabelId)}
                   value={redirectURL}
                   readOnly={true}
                 />
