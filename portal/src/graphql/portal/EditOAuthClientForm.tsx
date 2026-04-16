@@ -298,6 +298,48 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const renderAuthModeLabel = useCallback(
+      (description: string) =>
+        // eslint-disable-next-line react/no-unstable-nested-components
+        (option?: IChoiceGroupOption) => (
+          <div>
+            <Text block={true}>{option?.text}</Text>
+            <Text block={true} variant="small" style={{ color: "#605e5c" }}>
+              {description}
+            </Text>
+          </div>
+        ),
+      []
+    );
+
+    const authModeOptions: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "cookie_session",
+          text: renderToString(
+            "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
+          ),
+          onRenderLabel: renderAuthModeLabel(
+            renderToString(
+              "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.description"
+            )
+          ),
+        },
+        {
+          key: "server_side_sdk",
+          text: renderToString(
+            "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.label"
+          ),
+          onRenderLabel: renderAuthModeLabel(
+            renderToString(
+              "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.description"
+            )
+          ),
+        },
+      ],
+      [renderToString, renderAuthModeLabel]
+    );
+
     const onAuthModeChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
         const newMode = option?.key as "cookie_session" | "server_side_sdk";
@@ -648,48 +690,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               )}
               selectedKey={traditionalWebAppAuthMode}
               onChange={onAuthModeChange}
-              options={[
-                {
-                  key: "cookie_session",
-                  text: renderToString(
-                    "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
-                  ),
-                  onRenderLabel: (option?: IChoiceGroupOption) => (
-                    <div>
-                      <Text block={true}>{option?.text}</Text>
-                      <Text
-                        block={true}
-                        variant="small"
-                        style={{ color: "#605e5c" }}
-                      >
-                        {renderToString(
-                          "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.description"
-                        )}
-                      </Text>
-                    </div>
-                  ),
-                },
-                {
-                  key: "server_side_sdk",
-                  text: renderToString(
-                    "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.label"
-                  ),
-                  onRenderLabel: (option?: IChoiceGroupOption) => (
-                    <div>
-                      <Text block={true}>{option?.text}</Text>
-                      <Text
-                        block={true}
-                        variant="small"
-                        style={{ color: "#605e5c" }}
-                      >
-                        {renderToString(
-                          "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.description"
-                        )}
-                      </Text>
-                    </div>
-                  ),
-                },
-              ]}
+              options={authModeOptions}
             />
             {showSdkToCookieNote ? (
               <MessageBar messageBarType={MessageBarType.info}>
