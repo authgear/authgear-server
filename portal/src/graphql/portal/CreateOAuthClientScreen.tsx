@@ -109,7 +109,7 @@ function constructConfig(
           draft.issue_jwt_access_token = true;
           draft.x_traditional_webapp_auth_mode =
             currentState.newClient.x_traditional_webapp_auth_mode ??
-            "cookie_session";
+            "server_side_sdk";
           break;
         case "native":
           draft.redirect_uris = ["com.example.myapp://host/path"];
@@ -386,7 +386,7 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
     const { renderToString } = useContext(Context);
 
     const selectedMode =
-      client.x_traditional_webapp_auth_mode ?? "cookie_session";
+      client.x_traditional_webapp_auth_mode ?? "server_side_sdk";
 
     const onModeChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
@@ -418,17 +418,6 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
     const modeOptions: IChoiceGroupOption[] = useMemo(
       () => [
         {
-          key: "cookie_session",
-          text: renderToString(
-            "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.label"
-          ),
-          onRenderLabel: renderModeLabel(
-            renderToString(
-              "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.description"
-            )
-          ),
-        },
-        {
           key: "server_side_sdk",
           text: renderToString(
             "CreateOAuthClientScreen.step.select-auth-mode.server-side-sdk.label"
@@ -436,6 +425,17 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
           onRenderLabel: renderModeLabel(
             renderToString(
               "CreateOAuthClientScreen.step.select-auth-mode.server-side-sdk.description"
+            )
+          ),
+        },
+        {
+          key: "cookie_session",
+          text: renderToString(
+            "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.label"
+          ),
+          onRenderLabel: renderModeLabel(
+            renderToString(
+              "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.description"
             )
           ),
         },
