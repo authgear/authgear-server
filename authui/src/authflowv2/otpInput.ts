@@ -8,6 +8,8 @@ export class OtpInputController extends Controller {
   declare readonly digitsContainerTarget: HTMLElement;
 
   spans: HTMLElement[] = [];
+  isSubmitting = false;
+  previousValueLength = 0;
 
   get maxLength(): number {
     if (this.inputTarget.maxLength) {
@@ -40,6 +42,10 @@ export class OtpInputController extends Controller {
       this.handleSelectionChange
     );
     document.addEventListener("turbo:before-cache", this.beforeCache);
+    this.submitTarget.form?.addEventListener(
+      "turbo-form:submit-end",
+      this.handleSubmitEnd
+    );
     this.render();
   }
 
@@ -55,6 +61,10 @@ export class OtpInputController extends Controller {
       this.handleSelectionChange
     );
     document.removeEventListener("turbo:before-cache", this.beforeCache);
+    this.submitTarget.form?.removeEventListener(
+      "turbo-form:submit-end",
+      this.handleSubmitEnd
+    );
     this.submitTarget.disabled = false;
   }
 
@@ -63,12 +73,21 @@ export class OtpInputController extends Controller {
       .replace(/[^0-9]/g, "")
       .slice(0, this.maxLength);
 
-    const reachedMaxDigits = this.value.length === this.maxLength;
-    if (reachedMaxDigits) {
+    const currentLength = this.value.length;
+    // Only auto-submit if the length transitions from incomplete to complete.
+    // This prevents double-submission when pasting twice rapidly while the first
+    // submission is in-flight, since previous length will still equal maxLength.
+    const reachedMaxDigits =
+      currentLength === this.maxLength &&
+      this.previousValueLength < this.maxLength;
+
+    if (reachedMaxDigits && !this.isSubmitting) {
+      this.isSubmitting = true;
       this.submitTarget.disabled = false;
       this.submitTarget.click();
     }
 
+    this.previousValueLength = currentLength;
     this.render();
   };
 
@@ -112,6 +131,10 @@ export class OtpInputController extends Controller {
         this.inputTarget.value.length
       );
     }
+  };
+
+  handleSubmitEnd = (): void => {
+    this.isSubmitting = false;
   };
 
   isSpanSelected = (index: number): boolean => {
