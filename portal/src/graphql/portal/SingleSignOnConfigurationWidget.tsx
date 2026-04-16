@@ -668,7 +668,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           </div>
           <Label>{renderToString(messageID)}</Label>
         </div>
-        <WidgetDescription className={styles.setupGuide}>
+        <WidgetDescription>
           <FormattedMessage
             id="SingleSignOnConfigurationWidget.setupGuide"
             values={{

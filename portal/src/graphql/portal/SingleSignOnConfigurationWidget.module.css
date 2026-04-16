@@ -17,10 +17,6 @@
   @apply mb-2;
 }
 
-.setupGuide {
-  @apply text-tertiary;
-}
-
 .advancedSection {
   @apply mt-2;
 }
