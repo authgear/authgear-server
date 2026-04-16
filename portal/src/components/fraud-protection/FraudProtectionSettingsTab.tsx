@@ -2,6 +2,8 @@ import React, { useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { FraudProtectionDecisionAction } from "../../types";
 import FormTextField from "../../FormTextField";
+import { APIError } from "../../error/error";
+import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
 import ChoiceGroupWithDescriptions, {
   ChoiceGroupWithDescriptionOption,
 } from "../common/ChoiceGroupWithDescriptions";
@@ -65,6 +67,53 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       ];
     }, [renderToString]);
 
+    const splitRawItems = useMemo(() => {
+      return (raw: string): string[] =>
+        raw
+          .split(/,|\n/)
+          .map((item) => item.trim())
+          .filter((item) => item !== "");
+    }, []);
+
+    const ipAllowlistFieldErrorRules = useMemo(
+      () => [
+        (apiError: APIError): ErrorParseRuleResult => {
+          const parsedAPIErrors: ParsedAPIError[] = [];
+          if (apiError.reason === "ValidationFailed") {
+            for (const cause of apiError.info.causes) {
+              const match =
+                /\/fraud_protection\/decision\/always_allow\/ip_address\/cidrs\/(\d+)/.exec(
+                  cause.location
+                );
+              if (
+                match?.[1] &&
+                cause.kind === "format" &&
+                cause.details.format === "x_cidr"
+              ) {
+                const itemIndex = Number(match[1]);
+                parsedAPIErrors.push({
+                  messageID: "IPBlocklistForm.error.invalid-ip",
+                  arguments: {
+                    ipAddress: splitRawItems(ipAllowlist)[itemIndex],
+                  },
+                });
+              }
+            }
+            return {
+              parsedAPIErrors,
+              fullyHandled:
+                parsedAPIErrors.length === apiError.info.causes.length,
+            };
+          }
+          return {
+            parsedAPIErrors: [],
+            fullyHandled: false,
+          };
+        },
+      ],
+      [ipAllowlist, splitRawItems]
+    );
+
     return (
       <section className={styles.section}>
         <ChoiceGroupWithDescriptions
@@ -92,6 +141,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           disabled={!isModifiable}
           value={ipAllowlist}
           onChange={onIPAllowlistChange}
+          errorRules={ipAllowlistFieldErrorRules}
         />
         <FormTextField
           className={styles.field}
