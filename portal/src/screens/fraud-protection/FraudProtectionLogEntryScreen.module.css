@@ -1,0 +1,158 @@
+.widget {
+  @apply col-span-12 tablet:col-span-full;
+}
+
+.summaryCard {
+  @apply col-span-12 tablet:col-span-full bg-white rounded-lg p-5;
+  border: 1.25px solid #edebe9;
+}
+
+.summaryRow {
+  @apply flex flex-wrap;
+  column-gap: 32px;
+  row-gap: 24px;
+}
+
+.summaryItem {
+  @apply flex flex-col gap-1;
+}
+
+.summaryLabel {
+  @apply mb-2;
+  color: #201f1e;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  color: #201f1e;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.summaryValuePrimary {
+  color: #176df3;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.summaryBadge {
+  @apply inline-block rounded;
+  padding: 3px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.summaryBadgeAllowed {
+  color: #16a34a;
+  background: #eef6ef;
+}
+
+.summaryBadgeFlagged {
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+.summaryBadgeBlocked {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.detailsGrid {
+  @apply col-span-12 tablet:col-span-full grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  @apply gap-6;
+}
+
+.section {
+  @apply bg-white rounded-lg p-5;
+  border: 1.25px solid #edebe9;
+}
+
+.sectionFull {
+  @apply col-span-full;
+}
+
+.sectionTitle {
+  @apply block mb-4;
+  color: #201f1e;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.detailRow {
+  @apply flex flex-wrap gap-2 min-w-0;
+}
+
+.detailLabel {
+  color: #8a8886;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.detailValue {
+  color: #201f1e;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.detailValueMonospace {
+  color: #201f1e;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.reasonCodes {
+  @apply inline-flex flex-wrap gap-1 min-w-0 max-w-full;
+}
+
+.reasonCodeTag {
+  @apply inline-block max-w-full;
+  color: #c2410c;
+  background: #fff7ed;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.rawLogHeader {
+  @apply mb-4;
+  color: #201f1e;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.rawLogContent {
+  @apply flex;
+  background: #f9f9f9;
+  border: 1.25px solid #edebe9;
+  @apply rounded;
+}
+
+.rawLogPre {
+  @apply m-0 p-3;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+@media (max-width: 1280px) {
+  .detailsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+}

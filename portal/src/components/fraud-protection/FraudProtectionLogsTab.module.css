@@ -1,0 +1,156 @@
+.section {
+  @apply flex flex-col gap-6;
+}
+
+/* Filter bar */
+
+.filterRow {
+  @apply flex flex-wrap items-center justify-between gap-3;
+  @apply pb-4;
+  border-bottom: 1px solid #edebe9;
+}
+
+.filterGroup {
+  @apply flex flex-wrap items-stretch gap-2 h-8;
+}
+
+.filterActions {
+  @apply flex items-stretch gap-2 h-8;
+}
+
+.actionDropdown {
+  min-width: 140px;
+}
+
+.resultDropdown {
+  min-width: 140px;
+}
+
+.reasonCodeComboBox {
+  min-width: 200px;
+}
+
+.searchBox {
+  width: 240px;
+}
+
+/* Table */
+
+.list {
+  @apply border-0;
+}
+
+.logRow {
+  cursor: pointer;
+}
+
+.expandButton {
+  @apply h-6 w-6;
+  color: #605e5c;
+}
+
+.expandButton :global(.ms-Button-icon) {
+  color: #605e5c;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.expandedRow {
+  background-color: #f9f8f6;
+}
+
+.actionCell {
+  color: #176df3;
+  font-size: 14px;
+}
+
+/* Result badges */
+
+.resultBadge {
+  @apply inline-flex items-center rounded px-2 py-0.5 text-xs font-medium;
+}
+
+.resultAllowed {
+  @apply bg-[#eef6ef] text-[#16a34a];
+}
+
+.resultFlagged {
+  @apply bg-[#fff7ed] text-[#c2410c];
+}
+
+.resultBlocked {
+  @apply bg-[#fef2f2] text-[#dc2626];
+}
+
+/* Expanded row details */
+
+.rowDetails {
+  @apply border-t border-[#edebe9] px-7 py-4;
+  background-color: #f9f8f6;
+  width: 100%;
+}
+
+.detailsGrid {
+  @apply grid gap-8;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detailsSection {
+  @apply flex flex-col gap-0;
+  min-width: 0;
+}
+
+.detailsSectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: normal;
+  color: #323130;
+  margin-bottom: 4px;
+}
+
+.detailsField {
+  @apply flex flex-wrap items-baseline;
+  gap: 8px;
+}
+
+.detailsLabel {
+  font-size: 12px;
+  line-height: 20px;
+  color: #8a8886;
+}
+
+.detailsValue {
+  font-size: 12px;
+  line-height: 20px;
+  color: #201f1e;
+}
+
+.reasonCodeTags {
+  @apply inline-flex flex-wrap;
+  gap: 4px;
+}
+
+.reasonCodeTag {
+  @apply inline-flex items-center;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+  color: #c2410c;
+  background-color: #fff7ed;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+@media (max-width: 1024px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* Pagination */
+
+.pagination {
+  @apply mt-2;
+}

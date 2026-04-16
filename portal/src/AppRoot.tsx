@@ -178,6 +178,13 @@ const GoogleTagManagerConfigurationScreen = lazy(
 const BotProtectionConfigurationScreen = lazy(
   async () => import("./graphql/portal/BotProtectionConfigurationScreen")
 );
+const FraudProtectionConfigurationScreen = lazy(
+  async () =>
+    import("./screens/fraud-protection/FraudProtectionConfigurationScreen")
+);
+const FraudProtectionLogEntryScreen = lazy(
+  async () => import("./screens/fraud-protection/FraudProtectionLogEntryScreen")
+);
 const IPBlocklistScreen = lazy(
   async () => import("./graphql/portal/IPBlocklistScreen")
 );
@@ -822,6 +829,24 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <BotProtectionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+            <Route path="fraud-protection">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <FraudProtectionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="logs/:logID"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <FraudProtectionLogEntryScreen />
                   </Suspense>
                 }
               />
