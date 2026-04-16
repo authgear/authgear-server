@@ -38,6 +38,13 @@ const (
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
 )
 
+type OAuthClientTraditionalWebAppAuthMode string
+
+const (
+	OAuthClientTraditionalWebAppAuthModeCookieSession OAuthClientTraditionalWebAppAuthMode = "cookie_session"
+	OAuthClientTraditionalWebAppAuthModeServerSideSDK OAuthClientTraditionalWebAppAuthMode = "server_side_sdk"
+)
+
 func (t OAuthClientApplicationType) IsThirdParty() bool {
 	switch t {
 	case OAuthClientApplicationTypeSPA:
@@ -176,7 +183,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_pre_authenticated_url_enabled": { "type": "boolean" },
 		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } },
 		"logo_uri": { "type": "string", "format": "x_public_https_url" },
-		"x_replace_project_logo_with_logo_uri": { "type": "boolean" }
+		"x_replace_project_logo_with_logo_uri": { "type": "boolean" },
+		"x_traditional_webapp_auth_mode": { "type": "string", "enum": ["cookie_session", "server_side_sdk"] }
 	},
 	"required": ["name", "client_id"],
 	"allOf": [
@@ -278,6 +286,7 @@ type OAuthClientConfig struct {
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 	LogoURI                                string                       `json:"logo_uri,omitempty"`
 	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
+	TraditionalWebAppAuthMode              OAuthClientTraditionalWebAppAuthMode `json:"x_traditional_webapp_auth_mode,omitempty"`
 }
 
 func (c *OAuthClientConfig) UseHTTP200() bool {
