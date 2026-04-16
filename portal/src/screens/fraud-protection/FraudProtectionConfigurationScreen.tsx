@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { IChoiceGroupOption, PivotItem } from "@fluentui/react";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
+import { default as parseLibPhoneNumber } from "libphonenumber-js";
 import { Context, FormattedMessage } from "../../intl";
 import {
   AppConfigFormModel,
@@ -15,6 +16,11 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import FormContainer from "../../FormContainer";
 import Toggle from "../../Toggle";
+import { APIError } from "../../error/error";
+import {
+  LocalValidationError,
+  makeLocalValidationError,
+} from "../../error/validation";
 import {
   FraudProtectionDecisionAction,
   FraudProtectionFeatureConfig,
@@ -22,7 +28,6 @@ import {
 } from "../../types";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { clearEmptyObject } from "../../util/misc";
-import { parsePhoneNumber } from "../../util/phone";
 import { useAppFeatureConfigQuery } from "../../graphql/portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../../graphql/portal/FeatureDisabledMessageBar";
 import { AGPivot } from "../../components/common/AGPivot";
@@ -64,13 +69,27 @@ function escapeRegExp(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function isValidRegex(input: string): boolean {
+  try {
+    // eslint-disable-next-line no-new
+    new RegExp(input);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function normalizePhoneAllowlistItemForSave(item: string): string {
+  const parsed = parseLibPhoneNumber(item);
+  if (parsed?.isPossible() === true) {
+    return `^${escapeRegExp(parsed.number)}$`;
+  }
+  return item;
+}
+
 function toPhoneRegex(raw: string): string[] {
   return splitAllowlist(raw).map((item) => {
-    const normalized = parsePhoneNumber(item);
-    if (normalized == null) {
-      return item;
-    }
-    return `^${escapeRegExp(normalized)}$`;
+    return normalizePhoneAllowlistItemForSave(item);
   });
 }
 
@@ -130,6 +149,27 @@ function constructConfig(
 
     clearEmptyObject(draft);
   });
+}
+
+function validateFormState(state: FormState): APIError | null {
+  const invalidItems: string[] = [];
+  for (const item of splitAllowlist(state.phoneAllowlist)) {
+    const normalized = normalizePhoneAllowlistItemForSave(item);
+    if (normalized === item && !isValidRegex(item)) {
+      invalidItems.push(item);
+    }
+  }
+
+  if (invalidItems.length === 0) {
+    return null;
+  }
+
+  const errors: LocalValidationError[] = invalidItems.map((item) => ({
+    location: "/fraud_protection/decision/always_allow/phone_number/regex",
+    messageID: "FraudProtectionConfigurationScreen.allowlist.phone.invalidItem",
+    arguments: { item },
+  }));
+  return makeLocalValidationError(errors);
 }
 
 type FraudProtectionTab = "overview" | "logs" | "settings";
@@ -296,6 +336,7 @@ const FraudProtectionConfigurationScreen: React.VFC =
       appID,
       constructFormState,
       constructConfig,
+      validate: validateFormState,
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
     const { selectedKey, onLinkClick, onChangeKey } =

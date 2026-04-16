@@ -1875,6 +1875,7 @@
   "FraudProtectionConfigurationScreen.allowlist.ip.description": "IP addresses in the allowlist are not blocked. Enter a newline-separated list of IPs or CIDR ranges.",
   "FraudProtectionConfigurationScreen.allowlist.phone.label": "Phone Number Allowlist",
   "FraudProtectionConfigurationScreen.allowlist.phone.description": "Phone numbers in the allowlist are not blocked. Enter a newline-separated list of full phone numbers or regex patterns.",
+  "FraudProtectionConfigurationScreen.allowlist.phone.invalidItem": "Invalid phone allowlist item: {item}. Enter a full phone number (e.g. +85212345678) or a valid regular expression.",
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",
   "IntegrationsConfigurationScreen.action": "Action",
