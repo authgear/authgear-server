@@ -55,3 +55,6 @@ pkg/lib/webparcel/parcel_gen.go
 # Ignore generated credentials from google-github-actions/auth
 # See https://github.com/google-github-actions/auth?tab=readme-ov-file#prerequisites
 gha-creds-*.json
+
+# Superpowers plans (local only, not for review)
+docs/superpowers/plans/
