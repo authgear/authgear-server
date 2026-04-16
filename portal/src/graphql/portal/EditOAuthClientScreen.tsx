@@ -143,6 +143,7 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
 
 interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
+  authMode?: OAuthClientConfig["x_traditional_webapp_auth_mode"];
   showOpenTutorialLabelWhenHover: boolean;
 }
 
@@ -191,12 +192,20 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
         case "traditional_webapp":
           return [
             {
-              icon: <Icon iconName="Globe" />,
+              icon: <i className={cn("fab", "fa-js")} />,
               name: renderToString(
-                "EditOAuthClientScreen.quick-start.framework.traditional-webapp"
+                "EditOAuthClientScreen.quick-start.framework.traditional-webapp-nextjs"
               ),
               docLink:
-                "https://docs.authgear.com/get-started/single-page-app/website",
+                "https://docs.authgear.com/get-started/regular-web-app/nextjs",
+            },
+            {
+              icon: <Icon iconName="Globe" />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.traditional-webapp-other"
+              ),
+              docLink:
+                "https://docs.authgear.com/get-started/start-building",
             },
           ];
         case "native":
@@ -561,6 +570,7 @@ function OAuthClientSettingsForm({
               </Text>
               <QuickStartFrameworkList
                 applicationType={client.x_application_type}
+                authMode={client.x_traditional_webapp_auth_mode}
                 showOpenTutorialLabelWhenHover={false}
               />
             </div>
@@ -737,6 +747,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             </Text>
             <QuickStartFrameworkList
               applicationType={client?.x_application_type}
+              authMode={client?.x_traditional_webapp_auth_mode}
               showOpenTutorialLabelWhenHover={true}
             />
             <div className={styles.quickStartScreenButtons}>
