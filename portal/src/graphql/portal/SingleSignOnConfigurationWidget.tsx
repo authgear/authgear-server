@@ -509,9 +509,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       inactiveMessageId,
       docUrl,
     } = oauthProviders[providerItemKey];
-    const [advancedFolded, setAdvancedFolded] = useState(
-      () => secret.originalAlias == null
-    );
+    const [advancedFolded, setAdvancedFolded] = useState(true);
     const redirectURL = useMemo(() => {
       if (!publicOrigin || !config.alias) {
         return "";
@@ -717,14 +715,15 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         {credentialStatus !== "demo" ? (
           <>
             {redirectURL ? (
-              <TextFieldWithCopyButton
-                className={styles.textField}
-                label={renderToString(
-                  "SingleSignOnConfigurationWidget.redirectUrl.label"
-                )}
-                value={redirectURL}
-                readOnly={true}
-              />
+              <div className={styles.textField}>
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "SingleSignOnConfigurationWidget.redirectUrl.label"
+                  )}
+                  value={redirectURL}
+                  readOnly={true}
+                />
+              </div>
             ) : null}
             {visibleFields.has("client_id") ? (
               <FormTextField
