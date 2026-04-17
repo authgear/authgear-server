@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/spf13/afero"
+
 	runtimeresource "github.com/authgear/authgear-server"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
-	"github.com/spf13/afero"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
