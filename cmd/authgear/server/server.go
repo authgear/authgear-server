@@ -74,6 +74,7 @@ func (c *Controller) Start(ctx context.Context) {
 			Name:          "authgear-main",
 			ListenAddress: u.Host,
 			Handler: auth.NewRouter(
+				ctx,
 				p,
 				configSrcController.GetConfigSource(),
 			),

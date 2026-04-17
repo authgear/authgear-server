@@ -1,0 +1,78 @@
+# Search engine crawlers
+/(?i)\bGooglebot\b/
+/(?i)\bbingbot\b/
+/(?i)\bBytespider\b/
+/(?i)\bCCBot\b/
+
+# Amazon crawler
+/(?i)\bAmazonbot\b/
+/(?i)\bAmzn-SearchBot\b/
+
+# Apple crawler
+/(?i)\bApplebot\b/
+
+# Baidu crawler
+/(?i)\bBaiduspider\b/
+/(?i)\bBaiduspider-mobile\b/
+/(?i)\bBaiduspider-image\b/
+/(?i)\bBaiduspider-news\b/
+
+# Perplexity crawler
+/(?i)\bPerplexityBot\b/
+/(?i)\bPerplexity-User\b/
+
+# AI assistant user agents
+/(?i)\bChatGPT-User\b/
+/(?i)\bClaude-User\b/
+/(?i)\banthropic-ai\b/
+/(?i)\bcohere-ai\b/
+/(?i)\bomgili\b/
+/(?i)\bomgilibot\b/
+
+# SEO and marketing crawlers
+/(?i)\bAhrefsBot\b/
+/(?i)\bSemrushBot\b/
+/(?i)\bSiteAuditBot\b/
+/(?i)\bSplitSignalBot\b/
+/(?i)\bMJ12bot\b/
+/(?i)\bDotBot\b/
+/(?i)\brogerbot\b/
+/(?i)\bBLEXBot\b/
+/(?i)\bBarkrowler\b/
+/(?i)\bPetalBot\b/
+
+# Yandex crawlers
+/(?i)\bYandexBot\b/
+/(?i)\bYandexAdditionalBot\b/
+/(?i)\bYandexImages\b/
+/(?i)\bYandexVideo\b/
+/(?i)\bYandexAccessibilityBot\b/
+/(?i)\bYandexCalendar\b/
+/(?i)\bYandexDirect\b/
+/(?i)\bYandexDirectDyn\b/
+/(?i)\bYandexFavicons\b/
+/(?i)\bYandexImageResizer\b/
+/(?i)\bYandexMarket\b/
+/(?i)\bYandexMedia\b/
+/(?i)\bYandexMetrika\b/
+/(?i)\bYandexMobileBot\b/
+/(?i)\bYandexMobileScreenShotBot\b/
+/(?i)\bYandexPagechecker\b/
+/(?i)\bYandexPartner\b/
+/(?i)\bYandexRCA\b/
+/(?i)\bYandexRenderResourcesBot\b/
+/(?i)\bYandexSearchShop\b/
+/(?i)\bYandexSitelinks\b/
+/(?i)\bYandexSpravBot\b/
+/(?i)\bYandexTracker\b/
+/(?i)\bYandexVertis\b/
+/(?i)\bYandexVerticals\b/
+/(?i)\bYandexWebmaster\b/
+
+# OpenAI crawlers
+/(?i)\bGPTBot\b/
+/(?i)\bOAI-SearchBot\b/
+
+# Anthropic crawlers
+/(?i)\bClaudeBot\b/
+/(?i)\bClaude-SearchBot\b/
