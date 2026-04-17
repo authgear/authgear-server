@@ -10,6 +10,7 @@ const (
 
 type SMSErrorEventPayload struct {
 	Description string `json:"description"`
+	Recipient   string `json:"recipient"`
 }
 
 func (e *SMSErrorEventPayload) NonBlockingEventType() event.Type {

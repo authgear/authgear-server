@@ -123,6 +123,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
 				Description: s.errorToDescription(ctx, err),
+				Recipient:   opts.Recipient,
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.EmailError)))
@@ -175,6 +176,7 @@ func (s *Sender) testModeSendEmail(ctx context.Context, msgType translation.Mess
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by test mode.", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.Recipient,
 	})
 }
 
@@ -193,6 +195,7 @@ func (s *Sender) devModeSendEmail(ctx context.Context, msgType translation.Messa
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by development mode", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.Recipient,
 	})
 }
 
@@ -262,6 +265,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(ctx, err),
+				Recipient:   opts.To,
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.SMSError)))
@@ -323,6 +327,7 @@ func (s *Sender) testModeSendSMS(ctx context.Context, msgType translation.Messag
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.To,
 	})
 }
 
@@ -342,6 +347,7 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.To,
 	})
 }
 
@@ -392,6 +398,7 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
 				Description: s.errorToDescription(ctx, err),
+				Recipient:   opts.To,
 			})
 			if dispatchErr != nil {
 				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
@@ -445,6 +452,7 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	err := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.To,
 	})
 	if err != nil {
 		return nil, err
@@ -468,6 +476,7 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	err := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
+		Recipient:   opts.To,
 	})
 	if err != nil {
 		return nil, err
