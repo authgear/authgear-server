@@ -390,10 +390,10 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
 
     const onModeChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
-        const newMode = option?.key as "cookie" | "access_token";
+        const newSessionType = option?.key as "cookie" | "access_token";
         setState((s) => ({
           ...s,
-          newClient: { ...s.newClient, x_traditional_webapp_session_type: newMode },
+          newClient: { ...s.newClient, x_traditional_webapp_session_type: newSessionType },
         }));
       },
       [setState]

@@ -459,7 +459,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const [showSdkToCookieNote, setShowSdkToCookieNote] = useState(false);
 
-    const traditionalWebAppAuthMode =
+    const traditionalWebAppSessionType =
       clientConfig.x_traditional_webapp_session_type ?? "cookie";
 
     const showCookieSettings = useMemo(
@@ -468,8 +468,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           clientConfig.x_application_type === "confidential" ||
           clientConfig.x_application_type === "third_party_app") ||
         (clientConfig.x_application_type === "traditional_webapp" &&
-          traditionalWebAppAuthMode === "cookie"),
-      [clientConfig.x_application_type, traditionalWebAppAuthMode]
+          traditionalWebAppSessionType === "cookie"),
+      [clientConfig.x_application_type, traditionalWebAppSessionType]
     );
 
     const showRefreshTokenSettings = useMemo(
@@ -480,8 +480,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         clientConfig.x_application_type === "confidential" ||
         clientConfig.x_application_type === "third_party_app" ||
         (clientConfig.x_application_type === "traditional_webapp" &&
-          traditionalWebAppAuthMode === "access_token"),
-      [clientConfig.x_application_type, traditionalWebAppAuthMode]
+          traditionalWebAppSessionType === "access_token"),
+      [clientConfig.x_application_type, traditionalWebAppSessionType]
     );
 
     const showDPoPSettings = useMemo(() => {
@@ -688,7 +688,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               label={renderToString(
                 "EditOAuthClientForm.traditional-webapp-auth-mode.title"
               )}
-              selectedKey={traditionalWebAppAuthMode}
+              selectedKey={traditionalWebAppSessionType}
               onChange={onAuthModeChange}
               options={authModeOptions}
             />
