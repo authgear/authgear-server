@@ -393,7 +393,10 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
         const newSessionType = option?.key as "cookie" | "access_token";
         setState((s) => ({
           ...s,
-          newClient: { ...s.newClient, x_traditional_webapp_session_type: newSessionType },
+          newClient: {
+            ...s.newClient,
+            x_traditional_webapp_session_type: newSessionType,
+          },
         }));
       },
       [setState]
@@ -402,16 +405,17 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
     const renderModeLabel = useCallback(
       (description: string) =>
         // eslint-disable-next-line react/no-unstable-nested-components
-        (option?: IChoiceGroupOption) => (
-          <div className={styles.optionLabel}>
-            <Text className={styles.optionLabelText} block={true}>
-              {option?.text}
-            </Text>
-            <Text className={styles.optionLabelDescription} block={true}>
-              {description}
-            </Text>
-          </div>
-        ),
+        (option?: IChoiceGroupOption) =>
+          (
+            <div className={styles.optionLabel}>
+              <Text className={styles.optionLabelText} block={true}>
+                {option?.text}
+              </Text>
+              <Text className={styles.optionLabelDescription} block={true}>
+                {description}
+              </Text>
+            </div>
+          ),
       []
     );
 

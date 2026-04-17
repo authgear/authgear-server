@@ -301,16 +301,32 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const renderAuthModeLabel = useCallback(
       (description: string) =>
         // eslint-disable-next-line react/no-unstable-nested-components
-        (option?: IChoiceGroupOption) => (
-          <div style={{ paddingLeft: "26px" }}>
-            <Text block={true} style={{ lineHeight: "20px", marginBottom: "4px" }}>{option?.text}</Text>
-            <Text block={true} variant="small" style={{ color: "#605e5c", lineHeight: "20px", marginBottom: "12px" }}>
-              {description}
-            </Text>
-          </div>
-        ),
+        (option?: IChoiceGroupOption) =>
+          (
+            <div style={{ paddingLeft: "26px" }}>
+              <Text
+                block={true}
+                style={{ lineHeight: "20px", marginBottom: "4px" }}
+              >
+                {option?.text}
+              </Text>
+              <Text
+                block={true}
+                variant="small"
+                style={{
+                  color: "#605e5c",
+                  lineHeight: "20px",
+                  marginBottom: "12px",
+                }}
+              >
+                {description}
+              </Text>
+            </div>
+          ),
       []
     );
+
+    const [showSdkToCookieNote, setShowSdkToCookieNote] = useState(false);
 
     const authModeOptions: IChoiceGroupOption[] = useMemo(
       () => [
@@ -457,16 +473,14 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    const [showSdkToCookieNote, setShowSdkToCookieNote] = useState(false);
-
     const traditionalWebAppSessionType =
       clientConfig.x_traditional_webapp_session_type ?? "cookie";
 
     const showCookieSettings = useMemo(
       () =>
-        (!clientConfig.x_application_type ||
-          clientConfig.x_application_type === "confidential" ||
-          clientConfig.x_application_type === "third_party_app") ||
+        !clientConfig.x_application_type ||
+        clientConfig.x_application_type === "confidential" ||
+        clientConfig.x_application_type === "third_party_app" ||
         (clientConfig.x_application_type === "traditional_webapp" &&
           traditionalWebAppSessionType === "cookie"),
       [clientConfig.x_application_type, traditionalWebAppSessionType]

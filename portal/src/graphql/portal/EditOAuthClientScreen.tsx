@@ -204,8 +204,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.traditional-webapp-other"
               ),
-              docLink:
-                "https://docs.authgear.com/get-started/start-building",
+              docLink: "https://docs.authgear.com/get-started/start-building",
             },
           ];
         case "native":
