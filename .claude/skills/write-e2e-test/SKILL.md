@@ -12,23 +12,11 @@ Start/restart the environment (apply latest migrations, rebuild binaries):
 make teardown && make setup
 ```
 
-If GNU make is required in your environment, use the repo's `gmake` shim:
-```
-PATH=/tmp/gmake-bin:$PATH ./run.sh teardown
-PATH=/tmp/gmake-bin:$PATH ./run.sh setup
-```
-
-`/tmp/gmake-bin` is just a local shim directory with `make` pointing to GNU Make. Create it with:
-```
-mkdir -p /tmp/gmake-bin
-ln -sf /usr/local/bin/gmake /tmp/gmake-bin/make
-```
-
 If `./run.sh setup` backgrounds daemons that die when the shell exits, run setup and the target test in the same shell:
 ```
-PATH=/tmp/gmake-bin:$PATH ./run.sh teardown
-PATH=/tmp/gmake-bin:$PATH ./run.sh setup
-PATH=/tmp/gmake-bin:$PATH go test ./pkg/testrunner -count 1 -v -timeout 10m -run "TestAuthflow/<folder>/<filename_without_extension>"
+./run.sh teardown
+./run.sh setup
+go test ./pkg/testrunner -count 1 -v -timeout 10m -run "TestAuthflow/<folder>/<filename_without_extension>"
 ```
 
 Do not assume `zsh`. Run those commands sequentially in the developer's current shell.
@@ -305,20 +293,6 @@ If the e2e environment may be stale (e.g. first run in this session, or migratio
 make teardown && make setup
 ```
 
-If plain `make` fails in this repo, use:
-
-```
-PATH=/tmp/gmake-bin:$PATH ./run.sh teardown
-PATH=/tmp/gmake-bin:$PATH ./run.sh setup
-```
-
-If `/tmp/gmake-bin` does not exist yet, create it first:
-
-```
-mkdir -p /tmp/gmake-bin
-ln -sf /usr/local/bin/gmake /tmp/gmake-bin/make
-```
-
 Then run the new test(s):
 
 ```
@@ -328,9 +302,9 @@ cd e2e && go test ./pkg/testrunner/ -count 1 -v -timeout 10m -run "TestAuthflow/
 If the authgear/e2e daemons are started by `./run.sh setup` and do not survive shell exit, combine setup and test in one shell:
 
 ```
-PATH=/tmp/gmake-bin:$PATH ./run.sh teardown
-PATH=/tmp/gmake-bin:$PATH ./run.sh setup
-PATH=/tmp/gmake-bin:$PATH go test ./pkg/testrunner -count 1 -v -timeout 10m -run "TestAuthflow/<folder>/<filename_without_extension>"
+./run.sh teardown
+./run.sh setup
+go test ./pkg/testrunner -count 1 -v -timeout 10m -run "TestAuthflow/<folder>/<filename_without_extension>"
 ```
 
 If a test fails, read the error output, fix the test file, and re-run. Do not report the tests as done until they pass.
@@ -344,7 +318,7 @@ If a test fails, read the error output, fix the test file, and re-run. Do not re
 5. When testing audit events, always check the JSON path includes `payload`: `data->'payload'->'...'`.
 6. Prefer `ORDER BY <stable_column>, created_at` over `ORDER BY created_at` alone to avoid flaky ordering.
 7. To focus on one test during development, pass `-run "TestAuthflow/path/to/test"` to the test command.
-8. After environment changes, run `make teardown && make setup` to apply latest migrations. If `make` is broken in the current environment, use the `gmake` shim via `PATH=/tmp/gmake-bin:$PATH`.
+8. After environment changes, run `make teardown && make setup` to apply latest migrations.
 9. Always write JSON values in `input`, `output`, `query_output`, and `audit_query_output` as multi-line for readability. Prefer:
    ```yaml
    input: |
