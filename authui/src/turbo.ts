@@ -26,5 +26,5 @@ export function localVisit(u: string, newSearchParams?: URLSearchParams) {
     newURL.search = "?" + search;
   }
 
-  turboVisit(newURL);
+  turboVisit(newURL.toString());
 }
