@@ -261,31 +261,31 @@ type OAuthClientConfig struct {
 	ClientID  string `json:"client_id,omitempty"`
 	ClientURI string `json:"client_uri,omitempty"`
 	// client_name is for 3rd party app only. Use `name` for display name
-	ClientName                             string                       `json:"client_name,omitempty"`
-	Name                                   string                       `json:"name,omitempty"`
-	ApplicationType                        OAuthClientApplicationType   `json:"x_application_type,omitempty"`
-	MaxConcurrentSession                   int                          `json:"x_max_concurrent_session,omitempty"`
-	RedirectURIs                           []string                     `json:"redirect_uris,omitempty"`
-	GrantTypes_do_not_use_directly         []string                     `json:"grant_types,omitempty"`
-	ResponseTypes                          []string                     `json:"response_types,omitempty"`
-	PostLogoutRedirectURIs                 []string                     `json:"post_logout_redirect_uris,omitempty"`
-	AccessTokenLifetime                    DurationSeconds              `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime                   DurationSeconds              `json:"refresh_token_lifetime_seconds,omitempty"`
-	RefreshTokenIdleTimeoutEnabled         *bool                        `json:"refresh_token_idle_timeout_enabled,omitempty"`
-	RefreshTokenIdleTimeout                DurationSeconds              `json:"refresh_token_idle_timeout_seconds,omitempty"`
-	RefreshTokenRotationEnabled            bool                         `json:"refresh_token_rotation_enabled,omitempty"`
-	IssueJWTAccessToken                    bool                         `json:"issue_jwt_access_token,omitempty"`
-	PolicyURI                              string                       `json:"policy_uri,omitempty"`
-	TOSURI                                 string                       `json:"tos_uri,omitempty"`
-	CustomUIURI                            string                       `json:"x_custom_ui_uri,omitempty"`
-	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
-	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
-	DPoPDisabled                           bool                         `json:"x_dpop_disabled,omitempty"`
-	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
-	PreAuthenticatedURLEnabled             bool                         `json:"x_pre_authenticated_url_enabled,omitempty"`
-	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
-	LogoURI                                string                       `json:"logo_uri,omitempty"`
-	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
+	ClientName                             string                                  `json:"client_name,omitempty"`
+	Name                                   string                                  `json:"name,omitempty"`
+	ApplicationType                        OAuthClientApplicationType              `json:"x_application_type,omitempty"`
+	MaxConcurrentSession                   int                                     `json:"x_max_concurrent_session,omitempty"`
+	RedirectURIs                           []string                                `json:"redirect_uris,omitempty"`
+	GrantTypes_do_not_use_directly         []string                                `json:"grant_types,omitempty"`
+	ResponseTypes                          []string                                `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs                 []string                                `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime                    DurationSeconds                         `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime                   DurationSeconds                         `json:"refresh_token_lifetime_seconds,omitempty"`
+	RefreshTokenIdleTimeoutEnabled         *bool                                   `json:"refresh_token_idle_timeout_enabled,omitempty"`
+	RefreshTokenIdleTimeout                DurationSeconds                         `json:"refresh_token_idle_timeout_seconds,omitempty"`
+	RefreshTokenRotationEnabled            bool                                    `json:"refresh_token_rotation_enabled,omitempty"`
+	IssueJWTAccessToken                    bool                                    `json:"issue_jwt_access_token,omitempty"`
+	PolicyURI                              string                                  `json:"policy_uri,omitempty"`
+	TOSURI                                 string                                  `json:"tos_uri,omitempty"`
+	CustomUIURI                            string                                  `json:"x_custom_ui_uri,omitempty"`
+	App2appEnabled                         bool                                    `json:"x_app2app_enabled,omitempty"`
+	App2appInsecureDeviceKeyBindingEnabled bool                                    `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	DPoPDisabled                           bool                                    `json:"x_dpop_disabled,omitempty"`
+	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist            `json:"x_authentication_flow_allowlist,omitempty"`
+	PreAuthenticatedURLEnabled             bool                                    `json:"x_pre_authenticated_url_enabled,omitempty"`
+	PreAuthenticatedURLAllowedOrigins      []string                                `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
+	LogoURI                                string                                  `json:"logo_uri,omitempty"`
+	ReplaceProjectLogoWithLogoURI          bool                                    `json:"x_replace_project_logo_with_logo_uri,omitempty"`
 	TraditionalWebAppSessionType           OAuthClientTraditionalWebAppSessionType `json:"x_traditional_webapp_session_type,omitempty"`
 }
 
