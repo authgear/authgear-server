@@ -92,12 +92,18 @@ interface OAuthClientFormProps {
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
   effectiveSecretConfig: EffectiveSecretConfig | undefined;
+  publicOrigin: string;
 }
 
 const OAuthClientForm: React.VFC<OAuthClientFormProps> =
   function OAuthClientForm(props) {
-    const { initialAlias, providerItemKey, form, effectiveSecretConfig } =
-      props;
+    const {
+      initialAlias,
+      providerItemKey,
+      form,
+      effectiveSecretConfig,
+      publicOrigin,
+    } = props;
     const widgetProps = useSingleSignOnConfigurationWidget(
       initialAlias,
       providerItemKey,
@@ -108,6 +114,7 @@ const OAuthClientForm: React.VFC<OAuthClientFormProps> =
       <SingleSignOnConfigurationWidget
         className={styles.widget}
         {...widgetProps}
+        publicOrigin={publicOrigin}
       />
     );
   };
@@ -165,6 +172,9 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     return useLoadableView({
       loadables: [effectiveSecretConfigQuery] as const,
       render: ([effectiveSecretConfigQuery]) => {
+        const publicOrigin =
+          effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
+          "";
         return (
           <FormContainer
             form={form}
@@ -192,6 +202,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
                     effectiveSecretConfig={
                       effectiveSecretConfigQuery.effectiveSecretConfig
                     }
+                    publicOrigin={publicOrigin}
                   />
                 ) : (
                   <OAuthClientMenu form={form} onSelect={onMenuSelect} />
