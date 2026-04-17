@@ -315,7 +315,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const authModeOptions: IChoiceGroupOption[] = useMemo(
       () => [
         {
-          key: "server_side_sdk",
+          key: "access_token",
           text: renderToString(
             "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.label"
           ),
@@ -326,7 +326,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           ),
         },
         {
-          key: "cookie_session",
+          key: "cookie",
           text: renderToString(
             "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
           ),
@@ -342,10 +342,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const onAuthModeChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
-        const newMode = option?.key as "cookie_session" | "server_side_sdk";
+        const newMode = option?.key as "cookie" | "access_token";
         if (
-          newMode === "cookie_session" &&
-          clientConfig.x_traditional_webapp_auth_mode === "server_side_sdk"
+          newMode === "cookie" &&
+          clientConfig.x_traditional_webapp_session_type === "access_token"
         ) {
           setShowSdkToCookieNote(true);
         } else {
@@ -354,7 +354,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
-            "x_traditional_webapp_auth_mode",
+            "x_traditional_webapp_session_type",
             newMode
           )
         );
@@ -460,7 +460,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const [showSdkToCookieNote, setShowSdkToCookieNote] = useState(false);
 
     const traditionalWebAppAuthMode =
-      clientConfig.x_traditional_webapp_auth_mode ?? "cookie_session";
+      clientConfig.x_traditional_webapp_session_type ?? "cookie";
 
     const showCookieSettings = useMemo(
       () =>
@@ -468,7 +468,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           clientConfig.x_application_type === "confidential" ||
           clientConfig.x_application_type === "third_party_app") ||
         (clientConfig.x_application_type === "traditional_webapp" &&
-          traditionalWebAppAuthMode === "cookie_session"),
+          traditionalWebAppAuthMode === "cookie"),
       [clientConfig.x_application_type, traditionalWebAppAuthMode]
     );
 
@@ -480,7 +480,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         clientConfig.x_application_type === "confidential" ||
         clientConfig.x_application_type === "third_party_app" ||
         (clientConfig.x_application_type === "traditional_webapp" &&
-          traditionalWebAppAuthMode === "server_side_sdk"),
+          traditionalWebAppAuthMode === "access_token"),
       [clientConfig.x_application_type, traditionalWebAppAuthMode]
     );
 

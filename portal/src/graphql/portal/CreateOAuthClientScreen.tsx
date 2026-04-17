@@ -107,9 +107,9 @@ function constructConfig(
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
-          draft.x_traditional_webapp_auth_mode =
-            currentState.newClient.x_traditional_webapp_auth_mode ??
-            "server_side_sdk";
+          draft.x_traditional_webapp_session_type =
+            currentState.newClient.x_traditional_webapp_session_type ??
+            "access_token";
           break;
         case "native":
           draft.redirect_uris = ["com.example.myapp://host/path"];
@@ -386,14 +386,14 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
     const { renderToString } = useContext(Context);
 
     const selectedMode =
-      client.x_traditional_webapp_auth_mode ?? "server_side_sdk";
+      client.x_traditional_webapp_session_type ?? "access_token";
 
     const onModeChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
-        const newMode = option?.key as "cookie_session" | "server_side_sdk";
+        const newMode = option?.key as "cookie" | "access_token";
         setState((s) => ({
           ...s,
-          newClient: { ...s.newClient, x_traditional_webapp_auth_mode: newMode },
+          newClient: { ...s.newClient, x_traditional_webapp_session_type: newMode },
         }));
       },
       [setState]
@@ -418,7 +418,7 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
     const modeOptions: IChoiceGroupOption[] = useMemo(
       () => [
         {
-          key: "server_side_sdk",
+          key: "access_token",
           text: renderToString(
             "CreateOAuthClientScreen.step.select-auth-mode.server-side-sdk.label"
           ),
@@ -429,7 +429,7 @@ const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
           ),
         },
         {
-          key: "cookie_session",
+          key: "cookie",
           text: renderToString(
             "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.label"
           ),

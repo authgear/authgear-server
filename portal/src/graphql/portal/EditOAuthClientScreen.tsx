@@ -143,7 +143,7 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
 
 interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
-  authMode?: OAuthClientConfig["x_traditional_webapp_auth_mode"];
+  authMode?: OAuthClientConfig["x_traditional_webapp_session_type"];
   showOpenTutorialLabelWhenHover: boolean;
 }
 
@@ -570,7 +570,7 @@ function OAuthClientSettingsForm({
               </Text>
               <QuickStartFrameworkList
                 applicationType={client.x_application_type}
-                authMode={client.x_traditional_webapp_auth_mode}
+                authMode={client.x_traditional_webapp_session_type}
                 showOpenTutorialLabelWhenHover={false}
               />
             </div>
@@ -747,7 +747,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             </Text>
             <QuickStartFrameworkList
               applicationType={client?.x_application_type}
-              authMode={client?.x_traditional_webapp_auth_mode}
+              authMode={client?.x_traditional_webapp_session_type}
               showOpenTutorialLabelWhenHover={true}
             />
             <div className={styles.quickStartScreenButtons}>
