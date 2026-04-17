@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/useragentblocklist"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -37,6 +38,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Health(p.RootHandler(newHealthzHandler))
 
 	baseChain := httproute.Chain(
+		useragentblocklist.NewMiddleware(useragentblocklist.MustLoad(p.BaseResources)),
 		p.RootMiddleware(newContextHolderMiddleware),
 		httproute.MiddlewareFunc(slogutil.UserAgentMiddleware),
 		p.RootMiddleware(newOtelMiddleware),
