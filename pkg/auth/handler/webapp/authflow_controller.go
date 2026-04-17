@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"net/url"
@@ -336,6 +337,21 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 		return
 	} else {
 		session = s
+	}
+
+	handler := c.makeHTTPHandler(session, nil, handlers)
+	handler.ServeHTTP(w, r)
+}
+
+func (c *AuthflowController) HandleWithoutScreenAllowCompleted(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
+		return
+	}
+
+	session := webapp.GetSession(ctx)
+	if session == nil {
+		c.renderError(ctx, w, r, webapp.ErrSessionNotFound)
+		return
 	}
 
 	handler := c.makeHTTPHandler(session, nil, handlers)
@@ -684,10 +700,17 @@ func (c *AuthflowController) AdvanceWithInputs(
 
 func (c *AuthflowController) Finish(ctx context.Context, r *http.Request, s *webapp.Session) (*webapp.Result, error) {
 	if s == nil {
+		// This is panic because caller of Finish should have checked session is not nil
+		// Likely by using `HandleWithoutScreenAllowCompleted`
 		panic(fmt.Errorf("unexpected: session is missing in Finish"))
 	}
 	if s.Authflow == nil {
-		return nil, fmt.Errorf("cannot finish authflow: session is not in a flow")
+		logger := AuthflowControllerLogger.GetLogger(ctx)
+		logger.Warn(ctx, "session is not in a flow",
+			slog.String("web_session_id", s.ID),
+			slog.String("x_step", GetXStepFromQuery(r)),
+		)
+		return nil, webapp.ErrInvalidSession
 	}
 
 	result := &webapp.Result{}
