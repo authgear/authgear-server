@@ -588,6 +588,7 @@ export interface OAuthClientConfig {
   x_custom_ui_uri?: string;
   x_app2app_enabled?: boolean;
   x_app2app_insecure_device_key_binding_enabled?: boolean;
+  x_traditional_webapp_session_type?: "cookie" | "access_token";
 }
 
 export interface OAuthConfig {

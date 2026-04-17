@@ -1,6 +1,14 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
-import { Label, Text, useTheme } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  IChoiceGroupOption,
+  Label,
+  MessageBar,
+  MessageBarType,
+  Text,
+  useTheme,
+} from "@fluentui/react";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -290,6 +298,86 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const renderAuthModeLabel = useCallback(
+      (description: string) =>
+        // eslint-disable-next-line react/no-unstable-nested-components
+        (option?: IChoiceGroupOption) =>
+          (
+            <div style={{ paddingLeft: "26px" }}>
+              <Text
+                block={true}
+                style={{ lineHeight: "20px", marginBottom: "4px" }}
+              >
+                {option?.text}
+              </Text>
+              <Text
+                block={true}
+                variant="small"
+                style={{
+                  color: "#605e5c",
+                  lineHeight: "20px",
+                  marginBottom: "12px",
+                }}
+              >
+                {description}
+              </Text>
+            </div>
+          ),
+      []
+    );
+
+    const [showSdkToCookieNote, setShowSdkToCookieNote] = useState(false);
+
+    const authModeOptions: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "access_token",
+          text: renderToString(
+            "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.label"
+          ),
+          onRenderLabel: renderAuthModeLabel(
+            renderToString(
+              "EditOAuthClientForm.traditional-webapp-auth-mode.server-side-sdk.description"
+            )
+          ),
+        },
+        {
+          key: "cookie",
+          text: renderToString(
+            "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.label"
+          ),
+          onRenderLabel: renderAuthModeLabel(
+            renderToString(
+              "EditOAuthClientForm.traditional-webapp-auth-mode.cookie-session.description"
+            )
+          ),
+        },
+      ],
+      [renderToString, renderAuthModeLabel]
+    );
+
+    const onAuthModeChange = useCallback(
+      (_e: unknown, option?: IChoiceGroupOption) => {
+        const newMode = option?.key as "cookie" | "access_token";
+        if (
+          newMode === "cookie" &&
+          clientConfig.x_traditional_webapp_session_type === "access_token"
+        ) {
+          setShowSdkToCookieNote(true);
+        } else {
+          setShowSdkToCookieNote(false);
+        }
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "x_traditional_webapp_session_type",
+            newMode
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const { onChange: onPolicyURIChange } = useTextField((value) => {
       onClientConfigChange(
         updateClientConfig(
@@ -385,13 +473,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const traditionalWebAppSessionType =
+      clientConfig.x_traditional_webapp_session_type ?? "cookie";
+
     const showCookieSettings = useMemo(
       () =>
         !clientConfig.x_application_type ||
-        clientConfig.x_application_type === "traditional_webapp" ||
         clientConfig.x_application_type === "confidential" ||
-        clientConfig.x_application_type === "third_party_app",
-      [clientConfig.x_application_type]
+        clientConfig.x_application_type === "third_party_app" ||
+        (clientConfig.x_application_type === "traditional_webapp" &&
+          traditionalWebAppSessionType === "cookie"),
+      [clientConfig.x_application_type, traditionalWebAppSessionType]
     );
 
     const showRefreshTokenSettings = useMemo(
@@ -400,8 +492,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         clientConfig.x_application_type === "spa" ||
         clientConfig.x_application_type === "native" ||
         clientConfig.x_application_type === "confidential" ||
-        clientConfig.x_application_type === "third_party_app",
-      [clientConfig.x_application_type]
+        clientConfig.x_application_type === "third_party_app" ||
+        (clientConfig.x_application_type === "traditional_webapp" &&
+          traditionalWebAppSessionType === "access_token"),
+      [clientConfig.x_application_type, traditionalWebAppSessionType]
     );
 
     const showDPoPSettings = useMemo(() => {
@@ -601,6 +695,24 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             readOnly={true}
           />
         </Widget>
+
+        {clientConfig.x_application_type === "traditional_webapp" ? (
+          <Widget>
+            <ChoiceGroup
+              label={renderToString(
+                "EditOAuthClientForm.traditional-webapp-auth-mode.title"
+              )}
+              selectedKey={traditionalWebAppSessionType}
+              onChange={onAuthModeChange}
+              options={authModeOptions}
+            />
+            {showSdkToCookieNote ? (
+              <MessageBar messageBarType={MessageBarType.info}>
+                <FormattedMessage id="EditOAuthClientForm.traditional-webapp-auth-mode.sdk-to-cookie-note" />
+              </MessageBar>
+            ) : null}
+          </Widget>
+        ) : null}
 
         {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
           <>

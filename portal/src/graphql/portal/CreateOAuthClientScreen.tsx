@@ -59,6 +59,7 @@ interface FormState {
 enum FormStep {
   SelectType = "select_type",
   AuthorizeResource = "authorize_resource",
+  SelectAuthMode = "select_auth_mode",
 }
 
 function constructFormState(
@@ -94,12 +95,21 @@ function constructConfig(
       }
       switch (draft.x_application_type) {
         case "spa":
+          draft.redirect_uris = ["http://localhost/after-authentication"];
+          draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
+          break;
         case "traditional_webapp":
           draft.redirect_uris = ["http://localhost/after-authentication"];
           draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
+          draft.x_traditional_webapp_session_type =
+            currentState.newClient.x_traditional_webapp_session_type ??
+            "access_token";
           break;
         case "native":
           draft.redirect_uris = ["com.example.myapp://host/path"];
@@ -161,6 +171,11 @@ function getNextStep(state: FormState): FormStep | null {
   if (state.newClient.x_application_type === "m2m") {
     if (state.step === FormStep.SelectType) {
       return FormStep.AuthorizeResource;
+    }
+  }
+  if (state.newClient.x_application_type === "traditional_webapp") {
+    if (state.step === FormStep.SelectType) {
+      return FormStep.SelectAuthMode;
     }
   }
   return null;
@@ -353,6 +368,109 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
             disabled={!isDirty}
             labelId={getNextStep(state) != null ? "next" : "save"}
           />
+        </div>
+      </Widget>
+    );
+  };
+
+interface StepSelectAuthModeProps {
+  client: OAuthClientConfig;
+  form: AppSecretConfigFormModel<FormState>;
+  onClickSave: () => void;
+}
+
+const StepSelectAuthMode: React.VFC<StepSelectAuthModeProps> =
+  function StepSelectAuthMode(props) {
+    const { client, form, onClickSave } = props;
+    const { setState, isDirty, isUpdating } = form;
+    const { renderToString } = useContext(Context);
+
+    const selectedMode =
+      client.x_traditional_webapp_session_type ?? "access_token";
+
+    const onModeChange = useCallback(
+      (_e: unknown, option?: IChoiceGroupOption) => {
+        const newSessionType = option?.key as "cookie" | "access_token";
+        setState((s) => ({
+          ...s,
+          newClient: {
+            ...s.newClient,
+            x_traditional_webapp_session_type: newSessionType,
+          },
+        }));
+      },
+      [setState]
+    );
+
+    const renderModeLabel = useCallback(
+      (description: string) =>
+        // eslint-disable-next-line react/no-unstable-nested-components
+        (option?: IChoiceGroupOption) =>
+          (
+            <div className={styles.optionLabel}>
+              <Text className={styles.optionLabelText} block={true}>
+                {option?.text}
+              </Text>
+              <Text className={styles.optionLabelDescription} block={true}>
+                {description}
+              </Text>
+            </div>
+          ),
+      []
+    );
+
+    const modeOptions: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "access_token",
+          text: renderToString(
+            "CreateOAuthClientScreen.step.select-auth-mode.server-side-sdk.label"
+          ),
+          onRenderLabel: renderModeLabel(
+            renderToString(
+              "CreateOAuthClientScreen.step.select-auth-mode.server-side-sdk.description"
+            )
+          ),
+        },
+        {
+          key: "cookie",
+          text: renderToString(
+            "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.label"
+          ),
+          onRenderLabel: renderModeLabel(
+            renderToString(
+              "CreateOAuthClientScreen.step.select-auth-mode.cookie-session.description"
+            )
+          ),
+        },
+      ],
+      [renderToString, renderModeLabel]
+    );
+
+    return (
+      <Widget className={cn(styles.widget)}>
+        <ChoiceGroup
+          label={renderToString(
+            "CreateOAuthClientScreen.step.select-auth-mode.title"
+          )}
+          selectedKey={selectedMode}
+          onChange={onModeChange}
+          options={modeOptions}
+        />
+        <div className={styles.buttons}>
+          <ButtonWithLoading
+            onClick={onClickSave}
+            loading={isUpdating}
+            disabled={!isDirty}
+            labelId="save"
+          />
+          <LinkButton
+            onClick={() => {
+              form.setState((s) => ({ ...s, step: FormStep.SelectType }));
+            }}
+          >
+            <FormattedMessage id="back" />
+          </LinkButton>
         </div>
       </Widget>
     );
@@ -557,6 +675,13 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             form={form}
             onClickSave={onClickSave}
             hasNoAPIResources={hasNoAPIResources}
+          />
+        ) : null}
+        {state.step === FormStep.SelectAuthMode ? (
+          <StepSelectAuthMode
+            client={client}
+            form={form}
+            onClickSave={onClickSave}
           />
         ) : null}
         {state.step === FormStep.AuthorizeResource ? (
