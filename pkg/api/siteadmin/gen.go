@@ -31,6 +31,42 @@ func (e CollaboratorRole) Valid() bool {
 	}
 }
 
+// Defines values for ListAppsParamsSort.
+const (
+	CreatedAt ListAppsParamsSort = "created_at"
+	Mau       ListAppsParamsSort = "mau"
+)
+
+// Valid indicates whether the value is a known member of the ListAppsParamsSort enum.
+func (e ListAppsParamsSort) Valid() bool {
+	switch e {
+	case CreatedAt:
+		return true
+	case Mau:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListAppsParamsOrder.
+const (
+	Asc  ListAppsParamsOrder = "asc"
+	Desc ListAppsParamsOrder = "desc"
+)
+
+// Valid indicates whether the value is a known member of the ListAppsParamsOrder enum.
+func (e ListAppsParamsOrder) Valid() bool {
+	switch e {
+	case Asc:
+		return true
+	case Desc:
+		return true
+	default:
+		return false
+	}
+}
+
 // APIError Error detail matching the apierrors.APIError struct. name and reason identify the error kind; code mirrors the HTTP status.
 type APIError = apierrors.APIError
 
@@ -48,6 +84,9 @@ type App struct {
 	// Id The app ID
 	Id string `json:"id"`
 
+	// LastMonthMau Monthly active users in the last complete calendar month. 0 if no data is available.
+	LastMonthMau int `json:"last_month_mau"`
+
 	// OwnerEmail Email address of the app owner
 	OwnerEmail string `json:"owner_email"`
 
@@ -62,6 +101,9 @@ type AppDetail struct {
 
 	// Id The app ID
 	Id string `json:"id"`
+
+	// LastMonthMau Monthly active users in the last complete calendar month. 0 if no data is available.
+	LastMonthMau int `json:"last_month_mau"`
 
 	// OwnerEmail Email address of the app owner
 	OwnerEmail string `json:"owner_email"`
@@ -178,7 +220,22 @@ type ListAppsParams struct {
 
 	// OwnerEmail Filter by owner email address.
 	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
+
+	// Plan Filter by plan name.
+	Plan *string `form:"plan,omitempty" json:"plan,omitempty"`
+
+	// Sort Field to sort by. Defaults to `created_at`.
+	Sort *ListAppsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// Order Sort direction. Defaults to `desc`.
+	Order *ListAppsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
 }
+
+// ListAppsParamsSort defines parameters for ListApps.
+type ListAppsParamsSort string
+
+// ListAppsParamsOrder defines parameters for ListApps.
+type ListAppsParamsOrder string
 
 // GetAppMessagingUsageParams defines parameters for GetAppMessagingUsage.
 type GetAppMessagingUsageParams struct {
