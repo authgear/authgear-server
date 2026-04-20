@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -34,15 +34,36 @@ type AppServiceConfigSourceStore interface {
 
 type AppServiceOwnerStore interface {
 	GetOwnerByAppID(ctx context.Context, appID string) (string, error)
-	GetOwnersByAppIDs(ctx context.Context, appIDs []string) (map[string]string, error)
-	CountAppsByOwnerUserID(ctx context.Context, userID string) (int, error)
-	ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit uint64, offset uint64) ([]string, error)
+	ListAppsWithStats(ctx context.Context, params ListAppsStoreParams) ([]AppStoreRow, int, error)
+}
+
+// ---- Store types -------------------------------------------------------------
+
+// ListAppsStoreParams parameterises the unified ListAppsWithStats query.
+type ListAppsStoreParams struct {
+	Page           uint64
+	PageSize       uint64
+	AppID          string    // optional; if set, WHERE cs.app_id = ?
+	PlanName       string    // optional; if set, WHERE cs.plan_name = ?
+	OwnerUserID    string    // optional; if set, WHERE ac.user_id = ?
+	Sort           string    // "created_at" | "mau"
+	Order          string    // "asc" | "desc"
+	LastMonthStart time.Time // exact start_time value for the usage record JOIN
+}
+
+// AppStoreRow is a single row returned by ListAppsWithStats.
+type AppStoreRow struct {
+	AppID        string
+	PlanName     string
+	CreatedAt    time.Time
+	OwnerUserID  string // empty string if no owner row
+	LastMonthMAU int    // COALESCE(ur.count, 0)
 }
 
 // ---- AppOwnerStore -----------------------------------------------------------
 
-// AppOwnerStore is a minimal struct that queries _portal_app_collaborator for
-// owner relationships.
+// AppOwnerStore queries _portal_app_collaborator and related tables for owner
+// relationships and aggregated app statistics.
 type AppOwnerStore struct {
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
@@ -72,75 +93,94 @@ func (s *AppOwnerStore) GetOwnerByAppID(ctx context.Context, appID string) (stri
 	return userID, nil
 }
 
-func (s *AppOwnerStore) GetOwnersByAppIDs(ctx context.Context, appIDs []string) (map[string]string, error) {
-	if len(appIDs) == 0 {
-		return map[string]string{}, nil
+// ListAppsWithStats issues a three-table LEFT JOIN across _portal_config_source,
+// _portal_app_collaborator, and _portal_usage_record. It supports all filter,
+// sort, and pagination combinations in a single DB round-trip pair (count + page).
+func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsStoreParams) ([]AppStoreRow, int, error) {
+	configTable       := s.SQLBuilder.TableName("_portal_config_source")
+	collaboratorTable := s.SQLBuilder.TableName("_portal_app_collaborator")
+	usageTable        := s.SQLBuilder.TableName("_portal_usage_record")
+
+	// withFilters applies optional WHERE clauses shared by both queries.
+	withFilters := func(q sq.SelectBuilder) sq.SelectBuilder {
+		if params.PlanName != "" {
+			q = q.Where("cs.plan_name = ?", params.PlanName)
+		}
+		if params.OwnerUserID != "" {
+			q = q.Where("ac.user_id = ?", params.OwnerUserID)
+		}
+		if params.AppID != "" {
+			q = q.Where("cs.app_id = ?", params.AppID)
+		}
+		return q
 	}
 
-	q := s.SQLBuilder.
-		Select("app_id", "user_id").
-		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Where(sq.Eq{"app_id": appIDs, "role": "owner"})
-
-	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	// Count query — no usage record join needed.
+	countQ := withFilters(
+		s.SQLBuilder.Select("COUNT(*)").
+			From(configTable+" cs").
+			LeftJoin(collaboratorTable+" ac ON ac.app_id = cs.app_id AND ac.role = 'owner'"),
+	)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, countQ)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+	var totalCount int
+	if err := scanner.Scan(&totalCount); err != nil {
+		return nil, 0, err
+	}
+	if totalCount == 0 {
+		return nil, 0, nil
+	}
+
+	// Page query.
+	dirSQL := "DESC"
+	if params.Order == "asc" {
+		dirSQL = "ASC"
+	}
+	var primaryExpr string
+	if params.Sort == "mau" {
+		primaryExpr = "COALESCE(ur.count, 0)"
+	} else {
+		primaryExpr = "cs.created_at"
+	}
+	orderExpr := primaryExpr + " " + dirSQL + ", cs.app_id ASC"
+
+	offset := (params.Page - 1) * params.PageSize
+	pageQ := withFilters(
+		s.SQLBuilder.Select(
+			"cs.app_id",
+			"cs.plan_name",
+			"cs.created_at",
+			"COALESCE(ac.user_id, '') AS owner_user_id",
+			"COALESCE(ur.count, 0) AS last_month_mau",
+		).
+			From(configTable+" cs").
+			LeftJoin(collaboratorTable+" ac ON ac.app_id = cs.app_id AND ac.role = 'owner'").
+			LeftJoin(
+				usageTable+" ur ON ur.app_id = cs.app_id AND ur.name = ? AND ur.period = ? AND ur.start_time = ?",
+				"active-user", "monthly", params.LastMonthStart,
+			).
+			OrderBy(orderExpr).
+			Limit(params.PageSize).
+			Offset(offset),
+	)
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, pageQ)
+	if err != nil {
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	m := make(map[string]string, len(appIDs))
+	var result []AppStoreRow
 	for rows.Next() {
-		var appID, userID string
-		if err := rows.Scan(&appID, &userID); err != nil {
-			return nil, err
+		var row AppStoreRow
+		if err := rows.Scan(&row.AppID, &row.PlanName, &row.CreatedAt, &row.OwnerUserID, &row.LastMonthMAU); err != nil {
+			return nil, 0, err
 		}
-		m[appID] = userID
+		result = append(result, row)
 	}
-	return m, nil
-}
-
-func (s *AppOwnerStore) CountAppsByOwnerUserID(ctx context.Context, userID string) (int, error) {
-	q := s.SQLBuilder.
-		Select("COUNT(*)").
-		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Where("user_id = ? AND role = ?", userID, "owner")
-
-	scanner, err := s.SQLExecutor.QueryRowWith(ctx, q)
-	if err != nil {
-		return 0, err
-	}
-
-	var count int
-	if err := scanner.Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
-func (s *AppOwnerStore) ListAppIDsByOwnerUserIDPaged(ctx context.Context, userID string, limit uint64, offset uint64) ([]string, error) {
-	q := s.SQLBuilder.
-		Select("app_id").
-		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Where("user_id = ? AND role = ?", userID, "owner").
-		OrderBy("created_at DESC").
-		Limit(limit).
-		Offset(offset)
-
-	rows, err := s.SQLExecutor.QueryWith(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var appIDs []string
-	for rows.Next() {
-		var appID string
-		if err := rows.Scan(&appID); err != nil {
-			return nil, err
-		}
-		appIDs = append(appIDs, appID)
-	}
-	return appIDs, nil
+	return result, totalCount, nil
 }
 
 // ---- AppService ----------------------------------------------------------------
@@ -150,6 +190,9 @@ type ListAppsParams struct {
 	PageSize   uint64
 	AppID      string
 	OwnerEmail string
+	Plan       string // exact plan name filter
+	Sort       string // "created_at" (default) | "mau"
+	Order      string // "desc" (default) | "asc"
 }
 
 type ListAppsResult struct {
@@ -174,168 +217,87 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 	if params.PageSize == 0 || params.PageSize > maxPageSize {
 		params.PageSize = maxPageSize
 	}
-
-	switch {
-	case params.OwnerEmail != "" && params.AppID == "":
-		return s.listAppsByOwnerEmail(ctx, params)
-	case params.AppID != "":
-		return s.listAppsByAppID(ctx, params)
-	default:
-		return s.listAppsPaged(ctx, params)
+	if params.Sort != "mau" {
+		params.Sort = "created_at"
 	}
-}
-
-// listAppsByOwnerEmail resolves the owner_email to a user ID via Admin API,
-// then fetches apps owned by that user using DB-level pagination.
-//
-// Assumption: getUsersByStandardAttribute returns at most one user because email
-// is unique within an Authgear app. We therefore treat the result as a single
-// user and apply LIMIT/OFFSET directly against that user's owned apps.
-func (s *AppService) listAppsByOwnerEmail(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
-	// Admin API call — must happen outside a DB transaction.
-	userIDs, err := s.findUserIDsByEmail(ctx, params.OwnerEmail)
-	if err != nil {
-		return nil, err
+	if params.Order != "asc" {
+		params.Order = "desc"
 	}
 
-	if len(userIDs) == 0 {
-		return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
-	}
-
-	// Email is unique — take the first (and expected only) match.
-	userID := userIDs[0]
-
-	var totalCount int
-	var sources []*configsource.DatabaseSource
-	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		var e error
-		totalCount, e = s.OwnerStore.CountAppsByOwnerUserID(ctx, userID)
-		if e != nil {
-			return e
-		}
-		if totalCount == 0 {
-			return nil
-		}
-		offset := (params.Page - 1) * params.PageSize
-		appIDs, e := s.OwnerStore.ListAppIDsByOwnerUserIDPaged(ctx, userID, params.PageSize, offset)
-		if e != nil {
-			return e
-		}
-		sources, e = s.ConfigSourceStore.GetManyByAppIDs(ctx, appIDs)
-		return e
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if totalCount == 0 {
-		return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
-	}
-
-	apps := make([]siteadmin.App, len(sources))
-	for i, src := range sources {
-		apps[i] = siteadmin.App{
-			Id:         src.AppID,
-			OwnerEmail: params.OwnerEmail, // already known — no extra GraphQL call
-			Plan:       src.PlanName,
-			CreatedAt:  src.CreatedAt,
-		}
-	}
-
-	return &ListAppsResult{Apps: apps, TotalCount: totalCount}, nil
-}
-
-// listAppsByAppID fetches a single app and optionally verifies owner_email.
-func (s *AppService) listAppsByAppID(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
-	var src *configsource.DatabaseSource
+	// 1. Resolve owner_email → owner_user_id via Admin API (outside DB transaction).
 	var ownerUserID string
-	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		var e error
-		src, e = s.ConfigSourceStore.GetDatabaseSourceByAppID(ctx, params.AppID)
-		if e != nil {
-			return e
-		}
-		ownerUserID, e = s.OwnerStore.GetOwnerByAppID(ctx, params.AppID)
-		if errors.Is(e, ErrOwnerNotFound) {
-			return nil
-		}
-		return e
-	})
-	if err != nil {
-		if errors.Is(err, configsource.ErrAppNotFound) {
-			return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
-		}
-		return nil, err
-	}
-
-	// Admin API call — outside the DB transaction.
-	ownerEmail := ""
-	if ownerUserID != "" {
-		emailMap, err := s.resolveUserEmails(ctx, []string{ownerUserID})
+	if params.OwnerEmail != "" {
+		userIDs, err := s.AdminAPI.FindUserIDsByEmail(ctx, params.OwnerEmail)
 		if err != nil {
 			return nil, err
 		}
-		ownerEmail = emailMap[ownerUserID]
+		if len(userIDs) == 0 {
+			return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
+		}
+		ownerUserID = userIDs[0]
 	}
 
-	if params.OwnerEmail != "" && !strings.EqualFold(ownerEmail, params.OwnerEmail) {
-		return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
-	}
+	// 2. Compute last-month start.
+	// Go normalises time.Date(y, 0, ...) → time.Date(y-1, 12, ...) when m = January.
+	now := s.Clock.NowUTC()
+	y, m, _ := now.Date()
+	lastMonthStart := time.Date(y, m-1, 1, 0, 0, 0, 0, time.UTC)
 
-	app := siteadmin.App{
-		Id:         src.AppID,
-		OwnerEmail: ownerEmail,
-		Plan:       src.PlanName,
-		CreatedAt:  src.CreatedAt,
-	}
-	return &ListAppsResult{Apps: []siteadmin.App{app}, TotalCount: 1}, nil
-}
-
-// listAppsPaged uses DB-level pagination; resolves emails only for the current page.
-func (s *AppService) listAppsPaged(ctx context.Context, params ListAppsParams) (*ListAppsResult, error) {
+	// 3. Unified DB query.
+	var rows []AppStoreRow
 	var totalCount int
-	var sources []*configsource.DatabaseSource
-	var ownerMap map[string]string
 	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		var e error
-		totalCount, e = s.ConfigSourceStore.CountAll(ctx)
-		if e != nil {
-			return e
-		}
-		offset := (params.Page - 1) * params.PageSize
-		sources, e = s.ConfigSourceStore.ListPaged(ctx, params.PageSize, offset)
-		if e != nil {
-			return e
-		}
-		appIDs := make([]string, len(sources))
-		for i, src := range sources {
-			appIDs[i] = src.AppID
-		}
-		ownerMap, e = s.OwnerStore.GetOwnersByAppIDs(ctx, appIDs)
+		rows, totalCount, e = s.OwnerStore.ListAppsWithStats(ctx, ListAppsStoreParams{
+			Page:           params.Page,
+			PageSize:       params.PageSize,
+			AppID:          params.AppID,
+			PlanName:       params.Plan,
+			OwnerUserID:    ownerUserID,
+			Sort:           params.Sort,
+			Order:          params.Order,
+			LastMonthStart: lastMonthStart,
+		})
 		return e
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Admin API call — outside the DB transaction.
-	userIDs := uniqueValues(ownerMap)
-	emailMap, err := s.resolveUserEmails(ctx, userIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	apps := make([]siteadmin.App, len(sources))
-	for i, src := range sources {
-		ownerUserID := ownerMap[src.AppID]
-		apps[i] = siteadmin.App{
-			Id:         src.AppID,
-			OwnerEmail: emailMap[ownerUserID],
-			Plan:       src.PlanName,
-			CreatedAt:  src.CreatedAt,
+	// 4. Resolve owner emails for the current page via Admin API.
+	// Optimisation: when owner_email was the filter, every row shares the same
+	// owner_user_id — reuse the known email without an extra API call.
+	var emailMap map[string]string
+	if params.OwnerEmail != "" && ownerUserID != "" {
+		emailMap = map[string]string{ownerUserID: params.OwnerEmail}
+	} else {
+		seen := make(map[string]struct{}, len(rows))
+		uniqueIDs := make([]string, 0, len(rows))
+		for _, row := range rows {
+			if row.OwnerUserID != "" {
+				if _, ok := seen[row.OwnerUserID]; !ok {
+					seen[row.OwnerUserID] = struct{}{}
+					uniqueIDs = append(uniqueIDs, row.OwnerUserID)
+				}
+			}
+		}
+		emailMap, err = s.AdminAPI.ResolveUserEmails(ctx, uniqueIDs)
+		if err != nil {
+			return nil, err
 		}
 	}
 
+	// 5. Build response.
+	apps := make([]siteadmin.App, len(rows))
+	for i, row := range rows {
+		apps[i] = siteadmin.App{
+			Id:           row.AppID,
+			OwnerEmail:   emailMap[row.OwnerUserID],
+			Plan:         row.PlanName,
+			CreatedAt:    row.CreatedAt,
+			LastMonthMau: row.LastMonthMAU,
+		}
+	}
 	return &ListAppsResult{Apps: apps, TotalCount: totalCount}, nil
 }
 
@@ -411,25 +373,7 @@ func (s *AppService) fetchTotalUserCount(ctx context.Context, appID string) (int
 	return userCount, err
 }
 
-// findUserIDsByEmail calls Admin API getUsersByStandardAttribute to find users
-// matching the given email. Returns their raw (non-global) user IDs.
-func (s *AppService) findUserIDsByEmail(ctx context.Context, email string) ([]string, error) {
-	return s.AdminAPI.FindUserIDsByEmail(ctx, email)
-}
-
 // resolveUserEmails batch-fetches emails for the given user IDs via Admin API.
 func (s *AppService) resolveUserEmails(ctx context.Context, userIDs []string) (map[string]string, error) {
 	return s.AdminAPI.ResolveUserEmails(ctx, userIDs)
-}
-
-func uniqueValues(m map[string]string) []string {
-	seen := make(map[string]struct{}, len(m))
-	result := make([]string, 0, len(m))
-	for _, v := range m {
-		if _, ok := seen[v]; !ok {
-			seen[v] = struct{}{}
-			result = append(result, v)
-		}
-	}
-	return result
 }
