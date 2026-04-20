@@ -325,7 +325,7 @@
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/resolver/handler/resolve.go:40:9: requestcontext
 /pkg/siteadmin/transport/handler_app_get.go:40:33: requestcontext
-/pkg/siteadmin/transport/handler_apps_list.go:61:37: requestcontext
+/pkg/siteadmin/transport/handler_apps_list.go:77:37: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:47:67: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:64:49: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_remove.go:38:41: requestcontext

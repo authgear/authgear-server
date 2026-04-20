@@ -97,9 +97,9 @@ func (s *AppOwnerStore) GetOwnerByAppID(ctx context.Context, appID string) (stri
 // _portal_app_collaborator, and _portal_usage_record. It supports all filter,
 // sort, and pagination combinations in a single DB round-trip pair (count + page).
 func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsStoreParams) ([]AppStoreRow, int, error) {
-	configTable       := s.SQLBuilder.TableName("_portal_config_source")
+	configTable := s.SQLBuilder.TableName("_portal_config_source")
 	collaboratorTable := s.SQLBuilder.TableName("_portal_app_collaborator")
-	usageTable        := s.SQLBuilder.TableName("_portal_usage_record")
+	usageTable := s.SQLBuilder.TableName("_portal_usage_record")
 
 	// withFilters applies optional WHERE clauses shared by both queries.
 	withFilters := func(q sq.SelectBuilder) sq.SelectBuilder {
@@ -118,8 +118,8 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 	// Count query — no usage record join needed.
 	countQ := withFilters(
 		s.SQLBuilder.Select("COUNT(*)").
-			From(configTable+" cs").
-			LeftJoin(collaboratorTable+" ac ON ac.app_id = cs.app_id AND ac.role = 'owner'"),
+			From(configTable + " cs").
+			LeftJoin(collaboratorTable + " ac ON ac.app_id = cs.app_id AND ac.role = 'owner'"),
 	)
 	scanner, err := s.SQLExecutor.QueryRowWith(ctx, countQ)
 	if err != nil {
