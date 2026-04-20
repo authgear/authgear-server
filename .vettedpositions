@@ -333,7 +333,7 @@
 /pkg/siteadmin/transport/handler_messaging_usage.go:78:44: requestcontext
 /pkg/siteadmin/transport/handler_monthly_active_users_usage.go:86:3: requestcontext
 /pkg/siteadmin/transport/middleware_authz.go:25:10: requestcontext
-/pkg/siteadmin/transport/response.go:24:44: requestcontext
+/pkg/siteadmin/transport/response.go:27:9: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext
 /pkg/util/httproute/httproute.go:142:6: requestcontext
 /pkg/util/httproute/httproute.go:150:38: requestcontext
