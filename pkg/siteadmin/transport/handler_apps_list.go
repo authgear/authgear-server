@@ -28,6 +28,9 @@ type AppsListParams struct {
 	PageSize   uint64
 	AppID      string
 	OwnerEmail string
+	Plan       string
+	Sort       string
+	Order      string
 }
 
 func parseAppsListParams(r *http.Request) AppsListParams {
@@ -47,11 +50,24 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 		}
 	}
 
+	sortVal := q.Get("sort")
+	if sortVal != "mau" {
+		sortVal = "created_at"
+	}
+
+	orderVal := q.Get("order")
+	if orderVal != "asc" {
+		orderVal = "desc"
+	}
+
 	return AppsListParams{
 		Page:       page,
 		PageSize:   pageSize,
 		AppID:      q.Get("app_id"),
 		OwnerEmail: q.Get("owner_email"),
+		Plan:       q.Get("plan"),
+		Sort:       sortVal,
+		Order:      orderVal,
 	}
 }
 
@@ -63,6 +79,9 @@ func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		PageSize:   params.PageSize,
 		AppID:      params.AppID,
 		OwnerEmail: params.OwnerEmail,
+		Plan:       params.Plan,
+		Sort:       params.Sort,
+		Order:      params.Order,
 	})
 	if err != nil {
 		writeError(w, r, err)
