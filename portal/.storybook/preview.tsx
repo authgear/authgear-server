@@ -1,9 +1,12 @@
 import React from "react";
 import type { Preview } from "@storybook/react-vite";
+import { initializeIcons } from "@fluentui/react";
 import { ThemeProvider } from "../src/components/v2/ThemeProvider/ThemeProvider";
 import { AppLocaleProvider } from "../src/components/common/AppLocaleProvider";
 import "../src/index.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+
+initializeIcons();
 
 const preview: Preview = {
   parameters: {
