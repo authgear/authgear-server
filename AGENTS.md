@@ -79,6 +79,7 @@ authgear-server/
 - `docs/specs/api.md`
 - `docs/specs/api-admin.md`
 - Any feature-specific spec under `docs/specs/`
+- Portal-specific developer docs under `portal/docs/` (e.g. `portal/docs/storybook.md` for Storybook conventions — read before adding or editing component stories)
 
 ## Working rules
 
