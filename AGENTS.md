@@ -71,15 +71,20 @@ authgear-server/
 | Config schema & validation | `pkg/lib/config/`, `cmd/authgear/config/` |
 | E2E tests | `e2e/tests/` |
 
-## Read first
+## Documentation map
 
-- `README.md`
-- `CONTRIBUTING.md`
-- `docs/specs/convention.md`
-- `docs/specs/api.md`
-- `docs/specs/api-admin.md`
-- Any feature-specific spec under `docs/specs/`
-- Portal-specific developer docs under `portal/docs/` (e.g. `portal/docs/storybook.md` for Storybook conventions — read before adding or editing component stories)
+| Doc | Contents |
+|---|---|
+| [README.md](README.md) | Project overview, local setup, build, running Authgear |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow, coding standards, testing, commit/PR process |
+| [docs/specs/convention.md](docs/specs/convention.md) | Spec writing convention — required reading before authoring a new spec |
+| [docs/specs/api.md](docs/specs/api.md) | Authgear public API spec (OAuth/OIDC, flows, endpoints) |
+| [docs/specs/api-admin.md](docs/specs/api-admin.md) | Admin API spec (GraphQL, endpoints, auth) |
+| [docs/specs/](docs/specs/) | Feature-specific specs — authoritative source for behavior rules |
+| [docs/api/](docs/api/) | OpenAPI / schema definitions |
+| [portal/docs/ARCHITECTURE.md](portal/docs/ARCHITECTURE.md) | Portal architecture: stack, GraphQL endpoints, providers, config/theming |
+| [portal/docs/FRONTEND.md](portal/docs/FRONTEND.md) | Portal React SPA conventions: routing, GraphQL, styling, i18n, forms |
+| [portal/docs/storybook.md](portal/docs/storybook.md) | Storybook conventions — read before adding or editing component stories |
 
 ## Working rules
 
