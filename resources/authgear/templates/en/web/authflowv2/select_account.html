@@ -7,11 +7,11 @@
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ $appName := (translate "app.name" nil) }}
-      {{ $appOrClientName := $.ClientName }}
-      {{ if not $appOrClientName }}{{ $appOrClientName = $appName }}{{ end }}
+      {{ $clientName := or $.ClientName "null" }}
+      {{ $appOrClientName := or $.ClientName $appName }}
       {{ include "v2.page.select-account.default.title" (dict
         "AppName" $appName
-        "ClientName" $.ClientName
+        "ClientName" $clientName
         "AppOrClientName" $appOrClientName
       ) }}
     </h1>
