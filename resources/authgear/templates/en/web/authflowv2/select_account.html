@@ -6,12 +6,14 @@
   <i class="screen-icon material-icons">account_circle</i>
   <header class="screen-title-description">
     <h1 class="screen-title">
-      {{ if $.ClientName }}
-        {{ include "v2.page.select-account.default.title" (dict "AppOrClientName" $.ClientName) }}
-      {{ else }}
-        {{ $appName := (translate "app.name" nil) }}
-        {{ include "v2.page.select-account.default.title" (dict "AppOrClientName" $appName) }}
-      {{ end }}
+      {{ $appName := (translate "app.name" nil) }}
+      {{ $appOrClientName := $.ClientName }}
+      {{ if not $appOrClientName }}{{ $appOrClientName = $appName }}{{ end }}
+      {{ include "v2.page.select-account.default.title" (dict
+        "AppName" $appName
+        "ClientName" $.ClientName
+        "AppOrClientName" $appOrClientName
+      ) }}
     </h1>
     <p class="screen-description">
       {{ include "v2.page.select-account.default.description" (merge (dict) $.UserProfile (dict "IdentityDisplayName" $.IdentityDisplayName)) }}
