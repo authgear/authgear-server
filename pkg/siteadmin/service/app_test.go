@@ -142,6 +142,10 @@ func (fakeDatabase) WithTx(ctx context.Context, do func(context.Context) error) 
 	return do(ctx)
 }
 
+func (fakeDatabase) ReadOnly(ctx context.Context, do func(context.Context) error) error {
+	return do(ctx)
+}
+
 type fakeAdminAPI struct {
 	serverURL string
 }
