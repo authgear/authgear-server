@@ -3,6 +3,10 @@ package pprofutil
 import (
 	"net/http"
 	"net/http/pprof"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // NewServeMux creates a new ServeMux and replicates the effect of net/http/pprof.init().
@@ -14,5 +18,13 @@ func NewServeMux() *http.ServeMux {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	mux.Handle("/metrics", promHTTPHandler())
 	return mux
+}
+
+func promHTTPHandler() http.Handler {
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collectors.NewGoCollector())
+	registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	return promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 }
