@@ -2,6 +2,13 @@
 {{ define "page-content" }}
 
   {{ $appName := (translate "app.name" nil) }}
+  {{ $clientName := or $.ClientName "null" }}
+  {{ $appOrClientName := or $.ClientName $appName }}
+  {{ $nameDict := (dict
+    "AppName" $appName
+    "ClientName" $clientName
+    "AppOrClientName" $appOrClientName
+  ) }}
 
   {{ if eq .State "invalid_code" }}
     {{ template "authflowv2/__error_page_layout.html"
@@ -18,7 +25,7 @@
         {{ include "v2.page.verify-login-link.approved.title" nil }}
       </h1>
       <p class="screen-description">
-        {{ include "v2.page.verify-login-link.approved.description" (dict "AppOrClientName" $appName) }}
+        {{ include "v2.page.verify-login-link.approved.description" $nameDict }}
       </p>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -39,7 +46,7 @@
     >
       <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
       <h1 class="screen-title">{{ include "v2.page.verify-login-link.default.title" nil }}</h1>
-      <p class="screen-description">{{ include "v2.page.verify-login-link.default.description" (dict "AppOrClientName" $appName) }}</p>
+      <p class="screen-description">{{ include "v2.page.verify-login-link.default.description" $nameDict }}</p>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"
