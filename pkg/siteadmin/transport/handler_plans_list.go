@@ -22,5 +22,10 @@ type PlansListHandler struct {
 }
 
 func (h *PlansListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+	plans, err := h.Service.ListPlans(r.Context())
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	SiteAdminAPISuccessResponse{Body: siteadmin.PlansListResponse{Plans: plans}}.WriteTo(w)
 }

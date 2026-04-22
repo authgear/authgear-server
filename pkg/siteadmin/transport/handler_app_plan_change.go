@@ -55,10 +55,15 @@ func parseAppPlanChangeParams(r *http.Request) (AppPlanChangeParams, error) {
 }
 
 func (h *AppPlanChangeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, err := parseAppPlanChangeParams(r)
+	params, err := parseAppPlanChangeParams(r)
 	if err != nil {
 		writeError(w, r, err)
 		return
 	}
-	http.NotFound(w, r)
+	app, err := h.Service.ChangeAppPlan(r.Context(), params.AppID, params.PlanName)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	SiteAdminAPISuccessResponse{Body: app}.WriteTo(w)
 }
