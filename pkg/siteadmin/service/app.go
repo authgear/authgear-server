@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
-const maxPageSize = 20
+const MaxPageSize = 20
 
 // ---- Narrow interfaces -------------------------------------------------------
 
@@ -214,8 +214,8 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 	if params.Page == 0 {
 		params.Page = 1
 	}
-	if params.PageSize == 0 || params.PageSize > maxPageSize {
-		params.PageSize = maxPageSize
+	if params.PageSize == 0 || params.PageSize > MaxPageSize {
+		params.PageSize = MaxPageSize
 	}
 	if params.Sort != "mau" {
 		params.Sort = "created_at"

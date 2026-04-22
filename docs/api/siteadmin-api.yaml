@@ -26,12 +26,12 @@ paths:
             minimum: 1
         - name: page_size
           in: query
-          description: Number of apps per page. Defaults to 20, maximum 100.
+          description: Number of apps per page. Defaults to 20, maximum 20.
           schema:
             type: integer
             default: 20
             minimum: 1
-            maximum: 100
+            maximum: 20
         - name: app_id
           in: query
           description: Filter by app ID.

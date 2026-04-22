@@ -43,10 +43,14 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 		}
 	}
 
-	pageSize := uint64(20)
+	pageSize := uint64(service.MaxPageSize)
 	if v := q.Get("page_size"); v != "" {
-		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 && n <= 100 {
-			pageSize = n
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
+			if n > service.MaxPageSize {
+				pageSize = service.MaxPageSize
+			} else {
+				pageSize = n
+			}
 		}
 	}
 
