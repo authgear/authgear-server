@@ -84,7 +84,7 @@ if (sentryDSN != null && sentryDSN !== "") {
 // So data-turbo=false is no longer needed on <form>.
 //
 // Note that data-turbo=false on <a> is still effective.
-Turbo.setFormMode("off");
+Turbo.config.forms.mode = "off";
 Turbo.start();
 
 const Stimulus = Application.start();

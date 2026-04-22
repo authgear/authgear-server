@@ -1,4 +1,4 @@
-import { visit, clearCache } from "@hotwired/turbo";
+import { visit, cache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios, { Method } from "axios";
 import {
@@ -96,7 +96,7 @@ export class XHRSubmitFormController extends Controller {
 
       const { redirect_uri, action } = resp.data;
 
-      clearCache();
+      cache.clear();
       switch (action) {
         case "redirect":
           // Perform full redirect.
