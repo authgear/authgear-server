@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -67,6 +68,15 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(usagepkg.GlobalDBStore), "SQLBuilder", "SQLExecutor"),
 	wire.Bind(new(siteadminservice.UsageServiceGlobalDBStore), new(*usagepkg.GlobalDBStore)),
 
+	// plan.Store satisfies PlanServicePlanStore
+	wire.Struct(new(plan.Store), "SQLBuilder", "SQLExecutor", "Clock"),
+	wire.Bind(new(siteadminservice.PlanServicePlanStore), new(*plan.Store)),
+
+	// PlanService additional bindings
+	wire.Bind(new(siteadminservice.PlanServiceGlobalDatabase), new(*globaldb.Handle)),
+	wire.Bind(new(siteadminservice.PlanServiceConfigSourceStore), new(*configsource.Store)),
+	wire.Bind(new(siteadminservice.PlanServiceOwnerStore), new(*siteadminservice.AppOwnerStore)),
+
 	// transport bindings
 	wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),
 	wire.Bind(new(transport.AppGetService), new(*siteadminservice.AppService)),
@@ -75,4 +85,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.CollaboratorRemoveService), new(*siteadminservice.CollaboratorService)),
 	wire.Bind(new(transport.MessagingUsageService), new(*siteadminservice.UsageService)),
 	wire.Bind(new(transport.MonthlyActiveUsersUsageService), new(*siteadminservice.UsageService)),
+	wire.Bind(new(transport.PlansListService), new(*siteadminservice.PlanService)),
+	wire.Bind(new(transport.AppPlanChangeService), new(*siteadminservice.PlanService)),
 )

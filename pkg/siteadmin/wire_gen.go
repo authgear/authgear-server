@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -430,12 +431,126 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newPlansListHandler(p *deps.RequestProvider) http.Handler {
-	plansListHandler := &transport.PlansListHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appOwnerStore := &service.AppOwnerStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	planService := &service.PlanService{
+		GlobalDatabase:    handle,
+		PlanStore:         store,
+		ConfigSourceStore: configsourceStore,
+		OwnerStore:        appOwnerStore,
+		AdminAPI:          serviceAdminAPIService,
+		Clock:             clockClock,
+	}
+	plansListHandler := &transport.PlansListHandler{
+		Service: planService,
+	}
 	return plansListHandler
 }
 
 func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
-	appPlanChangeHandler := &transport.AppPlanChangeHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appOwnerStore := &service.AppOwnerStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	planService := &service.PlanService{
+		GlobalDatabase:    handle,
+		PlanStore:         store,
+		ConfigSourceStore: configsourceStore,
+		OwnerStore:        appOwnerStore,
+		AdminAPI:          serviceAdminAPIService,
+		Clock:             clockClock,
+	}
+	appPlanChangeHandler := &transport.AppPlanChangeHandler{
+		Service: planService,
+	}
 	return appPlanChangeHandler
 }
 
