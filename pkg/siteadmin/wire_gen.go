@@ -429,6 +429,16 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	return monthlyActiveUsersUsageHandler
 }
 
+func newPlansListHandler(p *deps.RequestProvider) http.Handler {
+	plansListHandler := &transport.PlansListHandler{}
+	return plansListHandler
+}
+
+func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
+	appPlanChangeHandler := &transport.AppPlanChangeHandler{}
+	return appPlanChangeHandler
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
