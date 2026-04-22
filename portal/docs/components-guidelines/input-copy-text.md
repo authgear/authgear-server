@@ -11,7 +11,7 @@ Use copyable text patterns for immutable text values shown in lists or read-only
 
 ## Rules
 
-- Use `TextWithCopyButton` for display-only text in tables/lists (for example Group Key, Role Key, resource URI).
+- Use `TextWithCopyButton` for display-only text in tables/lists (for example Group Key, Role Key, OAuth Client ID on the applications list, resource URI).
 - Do not use `TextWithCopyButton` where user editing is expected; use input components instead.
 - Use `TextFieldWithCopyButton` when the UI is semantically a form field (read-only input) rather than plain text.
 - Copyable values should be stable identifiers/URLs/tokens that users commonly need to reuse.
@@ -22,6 +22,7 @@ Use copyable text patterns for immutable text values shown in lists or read-only
 
 - `portal/src/components/common/TextWithCopyButton.tsx` shared text-with-copy component.
 - `portal/src/components/roles-and-groups/list/GroupsList.tsx` uses `TextWithCopyButton` for Group Key display.
+- `portal/src/graphql/portal/ApplicationsConfigurationScreen.tsx` uses the same copy-to-clipboard pattern (`useCopyFeedback`) for OAuth Client ID in the applications list and cards.
 - `portal/src/components/roles-and-groups/list/RolesList.tsx` uses `TextWithCopyButton` for Role Key display.
 - `portal/src/components/api-resources/ResourceList.tsx` uses `TextWithCopyButton` for resource URI display.
 - `portal/src/graphql/portal/AdminAPIConfigurationScreen.tsx` uses `TextWithCopyButton` for key ID display.
