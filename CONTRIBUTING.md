@@ -53,19 +53,15 @@ This project supports asdf, and there is a .tool-versions file at the project ro
    asdf install
    ```
 
-   Ensure the asdf shims are in your `PATH`, otherwise `go` may still resolve to the system version after installation.
-   Preferably add the following to your shell startup script.
-
-   ```sh
-   export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-   ```
-
    You can verify the active Go binary with:
 
    ```sh
    which go
    go version
    ```
+
+   The output of `which go` should point to the asdf shims directory (e.g. `~/.asdf/shims/go`), and `go version` should report `go1.26.2` (matching `.tool-versions`).
+   If the output is different, check the asdf installation guide to ensure the shims are on your `PATH`.
 
 3. On macOS, install required command-line tools
 
