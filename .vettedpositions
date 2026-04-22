@@ -87,7 +87,7 @@
 /pkg/auth/handler/webapp/authflow_view_recovery_code.go:85:26: requestcontext
 /pkg/auth/handler/webapp/authflow_wechat.go:159:26: requestcontext
 /pkg/auth/handler/webapp/authflow_whatsapp_otp.go:147:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/account_linking.go:160:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/account_linking.go:194:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/change_password.go:115:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/change_password_success.go:65:35: requestcontext
 /pkg/auth/handler/webapp/authflowv2/create_password.go:179:26: requestcontext
@@ -157,7 +157,7 @@
 /pkg/auth/handler/webapp/authflowv2/setup_totp.go:122:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/terminate_other_sessions.go:74:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/use_passkey.go:150:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/verify_bot_protection.go:85:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/verify_bot_protection.go:67:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/verify_login_link.go:113:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/view_recovery_code.go:86:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/wechat.go:148:26: requestcontext
