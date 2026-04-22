@@ -129,6 +129,12 @@ type AppsListResponse struct {
 	TotalCount int `json:"total_count"`
 }
 
+// ChangeAppPlanRequest defines model for ChangeAppPlanRequest.
+type ChangeAppPlanRequest struct {
+	// PlanName The plan to assign to the app
+	PlanName string `json:"plan_name"`
+}
+
 // Collaborator defines model for Collaborator.
 type Collaborator struct {
 	// AppId The app this collaborator belongs to
@@ -198,6 +204,17 @@ type MonthlyActiveUsersUsage struct {
 	Counts []MonthlyActiveUsersCount `json:"counts"`
 }
 
+// Plan defines model for Plan.
+type Plan struct {
+	// Name The plan name
+	Name string `json:"name"`
+}
+
+// PlansListResponse defines model for PlansListResponse.
+type PlansListResponse struct {
+	Plans []Plan `json:"plans"`
+}
+
 // BadRequest Error response envelope matching the api.Response struct.
 type BadRequest = ErrorEnvelope
 
@@ -263,3 +280,6 @@ type GetAppMonthlyActiveUsersParams struct {
 
 // AddAppCollaboratorJSONRequestBody defines body for AddAppCollaborator for application/json ContentType.
 type AddAppCollaboratorJSONRequestBody = AddCollaboratorRequest
+
+// ChangeAppPlanJSONRequestBody defines body for ChangeAppPlan for application/json ContentType.
+type ChangeAppPlanJSONRequestBody = ChangeAppPlanRequest
