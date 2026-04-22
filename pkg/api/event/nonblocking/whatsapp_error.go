@@ -10,6 +10,7 @@ const (
 
 type WhatsappErrorEventPayload struct {
 	Description string `json:"description"`
+	Recipient   string `json:"recipient"`
 }
 
 func (e *WhatsappErrorEventPayload) NonBlockingEventType() event.Type {

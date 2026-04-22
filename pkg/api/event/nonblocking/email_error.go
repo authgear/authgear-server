@@ -10,6 +10,7 @@ const (
 
 type EmailErrorEventPayload struct {
 	Description string `json:"description"`
+	Recipient   string `json:"recipient"`
 }
 
 func (e *EmailErrorEventPayload) NonBlockingEventType() event.Type {

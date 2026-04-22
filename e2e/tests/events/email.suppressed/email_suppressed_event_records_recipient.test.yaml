@@ -1,0 +1,97 @@
+name: Email suppressed event records recipient
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    test_mode:
+      email:
+        enabled: true
+        rules:
+        - regex: "^recipient@example.com$"
+          suppressed: true
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: email
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: custom_sql
+    custom_sql:
+      path: email_user.sql
+steps:
+  - name: create account recovery flow
+    action: create
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - name: identify email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "recipient@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+  - name: choose email destination
+    action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code",
+            "data": {
+              "type": "account_recovery_verify_code_data",
+              "channel": "email",
+              "otp_form": "code"
+            }
+          }
+        }
+  - name: verify suppressed email payload records recipient
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'email.suppressed'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.suppressed",
+            "recipient": "recipient@example.com"
+          }
+        ]
