@@ -29,8 +29,8 @@ type AppsListParams struct {
 	AppID      string
 	OwnerEmail string
 	Plan       string
-	Sort       string
-	Order      string
+	Sort       siteadmin.ListAppsParamsSort
+	Order      siteadmin.ListAppsParamsOrder
 }
 
 func parseAppsListParams(r *http.Request) AppsListParams {
@@ -54,14 +54,14 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 		}
 	}
 
-	sortVal := q.Get("sort")
-	if sortVal != "mau" {
-		sortVal = "created_at"
+	sortVal := siteadmin.ListAppsParamsSort(q.Get("sort"))
+	if !sortVal.Valid() {
+		sortVal = siteadmin.CreatedAt
 	}
 
-	orderVal := q.Get("order")
-	if orderVal != "asc" {
-		orderVal = "desc"
+	orderVal := siteadmin.ListAppsParamsOrder(q.Get("order"))
+	if !orderVal.Valid() {
+		orderVal = siteadmin.Desc
 	}
 
 	return AppsListParams{

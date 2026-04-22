@@ -13,7 +13,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -43,12 +45,12 @@ type AppServiceOwnerStore interface {
 type ListAppsStoreParams struct {
 	Page           uint64
 	PageSize       uint64
-	AppID          string    // optional; if set, WHERE cs.app_id = ?
-	PlanName       string    // optional; if set, WHERE cs.plan_name = ?
-	OwnerUserID    string    // optional; if set, WHERE ac.user_id = ?
-	Sort           string    // "created_at" | "mau"
-	Order          string    // "asc" | "desc"
-	LastMonthStart time.Time // exact start_time value for the usage record JOIN
+	AppID          string                        // optional; if set, WHERE cs.app_id = ?
+	PlanName       string                        // optional; if set, WHERE cs.plan_name = ?
+	OwnerUserID    string                        // optional; if set, WHERE ac.user_id = ?
+	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau"
+	Order          siteadmin.ListAppsParamsOrder // "asc" | "desc"
+	LastMonthStart time.Time                     // exact start_time value for the usage record JOIN
 }
 
 // AppStoreRow is a single row returned by ListAppsWithStats.
@@ -135,13 +137,14 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 
 	// Page query.
 	dirSQL := "DESC"
-	if params.Order == "asc" {
+	if params.Order == siteadmin.Asc {
 		dirSQL = "ASC"
 	}
 	var primaryExpr string
-	if params.Sort == "mau" {
+	switch params.Sort {
+	case siteadmin.Mau:
 		primaryExpr = "COALESCE(ur.count, 0)"
-	} else {
+	default:
 		primaryExpr = "cs.created_at"
 	}
 	orderExpr := primaryExpr + " " + dirSQL + ", cs.app_id ASC"
@@ -159,7 +162,7 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 			LeftJoin(collaboratorTable+" ac ON ac.app_id = cs.app_id AND ac.role = 'owner'").
 			LeftJoin(
 				usageTable+" ur ON ur.app_id = cs.app_id AND ur.name = ? AND ur.period = ? AND ur.start_time = ?",
-				"active-user", "monthly", params.LastMonthStart,
+				usage.RecordNameActiveUser, periodical.Monthly, params.LastMonthStart,
 			).
 			OrderBy(orderExpr).
 			Limit(params.PageSize).
@@ -190,9 +193,9 @@ type ListAppsParams struct {
 	PageSize   uint64
 	AppID      string
 	OwnerEmail string
-	Plan       string // exact plan name filter
-	Sort       string // "created_at" (default) | "mau"
-	Order      string // "desc" (default) | "asc"
+	Plan       string                        // exact plan name filter
+	Sort       siteadmin.ListAppsParamsSort  // "created_at" (default) | "mau"
+	Order      siteadmin.ListAppsParamsOrder // "desc" (default) | "asc"
 }
 
 type ListAppsResult struct {
@@ -217,11 +220,11 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 	if params.PageSize == 0 || params.PageSize > MaxPageSize {
 		params.PageSize = MaxPageSize
 	}
-	if params.Sort != "mau" {
-		params.Sort = "created_at"
+	if !params.Sort.Valid() {
+		params.Sort = siteadmin.CreatedAt
 	}
-	if params.Order != "asc" {
-		params.Order = "desc"
+	if !params.Order.Valid() {
+		params.Order = siteadmin.Desc
 	}
 
 	// 1. Resolve owner_email → owner_user_id via Admin API (outside DB transaction).

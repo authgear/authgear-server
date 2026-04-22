@@ -102,16 +102,16 @@ func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsSto
 	// Sort — mirrors SQL: primary field with configurable direction, app_id ASC secondary.
 	sort.Slice(filtered, func(i, j int) bool {
 		a, b := filtered[i], filtered[j]
-		if params.Sort == "mau" {
+		if params.Sort == siteadmin.Mau {
 			if a.LastMonthMAU != b.LastMonthMAU {
-				if params.Order == "asc" {
+				if params.Order == siteadmin.Asc {
 					return a.LastMonthMAU < b.LastMonthMAU
 				}
 				return a.LastMonthMAU > b.LastMonthMAU
 			}
 		} else {
 			if !a.CreatedAt.Equal(b.CreatedAt) {
-				if params.Order == "asc" {
+				if params.Order == siteadmin.Asc {
 					return a.CreatedAt.Before(b.CreatedAt)
 				}
 				return a.CreatedAt.After(b.CreatedAt)
