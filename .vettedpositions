@@ -58,10 +58,10 @@
 /pkg/auth/handler/webapp/app_static_assets.go:39:33: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:35:10: requestcontext
 /pkg/auth/handler/webapp/authflow_change_password.go:96:26: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1034:30: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1039:24: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1047:19: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1055:18: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1062:30: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1067:24: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1075:19: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1083:18: requestcontext
 /pkg/auth/handler/webapp/authflow_create_password.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_oob_otp.go:156:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_password.go:139:26: requestcontext
@@ -96,7 +96,7 @@
 /pkg/auth/handler/webapp/authflowv2/enter_recovery_code.go:113:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/enter_totp.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/error.go:65:36: requestcontext
-/pkg/auth/handler/webapp/authflowv2/finish_flow.go:36:35: requestcontext
+/pkg/auth/handler/webapp/authflowv2/finish_flow.go:36:56: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password.go:286:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password_link_sent.go:86:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password_otp.go:208:26: requestcontext

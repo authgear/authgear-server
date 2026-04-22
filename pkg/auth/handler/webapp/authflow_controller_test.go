@@ -234,6 +234,24 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 	})
 }
 
+func TestAuthflowControllerFinish(t *testing.T) {
+	Convey("AuthflowController.Finish", t, func() {
+		c := &AuthflowController{}
+
+		Convey("return invalid session if session has no authflow", func() {
+			ctx := context.Background()
+			s := &webapp.Session{
+				ID: "web_session_id",
+			}
+			r, _ := http.NewRequestWithContext(ctx, "GET", "/authflow/v2/finish?x_step=step_0", nil)
+
+			result, err := c.Finish(ctx, r, s)
+			So(result, ShouldBeNil)
+			So(err, ShouldBeError, webapp.ErrInvalidSession)
+		})
+	})
+}
+
 func TestAuthflowControllerCreateScreen(t *testing.T) {
 	Convey("AuthflowController.createScreen", t, func() {
 		ctrl := gomock.NewController(t)
