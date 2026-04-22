@@ -10,7 +10,7 @@ export type GetClientResourceScopesQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetClientResourceScopesQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, createdAt: any, updatedAt: any, scopes?: { __typename?: 'ScopeConnection', edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, resourceID: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
+export type GetClientResourceScopesQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'FraudProtectionDecisionRecord' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, createdAt: any, updatedAt: any, scopes?: { __typename?: 'ScopeConnection', edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, resourceID: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
 
 
 export const GetClientResourceScopesDocument = gql`

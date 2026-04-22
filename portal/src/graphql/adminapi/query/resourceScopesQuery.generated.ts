@@ -11,7 +11,7 @@ export type ResourceScopesQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type ResourceScopesQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, resourceURI: string, name?: string | null, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
+export type ResourceScopesQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'FraudProtectionDecisionRecord' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, resourceURI: string, name?: string | null, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
 
 
 export const ResourceScopesQueryDocument = gql`

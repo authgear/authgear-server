@@ -1,0 +1,5 @@
+.description {
+  @apply ml-6 my-1 pl-0.5;
+  line-height: 20px;
+  color: var(--gray-a11);
+}

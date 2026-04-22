@@ -1,0 +1,15 @@
+query fraudProtectionOverviewQuery($rangeFrom: DateTime, $rangeTo: DateTime) {
+  fraudProtectionOverview(rangeFrom: $rangeFrom, rangeTo: $rangeTo) {
+    sendSMS {
+      total
+      blocked
+      flagged
+      topSourceIPs {
+        ipAddress
+        total
+        blocked
+        flagged
+      }
+    }
+  }
+}

@@ -18,6 +18,8 @@ export type Scalars = {
   AuthenticatorClaims: { input: GQL_AuthenticatorClaims; output: GQL_AuthenticatorClaims; }
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
   DateTime: { input: GQL_DateTime; output: GQL_DateTime; }
+  /** The `FraudProtectionDecisionRecordData` scalar type represents the raw fraud protection decision record payload. */
+  FraudProtectionDecisionRecordData: { input: any; output: any; }
   /** The `IdentityClaims` scalar type represents a set of claims belonging to an identity */
   IdentityClaims: { input: GQL_IdentityClaims; output: GQL_IdentityClaims; }
   /** The `UserCustomAttributes` scalar type represents the custom attributes of the user */
@@ -222,6 +224,7 @@ export enum AuditLogActivityType {
   EmailError = 'EMAIL_ERROR',
   EmailSent = 'EMAIL_SENT',
   EmailSuppressed = 'EMAIL_SUPPRESSED',
+  FraudProtectionDecisionRecorded = 'FRAUD_PROTECTION_DECISION_RECORDED',
   IdentityBiometricDisabled = 'IDENTITY_BIOMETRIC_DISABLED',
   IdentityBiometricEnabled = 'IDENTITY_BIOMETRIC_ENABLED',
   IdentityEmailAdded = 'IDENTITY_EMAIL_ADDED',
@@ -629,6 +632,88 @@ export type Entity = {
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
 };
+
+export enum FraudProtectionAction {
+  SendSms = 'send_sms'
+}
+
+export enum FraudProtectionDecision {
+  Allowed = 'allowed',
+  Blocked = 'blocked'
+}
+
+export type FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSmsActionDetail;
+
+export type FraudProtectionDecisionRecord = Node & {
+  __typename?: 'FraudProtectionDecisionRecord';
+  action: FraudProtectionAction;
+  actionDetail: FraudProtectionDecisionActionDetail;
+  createdAt: Scalars['DateTime']['output'];
+  data?: Maybe<Scalars['FraudProtectionDecisionRecordData']['output']>;
+  decision: FraudProtectionDecision;
+  geoLocationCode?: Maybe<Scalars['String']['output']>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  triggeredWarnings: Array<FraudProtectionWarningType>;
+  userAgent?: Maybe<Scalars['String']['output']>;
+};
+
+/** A connection to a list of items. */
+export type FraudProtectionDecisionRecordConnection = {
+  __typename?: 'FraudProtectionDecisionRecordConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<FraudProtectionDecisionRecordEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type FraudProtectionDecisionRecordEdge = {
+  __typename?: 'FraudProtectionDecisionRecordEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<FraudProtectionDecisionRecord>;
+};
+
+export type FraudProtectionDecisionSendSmsActionDetail = {
+  __typename?: 'FraudProtectionDecisionSendSMSActionDetail';
+  phoneNumberCountryCode?: Maybe<Scalars['String']['output']>;
+  recipient: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type FraudProtectionOverview = {
+  __typename?: 'FraudProtectionOverview';
+  sendSMS: FraudProtectionOverviewSendSms;
+};
+
+export type FraudProtectionOverviewSendSms = {
+  __typename?: 'FraudProtectionOverviewSendSMS';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
+  topSourceIPs: Array<FraudProtectionOverviewTopSourceIp>;
+  total: Scalars['Int']['output'];
+};
+
+export type FraudProtectionOverviewTopSourceIp = {
+  __typename?: 'FraudProtectionOverviewTopSourceIP';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
+  ipAddress: Scalars['String']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export enum FraudProtectionWarningType {
+  SmsPhoneCountriesByIpDailyThresholdExceeded = 'SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByIpDailyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByIpHourlyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByPhoneCountryDailyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED',
+  SmsUnverifiedOtpsByPhoneCountryHourlyThresholdExceeded = 'SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED'
+}
 
 export type GenerateOobotpCodeInput = {
   /** Purpose of the generated OTP code. */
@@ -1192,6 +1277,10 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Fraud protection decision records */
+  fraudProtectionLogs?: Maybe<FraudProtectionDecisionRecordConnection>;
+  /** Fraud protection overview */
+  fraudProtectionOverview: FraudProtectionOverview;
   /** Get user by Login ID. */
   getUserByLoginID?: Maybe<User>;
   /** Get user by OAuth Alias and user ID. */
@@ -1225,6 +1314,28 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryFraudProtectionLogsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  maximumWarningCount?: InputMaybe<Scalars['Int']['input']>;
+  minimumWarningCount?: InputMaybe<Scalars['Int']['input']>;
+  rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
+  reasonCodes?: InputMaybe<Array<Scalars['String']['input']>>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sortDirection?: InputMaybe<SortDirection>;
+  verdicts?: InputMaybe<Array<FraudProtectionDecision>>;
+};
+
+
+export type QueryFraudProtectionOverviewArgs = {
+  rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 
