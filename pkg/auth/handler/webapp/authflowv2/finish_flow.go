@@ -33,5 +33,5 @@ func (h *AuthflowV2FinishFlowHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleWithoutScreenAllowCompleted(r.Context(), w, r, &handlers)
+	h.Controller.HandleWithoutScreenAllowCompletedSession(r.Context(), w, r, &handlers)
 }

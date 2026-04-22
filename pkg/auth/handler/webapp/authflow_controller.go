@@ -303,7 +303,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 		return
 	}
 
-	s, err := c.getWebSession(ctx)
+	s, err := c.getWebSession(ctx, false)
 	if err != nil {
 		c.renderError(ctx, w, r, err)
 		return
@@ -331,7 +331,7 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 	}
 
 	var session *webapp.Session
-	s, err := c.getWebSession(ctx)
+	s, err := c.getWebSession(ctx, false)
 	if err != nil {
 		c.renderError(ctx, w, r, err)
 		return
@@ -343,14 +343,19 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 	handler.ServeHTTP(w, r)
 }
 
-func (c *AuthflowController) HandleWithoutScreenAllowCompleted(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+// This method can be used by routes which allow a replay request
+// e.g. /finish
+// A completed web session will be allowed instead of error
+func (c *AuthflowController) HandleWithoutScreenAllowCompletedSession(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
 
-	session := webapp.GetSession(ctx)
-	if session == nil {
-		c.renderError(ctx, w, r, webapp.ErrSessionNotFound)
+	// We allow completed session here to ensure routes using HandleWithoutScreenAllowCompletedSession
+	// such as /finish can be called multiple times with error
+	session, err := c.getWebSession(ctx, true)
+	if err != nil {
+		c.renderError(ctx, w, r, err)
 		return
 	}
 
@@ -377,12 +382,12 @@ func (c *AuthflowController) handleInlinePreviewIfNecessary(ctx context.Context,
 	return false
 }
 
-func (c *AuthflowController) getWebSession(ctx context.Context) (*webapp.Session, error) {
+func (c *AuthflowController) getWebSession(ctx context.Context, allowCompleted bool) (*webapp.Session, error) {
 	s := webapp.GetSession(ctx)
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
 	}
-	if s.IsCompleted {
+	if !allowCompleted && s.IsCompleted {
 		return nil, webapp.ErrSessionCompleted
 	}
 	return s, nil
@@ -390,7 +395,7 @@ func (c *AuthflowController) getWebSession(ctx context.Context) (*webapp.Session
 
 func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
 	now := c.Clock.NowUTC()
-	s, err := c.getWebSession(ctx)
+	s, err := c.getWebSession(ctx, false)
 	if err == nil && s != nil {
 		return s, nil
 	}
