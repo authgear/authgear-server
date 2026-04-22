@@ -41,6 +41,8 @@ import {
 } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
+import FormPhoneTextField from "../../FormPhoneTextField";
+import { PhoneTextFieldValues } from "../../PhoneTextField";
 import FormContainer, { FormSaveButton } from "../../FormContainer";
 
 import styles from "./AddUserScreen.module.css";
@@ -191,7 +193,40 @@ interface AddUserContentProps {
   loginIDTypes: LoginIDKeyType[];
   form: SimpleFormModel<FormState>;
   isPasskeyOnly: boolean;
+  phoneInputAllowlist?: string[];
+  phoneInputPinnedList?: string[];
 }
+
+interface PhoneFieldProps {
+  className?: string;
+  allowlist?: string[];
+  pinnedList?: string[];
+  onChange: (e164: string) => void;
+}
+
+const PhoneField: React.VFC<PhoneFieldProps> = function PhoneField(props) {
+  const { className, allowlist, pinnedList, onChange } = props;
+  const [inputValue, setInputValue] = useState("");
+  const onChangeValues = useCallback(
+    (values: PhoneTextFieldValues) => {
+      onChange(values.e164 ?? "");
+      setInputValue(values.rawInputValue);
+    },
+    [onChange]
+  );
+  return (
+    <FormPhoneTextField
+      className={className}
+      parentJSONPointer=""
+      fieldName="phone"
+      errorRules={errorRules}
+      allowlist={allowlist}
+      pinnedList={pinnedList}
+      initialInputValue={inputValue}
+      onChange={onChangeValues}
+    />
+  );
+};
 
 const ManualEntryPasswordField: React.VFC<{
   disabled: boolean;
@@ -254,6 +289,8 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     loginIDTypes,
     form: { state, setState },
     isPasskeyOnly,
+    phoneInputAllowlist,
+    phoneInputPinnedList,
   } = props;
   const { renderToString } = useContext(Context);
 
@@ -264,7 +301,6 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const {
     username,
     email,
-    phone,
     manualEntryPassword: password,
     selectedLoginIDType,
   } = state;
@@ -275,9 +311,12 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const { onChange: onEmailChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, email: value }));
   });
-  const { onChange: onPhoneChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, phone: value }));
-  });
+  const onPhoneChange = useCallback(
+    (value: string) => {
+      setState((prev) => ({ ...prev, phone: value }));
+    },
+    [setState]
+  );
   const { onChange: onPasswordChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, manualEntryPassword: value }));
   });
@@ -505,16 +544,14 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
 
   const renderPhoneField = useCallback(() => {
     return (
-      <FormTextField
+      <PhoneField
         className={styles.textField}
-        value={phone}
+        allowlist={phoneInputAllowlist}
+        pinnedList={phoneInputPinnedList}
         onChange={onPhoneChange}
-        parentJSONPointer=""
-        fieldName="phone"
-        errorRules={errorRules}
       />
     );
-  }, [phone, onPhoneChange]);
+  }, [onPhoneChange, phoneInputAllowlist, phoneInputPinnedList]);
 
   const textFieldRenderer: Record<LoginIDKeyType, () => React.ReactNode> =
     useMemo(
@@ -843,6 +880,8 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         loginIDTypes={loginIDTypes}
         passwordPolicy={passwordPolicy}
         isPasskeyOnly={isPasskeyOnly}
+        phoneInputAllowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
+        phoneInputPinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
       />
     </FormContainer>
   );
