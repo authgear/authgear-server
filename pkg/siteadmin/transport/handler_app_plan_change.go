@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -24,8 +25,12 @@ var AppPlanChangeRequestSchema = validation.NewSimpleSchema(`
 	}
 `)
 
+type AppPlanChangeService interface {
+	ChangeAppPlan(ctx context.Context, appID string, planName string) (*siteadmin.App, error)
+}
+
 type AppPlanChangeHandler struct {
-	// Service dependencies added in Stage 5
+	Service AppPlanChangeService
 }
 
 type AppPlanChangeParams struct {

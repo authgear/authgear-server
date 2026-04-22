@@ -1,8 +1,10 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -11,8 +13,12 @@ func ConfigurePlansListRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/api/v1/plans")
 }
 
+type PlansListService interface {
+	ListPlans(ctx context.Context) ([]siteadmin.Plan, error)
+}
+
 type PlansListHandler struct {
-	// Service dependencies added in Stage 5
+	Service PlansListService
 }
 
 func (h *PlansListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
