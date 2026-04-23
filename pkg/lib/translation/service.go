@@ -6,6 +6,7 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -282,6 +283,38 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 		}
 	}
 
+	usageName := ""
+	usageDisplayName := ""
+	usageAction := ""
+	usagePeriod := ""
+	usageQuota := 0
+	usageCurrentValue := 0
+	if v.UsageName != "" {
+		switch model.UsageName(v.UsageName) {
+		case model.UsageNameEmail:
+			usageDisplayName, err = t.RenderText("usage.name.email", nil)
+		case model.UsageNameSMS:
+			usageDisplayName, err = t.RenderText("usage.name.sms", nil)
+		case model.UsageNameWhatsapp:
+			usageDisplayName, err = t.RenderText("usage.name.whatsapp", nil)
+		case model.UsageNameUserExport:
+			usageDisplayName, err = t.RenderText("usage.name.user_export", nil)
+		case model.UsageNameUserImport:
+			usageDisplayName, err = t.RenderText("usage.name.user_import", nil)
+		default:
+			panic(fmt.Sprintf("unexpected usage name: %s", v.UsageName))
+		}
+		if err != nil {
+			panic(fmt.Sprintf("failed to render usage display name for %s: %v", v.UsageName, err))
+		}
+
+		usageName = v.UsageName
+		usageAction = v.UsageAction
+		usagePeriod = v.UsagePeriod
+		usageQuota = v.UsageQuota
+		usageCurrentValue = v.UsageCurrentValue
+	}
+
 	return &PreparedTemplateVariables{
 		AppName:     appName,
 		ClientID:    uiParams.ClientID,
@@ -297,9 +330,14 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 		StaticAssetURL: func(id string) (url string, err error) {
 			return s.StaticAssets.StaticAssetURL(ctx, id)
 		},
-		UILocales: uiParams.UILocales,
-		URL:       v.URL,
-		Usage:     v.Usage,
-		XState:    uiParams.XState,
+		UILocales:         uiParams.UILocales,
+		URL:               v.URL,
+		UsageName:         usageName,
+		UsageDisplayName:  usageDisplayName,
+		UsageAction:       usageAction,
+		UsagePeriod:       usagePeriod,
+		UsageQuota:        usageQuota,
+		UsageCurrentValue: usageCurrentValue,
+		XState:            uiParams.XState,
 	}, nil
 }

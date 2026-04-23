@@ -1,7 +1,3 @@
-[[ .T.UsageAlertEmail.Title ]]
+{{ if eq .UsageAction "alert" }}[[ plaintext .T.UsageAlertTXT.Alert.Title ]]{{ else if eq .UsageAction "block" }}[[ plaintext .T.UsageAlertTXT.Block.Title ]]{{ else }}[[ plaintext .T.UsageAlertTXT.Alert.Title ]]{{ end }}
 
-[[ .T.UsageAlertEmail.Body ]]
-
-[[ .T.UsageAlertEmail.Action ]]
-[[ .T.UsageAlertEmail.Quota ]]
-[[ .T.UsageAlertEmail.CurrentValue ]]
+{{ if eq .UsageAction "alert" }}[[ plaintext .T.UsageAlertTXT.Alert.Body ]]{{ else if eq .UsageAction "block" }}[[ plaintext .T.UsageAlertTXT.Block.Body ]]{{ else }}[[ plaintext .T.UsageAlertTXT.Alert.Body ]]{{ end }}

@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Login to {{ template \"app.name\" }} with your email and temporary password. Please change your password after login."
   },
-  "UsageAlertEmail": {
-    "Title": "Usage alert triggered for {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.",
-    "Action": "Action: {{ .Usage.Action }}",
-    "Quota": "Quota: {{ .Usage.Quota }}",
-    "CurrentValue": "Current value: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "You are approaching your {{ .UsageDisplayName }} Usage Limit",
+      "Body": "Hi there,<br><br>Your Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.<br><br>You can continue for now. To avoid any interruption, consider upgrading your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} usage has been blocked",
+      "Body": "Hi there,<br><br>Your project, {{ template \"app.name\" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "You are approaching your {{ .UsageDisplayName }} Usage Limit",
+      "Body": "Hi there,\n\nYour Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.\n\nYou can continue for now. To avoid any interruption, consider upgrading your plan.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} usage has been blocked",
+      "Body": "Hi there,\n\nYour project, {{ template \"app.name\" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.\n\nTo resume service, please upgrade your plan.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
+    }
   }
 }

@@ -38,13 +38,11 @@ func (s *UsageAlertEmailServiceImpl) Send(ctx context.Context, recipients []stri
 	}
 
 	data, err := s.TranslationService.EmailMessageData(ctx, translation.MessageUsageAlert, &translation.PartialTemplateVariables{
-		Usage: &translation.UsageAlertTemplateVariables{
-			Name:         payload.Usage.Name,
-			Action:       payload.Usage.Action,
-			Period:       payload.Usage.Period,
-			Quota:        payload.Usage.Quota,
-			CurrentValue: payload.Usage.CurrentValue,
-		},
+		UsageName:         string(payload.Usage.Name),
+		UsageAction:       string(payload.Usage.Action),
+		UsagePeriod:       string(payload.Usage.Period),
+		UsageQuota:        payload.Usage.Quota,
+		UsageCurrentValue: payload.Usage.CurrentValue,
 	})
 	if err != nil {
 		return err
