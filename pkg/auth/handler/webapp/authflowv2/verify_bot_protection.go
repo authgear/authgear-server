@@ -2,8 +2,10 @@ package authflowv2
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -54,27 +56,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		index := *screen.Screen.TakenBranchIndex
-		channel := screen.Screen.TakenChannel
-		data := screen.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
-		option := data.Options[index]
-
-		input := map[string]interface{}{
-			"authentication": option.Authentication,
-			"index":          index,
-		}
-
-		// Only set channel if not empty because this screen might be used by flows other than
-		if channel != "" {
-			input["channel"] = channel
-		}
-
-		handlerwebapp.InsertBotProtection(r.Form, input)
-
-		// advance with previous screen inherit
-		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, &handlerwebapp.AdvanceOptions{
-			InheritTakenBranchState: true,
-		})
+		result, err := h.advanceWithBotProtection(ctx, r, s, screen)
 		if err != nil {
 			return err
 		}
@@ -83,4 +65,47 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	h.Controller.HandleStep(r.Context(), w, r, &handlers)
+}
+
+func (h *AuthflowV2VerifyBotProtectionHandler) advanceWithBotProtection(
+	ctx context.Context,
+	r *http.Request,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+) (*webapp.Result, error) {
+	index := *screen.Screen.TakenBranchIndex
+	channel := screen.Screen.TakenChannel
+
+	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
+		option := data.Options[index]
+
+		input := map[string]interface{}{
+			"authentication": option.Authentication,
+			"index":          index,
+		}
+		if channel != "" {
+			input["channel"] = channel
+		}
+		handlerwebapp.InsertBotProtection(r.Form, input)
+		return h.Controller.AdvanceWithInput(ctx, r, s, screen, input, &handlerwebapp.AdvanceOptions{
+			InheritTakenBranchState: true,
+		})
+	case declarative.AccountLinkingIdentifyData:
+		option := data.Options[index]
+		input := map[string]interface{}{
+			"index": index,
+		}
+		if option.Identifcation == model.AuthenticationFlowIdentificationOAuth {
+			redirectURI, err := h.Controller.GetAccountLinkingSSOCallbackURL(option.Alias, data)
+			if err != nil {
+				return nil, err
+			}
+			input["redirect_uri"] = redirectURI
+		}
+		handlerwebapp.InsertBotProtection(r.Form, input)
+		return h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
+	default:
+		return nil, fmt.Errorf("unexpected data type: %T", screen.StateTokenFlowResponse.Action.Data)
+	}
 }

@@ -11,6 +11,7 @@ type AccountLinkingIdentificationOption struct {
 	Identifcation     model.AuthenticationFlowIdentification `json:"identification"`
 	MaskedDisplayName string                                 `json:"masked_display_name,omitempty"`
 	Action            config.AccountLinkingAction            `json:"action"`
+	BotProtection     *BotProtectionData                     `json:"bot_protection,omitempty"`
 
 	// ProviderType is specific to OAuth.
 	ProviderType string `json:"provider_type,omitempty"`

@@ -42,7 +42,7 @@ func (*IntentAccountLinking) Kind() string {
 }
 
 func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewAccountLinkingIdentifyData(i.getOptions(deps)), nil
+	return NewAccountLinkingIdentifyData(i.getOptions(deps, flows)), nil
 }
 
 func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -60,7 +60,7 @@ func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.De
 		return &InputSchemaAccountLinkingIdentification{
 			FlowRootObject: flowRootObject,
 			JSONPointer:    i.JSONPointer,
-			Options:        i.getOptions(deps),
+			Options:        i.getOptions(deps, flows),
 		}, nil
 	case 1: // Enter the login flow
 		return nil, nil
@@ -78,13 +78,19 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 			idx := inputTakeAccountLinkingIdentification.GetAccountLinkingIdentificationIndex()
 			redirectURI := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthRedirectURI()
 			responseMode := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthResponseMode()
-			selectedOption := i.getOptions(deps)[idx]
+			selectedOption := i.getOptions(deps, flows)[idx]
+			var botProtection *InputTakeBotProtectionBody
+			var inputTakeBotProtection inputTakeBotProtection
+			if authflow.AsInput(input, &inputTakeBotProtection) {
+				botProtection = inputTakeBotProtection.GetBotProtectionProvider()
+			}
 
 			return authflow.NewNodeSimple(&NodeUseAccountLinkingIdentification{
-				Option:       selectedOption.AccountLinkingIdentificationOption,
-				Conflict:     selectedOption.Conflict,
-				RedirectURI:  redirectURI,
-				ResponseMode: responseMode,
+				Option:        selectedOption.AccountLinkingIdentificationOption,
+				Conflict:      selectedOption.Conflict,
+				BotProtection: botProtection,
+				RedirectURI:   redirectURI,
+				ResponseMode:  responseMode,
 			}), nil
 		}
 		return nil, authflow.ErrIncompatibleInput
@@ -219,16 +225,18 @@ func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 		// This is a panic because the node should not provide option that we don't know how to handle to the user
 		panic(fmt.Errorf("unable to create synthetic input from identity type %v", conflictedInfo.Type))
 	}
+	input.BotProtection = milestone.MilestoneUseAccountLinkingIdentificationBotProtection()
 	return input
 }
 
-func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []AccountLinkingIdentificationOptionInternal {
+func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies, flows authflow.Flows) []AccountLinkingIdentificationOptionInternal {
 	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
 		var identifcation model.AuthenticationFlowIdentification
 		var maskedDisplayName string
 		var providerType string
 		var providerAlias string
 		var providerStatus OAuthProviderStatus
+		var botProtection *BotProtectionData
 
 		identity := c.Identity
 
@@ -268,11 +276,13 @@ func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []Account
 			// Other types are not supported in account linking, exclude them in options
 			return []AccountLinkingIdentificationOptionInternal{}
 		}
+		botProtection = i.resolveBotProtectionOptionData(deps, flows, c, identifcation)
 
 		return []AccountLinkingIdentificationOptionInternal{{
 			AccountLinkingIdentificationOption: AccountLinkingIdentificationOption{
 				Identifcation:     identifcation,
 				MaskedDisplayName: maskedDisplayName,
+				BotProtection:     botProtection,
 				ProviderType:      providerType,
 				Alias:             providerAlias,
 				ProviderStatus:    providerStatus,
@@ -281,6 +291,50 @@ func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []Account
 			Conflict: c,
 		}}
 	})
+}
+
+func (i *IntentAccountLinking) resolveBotProtectionOptionData(
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	conflict *AccountLinkingConflict,
+	identification model.AuthenticationFlowIdentification,
+) *BotProtectionData {
+	loginFlow := conflict.LoginFlow
+	if loginFlow == "" {
+		flowReference := authflow.FindCurrentFlowReference(flows.Root)
+		if flowReference == nil {
+			return nil
+		}
+		loginFlow = flowReference.Name
+	}
+
+	rootObject, err := flowRootObjectForLoginFlow(deps.Config, authflow.FlowReference{
+		Type: authflow.FlowTypeLogin,
+		Name: loginFlow,
+	})
+	if err != nil {
+		return nil
+	}
+
+	loginFlowRoot, ok := rootObject.(*config.AuthenticationFlowLoginFlow)
+	if !ok {
+		return nil
+	}
+
+	for _, step := range loginFlowRoot.Steps {
+		if step.Type != config.AuthenticationFlowLoginFlowStepTypeIdentify {
+			continue
+		}
+		for _, oneOf := range step.OneOf {
+			if oneOf.Identification != identification {
+				continue
+			}
+			return GetBotProtectionData(flows, oneOf.BotProtection, deps.Config.BotProtection)
+		}
+		return nil
+	}
+
+	return nil
 }
 
 func (i *IntentAccountLinking) errorIfSomeConflictIsError() error {

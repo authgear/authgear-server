@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"strconv"
 
@@ -56,6 +57,16 @@ type AuthflowV2AccountLinkingHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
+}
+
+func isAccountLinkingOptionBotProtectionRequired(option declarative.AccountLinkingIdentificationOption) bool {
+	if option.BotProtection == nil {
+		return false
+	}
+	return option.BotProtection.Enabled != nil &&
+		*option.BotProtection.Enabled &&
+		option.BotProtection.Provider != nil &&
+		option.BotProtection.Provider.Type != ""
 }
 
 func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2AccountLinkingViewModel {
@@ -120,6 +131,26 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		data := flowResponse.Action.Data.(declarative.AccountLinkingIdentifyData)
 		option := data.Options[index]
 
+		if isAccountLinkingOptionBotProtectionRequired(option) && !handlerwebapp.IsBotProtectionInputValid(ctx, r.Form) {
+			delayedScreen, err := h.Controller.DelayScreen(ctx, r, s, screen.Screen, &webapp.Result{}, func(newScreen *webapp.AuthflowScreen) *webapp.AuthflowScreen {
+				newScreen.TakenBranchIndex = &index
+				return newScreen
+			})
+			if err != nil {
+				return err
+			}
+
+			u := url.URL{Path: AuthflowV2RouteVerifyBotProtection}
+			q := u.Query()
+			q.Set(webapp.AuthflowQueryKey, delayedScreen.StateToken.XStep)
+			u.RawQuery = q.Encode()
+			(&webapp.Result{
+				NavigationAction: webapp.NavigationActionAdvance,
+				RedirectURI:      u.String(),
+			}).WriteResponse(w, r)
+			return nil
+		}
+
 		var input map[string]interface{}
 		switch option.Identifcation {
 		case model.AuthenticationFlowIdentificationEmail:
@@ -146,6 +177,9 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			panic(fmt.Errorf("To be implemented identifcation option %v", option.Identifcation))
 		default:
 			panic(fmt.Errorf("unsupported identifcation option %v", option.Identifcation))
+		}
+		if isAccountLinkingOptionBotProtectionRequired(option) {
+			handlerwebapp.InsertBotProtection(r.Form, input)
 		}
 
 		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
