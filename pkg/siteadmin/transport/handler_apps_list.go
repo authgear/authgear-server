@@ -28,6 +28,9 @@ type AppsListParams struct {
 	PageSize   uint64
 	AppID      string
 	OwnerEmail string
+	Plan       string
+	Sort       siteadmin.ListAppsParamsSort
+	Order      siteadmin.ListAppsParamsOrder
 }
 
 func parseAppsListParams(r *http.Request) AppsListParams {
@@ -40,11 +43,25 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 		}
 	}
 
-	pageSize := uint64(20)
+	pageSize := uint64(service.MaxPageSize)
 	if v := q.Get("page_size"); v != "" {
-		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 && n <= 100 {
-			pageSize = n
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
+			if n > service.MaxPageSize {
+				pageSize = service.MaxPageSize
+			} else {
+				pageSize = n
+			}
 		}
+	}
+
+	sortVal := siteadmin.ListAppsParamsSort(q.Get("sort"))
+	if !sortVal.Valid() {
+		sortVal = siteadmin.CreatedAt
+	}
+
+	orderVal := siteadmin.ListAppsParamsOrder(q.Get("order"))
+	if !orderVal.Valid() {
+		orderVal = siteadmin.Desc
 	}
 
 	return AppsListParams{
@@ -52,6 +69,9 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 		PageSize:   pageSize,
 		AppID:      q.Get("app_id"),
 		OwnerEmail: q.Get("owner_email"),
+		Plan:       q.Get("plan"),
+		Sort:       sortVal,
+		Order:      orderVal,
 	}
 }
 
@@ -63,6 +83,9 @@ func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		PageSize:   params.PageSize,
 		AppID:      params.AppID,
 		OwnerEmail: params.OwnerEmail,
+		Plan:       params.Plan,
+		Sort:       params.Sort,
+		Order:      params.Order,
 	})
 	if err != nil {
 		writeError(w, r, err)
