@@ -39,7 +39,7 @@ func TestService(t *testing.T) {
 	"email.default.reply-to": "",
 	"email.default.subject": "",
 	"email.setup-primary-oob.subject": "[{AppName}] Test",
-	"email.usage-alert.subject": "{UsageAction, select, alert{You are approaching your {UsageDisplayName} Usage Limit ({AppName})} block{{UsageDisplayName} usage has been blocked ({AppName})} other{Usage alert triggered}}",
+	"email.usage-alert.subject": "{UsageAction, select, alert{Your {UsageDisplayName} usage has reached {UsageCurrentValue} ({AppName})} block{{UsageDisplayName} usage has been blocked ({AppName})} other{Usage alert triggered}}",
 	"sms.default.sender": "Sender: [{AppName}]",
 	"usage.name.email": "email",
 	"usage.name.sms": "SMS",
@@ -77,18 +77,18 @@ XState: {{ .XState }}`, lang, path))
 			} {
 				if strings.HasSuffix(path, ".html") {
 					writeFile(lang, path, fmt.Sprintf(`%v/%v
-{{ if eq .UsageAction "alert" }}You are approaching your {{ .UsageDisplayName }} Usage Limit ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
+{{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
 
-{{ if eq .UsageAction "alert" }}Hi there,<br><br>Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.<br><br>You can continue for now. To avoid any interruption, consider upgrading your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else if eq .UsageAction "block" }}Hi there,<br><br>Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else }}Hi there,<br><br>Your project has reached a usage limit.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ end }}`, lang, path))
+{{ if eq .UsageAction "alert" }}Hi there,<br><br>Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br><br>No action is needed right now. This is just a heads-up so you can review your usage.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else if eq .UsageAction "block" }}Hi there,<br><br>Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else }}Hi there,<br><br>Your project has reached a usage limit.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ end }}`, lang, path))
 				} else {
 					writeFile(lang, path, fmt.Sprintf(`%v/%v
-{{ if eq .UsageAction "alert" }}You are approaching your {{ .UsageDisplayName }} Usage Limit ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
+{{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
 
 {{ if eq .UsageAction "alert" }}Hi there,
 
-Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.
 
-You can continue for now. To avoid any interruption, consider upgrading your plan.
+No action is needed right now. This is just a heads-up so you can review your usage.
 
 If you have any questions, please contact us.
 
@@ -290,13 +290,13 @@ XState: my x state`)
 				UsageCurrentValue: 1,
 			})
 			So(err, ShouldBeNil)
-			So(alertMessageData.Subject, ShouldEqual, "You are approaching your SMS Usage Limit (My App Name)")
+			So(alertMessageData.Subject, ShouldEqual, "Your SMS usage has reached 1 (My App Name)")
 			So(alertMessageData.TextBody.LanguageTag, ShouldEqual, "zh")
-			So(alertMessageData.TextBody.String, ShouldContainSubstring, "You are approaching your SMS Usage Limit (My App Name)")
-			So(alertMessageData.TextBody.String, ShouldContainSubstring, "has used 1 SMS quotas in this billing period.")
-			So(alertMessageData.TextBody.String, ShouldContainSubstring, "You can continue for now. To avoid any interruption, consider upgrading your plan.")
-			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "You are approaching your SMS Usage Limit (My App Name)")
-			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "Hi there,<br><br>Your Authgear project, My App Name, has used 1 SMS quotas in this billing period.")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "Your SMS usage has reached 1 (My App Name)")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "has used 1 of its SMS quota for this billing period.")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "No action is needed right now. This is just a heads-up so you can review your usage.")
+			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "Your SMS usage has reached 1 (My App Name)")
+			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "Hi there,<br><br>Your Authgear project, My App Name, has used 1 of its SMS quota for this billing period.")
 
 			blockMessageData, err := service.EmailMessageData(ctx, usageAlertMessageSpec, &translation.PartialTemplateVariables{
 				UsageName:         "whatsapp",

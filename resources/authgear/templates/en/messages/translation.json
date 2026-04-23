@@ -188,8 +188,8 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "You are approaching your {{ .UsageDisplayName }} Usage Limit",
-      "Body": "Hi there,<br><br>Your Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.<br><br>You can continue for now. To avoid any interruption, consider upgrading your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
+      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hi there,<br><br>Your Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br><br>No action is needed right now. This is just a heads-up so you can review your usage.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
     },
     "Block": {
       "Title": "{{ .UsageDisplayName }} usage has been blocked",
@@ -198,8 +198,8 @@
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "You are approaching your {{ .UsageDisplayName }} Usage Limit",
-      "Body": "Hi there,\n\nYour Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.\n\nYou can continue for now. To avoid any interruption, consider upgrading your plan.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
+      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hi there,\n\nYour Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.\n\nNo action is needed right now. This is just a heads-up so you can review your usage.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
     },
     "Block": {
       "Title": "{{ .UsageDisplayName }} usage has been blocked",
