@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Alerta de uso acionado para {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Você está se aproximando do seu limite de uso de {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}O uso de {{ .UsageDisplayName }} foi bloqueado{{ else }}Você está se aproximando do seu limite de uso de {{ .UsageDisplayName }}{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} atingiu o limite de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ação: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Cota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Valor atual: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Olá,<br><br>Seu projeto Authgear, {{ template "app.name" }}, usou {{ .UsageCurrentValue }} cotas de {{ .UsageDisplayName }} neste período de faturamento.<br><br>Você pode continuar por enquanto. Para evitar qualquer interrupção, considere fazer upgrade do seu plano.<br><br>Se tiver alguma dúvida, entre em contato conosco.<br><br>Atenciosamente,<br>Equipe Authgear{{ else if eq .UsageAction "block" }}Olá,<br><br>Seu projeto, {{ template "app.name" }}, atingiu seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturamento. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.<br><br>Para retomar o serviço, faça upgrade do seu plano.<br><br>Se tiver alguma dúvida, entre em contato conosco.<br><br>Atenciosamente,<br>Equipe Authgear{{ else }}Olá,<br><br>Seu projeto Authgear, {{ template "app.name" }}, usou {{ .UsageCurrentValue }} cotas de {{ .UsageDisplayName }} neste período de faturamento.<br><br>Você pode continuar por enquanto. Para evitar qualquer interrupção, considere fazer upgrade do seu plano.<br><br>Se tiver alguma dúvida, entre em contato conosco.<br><br>Atenciosamente,<br>Equipe Authgear{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

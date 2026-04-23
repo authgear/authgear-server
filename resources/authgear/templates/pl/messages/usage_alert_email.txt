@@ -1,7 +1,30 @@
-Wyzwolono alert użycia dla {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Zbliżasz się do limitu użycia {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}Użycie {{ .UsageDisplayName }} zostało zablokowane{{ else }}Zbliżasz się do limitu użycia {{ .UsageDisplayName }}{{ end }}
 
-{{ template "app.name" }} osiągnął skonfigurowany próg użycia dla {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Cześć,
 
-Działanie: {{ .Usage.Action }}
-Limit: {{ .Usage.Quota }}
-Bieżąca wartość: {{ .Usage.CurrentValue }}
+Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.
+
+Na razie możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.
+
+Jeśli masz jakieś pytania, skontaktuj się z nami.
+
+Pozdrawiamy,
+Zespół Authgear{{ else if eq .UsageAction "block" }}Cześć,
+
+Twój projekt, {{ template "app.name" }}, osiągnął twardy limit {{ .UsageQuota }} {{ .UsageDisplayName }} w tym okresie rozliczeniowym. Dodatkowe użycie {{ .UsageDisplayName }} zostało zablokowane.
+
+Aby wznowić usługę, uaktualnij swój plan.
+
+Jeśli masz jakieś pytania, skontaktuj się z nami.
+
+Pozdrawiamy,
+Zespół Authgear{{ else }}Cześć,
+
+Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.
+
+Na razie możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.
+
+Jeśli masz jakieś pytania, skontaktuj się z nami.
+
+Pozdrawiamy,
+Zespół Authgear{{ end }}

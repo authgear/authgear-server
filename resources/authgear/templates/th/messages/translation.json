@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "ล็อกอินเข้า {{ template \"app.name\" }} ด้วยอีเมลและรหัสผ่านชั่วคราวของคุณ โปรดเปลี่ยนรหัสผ่านของคุณหลังจากล็อกอิน"
   },
-  "UsageAlertEmail": {
-    "Title": "มีการแจ้งเตือนการใช้งานสำหรับ {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} ถึงเกณฑ์การใช้งานที่กำหนดสำหรับ {{ .Usage.Period }} {{ .Usage.Name }} แล้ว",
-    "Action": "การดำเนินการ: {{ .Usage.Action }}",
-    "Quota": "โควตา: {{ .Usage.Quota }}",
-    "CurrentValue": "ค่าปัจจุบัน: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "คุณกำลังเข้าใกล้ขีดจำกัด {{ .UsageDisplayName }} ของคุณ",
+      "Body": "สวัสดี<br><br>โปรเจกต์ Authgear ของคุณ {{ template \"app.name\" }} ได้ใช้โควตา {{ .UsageCurrentValue }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้<br><br>คุณสามารถดำเนินการต่อได้ในตอนนี้ เพื่อหลีกเลี่ยงการหยุดชะงัก โปรดพิจารณาอัปเกรดแผนของคุณ<br><br>หากคุณมีคำถามใด ๆ โปรดติดต่อเรา<br><br>ด้วยความเคารพ<br>ทีม Authgear"
+    },
+    "Block": {
+      "Title": "การใช้ {{ .UsageDisplayName }} ถูกบล็อก",
+      "Body": "สวัสดี<br><br>โปรเจกต์ของคุณ {{ template \"app.name\" }} ได้ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้ การใช้ {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อก<br><br>เพื่อ恢復บริการ โปรดอัปเกรดแผนของคุณ<br><br>หากคุณมีคำถามใด ๆ โปรดติดต่อเรา<br><br>ด้วยความเคารพ<br>ทีม Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "คุณกำลังเข้าใกล้ขีดจำกัด {{ .UsageDisplayName }} ของคุณ",
+      "Body": "สวัสดี\n\nโปรเจกต์ Authgear ของคุณ {{ template \"app.name\" }} ได้ใช้โควตา {{ .UsageCurrentValue }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้\n\nคุณสามารถดำเนินการต่อได้ในตอนนี้ เพื่อหลีกเลี่ยงการหยุดชะงัก โปรดพิจารณาอัปเกรดแผนของคุณ\n\nหากคุณมีคำถามใด ๆ โปรดติดต่อเรา\n\nด้วยความเคารพ\nทีม Authgear"
+    },
+    "Block": {
+      "Title": "การใช้ {{ .UsageDisplayName }} ถูกบล็อก",
+      "Body": "สวัสดี\n\nโปรเจกต์ของคุณ {{ template \"app.name\" }} ได้ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้ การใช้ {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อก\n\nเพื่อ恢復บริการ โปรดอัปเกรดแผนของคุณ\n\nหากคุณมีคำถามใด ๆ โปรดติดต่อเรา\n\nด้วยความเคารพ\nทีม Authgear"
+    }
   }
 }

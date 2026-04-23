@@ -1,7 +1,30 @@
-Se ha activado una alerta de uso para {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}El uso de {{ .UsageDisplayName }} ha sido bloqueado{{ else }}Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}{{ end }}
 
-{{ template "app.name" }} ha alcanzado el umbral de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Hola,
 
-Acción: {{ .Usage.Action }}
-Cuota: {{ .Usage.Quota }}
-Valor actual: {{ .Usage.CurrentValue }}
+Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.
+
+Puedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.
+
+Si tienes alguna pregunta, contáctanos.
+
+Saludos,
+Equipo de Authgear{{ else if eq .UsageAction "block" }}Hola,
+
+Tu proyecto, {{ template "app.name" }}, ha alcanzado su límite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} en este período de facturación. El uso adicional de {{ .UsageDisplayName }} ha sido bloqueado.
+
+Para reanudar el servicio, actualiza tu plan.
+
+Si tienes alguna pregunta, contáctanos.
+
+Saludos,
+Equipo de Authgear{{ else }}Hola,
+
+Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.
+
+Puedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.
+
+Si tienes alguna pregunta, contáctanos.
+
+Saludos,
+Equipo de Authgear{{ end }}

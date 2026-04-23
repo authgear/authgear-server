@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
   },
-  "UsageAlertEmail": {
-    "Title": "Avviso di utilizzo attivato per {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} ha raggiunto la soglia di utilizzo configurata per {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Azione: {{ .Usage.Action }}",
-    "Quota": "Quota: {{ .Usage.Quota }}",
-    "CurrentValue": "Valore attuale: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}",
+      "Body": "Ciao,<br><br>Il tuo progetto Authgear, {{ template \"app.name\" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di fatturazione.<br><br>Puoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.<br><br>Se hai domande, contattaci.<br><br>Cordiali saluti,<br>Team Authgear"
+    },
+    "Block": {
+      "Title": "L''utilizzo di {{ .UsageDisplayName }} è stato bloccato",
+      "Body": "Ciao,<br><br>Il tuo progetto, {{ template \"app.name\" }}, ha raggiunto il limite massimo di {{ .UsageQuota }} {{ .UsageDisplayName }} in questo periodo di fatturazione. L''utilizzo aggiuntivo di {{ .UsageDisplayName }} è stato bloccato.<br><br>Per riprendere il servizio, aggiorna il tuo piano.<br><br>Se hai domande, contattaci.<br><br>Cordiali saluti,<br>Team Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}",
+      "Body": "Ciao,\n\nIl tuo progetto Authgear, {{ template \"app.name\" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di fatturazione.\n\nPuoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.\n\nSe hai domande, contattaci.\n\nCordiali saluti,\nTeam Authgear"
+    },
+    "Block": {
+      "Title": "L''utilizzo di {{ .UsageDisplayName }} è stato bloccato",
+      "Body": "Ciao,\n\nIl tuo progetto, {{ template \"app.name\" }}, ha raggiunto il limite massimo di {{ .UsageQuota }} {{ .UsageDisplayName }} in questo periodo di fatturazione. L''utilizzo aggiuntivo di {{ .UsageDisplayName }} è stato bloccato.\n\nPer riprendere il servizio, aggiorna il tuo piano.\n\nSe hai domande, contattaci.\n\nCordiali saluti,\nTeam Authgear"
+    }
   }
 }

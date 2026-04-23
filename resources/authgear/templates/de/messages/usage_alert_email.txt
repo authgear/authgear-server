@@ -1,7 +1,30 @@
-Nutzungswarnung für {{ .Usage.Name }} ausgelöst
+{{ if eq .UsageAction "alert" }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} Nutzung wurde blockiert{{ else }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ end }}
 
-{{ template "app.name" }} hat den konfigurierten Schwellenwert für {{ .Usage.Period }} {{ .Usage.Name }} erreicht.
+{{ if eq .UsageAction "alert" }}Hallo,
 
-Aktion: {{ .Usage.Action }}
-Kontingent: {{ .Usage.Quota }}
-Aktueller Wert: {{ .Usage.CurrentValue }}
+Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.
+
+Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.
+
+Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
+
+Beste Grüße,
+Authgear Team{{ else if eq .UsageAction "block" }}Hallo,
+
+Ihr Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{ .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.
+
+Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.
+
+Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
+
+Beste Grüße,
+Authgear Team{{ else }}Hallo,
+
+Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.
+
+Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.
+
+Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
+
+Beste Grüße,
+Authgear Team{{ end }}

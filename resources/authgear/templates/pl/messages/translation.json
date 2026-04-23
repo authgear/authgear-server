@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Zaloguj się do {{ template \"app.name\" }} za pomocą swojego adresu e-mail i tymczasowego hasła. Po zalogowaniu zmień swoje hasło."
   },
-  "UsageAlertEmail": {
-    "Title": "Wyzwolono alert użycia dla {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} osiągnął skonfigurowany próg użycia dla {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Działanie: {{ .Usage.Action }}",
-    "Quota": "Limit: {{ .Usage.Quota }}",
-    "CurrentValue": "Bieżąca wartość: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Zbliżasz się do limitu użycia {{ .UsageDisplayName }}",
+      "Body": "Cześć,<br><br>Twój projekt Authgear, {{ template \"app.name\" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.<br><br>Na razie możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.<br><br>Jeśli masz jakieś pytania, skontaktuj się z nami.<br><br>Pozdrawiamy,<br>Zespół Authgear"
+    },
+    "Block": {
+      "Title": "Użycie {{ .UsageDisplayName }} zostało zablokowane",
+      "Body": "Cześć,<br><br>Twój projekt, {{ template \"app.name\" }}, osiągnął twardy limit {{ .UsageQuota }} {{ .UsageDisplayName }} w tym okresie rozliczeniowym. Dodatkowe użycie {{ .UsageDisplayName }} zostało zablokowane.<br><br>Aby wznowić usługę, uaktualnij swój plan.<br><br>Jeśli masz jakieś pytania, skontaktuj się z nami.<br><br>Pozdrawiamy,<br>Zespół Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Zbliżasz się do limitu użycia {{ .UsageDisplayName }}",
+      "Body": "Cześć,\n\nTwój projekt Authgear, {{ template \"app.name\" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.\n\nNa razie możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.\n\nJeśli masz jakieś pytania, skontaktuj się z nami.\n\nPozdrawiamy,\nZespół Authgear"
+    },
+    "Block": {
+      "Title": "Użycie {{ .UsageDisplayName }} zostało zablokowane",
+      "Body": "Cześć,\n\nTwój projekt, {{ template \"app.name\" }}, osiągnął twardy limit {{ .UsageQuota }} {{ .UsageDisplayName }} w tym okresie rozliczeniowym. Dodatkowe użycie {{ .UsageDisplayName }} zostało zablokowane.\n\nAby wznowić usługę, uaktualnij swój plan.\n\nJeśli masz jakieś pytania, skontaktuj się z nami.\n\nPozdrawiamy,\nZespół Authgear"
+    }
   }
 }

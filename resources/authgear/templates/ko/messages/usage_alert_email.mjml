@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">{{ .Usage.Name }} 사용량 알림이 트리거되었습니다</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}{{ .UsageDisplayName }} 사용 한도에 접근하고 있습니다{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 사용이 차단되었습니다{{ else }}{{ .UsageDisplayName }} 사용 한도에 접근하고 있습니다{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">작업: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">할당량: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">현재 값: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}안녕하세요,<br><br>귀사의 Authgear 프로젝트인 {{ template "app.name" }}이(가) 이번 청구 기간에 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 할당량을 사용했습니다.<br><br>지금은 계속 사용할 수 있습니다. 중단을 피하려면 요금제 업그레이드를 고려하세요.<br><br>질문이 있으시면 저희에게 문의하세요.<br><br>감사합니다,<br>Authgear 팀{{ else if eq .UsageAction "block" }}안녕하세요,<br><br>귀사의 프로젝트인 {{ template "app.name" }}이(가) 이번 청구 기간에 {{ .UsageQuota }} {{ .UsageDisplayName }}의 상한선에 도달했습니다. 추가 {{ .UsageDisplayName }} 사용이 차단되었습니다.<br><br>서비스를 재개하려면 요금제를 업그레이드하세요.<br><br>질문이 있으시면 저희에게 문의하세요.<br><br>감사합니다,<br>Authgear 팀{{ else }}안녕하세요,<br><br>귀사의 Authgear 프로젝트인 {{ template "app.name" }}이(가) 이번 청구 기간에 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 할당량을 사용했습니다.<br><br>지금은 계속 사용할 수 있습니다. 중단을 피하려면 요금제 업그레이드를 고려하세요.<br><br>질문이 있으시면 저희에게 문의하세요.<br><br>감사합니다,<br>Authgear 팀{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

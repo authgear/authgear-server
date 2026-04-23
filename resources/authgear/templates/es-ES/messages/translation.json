@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Inicia sesión en {{ template \"app.name\" }} con tu correo electrónico y contraseña temporal. Por favor, cambia tu contraseña después de iniciar sesión."
   },
-  "UsageAlertEmail": {
-    "Title": "Se ha activado un aviso de uso para {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} ha alcanzado el umbral de uso configurado para {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Acción: {{ .Usage.Action }}",
-    "Quota": "Cuota: {{ .Usage.Quota }}",
-    "CurrentValue": "Valor actual: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}",
+      "Body": "Hola,<br><br>Tu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.<br><br>Puedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.<br><br>Si tienes alguna pregunta, ponte en contacto con nosotros.<br><br>Saludos,<br>Equipo de Authgear"
+    },
+    "Block": {
+      "Title": "El uso de {{ .UsageDisplayName }} ha sido bloqueado",
+      "Body": "Hola,<br><br>Tu proyecto, {{ template \"app.name\" }}, ha alcanzado su límite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} en este período de facturación. El uso adicional de {{ .UsageDisplayName }} ha sido bloqueado.<br><br>Para reanudar el servicio, actualiza tu plan.<br><br>Si tienes alguna pregunta, ponte en contacto con nosotros.<br><br>Saludos,<br>Equipo de Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}",
+      "Body": "Hola,\n\nTu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.\n\nPuedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.\n\nSi tienes alguna pregunta, ponte en contacto con nosotros.\n\nSaludos,\nEquipo de Authgear"
+    },
+    "Block": {
+      "Title": "El uso de {{ .UsageDisplayName }} ha sido bloqueado",
+      "Body": "Hola,\n\nTu proyecto, {{ template \"app.name\" }}, ha alcanzado su límite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} en este período de facturación. El uso adicional de {{ .UsageDisplayName }} ha sido bloqueado.\n\nPara reanudar el servicio, actualiza tu plan.\n\nSi tienes alguna pregunta, ponte en contacto con nosotros.\n\nSaludos,\nEquipo de Authgear"
+    }
   }
 }

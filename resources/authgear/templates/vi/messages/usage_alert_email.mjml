@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Bạn đang tiến gần đến giới hạn {{ .UsageDisplayName }} của mình{{ else if eq .UsageAction "block" }}Sử dụng {{ .UsageDisplayName }} đã bị chặn{{ else }}Bạn đang tiến gần đến giới hạn {{ .UsageDisplayName }} của mình{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Hành động: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Hạn mức: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Giá trị hiện tại: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Xin chào,<br><br>Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} hạn ngạch {{ .UsageDisplayName }} trong kỳ thanh toán này.<br><br>Bạn có thể tiếp tục bây giờ. Để tránh bất kỳ gián đoạn nào, hãy cân nhắc nâng cấp gói của bạn.<br><br>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br><br>Trân trọng,<br>Đội ngũ Authgear{{ else if eq .UsageAction "block" }}Xin chào,<br><br>Dự án của bạn, {{ template "app.name" }}, đã đạt đến giới hạn cứng là {{ .UsageQuota }} {{ .UsageDisplayName }} trong kỳ thanh toán này. Sử dụng {{ .UsageDisplayName }} bổ sung đã bị chặn.<br><br>Để tiếp tục dịch vụ, vui lòng nâng cấp gói của bạn.<br><br>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br><br>Trân trọng,<br>Đội ngũ Authgear{{ else }}Xin chào,<br><br>Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} hạn ngạch {{ .UsageDisplayName }} trong kỳ thanh toán này.<br><br>Bạn có thể tiếp tục bây giờ. Để tránh bất kỳ gián đoạn nào, hãy cân nhắc nâng cấp gói của bạn.<br><br>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br><br>Trân trọng,<br>Đội ngũ Authgear{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

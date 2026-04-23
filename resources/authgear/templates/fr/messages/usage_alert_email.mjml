@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Alerte d'utilisation déclenchée pour {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}L''utilisation de {{ .UsageDisplayName }} a été bloquée{{ else }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} a atteint le seuil d’utilisation configuré pour {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Action : {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Quota : {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Valeur actuelle : {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Bonjour,<br><br>Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas {{ .UsageDisplayName }} au cours de cette période de facturation.<br><br>Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.<br><br>Si vous avez des questions, veuillez nous contacter.<br><br>Cordialement,<br>Équipe Authgear{{ else if eq .UsageAction "block" }}Bonjour,<br><br>Votre projet, {{ template "app.name" }}, a atteint sa limite maximale de {{ .UsageQuota }} {{ .UsageDisplayName }} au cours de cette période de facturation. L''utilisation supplémentaire de {{ .UsageDisplayName }} a été bloquée.<br><br>Pour reprendre le service, veuillez mettre à niveau votre plan.<br><br>Si vous avez des questions, veuillez nous contacter.<br><br>Cordialement,<br>Équipe Authgear{{ else }}Bonjour,<br><br>Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas {{ .UsageDisplayName }} au cours de cette période de facturation.<br><br>Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.<br><br>Si vous avez des questions, veuillez nous contacter.<br><br>Cordialement,<br>Équipe Authgear{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Nutzungswarnung für {{ .Usage.Name }} ausgelöst</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} Nutzung wurde blockiert{{ else }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} hat den konfigurierten Schwellenwert für {{ .Usage.Period }} {{ .Usage.Name }} erreicht.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Aktion: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Kontingent: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Aktueller Wert: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Hallo,<br><br>Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.<br><br>Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team{{ else if eq .UsageAction "block" }}Hallo,<br><br>Ihr Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{ .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.<br><br>Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team{{ else }}Hallo,<br><br>Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.<br><br>Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

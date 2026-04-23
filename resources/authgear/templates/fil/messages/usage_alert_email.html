@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Malapit na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage ay na-block na{{ else }}Malapit
+                                    na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit{{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Aksyon: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Quota: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Kasalukuyang halaga: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Kumusta,<br /><br />Ang inyong Authgear project, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na
+                                    ito.<br /><br />Maaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.<br /><br />Kung mayroon kayong mga katanungan, mangyaring
+                                    makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ else if eq .UsageAction "block" }}Kumusta,<br /><br />Ang inyong project, {{ template "app.name" }}, ay umabot na sa hard limit nito
+                                    na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahon ng billing na ito. Ang karagdagang {{ .UsageDisplayName }} usage ay na-block na.<br /><br />Upang muling magsimula ng serbisyo, mangyaring i-upgrade
+                                    ang inyong plan.<br /><br />Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ else }}Kumusta,<br /><br />Ang inyong Authgear project,
+                                    {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na ito.<br /><br />Maaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang
+                                    pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.<br /><br />Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ end }}
                                   </div>
                                 </td>
                               </tr>

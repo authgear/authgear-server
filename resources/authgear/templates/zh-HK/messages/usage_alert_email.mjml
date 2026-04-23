@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">已觸發 {{ .Usage.Name }} 的用量提醒</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}您即將達到 {{ .UsageDisplayName }} 使用限額{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用已被阻止{{ else }}您即將達到 {{ .UsageDisplayName }} 使用限額{{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} 已達到為 {{ .Usage.Period }} {{ .Usage.Name }} 設定的用量門檻。</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">動作：{{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">配額：{{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">目前值：{{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}您好，<br><br>您的 Authgear 項目 {{ template "app.name" }} 在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。<br><br>您現在可以繼續使用。為避免任何中斷，請考慮升級您的計劃。<br><br>如有任何疑問，請聯絡我們。<br><br>此致<br>Authgear 團隊{{ else if eq .UsageAction "block" }}您好，<br><br>您的項目 {{ template "app.name" }} 已在本計費週期達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。額外的 {{ .UsageDisplayName }} 使用已被阻止。<br><br>若要恢復服務，請升級您的計劃。<br><br>如有任何疑問，請聯絡我們。<br><br>此致<br>Authgear 團隊{{ else }}您好，<br><br>您的 Authgear 項目 {{ template "app.name" }} 在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。<br><br>您現在可以繼續使用。為避免任何中斷，請考慮升級您的計劃。<br><br>如有任何疑問，請聯絡我們。<br><br>此致<br>Authgear 團隊{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "使用您的電子郵件和臨時密碼登錄 {{ template \"app.name\" }}。登錄後請更改您的密碼。"
   },
-  "UsageAlertEmail": {
-    "Title": "已觸發 {{ .Usage.Name }} 的用量提醒",
-    "Body": "{{ template \"app.name\" }} 已達到為 {{ .Usage.Period }} {{ .Usage.Name }} 設定的用量門檻。",
-    "Action": "動作：{{ .Usage.Action }}",
-    "Quota": "配額：{{ .Usage.Quota }}",
-    "CurrentValue": "目前值：{{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "您即將達到 {{ .UsageDisplayName }} 使用限額",
+      "Body": "您好，<br><br>您的 Authgear 項目 {{ template \"app.name\" }} 在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。<br><br>您現在可以繼續使用。為避免任何中斷，請考慮升級您的計劃。<br><br>如有任何疑問，請聯絡我們。<br><br>此致<br>Authgear 團隊"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 使用已被阻止",
+      "Body": "您好，<br><br>您的項目 {{ template \"app.name\" }} 已在本計費週期達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。額外的 {{ .UsageDisplayName }} 使用已被阻止。<br><br>若要恢復服務，請升級您的計劃。<br><br>如有任何疑問，請聯絡我們。<br><br>此致<br>Authgear 團隊"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "您即將達到 {{ .UsageDisplayName }} 使用限額",
+      "Body": "您好，\n\n您的 Authgear 項目 {{ template \"app.name\" }} 在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。\n\n您現在可以繼續使用。為避免任何中斷，請考慮升級您的計劃。\n\n如有任何疑問，請聯絡我們。\n\n此致\nAuthgear 團隊"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 使用已被阻止",
+      "Body": "您好，\n\n您的項目 {{ template \"app.name\" }} 已在本計費週期達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。額外的 {{ .UsageDisplayName }} 使用已被阻止。\n\n若要恢復服務，請升級您的計劃。\n\n如有任何疑問，請聯絡我們。\n\n此致\nAuthgear 團隊"
+    }
   }
 }

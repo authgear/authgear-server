@@ -1,7 +1,30 @@
-Usage alert triggered for {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}You are approaching your {{ .UsageDisplayName }} Usage Limit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked{{ else }}You are approaching your {{ .UsageDisplayName }} Usage Limit{{ end }}
 
-{{ template "app.name" }} has reached the configured {{ .Usage.Period }} {{ .Usage.Name }} usage threshold.
+{{ if eq .UsageAction "alert" }}Hi there,
 
-Action: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Current value: {{ .Usage.CurrentValue }}
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.
+
+You can continue for now. To avoid any interruption, consider upgrading your plan.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ else if eq .UsageAction "block" }}Hi there,
+
+Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.
+
+To resume service, please upgrade your plan.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ else }}Hi there,
+
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.
+
+You can continue for now. To avoid any interruption, consider upgrading your plan.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ end }}

@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Πλησιάζετε το όριο χρήσης {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}Η χρήση {{ .UsageDisplayName }} έχει αποκλειστεί{{ else }}Πλησιάζετε το όριο χρήσης {{
+                                    .UsageDisplayName }}{{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Ενέργεια: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Ποσόστωση: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Τρέχουσα τιμή: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Γεια σας,<br /><br />Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} {{ .UsageDisplayName }} κόστη σε αυτήν την περίοδο
+                                    χρέωσης.<br /><br />Μπορείτε να συνεχίσετε προς το παρόν. Για να αποφύγετε διακοπές, σκεφτείτε να αναβαθμίσετε το σχέδιό σας.<br /><br />Εάν έχετε οποιεσδήποτε ερωτήσεις, επικοινωνήστε μαζί μας.<br /><br />Καλύτερα,<br />Ομάδα
+                                    Authgear{{ else if eq .UsageAction "block" }}Γεία σας,<br /><br />Το έργό σας, {{ template "app.name" }}, έχει φτάσει το σκληρό όριό του {{ .UsageQuota }} {{ .UsageDisplayName }} σε αυτήν την περίοδο
+                                    χρέωσης. Η πρόσθετη χρήση {{ .UsageDisplayName }} έχει αποκλειστεί.<br /><br />Για να συνεχίσετε την υπηρεσία, αναβαθμίστε το σχέδιό σας.<br /><br />Εάν έχετε οποιεσδήποτε ερωτήσεις, επικοινωνήστε μαζί
+                                    μας.<br /><br />Καλύτερα,<br />Ομάδα Authgear{{ else }}Γεια σας,<br /><br />Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} {{ .UsageDisplayName }} κόστη σε
+                                    αυτήν την περίοδο χρέωσης.<br /><br />Μπορείτε να συνεχίσετε προς το παρόν. Για να αποφύγετε διακοπές, σκεφτείτε να αναβαθμίσετε το σχέδιό σας.<br /><br />Εάν έχετε οποιεσδήποτε ερωτήσεις, επικοινωνήστε
+                                    μαζί μας.<br /><br />Καλύτερα,<br />Ομάδα Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

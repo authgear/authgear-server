@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Avviso di utilizzo attivato per {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}L''utilizzo di {{ .UsageDisplayName }} è stato bloccato{{ else
+                                    }}Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}{{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} ha raggiunto la soglia di utilizzo configurata per {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Azione: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Quota: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Valore attuale: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Ciao,<br /><br />Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di
+                                    fatturazione.<br /><br />Puoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.<br /><br />Se hai domande, contattaci.<br /><br />Cordiali saluti,<br />Team
+                                    Authgear{{ else if eq .UsageAction "block" }}Ciao,<br /><br />Il tuo progetto, {{ template "app.name" }}, ha raggiunto il limite massimo di {{ .UsageQuota }} {{ .UsageDisplayName }} in questo periodo di
+                                    fatturazione. L''utilizzo aggiuntivo di {{ .UsageDisplayName }} è stato bloccato.<br /><br />Per riprendere il servizio, aggiorna il tuo piano.<br /><br />Se hai domande, contattaci.<br /><br />Cordiali
+                                    saluti,<br />Team Authgear{{ else }}Ciao,<br /><br />Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di
+                                    fatturazione.<br /><br />Puoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.<br /><br />Se hai domande, contattaci.<br /><br />Cordiali saluti,<br />Team
+                                    Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

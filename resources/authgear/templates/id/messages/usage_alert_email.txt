@@ -1,7 +1,30 @@
-Peringatan penggunaan dipicu untuk {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda{{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah diblokir{{ else }}Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda{{ end }}
 
-{{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasi untuk {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Halo,
 
-Tindakan: {{ .Usage.Action }}
-Kuota: {{ .Usage.Quota }}
-Nilai saat ini: {{ .Usage.CurrentValue }}
+Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.
+
+Anda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.
+
+Jika Anda memiliki pertanyaan, silakan hubungi kami.
+
+Terbaik,
+Tim Authgear{{ else if eq .UsageAction "block" }}Halo,
+
+Proyek Anda, {{ template "app.name" }}, telah mencapai batas keras {{ .UsageQuota }} {{ .UsageDisplayName }} dalam periode penagihan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah diblokir.
+
+Untuk melanjutkan layanan, silakan tingkatkan paket Anda.
+
+Jika Anda memiliki pertanyaan, silakan hubungi kami.
+
+Terbaik,
+Tim Authgear{{ else }}Halo,
+
+Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.
+
+Anda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.
+
+Jika Anda memiliki pertanyaan, silakan hubungi kami.
+
+Terbaik,
+Tim Authgear{{ end }}
