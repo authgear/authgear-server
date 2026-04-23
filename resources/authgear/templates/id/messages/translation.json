@@ -188,8 +188,8 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda",
-      "Body": "Halo,<br><br>Proyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.<br><br>Anda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.<br><br>Jika Anda memiliki pertanyaan, silakan hubungi kami.<br><br>Terbaik,<br>Tim Authgear"
+      "Title": "Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Halo,<br><br>Proyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.<br><br>Tidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.<br><br>Jika Anda memiliki pertanyaan, silakan hubungi kami.<br><br>Terbaik,<br>Tim Authgear"
     },
     "Block": {
       "Title": "Penggunaan {{ .UsageDisplayName }} telah diblokir",
@@ -198,8 +198,8 @@
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda",
-      "Body": "Halo,\n\nProyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.\n\nAnda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.\n\nJika Anda memiliki pertanyaan, silakan hubungi kami.\n\nTerbaik,\nTim Authgear"
+      "Title": "Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Halo,\n\nProyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.\n\nTidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.\n\nJika Anda memiliki pertanyaan, silakan hubungi kami.\n\nTerbaik,\nTim Authgear"
     },
     "Block": {
       "Title": "Penggunaan {{ .UsageDisplayName }} telah diblokir",

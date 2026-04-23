@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit",
-      "Body": "Hallo,<br><br>Ihr Authgear-Projekt, {{ template \"app.name\" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.<br><br>Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team"
+      "Title": "Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template \"app.name\" }})",
+      "Body": "Hallo,<br><br>Ihr Authgear-Projekt {{ template \"app.name\" }} hat {{ .UsageCurrentValue }} Ihres {{ .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum verwendet.<br><br>Es ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen können.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} Nutzung wurde blockiert",
-      "Body": "Hallo,<br><br>Ihr Projekt, {{ template \"app.name\" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{ .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.<br><br>Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team"
+      "Title": "{{ .UsageDisplayName }}-Nutzung wurde blockiert",
+      "Body": "Hallo,<br><br>Ihr Projekt {{ template \"app.name\" }} hat seine Obergrenze von {{ .UsageQuota }} {{ .UsageDisplayName }} in diesem Abrechnungszeitraum erreicht. Die weitere {{ .UsageDisplayName }}-Nutzung wurde blockiert.<br><br>Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.<br><br>Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br><br>Beste Grüße,<br>Authgear Team"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit",
-      "Body": "Hallo,\n\nIhr Authgear-Projekt, {{ template \"app.name\" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.\n\nSie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.\n\nWenn Sie Fragen haben, kontaktieren Sie uns bitte.\n\nBeste Grüße,\nAuthgear Team"
+      "Title": "Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template \"app.name\" }})",
+      "Body": "Hallo,\n\nIhr Authgear-Projekt {{ template \"app.name\" }} hat {{ .UsageCurrentValue }} Ihres {{ .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum verwendet.\n\nEs ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen können.\n\nWenn Sie Fragen haben, kontaktieren Sie uns bitte.\n\nBeste Grüße,\nAuthgear Team"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} Nutzung wurde blockiert",
-      "Body": "Hallo,\n\nIhr Projekt, {{ template \"app.name\" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{ .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.\n\nUm den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.\n\nWenn Sie Fragen haben, kontaktieren Sie uns bitte.\n\nBeste Grüße,\nAuthgear Team"
+      "Title": "{{ .UsageDisplayName }}-Nutzung wurde blockiert",
+      "Body": "Hallo,\n\nIhr Projekt {{ template \"app.name\" }} hat seine Obergrenze von {{ .UsageQuota }} {{ .UsageDisplayName }} in diesem Abrechnungszeitraum erreicht. Die weitere {{ .UsageDisplayName }}-Nutzung wurde blockiert.\n\nUm den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.\n\nWenn Sie Fragen haben, kontaktieren Sie uns bitte.\n\nBeste Grüße,\nAuthgear Team"
     }
   }
 }

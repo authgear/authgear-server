@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} Nutzung wurde blockiert{{ else }}Sie nähern sich
-                                    Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }}-Nutzung
+                                    wurde blockiert{{ else }}Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,13 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Hallo,<br /><br />Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente
-                                    genutzt.<br /><br />Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.<br /><br />Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br /><br />Beste
-                                    Grüße,<br />Authgear Team{{ else if eq .UsageAction "block" }}Hallo,<br /><br />Ihr Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{
-                                    .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.<br /><br />Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.<br /><br />Wenn Sie Fragen haben,
-                                    kontaktieren Sie uns bitte.<br /><br />Beste Grüße,<br />Authgear Team{{ else }}Hallo,<br /><br />Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue
-                                    }} {{ .UsageDisplayName }} Kontingente genutzt.<br /><br />Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.<br /><br />Wenn Sie Fragen
-                                    haben, kontaktieren Sie uns bitte.<br /><br />Beste Grüße,<br />Authgear Team{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Hallo,<br /><br />Ihr Authgear-Projekt {{ template "app.name" }} hat {{ .UsageCurrentValue }} Ihres {{ .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum
+                                    verwendet.<br /><br />Es ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen können.<br /><br />Wenn Sie Fragen haben, kontaktieren Sie uns
+                                    bitte.<br /><br />Beste Grüße,<br />Authgear Team{{ else if eq .UsageAction "block" }}Hallo,<br /><br />Ihr Projekt {{ template "app.name" }} hat seine Obergrenze von {{ .UsageQuota }} {{
+                                    .UsageDisplayName }} in diesem Abrechnungszeitraum erreicht. Die weitere {{ .UsageDisplayName }}-Nutzung wurde blockiert.<br /><br />Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.<br /><br />Wenn
+                                    Sie Fragen haben, kontaktieren Sie uns bitte.<br /><br />Beste Grüße,<br />Authgear Team{{ else }}Hallo,<br /><br />Ihr Authgear-Projekt {{ template "app.name" }} hat {{ .UsageCurrentValue }} Ihres {{
+                                    .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum verwendet.<br /><br />Es ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen
+                                    können.<br /><br />Wenn Sie Fragen haben, kontaktieren Sie uns bitte.<br /><br />Beste Grüße,<br />Authgear Team{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -22,7 +22,7 @@
   "usage.name.user_export": "εξαγωγή χρήστη",
   "usage.name.user_import": "εισαγωγή χρήστη",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Ενεργοποιήθηκε ειδοποίηση χρήσης",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Η χρήση του {UsageDisplayName} έχει φτάσει {UsageCurrentValue} ({AppName})} block{Η χρήση του {UsageDisplayName} έχει αποκλειστεί ({AppName})} other{Ειδοποίηση χρήσης ενεργοποιήθηκε}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Γυναίκα",

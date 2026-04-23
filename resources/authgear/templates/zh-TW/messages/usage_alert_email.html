@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}您即將達到 {{ .UsageDisplayName }} 使用限額{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用已被封鎖{{ else }}您即將達到 {{ .UsageDisplayName }} 使用限額{{
-                                    end }}
+                                    {{ if eq .UsageAction "alert" }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用量已被封鎖{{
+                                    else }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,10 +144,10 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }} 在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。<br /><br />您目前可以繼續使用。為避免服務中斷，請考慮升級您的方案。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
-                                    團隊{{ else if eq .UsageAction "block" }}您好，<br /><br />您的專案 {{ template "app.name" }} 已在本計費週期達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬性限制。額外的 {{ .UsageDisplayName }}
-                                    使用已被封鎖。<br /><br />若要恢復服務，請升級您的方案。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear 團隊{{ else }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }}
-                                    在本計費週期已使用 {{ .UsageCurrentValue }} {{ .UsageDisplayName }} 配額。<br /><br />您目前可以繼續使用。為避免服務中斷，請考慮升級您的方案。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
+                                    {{ if eq .UsageAction "alert" }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }} 在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。<br /><br />目前無需採取任何行動。這只是提醒您檢查您的使用情況。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
+                                    團隊{{ else if eq .UsageAction "block" }}您好，<br /><br />您的專案 {{ template "app.name" }} 已在本計費週期內達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬性限制。額外的 {{ .UsageDisplayName }}
+                                    使用量已被封鎖。<br /><br />若要恢復服務，請升級您的方案。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear 團隊{{ else }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }}
+                                    在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。<br /><br />目前無需採取任何行動。這只是提醒您檢查您的使用情況。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
                                     團隊{{ end }}
                                   </div>
                                 </td>

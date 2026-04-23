@@ -188,8 +188,8 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}",
-      "Body": "Hola,<br><br>Tu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.<br><br>Puedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.<br><br>Si tienes alguna pregunta, contáctanos.<br><br>Saludos,<br>Equipo de Authgear"
+      "Title": "Tu uso de {{ .UsageDisplayName }} ha alcanzado {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hola,<br><br>Tu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} de su cuota de {{ .UsageDisplayName }} para este período de facturación.<br><br>No se requiere ninguna acción en este momento. Este es solo un aviso para que puedas revisar tu uso.<br><br>Si tienes alguna pregunta, contáctanos.<br><br>Saludos,<br>Equipo de Authgear"
     },
     "Block": {
       "Title": "El uso de {{ .UsageDisplayName }} ha sido bloqueado",
@@ -198,8 +198,8 @@
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}",
-      "Body": "Hola,\n\nTu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.\n\nPuedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.\n\nSi tienes alguna pregunta, contáctanos.\n\nSaludos,\nEquipo de Authgear"
+      "Title": "Tu uso de {{ .UsageDisplayName }} ha alcanzado {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hola,\n\nTu proyecto de Authgear, {{ template \"app.name\" }}, ha utilizado {{ .UsageCurrentValue }} de su cuota de {{ .UsageDisplayName }} para este período de facturación.\n\nNo se requiere ninguna acción en este momento. Este es solo un aviso para que puedas revisar tu uso.\n\nSi tienes alguna pregunta, contáctanos.\n\nSaludos,\nEquipo de Authgear"
     },
     "Block": {
       "Title": "El uso de {{ .UsageDisplayName }} ha sido bloqueado",

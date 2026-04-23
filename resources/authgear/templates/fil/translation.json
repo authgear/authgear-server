@@ -22,7 +22,7 @@
   "usage.name.user_export": "pag-export ng user",
   "usage.name.user_import": "pag-import ng user",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Na-trigger ang alerto sa paggamit",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Ang iyong {UsageDisplayName} na paggamit ay umabot na sa {UsageCurrentValue} ({AppName})} block{Ang {UsageDisplayName} na paggamit ay nabigyan ng hadlang ({AppName})} other{Nag-trigger ang usage alert}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Babae",

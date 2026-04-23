@@ -22,7 +22,7 @@
   "usage.name.user_export": "eksport pengguna",
   "usage.name.user_import": "import pengguna",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Amaran penggunaan dicetuskan",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Penggunaan {UsageDisplayName} anda telah mencapai {UsageCurrentValue} ({AppName})} block{Penggunaan {UsageDisplayName} telah disekat ({AppName})} other{Amaran penggunaan telah dicetuskan}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Perempuan",

@@ -1,10 +1,10 @@
-{{ if eq .UsageAction "alert" }}You are approaching your {{ .UsageDisplayName }} Usage Limit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked{{ else }}You are approaching your {{ .UsageDisplayName }} Usage Limit{{ end }}
+{{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked{{ else }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Hi there,
 
-Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.
 
-You can continue for now. To avoid any interruption, consider upgrading your plan.
+No action is needed right now. This is just a heads-up so you can review your usage.
 
 If you have any questions, please contact us.
 
@@ -20,9 +20,9 @@ If you have any questions, please contact us.
 Best,
 Authgear Team{{ else }}Hi there,
 
-Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas in this billing period.
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.
 
-You can continue for now. To avoid any interruption, consider upgrading your plan.
+No action is needed right now. This is just a heads-up so you can review your usage.
 
 If you have any questions, please contact us.
 

@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "Malapit na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit",
-      "Body": "Kumusta,<br><br>Ang inyong Authgear project, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na ito.<br><br>Maaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.<br><br>Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
+      "Title": "Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Kumusta,<br><br>Ang iyong Authgear na proyekto, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.<br><br>Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} usage ay na-block na",
-      "Body": "Kumusta,<br><br>Ang inyong project, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahon ng billing na ito. Ang karagdagang {{ .UsageDisplayName }} usage ay na-block na.<br><br>Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang inyong plan.<br><br>Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
+      "Title": "Ang {{ .UsageDisplayName }} na paggamit ay na-block na",
+      "Body": "Kumusta,<br><br>Ang iyong proyekto, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.<br><br>Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "Malapit na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit",
-      "Body": "Kumusta,\n\nAng inyong Authgear project, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na ito.\n\nMaaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.\n\nKung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
+      "Title": "Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Kumusta,\n\nAng iyong Authgear na proyekto, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.\n\nWalang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.\n\nKung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} usage ay na-block na",
-      "Body": "Kumusta,\n\nAng inyong project, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahon ng billing na ito. Ang karagdagang {{ .UsageDisplayName }} usage ay na-block na.\n\nUpang muling magsimula ng serbisyo, mangyaring i-upgrade ang inyong plan.\n\nKung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
+      "Title": "Ang {{ .UsageDisplayName }} na paggamit ay na-block na",
+      "Body": "Kumusta,\n\nAng iyong proyekto, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.\n\nUpang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.\n\nKung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
     }
   }
 }

@@ -22,7 +22,7 @@
   "usage.name.user_export": "gebruiker exporteren",
   "usage.name.user_import": "gebruiker importeren",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Gebruikswaarschuwing geactiveerd",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Uw {UsageDisplayName}-gebruik heeft {UsageCurrentValue} bereikt ({AppName})} block{{UsageDisplayName}-gebruik is geblokkeerd ({AppName})} other{Gebruikswaarschuwing geactiveerd}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Vrouw",

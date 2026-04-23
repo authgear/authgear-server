@@ -22,7 +22,7 @@
   "usage.name.user_export": "xuất người dùng",
   "usage.name.user_import": "nhập người dùng",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Cảnh báo sử dụng đã được kích hoạt",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Mức sử dụng {UsageDisplayName} của bạn đã đạt {UsageCurrentValue} ({AppName})} block{Mức sử dụng {UsageDisplayName} đã bị chặn ({AppName})} other{Cảnh báo sử dụng được kích hoạt}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Nữ",

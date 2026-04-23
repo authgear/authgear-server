@@ -1,17 +1,17 @@
-{{ if eq .UsageAction "alert" }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} Nutzung wurde blockiert{{ else }}Sie nähern sich Ihrem {{ .UsageDisplayName }} Nutzungslimit{{ end }}
+{{ if eq .UsageAction "alert" }}Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }}-Nutzung wurde blockiert{{ else }}Ihre {{ .UsageDisplayName }}-Nutzung hat {{ .UsageCurrentValue }} erreicht ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Hallo,
 
-Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.
+Ihr Authgear-Projekt {{ template "app.name" }} hat {{ .UsageCurrentValue }} Ihres {{ .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum verwendet.
 
-Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.
+Es ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen können.
 
 Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
 
 Beste Grüße,
 Authgear Team{{ else if eq .UsageAction "block" }}Hallo,
 
-Ihr Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum sein hartes Limit von {{ .UsageQuota }} {{ .UsageDisplayName }} erreicht. Die weitere {{ .UsageDisplayName }} Nutzung wurde blockiert.
+Ihr Projekt {{ template "app.name" }} hat seine Obergrenze von {{ .UsageQuota }} {{ .UsageDisplayName }} in diesem Abrechnungszeitraum erreicht. Die weitere {{ .UsageDisplayName }}-Nutzung wurde blockiert.
 
 Um den Service fortzusetzen, aktualisieren Sie bitte Ihren Plan.
 
@@ -20,9 +20,9 @@ Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
 Beste Grüße,
 Authgear Team{{ else }}Hallo,
 
-Ihr Authgear-Projekt, {{ template "app.name" }}, hat in diesem Abrechnungszeitraum {{ .UsageCurrentValue }} {{ .UsageDisplayName }} Kontingente genutzt.
+Ihr Authgear-Projekt {{ template "app.name" }} hat {{ .UsageCurrentValue }} Ihres {{ .UsageDisplayName }}-Kontingents für diesen Abrechnungszeitraum verwendet.
 
-Sie können vorerst weitermachen. Um Unterbrechungen zu vermeiden, erwägen Sie bitte, Ihren Plan zu aktualisieren.
+Es ist derzeit keine Maßnahme erforderlich. Dies ist nur eine Benachrichtigung, damit Sie Ihre Nutzung überprüfen können.
 
 Wenn Sie Fragen haben, kontaktieren Sie uns bitte.
 

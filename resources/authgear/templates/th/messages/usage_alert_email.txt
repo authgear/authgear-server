@@ -1,30 +1,30 @@
-{{ if eq .UsageAction "alert" }}คุณกำลังเข้าใกล้ขีดจำกัด {{ .UsageDisplayName }} ของคุณ{{ else if eq .UsageAction "block" }}การใช้ {{ .UsageDisplayName }} ถูกบล็อก{{ else }}คุณกำลังเข้าใกล้ขีดจำกัด {{ .UsageDisplayName }} ของคุณ{{ end }}
+{{ if eq .UsageAction "alert" }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}การใช้งาน {{ .UsageDisplayName }} ถูกบล็อกแล้ว{{ else }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}สวัสดี
 
-โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้โควตา {{ .UsageCurrentValue }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้
+โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
 
-คุณสามารถดำเนินการต่อได้ในตอนนี้ เพื่อหลีกเลี่ยงการหยุดชะงัก โปรดพิจารณาอัปเกรดแผนของคุณ
+ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้
 
-หากคุณมีคำถามใด ๆ โปรดติดต่อเรา
+หากคุณมีคำถามใดๆ โปรดติดต่อเรา
 
 ด้วยความเคารพ
 ทีม Authgear{{ else if eq .UsageAction "block" }}สวัสดี
 
-โปรเจกต์ของคุณ {{ template "app.name" }} ได้ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้ การใช้ {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อก
+โปรเจกต์ของคุณ {{ template "app.name" }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว
 
-เพื่อ恢復บริการ โปรดอัปเกรดแผนของคุณ
+เพื่อเรียกใช้บริการต่อ โปรดอัปเกรดแผนของคุณ
 
-หากคุณมีคำถามใด ๆ โปรดติดต่อเรา
+หากคุณมีคำถามใดๆ โปรดติดต่อเรา
 
 ด้วยความเคารพ
 ทีม Authgear{{ else }}สวัสดี
 
-โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้โควตา {{ .UsageCurrentValue }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้
+โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
 
-คุณสามารถดำเนินการต่อได้ในตอนนี้ เพื่อหลีกเลี่ยงการหยุดชะงัก โปรดพิจารณาอัปเกรดแผนของคุณ
+ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้
 
-หากคุณมีคำถามใด ๆ โปรดติดต่อเรา
+หากคุณมีคำถามใดๆ โปรดติดต่อเรา
 
 ด้วยความเคารพ
 ทีม Authgear{{ end }}

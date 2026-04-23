@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Anda menghampiri had Penggunaan {{ .UsageDisplayName }} anda{{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah disekat{{ else }}Anda menghampiri
-                                    had Penggunaan {{ .UsageDisplayName }} anda{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Penggunaan {{
+                                    .UsageDisplayName }} telah disekat{{ else }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,13 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam tempoh pengebilan ini.<br /><br />Anda
-                                    boleh meneruskan buat masa ini. Untuk mengelakkan sebarang gangguan, pertimbangkan untuk meningkatkan pelan anda.<br /><br />Jika anda mempunyai sebarang soalan, sila hubungi kami.<br /><br />Terbaik,<br />Pasukan
+                                    {{ if eq .UsageAction "alert" }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh
+                                    pengebilan ini.<br /><br />Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br /><br />Terbaik,<br />Pasukan
                                     Authgear{{ else if eq .UsageAction "block" }}Hai,<br /><br />Projek anda, {{ template "app.name" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan
-                                    ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.<br /><br />Untuk meneruskan perkhidmatan, sila tingkatkan pelan anda.<br /><br />Jika anda mempunyai sebarang soalan, sila hubungi kami.<br /><br />Terbaik,<br />Pasukan
-                                    Authgear{{ else }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam tempoh pengebilan ini.<br /><br />Anda
-                                    boleh meneruskan buat masa ini. Untuk mengelakkan sebarang gangguan, pertimbangkan untuk meningkatkan pelan anda.<br /><br />Jika anda mempunyai sebarang soalan, sila hubungi kami.<br /><br />Terbaik,<br />Pasukan
-                                    Authgear{{ end }}
+                                    ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.<br /><br />Untuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan, sila hubungi
+                                    kami.<br /><br />Terbaik,<br />Pasukan Authgear{{ else }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }}
+                                    anda untuk tempoh pengebilan ini.<br /><br />Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan,
+                                    sila hubungi kami.<br /><br />Terbaik,<br />Pasukan Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -1,10 +1,10 @@
-{{ if eq .UsageAction "alert" }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}L''utilisation de {{ .UsageDisplayName }} a été bloquée{{ else }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ end }}
+{{ if eq .UsageAction "alert" }}Votre utilisation de {{ .UsageDisplayName }} a atteint {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}L''utilisation de {{ .UsageDisplayName }} a été bloquée{{ else }}Votre utilisation de {{ .UsageDisplayName }} a atteint {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Bonjour,
 
-Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas {{ .UsageDisplayName }} au cours de cette période de facturation.
+Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} de son quota de {{ .UsageDisplayName }} pour cette période de facturation.
 
-Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.
+Aucune action n''est nécessaire pour le moment. C''est juste un avertissement pour que vous puissiez examiner votre utilisation.
 
 Si vous avez des questions, veuillez nous contacter.
 
@@ -20,9 +20,9 @@ Si vous avez des questions, veuillez nous contacter.
 Cordialement,
 Équipe Authgear{{ else }}Bonjour,
 
-Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas {{ .UsageDisplayName }} au cours de cette période de facturation.
+Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} de son quota de {{ .UsageDisplayName }} pour cette période de facturation.
 
-Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.
+Aucune action n''est nécessaire pour le moment. C''est juste un avertissement pour que vous puissiez examiner votre utilisation.
 
 Si vous avez des questions, veuillez nous contacter.
 

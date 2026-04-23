@@ -22,7 +22,7 @@
   "usage.name.user_export": "使用者匯出",
   "usage.name.user_import": "使用者匯入",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] 已觸發用量提醒",
+  "email.usage-alert.subject": "{UsageAction, select, alert{您的 {UsageDisplayName} 使用量已達到 {UsageCurrentValue} ({AppName})} block{{UsageDisplayName} 使用量已被封鎖 ({AppName})} other{使用量警示已觸發}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "女性",

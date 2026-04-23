@@ -1,10 +1,10 @@
-{{ if eq .UsageAction "alert" }}Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda{{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah diblokir{{ else }}Anda mendekati batas Penggunaan {{ .UsageDisplayName }} Anda{{ end }}
+{{ if eq .UsageAction "alert" }}Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah diblokir{{ else }}Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Halo,
 
-Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.
+Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.
 
-Anda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.
+Tidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.
 
 Jika Anda memiliki pertanyaan, silakan hubungi kami.
 
@@ -20,9 +20,9 @@ Jika Anda memiliki pertanyaan, silakan hubungi kami.
 Terbaik,
 Tim Authgear{{ else }}Halo,
 
-Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam periode penagihan ini.
+Proyek Authgear Anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.
 
-Anda dapat melanjutkan untuk saat ini. Untuk menghindari gangguan, pertimbangkan untuk meningkatkan paket Anda.
+Tidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.
 
 Jika Anda memiliki pertanyaan, silakan hubungi kami.
 

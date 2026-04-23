@@ -22,7 +22,7 @@
   "usage.name.user_export": "exportação de utilizador",
   "usage.name.user_import": "importação de utilizador",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Alerta de utilização acionado",
+  "email.usage-alert.subject": "{UsageAction, select, alert{A sua utilização de {UsageDisplayName} atingiu {UsageCurrentValue} ({AppName})} block{A utilização de {UsageDisplayName} foi bloqueada ({AppName})} other{Alerta de utilização acionado}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Feminino",

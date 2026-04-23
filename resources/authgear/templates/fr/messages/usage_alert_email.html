@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}L''utilisation de {{ .UsageDisplayName }} a été bloquée{{ else
-                                    }}Vous approchez de votre limite d''utilisation {{ .UsageDisplayName }}{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Votre utilisation de {{ .UsageDisplayName }} a atteint {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}L''utilisation de {{
+                                    .UsageDisplayName }} a été bloquée{{ else }}Votre utilisation de {{ .UsageDisplayName }} a atteint {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,13 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Bonjour,<br /><br />Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas {{ .UsageDisplayName }} au cours de cette période de
-                                    facturation.<br /><br />Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.<br /><br />Si vous avez des questions, veuillez nous contacter.<br /><br />Cordialement,<br />Équipe
-                                    Authgear{{ else if eq .UsageAction "block" }}Bonjour,<br /><br />Votre projet, {{ template "app.name" }}, a atteint sa limite maximale de {{ .UsageQuota }} {{ .UsageDisplayName }} au cours de cette
-                                    période de facturation. L''utilisation supplémentaire de {{ .UsageDisplayName }} a été bloquée.<br /><br />Pour reprendre le service, veuillez mettre à niveau votre plan.<br /><br />Si vous avez des
-                                    questions, veuillez nous contacter.<br /><br />Cordialement,<br />Équipe Authgear{{ else }}Bonjour,<br /><br />Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} quotas
-                                    {{ .UsageDisplayName }} au cours de cette période de facturation.<br /><br />Vous pouvez continuer pour l''instant. Pour éviter toute interruption, envisagez de mettre à niveau votre plan.<br /><br />Si
-                                    vous avez des questions, veuillez nous contacter.<br /><br />Cordialement,<br />Équipe Authgear{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Bonjour,<br /><br />Votre projet Authgear, {{ template "app.name" }}, a utilisé {{ .UsageCurrentValue }} de son quota de {{ .UsageDisplayName }} pour cette période de
+                                    facturation.<br /><br />Aucune action n''est nécessaire pour le moment. C''est juste un avertissement pour que vous puissiez examiner votre utilisation.<br /><br />Si vous avez des questions, veuillez
+                                    nous contacter.<br /><br />Cordialement,<br />Équipe Authgear{{ else if eq .UsageAction "block" }}Bonjour,<br /><br />Votre projet, {{ template "app.name" }}, a atteint sa limite maximale de {{
+                                    .UsageQuota }} {{ .UsageDisplayName }} au cours de cette période de facturation. L''utilisation supplémentaire de {{ .UsageDisplayName }} a été bloquée.<br /><br />Pour reprendre le service, veuillez
+                                    mettre à niveau votre plan.<br /><br />Si vous avez des questions, veuillez nous contacter.<br /><br />Cordialement,<br />Équipe Authgear{{ else }}Bonjour,<br /><br />Votre projet Authgear, {{ template
+                                    "app.name" }}, a utilisé {{ .UsageCurrentValue }} de son quota de {{ .UsageDisplayName }} pour cette période de facturation.<br /><br />Aucune action n''est nécessaire pour le moment. C''est juste un
+                                    avertissement pour que vous puissiez examiner votre utilisation.<br /><br />Si vous avez des questions, veuillez nous contacter.<br /><br />Cordialement,<br />Équipe Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

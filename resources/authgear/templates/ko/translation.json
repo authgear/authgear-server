@@ -22,7 +22,7 @@
   "usage.name.user_export": "사용자 내보내기",
   "usage.name.user_import": "사용자 가져오기",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] 사용량 알림이 트리거되었습니다",
+  "email.usage-alert.subject": "{UsageAction, select, alert{귀하의 {UsageDisplayName} 사용량이 {UsageCurrentValue}에 도달했습니다 ({AppName})} block{{UsageDisplayName} 사용량이 차단되었습니다 ({AppName})} other{사용량 알림이 트리거되었습니다}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "여성",

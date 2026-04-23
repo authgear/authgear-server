@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "{{ .UsageDisplayName }} 使用制限に近づいています",
-      "Body": "こんにちは、<br><br>Authgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageCurrentValue }} {{ .UsageDisplayName }} クォータを使用しています。<br><br>現在は続行できます。中断を避けるため、プランのアップグレードをご検討ください。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いいたします。<br>Authgear チーム"
+      "Title": "あなたの {{ .UsageDisplayName }} 使用量が {{ .UsageCurrentValue }} に達しました ({{ template \"app.name\" }})",
+      "Body": "こんにちは、<br><br>あなたの Authgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageDisplayName }} クォータの {{ .UsageCurrentValue }} を使用しています。<br><br>現在のところ、アクションは必要ありません。これはあなたの使用量を確認できるようにするための通知です。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いします。<br>Authgear チーム"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} 使用がブロックされました",
-      "Body": "こんにちは、<br><br>プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用はブロックされています。<br><br>サービスを再開するには、プランをアップグレードしてください。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いいたします。<br>Authgear チーム"
+      "Title": "{{ .UsageDisplayName }} 使用量がブロックされました",
+      "Body": "こんにちは、<br><br>あなたのプロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用量はブロックされています。<br><br>サービスを再開するには、プランをアップグレードしてください。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いします。<br>Authgear チーム"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "{{ .UsageDisplayName }} 使用制限に近づいています",
-      "Body": "こんにちは、\n\nAuthgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageCurrentValue }} {{ .UsageDisplayName }} クォータを使用しています。\n\n現在は続行できます。中断を避けるため、プランのアップグレードをご検討ください。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いいたします。\nAuthgear チーム"
+      "Title": "あなたの {{ .UsageDisplayName }} 使用量が {{ .UsageCurrentValue }} に達しました ({{ template \"app.name\" }})",
+      "Body": "こんにちは、\n\nあなたの Authgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageDisplayName }} クォータの {{ .UsageCurrentValue }} を使用しています。\n\n現在のところ、アクションは必要ありません。これはあなたの使用量を確認できるようにするための通知です。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いします。\nAuthgear チーム"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} 使用がブロックされました",
-      "Body": "こんにちは、\n\nプロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用はブロックされています。\n\nサービスを再開するには、プランをアップグレードしてください。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いいたします。\nAuthgear チーム"
+      "Title": "{{ .UsageDisplayName }} 使用量がブロックされました",
+      "Body": "こんにちは、\n\nあなたのプロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用量はブロックされています。\n\nサービスを再開するには、プランをアップグレードしてください。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いします。\nAuthgear チーム"
     }
   }
 }

@@ -1,30 +1,30 @@
-{{ if eq .UsageAction "alert" }}Malapit na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage ay na-block na{{ else }}Malapit na kayong maaabot ang inyong {{ .UsageDisplayName }} Usage Limit{{ end }}
+{{ if eq .UsageAction "alert" }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Ang {{ .UsageDisplayName }} na paggamit ay na-block na{{ else }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Kumusta,
 
-Ang inyong Authgear project, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na ito.
+Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.
 
-Maaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.
+Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.
 
-Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
 
 Pinakamahusay,
 Authgear Team{{ else if eq .UsageAction "block" }}Kumusta,
 
-Ang inyong project, {{ template "app.name" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahon ng billing na ito. Ang karagdagang {{ .UsageDisplayName }} usage ay na-block na.
+Ang iyong proyekto, {{ template "app.name" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.
 
-Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang inyong plan.
+Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.
 
-Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
 
 Pinakamahusay,
 Authgear Team{{ else }}Kumusta,
 
-Ang inyong Authgear project, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quotas sa panahon ng billing na ito.
+Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.
 
-Maaari kayong magpatuloy sa ngayon. Upang maiwasan ang anumang pagkaantala, isaalang-alang ang pag-upgrade ng inyong plan.
+Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.
 
-Kung mayroon kayong mga katanungan, mangyaring makipag-ugnayan sa amin.
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
 
 Pinakamahusay,
 Authgear Team{{ end }}

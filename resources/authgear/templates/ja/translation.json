@@ -22,7 +22,7 @@
   "usage.name.user_export": "ユーザーエクスポート",
   "usage.name.user_import": "ユーザーインポート",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] 使用量アラートがトリガーされました",
+  "email.usage-alert.subject": "{UsageAction, select, alert{お客様の{UsageDisplayName}使用量が{UsageCurrentValue}に達しました({AppName})} block{{UsageDisplayName}使用量がブロックされました({AppName})} other{使用量アラートがトリガーされました}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "女性",

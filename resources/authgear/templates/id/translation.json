@@ -22,7 +22,7 @@
   "usage.name.user_export": "ekspor pengguna",
   "usage.name.user_import": "impor pengguna",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] Peringatan penggunaan dipicu",
+  "email.usage-alert.subject": "{UsageAction, select, alert{Penggunaan {UsageDisplayName} Anda telah mencapai {UsageCurrentValue} ({AppName})} block{Penggunaan {UsageDisplayName} telah diblokir ({AppName})} other{Peringatan penggunaan dipicu}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "Perempuan",

@@ -1,10 +1,10 @@
-{{ if eq .UsageAction "alert" }}U nadert uw {{ .UsageDisplayName }} gebruikslimiet{{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} gebruik is geblokkeerd{{ else }}U nadert uw {{ .UsageDisplayName }} gebruikslimiet{{ end }}
+{{ if eq .UsageAction "alert" }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} gebruik is geblokkeerd{{ else }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Hallo,
 
-Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quota''s in deze factureringsperiode gebruikt.
+Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.
 
-U kunt voorlopig doorgaan. Om onderbrekingen te voorkomen, kunt u overwegen uw plan te upgraden.
+Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.
 
 Als u vragen hebt, neem dan contact met ons op.
 
@@ -13,16 +13,16 @@ Authgear Team{{ else if eq .UsageAction "block" }}Hallo,
 
 Uw project, {{ template "app.name" }}, heeft de harde limiet van {{ .UsageQuota }} {{ .UsageDisplayName }} in deze factureringsperiode bereikt. Aanvullend {{ .UsageDisplayName }} gebruik is geblokkeerd.
 
-Om de service te hervatten, upgrade alstublieft uw plan.
+Om de service te hervatten, upgrade uw plan.
 
 Als u vragen hebt, neem dan contact met ons op.
 
 Met vriendelijke groeten,
 Authgear Team{{ else }}Hallo,
 
-Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} {{ .UsageDisplayName }} quota''s in deze factureringsperiode gebruikt.
+Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.
 
-U kunt voorlopig doorgaan. Om onderbrekingen te voorkomen, kunt u overwegen uw plan te upgraden.
+Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.
 
 Als u vragen hebt, neem dan contact met ons op.
 

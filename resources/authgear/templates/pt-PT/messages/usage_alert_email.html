@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Está a aproximar-se do seu limite de utilização de {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}A utilização de {{ .UsageDisplayName }} foi bloqueada{{ else
-                                    }}Está a aproximar-se do seu limite de utilização de {{ .UsageDisplayName }}{{ end }}
+                                    {{ if eq .UsageAction "alert" }}O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}O uso de {{ .UsageDisplayName }} foi
+                                    bloqueado{{ else }}O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,12 +144,12 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Olá,<br /><br />O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} quotas de {{ .UsageDisplayName }} neste período de faturação.<br /><br />Pode
-                                    continuar por enquanto. Para evitar qualquer interrupção, considere atualizar o seu plano.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa Authgear{{ else if eq
-                                    .UsageAction "block" }}Olá,<br /><br />O seu projeto, {{ template "app.name" }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. A utilização adicional
-                                    de {{ .UsageDisplayName }} foi bloqueada.<br /><br />Para retomar o serviço, atualize o seu plano.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa Authgear{{ else
-                                    }}Olá,<br /><br />O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} quotas de {{ .UsageDisplayName }} neste período de faturação.<br /><br />Pode continuar por enquanto.
-                                    Para evitar qualquer interrupção, considere atualizar o seu plano.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa Authgear{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Olá,<br /><br />O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de
+                                    faturação.<br /><br />Nenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa
+                                    Authgear{{ else if eq .UsageAction "block" }}Olá,<br /><br />O seu projeto, {{ template "app.name" }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação.
+                                    O uso adicional de {{ .UsageDisplayName }} foi bloqueado.<br /><br />Para retomar o serviço, atualize o seu plano.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa
+                                    Authgear{{ else }}Olá,<br /><br />O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.<br /><br />Nenhuma
+                                    ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br /><br />Se tiver alguma dúvida, contacte-nos.<br /><br />Cumprimentos,<br />Equipa Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -1,30 +1,30 @@
-{{ if eq .UsageAction "alert" }}Anda menghampiri had Penggunaan {{ .UsageDisplayName }} anda{{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah disekat{{ else }}Anda menghampiri had Penggunaan {{ .UsageDisplayName }} anda{{ end }}
+{{ if eq .UsageAction "alert" }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah disekat{{ else }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Hai,
 
-Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam tempoh pengebilan ini.
+Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.
 
-Anda boleh meneruskan buat masa ini. Untuk mengelakkan sebarang gangguan, pertimbangkan untuk meningkatkan pelan anda.
+Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.
 
-Jika anda mempunyai sebarang soalan, sila hubungi kami.
+Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.
 
 Terbaik,
 Pasukan Authgear{{ else if eq .UsageAction "block" }}Hai,
 
 Projek anda, {{ template "app.name" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.
 
-Untuk meneruskan perkhidmatan, sila tingkatkan pelan anda.
+Untuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.
 
-Jika anda mempunyai sebarang soalan, sila hubungi kami.
+Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.
 
 Terbaik,
 Pasukan Authgear{{ else }}Hai,
 
-Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} kuota {{ .UsageDisplayName }} dalam tempoh pengebilan ini.
+Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.
 
-Anda boleh meneruskan buat masa ini. Untuk mengelakkan sebarang gangguan, pertimbangkan untuk meningkatkan pelan anda.
+Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.
 
-Jika anda mempunyai sebarang soalan, sila hubungi kami.
+Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.
 
 Terbaik,
 Pasukan Authgear{{ end }}

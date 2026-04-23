@@ -1,17 +1,17 @@
-{{ if eq .UsageAction "alert" }}Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}L''utilizzo di {{ .UsageDisplayName }} è stato bloccato{{ else }}Stai per raggiungere il tuo limite di utilizzo {{ .UsageDisplayName }}{{ end }}
+{{ if eq .UsageAction "alert" }}L''utilizzo di {{ .UsageDisplayName }} ha raggiunto {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}L''utilizzo di {{ .UsageDisplayName }} è stato bloccato{{ else }}L''utilizzo di {{ .UsageDisplayName }} ha raggiunto {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}Ciao,
 
-Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di fatturazione.
+Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} della sua quota di {{ .UsageDisplayName }} per questo periodo di fatturazione.
 
-Puoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.
+Non è necessaria alcuna azione in questo momento. Questo è solo un avviso in modo che tu possa rivedere il tuo utilizzo.
 
 Se hai domande, contattaci.
 
 Cordiali saluti,
 Team Authgear{{ else if eq .UsageAction "block" }}Ciao,
 
-Il tuo progetto, {{ template "app.name" }}, ha raggiunto il limite massimo di {{ .UsageQuota }} {{ .UsageDisplayName }} in questo periodo di fatturazione. L''utilizzo aggiuntivo di {{ .UsageDisplayName }} è stato bloccato.
+Il tuo progetto, {{ template "app.name" }}, ha raggiunto il suo limite massimo di {{ .UsageQuota }} {{ .UsageDisplayName }} in questo periodo di fatturazione. L''utilizzo aggiuntivo di {{ .UsageDisplayName }} è stato bloccato.
 
 Per riprendere il servizio, aggiorna il tuo piano.
 
@@ -20,9 +20,9 @@ Se hai domande, contattaci.
 Cordiali saluti,
 Team Authgear{{ else }}Ciao,
 
-Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} quote {{ .UsageDisplayName }} in questo periodo di fatturazione.
+Il tuo progetto Authgear, {{ template "app.name" }}, ha utilizzato {{ .UsageCurrentValue }} della sua quota di {{ .UsageDisplayName }} per questo periodo di fatturazione.
 
-Puoi continuare per ora. Per evitare interruzioni, considera l''aggiornamento del tuo piano.
+Non è necessaria alcuna azione in questo momento. Questo è solo un avviso in modo che tu possa rivedere il tuo utilizzo.
 
 Se hai domande, contattaci.
 

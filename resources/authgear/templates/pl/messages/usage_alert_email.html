@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Zbliżasz się do limitu użycia {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}Użycie {{ .UsageDisplayName }} zostało zablokowane{{ else }}Zbliżasz się do limitu
-                                    użycia {{ .UsageDisplayName }}{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Twoje użycie {{ .UsageDisplayName }} osiągnęło {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Użycie {{ .UsageDisplayName }}
+                                    zostało zablokowane{{ else }}Twoje użycie {{ .UsageDisplayName }} osiągnęło {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,12 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Cześć,<br /><br />Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.<br /><br />Na
-                                    razie możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół Authgear{{
-                                    else if eq .UsageAction "block" }}Cześć,<br /><br />Twój projekt, {{ template "app.name" }}, osiągnął twardy limit {{ .UsageQuota }} {{ .UsageDisplayName }} w tym okresie rozliczeniowym. Dodatkowe użycie
-                                    {{ .UsageDisplayName }} zostało zablokowane.<br /><br />Aby wznowić usługę, uaktualnij swój plan.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół
-                                    Authgear{{ else }}Cześć,<br /><br />Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} limitów {{ .UsageDisplayName }} w tym okresie rozliczeniowym.<br /><br />Na razie
-                                    możesz kontynuować. Aby uniknąć przerwania usługi, rozważ uaktualnienie swojego planu.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół Authgear{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Cześć,<br /><br />Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} z {{ .UsageDisplayName }} limitu przydzielonego na ten okres
+                                    rozliczeniowy.<br /><br />Żadne działanie nie jest wymagane w tej chwili. To tylko powiadomienie, abyś mógł przejrzeć swoje użycie.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół
+                                    Authgear{{ else if eq .UsageAction "block" }}Cześć,<br /><br />Twój projekt, {{ template "app.name" }}, osiągnął twardy limit {{ .UsageQuota }} {{ .UsageDisplayName }} w tym okresie rozliczeniowym.
+                                    Dodatkowe użycie {{ .UsageDisplayName }} zostało zablokowane.<br /><br />Aby wznowić usługę, prosimy o uaktualnienie planu.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół
+                                    Authgear{{ else }}Cześć,<br /><br />Twój projekt Authgear, {{ template "app.name" }}, wykorzystał {{ .UsageCurrentValue }} z {{ .UsageDisplayName }} limitu przydzielonego na ten okres rozliczeniowy.<br /><br />Żadne
+                                    działanie nie jest wymagane w tej chwili. To tylko powiadomienie, abyś mógł przejrzeć swoje użycie.<br /><br />Jeśli masz jakieś pytania, skontaktuj się z nami.<br /><br />Pozdrawiamy,<br />Zespół
+                                    Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -22,7 +22,7 @@
   "usage.name.user_export": "ส่งออกผู้ใช้",
   "usage.name.user_import": "นำเข้าผู้ใช้",
   "usage.name.whatsapp": "WhatsApp",
-  "email.usage-alert.subject": "[{AppName}] มีการแจ้งเตือนการใช้งาน",
+  "email.usage-alert.subject": "{UsageAction, select, alert{การใช้งาน {UsageDisplayName} ของคุณถึง {UsageCurrentValue} แล้ว ({AppName})} block{การใช้งาน {UsageDisplayName} ถูกบล็อกแล้ว ({AppName})} other{การแจ้งเตือนการใช้งานถูกเรียกใช้}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
   "gender-female": "หญิง",

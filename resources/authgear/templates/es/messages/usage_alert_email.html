@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Te estás acercando a tu límite de uso de {{ .UsageDisplayName }}{{ else if eq .UsageAction "block" }}El uso de {{ .UsageDisplayName }} ha sido bloqueado{{ else }}Te estás
-                                    acercando a tu límite de uso de {{ .UsageDisplayName }}{{ end }}
+                                    {{ if eq .UsageAction "alert" }}Tu uso de {{ .UsageDisplayName }} ha alcanzado {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}El uso de {{ .UsageDisplayName }} ha
+                                    sido bloqueado{{ else }}Tu uso de {{ .UsageDisplayName }} ha alcanzado {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,12 +144,12 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Hola,<br /><br />Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de
-                                    facturación.<br /><br />Puedes continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.<br /><br />Si tienes alguna pregunta, contáctanos.<br /><br />Saludos,<br />Equipo de
-                                    Authgear{{ else if eq .UsageAction "block" }}Hola,<br /><br />Tu proyecto, {{ template "app.name" }}, ha alcanzado su límite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} en este período de
+                                    {{ if eq .UsageAction "alert" }}Hola,<br /><br />Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} de su cuota de {{ .UsageDisplayName }} para este período de
+                                    facturación.<br /><br />No se requiere ninguna acción en este momento. Este es solo un aviso para que puedas revisar tu uso.<br /><br />Si tienes alguna pregunta, contáctanos.<br /><br />Saludos,<br />Equipo
+                                    de Authgear{{ else if eq .UsageAction "block" }}Hola,<br /><br />Tu proyecto, {{ template "app.name" }}, ha alcanzado su límite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} en este período de
                                     facturación. El uso adicional de {{ .UsageDisplayName }} ha sido bloqueado.<br /><br />Para reanudar el servicio, actualiza tu plan.<br /><br />Si tienes alguna pregunta, contáctanos.<br /><br />Saludos,<br />Equipo
-                                    de Authgear{{ else }}Hola,<br /><br />Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} cuotas de {{ .UsageDisplayName }} en este período de facturación.<br /><br />Puedes
-                                    continuar por ahora. Para evitar cualquier interrupción, considera actualizar tu plan.<br /><br />Si tienes alguna pregunta, contáctanos.<br /><br />Saludos,<br />Equipo de Authgear{{ end }}
+                                    de Authgear{{ else }}Hola,<br /><br />Tu proyecto de Authgear, {{ template "app.name" }}, ha utilizado {{ .UsageCurrentValue }} de su cuota de {{ .UsageDisplayName }} para este período de facturación.<br /><br />No
+                                    se requiere ninguna acción en este momento. Este es solo un aviso para que puedas revisar tu uso.<br /><br />Si tienes alguna pregunta, contáctanos.<br /><br />Saludos,<br />Equipo de Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>
