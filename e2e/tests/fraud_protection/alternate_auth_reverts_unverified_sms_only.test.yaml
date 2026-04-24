@@ -1,0 +1,103 @@
+name: Fraud protection - alternate auth completion drains unverified SMS only
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+        - type: authenticate
+          one_of:
+          - authentication: primary_oob_otp_sms
+          - authentication: primary_password
+before:
+  - type: user_import
+    user_import: account_recovery_users.json
+steps:
+  - name: create login flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify with username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "recovery_sg_1"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: choose SMS authentication and send OTP
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "index": 0,
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "authentication": "primary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms"
+            }
+          }
+        }
+
+  - name: switch to password and finish without verifying SMS OTP
+    action: input
+    state_token: |
+      {{ index .steps "identify with username" "result" "state_token" }}
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: check audit metrics only include unverified drain
+    action: audit_query
+    audit_query: |
+      SELECT
+        COALESCE(SUM(CASE WHEN name = 'sms_otp_unverified_count_drained' THEN 1 ELSE 0 END), 0) AS sms_otp_unverified_count_drained,
+        COALESCE(SUM(CASE WHEN name = 'sms_otp_verified' THEN 1 ELSE 0 END), 0) AS sms_otp_verified
+      FROM _audit_metrics
+      WHERE app_id = '{{ .AppID }}'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "sms_otp_unverified_count_drained": "2",
+            "sms_otp_verified": "0"
+          }
+        ]
