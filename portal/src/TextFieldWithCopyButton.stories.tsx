@@ -27,6 +27,21 @@ const meta = {
     value: "https://example.authgear.cloud/_api/admin/graphql",
     readOnly: true,
   },
+  parameters: {
+    docs: {
+      description: {
+        component: `Read-only form field for immutable values (URLs, project IDs, keys) with a copy action. Prefer **TextWithCopyButton** for plain display text in tables/lists. Full copyable-text rules live in \`portal/docs/components-guidelines/input-copy-text.md\`.
+
+### When to use
+- Stable identifiers, URLs, or keys users need to copy often.
+- Keep labels in i18n; avoid hard-coded product-facing strings.
+
+### When not to use
+- Editable input.
+- Secrets without the portal’s existing mask/reveal pattern.`,
+      },
+    },
+  },
 } satisfies Meta<typeof TextFieldWithCopyButton>;
 
 export default meta;

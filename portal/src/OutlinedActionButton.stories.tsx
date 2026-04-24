@@ -23,9 +23,8 @@ const meta = {
           alignItems: "center",
           justifyContent: "center",
           boxSizing: "border-box",
-          minHeight: "70vh",
           width: "100%",
-          padding: 24,
+          padding: 16,
         }}
       >
         <Story />
