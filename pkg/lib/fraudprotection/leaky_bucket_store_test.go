@@ -55,6 +55,7 @@ func TestLeakyBucketStoreKeys(t *testing.T) {
 	})
 }
 
+//nolint:gocognit
 func TestLeakyBucketStoreRecordSMSOTPSent(t *testing.T) {
 	Convey("RecordSMSOTPSent", t, func() {
 		ctx := context.Background()
