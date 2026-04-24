@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MockedProvider } from "@apollo/client/testing";
 import {
   AccountStatusDialog,
   type AccountStatus,
+  type AccountStatusDialogProps,
 } from "./UserDetailsAccountStatus";
+import DefaultButton from "../../DefaultButton";
 import { SystemConfigContext } from "../../context/SystemConfigContext";
 import {
   defaultSystemConfig,
@@ -12,6 +14,49 @@ import {
 } from "../../system-config";
 
 const systemConfig = instantiateSystemConfig(defaultSystemConfig);
+
+function AccountStatusDialogStoryChrome({
+  Story,
+  storyArgs,
+}: {
+  Story: React.ComponentType<{ args?: AccountStatusDialogProps }>;
+  storyArgs: AccountStatusDialogProps;
+}): React.ReactElement {
+  const [open, setOpen] = useState(false);
+  const onDismiss = useCallback(
+    async (info: { deletedUser: boolean }) => {
+      setOpen(false);
+      await storyArgs.onDismiss?.(info);
+    },
+    [storyArgs]
+  );
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 12,
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <DefaultButton
+        text="Open dialog"
+        onClick={() => setOpen(true)}
+        disabled={open}
+      />
+      <Story
+        args={{
+          ...storyArgs,
+          isHidden: !open,
+          onDismiss,
+        }}
+      />
+    </div>
+  );
+}
 
 const baseAccountStatus: AccountStatus = {
   id: "user_1234567890",
@@ -28,23 +73,29 @@ const baseAccountStatus: AccountStatus = {
 };
 
 const meta = {
-  title: "components/v1/AccountStatusDialog",
+  title: "components/v1/Dialog/AccountStatusDialog",
   component: AccountStatusDialog,
   tags: ["autodocs"],
   decorators: [
-    (Story) => (
+    (Story, context) => (
       <MockedProvider mocks={[]}>
         <SystemConfigContext.Provider value={systemConfig}>
-          <Story />
+          <AccountStatusDialogStoryChrome
+            Story={Story}
+            storyArgs={context.args as AccountStatusDialogProps}
+          />
         </SystemConfigContext.Provider>
       </MockedProvider>
     ),
   ],
-  parameters: {
-    layout: "padded",
+  argTypes: {
+    isHidden: {
+      control: false,
+      description: "Visibility is controlled by the Open dialog button.",
+    },
   },
   args: {
-    isHidden: false,
+    isHidden: true,
     mode: "delete-or-schedule",
     accountStatus: baseAccountStatus,
     onDismiss: async () => {},
