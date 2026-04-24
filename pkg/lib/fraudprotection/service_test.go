@@ -15,13 +15,15 @@ import (
 // --- stub implementations for testing ---
 
 type stubMetrics struct {
-	rollingMax int64
-	country24h int64
-	country1h  int64
-	ip24h      int64
-	recordErr  error
-	getErr     error
-	calls      *[]string
+	rollingMax                       int64
+	country24h                       int64
+	country1h                        int64
+	ip24h                            int64
+	recordErr                        error
+	recordUnverifiedDrainErr         error
+	getErr                           error
+	calls                            *[]string
+	lastRecordedUnverifiedDrainCount int
 }
 
 func (s *stubMetrics) RecordVerified(_ context.Context, _, _ string) error {
@@ -29,6 +31,13 @@ func (s *stubMetrics) RecordVerified(_ context.Context, _, _ string) error {
 		*s.calls = append(*s.calls, "metrics.record_verified")
 	}
 	return s.recordErr
+}
+func (s *stubMetrics) RecordUnverifiedSMSOTPCountDrained(_ context.Context, _, _ string, count int) error {
+	if s.calls != nil {
+		*s.calls = append(*s.calls, "metrics.record_unverified_sms_otp_count_drained")
+	}
+	s.lastRecordedUnverifiedDrainCount = count
+	return s.recordUnverifiedDrainErr
 }
 func (s *stubMetrics) GetVerifiedByCountry24h(_ context.Context, _ string) (int64, error) {
 	return s.country24h, s.getErr
@@ -55,14 +64,14 @@ type stubLeakyBucket struct {
 	calls                     *[]string
 }
 
-func (s *stubLeakyBucket) RecordSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
+func (s *stubLeakyBucket) RecordUnverifiedSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
 	return s.triggered, s.levels, s.sentErr
 }
-func (s *stubLeakyBucket) RecordSMSOTPVerified(_ context.Context, _, _ string, _ LeakyBucketThresholds, count int) error {
+func (s *stubLeakyBucket) DrainUnverifiedSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds, count int) error {
 	s.recordVerifiedDrainCall++
 	s.lastDrainCount = count
 	if s.calls != nil {
-		*s.calls = append(*s.calls, "leaky_bucket.drain_verified")
+		*s.calls = append(*s.calls, "leaky_bucket.drain_unverified_sms_otp_sent")
 	}
 	return s.drainErr
 }
@@ -436,7 +445,8 @@ func TestRecordSMSOTPVerified(t *testing.T) {
 			So(calls, ShouldResemble, []string{
 				"metrics.record_verified",
 				"leaky_bucket.record_verified_country",
-				"leaky_bucket.drain_verified",
+				"leaky_bucket.drain_unverified_sms_otp_sent",
+				"metrics.record_unverified_sms_otp_count_drained",
 			})
 			So(leakyBucket.recordVerifiedCountryCall, ShouldEqual, 1)
 			So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 1)
@@ -470,20 +480,41 @@ func TestRecordSMSOTPVerified(t *testing.T) {
 
 func TestRevertSMSOTPSent(t *testing.T) {
 	Convey("RevertSMSOTPSent", t, func() {
-		ctx := context.Background()
-		cfg := defaultCfg()
-		leakyBucket := &stubLeakyBucket{}
-		svc := &Service{
-			Config:      cfg,
-			RemoteIP:    httputil.RemoteIP("1.2.3.4"),
-			Metrics:     &stubMetrics{},
-			LeakyBucket: leakyBucket,
-		}
+		Convey("drains and records unverified-drain metric", func() {
+			ctx := context.Background()
+			cfg := defaultCfg()
+			leakyBucket := &stubLeakyBucket{}
+			metrics := &stubMetrics{}
+			svc := &Service{
+				Config:      cfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     metrics,
+				LeakyBucket: leakyBucket,
+			}
 
-		err := svc.RevertSMSOTPSent(ctx, "+6591234567", 2)
-		So(err, ShouldBeNil)
-		So(leakyBucket.recordVerifiedCountryCall, ShouldEqual, 0)
-		So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 1)
-		So(leakyBucket.lastDrainCount, ShouldEqual, 2)
+			err := svc.RevertSMSOTPSent(ctx, "+6591234567", 2)
+			So(err, ShouldBeNil)
+			So(leakyBucket.recordVerifiedCountryCall, ShouldEqual, 0)
+			So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 1)
+			So(leakyBucket.lastDrainCount, ShouldEqual, 2)
+			So(metrics.lastRecordedUnverifiedDrainCount, ShouldEqual, 2)
+		})
+
+		Convey("does not record drain metric if draining fails", func() {
+			ctx := context.Background()
+			cfg := defaultCfg()
+			leakyBucket := &stubLeakyBucket{drainErr: &testError{"drain failed"}}
+			metrics := &stubMetrics{}
+			svc := &Service{
+				Config:      cfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     metrics,
+				LeakyBucket: leakyBucket,
+			}
+
+			err := svc.RevertSMSOTPSent(ctx, "+6591234567", 2)
+			So(err, ShouldNotBeNil)
+			So(metrics.lastRecordedUnverifiedDrainCount, ShouldEqual, 0)
+		})
 	})
 }
