@@ -104,6 +104,8 @@ Examples:
 #### SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
 Check if the number of distinct countries of requested phone numbers from a single IP exceeds the threshold in 24 hours.
 
+Only countries with no verified SMS OTP from the same IP in the same 24h window are counted. If an IP has at least one verified SMS OTP for a country during that window, that country is excluded from the distinct-country count.
+
 The threshold is 3.
 
 
@@ -349,4 +351,3 @@ fraud_protection:
       hook:
         url: authgeardeno:///deno/script.ts
 ```
-
