@@ -48,6 +48,10 @@ func TestLeakyBucketStoreKeys(t *testing.T) {
 		Convey("ipCountriesKey", func() {
 			So(s.ipCountriesKey("1.2.3.4"), ShouldEqual, "app:myapp:fraud_protection:ip_countries:1.2.3.4")
 		})
+
+		Convey("ipVerifiedCountriesKey", func() {
+			So(s.ipVerifiedCountriesKey("1.2.3.4"), ShouldEqual, "app:myapp:fraud_protection:ip_verified_countries:1.2.3.4")
+		})
 	})
 }
 
@@ -102,8 +106,53 @@ func TestLeakyBucketStoreRecordSMSOTPSent(t *testing.T) {
 		Convey("IPCountriesDaily triggers when IP contacts more than 3 countries in 24h", func() {
 			countries := []string{"SG", "MY", "TH", "US"}
 			for i, country := range countries {
-				triggered, _, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", country, thresholds)
+				triggered, levels, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", country, thresholds)
 				So(err, ShouldBeNil)
+				So(levels.IPCountriesCount, ShouldEqual, i+1)
+				if i < 3 {
+					So(triggered.IPCountriesDaily, ShouldBeFalse)
+				} else {
+					So(triggered.IPCountriesDaily, ShouldBeTrue)
+				}
+			}
+		})
+
+		Convey("verified countries are excluded from the IP-country threshold", func() {
+			_, _, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", "SG", thresholds)
+			So(err, ShouldBeNil)
+			err = store.RecordSMSOTPVerifiedCountry(ctx, "1.2.3.4", "SG")
+			So(err, ShouldBeNil)
+
+			countries := []string{"HK", "MY", "TH", "US"}
+			expectedCounts := []int{1, 2, 3, 4}
+			for i, country := range countries {
+				triggered, levels, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", country, thresholds)
+				So(err, ShouldBeNil)
+				So(levels.IPCountriesCount, ShouldEqual, expectedCounts[i])
+				if i < 3 {
+					So(triggered.IPCountriesDaily, ShouldBeFalse)
+				} else {
+					So(triggered.IPCountriesDaily, ShouldBeTrue)
+				}
+			}
+		})
+
+		Convey("verified-country exclusion expires with the same 24h window", func() {
+			_, _, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", "SG", thresholds)
+			So(err, ShouldBeNil)
+			err = store.RecordSMSOTPVerifiedCountry(ctx, "1.2.3.4", "SG")
+			So(err, ShouldBeNil)
+
+			later := now.Add(25 * time.Hour)
+			mr.SetTime(later)
+			mr.FastForward(25 * time.Hour)
+			clk.Time = later
+
+			countries := []string{"SG", "HK", "MY", "TH"}
+			for i, country := range countries {
+				triggered, levels, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", country, thresholds)
+				So(err, ShouldBeNil)
+				So(levels.IPCountriesCount, ShouldEqual, i+1)
 				if i < 3 {
 					So(triggered.IPCountriesDaily, ShouldBeFalse)
 				} else {
@@ -167,6 +216,22 @@ func TestLeakyBucketStoreRecordSMSOTPVerified(t *testing.T) {
 		Convey("draining an empty bucket does not error", func() {
 			err := store.RecordSMSOTPVerified(ctx, "1.2.3.4", "SG", thresholds, 3)
 			So(err, ShouldBeNil)
+		})
+
+		Convey("drain-only bookkeeping does not mark a country as verified", func() {
+			countries := []string{"SG", "HK", "MY"}
+			for _, country := range countries {
+				_, _, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", country, thresholds)
+				So(err, ShouldBeNil)
+			}
+
+			err := store.RecordSMSOTPVerified(ctx, "1.2.3.4", "SG", thresholds, 1)
+			So(err, ShouldBeNil)
+
+			triggered, levels, err := store.RecordSMSOTPSent(ctx, "1.2.3.4", "US", thresholds)
+			So(err, ShouldBeNil)
+			So(levels.IPCountriesCount, ShouldEqual, 4)
+			So(triggered.IPCountriesDaily, ShouldBeTrue)
 		})
 	})
 }

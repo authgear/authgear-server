@@ -65,6 +65,7 @@ type MetricsQuerier interface {
 type LeakyBucketer interface {
 	RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error)
 	RecordSMSOTPVerified(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error
+	RecordSMSOTPVerifiedCountry(ctx context.Context, ip, phoneCountry string) error
 }
 
 type Service struct {
@@ -202,6 +203,10 @@ func (s *Service) RecordSMSOTPVerified(ctx context.Context, phoneNumber string) 
 
 	// Write to PostgreSQL metrics.
 	if err := s.Metrics.RecordVerified(ctx, ip, phoneCountry); err != nil {
+		return err
+	}
+
+	if err := s.LeakyBucket.RecordSMSOTPVerifiedCountry(ctx, ip, phoneCountry); err != nil {
 		return err
 	}
 

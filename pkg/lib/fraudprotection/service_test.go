@@ -21,9 +21,13 @@ type stubMetrics struct {
 	ip24h      int64
 	recordErr  error
 	getErr     error
+	calls      *[]string
 }
 
 func (s *stubMetrics) RecordVerified(_ context.Context, _, _ string) error {
+	if s.calls != nil {
+		*s.calls = append(*s.calls, "metrics.record_verified")
+	}
 	return s.recordErr
 }
 func (s *stubMetrics) GetVerifiedByCountry24h(_ context.Context, _ string) (int64, error) {
@@ -40,17 +44,34 @@ func (s *stubMetrics) GetVerifiedByCountryPast14DaysRollingMax(_ context.Context
 }
 
 type stubLeakyBucket struct {
-	triggered LeakyBucketTriggered
-	levels    LeakyBucketLevels
-	sentErr   error
-	drainErr  error
+	triggered                 LeakyBucketTriggered
+	levels                    LeakyBucketLevels
+	sentErr                   error
+	drainErr                  error
+	verifyCountryErr          error
+	recordVerifiedCountryCall int
+	recordVerifiedDrainCall   int
+	lastDrainCount            int
+	calls                     *[]string
 }
 
 func (s *stubLeakyBucket) RecordSMSOTPSent(_ context.Context, _, _ string, _ LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
 	return s.triggered, s.levels, s.sentErr
 }
-func (s *stubLeakyBucket) RecordSMSOTPVerified(_ context.Context, _, _ string, _ LeakyBucketThresholds, _ int) error {
+func (s *stubLeakyBucket) RecordSMSOTPVerified(_ context.Context, _, _ string, _ LeakyBucketThresholds, count int) error {
+	s.recordVerifiedDrainCall++
+	s.lastDrainCount = count
+	if s.calls != nil {
+		*s.calls = append(*s.calls, "leaky_bucket.drain_verified")
+	}
 	return s.drainErr
+}
+func (s *stubLeakyBucket) RecordSMSOTPVerifiedCountry(_ context.Context, _, _ string) error {
+	s.recordVerifiedCountryCall++
+	if s.calls != nil {
+		*s.calls = append(*s.calls, "leaky_bucket.record_verified_country")
+	}
+	return s.verifyCountryErr
 }
 
 type stubEventService struct{}
@@ -392,5 +413,77 @@ func TestCheckAndRecord(t *testing.T) {
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
 		})
+	})
+}
+
+func TestRecordSMSOTPVerified(t *testing.T) {
+	Convey("RecordSMSOTPVerified", t, func() {
+		ctx := context.Background()
+		cfg := defaultCfg()
+
+		Convey("records metrics, marks the verified country, and then drains buckets", func() {
+			calls := []string{}
+			leakyBucket := &stubLeakyBucket{calls: &calls}
+			svc := &Service{
+				Config:      cfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{calls: &calls},
+				LeakyBucket: leakyBucket,
+			}
+
+			err := svc.RecordSMSOTPVerified(ctx, "+6591234567")
+			So(err, ShouldBeNil)
+			So(calls, ShouldResemble, []string{
+				"metrics.record_verified",
+				"leaky_bucket.record_verified_country",
+				"leaky_bucket.drain_verified",
+			})
+			So(leakyBucket.recordVerifiedCountryCall, ShouldEqual, 1)
+			So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 1)
+			So(leakyBucket.lastDrainCount, ShouldEqual, 1)
+		})
+
+		Convey("returns verified-country errors before draining buckets", func() {
+			calls := []string{}
+			expectedErr := &testError{"verified country write failure"}
+			leakyBucket := &stubLeakyBucket{
+				calls:            &calls,
+				verifyCountryErr: expectedErr,
+			}
+			svc := &Service{
+				Config:      cfg,
+				RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+				Metrics:     &stubMetrics{calls: &calls},
+				LeakyBucket: leakyBucket,
+			}
+
+			err := svc.RecordSMSOTPVerified(ctx, "+6591234567")
+			So(err, ShouldEqual, expectedErr)
+			So(calls, ShouldResemble, []string{
+				"metrics.record_verified",
+				"leaky_bucket.record_verified_country",
+			})
+			So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 0)
+		})
+	})
+}
+
+func TestRevertSMSOTPSent(t *testing.T) {
+	Convey("RevertSMSOTPSent", t, func() {
+		ctx := context.Background()
+		cfg := defaultCfg()
+		leakyBucket := &stubLeakyBucket{}
+		svc := &Service{
+			Config:      cfg,
+			RemoteIP:    httputil.RemoteIP("1.2.3.4"),
+			Metrics:     &stubMetrics{},
+			LeakyBucket: leakyBucket,
+		}
+
+		err := svc.RevertSMSOTPSent(ctx, "+6591234567", 2)
+		So(err, ShouldBeNil)
+		So(leakyBucket.recordVerifiedCountryCall, ShouldEqual, 0)
+		So(leakyBucket.recordVerifiedDrainCall, ShouldEqual, 1)
+		So(leakyBucket.lastDrainCount, ShouldEqual, 2)
 	})
 }
