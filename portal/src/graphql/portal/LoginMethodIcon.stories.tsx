@@ -28,40 +28,44 @@ type Story = StoryObj<typeof meta>;
 /**
  * First-level **icons only** (no `WidgetTitle`, no labels under each icon), for layout reference.
  */
+function LoginMethodIconDefaultRender() {
+  const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
+  return (
+    <Widget className={styles.widget}>
+      <LoginMethodFirstLevelOptionsGrid
+        phoneLoginIDDisabled={false}
+        firstLevelOption={first}
+        onChangeFirstLevelOption={setFirst}
+        showWidgetTitle={false}
+        iconOnly={true}
+      />
+    </Widget>
+  );
+}
+
+function LoginMethodIconSelectedRender() {
+  const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(
+    "oauth"
+  );
+  return (
+    <Widget className={styles.widget}>
+      <LoginMethodFirstLevelOptionsGrid
+        phoneLoginIDDisabled={false}
+        firstLevelOption={first}
+        onChangeFirstLevelOption={setFirst}
+        showWidgetTitle={false}
+        iconOnly={true}
+      />
+    </Widget>
+  );
+}
+
 export const Default: Story = {
   name: "Default",
-  render: function LoginMethodIconDefault() {
-    const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
-    return (
-      <Widget className={styles.widget}>
-        <LoginMethodFirstLevelOptionsGrid
-          phoneLoginIDDisabled={false}
-          firstLevelOption={first}
-          onChangeFirstLevelOption={setFirst}
-          showWidgetTitle={false}
-          iconOnly={true}
-        />
-      </Widget>
-    );
-  },
+  render: () => <LoginMethodIconDefaultRender />,
 };
 
 export const Selected: Story = {
   name: "Selected",
-  render: function LoginMethodIconSelected() {
-    const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(
-      "oauth"
-    );
-    return (
-      <Widget className={styles.widget}>
-        <LoginMethodFirstLevelOptionsGrid
-          phoneLoginIDDisabled={false}
-          firstLevelOption={first}
-          onChangeFirstLevelOption={setFirst}
-          showWidgetTitle={false}
-          iconOnly={true}
-        />
-      </Widget>
-    );
-  },
+  render: () => <LoginMethodIconSelectedRender />,
 };

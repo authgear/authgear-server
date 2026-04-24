@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-// eslint-disable-next-line no-restricted-imports
 import { Checkbox } from "@fluentui/react";
 
 const meta = {
@@ -22,30 +21,34 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function CheckboxDefaultRender(args: ComponentProps<typeof Checkbox>) {
+  const [checked, setChecked] = useState(false);
+  return (
+    <Checkbox
+      {...args}
+      checked={checked}
+      onChange={(_, v) => setChecked(v ?? false)}
+    />
+  );
+}
+
+function CheckboxCheckedRender(args: ComponentProps<typeof Checkbox>) {
+  const [checked, setChecked] = useState(true);
+  return (
+    <Checkbox
+      {...args}
+      checked={checked}
+      onChange={(_, v) => setChecked(v ?? false)}
+    />
+  );
+}
+
 export const Default: Story = {
-  render: (args) => {
-    const [checked, setChecked] = useState(false);
-    return (
-      <Checkbox
-        {...args}
-        checked={checked}
-        onChange={(_, v) => setChecked(v ?? false)}
-      />
-    );
-  },
+  render: (args) => <CheckboxDefaultRender {...args} />,
 };
 
 export const Checked: Story = {
-  render: (args) => {
-    const [checked, setChecked] = useState(true);
-    return (
-      <Checkbox
-        {...args}
-        checked={checked}
-        onChange={(_, v) => setChecked(v ?? false)}
-      />
-    );
-  },
+  render: (args) => <CheckboxCheckedRender {...args} />,
 };
 
 export const Disabled: Story = {

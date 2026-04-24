@@ -41,58 +41,60 @@ const firstLevelForDemo: LoginMethodFirstLevelOption = "email";
  * for documentation; the live login method model always has a value once email/phone
  * is chosen.)
  */
-export const Default: Story = {
-  name: "Default",
-  render: function IconRadioCardsDefaultRender() {
-    const [secondLevelOption, setSecondLevelOption] = useState<
-      LoginMethodSecondLevelOption | null
-    >(null);
-    return (
-      <Widget className={styles.widget}>
+function IconRadioCardsDefaultRender() {
+  const [secondLevelOption, setSecondLevelOption] =
+    useState<LoginMethodSecondLevelOption | null>(null);
+  return (
+    <Widget className={styles.widget}>
+      <LoginMethodAuthenticationSection
+        firstLevelOption={firstLevelForDemo}
+        secondLevelOption={secondLevelOption}
+        onChangeSecondLevelOption={setSecondLevelOption}
+        showSubtitle={false}
+      />
+    </Widget>
+  );
+}
+
+function IconRadioCardsWithSelectionRender() {
+  const [loginMethod, setLoginMethod] =
+    useState<LoginMethod>("passwordless-email");
+  const firstLevelOption = loginMethodToFirstLevelOption(loginMethod);
+  const secondLevelOption = loginMethodToSecondLevelOption(loginMethod);
+
+  const onChangeSecondLevelOption = useCallback(
+    (opt: LoginMethodSecondLevelOption) => {
+      if (
+        firstLevelOption !== "oauth" &&
+        firstLevelOption !== "custom" &&
+        firstLevelOption !== "username"
+      ) {
+        setLoginMethod(`${opt}-${firstLevelOption}` as LoginMethod);
+      }
+    },
+    [firstLevelOption]
+  );
+
+  return (
+    <Widget className={styles.widget}>
+      {secondLevelOption != null ? (
         <LoginMethodAuthenticationSection
-          firstLevelOption={firstLevelForDemo}
+          firstLevelOption={firstLevelOption}
           secondLevelOption={secondLevelOption}
-          onChangeSecondLevelOption={setSecondLevelOption}
+          onChangeSecondLevelOption={onChangeSecondLevelOption}
           showSubtitle={false}
         />
-      </Widget>
-    );
-  },
+      ) : null}
+    </Widget>
+  );
+}
+
+export const Default: Story = {
+  name: "Default",
+  render: () => <IconRadioCardsDefaultRender />,
 };
 
 export const Selected: Story = {
   name: "Selected",
-  render: function IconRadioCardsWithSelectionRender() {
-    const [loginMethod, setLoginMethod] = useState<LoginMethod>(
-      "passwordless-email"
-    );
-    const firstLevelOption = loginMethodToFirstLevelOption(loginMethod);
-    const secondLevelOption = loginMethodToSecondLevelOption(loginMethod);
-
-    const onChangeSecondLevelOption = useCallback(
-      (opt: LoginMethodSecondLevelOption) => {
-        if (
-          firstLevelOption !== "oauth" &&
-          firstLevelOption !== "custom" &&
-          firstLevelOption !== "username"
-        ) {
-          setLoginMethod(`${opt}-${firstLevelOption}` as LoginMethod);
-        }
-      },
-      [firstLevelOption]
-    );
-
-    return (
-      <Widget className={styles.widget}>
-        {secondLevelOption != null ? (
-          <LoginMethodAuthenticationSection
-            firstLevelOption={firstLevelOption}
-            secondLevelOption={secondLevelOption}
-            onChangeSecondLevelOption={onChangeSecondLevelOption}
-            showSubtitle={false}
-          />
-        ) : null}
-      </Widget>
-    );
-  },
+  render: () => <IconRadioCardsWithSelectionRender />,
 };

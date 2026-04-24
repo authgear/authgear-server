@@ -1532,8 +1532,7 @@ function LoginMethodButton(props: LoginMethodButtonProps) {
     hideText,
     onClick: onClickProp,
   } = props;
-  const checked =
-    currentValue != null && targetValue === currentValue;
+  const checked = currentValue != null && targetValue === currentValue;
 
   const onRenderIcon = useCallback(() => {
     return (
@@ -1789,12 +1788,7 @@ export function LoginMethodFirstLevelOptionsGrid(
         onChangeFirstLevelOption,
         iconOnly,
       }),
-    [
-      phoneLoginIDDisabled,
-      firstLevelOption,
-      onChangeFirstLevelOption,
-      iconOnly,
-    ]
+    [phoneLoginIDDisabled, firstLevelOption, onChangeFirstLevelOption, iconOnly]
   );
 
   return (

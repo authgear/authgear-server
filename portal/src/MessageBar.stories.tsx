@@ -58,7 +58,11 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["Primary", "Error", "Warning"] satisfies PortalMessageBarVariant[],
+      options: [
+        "Primary",
+        "Error",
+        "Warning",
+      ] satisfies PortalMessageBarVariant[],
       description:
         "Primary → BlueMessageBar, Error → RedMessageBar, Warning → Fluent MessageBar",
     },

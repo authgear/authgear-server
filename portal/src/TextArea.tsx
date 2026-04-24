@@ -6,7 +6,7 @@ import TextField from "./TextField";
 export type TextAreaProps = Omit<ITextFieldProps, "multiline">;
 
 const TextArea: React.VFC<TextAreaProps> = function TextArea(props) {
-  return <TextField {...props} multiline />;
+  return <TextField {...props} multiline={true} />;
 };
 
 export default TextArea;

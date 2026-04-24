@@ -23,9 +23,9 @@ const rowActionsMenuVariantOptions = [
   "oauth",
 ] as const satisfies readonly RowActionsMenuVariant[];
 
-type ConnectedIdentitiesActionsStoryArgs = {
+interface ConnectedIdentitiesActionsStoryArgs {
   variant?: RowActionsMenuVariant;
-};
+}
 
 /**
  * **ContextualMenuButton** pattern: per-row **Actions** from User details → Connected
@@ -50,8 +50,7 @@ const meta = {
         },
       },
       options: [...rowActionsMenuVariantOptions],
-      description:
-        "Switches the contextual menu (login ID vs OAuth).",
+      description: "Switches the contextual menu (login ID vs OAuth).",
     },
   },
   decorators: [
@@ -157,7 +156,7 @@ export const RowActions: Story = {
         {variant === "loginIdUnverified" ? (
           <LoginIdRowActionsMenu verified={false} />
         ) : variant === "loginIdVerified" ? (
-          <LoginIdRowActionsMenu verified />
+          <LoginIdRowActionsMenu verified={true} />
         ) : (
           <OauthRowActionsMenu />
         )}

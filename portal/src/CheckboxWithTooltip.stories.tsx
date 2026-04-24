@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import CheckboxWithTooltip from "./CheckboxWithTooltip";
 
@@ -23,30 +23,38 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function CheckboxWithTooltipDefaultRender(
+  args: ComponentProps<typeof CheckboxWithTooltip>
+) {
+  const [checked, setChecked] = useState(false);
+  return (
+    <CheckboxWithTooltip
+      {...args}
+      checked={checked}
+      onChange={(_, v) => setChecked(v ?? false)}
+    />
+  );
+}
+
+function CheckboxWithTooltipCheckedRender(
+  args: ComponentProps<typeof CheckboxWithTooltip>
+) {
+  const [checked, setChecked] = useState(true);
+  return (
+    <CheckboxWithTooltip
+      {...args}
+      checked={checked}
+      onChange={(_, v) => setChecked(v ?? false)}
+    />
+  );
+}
+
 export const Default: Story = {
-  render: (args) => {
-    const [checked, setChecked] = useState(false);
-    return (
-      <CheckboxWithTooltip
-        {...args}
-        checked={checked}
-        onChange={(_, v) => setChecked(v ?? false)}
-      />
-    );
-  },
+  render: (args) => <CheckboxWithTooltipDefaultRender {...args} />,
 };
 
 export const Checked: Story = {
-  render: (args) => {
-    const [checked, setChecked] = useState(true);
-    return (
-      <CheckboxWithTooltip
-        {...args}
-        checked={checked}
-        onChange={(_, v) => setChecked(v ?? false)}
-      />
-    );
-  },
+  render: (args) => <CheckboxWithTooltipCheckedRender {...args} />,
 };
 
 export const Disabled: Story = {

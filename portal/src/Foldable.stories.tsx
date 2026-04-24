@@ -3,10 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Text } from "@fluentui/react";
 import { FormattedMessage } from "./intl";
 import { SystemConfigContext } from "./context/SystemConfigContext";
-import {
-  defaultSystemConfig,
-  instantiateSystemConfig,
-} from "./system-config";
+import { defaultSystemConfig, instantiateSystemConfig } from "./system-config";
 import FoldableDiv from "./FoldableDiv";
 
 const systemConfig = instantiateSystemConfig(defaultSystemConfig);
@@ -51,7 +48,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const sampleBody = (
-  <Text variant="small" block>
+  <Text variant="small" block={true}>
     Placeholder body.
   </Text>
 );
@@ -70,16 +67,20 @@ function AdvancedFoldableSample(props: { initialFolded: boolean }) {
   );
 }
 
+function FoldableDefaultRender() {
+  return <AdvancedFoldableSample initialFolded={true} />;
+}
+
+function FoldableExpandedRender() {
+  return <AdvancedFoldableSample initialFolded={false} />;
+}
+
 export const Default: Story = {
   name: "Default",
-  render: function FoldableDefault() {
-    return <AdvancedFoldableSample initialFolded={true} />;
-  },
+  render: () => <FoldableDefaultRender />,
 };
 
 export const Expanded: Story = {
   name: "Expanded",
-  render: function FoldableExpanded() {
-    return <AdvancedFoldableSample initialFolded={false} />;
-  },
+  render: () => <FoldableExpandedRender />,
 };

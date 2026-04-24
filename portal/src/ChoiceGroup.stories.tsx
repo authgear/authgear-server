@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-// eslint-disable-next-line no-restricted-imports
 import { ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
 
 const sampleOptions: IChoiceGroupOption[] = [
@@ -32,42 +31,57 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function ChoiceGroupDefaultRender(args: ComponentProps<typeof ChoiceGroup>) {
+  const [selectedKey, setSelectedKey] = useState<string | undefined>("weekly");
+  return (
+    <ChoiceGroup
+      {...args}
+      selectedKey={selectedKey}
+      onChange={(_, option) => setSelectedKey(option?.key)}
+    />
+  );
+}
+
+function ChoiceGroupHorizontalRender(args: ComponentProps<typeof ChoiceGroup>) {
+  const [selectedKey, setSelectedKey] = useState<string | undefined>("card");
+  return (
+    <ChoiceGroup
+      {...args}
+      selectedKey={selectedKey}
+      onChange={(_, option) => setSelectedKey(option?.key)}
+      styles={{
+        flexContainer: {
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: "16px",
+        },
+      }}
+    />
+  );
+}
+
+function ChoiceGroupWithDisabledOptionRender(
+  args: ComponentProps<typeof ChoiceGroup>
+) {
+  const [selectedKey, setSelectedKey] = useState<string | undefined>(
+    "standard"
+  );
+  return (
+    <ChoiceGroup
+      {...args}
+      selectedKey={selectedKey}
+      onChange={(_, option) => setSelectedKey(option?.key)}
+    />
+  );
+}
+
 export const Default: Story = {
-  render: (args) => {
-    const [selectedKey, setSelectedKey] = useState<string | undefined>(
-      "weekly"
-    );
-    return (
-      <ChoiceGroup
-        {...args}
-        selectedKey={selectedKey}
-        onChange={(_, option) => setSelectedKey(option?.key as string | undefined)}
-      />
-    );
-  },
+  render: (args) => <ChoiceGroupDefaultRender {...args} />,
 };
 
 export const Horizontal: Story = {
-  render: (args) => {
-    const [selectedKey, setSelectedKey] = useState<string | undefined>(
-      "card"
-    );
-    return (
-      <ChoiceGroup
-        {...args}
-        selectedKey={selectedKey}
-        onChange={(_, option) => setSelectedKey(option?.key as string | undefined)}
-        styles={{
-          flexContainer: {
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: "16px",
-          },
-        }}
-      />
-    );
-  },
+  render: (args) => <ChoiceGroupHorizontalRender {...args} />,
   args: {
     label: "Payment method",
     options: [
@@ -79,18 +93,7 @@ export const Horizontal: Story = {
 };
 
 export const WithDisabledOption: Story = {
-  render: (args) => {
-    const [selectedKey, setSelectedKey] = useState<string | undefined>(
-      "standard"
-    );
-    return (
-      <ChoiceGroup
-        {...args}
-        selectedKey={selectedKey}
-        onChange={(_, option) => setSelectedKey(option?.key as string | undefined)}
-      />
-    );
-  },
+  render: (args) => <ChoiceGroupWithDisabledOptionRender {...args} />,
   args: {
     label: "Plan tier",
     options: [

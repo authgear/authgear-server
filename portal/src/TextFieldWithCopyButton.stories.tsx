@@ -2,10 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import TextFieldWithCopyButton from "./TextFieldWithCopyButton";
 import { SystemConfigContext } from "./context/SystemConfigContext";
-import {
-  defaultSystemConfig,
-  instantiateSystemConfig,
-} from "./system-config";
+import { defaultSystemConfig, instantiateSystemConfig } from "./system-config";
 
 const systemConfig = instantiateSystemConfig(defaultSystemConfig);
 

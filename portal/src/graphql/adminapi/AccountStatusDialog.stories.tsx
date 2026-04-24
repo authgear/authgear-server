@@ -26,7 +26,7 @@ function AccountStatusDialogStoryChrome({
   const onDismiss = useCallback(
     async (info: { deletedUser: boolean }) => {
       setOpen(false);
-      await storyArgs.onDismiss?.(info);
+      await storyArgs.onDismiss(info);
     },
     [storyArgs]
   );

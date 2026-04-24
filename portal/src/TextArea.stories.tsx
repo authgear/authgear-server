@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import TextArea from "./TextArea";
 
@@ -34,17 +34,15 @@ export const WithDescription: Story = {
   },
 };
 
+function TextAreaControlledRender(args: ComponentProps<typeof TextArea>) {
+  const [value, setValue] = useState(args.value ?? "");
+  return (
+    <TextArea {...args} value={value} onChange={(_, v) => setValue(v ?? "")} />
+  );
+}
+
 export const Controlled: Story = {
-  render: (args) => {
-    const [value, setValue] = useState(args.value ?? "");
-    return (
-      <TextArea
-        {...args}
-        value={value}
-        onChange={(_, v) => setValue(v ?? "")}
-      />
-    );
-  },
+  render: (args) => <TextAreaControlledRender {...args} />,
   args: {
     label: "Internal memo",
     value: "Initial content",
@@ -55,7 +53,7 @@ export const Controlled: Story = {
 export const ReadOnly: Story = {
   args: {
     label: "Generated policy",
-    value: "{\n  \"version\": 1\n}",
+    value: '{\n  "version": 1\n}',
     readOnly: true,
     rows: 5,
   },

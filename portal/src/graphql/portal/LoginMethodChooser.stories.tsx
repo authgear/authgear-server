@@ -30,22 +30,38 @@ type Story = StoryObj<typeof meta>;
 /**
  * Full first-level chooser: title + description under each icon (no “Select login methods” `WidgetTitle` in this story).
  */
+function LoginMethodChooserWithLabelsDefaultRender() {
+  const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
+  return (
+    <Widget className={styles.widget}>
+      <LoginMethodFirstLevelOptionsGrid
+        phoneLoginIDDisabled={false}
+        firstLevelOption={first}
+        onChangeFirstLevelOption={setFirst}
+        showWidgetTitle={false}
+        iconOnly={false}
+      />
+    </Widget>
+  );
+}
+
+function LoginMethodChooserWithLabelsSelectedRender() {
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("oauth");
+  return (
+    <Widget className={styles.widget}>
+      <LoginMethodSelectLoginMethodsSection
+        phoneLoginIDDisabled={false}
+        loginMethod={loginMethod}
+        onChangeLoginMethod={setLoginMethod}
+        showWidgetTitle={false}
+      />
+    </Widget>
+  );
+}
+
 export const Default: Story = {
   name: "Default",
-  render: function LoginMethodChooserWithLabelsDefault() {
-    const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
-    return (
-      <Widget className={styles.widget}>
-        <LoginMethodFirstLevelOptionsGrid
-          phoneLoginIDDisabled={false}
-          firstLevelOption={first}
-          onChangeFirstLevelOption={setFirst}
-          showWidgetTitle={false}
-          iconOnly={false}
-        />
-      </Widget>
-    );
-  },
+  render: () => <LoginMethodChooserWithLabelsDefaultRender />,
 };
 
 /**
@@ -53,17 +69,5 @@ export const Default: Story = {
  */
 export const Selected: Story = {
   name: "Selected",
-  render: function LoginMethodChooserWithLabelsSelected() {
-    const [loginMethod, setLoginMethod] = useState<LoginMethod>("oauth");
-    return (
-      <Widget className={styles.widget}>
-        <LoginMethodSelectLoginMethodsSection
-          phoneLoginIDDisabled={false}
-          loginMethod={loginMethod}
-          onChangeLoginMethod={setLoginMethod}
-          showWidgetTitle={false}
-        />
-      </Widget>
-    );
-  },
+  render: () => <LoginMethodChooserWithLabelsSelectedRender />,
 };

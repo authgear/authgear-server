@@ -1,15 +1,11 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-// eslint-disable-next-line no-restricted-imports
 import { Dialog, DialogFooter } from "@fluentui/react";
 import { Context, FormattedMessage } from "./intl";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
 import { SystemConfigContext } from "./context/SystemConfigContext";
-import {
-  defaultSystemConfig,
-  instantiateSystemConfig,
-} from "./system-config";
+import { defaultSystemConfig, instantiateSystemConfig } from "./system-config";
 
 const systemConfig = instantiateSystemConfig(defaultSystemConfig);
 

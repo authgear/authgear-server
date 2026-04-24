@@ -1,6 +1,5 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-// eslint-disable-next-line no-restricted-imports
 import { DirectionalHint } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
 
@@ -28,7 +27,8 @@ const meta = {
     ),
   ],
   args: {
-    labelId: "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label",
+    labelId:
+      "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label",
     tooltipMessageId:
       "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message",
   },

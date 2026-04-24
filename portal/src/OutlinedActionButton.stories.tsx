@@ -1,10 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import OutlinedActionButton from "./components/common/OutlinedActionButton";
-import {
-  defaultSystemConfig,
-  instantiateSystemConfig,
-} from "./system-config";
+import { defaultSystemConfig, instantiateSystemConfig } from "./system-config";
 
 const { themes } = instantiateSystemConfig(defaultSystemConfig);
 

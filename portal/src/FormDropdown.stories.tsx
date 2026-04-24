@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { IDropdownOption } from "@fluentui/react";
 import FormDropdown from "./FormDropdown";
@@ -33,17 +33,32 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function FormDropdownDefaultRender(args: ComponentProps<typeof FormDropdown>) {
+  const [selectedKey, setSelectedKey] = useState(args.selectedKey);
+  return (
+    <FormDropdown
+      {...args}
+      selectedKey={selectedKey}
+      onChange={(_, option) => setSelectedKey(option?.key)}
+    />
+  );
+}
+
+function FormDropdownWithPlaceholderRender(
+  args: ComponentProps<typeof FormDropdown>
+) {
+  const [selectedKey, setSelectedKey] = useState(args.selectedKey);
+  return (
+    <FormDropdown
+      {...args}
+      selectedKey={selectedKey}
+      onChange={(_, option) => setSelectedKey(option?.key)}
+    />
+  );
+}
+
 export const Default: Story = {
-  render: (args) => {
-    const [selectedKey, setSelectedKey] = useState(args.selectedKey);
-    return (
-      <FormDropdown
-        {...args}
-        selectedKey={selectedKey}
-        onChange={(_, option) => setSelectedKey(option?.key)}
-      />
-    );
-  },
+  render: (args) => <FormDropdownDefaultRender {...args} />,
 };
 
 export const WithPlaceholder: Story = {
@@ -51,16 +66,7 @@ export const WithPlaceholder: Story = {
     selectedKey: undefined,
     placeholder: "Select one",
   },
-  render: (args) => {
-    const [selectedKey, setSelectedKey] = useState(args.selectedKey);
-    return (
-      <FormDropdown
-        {...args}
-        selectedKey={selectedKey}
-        onChange={(_, option) => setSelectedKey(option?.key)}
-      />
-    );
-  },
+  render: (args) => <FormDropdownWithPlaceholderRender {...args} />,
 };
 
 export const Disabled: Story = {

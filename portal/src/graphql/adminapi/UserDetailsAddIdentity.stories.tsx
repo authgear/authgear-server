@@ -18,10 +18,10 @@ const addPrimaryMenuKindOptions = [
   "add2fa",
 ] as const satisfies readonly AddPrimaryMenuKind[];
 
-type AddPrimaryMenuStoryArgs = {
+interface AddPrimaryMenuStoryArgs {
   menuKind: AddPrimaryMenuKind;
   disabled: boolean;
-};
+}
 
 /**
  * **ContextualMenuButtonWithIcon**: `PrimaryButton` + icon + `menuProps` (same pattern as
@@ -46,7 +46,8 @@ const meta = {
         },
       },
       options: [...addPrimaryMenuKindOptions],
-      description: "Which header action the button represents (copy and menu items follow production).",
+      description:
+        "Which header action the button represents (copy and menu items follow production).",
     },
     disabled: {
       control: "boolean",
@@ -129,7 +130,9 @@ function useAdd2FAMenuProps(): IContextualMenuProps {
   );
 }
 
-function AddPrimaryMenuSection(props: AddPrimaryMenuStoryArgs): React.ReactElement {
+function AddPrimaryMenuSection(
+  props: AddPrimaryMenuStoryArgs
+): React.ReactElement {
   const { menuKind, disabled } = props;
   const identityMenu = useAddIdentityMenuProps();
   const add2faMenu = useAdd2FAMenuProps();
@@ -137,8 +140,8 @@ function AddPrimaryMenuSection(props: AddPrimaryMenuStoryArgs): React.ReactEleme
   const menuProps = disabled
     ? { items: [] }
     : menuKind === "addIdentity"
-      ? identityMenu
-      : add2faMenu;
+    ? identityMenu
+    : add2faMenu;
 
   const labelId =
     menuKind === "addIdentity"
@@ -171,10 +174,7 @@ function AddPrimaryMenuSection(props: AddPrimaryMenuStoryArgs): React.ReactEleme
 
 export const Default: Story = {
   render: (args) => (
-    <AddPrimaryMenuSection
-      menuKind={args.menuKind ?? "addIdentity"}
-      disabled={args.disabled ?? false}
-    />
+    <AddPrimaryMenuSection menuKind={args.menuKind} disabled={args.disabled} />
   ),
 };
 
@@ -184,9 +184,6 @@ export const Disabled: Story = {
     disabled: true,
   },
   render: (args) => (
-    <AddPrimaryMenuSection
-      menuKind={args.menuKind ?? "addIdentity"}
-      disabled={args.disabled ?? true}
-    />
+    <AddPrimaryMenuSection menuKind={args.menuKind} disabled={args.disabled} />
   ),
 };

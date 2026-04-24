@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import TextField from "./TextField";
 
@@ -33,17 +33,15 @@ export const WithDescription: Story = {
   },
 };
 
+function TextFieldControlledRender(args: ComponentProps<typeof TextField>) {
+  const [value, setValue] = useState(args.value ?? "");
+  return (
+    <TextField {...args} value={value} onChange={(_, v) => setValue(v ?? "")} />
+  );
+}
+
 export const Controlled: Story = {
-  render: (args) => {
-    const [value, setValue] = useState(args.value ?? "");
-    return (
-      <TextField
-        {...args}
-        value={value}
-        onChange={(_, v) => setValue(v ?? "")}
-      />
-    );
-  },
+  render: (args) => <TextFieldControlledRender {...args} />,
   args: {
     label: "Project slug",
     value: "my-app",
