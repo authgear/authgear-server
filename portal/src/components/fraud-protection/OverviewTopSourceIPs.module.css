@@ -1,0 +1,75 @@
+.topSourceSection {
+  @apply flex flex-col gap-4 rounded-lg border border-[#edebe9] bg-white px-[0.875rem] py-4;
+}
+
+.topSourceIPsHeader {
+  @apply flex items-center justify-between w-full;
+}
+
+.topSourceIPsHeaderLeft {
+  @apply flex items-center gap-[10px];
+}
+
+.topSourceIPsIcon {
+  @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-[16px];
+  @apply bg-[#fff4ce] text-[#d97706];
+}
+
+.topSourceIPsTitle {
+  @apply font-semibold;
+  color: #201f1e;
+  font-size: 14px;
+}
+
+.topSourceIPsList {
+  @apply flex flex-col gap-2.5;
+}
+
+.topSourceIPRow {
+  @apply flex flex-col gap-1 w-full;
+}
+
+.topSourceIPInfo {
+  @apply flex items-center justify-between text-xs leading-4;
+}
+
+.topSourceIPInfoLeft {
+  @apply flex items-center gap-1.5;
+}
+
+.topSourceIPRank {
+  @apply w-[14px] text-[11px] flex-none whitespace-nowrap;
+  color: #8a8886;
+}
+
+.topSourceIPAddress {
+  @apply text-xs;
+  color: #201f1e;
+}
+
+.topSourceIPMetrics {
+  @apply flex items-center gap-1.5 flex-none;
+}
+
+.totalValue {
+  @apply text-[11px];
+  color: #605e5c;
+}
+
+.blockedStatus {
+  @apply text-[11px];
+  color: #dc2626;
+}
+
+.flaggedStatus {
+  @apply text-[11px];
+  color: #d97706;
+}
+
+.topSourceIPProgress {
+  @apply h-1 w-full rounded-full bg-[#f3f2f1];
+}
+
+.progressBar {
+  @apply h-full rounded-full bg-[#176df3];
+}

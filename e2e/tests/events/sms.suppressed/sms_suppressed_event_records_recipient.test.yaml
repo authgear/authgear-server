@@ -1,0 +1,73 @@
+name: SMS suppressed event records recipient
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        sms:
+          phone_otp_mode: sms
+    test_mode:
+      sms:
+        enabled: true
+        rules:
+        - regex: "^\\+6591230001$"
+          suppressed: true
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - name: identify_phone
+          type: identify
+          one_of:
+          - identification: phone
+        - type: verify
+          target_step: identify_phone
+        - type: create_authenticator
+          one_of:
+          - authentication: primary_password
+steps:
+  - name: create signup flow
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230001"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: verify suppressed sms payload records recipient
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'sms.suppressed'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "sms.suppressed",
+            "recipient": "+6591230001"
+          }
+        ]

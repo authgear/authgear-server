@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sort"
 	"testing"
 	"time"
 
@@ -19,6 +20,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+var _ = relay.ToGlobalID
 
 // ---- Fakes -------------------------------------------------------------------
 
@@ -64,8 +67,12 @@ func (f *fakeConfigSourceStore) GetManyByAppIDs(_ context.Context, appIDs []stri
 	return result, nil
 }
 
+// fakeOwnerStore implements AppServiceOwnerStore using in-memory data.
+// ListAppsWithStats mirrors real SQL semantics: filter, sort, paginate.
 type fakeOwnerStore struct {
-	// appID -> ownerUserID
+	// rows is the full set the fake "database" contains.
+	rows []AppStoreRow
+	// owners maps appID → ownerUserID (used only by GetOwnerByAppID).
 	owners map[string]string
 }
 
@@ -76,41 +83,55 @@ func (f *fakeOwnerStore) GetOwnerByAppID(_ context.Context, appID string) (strin
 	return "", ErrOwnerNotFound
 }
 
-func (f *fakeOwnerStore) GetOwnersByAppIDs(_ context.Context, appIDs []string) (map[string]string, error) {
-	m := make(map[string]string)
-	for _, id := range appIDs {
-		if uid, ok := f.owners[id]; ok {
-			m[id] = uid
+func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsStoreParams) ([]AppStoreRow, int, error) {
+	// Filter
+	var filtered []AppStoreRow
+	for _, r := range f.rows {
+		if params.AppID != "" && r.AppID != params.AppID {
+			continue
 		}
+		if params.PlanName != "" && r.PlanName != params.PlanName {
+			continue
+		}
+		if params.OwnerUserID != "" && r.OwnerUserID != params.OwnerUserID {
+			continue
+		}
+		filtered = append(filtered, r)
 	}
-	return m, nil
-}
 
-func (f *fakeOwnerStore) CountAppsByOwnerUserID(_ context.Context, userID string) (int, error) {
-	count := 0
-	for _, uid := range f.owners {
-		if uid == userID {
-			count++
+	// Sort — mirrors SQL: primary field with configurable direction, app_id ASC secondary.
+	sort.Slice(filtered, func(i, j int) bool {
+		a, b := filtered[i], filtered[j]
+		if params.Sort == siteadmin.Mau {
+			if a.LastMonthMAU != b.LastMonthMAU {
+				if params.Order == siteadmin.Asc {
+					return a.LastMonthMAU < b.LastMonthMAU
+				}
+				return a.LastMonthMAU > b.LastMonthMAU
+			}
+		} else {
+			if !a.CreatedAt.Equal(b.CreatedAt) {
+				if params.Order == siteadmin.Asc {
+					return a.CreatedAt.Before(b.CreatedAt)
+				}
+				return a.CreatedAt.After(b.CreatedAt)
+			}
 		}
-	}
-	return count, nil
-}
+		return a.AppID < b.AppID // stable secondary (always ASC)
+	})
 
-func (f *fakeOwnerStore) ListAppIDsByOwnerUserIDPaged(_ context.Context, userID string, limit uint64, offset uint64) ([]string, error) {
-	var appIDs []string
-	for appID, uid := range f.owners {
-		if uid == userID {
-			appIDs = append(appIDs, appID)
-		}
+	total := len(filtered)
+
+	// Paginate
+	offset := int((params.Page - 1) * params.PageSize)
+	if offset >= total {
+		return nil, total, nil
 	}
-	if offset >= uint64(len(appIDs)) {
-		return nil, nil
+	end := offset + int(params.PageSize)
+	if end > total {
+		end = total
 	}
-	end := offset + limit
-	if end > uint64(len(appIDs)) {
-		end = uint64(len(appIDs))
-	}
-	return appIDs[int(offset):int(end)], nil
+	return filtered[offset:end], total, nil
 }
 
 // fakeDatabase satisfies AppServiceDatabase by directly executing the callback
@@ -158,13 +179,9 @@ func getUsersByEmailResponse(globalIDs ...string) map[string]interface{} {
 }
 
 // getNodesResponse builds a GraphQL data envelope for the getUserNodes query.
-func getNodesResponse(nodes ...map[string]interface{}) map[string]interface{} {
-	ns := make([]interface{}, len(nodes))
-	for i, n := range nodes {
-		ns[i] = n
-	}
+func getNodesResponse(nodes ...interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"data": map[string]interface{}{"nodes": ns},
+		"data": map[string]interface{}{"nodes": nodes},
 	}
 }
 
@@ -178,7 +195,7 @@ func ctxWithSession() context.Context {
 // ---- Tests -------------------------------------------------------------------
 
 func TestAppService(t *testing.T) {
-	now := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	now := time.Date(2024, 2, 15, 0, 0, 0, 0, time.UTC)
 	fixedClock := clock.NewMockClockAtTime(now)
 
 	makeService := func(svr *httptest.Server, cs *fakeConfigSourceStore, os *fakeOwnerStore) *AppService {
@@ -202,7 +219,7 @@ func TestAppService(t *testing.T) {
 			svr := adminAPIServer(getUsersByEmailResponse())
 			defer svr.Close()
 
-			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{owners: map[string]string{}})
+			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{})
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
 				Page: 1, PageSize: 10, OwnerEmail: "nobody@example.com",
 			})
@@ -212,26 +229,12 @@ func TestAppService(t *testing.T) {
 			So(result.Apps, ShouldResemble, []siteadmin.App{})
 		})
 
-		Convey("ListApps with owner_email: unparseable global ID is skipped -> empty result", func() {
-			svr := adminAPIServer(getUsersByEmailResponse("not-a-valid-global-id"))
-			defer svr.Close()
-
-			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{owners: map[string]string{}})
-			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
-				Page: 1, PageSize: 10, OwnerEmail: "alice@example.com",
-			})
-
-			So(err, ShouldBeNil)
-			So(result.TotalCount, ShouldEqual, 0)
-			So(result.Apps, ShouldResemble, []siteadmin.App{})
-		})
-
-		Convey("ListApps with owner_email: user has no apps returns empty", func() {
+		Convey("ListApps with owner_email: found user but no apps returns empty", func() {
 			globalID := relay.ToGlobalID("User", "user-1")
 			svr := adminAPIServer(getUsersByEmailResponse(globalID))
 			defer svr.Close()
 
-			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{owners: map[string]string{}})
+			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{rows: []AppStoreRow{}})
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
 				Page: 1, PageSize: 10, OwnerEmail: "alice@example.com",
 			})
@@ -241,9 +244,9 @@ func TestAppService(t *testing.T) {
 			So(result.Apps, ShouldResemble, []siteadmin.App{})
 		})
 
-		Convey("ListApps paged: returns apps with resolved emails", func() {
-			src1 := &configsource.DatabaseSource{AppID: "app-1", PlanName: "free", CreatedAt: now}
-			src2 := &configsource.DatabaseSource{AppID: "app-2", PlanName: "starter", CreatedAt: now}
+		Convey("ListApps paged: returns apps with resolved emails and last_month_mau", func() {
+			t1 := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC) // newer
+			t2 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC) // older
 
 			globalID1 := relay.ToGlobalID("User", "user-1")
 			globalID2 := relay.ToGlobalID("User", "user-2")
@@ -253,32 +256,212 @@ func TestAppService(t *testing.T) {
 			))
 			defer svr.Close()
 
-			cs := &fakeConfigSourceStore{
-				sources:    []*configsource.DatabaseSource{src1, src2},
-				totalCount: 2,
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "free", CreatedAt: t1, OwnerUserID: "user-1", LastMonthMAU: 10},
+					{AppID: "app-2", PlanName: "starter", CreatedAt: t2, OwnerUserID: "user-2", LastMonthMAU: 5},
+				},
 			}
-			os := &fakeOwnerStore{owners: map[string]string{"app-1": "user-1", "app-2": "user-2"}}
 
-			svc := makeService(svr, cs, os)
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 10})
 
 			So(err, ShouldBeNil)
 			So(result.TotalCount, ShouldEqual, 2)
 			So(result.Apps, ShouldHaveLength, 2)
+			// Default sort: created_at DESC → app-1 (t1=Jan 2) first
+			So(result.Apps[0].Id, ShouldEqual, "app-1")
+			So(result.Apps[0].LastMonthMau, ShouldEqual, 10)
+			So(result.Apps[1].Id, ShouldEqual, "app-2")
+			So(result.Apps[1].LastMonthMau, ShouldEqual, 5)
 		})
 
 		Convey("ListApps: PageSize 0 is clamped to maxPageSize", func() {
 			svr := adminAPIServer(getNodesResponse())
 			defer svr.Close()
 
-			cs := &fakeConfigSourceStore{sources: nil, totalCount: 0}
-			os := &fakeOwnerStore{owners: map[string]string{}}
-
-			svc := makeService(svr, cs, os)
+			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{})
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 0})
 
 			So(err, ShouldBeNil)
 			So(result.TotalCount, ShouldEqual, 0)
+		})
+
+		Convey("ListApps: plan filter returns only matching apps", func() {
+			t1 := time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)
+			t2 := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+			t3 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "free", CreatedAt: t1},
+					{AppID: "app-2", PlanName: "starter", CreatedAt: t2},
+					{AppID: "app-3", PlanName: "free", CreatedAt: t3},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 10, Plan: "free"})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 2)
+			So(result.Apps, ShouldHaveLength, 2)
+			So(result.Apps[0].Id, ShouldEqual, "app-1")
+			So(result.Apps[1].Id, ShouldEqual, "app-3")
+		})
+
+		Convey("ListApps: sort=mau order=desc returns highest MAU first", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-a", PlanName: "free", CreatedAt: t1, LastMonthMAU: 30},
+					{AppID: "app-b", PlanName: "free", CreatedAt: t1, LastMonthMAU: 100},
+					{AppID: "app-c", PlanName: "free", CreatedAt: t1, LastMonthMAU: 5},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Sort: "mau", Order: "desc",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 3)
+			So(result.Apps[0].Id, ShouldEqual, "app-b") // MAU=100
+			So(result.Apps[1].Id, ShouldEqual, "app-a") // MAU=30
+			So(result.Apps[2].Id, ShouldEqual, "app-c") // MAU=5
+		})
+
+		Convey("ListApps: sort=mau order=asc returns lowest MAU first", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-a", PlanName: "free", CreatedAt: t1, LastMonthMAU: 30},
+					{AppID: "app-b", PlanName: "free", CreatedAt: t1, LastMonthMAU: 100},
+					{AppID: "app-c", PlanName: "free", CreatedAt: t1, LastMonthMAU: 5},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Sort: "mau", Order: "asc",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 3)
+			So(result.Apps[0].Id, ShouldEqual, "app-c") // MAU=5
+			So(result.Apps[1].Id, ShouldEqual, "app-a") // MAU=30
+			So(result.Apps[2].Id, ShouldEqual, "app-b") // MAU=100
+		})
+
+		Convey("ListApps: MAU ties broken by app_id ASC", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-z", PlanName: "free", CreatedAt: t1, LastMonthMAU: 50},
+					{AppID: "app-a", PlanName: "free", CreatedAt: t1, LastMonthMAU: 50},
+					{AppID: "app-m", PlanName: "free", CreatedAt: t1, LastMonthMAU: 50},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Sort: "mau", Order: "desc",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.Apps[0].Id, ShouldEqual, "app-a")
+			So(result.Apps[1].Id, ShouldEqual, "app-m")
+			So(result.Apps[2].Id, ShouldEqual, "app-z")
+		})
+
+		Convey("ListApps: sort=created_at order=asc returns oldest first", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+			t2 := time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
+			t3 := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "free", CreatedAt: t1},
+					{AppID: "app-2", PlanName: "free", CreatedAt: t2},
+					{AppID: "app-3", PlanName: "free", CreatedAt: t3},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Sort: "created_at", Order: "asc",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.Apps[0].Id, ShouldEqual, "app-1") // Jan
+			So(result.Apps[1].Id, ShouldEqual, "app-3") // Feb
+			So(result.Apps[2].Id, ShouldEqual, "app-2") // Mar
+		})
+
+		Convey("ListApps: last_month_mau is 0 for apps with no usage record", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "free", CreatedAt: t1, LastMonthMAU: 0},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 10})
+
+			So(err, ShouldBeNil)
+			So(result.Apps[0].LastMonthMau, ShouldEqual, 0)
+		})
+
+		Convey("ListApps: plan + owner_email combined filter", func() {
+			globalID := relay.ToGlobalID("User", "user-1")
+			svr := adminAPIServer(getUsersByEmailResponse(globalID))
+			defer svr.Close()
+
+			t1 := time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)
+			t2 := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+			t3 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "starter", CreatedAt: t1, OwnerUserID: "user-1"},
+					{AppID: "app-2", PlanName: "free", CreatedAt: t2, OwnerUserID: "user-1"},
+					{AppID: "app-3", PlanName: "starter", CreatedAt: t3, OwnerUserID: "user-2"},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Plan: "starter", OwnerEmail: "alice@example.com",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 1)
+			So(result.Apps[0].Id, ShouldEqual, "app-1")
+			So(result.Apps[0].OwnerEmail, ShouldEqual, "alice@example.com")
 		})
 
 		Convey("GetApp: nil audit DB yields UserCount 0", func() {
@@ -289,31 +472,30 @@ func TestAppService(t *testing.T) {
 			))
 			defer svr.Close()
 
-			cs := &fakeConfigSourceStore{sources: []*configsource.DatabaseSource{src}, totalCount: 1}
+			cs := &fakeConfigSourceStore{sources: []*configsource.DatabaseSource{src}}
 			os := &fakeOwnerStore{owners: map[string]string{"app-1": "user-1"}}
 
 			svc := makeService(svr, cs, os)
 			detail, err := svc.GetApp(ctxWithSession(), "app-1")
 
 			So(err, ShouldBeNil)
-			So(detail.Id, ShouldEqual, "app-1")
-			So(detail.OwnerEmail, ShouldEqual, "alice@example.com")
-			So(detail.Plan, ShouldEqual, "free")
 			So(detail.UserCount, ShouldEqual, 0)
+			So(detail.OwnerEmail, ShouldEqual, "alice@example.com")
 		})
 
-		Convey("GetApp: app not found returns ErrAppNotFound", func() {
+		Convey("GetApp: no owner returns empty owner email", func() {
+			src := &configsource.DatabaseSource{AppID: "app-1", PlanName: "free", CreatedAt: now}
 			svr := adminAPIServer(getNodesResponse())
 			defer svr.Close()
 
-			cs := &fakeConfigSourceStore{sources: nil, totalCount: 0}
-			os := &fakeOwnerStore{owners: map[string]string{}}
+			cs := &fakeConfigSourceStore{sources: []*configsource.DatabaseSource{src}}
+			os := &fakeOwnerStore{}
 
 			svc := makeService(svr, cs, os)
-			_, err := svc.GetApp(ctxWithSession(), "nonexistent")
+			detail, err := svc.GetApp(ctxWithSession(), "app-1")
 
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, configsource.ErrAppNotFound)
+			So(err, ShouldBeNil)
+			So(detail.OwnerEmail, ShouldEqual, "")
 		})
 	})
 }

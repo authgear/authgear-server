@@ -72,12 +72,14 @@ func (i *InputSchemaAccountLinkingIdentification) MakeInput(ctx context.Context,
 type InputAccountLinkingIdentification struct {
 	Index int `json:"index,omitempty"`
 
-	RedirectURI  string `json:"redirect_uri,omitempty"`
-	ResponseMode string `json:"response_mode,omitempty"`
+	RedirectURI   string                      `json:"redirect_uri,omitempty"`
+	ResponseMode  string                      `json:"response_mode,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputAccountLinkingIdentification{}
 var _ inputTakeAccountLinkingIdentification = &InputAccountLinkingIdentification{}
+var _ inputTakeBotProtection = &InputAccountLinkingIdentification{}
 
 func (*InputAccountLinkingIdentification) Input() {}
 
@@ -89,4 +91,19 @@ func (i *InputAccountLinkingIdentification) GetAccountLinkingOAuthRedirectURI() 
 }
 func (i *InputAccountLinkingIdentification) GetAccountLinkingOAuthResponseMode() string {
 	return i.ResponseMode
+}
+func (i *InputAccountLinkingIdentification) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+func (i *InputAccountLinkingIdentification) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+func (i *InputAccountLinkingIdentification) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

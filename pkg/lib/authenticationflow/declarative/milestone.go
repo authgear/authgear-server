@@ -262,6 +262,7 @@ type MilestoneUseAccountLinkingIdentification interface {
 	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
 	MilestoneUseAccountLinkingIdentificationRedirectURI() string
 	MilestoneUseAccountLinkingIdentificationResponseMode() string
+	MilestoneUseAccountLinkingIdentificationBotProtection() *InputTakeBotProtectionBody
 }
 
 type MilestonePromptCreatePasskey interface {

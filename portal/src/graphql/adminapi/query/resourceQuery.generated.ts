@@ -8,7 +8,7 @@ export type ResourceQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type ResourceQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, clientIDs: Array<string>, createdAt: any, updatedAt: any } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
+export type ResourceQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'FraudProtectionDecisionRecord' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, clientIDs: Array<string>, createdAt: any, updatedAt: any } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
 
 
 export const ResourceQueryDocument = gql`

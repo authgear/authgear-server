@@ -9,8 +9,9 @@ func init() {
 }
 
 type NodeUseAccountLinkingIdentification struct {
-	Option   AccountLinkingIdentificationOption `json:"option,omitempty"`
-	Conflict *AccountLinkingConflict            `json:"conflict,omitempty"`
+	Option        AccountLinkingIdentificationOption `json:"option,omitempty"`
+	Conflict      *AccountLinkingConflict            `json:"conflict,omitempty"`
+	BotProtection *InputTakeBotProtectionBody        `json:"bot_protection,omitempty"`
 
 	// oauth
 	RedirectURI  string `json:"redirect_uri,omitempty"`
@@ -37,4 +38,7 @@ func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentifi
 }
 func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationResponseMode() string {
 	return n.ResponseMode
+}
+func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationBotProtection() *InputTakeBotProtectionBody {
+	return n.BotProtection
 }

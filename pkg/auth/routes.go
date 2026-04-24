@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/useragentblocklist"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -26,7 +28,7 @@ func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
 	return newSessionMiddleware(deps)
 }
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) http.Handler {
+func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configsource.ConfigSource) http.Handler {
 
 	newSessionMiddleware := func() httproute.Middleware {
 		return p.Middleware(newAllSessionMiddleware)
@@ -37,6 +39,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Health(p.RootHandler(newHealthzHandler))
 
 	baseChain := httproute.Chain(
+		useragentblocklist.NewMiddleware(useragentblocklist.MustLoad(ctx, p.BaseResources)),
 		p.RootMiddleware(newContextHolderMiddleware),
 		httproute.MiddlewareFunc(slogutil.UserAgentMiddleware),
 		p.RootMiddleware(newOtelMiddleware),

@@ -376,6 +376,9 @@ enum AuditLogActivityType {
   EMAIL_SUPPRESSED
 
   """"""
+  FRAUD_PROTECTION_DECISION_RECORDED
+
+  """"""
   IDENTITY_BIOMETRIC_DISABLED
 
   """"""
@@ -1024,6 +1027,149 @@ interface Entity {
 }
 
 """"""
+enum FraudProtectionAction {
+  """"""
+  send_sms
+}
+
+""""""
+enum FraudProtectionDecision {
+  """"""
+  allowed
+
+  """"""
+  blocked
+}
+
+""""""
+union FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSMSActionDetail
+
+""""""
+type FraudProtectionDecisionRecord implements Node {
+  """"""
+  action: FraudProtectionAction!
+
+  """"""
+  actionDetail: FraudProtectionDecisionActionDetail!
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  data: FraudProtectionDecisionRecordData
+
+  """"""
+  decision: FraudProtectionDecision!
+
+  """"""
+  geoLocationCode: String
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  ipAddress: String
+
+  """"""
+  triggeredWarnings: [FraudProtectionWarningType!]!
+
+  """"""
+  userAgent: String
+}
+
+"""A connection to a list of items."""
+type FraudProtectionDecisionRecordConnection {
+  """Information to aid in pagination."""
+  edges: [FraudProtectionDecisionRecordEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""
+The `FraudProtectionDecisionRecordData` scalar type represents the raw fraud protection decision record payload.
+"""
+scalar FraudProtectionDecisionRecordData
+
+"""An edge in a connection"""
+type FraudProtectionDecisionRecordEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: FraudProtectionDecisionRecord
+}
+
+""""""
+type FraudProtectionDecisionSendSMSActionDetail {
+  """"""
+  phoneNumberCountryCode: String
+
+  """"""
+  recipient: String!
+
+  """"""
+  type: String!
+}
+
+""""""
+type FraudProtectionOverview {
+  """"""
+  sendSMS: FraudProtectionOverviewSendSMS!
+}
+
+""""""
+type FraudProtectionOverviewSendSMS {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
+
+  """"""
+  topSourceIPs: [FraudProtectionOverviewTopSourceIP!]!
+
+  """"""
+  total: Int!
+}
+
+""""""
+type FraudProtectionOverviewTopSourceIP {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
+
+  """"""
+  ipAddress: String!
+
+  """"""
+  total: Int!
+}
+
+""""""
+enum FraudProtectionWarningType {
+  """"""
+  SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
+
+  """"""
+  SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
+
+  """"""
+  SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
+
+  """"""
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
+
+  """"""
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+}
+
+""""""
 input GenerateOOBOTPCodeInput {
   """Purpose of the generated OTP code."""
   purpose: OTPPurpose
@@ -1385,6 +1531,12 @@ type PageInfo {
 type Query {
   """Audit logs"""
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
+
+  """Fraud protection decision records"""
+  fraudProtectionLogs(after: String, before: String, first: Int, last: Int, maximumWarningCount: Int, minimumWarningCount: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection
+
+  """Fraud protection overview"""
+  fraudProtectionOverview(rangeFrom: DateTime, rangeTo: DateTime): FraudProtectionOverview!
 
   """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User

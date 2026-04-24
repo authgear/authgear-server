@@ -1,9 +1,14 @@
-import { visit, cache, session, PageSnapshot } from "@hotwired/turbo";
+import { visit, cache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios from "axios";
 import { progressEventHandler } from "../loading";
 import { LoadingController } from "./loading";
 import { handleAxiosError } from "./alert-message";
+
+function replaceDocument(html: string) {
+  const nextDocument = new DOMParser().parseFromString(html, "text/html");
+  document.documentElement.replaceWith(nextDocument.documentElement);
+}
 
 // Turbo has builtin support for form submission.
 // We once migrated to use it.
@@ -18,7 +23,7 @@ import { handleAxiosError } from "./alert-message";
 // See https://github.com/authgear/authgear-server/issues/2333
 //
 // To disable the builtin form submission of Turbo,
-// we call `Turbo.setFormMode("off")`.
+// we set `Turbo.config.forms.mode = "off"`.
 export class TurboFormController extends Controller {
   forms: HTMLFormElement[] = [];
 
@@ -86,11 +91,9 @@ export class TurboFormController extends Controller {
 
       if (typeof resp.data === "string") {
         // Not a json, it could be an error page.
-        // Display it.
-        // Ref: https://github.com/hotwired/turbo/blob/main/src/core/drive/navigator.js#L92-L107
-        const snapshot = PageSnapshot.fromHTMLString(resp.data);
-        await session.view.renderPage(snapshot, false, true);
-        session.view.clearSnapshotCache();
+        // Replace current document with the server-rendered HTML.
+        cache.clear();
+        replaceDocument(resp.data);
         return;
       }
 

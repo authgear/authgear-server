@@ -26,12 +26,12 @@ paths:
             minimum: 1
         - name: page_size
           in: query
-          description: Number of apps per page. Defaults to 20, maximum 100.
+          description: Number of apps per page. Defaults to 20, maximum 20.
           schema:
             type: integer
             default: 20
             minimum: 1
-            maximum: 100
+            maximum: 20
         - name: app_id
           in: query
           description: Filter by app ID.
@@ -43,6 +43,29 @@ paths:
           schema:
             type: string
             format: email
+        - name: plan
+          in: query
+          description: Filter by plan name.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Field to sort by. Defaults to `created_at`.
+          schema:
+            type: string
+            enum:
+              - created_at
+              - mau
+            default: created_at
+        - name: order
+          in: query
+          description: Sort direction. Defaults to `desc`.
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
       responses:
         "200":
           description: A list of apps
@@ -482,6 +505,7 @@ components:
         - owner_email
         - plan
         - created_at
+        - last_month_mau
       properties:
         id:
           type: string
@@ -497,6 +521,9 @@ components:
           type: string
           format: date-time
           description: The time the app was created, in RFC 3339 format
+        last_month_mau:
+          type: integer
+          description: Monthly active users in the last complete calendar month. 0 if no data is available.
 
     AppDetail:
       allOf:

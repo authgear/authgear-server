@@ -6,7 +6,7 @@
 
   {{ $title := include "v2.page.fatal-error.default.title" nil }}
   {{ if .Error }}
-    {{ if eq .Error.reason "WebUIInvalidSession" }}
+    {{ if or (eq .Error.reason "WebUIInvalidSession") (eq .Error.reason "AuthenticationFlowNotFound") }}
       {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
     {{ end }}
     {{ if eq .Error.reason "AccountManagementTokenInvalid" }}
@@ -37,7 +37,7 @@
 
   {{ $error_message := include "v2.error.server" nil }}
   {{ if .Error }}
-    {{ if eq .Error.reason "WebUIInvalidSession" }}
+    {{ if or (eq .Error.reason "WebUIInvalidSession") (eq .Error.reason "AuthenticationFlowNotFound") }}
       {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
     {{ else if eq .Error.reason "AuthenticationFlowNoPublicSignup" nil }}
       {{ $error_message = include "v2.error.no-public-signup" nil }}

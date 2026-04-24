@@ -681,6 +681,48 @@ export interface NetworkProtectionConfig {
   ip_filter?: IPFilterConfig;
 }
 
+export type FraudProtectionDecisionAction =
+  | "record_only"
+  | "deny_if_any_warning";
+
+export enum FraudProtectionWarningType {
+  SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED = "SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED",
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED = "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED",
+  SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED = "SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED",
+  SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED = "SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED",
+  SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED = "SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED",
+}
+
+export interface FraudProtectionIPAlwaysAllow {
+  cidrs?: string[];
+  geo_location_codes?: string[];
+}
+
+export interface FraudProtectionPhoneNumberAlwaysAllow {
+  geo_location_codes?: string[];
+  regex?: string[];
+}
+
+export interface FraudProtectionAlwaysAllow {
+  ip_address?: FraudProtectionIPAlwaysAllow;
+  phone_number?: FraudProtectionPhoneNumberAlwaysAllow;
+}
+
+export interface FraudProtectionDecision {
+  always_allow?: FraudProtectionAlwaysAllow;
+  action?: FraudProtectionDecisionAction;
+}
+
+export interface FraudProtectionWarning {
+  type: FraudProtectionWarningType;
+}
+
+export interface FraudProtectionConfig {
+  enabled?: boolean;
+  warnings?: FraudProtectionWarning[];
+  decision?: FraudProtectionDecision;
+}
+
 export interface IPFilterConfig {
   default_action?: IPFilterAction;
   rules?: IPFilterRule[];
@@ -719,6 +761,7 @@ export interface PortalAPIAppConfig {
   account_anonymization?: AccountAnonymizationConfig;
   google_tag_manager?: GoogleTagManagerConfig;
   bot_protection?: BotProtectionConfig;
+  fraud_protection?: FraudProtectionConfig;
   saml?: SAMLConfig;
   network_protection?: NetworkProtectionConfig;
 }
@@ -916,6 +959,7 @@ export interface PortalAPIFeatureConfig {
   audit_log?: AuditLogFeatureConfig;
   google_tag_manager?: GoogleTagManagerFeatureConfig;
   messaging?: MessagingFeatureConfig;
+  fraud_protection?: FraudProtectionFeatureConfig;
   collaborator?: CollaboratorFeatureConfig;
 }
 
@@ -944,6 +988,10 @@ export interface CollaboratorFeatureConfig {
 
 export interface GoogleTagManagerFeatureConfig {
   disabled?: boolean;
+}
+
+export interface FraudProtectionFeatureConfig {
+  is_modifiable?: boolean;
 }
 
 export interface AuthenticationFeatureConfig {

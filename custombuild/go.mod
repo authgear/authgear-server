@@ -53,6 +53,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.0 // indirect
 	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/beevik/etree v1.6.0 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cert-manager/cert-manager v1.15.4 // indirect
@@ -154,6 +155,10 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pquerna/otp v1.5.0 // indirect
+	github.com/prometheus/client_golang v1.18.0 // indirect
+	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.46.0 // indirect
+	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/redis/go-redis/v9 v9.11.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect

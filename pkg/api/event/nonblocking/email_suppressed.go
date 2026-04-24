@@ -10,6 +10,7 @@ const (
 
 type EmailSuppressedEventPayload struct {
 	Description string `json:"description"`
+	Recipient   string `json:"recipient"`
 }
 
 func (e *EmailSuppressedEventPayload) NonBlockingEventType() event.Type {
