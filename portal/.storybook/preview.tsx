@@ -9,6 +9,8 @@ import {
 } from "../src/system-config";
 import "../src/index.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+/** Tabler icon font for `<i className="ti ti-…">` (e.g. login method configuration). */
+import "@tabler/icons/iconfont/tabler-icons.min.css";
 
 /** Match portal `ReactApp` Fluent palette so MessageBar, buttons, etc. match the website. */
 loadTheme(instantiateSystemConfig(defaultSystemConfig).themes.main);
