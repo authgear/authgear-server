@@ -64,7 +64,7 @@ func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
 			"user_id",
 			"activity_type",
 			"data",
-			"COALESCE(ip_address::text, '') AS ip_address",
+			"COALESCE(host(ip_address)::text, '') AS ip_address",
 			"COALESCE(data#>>'{payload,record,decision}', '') AS decision",
 			"COALESCE(jsonb_array_length((data->'payload'->'record'->'triggered_warnings')::jsonb), 0) AS warning_count",
 		).
@@ -105,7 +105,7 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		FromSelect(baseQuery, "records").
 		Where("ip_address <> ''").
 		GroupBy("ip_address").
-		OrderBy("COUNT(*) DESC", "ip_address ASC").
+		OrderBy("total_actions DESC", "ip_address ASC").
 		Limit(10)
 
 	rows, err := s.SQLExecutor.QueryWith(ctx, topIPsQuery)
