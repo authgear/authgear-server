@@ -106,6 +106,8 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 			// Reset to defaults: Enabled=true, all 5 warning types.
 			So(*appConfig.FraudProtection.Enabled, ShouldBeTrue)
 			So(len(appConfig.FraudProtection.Warnings), ShouldEqual, 5)
+			So(*appConfig.FraudProtection.SMS.UnverifiedOTPBudget.DailyRatio, ShouldEqual, 0.3)
+			So(*appConfig.FraudProtection.SMS.UnverifiedOTPBudget.HourlyRatio, ShouldEqual, 0.2)
 		})
 
 		Convey("fraud protection is left unchanged when IsModifiable is true", func() {
@@ -210,6 +212,8 @@ identity:
 			cfg2, err := config.Parse(ctx, data)
 			So(err, ShouldBeNil)
 			So(cfg, ShouldResemble, cfg2)
+			So(*cfg2.FraudProtection.SMS.UnverifiedOTPBudget.DailyRatio, ShouldEqual, 0.3)
+			So(*cfg2.FraudProtection.SMS.UnverifiedOTPBudget.HourlyRatio, ShouldEqual, 0.2)
 		})
 
 		Convey("parse validation", func() {

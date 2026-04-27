@@ -16,6 +16,49 @@ value:
   enabled: false
 ---
 part: FraudProtectionConfig
+name: sms-unverified-otp-budget
+error: null
+value:
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
+      by_phone_country:
+      - country_codes:
+        - HK
+        - SG
+        daily_ratio: 0.15
+        hourly_ratio: 0.1
+      - country_codes:
+        - JP
+        daily_ratio: 0.25
+---
+part: FraudProtectionConfig
+name: sms-unverified-otp-budget-invalid-daily-ratio
+error: |-
+  invalid value:
+  /sms/unverified_otp_budget/daily_ratio: maximum
+    map[actual:1.1 maximum:1]
+value:
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 1.1
+---
+part: FraudProtectionConfig
+name: sms-unverified-otp-budget-invalid-hourly-ratio
+error: |-
+  invalid value:
+  /sms/unverified_otp_budget/by_phone_country/0/hourly_ratio: minimum
+    map[actual:-0.1 minimum:0]
+value:
+  sms:
+    unverified_otp_budget:
+      by_phone_country:
+      - country_codes:
+        - HK
+        hourly_ratio: -0.1
+---
+part: FraudProtectionConfig
 name: invalid-key
 error: |-
   invalid value:
