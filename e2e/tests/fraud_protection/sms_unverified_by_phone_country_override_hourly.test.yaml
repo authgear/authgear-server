@@ -1,0 +1,175 @@
+name: Fraud protection - SMS unverified OTP country override changes matching country only
+authgear.yaml:
+  override: |
+    fraud_protection:
+      sms:
+        unverified_otp_budget:
+          by_phone_country:
+            - country_codes: ["SG"]
+              hourly_ratio: 0.1
+      warnings:
+        - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
+      decision:
+        action: deny_if_any_warning
+before:
+  - type: custom_audit_sql
+    custom_audit_sql:
+      path: ./pre_populate_sg_hk_metrics.sql
+steps:
+  # SG matches the override, so:
+  #   countryHourly=max(3, 120/6*0.1, 0*0.1)=3
+  # Flow 4 is blocked.
+  - name: sg flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: sg flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591231001"}
+  - name: sg flow 1 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: sg flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: sg flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591231002"}
+  - name: sg flow 2 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: sg flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: sg flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591231003"}
+  - name: sg flow 3 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: sg flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: sg flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591231004"}
+  - name: sg flow 4 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
+
+  # HK does not match the override, so it keeps the global hourly ratio:
+  #   countryHourly=max(3, 120/6*0.2, 0*0.2)=4
+  # Flow 4 still succeeds, and flow 5 is blocked.
+  - name: hk flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: hk flow 1 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85251231001"}
+  - name: hk flow 1 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: hk flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: hk flow 2 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85251231002"}
+  - name: hk flow 2 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: hk flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: hk flow 3 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85251231003"}
+  - name: hk flow 3 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: hk flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: hk flow 4 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85251231004"}
+  - name: hk flow 4 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: hk flow 5 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: hk flow 5 - identify phone
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85251231005"}
+  - name: hk flow 5 - send sms
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }

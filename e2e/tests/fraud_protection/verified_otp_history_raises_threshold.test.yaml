@@ -11,8 +11,8 @@ before:
 steps:
   # With 120 historical verified SG OTPs (2 days ago), the adaptive threshold
   # for SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY becomes:
-  #   rollingMax=120 → countryDaily=max(20, 120*0.2)=24 → countryHourly=max(3, 24/6)=4
-  # Without history, the threshold is 3.33 and flow 4 is blocked.
+  #   countryHourly=max(3, 120/6*0.2, 0*0.2)=4
+  # Without history, the threshold is 3 and flow 4 is blocked.
   # With history, the threshold is 4.0 so flow 4 now succeeds, and flow 5 is blocked.
 
   # Flow 1 - SG number, succeeds
