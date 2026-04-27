@@ -317,5 +317,5 @@ Create `pkg/siteadmin/service/plan_test.go` using `package service`, GoConvey, a
 |---|---|---|---|
 | 1 | Service | `pkg/siteadmin/service/plan.go` · `pkg/siteadmin/service/plan_test.go` · `pkg/siteadmin/service/deps.go` | `go test ./pkg/siteadmin/service/...` · `make fmt` |
 | 2 | Transport interfaces | `pkg/siteadmin/transport/handler_plans_list.go` · `pkg/siteadmin/transport/handler_app_plan_change.go` (add interfaces + Service fields, leave ServeHTTP as stub) | `go build ./pkg/siteadmin/...` · `make fmt` |
-| 3 | DI wiring | `pkg/siteadmin/deps.go` · `pkg/siteadmin/wire_gen.go` (via `go run github.com/google/wire/cmd/wire gen`) · `go mod tidy` | `go build ./pkg/siteadmin/... ./cmd/portal/...` · `make fmt` |
+| 3 | DI wiring | `pkg/siteadmin/deps.go` · `pkg/siteadmin/wire_gen.go` (via `go generate ./pkg/siteadmin/...`) · `go mod tidy` | `go build ./pkg/siteadmin/... ./cmd/portal/...` · `make fmt` |
 | 4 | Handler bodies | `pkg/siteadmin/transport/handler_plans_list.go` · `pkg/siteadmin/transport/handler_app_plan_change.go` (real ServeHTTP) · `.vettedpositions` · `make check-tidy` output | `go test ./pkg/siteadmin/...` · `make fmt` · `make lint` · `go run ./devtools/goanalysis ...` · `make sort-vettedpositions` · `make check-tidy` |
