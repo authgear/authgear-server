@@ -29,6 +29,16 @@ An example:
 ```yaml
 fraud_protection:
   enabled: true
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
+      by_phone_country:
+        - country_codes: ["HK", "SG"]
+          daily_ratio: 0.15
+          hourly_ratio: 0.1
+        - country_codes: ["JP"]
+          daily_ratio: 0.25
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
     - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
@@ -53,6 +63,10 @@ The default:
 ```yaml
 fraud_protection:
   enabled: true
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
     - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
@@ -63,6 +77,24 @@ fraud_protection:
     always_allow: {}
     action: record_only
 ```
+
+`fraud_protection.sms.unverified_otp_budget` (object) configures the adaptive budget for SMS unverified OTP warnings.
+
+- `daily_ratio` (number, optional): A decimal ratio applied to verified SMS OTP counts when computing daily thresholds. `0.3` means 30%. Default `0.3`.
+- `hourly_ratio` (number, optional): A decimal ratio applied to verified SMS OTP counts when computing hourly thresholds. `0.2` means 20%. Default `0.2`.
+- `by_phone_country` (array of objects, optional): Per phone-country overrides. Each item contains:
+  - `country_codes` (array of strings): ISO 3166-1 alpha-2 country codes of the recipient phone number countries that share the same ratios.
+  - `daily_ratio` (number, optional): Overrides the global `daily_ratio` for this phone country.
+  - `hourly_ratio` (number, optional): Overrides the global `hourly_ratio` for this phone country.
+- Optional fields should be treated as nullable in the schema so explicit `null` is accepted the same as omission.
+
+The `by_phone_country` list is ordered. For a given phone country, use the first override item whose `country_codes` list contains that country code. Each `country_codes` list must not contain duplicates.
+
+The effective ratios are resolved as follows:
+
+1. For `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED`, use the matching override's `daily_ratio` if present; otherwise use the global `daily_ratio`.
+2. For `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED`, use the matching override's `hourly_ratio` if present; otherwise use the global `hourly_ratio`.
+3. For `SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED` and `SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED`, always use the global ratios. Phone-country overrides do not apply to IP-based metrics.
 
 **authgear.features.yaml**
 
@@ -110,37 +142,39 @@ The threshold is 3.
 #### SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs for a specific phone number country exceeds the daily threshold in 24 hours.
 
+Let `daily_ratio` be the effective ratio for the recipient phone number country.
+
 ```
 threshold = max(
   20,                                                    # (1)
-  verified_otps_to_country_past_14_days_rolling_max * 0.2,  # (2)
-  verified_otps_to_country_past_24h * 0.2               # (3)
+  verified_otps_to_country_past_14_days_rolling_max * daily_ratio,  # (2)
+  verified_otps_to_country_past_24h * daily_ratio               # (3)
 )
 ```
 
 - **(1) Constant lower bound**: Allows a minimum of 20 unverified OTPs regardless of history. This handles the initial launch period when there is no verified OTP data yet.
-- **(2) 14-day rolling max × 20%**: Provides a stable baseline quota derived from historical traffic. Using the rolling max (rather than average) ensures the threshold does not drop too aggressively after a high-traffic day.
-- **(3) Past 24h verified × 20%**: Adapts to sudden traffic spikes. Using the same multiplier as the historical baseline ensures factor (3) only becomes the binding factor on true spike days — when today's verified OTP volume significantly exceeds the 14-day max.
+- **(2) 14-day rolling max × daily ratio**: Provides a stable baseline quota derived from historical traffic. Using the rolling max (rather than average) ensures the threshold does not drop too aggressively after a high-traffic day.
+- **(3) Past 24h verified × daily ratio**: Adapts to sudden traffic spikes. Using the same ratio as the historical baseline ensures factor (3) only becomes the binding factor on true spike days, when today's verified OTP volume significantly exceeds the 14-day max.
 
 
 #### SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs for a specific phone number country exceeds the hourly threshold.
 
+Let `hourly_ratio` be the effective ratio for the recipient phone number country.
+
 ```
 threshold = max(
   3,                                                     # (1) lower bound
-  daily_threshold / 6,
-  verified_otps_to_country_past_1h * 0.2,               # (4)
+  verified_otps_to_country_past_14_days_rolling_max / 6 * hourly_ratio,  # (2)
+  verified_otps_to_country_past_1h * hourly_ratio,      # (3)
 )
 ```
 
-where `daily_threshold` is computed from `SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED`.
-
 - **(1) Constant lower bound**: Allows a minimum of 3 unverified OTPs per hour regardless of history.
-- **(daily / 6)**: The base hourly budget derived from the daily threshold.
-- **(4) Past 1h verified × 20%**: Handles traffic concentrated within a single hour (e.g., initial launch). Without this, a burst of legitimate traffic in one hour would produce a daily threshold that is reasonable, but an hourly threshold too low to reflect the actual activity in that hour.
+- **(2) 14-day rolling max / 6 × hourly ratio**: Provides a stable hourly baseline derived directly from historical daily traffic, without coupling the hourly threshold to the daily threshold.
+- **(3) Past 1h verified × hourly ratio**: Handles traffic concentrated within a single hour (e.g., initial launch). Without this, a burst of legitimate traffic in one hour could still exceed the historical hourly baseline even though the traffic is legitimate.
 
-The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simulate.py) demonstrates the formula behavior with mock data. Summary:
+The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simulate.py) demonstrates the formula behavior with mock data using the default global ratios (`0.3` for daily and `0.2` for hourly) and no phone-country overrides. Summary:
 
 ### ~1k SMS/day
 
@@ -166,16 +200,20 @@ The simulation script [`fraud-protection-simulate.py`](./fraud-protection-simula
 #### SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs from a single IP exceeds the threshold in the past 24 hours.
 
+Let `daily_ratio` be the global daily ratio.
+
 ```
-threshold = max(10, 0.2 * verified OTPs in the past 24 hours)
+threshold = max(10, daily_ratio * verified OTPs in the past 24 hours)
 ```
 
 
 #### SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
 Check if the number of unverified OTPs from a single IP exceeds the hourly threshold.
 
+Let `hourly_ratio` be the global hourly ratio.
+
 ```
-threshold = max(5, 0.2 * verified OTPs in the past 24 hours / 6)
+threshold = max(5, hourly_ratio * verified OTPs in the past 24 hours / 6)
 ```
 
 
@@ -281,6 +319,10 @@ When `action: record_only`, warnings are logged but the request is always allowe
 ```yaml
 fraud_protection:
   enabled: true
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
     - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
@@ -298,6 +340,10 @@ Triggered warnings will be recorded in logs but requests will always be allowed.
 ```yaml
 fraud_protection:
   enabled: true
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
     - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
@@ -312,7 +358,7 @@ fraud_protection:
 
 #### Country Based Risk Classification
 
-This feature is not introduced for now for simplicity. In the future, we may introduce a 3-level country risk classification (High, Mid, Low) to apply different thresholds per country based on their historical association with SMS pumping. This would allow the formula multipliers to vary by risk level rather than using a single universal multiplier.
+This feature is not introduced for now for simplicity. In the future, we may introduce a 3-level country risk classification (High, Mid, Low) to apply different thresholds per country based on their historical association with SMS pumping. This would allow the ratios to vary by risk level rather than using a single universal ratio. The explicit overrides in `fraud_protection.sms.unverified_otp_budget.by_phone_country` are the manual version of this idea.
 
 The classification could be configured via project config:
 
