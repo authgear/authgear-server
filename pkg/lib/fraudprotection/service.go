@@ -37,10 +37,6 @@ var ServiceLogger = slogutil.NewLogger("fraudprotection")
 var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
 
 const (
-	// thresholdScaleFactor is the fraction of historical verified-OTP counts
-	// used to set adaptive rate-limit thresholds (20%).
-	thresholdScaleFactor = 0.2
-
 	// thresholdHoursPerDay is the denominator for converting a daily threshold
 	// to an hourly one.
 	thresholdHoursPerDay = 6.0
@@ -243,6 +239,28 @@ func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, coun
 	return s.Metrics.RecordUnverifiedSMSOTPCountDrained(ctx, ip, phoneCountry, count)
 }
 
+func (s *Service) resolveSMSUnverifiedOTPBudget(phoneCountry string) (globalDaily, globalHourly, effectiveDaily, effectiveHourly float64) {
+	budget := s.Config.SMS.UnverifiedOTPBudget
+	globalDaily = *budget.DailyRatio
+	globalHourly = *budget.HourlyRatio
+	effectiveDaily = globalDaily
+	effectiveHourly = globalHourly
+
+	for _, override := range budget.ByPhoneCountry {
+		if slices.Contains(override.CountryCodes, phoneCountry) {
+			if override.DailyRatio != nil {
+				effectiveDaily = *override.DailyRatio
+			}
+			if override.HourlyRatio != nil {
+				effectiveHourly = *override.HourlyRatio
+			}
+			break
+		}
+	}
+
+	return
+}
+
 // ComputeThresholds queries MetricsStore for all 4 adaptive thresholds.
 func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string) (LeakyBucketThresholds, error) {
 	// Country-based thresholds require three queries.
@@ -267,27 +285,29 @@ func (s *Service) ComputeThresholds(ctx context.Context, ip, phoneCountry string
 		return LeakyBucketThresholds{}, err
 	}
 
+	globalDailyRatio, globalHourlyRatio, effectiveDailyRatio, effectiveHourlyRatio := s.resolveSMSUnverifiedOTPBudget(phoneCountry)
+
 	// Compute daily threshold for country.
 	countryDaily := math.Max(thresholdMinCountryDaily,
 		math.Max(
-			float64(rollingMax)*thresholdScaleFactor,
-			float64(verifiedByCountry24h)*thresholdScaleFactor,
+			float64(rollingMax)*effectiveDailyRatio,
+			float64(verifiedByCountry24h)*effectiveDailyRatio,
 		),
 	)
 
 	// Compute hourly threshold for country.
 	countryHourly := math.Max(thresholdMinCountryHourly,
 		math.Max(
-			countryDaily/thresholdHoursPerDay,
-			float64(verifiedByCountry1h)*thresholdScaleFactor,
+			float64(rollingMax)/thresholdHoursPerDay*effectiveHourlyRatio,
+			float64(verifiedByCountry1h)*effectiveHourlyRatio,
 		),
 	)
 
 	// Compute daily threshold for IP.
-	ipDaily := math.Max(thresholdMinIPDaily, float64(verifiedByIP24h)*thresholdScaleFactor)
+	ipDaily := math.Max(thresholdMinIPDaily, float64(verifiedByIP24h)*globalDailyRatio)
 
 	// Compute hourly threshold for IP.
-	ipHourly := math.Max(thresholdMinIPHourly, float64(verifiedByIP24h)*thresholdScaleFactor/thresholdHoursPerDay)
+	ipHourly := math.Max(thresholdMinIPHourly, float64(verifiedByIP24h)/thresholdHoursPerDay*globalHourlyRatio)
 
 	return LeakyBucketThresholds{
 		CountryHourly: countryHourly,
