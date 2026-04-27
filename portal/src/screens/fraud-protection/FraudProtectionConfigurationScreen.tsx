@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { IChoiceGroupOption, PivotItem } from "@fluentui/react";
+import { IChoiceGroupOption, ITag, PivotItem } from "@fluentui/react";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
 import { default as parseLibPhoneNumber } from "libphonenumber-js";
@@ -41,6 +41,8 @@ interface FormState {
   enforcementMode: FraudProtectionDecisionAction;
   ipAllowlist: string;
   phoneAllowlist: string;
+  ipCountryAllowlist: string[];
+  phoneCountryAllowlist: string[];
 }
 
 function splitAllowlist(raw: string): string[] {
@@ -113,6 +115,12 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       config.fraud_protection?.decision?.always_allow?.phone_number?.regex
         ?.map(toDisplayPhoneAllowlistItem)
         .join("\n") ?? "",
+    ipCountryAllowlist:
+      config.fraud_protection?.decision?.always_allow?.ip_address
+        ?.geo_location_codes ?? [],
+    phoneCountryAllowlist:
+      config.fraud_protection?.decision?.always_allow?.phone_number
+        ?.geo_location_codes ?? [],
   };
 }
 
@@ -145,6 +153,24 @@ function constructConfig(
       draft.fraud_protection.decision.always_allow.phone_number.regex = regex;
     } else {
       delete draft.fraud_protection.decision.always_allow.phone_number.regex;
+    }
+
+    const ipGeos = currentState.ipCountryAllowlist;
+    if (ipGeos.length > 0) {
+      draft.fraud_protection.decision.always_allow.ip_address.geo_location_codes =
+        ipGeos;
+    } else {
+      delete draft.fraud_protection.decision.always_allow.ip_address
+        .geo_location_codes;
+    }
+
+    const phoneGeos = currentState.phoneCountryAllowlist;
+    if (phoneGeos.length > 0) {
+      draft.fraud_protection.decision.always_allow.phone_number.geo_location_codes =
+        phoneGeos;
+    } else {
+      delete draft.fraud_protection.decision.always_allow.phone_number
+        .geo_location_codes;
     }
 
     clearEmptyObject(draft);
@@ -251,6 +277,26 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
       [setState]
     );
 
+    const onIPCountryAllowlistChange = useCallback(
+      (items?: ITag[]) => {
+        setState((current) => ({
+          ...current,
+          ipCountryAllowlist: items?.map((it) => it.key as string) ?? [],
+        }));
+      },
+      [setState]
+    );
+
+    const onPhoneCountryAllowlistChange = useCallback(
+      (items?: ITag[]) => {
+        setState((current) => ({
+          ...current,
+          phoneCountryAllowlist: items?.map((it) => it.key as string) ?? [],
+        }));
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent layout="list">
         <ScreenTitle className={styles.widget}>
@@ -316,9 +362,15 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
                     enforcementMode={state.enforcementMode}
                     ipAllowlist={state.ipAllowlist}
                     phoneAllowlist={state.phoneAllowlist}
+                    ipCountryAllowlist={state.ipCountryAllowlist}
+                    phoneCountryAllowlist={state.phoneCountryAllowlist}
                     onEnforcementModeChange={onEnforcementModeChange}
                     onIPAllowlistChange={onIPAllowlistChange}
                     onPhoneAllowlistChange={onPhoneAllowlistChange}
+                    onIPCountryAllowlistChange={onIPCountryAllowlistChange}
+                    onPhoneCountryAllowlistChange={
+                      onPhoneCountryAllowlistChange
+                    }
                   />
                 ) : null}
               </div>

@@ -1,20 +1,24 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { FraudProtectionDecisionAction } from "../../types";
 import FormTextField from "../../FormTextField";
+import CustomTagPicker from "../../CustomTagPicker";
+import { useMakeAlpha2Options } from "../../util/alpha2";
 import { APIError } from "../../error/error";
 import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
 import ChoiceGroupWithDescriptions, {
   ChoiceGroupWithDescriptionOption,
 } from "../common/ChoiceGroupWithDescriptions";
 import styles from "./FraudProtectionSettingsTab.module.css";
-import { IChoiceGroupOption } from "@fluentui/react";
+import { IChoiceGroupOption, ITag } from "@fluentui/react";
 
 export interface FraudProtectionSettingsTabProps {
   isModifiable: boolean;
   enforcementMode: FraudProtectionDecisionAction;
   ipAllowlist: string;
   phoneAllowlist: string;
+  ipCountryAllowlist: string[];
+  phoneCountryAllowlist: string[];
   onEnforcementModeChange: (
     event?: React.FormEvent<HTMLElement | HTMLInputElement>,
     option?: IChoiceGroupOption
@@ -27,6 +31,8 @@ export interface FraudProtectionSettingsTabProps {
     event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
     newValue?: string
   ) => void;
+  onIPCountryAllowlistChange: (items?: ITag[]) => void;
+  onPhoneCountryAllowlistChange: (items?: ITag[]) => void;
 }
 
 const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
@@ -36,11 +42,16 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       enforcementMode,
       ipAllowlist,
       phoneAllowlist,
+      ipCountryAllowlist,
+      phoneCountryAllowlist,
       onEnforcementModeChange,
       onIPAllowlistChange,
       onPhoneAllowlistChange,
+      onIPCountryAllowlistChange,
+      onPhoneCountryAllowlistChange,
     } = props;
     const { renderToString } = useContext(Context);
+    const { alpha2Options } = useMakeAlpha2Options();
 
     const enforcementModeOptions = useMemo<
       ChoiceGroupWithDescriptionOption[]
@@ -114,6 +125,50 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       [ipAllowlist, splitRawItems]
     );
 
+    const onResolveCountryCodeSuggestions = useCallback(
+      (filter: string): ITag[] => {
+        const matchedOptions = alpha2Options.filter(
+          (opt) =>
+            opt.key.startsWith(filter.toUpperCase()) ||
+            opt.text.toLowerCase().includes(filter.toLowerCase())
+        );
+        if (matchedOptions.length > 0) {
+          return matchedOptions.map((opt) => ({
+            key: opt.key,
+            name: opt.text,
+          }));
+        }
+        if (filter.length === 2) {
+          return [
+            {
+              key: filter.toUpperCase(),
+              name: filter.toUpperCase(),
+            },
+          ];
+        }
+        return [];
+      },
+      [alpha2Options]
+    );
+
+    const selectedIPCountryTags: ITag[] = useMemo(
+      () =>
+        ipCountryAllowlist.map((alpha2) => ({
+          key: alpha2,
+          name: alpha2Options.find((opt) => opt.key === alpha2)?.text ?? alpha2,
+        })),
+      [ipCountryAllowlist, alpha2Options]
+    );
+
+    const selectedPhoneCountryTags: ITag[] = useMemo(
+      () =>
+        phoneCountryAllowlist.map((alpha2) => ({
+          key: alpha2,
+          name: alpha2Options.find((opt) => opt.key === alpha2)?.text ?? alpha2,
+        })),
+      [phoneCountryAllowlist, alpha2Options]
+    );
+
     return (
       <section className={styles.section}>
         <ChoiceGroupWithDescriptions
@@ -126,7 +181,6 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           onChange={onEnforcementModeChange}
         />
         <FormTextField
-          className={styles.field}
           parentJSONPointer="/fraud_protection/decision/always_allow/ip_address"
           fieldName="cidrs"
           label={renderToString(
@@ -143,8 +197,16 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           onChange={onIPAllowlistChange}
           errorRules={ipAllowlistFieldErrorRules}
         />
+        <CustomTagPicker
+          label={renderToString(
+            "FraudProtectionConfigurationScreen.allowlist.ip.country.label"
+          )}
+          disabled={!isModifiable}
+          onResolveSuggestions={onResolveCountryCodeSuggestions}
+          selectedItems={selectedIPCountryTags}
+          onChange={onIPCountryAllowlistChange}
+        />
         <FormTextField
-          className={styles.field}
           parentJSONPointer="/fraud_protection/decision/always_allow/phone_number"
           fieldName="regex"
           label={renderToString(
@@ -159,6 +221,15 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           disabled={!isModifiable}
           value={phoneAllowlist}
           onChange={onPhoneAllowlistChange}
+        />
+        <CustomTagPicker
+          label={renderToString(
+            "FraudProtectionConfigurationScreen.allowlist.phone.country.label"
+          )}
+          disabled={!isModifiable}
+          onResolveSuggestions={onResolveCountryCodeSuggestions}
+          selectedItems={selectedPhoneCountryTags}
+          onChange={onPhoneCountryAllowlistChange}
         />
       </section>
     );
