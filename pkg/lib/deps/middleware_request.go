@@ -37,8 +37,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			ctx = otelutil.ContextWithClonedLabeler(ctx)
 			otelauthgear.SetProjectID(ctx, string(appCtx.Config.AppConfig.ID))
 
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
+			otelauthgear.ServeHTTPWithRequestCountMetric(ctx, w, r, next)
 			return nil
 		})
 		if err != nil {

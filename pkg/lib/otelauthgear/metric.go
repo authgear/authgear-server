@@ -301,6 +301,18 @@ var CounterFraudProtectionWarningCount = otelutil.MustInt64Counter(
 	metric.WithUnit("{warning}"),
 )
 
+// CounterHTTPRequestCount has the following labels:
+// - authgear.project_id
+// - authgear.client_id
+// This metric exist because we want to know http request of each project
+// but do not want to add high cardinality label authgear.project_id and authgear.client_id to the high volume http metrics
+var CounterHTTPRequestCount = otelutil.MustInt64Counter(
+	meter,
+	"authgear.http.request.count",
+	metric.WithDescription("The number of HTTP requests"),
+	metric.WithUnit("{request}"),
+)
+
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
 var HTTPServerRequestDurationHistogram, _ = httpconv.NewServerRequestDuration(
 	meter,

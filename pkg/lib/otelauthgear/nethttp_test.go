@@ -124,3 +124,42 @@ func TestHTTPInstrumentationMiddleware(t *testing.T) {
 		})
 	})
 }
+
+func TestServeHTTPWithStatus(t *testing.T) {
+	Convey("serveHTTPWithStatus", t, func() {
+		Convey("reports status code written by handler", func() {
+			var gotStatus int
+
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+			serveHTTPWithStatus(context.Background(), w, r, handler, func(ctx context.Context, statusCode int) {
+				gotStatus = statusCode
+			})
+
+			So(gotStatus, ShouldEqual, http.StatusNoContent)
+		})
+
+		Convey("reports 500 when panic happens before headers are written and re-panics", func() {
+			var gotStatus int
+			errPanic := errors.New("panic")
+
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				panic(errPanic)
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+			So(func() {
+				serveHTTPWithStatus(context.Background(), w, r, handler, func(ctx context.Context, statusCode int) {
+					gotStatus = statusCode
+				})
+			}, ShouldPanicWith, errPanic)
+
+			So(gotStatus, ShouldEqual, http.StatusInternalServerError)
+		})
+	})
+}
