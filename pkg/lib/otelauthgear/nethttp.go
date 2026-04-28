@@ -1,6 +1,7 @@
 package otelauthgear
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -17,15 +18,57 @@ type HTTPInstrumentationMiddleware struct {
 	TrustProxy config.TrustProxy
 }
 
+func serveHTTPWithStatus(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	next http.Handler,
+	onDone func(context.Context, int),
+) {
+	statusCode := 200
+	headerWritten := false
+	defer func() {
+		recovered := recover()
+		if recovered != nil {
+			if !headerWritten {
+				statusCode = 500
+			}
+		}
+		onDone(ctx, statusCode)
+		if recovered != nil {
+			panic(recovered)
+		}
+	}()
+
+	wrappedW := httpsnoop.Wrap(w, httpsnoop.Hooks{
+		WriteHeader: func(f httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+			return func(code int) {
+				f(code)
+
+				if !(code >= 100 && code <= 199) && !headerWritten {
+					statusCode = code
+					headerWritten = true
+				}
+			}
+		},
+	})
+	next.ServeHTTP(wrappedW, r.WithContext(ctx))
+}
+
+func ServeHTTPWithRequestCountMetric(ctx context.Context, w http.ResponseWriter, r *http.Request, next http.Handler) {
+	serveHTTPWithStatus(ctx, w, r, next, func(ctx context.Context, statusCode int) {
+		otelutil.IntCounterAddOne(
+			ctx,
+			CounterHTTPRequestCount,
+			WithHTTPStatusCode(statusCode),
+		)
+	})
+}
+
 func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Intentionally not calling .UTC() to use monotonic clock.
 		startTime := time.Now()
-
-		// 200 is the default.
-		// See the documentation of Write() of https://pkg.go.dev/net/http#ResponseWriter
-		statusCode := 200
-		headerWritten := false
 
 		ctx := r.Context()
 		// Assume the labeler has been put into context.
@@ -37,34 +80,9 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
 		labeler.Add(otelutil.HTTPURLScheme(scheme))
 
-		// Wrap w to capture status code.
-		w = httpsnoop.Wrap(w, httpsnoop.Hooks{
-			WriteHeader: func(f httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
-				return func(code int) {
-					f(code)
-
-					if !(code >= 100 && code <= 199) && !headerWritten {
-						statusCode = code
-						headerWritten = true
-					}
-				}
-			},
-		})
-
-		defer func() {
+		serveHTTPWithStatus(ctx, w, r, next, func(ctx context.Context, statusCode int) {
 			// Record the request duration.
 			requestDuration := time.Since(startTime)
-
-			r := recover()
-
-			// It was a panic and it was not recovered.
-			if r != nil {
-				// Status code was not written explicitly.
-				// Assume 500.
-				if !headerWritten {
-					statusCode = 500
-				}
-			}
 
 			// Prepare attributes that is known after serving the request.
 			statusCodeAttr := otelutil.HTTPResponseStatusCode(statusCode)
@@ -89,14 +107,6 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				seconds := requestDuration.Seconds()
 				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram.Inst(), seconds, options...)
 			}
-
-			// Re-throw the panic.
-			if r != nil {
-				panic(r)
-			}
-		}()
-
-		// Invoke the handler.
-		next.ServeHTTP(w, r)
+		})
 	})
 }

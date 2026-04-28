@@ -381,7 +381,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("BEGIN")),
-							metric.WithAttributes(semconv.DBQueryText("BEGIN")),
 						)
 					}()
 					tx, err := original()
@@ -403,7 +402,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("BEGIN")),
-							metric.WithAttributes(semconv.DBQueryText("BEGIN")),
 						)
 					}()
 					tx, err := original(ctx, opts)
@@ -425,7 +423,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("PREPARE")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					stmt, err := original(query)
@@ -447,7 +444,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("PREPARE")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					stmt, err := original(ctx, query)
@@ -469,7 +465,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Exec")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					result, err := original(query, args)
@@ -491,7 +486,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Exec")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					result, err := original(ctx, query, args)
@@ -513,7 +507,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Query")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					rows, err := original(query, args)
@@ -535,7 +528,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Query")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					rows, err := original(ctx, query, args)
@@ -562,7 +554,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Exec")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					result, err := original(args)
@@ -584,7 +575,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Exec")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					result, err := original(ctx, args)
@@ -606,7 +596,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Query")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					rows, err := original(args)
@@ -628,7 +617,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("Query")),
-							metric.WithAttributes(semconv.DBQueryText(query)),
 						)
 					}()
 					rows, err := original(ctx, args)
@@ -655,7 +643,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("COMMIT")),
-							metric.WithAttributes(semconv.DBQueryText("COMMIT")),
 						)
 					}()
 					return original()
@@ -673,7 +660,6 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 							seconds,
 							metric.WithAttributes(commonAttrs...),
 							metric.WithAttributes(semconv.DBOperationName("ROLLBACK")),
-							metric.WithAttributes(semconv.DBQueryText("ROLLBACK")),
 						)
 					}()
 					return original()

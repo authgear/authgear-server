@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -49,10 +50,14 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 		err := m.ConfigSource.ProvideContext(ctx, r, func(ctx context.Context, appCtx *config.AppContext) error {
 			ctx, ap := m.RootProvider.NewAppProvider(ctx, appCtx)
 			ctx = deps.WithAppProvider(ctx, ap)
+			// We create a new labeler from the global labeler.
+			// Add project specific labels to it.
+			// So metrics produced under this middleware have project specific labels.
+			// And metrics produced before this middleware have no project specific labels.
+			ctx = otelutil.ContextWithClonedLabeler(ctx)
 			otelauthgear.SetProjectID(ctx, string(appCtx.Config.AppConfig.ID))
 
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
+			otelauthgear.ServeHTTPWithRequestCountMetric(ctx, w, r, next)
 			return nil
 		})
 		if err != nil {
