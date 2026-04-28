@@ -19,6 +19,7 @@ type CreateOptions struct {
 	DatabaseURL    string
 	DatabaseSchema string
 	ResourceDir    string
+	Upsert         bool
 }
 
 func Create(ctx context.Context, opt *CreateOptions) error {
@@ -47,7 +48,7 @@ func Create(ctx context.Context, opt *CreateOptions) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	if err := createConfigSource(ctx, tx, appID, data); err != nil {
+	if err := createConfigSource(ctx, tx, appID, data, opt.Upsert); err != nil {
 		return fmt.Errorf("failed to create config source record: %w", err)
 	}
 
@@ -59,7 +60,7 @@ func Create(ctx context.Context, opt *CreateOptions) error {
 }
 
 // create config source record in db
-func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[string]string) error {
+func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[string]string, upsert bool) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -83,6 +84,10 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 			time.Now().UTC(),
 			time.Now().UTC(),
 		)
+
+	if upsert {
+		builder = builder.Suffix("ON CONFLICT (app_id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at")
+	}
 
 	q, args, err := builder.ToSql()
 	if err != nil {
