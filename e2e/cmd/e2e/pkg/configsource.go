@@ -41,6 +41,7 @@ func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceD
 		cfg.GlobalDatabase.DatabaseURL,
 		cfg.GlobalDatabase.DatabaseSchema,
 		configSourceDir,
+		true,
 	)
 	if err != nil {
 		return err

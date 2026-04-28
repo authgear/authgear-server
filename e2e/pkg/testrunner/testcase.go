@@ -29,6 +29,7 @@ var _ = TestCaseSchema.Add("TestCase", `
 	"properties": {
 		"name": { "type": "string" },
 		"focus": { "type": "boolean" },
+		"app_id": { "type": "string", "description": "Fixed app ID; random if omitted" },
 		"authgear.yaml": { "$ref": "#/$defs/AuthgearYAMLSource" },
 		"authgear.features.yaml": { "$ref": "#/$defs/AuthgearFeaturesYAMLSource" },
 		"extra_files_directory": { "type": "string" },
@@ -44,7 +45,9 @@ type TestCase struct {
 	Path string `json:"path"`
 	// Applying focus to a test case will make it the only test case to run,
 	// mainly used for debugging new test cases.
-	Focus                      bool                       `json:"focus"`
+	Focus bool `json:"focus"`
+	// AppID fixes the app ID for this test case. If empty, a random ID is generated.
+	AppID                      string                     `json:"app_id"`
 	AuthgearYAMLSource         AuthgearYAMLSource         `json:"authgear.yaml"`
 	AuthgearFeaturesYAMLSource AuthgearFeaturesYAMLSource `json:"authgear.features.yaml"`
 	ExtraFilesDirectory        string                     `json:"extra_files_directory"`
@@ -59,6 +62,7 @@ func (tc *TestCase) FullName() string {
 func (tc *TestCase) Run(t *testing.T) {
 	// Create project per test case
 	cmd, err := NewEnd2EndCmd(NewEnd2EndCmdOptions{
+		AppID:    tc.AppID,
 		TestCase: tc,
 		Test:     t,
 	})
