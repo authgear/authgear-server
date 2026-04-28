@@ -22,4 +22,3 @@ func ContextWithClonedLabeler(ctx context.Context, attrs ...attribute.KeyValue) 
 	}
 	return otelhttp.ContextWithLabeler(ctx, clonedLabeler)
 }
-
