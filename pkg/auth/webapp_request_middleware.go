@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -49,6 +50,7 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 		err := m.ConfigSource.ProvideContext(ctx, r, func(ctx context.Context, appCtx *config.AppContext) error {
 			ctx, ap := m.RootProvider.NewAppProvider(ctx, appCtx)
 			ctx = deps.WithAppProvider(ctx, ap)
+			ctx = otelutil.ContextWithClonedLabeler(ctx)
 			otelauthgear.SetProjectID(ctx, string(appCtx.Config.AppConfig.ID))
 
 			r = r.WithContext(ctx)

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -33,6 +34,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		err := m.ConfigSource.ProvideContext(ctx, r, func(ctx context.Context, appCtx *config.AppContext) error {
 			ctx, ap := m.RootProvider.NewAppProvider(ctx, appCtx)
 			ctx = withProvider(ctx, ap)
+			ctx = otelutil.ContextWithClonedLabeler(ctx)
 			otelauthgear.SetProjectID(ctx, string(appCtx.Config.AppConfig.ID))
 
 			r = r.WithContext(ctx)
