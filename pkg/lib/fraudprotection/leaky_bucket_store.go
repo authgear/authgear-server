@@ -131,11 +131,11 @@ type LeakyBucketStore struct {
 	Clock clock.Clock
 }
 
-// RecordSMSOTPSent atomically fills all 4 leaky buckets and updates the ip_countries ZSET.
+// RecordUnverifiedSMSOTPSent atomically fills all 4 leaky buckets and updates the ip_countries ZSET.
 // Returns LeakyBucketTriggered indicating which warning conditions are now exceeded,
 // and LeakyBucketLevels with the current level of each bucket after the fill.
 // Called BEFORE the SMS send; blocked requests are still counted as attack signals.
-func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
+func (s *LeakyBucketStore) RecordUnverifiedSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error) {
 	now := float64(s.Clock.NowUTC().Unix())
 	var triggered LeakyBucketTriggered
 	var levels LeakyBucketLevels
@@ -216,9 +216,9 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 	return triggered, levels, nil
 }
 
-// RecordSMSOTPVerified drains all 4 leaky buckets by count units (fire-and-forget).
+// DrainUnverifiedSMSOTPSent drains all 4 leaky buckets by count units.
 // count is the number of unverified sends to cancel out.
-func (s *LeakyBucketStore) RecordSMSOTPVerified(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error {
+func (s *LeakyBucketStore) DrainUnverifiedSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error {
 	now := float64(s.Clock.NowUTC().Unix())
 	n := -count // negative n drains the bucket
 

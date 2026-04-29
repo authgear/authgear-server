@@ -24,11 +24,27 @@ steps:
     input: |
       {"code": "111111"}
 
-  # After OTP verification, 2 rows should be written to _audit_metrics:
-  # one for the IP dimension and one for the phone_country dimension.
+  # After OTP verification:
+  # - sms_otp_verified has 2 rows (IP + phone_country)
+  # - sms_otp_unverified_count_drained has 2 rows (IP + phone_country)
   - name: check audit metrics rows
     action: audit_query
     audit_query: |
-      SELECT id FROM _audit_metrics WHERE app_id = '{{ .AppID }}' AND name = 'sms_otp_verified' ORDER BY created_at
+      SELECT name, COUNT(*) AS n
+      FROM _audit_metrics
+      WHERE app_id = '{{ .AppID }}'
+        AND name IN ('sms_otp_unverified_count_drained', 'sms_otp_verified')
+      GROUP BY name
+      ORDER BY name
     audit_query_output:
-      rows: '[{"id": "[[string]]"}, {"id": "[[string]]"}]'
+      rows: |
+        [
+          {
+            "name": "sms_otp_unverified_count_drained",
+            "n": "2"
+          },
+          {
+            "name": "sms_otp_verified",
+            "n": "2"
+          }
+        ]

@@ -201,3 +201,26 @@ steps:
             "type": "verify_account_recovery_code"
           }
         }
+
+  - name: check audit metrics for drained-versus-verified counts
+    action: audit_query
+    audit_query: |
+      SELECT
+        SUM(CASE WHEN name = 'sms_otp_unverified_count_drained' THEN 1 ELSE 0 END) / 2 AS drained_events,
+        SUM(CASE WHEN name = 'sms_otp_verified' THEN 1 ELSE 0 END) / 2 AS verified_events,
+        (
+          SUM(CASE WHEN name = 'sms_otp_unverified_count_drained' THEN 1 ELSE 0 END) -
+          SUM(CASE WHEN name = 'sms_otp_verified' THEN 1 ELSE 0 END)
+        ) / 2 AS unverified_cleanup_events
+      FROM _audit_metrics
+      WHERE app_id = '{{ .AppID }}'
+        AND name IN ('sms_otp_unverified_count_drained', 'sms_otp_verified')
+    audit_query_output:
+      rows: |
+        [
+          {
+            "drained_events": "1",
+            "verified_events": "1",
+            "unverified_cleanup_events": "0"
+          }
+        ]

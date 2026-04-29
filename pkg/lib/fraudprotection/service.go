@@ -55,6 +55,7 @@ const (
 // MetricsQuerier is the interface for querying and writing verified-OTP metrics.
 type MetricsQuerier interface {
 	RecordVerified(ctx context.Context, ip, phoneCountry string) error
+	RecordUnverifiedSMSOTPCountDrained(ctx context.Context, ip, phoneCountry string, count int) error
 	GetVerifiedByCountry24h(ctx context.Context, country string) (int64, error)
 	GetVerifiedByCountry1h(ctx context.Context, country string) (int64, error)
 	GetVerifiedByIP24h(ctx context.Context, ip string) (int64, error)
@@ -63,8 +64,8 @@ type MetricsQuerier interface {
 
 // LeakyBucketer is the interface for filling and draining the SMS leaky buckets.
 type LeakyBucketer interface {
-	RecordSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error)
-	RecordSMSOTPVerified(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error
+	RecordUnverifiedSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds) (LeakyBucketTriggered, LeakyBucketLevels, error)
+	DrainUnverifiedSMSOTPSent(ctx context.Context, ip, phoneCountry string, thresholds LeakyBucketThresholds, count int) error
 	RecordSMSOTPVerifiedCountry(ctx context.Context, ip, phoneCountry string) error
 }
 
@@ -108,7 +109,7 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		return err
 	}
 
-	triggered, levels, err := s.LeakyBucket.RecordSMSOTPSent(ctx, ip, phoneCountry, thresholds)
+	triggered, levels, err := s.LeakyBucket.RecordUnverifiedSMSOTPSent(ctx, ip, phoneCountry, thresholds)
 	if err != nil {
 		return err
 	}
@@ -214,7 +215,8 @@ func (s *Service) RecordSMSOTPVerified(ctx context.Context, phoneNumber string) 
 	return s.RevertSMSOTPSent(ctx, phoneNumber, 1)
 }
 
-// RevertSMSOTPSent drains all 4 leaky buckets by count units — no PostgreSQL write.
+// RevertSMSOTPSent drains all 4 leaky buckets by count units and records the
+// drain count in PostgreSQL audit metrics.
 // Used for alt-auth exclusion (unverified OTPs that should not count against limits).
 func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, count int) error {
 	if !*s.Config.Enabled {
@@ -235,7 +237,10 @@ func (s *Service) RevertSMSOTPSent(ctx context.Context, phoneNumber string, coun
 		return err
 	}
 
-	return s.LeakyBucket.RecordSMSOTPVerified(ctx, ip, phoneCountry, thresholds, count)
+	if err := s.LeakyBucket.DrainUnverifiedSMSOTPSent(ctx, ip, phoneCountry, thresholds, count); err != nil {
+		return err
+	}
+	return s.Metrics.RecordUnverifiedSMSOTPCountDrained(ctx, ip, phoneCountry, count)
 }
 
 // ComputeThresholds queries MetricsStore for all 4 adaptive thresholds.

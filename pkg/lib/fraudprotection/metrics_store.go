@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	thresholdCacheTTL         = 5 * time.Minute
-	metricsNameSMSOTPVerified = "sms_otp_verified"
-	auditMetricsTable         = "_audit_metrics"
+	thresholdCacheTTL                       = 5 * time.Minute
+	metricsNameSMSOTPVerified               = "sms_otp_verified"
+	metricsNameSMSOTPUnverifiedCountDrained = "sms_otp_unverified_count_drained"
+	auditMetricsTable                       = "_audit_metrics"
 )
 
 type MetricsStore struct {
@@ -38,18 +39,35 @@ type MetricsStore struct {
 // one for the IP dimension and one for the phone country dimension.
 // Called after an OTP is verified (fire-and-forget; caller ignores the returned error).
 func (s *MetricsStore) RecordVerified(ctx context.Context, ip, phoneCountry string) error {
+	return s.insertAuditMetricCount(ctx, metricsNameSMSOTPVerified, ip, phoneCountry, 1)
+}
+
+// RecordUnverifiedSMSOTPCountDrained inserts 2*count rows into _audit_metrics
+// in a single transaction: one row per unit for the IP dimension and one row
+// per unit for the phone country dimension.
+func (s *MetricsStore) RecordUnverifiedSMSOTPCountDrained(ctx context.Context, ip, phoneCountry string, count int) error {
+	return s.insertAuditMetricCount(ctx, metricsNameSMSOTPUnverifiedCountDrained, ip, phoneCountry, count)
+}
+
+func (s *MetricsStore) insertAuditMetricCount(ctx context.Context, metricName, ip, phoneCountry string, count int) error {
+	if count <= 0 {
+		return nil
+	}
+
 	now := s.Clock.NowUTC()
 	ipKey := fmt.Sprintf("ip:%s", ip)
 	countryKey := fmt.Sprintf("phone_country:%s", phoneCountry)
-	id1 := uuid.New()
-	id2 := uuid.New()
 
 	tableName := s.SQLBuilder.TableName(auditMetricsTable)
 	builder := s.SQLBuilder.
 		Insert(tableName).
-		Columns("id", "name", "key", "created_at").
-		Values(id1, metricsNameSMSOTPVerified, ipKey, now).
-		Values(id2, metricsNameSMSOTPVerified, countryKey, now)
+		Columns("id", "name", "key", "created_at")
+
+	for i := 0; i < count; i++ {
+		builder = builder.
+			Values(uuid.New(), metricName, ipKey, now).
+			Values(uuid.New(), metricName, countryKey, now)
+	}
 
 	return s.AuditWriteDatabase.WithTx(ctx, func(ctx context.Context) error {
 		_, err := s.WriteSQLExecutor.ExecWith(ctx, builder)
