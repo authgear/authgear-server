@@ -169,3 +169,66 @@ steps:
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
   http_output:
     http_status: 403
+
+# ── Promote ───────────────────────────────────────────────────────────────────
+- name: get_gamma_editor_collab
+  action: query
+  query: |
+    SELECT id FROM _portal_app_collaborator
+    WHERE app_id = 'e2e-siteadmin-app-gamma'
+    AND user_id = '00000000-0000-0000-0000-000000000004'
+  query_output:
+    rows: |
+      [{"id": "[[string]]"}]
+
+- name: promote editor to owner
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-gamma/collaborators/{{ index (index .steps.get_gamma_editor_collab.result.rows 0) "id" }}/promote
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "[[string]]",
+        "app_id": "e2e-siteadmin-app-gamma",
+        "user_id": "00000000-0000-0000-0000-000000000004",
+        "user_email": "editor@example.com",
+        "role": "owner",
+        "created_at": "[[string]]"
+      }
+
+- name: verify roles swapped after promote
+  action: query
+  query: |
+    SELECT user_id, role FROM _portal_app_collaborator
+    WHERE app_id = 'e2e-siteadmin-app-gamma'
+    ORDER BY role
+  query_output:
+    rows: |
+      [
+        {"user_id": "00000000-0000-0000-0000-000000000005", "role": "editor"},
+        {"user_id": "00000000-0000-0000-0000-000000000004", "role": "owner"}
+      ]
+
+- name: promote already-owner returns 409
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-gamma/collaborators/{{ index (index .steps.get_gamma_editor_collab.result.rows 0) "id" }}/promote
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 409
+
+- name: promote non-existent collaborator returns 404
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-gamma/collaborators/00000000-0000-0000-0000-000000000099/promote
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 404
