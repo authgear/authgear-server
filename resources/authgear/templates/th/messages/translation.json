@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "ล็อกอินเข้า {{ template \"app.name\" }} ด้วยอีเมลและรหัสผ่านชั่วคราวของคุณ โปรดเปลี่ยนรหัสผ่านของคุณหลังจากล็อกอิน"
   },
-  "UsageAlertEmail": {
-    "Title": "มีการแจ้งเตือนการใช้งานสำหรับ {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} ถึงเกณฑ์การใช้งานที่กำหนดสำหรับ {{ .Usage.Period }} {{ .Usage.Name }} แล้ว",
-    "Action": "การดำเนินการ: {{ .Usage.Action }}",
-    "Quota": "โควตา: {{ .Usage.Quota }}",
-    "CurrentValue": "ค่าปัจจุบัน: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template \"app.name\" }})",
+      "Body": "สวัสดี<br><br>โปรเจกต์ Authgear ของคุณ {{ template \"app.name\" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้<br><br>ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้<br><br>หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br><br>ด้วยความเคารพ<br>ทีม Authgear"
+    },
+    "Block": {
+      "Title": "การใช้งาน {{ .UsageDisplayName }} ถูกบล็อกแล้ว",
+      "Body": "สวัสดี<br><br>โปรเจกต์ของคุณ {{ template \"app.name\" }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว<br><br>เพื่อเรียกใช้บริการต่อ โปรดอัปเกรดแผนของคุณ<br><br>หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br><br>ด้วยความเคารพ<br>ทีม Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template \"app.name\" }})",
+      "Body": "สวัสดี\n\nโปรเจกต์ Authgear ของคุณ {{ template \"app.name\" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้\n\nไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้\n\nหากคุณมีคำถามใดๆ โปรดติดต่อเรา\n\nด้วยความเคารพ\nทีม Authgear"
+    },
+    "Block": {
+      "Title": "การใช้งาน {{ .UsageDisplayName }} ถูกบล็อกแล้ว",
+      "Body": "สวัสดี\n\nโปรเจกต์ของคุณ {{ template \"app.name\" }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว\n\nเพื่อเรียกใช้บริการต่อ โปรดอัปเกรดแผนของคุณ\n\nหากคุณมีคำถามใดๆ โปรดติดต่อเรา\n\nด้วยความเคารพ\nทีม Authgear"
+    }
   }
 }

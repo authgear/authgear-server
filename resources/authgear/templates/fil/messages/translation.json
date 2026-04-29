@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Mag-login sa {{ template \"app.name\" }} gamit ang iyong email at pansamantalang password. Pakibago ang iyong password pagkatapos mag-login."
   },
-  "UsageAlertEmail": {
-    "Title": "Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}",
-    "Body": "Naabot ng {{ template \"app.name\" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Aksyon: {{ .Usage.Action }}",
-    "Quota": "Quota: {{ .Usage.Quota }}",
-    "CurrentValue": "Kasalukuyang halaga: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Kumusta,<br><br>Ang iyong Authgear na proyekto, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.<br><br>Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
+    },
+    "Block": {
+      "Title": "Ang {{ .UsageDisplayName }} na paggamit ay na-block na",
+      "Body": "Kumusta,<br><br>Ang iyong proyekto, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.<br><br>Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Kumusta,\n\nAng iyong Authgear na proyekto, {{ template \"app.name\" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.\n\nWalang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.\n\nKung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
+    },
+    "Block": {
+      "Title": "Ang {{ .UsageDisplayName }} na paggamit ay na-block na",
+      "Body": "Kumusta,\n\nAng iyong proyekto, {{ template \"app.name\" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.\n\nUpang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.\n\nKung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.\n\nPinakamahusay,\nAuthgear Team"
+    }
   }
 }

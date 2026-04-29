@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Log masuk ke {{ template \"app.name\" }} dengan e-mel dan kata laluan sementara anda. Sila tukar kata laluan anda selepas log masuk."
   },
-  "UsageAlertEmail": {
-    "Title": "Amaran penggunaan dicetuskan untuk {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} telah mencapai ambang penggunaan yang dikonfigurasikan untuk {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Tindakan: {{ .Usage.Action }}",
-    "Quota": "Kuota: {{ .Usage.Quota }}",
-    "CurrentValue": "Nilai semasa: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hai,<br><br>Projek Authgear anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.<br><br>Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br><br>Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br><br>Terbaik,<br>Pasukan Authgear"
+    },
+    "Block": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} telah disekat",
+      "Body": "Hai,<br><br>Projek anda, {{ template \"app.name\" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.<br><br>Untuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.<br><br>Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br><br>Terbaik,<br>Pasukan Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Hai,\n\nProjek Authgear anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.\n\nTiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.\n\nJika anda mempunyai sebarang pertanyaan, sila hubungi kami.\n\nTerbaik,\nPasukan Authgear"
+    },
+    "Block": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} telah disekat",
+      "Body": "Hai,\n\nProjek anda, {{ template \"app.name\" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.\n\nUntuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.\n\nJika anda mempunyai sebarang pertanyaan, sila hubungi kami.\n\nTerbaik,\nPasukan Authgear"
+    }
   }
 }

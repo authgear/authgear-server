@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Amaran penggunaan dicetuskan untuk {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Penggunaan {{ .UsageDisplayName }} telah disekat{{ else }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasikan untuk {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Tindakan: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Kuota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Nilai semasa: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Hai,<br><br>Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.<br><br>Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br><br>Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br><br>Terbaik,<br>Pasukan Authgear{{ else if eq .UsageAction "block" }}Hai,<br><br>Projek anda, {{ template "app.name" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.<br><br>Untuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.<br><br>Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br><br>Terbaik,<br>Pasukan Authgear{{ else }}Hai,<br><br>Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh pengebilan ini.<br><br>Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br><br>Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br><br>Terbaik,<br>Pasukan Authgear{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

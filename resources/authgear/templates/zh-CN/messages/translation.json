@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "使用您的电子邮件和临时密码登录 {{ template \"app.name\" }}。登录后请更改您的密码。"
   },
-  "UsageAlertEmail": {
-    "Title": "已触发 {{ .Usage.Name }} 的使用提醒",
-    "Body": "{{ template \"app.name\" }} 已达到为 {{ .Usage.Period }} {{ .Usage.Name }} 配置的使用阈值。",
-    "Action": "操作：{{ .Usage.Action }}",
-    "Quota": "配额：{{ .Usage.Quota }}",
-    "CurrentValue": "当前值：{{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "您好，<br><br>您的 Authgear 项目 {{ template \"app.name\" }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。<br><br>目前无需采取任何行动。这只是一个提醒，以便您可以查看您的使用情况。<br><br>如有任何疑问，请联系我们。<br><br>此致<br>敬礼<br>Authgear 团队"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 使用量已被阻止",
+      "Body": "您好，<br><br>您的项目 {{ template \"app.name\" }} 在本计费周期内已达到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。额外的 {{ .UsageDisplayName }} 使用已被阻止。<br><br>要恢复服务，请升级您的计划。<br><br>如有任何疑问，请联系我们。<br><br>此致<br>敬礼<br>Authgear 团队"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "您好，\n\n您的 Authgear 项目 {{ template \"app.name\" }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。\n\n目前无需采取任何行动。这只是一个提醒，以便您可以查看您的使用情况。\n\n如有任何疑问，请联系我们。\n\n此致\n敬礼\nAuthgear 团队"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 使用量已被阻止",
+      "Body": "您好，\n\n您的项目 {{ template \"app.name\" }} 在本计费周期内已达到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。额外的 {{ .UsageDisplayName }} 使用已被阻止。\n\n要恢复服务，请升级您的计划。\n\n如有任何疑问，请联系我们。\n\n此致\n敬礼\nAuthgear 团队"
+    }
   }
 }

@@ -1,0 +1,103 @@
+name: Project usage alert email is delivered once when SMS usage is blocked
+authgear.yaml:
+  override: |
+    usage:
+      alerts:
+      - type: "email"
+        email: "usage-alert@example.com"
+        match: "sms"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "block"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231601"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: send sms 1
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: flow 2 - create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: flow 2 - identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231602"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: flow 2 - send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "UsageLimitExceeded",
+          "code": 429,
+          "info": {
+            "FlowType": "signup",
+            "name": "SMS",
+            "usage_name": "sms",
+            "period": "day"
+          }
+        }
+  - name: wait for email delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query smtp log
+    action: smtp_log_query
+    smtp_log_subject: "SMS usage has been blocked (Authgear)"
+    smtp_log_recipient: "usage-alert@example.com"
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "SMS usage has been blocked (Authgear)",
+            "recipient": "usage-alert@example.com"
+          }
+        ]

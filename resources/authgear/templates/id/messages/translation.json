@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Login ke {{ template \"app.name\" }} dengan email dan kata sandi sementara Anda. Harap ubah kata sandi Anda setelah login."
   },
-  "UsageAlertEmail": {
-    "Title": "Peringatan penggunaan dipicu untuk {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} telah mencapai ambang penggunaan yang dikonfigurasi untuk {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Tindakan: {{ .Usage.Action }}",
-    "Quota": "Kuota: {{ .Usage.Quota }}",
-    "CurrentValue": "Nilai saat ini: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Halo,<br><br>Proyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.<br><br>Tidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.<br><br>Jika Anda memiliki pertanyaan, silakan hubungi kami.<br><br>Terbaik,<br>Tim Authgear"
+    },
+    "Block": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} telah diblokir",
+      "Body": "Halo,<br><br>Proyek Anda, {{ template \"app.name\" }}, telah mencapai batas keras {{ .UsageQuota }} {{ .UsageDisplayName }} dalam periode penagihan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah diblokir.<br><br>Untuk melanjutkan layanan, silakan tingkatkan paket Anda.<br><br>Jika Anda memiliki pertanyaan, silakan hubungi kami.<br><br>Terbaik,<br>Tim Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} Anda telah mencapai {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Halo,\n\nProyek Authgear Anda, {{ template \"app.name\" }}, telah menggunakan {{ .UsageCurrentValue }} dari kuota {{ .UsageDisplayName }} untuk periode penagihan ini.\n\nTidak ada tindakan yang diperlukan saat ini. Ini hanya pemberitahuan agar Anda dapat meninjau penggunaan Anda.\n\nJika Anda memiliki pertanyaan, silakan hubungi kami.\n\nTerbaik,\nTim Authgear"
+    },
+    "Block": {
+      "Title": "Penggunaan {{ .UsageDisplayName }} telah diblokir",
+      "Body": "Halo,\n\nProyek Anda, {{ template \"app.name\" }}, telah mencapai batas keras {{ .UsageQuota }} {{ .UsageDisplayName }} dalam periode penagihan ini. Penggunaan {{ .UsageDisplayName }} tambahan telah diblokir.\n\nUntuk melanjutkan layanan, silakan tingkatkan paket Anda.\n\nJika Anda memiliki pertanyaan, silakan hubungi kami.\n\nTerbaik,\nTim Authgear"
+    }
   }
 }

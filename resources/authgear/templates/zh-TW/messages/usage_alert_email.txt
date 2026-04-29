@@ -1,7 +1,30 @@
-已觸發 {{ .Usage.Name }} 的用量提醒
+{{ if eq .UsageAction "alert" }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用量已被封鎖{{ else }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
-{{ template "app.name" }} 已達到為 {{ .Usage.Period }} {{ .Usage.Name }} 設定的使用量門檻。
+{{ if eq .UsageAction "alert" }}您好，
 
-動作：{{ .Usage.Action }}
-配額：{{ .Usage.Quota }}
-目前值：{{ .Usage.CurrentValue }}
+您的 Authgear 專案 {{ template "app.name" }} 在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。
+
+目前無需採取任何行動。這只是提醒您檢查您的使用情況。
+
+如有任何疑問，請聯絡我們。
+
+此致
+Authgear 團隊{{ else if eq .UsageAction "block" }}您好，
+
+您的專案 {{ template "app.name" }} 已在本計費週期內達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬性限制。額外的 {{ .UsageDisplayName }} 使用量已被封鎖。
+
+若要恢復服務，請升級您的方案。
+
+如有任何疑問，請聯絡我們。
+
+此致
+Authgear 團隊{{ else }}您好，
+
+您的 Authgear 專案 {{ template "app.name" }} 在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。
+
+目前無需採取任何行動。這只是提醒您檢查您的使用情況。
+
+如有任何疑問，請聯絡我們。
+
+此致
+Authgear 團隊{{ end }}

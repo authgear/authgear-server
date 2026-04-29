@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Gebruikswaarschuwing geactiveerd voor {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} gebruik is geblokkeerd{{ else }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} heeft de geconfigureerde gebruiksdrempel voor {{ .Usage.Period }} {{ .Usage.Name }} bereikt.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Actie: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Quota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Huidige waarde: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Hallo,<br><br>Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.<br><br>Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.<br><br>Als u vragen hebt, neem dan contact met ons op.<br><br>Met vriendelijke groeten,<br>Authgear Team{{ else if eq .UsageAction "block" }}Hallo,<br><br>Uw project, {{ template "app.name" }}, heeft de harde limiet van {{ .UsageQuota }} {{ .UsageDisplayName }} in deze factureringsperiode bereikt. Aanvullend {{ .UsageDisplayName }} gebruik is geblokkeerd.<br><br>Om de service te hervatten, upgrade uw plan.<br><br>Als u vragen hebt, neem dan contact met ons op.<br><br>Met vriendelijke groeten,<br>Authgear Team{{ else }}Hallo,<br><br>Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.<br><br>Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.<br><br>Als u vragen hebt, neem dan contact met ons op.<br><br>Met vriendelijke groeten,<br>Authgear Team{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

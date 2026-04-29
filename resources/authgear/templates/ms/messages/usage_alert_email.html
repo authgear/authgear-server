@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Amaran penggunaan dicetuskan untuk {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Penggunaan {{
+                                    .UsageDisplayName }} telah disekat{{ else }}Penggunaan {{ .UsageDisplayName }} anda telah mencapai {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} telah mencapai ambang penggunaan yang dikonfigurasikan untuk {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Tindakan: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Kuota: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Nilai semasa: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }} anda untuk tempoh
+                                    pengebilan ini.<br /><br />Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan, sila hubungi kami.<br /><br />Terbaik,<br />Pasukan
+                                    Authgear{{ else if eq .UsageAction "block" }}Hai,<br /><br />Projek anda, {{ template "app.name" }}, telah mencapai had keras sebanyak {{ .UsageQuota }} {{ .UsageDisplayName }} dalam tempoh pengebilan
+                                    ini. Penggunaan {{ .UsageDisplayName }} tambahan telah disekat.<br /><br />Untuk melanjutkan perkhidmatan, sila tingkatkan pelan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan, sila hubungi
+                                    kami.<br /><br />Terbaik,<br />Pasukan Authgear{{ else }}Hai,<br /><br />Projek Authgear anda, {{ template "app.name" }}, telah menggunakan {{ .UsageCurrentValue }} daripada kuota {{ .UsageDisplayName }}
+                                    anda untuk tempoh pengebilan ini.<br /><br />Tiada tindakan diperlukan sekarang. Ini hanya pemberitahuan supaya anda dapat menyemak penggunaan anda.<br /><br />Jika anda mempunyai sebarang pertanyaan,
+                                    sila hubungi kami.<br /><br />Terbaik,<br />Pasukan Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Η χρήση {{ .UsageDisplayName }} έχει αποκλειστεί{{ else }}Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ενέργεια: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ποσόστωση: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Τρέχουσα τιμή: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Γεια σας,<br><br>Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.<br><br>Δεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.<br><br>Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.<br><br>Καλύτερα,<br>Authgear Team{{ else if eq .UsageAction "block" }}Γεια σας,<br><br>Το έργό σας, {{ template "app.name" }}, έχει φτάσει το όριό του {{ .UsageQuota }} {{ .UsageDisplayName }} σε αυτήν την περίοδο χρέωσης. Η πρόσθετη χρήση {{ .UsageDisplayName }} έχει αποκλειστεί.<br><br>Για να συνεχίσετε την υπηρεσία, παρακαλώ αναβαθμίστε το σχέδιό σας.<br><br>Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.<br><br>Καλύτερα,<br>Authgear Team{{ else }}Γεια σας,<br><br>Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.<br><br>Δεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.<br><br>Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.<br><br>Καλύτερα,<br>Authgear Team{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

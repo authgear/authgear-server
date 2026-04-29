@@ -3,6 +3,7 @@ package translation_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -38,7 +39,13 @@ func TestService(t *testing.T) {
 	"email.default.reply-to": "",
 	"email.default.subject": "",
 	"email.setup-primary-oob.subject": "[{AppName}] Test",
-	"sms.default.sender": "Sender: [{AppName}]"
+	"email.usage-alert.subject": "{UsageAction, select, alert{Your {UsageDisplayName} usage has reached {UsageCurrentValue} ({AppName})} block{{UsageDisplayName} usage has been blocked ({AppName})} other{Usage alert triggered}}",
+	"sms.default.sender": "Sender: [{AppName}]",
+	"usage.name.email": "email",
+	"usage.name.sms": "SMS",
+	"usage.name.user_export": "user export",
+	"usage.name.user_import": "user import",
+	"usage.name.whatsapp": "WhatsApp"
 }`)
 		for _, lang := range []string{"zh", "en"} {
 			for _, path := range []string{
@@ -61,6 +68,49 @@ State: {{ .State }}
 UILocales: {{ .UILocales }}
 URL: {{ .URL }}
 XState: {{ .XState }}`, lang, path))
+			}
+		}
+		for _, lang := range []string{"zh", "en"} {
+			for _, path := range []string{
+				"messages/usage_alert_email.txt",
+				"messages/usage_alert_email.html",
+			} {
+				if strings.HasSuffix(path, ".html") {
+					writeFile(lang, path, fmt.Sprintf(`%v/%v
+{{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
+
+{{ if eq .UsageAction "alert" }}Hi there,<br><br>Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br><br>No action is needed right now. This is just a heads-up so you can review your usage.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else if eq .UsageAction "block" }}Hi there,<br><br>Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ else }}Hi there,<br><br>Your project has reached a usage limit.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team{{ end }}`, lang, path))
+				} else {
+					writeFile(lang, path, fmt.Sprintf(`%v/%v
+{{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppName }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked ({{ .AppName }}){{ else }}Usage alert triggered{{ end }}
+
+{{ if eq .UsageAction "alert" }}Hi there,
+
+Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.
+
+No action is needed right now. This is just a heads-up so you can review your usage.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ else if eq .UsageAction "block" }}Hi there,
+
+Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.
+
+To resume service, please upgrade your plan.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ else }}Hi there,
+
+Your project has reached a usage limit.
+
+If you have any questions, please contact us.
+
+Best,
+Authgear Team{{ end }}`, lang, path))
+				}
 			}
 		}
 
@@ -103,6 +153,8 @@ XState: {{ .XState }}`, lang, path))
 		var TemplateMessageEmailTXT = template.RegisterMessagePlainText("messages/email.txt")
 		var TemplateMessageEmailHTML = template.RegisterMessageHTML("messages/email.html")
 		var TemplateMessageWhatsappTXT = template.RegisterMessagePlainText("messages/whatsapp.txt")
+		var TemplateMessageUsageAlertTXT = template.RegisterMessagePlainText("messages/usage_alert_email.txt")
+		var TemplateMessageUsageAlertHTML = template.RegisterMessageHTML("messages/usage_alert_email.html")
 
 		var messageSpec = &translation.MessageSpec{
 			MessageType:       translation.MessageTypeSetupPrimaryOOB,
@@ -111,6 +163,12 @@ XState: {{ .XState }}`, lang, path))
 			HTMLEmailTemplate: TemplateMessageEmailHTML,
 			SMSTemplate:       TemplateMessageSMSTXT,
 			WhatsappTemplate:  TemplateMessageWhatsappTXT,
+		}
+		var usageAlertMessageSpec = &translation.MessageSpec{
+			MessageType:       translation.MessageTypeUsageAlert,
+			Name:              translation.SpecNameUsageAlert,
+			TXTEmailTemplate:  TemplateMessageUsageAlertTXT,
+			HTMLEmailTemplate: TemplateMessageUsageAlertHTML,
 		}
 
 		ctx := context.Background()
@@ -221,6 +279,39 @@ State: my state
 UILocales: my ui locales
 URL: https://www.example.com/url
 XState: my x state`)
+		})
+
+		Convey("it should render usage alert messages correctly", func() {
+			alertMessageData, err := service.EmailMessageData(ctx, usageAlertMessageSpec, &translation.PartialTemplateVariables{
+				UsageName:         "sms",
+				UsageAction:       "alert",
+				UsagePeriod:       "month",
+				UsageQuota:        4,
+				UsageCurrentValue: 1,
+			})
+			So(err, ShouldBeNil)
+			So(alertMessageData.Subject, ShouldEqual, "Your SMS usage has reached 1 (My App Name)")
+			So(alertMessageData.TextBody.LanguageTag, ShouldEqual, "zh")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "Your SMS usage has reached 1 (My App Name)")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "has used 1 of its SMS quota for this billing period.")
+			So(alertMessageData.TextBody.String, ShouldContainSubstring, "No action is needed right now. This is just a heads-up so you can review your usage.")
+			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "Your SMS usage has reached 1 (My App Name)")
+			So(alertMessageData.HTMLBody.String, ShouldContainSubstring, "Hi there,<br><br>Your Authgear project, My App Name, has used 1 of its SMS quota for this billing period.")
+
+			blockMessageData, err := service.EmailMessageData(ctx, usageAlertMessageSpec, &translation.PartialTemplateVariables{
+				UsageName:         "whatsapp",
+				UsageAction:       "block",
+				UsagePeriod:       "month",
+				UsageQuota:        2000,
+				UsageCurrentValue: 2000,
+			})
+			So(err, ShouldBeNil)
+			So(blockMessageData.Subject, ShouldEqual, "WhatsApp usage has been blocked (My App Name)")
+			So(blockMessageData.TextBody.LanguageTag, ShouldEqual, "zh")
+			So(blockMessageData.TextBody.String, ShouldContainSubstring, "WhatsApp usage has been blocked (My App Name)")
+			So(blockMessageData.TextBody.String, ShouldContainSubstring, "has reached its hard limit of 2000 WhatsApp in this billing period.")
+			So(blockMessageData.TextBody.String, ShouldContainSubstring, "To resume service, please upgrade your plan.")
+			So(blockMessageData.HTMLBody.String, ShouldContainSubstring, "WhatsApp usage has been blocked (My App Name)")
 		})
 
 		Convey("it should render forgot password messages correctly", func() {

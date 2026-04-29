@@ -1,7 +1,30 @@
-Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Mức sử dụng {{ .UsageDisplayName }} đã bị chặn{{ else }}Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
-{{ template "app.name" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Xin chào,
 
-Hành động: {{ .Usage.Action }}
-Hạn mức: {{ .Usage.Quota }}
-Giá trị hiện tại: {{ .Usage.CurrentValue }}
+Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName }} của nó cho kỳ thanh toán này.
+
+Không cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.
+
+Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+Trân trọng,
+Đội ngũ Authgear{{ else if eq .UsageAction "block" }}Xin chào,
+
+Dự án của bạn, {{ template "app.name" }}, đã đạt giới hạn cứng là {{ .UsageQuota }} {{ .UsageDisplayName }} trong kỳ thanh toán này. Mức sử dụng {{ .UsageDisplayName }} bổ sung đã bị chặn.
+
+Để tiếp tục dịch vụ, vui lòng nâng cấp gói của bạn.
+
+Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+Trân trọng,
+Đội ngũ Authgear{{ else }}Xin chào,
+
+Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName }} của nó cho kỳ thanh toán này.
+
+Không cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.
+
+Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+
+Trân trọng,
+Đội ngũ Authgear{{ end }}

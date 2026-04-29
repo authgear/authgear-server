@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Ang {{ .UsageDisplayName }} na paggamit ay na-block na{{ else }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Aksyon: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Quota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Kasalukuyang halaga: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Kumusta,<br><br>Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.<br><br>Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team{{ else if eq .UsageAction "block" }}Kumusta,<br><br>Ang iyong proyekto, {{ template "app.name" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.<br><br>Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team{{ else }}Kumusta,<br><br>Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.<br><br>Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br><br>Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br><br>Pinakamahusay,<br>Authgear Team{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

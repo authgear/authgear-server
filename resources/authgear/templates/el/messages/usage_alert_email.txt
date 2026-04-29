@@ -1,7 +1,30 @@
-Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Η χρήση {{ .UsageDisplayName }} έχει αποκλειστεί{{ else }}Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
-Το {{ template "app.name" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Γεια σας,
 
-Ενέργεια: {{ .Usage.Action }}
-Ποσόστωση: {{ .Usage.Quota }}
-Τρέχουσα τιμή: {{ .Usage.CurrentValue }}
+Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.
+
+Δεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.
+
+Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.
+
+Καλύτερα,
+Authgear Team{{ else if eq .UsageAction "block" }}Γεια σας,
+
+Το έργό σας, {{ template "app.name" }}, έχει φτάσει το όριό του {{ .UsageQuota }} {{ .UsageDisplayName }} σε αυτήν την περίοδο χρέωσης. Η πρόσθετη χρήση {{ .UsageDisplayName }} έχει αποκλειστεί.
+
+Για να συνεχίσετε την υπηρεσία, παρακαλώ αναβαθμίστε το σχέδιό σας.
+
+Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.
+
+Καλύτερα,
+Authgear Team{{ else }}Γεια σας,
+
+Το έργο Authgear σας, {{ template "app.name" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.
+
+Δεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.
+
+Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.
+
+Καλύτερα,
+Authgear Team{{ end }}

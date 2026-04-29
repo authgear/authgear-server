@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Log in op {{ template \"app.name\" }} met uw e-mail en tijdelijk wachtwoord. Wijzig uw wachtwoord na het inloggen."
   },
-  "UsageAlertEmail": {
-    "Title": "Gebruikswaarschuwing geactiveerd voor {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} heeft de geconfigureerde gebruiksdrempel voor {{ .Usage.Period }} {{ .Usage.Name }} bereikt.",
-    "Action": "Actie: {{ .Usage.Action }}",
-    "Quota": "Quota: {{ .Usage.Quota }}",
-    "CurrentValue": "Huidige waarde: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template \"app.name\" }})",
+      "Body": "Hallo,<br><br>Uw Authgear-project, {{ template \"app.name\" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.<br><br>Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.<br><br>Als u vragen hebt, neem dan contact met ons op.<br><br>Met vriendelijke groeten,<br>Authgear Team"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} gebruik is geblokkeerd",
+      "Body": "Hallo,<br><br>Uw project, {{ template \"app.name\" }}, heeft de harde limiet van {{ .UsageQuota }} {{ .UsageDisplayName }} in deze factureringsperiode bereikt. Aanvullend {{ .UsageDisplayName }} gebruik is geblokkeerd.<br><br>Om de service te hervatten, upgrade uw plan.<br><br>Als u vragen hebt, neem dan contact met ons op.<br><br>Met vriendelijke groeten,<br>Authgear Team"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template \"app.name\" }})",
+      "Body": "Hallo,\n\nUw Authgear-project, {{ template \"app.name\" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.\n\nEr is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.\n\nAls u vragen hebt, neem dan contact met ons op.\n\nMet vriendelijke groeten,\nAuthgear Team"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} gebruik is geblokkeerd",
+      "Body": "Hallo,\n\nUw project, {{ template \"app.name\" }}, heeft de harde limiet van {{ .UsageQuota }} {{ .UsageDisplayName }} in deze factureringsperiode bereikt. Aanvullend {{ .UsageDisplayName }} gebruik is geblokkeerd.\n\nOm de service te hervatten, upgrade uw plan.\n\nAls u vragen hebt, neem dan contact met ons op.\n\nMet vriendelijke groeten,\nAuthgear Team"
+    }
   }
 }

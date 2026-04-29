@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Ang {{
+                                    .UsageDisplayName }} na paggamit ay na-block na{{ else }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,14 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Aksyon: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Quota: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Kasalukuyang halaga: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Kumusta,<br /><br />Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong
+                                    ito ng pagbabayad.<br /><br />Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br /><br />Kung mayroon kang anumang katanungan, mangyaring
+                                    makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ else if eq .UsageAction "block" }}Kumusta,<br /><br />Ang iyong proyekto, {{ template "app.name" }}, ay umabot na sa hard limit nito
+                                    na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.<br /><br />Upang muling magsimula ng serbisyo, mangyaring
+                                    i-upgrade ang iyong plano.<br /><br />Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ else }}Kumusta,<br /><br />Ang iyong Authgear
+                                    na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.<br /><br />Walang aksyon na kailangan ngayon. Ito
+                                    ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.<br /><br />Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.<br /><br />Pinakamahusay,<br />Authgear Team{{ end
+                                    }}
                                   </div>
                                 </td>
                               </tr>

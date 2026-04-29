@@ -1,7 +1,30 @@
-Gebruikswaarschuwing geactiveerd voor {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} gebruik is geblokkeerd{{ else }}Uw {{ .UsageDisplayName }} gebruik heeft {{ .UsageCurrentValue }} bereikt ({{ template "app.name" }}){{ end }}
 
-{{ template "app.name" }} heeft de geconfigureerde gebruiksdrempel voor {{ .Usage.Period }} {{ .Usage.Name }} bereikt.
+{{ if eq .UsageAction "alert" }}Hallo,
 
-Actie: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Huidige waarde: {{ .Usage.CurrentValue }}
+Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.
+
+Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.
+
+Als u vragen hebt, neem dan contact met ons op.
+
+Met vriendelijke groeten,
+Authgear Team{{ else if eq .UsageAction "block" }}Hallo,
+
+Uw project, {{ template "app.name" }}, heeft de harde limiet van {{ .UsageQuota }} {{ .UsageDisplayName }} in deze factureringsperiode bereikt. Aanvullend {{ .UsageDisplayName }} gebruik is geblokkeerd.
+
+Om de service te hervatten, upgrade uw plan.
+
+Als u vragen hebt, neem dan contact met ons op.
+
+Met vriendelijke groeten,
+Authgear Team{{ else }}Hallo,
+
+Uw Authgear-project, {{ template "app.name" }}, heeft {{ .UsageCurrentValue }} van uw {{ .UsageDisplayName }} quotum voor deze factureringsperiode gebruikt.
+
+Er is op dit moment geen actie nodig. Dit is slechts een waarschuwing zodat u uw gebruik kunt controleren.
+
+Als u vragen hebt, neem dan contact met ons op.
+
+Met vriendelijke groeten,
+Authgear Team{{ end }}

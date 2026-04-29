@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Συνδεθείτε στο {{ template \"app.name\" }} με το email και τον προσωρινό κωδικό πρόσβασης. Παρακαλούμε αλλάξτε τον κωδικό πρόσβασής σας μετά τη σύνδεση."
   },
-  "UsageAlertEmail": {
-    "Title": "Ενεργοποιήθηκε ειδοποίηση χρήσης για {{ .Usage.Name }}",
-    "Body": "Το {{ template \"app.name\" }} έφτασε το ρυθμισμένο όριο χρήσης για {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Ενέργεια: {{ .Usage.Action }}",
-    "Quota": "Ποσόστωση: {{ .Usage.Quota }}",
-    "CurrentValue": "Τρέχουσα τιμή: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Γεια σας,<br><br>Το έργο Authgear σας, {{ template \"app.name\" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.<br><br>Δεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.<br><br>Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.<br><br>Καλύτερα,<br>Authgear Team"
+    },
+    "Block": {
+      "Title": "Η χρήση {{ .UsageDisplayName }} έχει αποκλειστεί",
+      "Body": "Γεια σας,<br><br>Το έργό σας, {{ template \"app.name\" }}, έχει φτάσει το όριό του {{ .UsageQuota }} {{ .UsageDisplayName }} σε αυτήν την περίοδο χρέωσης. Η πρόσθετη χρήση {{ .UsageDisplayName }} έχει αποκλειστεί.<br><br>Για να συνεχίσετε την υπηρεσία, παρακαλώ αναβαθμίστε το σχέδιό σας.<br><br>Εάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.<br><br>Καλύτερα,<br>Authgear Team"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Η χρήση {{ .UsageDisplayName }} σας έχει φτάσει {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Γεια σας,\n\nΤο έργο Authgear σας, {{ template \"app.name\" }}, έχει χρησιμοποιήσει {{ .UsageCurrentValue }} από το {{ .UsageDisplayName }} όριό του για αυτήν την περίοδο χρέωσης.\n\nΔεν απαιτείται καμία ενέργεια αυτή τη στιγμή. Αυτό είναι απλώς μια ειδοποίηση ώστε να μπορείτε να ελέγξετε τη χρήση σας.\n\nΕάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.\n\nΚαλύτερα,\nAuthgear Team"
+    },
+    "Block": {
+      "Title": "Η χρήση {{ .UsageDisplayName }} έχει αποκλειστεί",
+      "Body": "Γεια σας,\n\nΤο έργό σας, {{ template \"app.name\" }}, έχει φτάσει το όριό του {{ .UsageQuota }} {{ .UsageDisplayName }} σε αυτήν την περίοδο χρέωσης. Η πρόσθετη χρήση {{ .UsageDisplayName }} έχει αποκλειστεί.\n\nΓια να συνεχίσετε την υπηρεσία, παρακαλώ αναβαθμίστε το σχέδιό σας.\n\nΕάν έχετε οποιεσδήποτε ερωτήσεις, παρακαλώ επικοινωνήστε μαζί μας.\n\nΚαλύτερα,\nAuthgear Team"
+    }
   }
 }

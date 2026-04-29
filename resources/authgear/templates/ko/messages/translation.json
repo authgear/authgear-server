@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "이메일과 임시 비밀번호로 {{ template \"app.name\" }}에 로그인하세요. 로그인 후 비밀번호를 변경해 주세요."
   },
-  "UsageAlertEmail": {
-    "Title": "{{ .Usage.Name }} 사용량 알림이 트리거되었습니다",
-    "Body": "{{ template \"app.name\" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.",
-    "Action": "작업: {{ .Usage.Action }}",
-    "Quota": "할당량: {{ .Usage.Quota }}",
-    "CurrentValue": "현재 값: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "귀하의 {{ .UsageDisplayName }} 사용량이 {{ .UsageCurrentValue }}에 도달했습니다 ({{ template \"app.name\" }})",
+      "Body": "안녕하세요,<br><br>귀하의 Authgear 프로젝트인 {{ template \"app.name\" }}은(는) 이번 청구 기간에 {{ .UsageDisplayName }} 할당량 중 {{ .UsageCurrentValue }}을(를) 사용했습니다.<br><br>지금은 조치가 필요하지 않습니다. 이것은 귀하의 사용량을 검토할 수 있도록 하기 위한 알림일 뿐입니다.<br><br>질문이 있으시면 저희에게 문의하시기 바랍니다.<br><br>감사합니다,<br>Authgear 팀"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 사용량이 차단되었습니다",
+      "Body": "안녕하세요,<br><br>귀하의 프로젝트인 {{ template \"app.name\" }}은(는) 이번 청구 기간에 {{ .UsageQuota }} {{ .UsageDisplayName }}의 상한선에 도달했습니다. 추가 {{ .UsageDisplayName }} 사용량이 차단되었습니다.<br><br>서비스를 재개하려면 요금제를 업그레이드하시기 바랍니다.<br><br>질문이 있으시면 저희에게 문의하시기 바랍니다.<br><br>감사합니다,<br>Authgear 팀"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "귀하의 {{ .UsageDisplayName }} 사용량이 {{ .UsageCurrentValue }}에 도달했습니다 ({{ template \"app.name\" }})",
+      "Body": "안녕하세요,\n\n귀하의 Authgear 프로젝트인 {{ template \"app.name\" }}은(는) 이번 청구 기간에 {{ .UsageDisplayName }} 할당량 중 {{ .UsageCurrentValue }}을(를) 사용했습니다.\n\n지금은 조치가 필요하지 않습니다. 이것은 귀하의 사용량을 검토할 수 있도록 하기 위한 알림일 뿐입니다.\n\n질문이 있으시면 저희에게 문의하시기 바랍니다.\n\n감사합니다,\nAuthgear 팀"
+    },
+    "Block": {
+      "Title": "{{ .UsageDisplayName }} 사용량이 차단되었습니다",
+      "Body": "안녕하세요,\n\n귀하의 프로젝트인 {{ template \"app.name\" }}은(는) 이번 청구 기간에 {{ .UsageQuota }} {{ .UsageDisplayName }}의 상한선에 도달했습니다. 추가 {{ .UsageDisplayName }} 사용량이 차단되었습니다.\n\n서비스를 재개하려면 요금제를 업그레이드하시기 바랍니다.\n\n질문이 있으시면 저희에게 문의하시기 바랍니다.\n\n감사합니다,\nAuthgear 팀"
+    }
   }
 }

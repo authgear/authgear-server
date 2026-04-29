@@ -7,12 +7,9 @@
 <mj-body background-color="#f3f3f3">
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="20px" align="left">Alerta de utilização acionado para {{ .Usage.Name }}</mj-text>
+      <mj-text font-weight="bold" font-size="20px" align="left">{{ if eq .UsageAction "alert" }}O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}O uso de {{ .UsageDisplayName }} foi bloqueado{{ else }}O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ template "app.name" }} atingiu o limite de utilização configurado para {{ .Usage.Period }} {{ .Usage.Name }}.</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Ação: {{ .Usage.Action }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Quota: {{ .Usage.Quota }}</mj-text>
-      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px" padding-top="16px">Valor atual: {{ .Usage.CurrentValue }}</mj-text>
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="20px">{{ if eq .UsageAction "alert" }}Olá,<br><br>O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.<br><br>Nenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear{{ else if eq .UsageAction "block" }}Olá,<br><br>O seu projeto, {{ template "app.name" }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.<br><br>Para retomar o serviço, atualize o seu plano.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear{{ else }}Olá,<br><br>O seu projeto Authgear, {{ template "app.name" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.<br><br>Nenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear{{ end }}</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

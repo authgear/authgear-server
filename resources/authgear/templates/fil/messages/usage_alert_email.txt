@@ -1,7 +1,30 @@
-Na-trigger na ang alerto sa paggamit para sa {{ .Usage.Name }}
+{{ if eq .UsageAction "alert" }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Ang {{ .UsageDisplayName }} na paggamit ay na-block na{{ else }}Ang iyong {{ .UsageDisplayName }} na paggamit ay umabot na sa {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
 
-Naabot ng {{ template "app.name" }} ang nakatakdang limitasyon sa paggamit para sa {{ .Usage.Period }} {{ .Usage.Name }}.
+{{ if eq .UsageAction "alert" }}Kumusta,
 
-Aksyon: {{ .Usage.Action }}
-Quota: {{ .Usage.Quota }}
-Kasalukuyang halaga: {{ .Usage.CurrentValue }}
+Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.
+
+Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.
+
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
+
+Pinakamahusay,
+Authgear Team{{ else if eq .UsageAction "block" }}Kumusta,
+
+Ang iyong proyekto, {{ template "app.name" }}, ay umabot na sa hard limit nito na {{ .UsageQuota }} {{ .UsageDisplayName }} sa panahong ito ng pagbabayad. Ang karagdagang {{ .UsageDisplayName }} na paggamit ay na-block na.
+
+Upang muling magsimula ng serbisyo, mangyaring i-upgrade ang iyong plano.
+
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
+
+Pinakamahusay,
+Authgear Team{{ else }}Kumusta,
+
+Ang iyong Authgear na proyekto, {{ template "app.name" }}, ay gumamit ng {{ .UsageCurrentValue }} sa {{ .UsageDisplayName }} quota nito para sa panahong ito ng pagbabayad.
+
+Walang aksyon na kailangan ngayon. Ito ay isang paalala lamang upang maaari mong suriin ang iyong paggamit.
+
+Kung mayroon kang anumang katanungan, mangyaring makipag-ugnayan sa amin.
+
+Pinakamahusay,
+Authgear Team{{ end }}

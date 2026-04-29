@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    已觸發 {{ .Usage.Name }} 的用量提醒
+                                    {{ if eq .UsageAction "alert" }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用量已被封鎖{{
+                                    else }}您的 {{ .UsageDisplayName }} 使用量已達到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,11 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} 已達到為 {{ .Usage.Period }} {{ .Usage.Name }} 設定的使用量門檻。
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    動作：{{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    配額：{{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    目前值：{{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }} 在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。<br /><br />目前無需採取任何行動。這只是提醒您檢查您的使用情況。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
+                                    團隊{{ else if eq .UsageAction "block" }}您好，<br /><br />您的專案 {{ template "app.name" }} 已在本計費週期內達到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬性限制。額外的 {{ .UsageDisplayName }}
+                                    使用量已被封鎖。<br /><br />若要恢復服務，請升級您的方案。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear 團隊{{ else }}您好，<br /><br />您的 Authgear 專案 {{ template "app.name" }}
+                                    在本計費週期內已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配額。<br /><br />目前無需採取任何行動。這只是提醒您檢查您的使用情況。<br /><br />如有任何疑問，請聯絡我們。<br /><br />此致<br />Authgear
+                                    團隊{{ end }}
                                   </div>
                                 </td>
                               </tr>

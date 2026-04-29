@@ -186,11 +186,24 @@
     "Password": "{{ .Password }}",
     "Instruction": "Đăng nhập vào {{ template \"app.name\" }} với email và mật khẩu tạm thời của bạn. Vui lòng đổi mật khẩu sau khi đăng nhập."
   },
-  "UsageAlertEmail": {
-    "Title": "Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}",
-    "Body": "{{ template \"app.name\" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.",
-    "Action": "Hành động: {{ .Usage.Action }}",
-    "Quota": "Hạn mức: {{ .Usage.Quota }}",
-    "CurrentValue": "Giá trị hiện tại: {{ .Usage.CurrentValue }}"
+  "UsageAlert": {
+    "Alert": {
+      "Title": "Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Xin chào,<br><br>Dự án Authgear của bạn, {{ template \"app.name\" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName }} của nó cho kỳ thanh toán này.<br><br>Không cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.<br><br>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br><br>Trân trọng,<br>Đội ngũ Authgear"
+    },
+    "Block": {
+      "Title": "Mức sử dụng {{ .UsageDisplayName }} đã bị chặn",
+      "Body": "Xin chào,<br><br>Dự án của bạn, {{ template \"app.name\" }}, đã đạt giới hạn cứng là {{ .UsageQuota }} {{ .UsageDisplayName }} trong kỳ thanh toán này. Mức sử dụng {{ .UsageDisplayName }} bổ sung đã bị chặn.<br><br>Để tiếp tục dịch vụ, vui lòng nâng cấp gói của bạn.<br><br>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br><br>Trân trọng,<br>Đội ngũ Authgear"
+    }
+  },
+  "UsageAlertTXT": {
+    "Alert": {
+      "Title": "Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
+      "Body": "Xin chào,\n\nDự án Authgear của bạn, {{ template \"app.name\" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName }} của nó cho kỳ thanh toán này.\n\nKhông cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.\n\nNếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.\n\nTrân trọng,\nĐội ngũ Authgear"
+    },
+    "Block": {
+      "Title": "Mức sử dụng {{ .UsageDisplayName }} đã bị chặn",
+      "Body": "Xin chào,\n\nDự án của bạn, {{ template \"app.name\" }}, đã đạt giới hạn cứng là {{ .UsageQuota }} {{ .UsageDisplayName }} trong kỳ thanh toán này. Mức sử dụng {{ .UsageDisplayName }} bổ sung đã bị chặn.\n\nĐể tiếp tục dịch vụ, vui lòng nâng cấp gói của bạn.\n\nNếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.\n\nTrân trọng,\nĐội ngũ Authgear"
+    }
   }
 }

@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    Cảnh báo sử dụng đã được kích hoạt cho {{ .Usage.Name }}
+                                    {{ if eq .UsageAction "alert" }}Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}Mức sử dụng {{ .UsageDisplayName
+                                    }} đã bị chặn{{ else }}Mức sử dụng {{ .UsageDisplayName }} của bạn đã đạt {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,13 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }} đã đạt ngưỡng sử dụng đã cấu hình cho {{ .Usage.Period }} {{ .Usage.Name }}.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Hành động: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Hạn mức: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    Giá trị hiện tại: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}Xin chào,<br /><br />Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName }} của nó cho kỳ thanh toán
+                                    này.<br /><br />Không cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.<br /><br />Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.<br /><br />Trân
+                                    trọng,<br />Đội ngũ Authgear{{ else if eq .UsageAction "block" }}Xin chào,<br /><br />Dự án của bạn, {{ template "app.name" }}, đã đạt giới hạn cứng là {{ .UsageQuota }} {{ .UsageDisplayName }} trong kỳ
+                                    thanh toán này. Mức sử dụng {{ .UsageDisplayName }} bổ sung đã bị chặn.<br /><br />Để tiếp tục dịch vụ, vui lòng nâng cấp gói của bạn.<br /><br />Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng
+                                    tôi.<br /><br />Trân trọng,<br />Đội ngũ Authgear{{ else }}Xin chào,<br /><br />Dự án Authgear của bạn, {{ template "app.name" }}, đã sử dụng {{ .UsageCurrentValue }} trong hạn ngạch {{ .UsageDisplayName
+                                    }} của nó cho kỳ thanh toán này.<br /><br />Không cần hành động gì ngay bây giờ. Đây chỉ là thông báo để bạn có thể xem lại mức sử dụng của mình.<br /><br />Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ
+                                    với chúng tôi.<br /><br />Trân trọng,<br />Đội ngũ Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

@@ -47,13 +47,13 @@ steps:
     sleep_for: 2s
   - name: query smtp log
     action: smtp_log_query
-    smtp_log_subject: "[Authgear] Usage alert triggered"
+    smtp_log_subject: "Your SMS usage has reached 1 (Authgear)"
     smtp_log_recipient: "usage-alert@example.com"
     smtp_log_output:
       rows: |
         [
           {
-            "subject": "[Authgear] Usage alert triggered",
+            "subject": "Your SMS usage has reached 1 (Authgear)",
             "recipient": "usage-alert@example.com"
           }
         ]

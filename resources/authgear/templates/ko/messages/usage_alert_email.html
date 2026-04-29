@@ -107,7 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ .Usage.Name }} 사용량 알림이 트리거되었습니다
+                                    {{ if eq .UsageAction "alert" }}귀하의 {{ .UsageDisplayName }} 사용량이 {{ .UsageCurrentValue }}에 도달했습니다 ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }}
+                                    사용량이 차단되었습니다{{ else }}귀하의 {{ .UsageDisplayName }} 사용량이 {{ .UsageCurrentValue }}에 도달했습니다 ({{ template "app.name" }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -143,73 +144,12 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ template "app.name" }}이 설정된 {{ .Usage.Period }} {{ .Usage.Name }} 사용량 임계값에 도달했습니다.
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    작업: {{ .Usage.Action }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    할당량: {{ .Usage.Quota }}
-                                  </div>
-                                </td>
-                              </tr>
-
-                              <tr>
-                                <td align="left" style="font-size: 0px; padding: 10px 25px; padding-top: 16px; word-break: break-word">
-                                  <div
-                                    style="
-                                      font-family:
-                                        Segoe UI,
-                                        Helvetica,
-                                        Arial,
-                                        sans-serif,
-                                        Apple Color Emoji,
-                                        Segoe UI Emoji;
-                                      font-size: 14px;
-                                      line-height: 20px;
-                                      text-align: left;
-                                      color: #201f1e;
-                                    "
-                                  >
-                                    현재 값: {{ .Usage.CurrentValue }}
+                                    {{ if eq .UsageAction "alert" }}안녕하세요,<br /><br />귀하의 Authgear 프로젝트인 {{ template "app.name" }}은(는) 이번 청구 기간에 {{ .UsageDisplayName }} 할당량 중 {{ .UsageCurrentValue }}을(를)
+                                    사용했습니다.<br /><br />지금은 조치가 필요하지 않습니다. 이것은 귀하의 사용량을 검토할 수 있도록 하기 위한 알림일 뿐입니다.<br /><br />질문이 있으시면 저희에게 문의하시기 바랍니다.<br /><br />감사합니다,<br />Authgear
+                                    팀{{ else if eq .UsageAction "block" }}안녕하세요,<br /><br />귀하의 프로젝트인 {{ template "app.name" }}은(는) 이번 청구 기간에 {{ .UsageQuota }} {{ .UsageDisplayName }}의 상한선에 도달했습니다. 추가 {{
+                                    .UsageDisplayName }} 사용량이 차단되었습니다.<br /><br />서비스를 재개하려면 요금제를 업그레이드하시기 바랍니다.<br /><br />질문이 있으시면 저희에게 문의하시기 바랍니다.<br /><br />감사합니다,<br />Authgear
+                                    팀{{ else }}안녕하세요,<br /><br />귀하의 Authgear 프로젝트인 {{ template "app.name" }}은(는) 이번 청구 기간에 {{ .UsageDisplayName }} 할당량 중 {{ .UsageCurrentValue }}을(를) 사용했습니다.<br /><br />지금은
+                                    조치가 필요하지 않습니다. 이것은 귀하의 사용량을 검토할 수 있도록 하기 위한 알림일 뿐입니다.<br /><br />질문이 있으시면 저희에게 문의하시기 바랍니다.<br /><br />감사합니다,<br />Authgear 팀{{ end }}
                                   </div>
                                 </td>
                               </tr>
