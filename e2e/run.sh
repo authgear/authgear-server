@@ -65,6 +65,22 @@ function setup {( set -e
     authgear audit database migrate up
     authgear images database migrate up
     authgear-portal database migrate up
+
+    echo "[ ] Starting siteadmin..."
+    authgear-portal start siteadmin > ./logs/siteadmin.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:4003/healthz)" = "200" ]; then
+            echo "    - started siteadmin."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+    if [ "$success" = false ]; then
+        echo "Error: Failed to start siteadmin."
+        exit 1
+    fi
 )}
 
 function teardown {( set -e
@@ -72,6 +88,7 @@ function teardown {( set -e
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:4001) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:4002) > /dev/null 2>&1 || true
+    kill -9 $(lsof -ti:4003) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:2525) > /dev/null 2>&1 || true
     docker compose down
