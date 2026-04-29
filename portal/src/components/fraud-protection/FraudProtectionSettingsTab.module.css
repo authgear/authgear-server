@@ -1,7 +1,3 @@
 .section {
   @apply flex flex-col gap-6;
 }
-
-.field {
-  @apply h-37;
-}
