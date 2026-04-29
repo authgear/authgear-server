@@ -1,0 +1,353 @@
+name: Site Admin - Apps
+app_id: e2e-portal
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_apps.sql
+steps:
+# ── Basic list ────────────────────────────────────────────────────────────────
+- name: list all apps
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": "[[array]]",
+        "total_count": "[[number]]",
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+# ── Owner email ───────────────────────────────────────────────────────────────
+# alpha has a known owner inserted by seed_siteadmin_apps.sql; owner_email is resolved
+# via the Admin API for e2e-portal (SITEADMIN_AUTHGEAR_APP_ID).
+- name: filter by owner_email returns alpha
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    owner_email: "owner@example.com"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 1,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha", "owner_email": "owner@example.com"}
+        ]
+      }
+
+- name: filter by non-existent owner_email returns empty
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    owner_email: "nobody@example.com"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": [],
+        "total_count": 0,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+- name: filter by alpha app_id returns owner email
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "e2e-siteadmin-app-alpha"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 1,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha", "owner_email": "owner@example.com"}
+        ]
+      }
+
+# ── Filter: app_id ────────────────────────────────────────────────────────────
+- name: filter by app_id returns matching app
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "{{ .AppID }}"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 1,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+- name: filter by non-existent app_id returns empty
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "non-existent-app"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": [],
+        "total_count": 0,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+# ── Filter: plan ──────────────────────────────────────────────────────────────
+# alpha and gamma are both on "startups"; total is always exactly 2.
+- name: filter by plan startups returns alpha and gamma
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+- name: filter by non-existent plan returns empty
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "non-existent-plan"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": [],
+        "total_count": 0,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+# ── Sort: mau ─────────────────────────────────────────────────────────────────
+# Within "startups": alpha=100 MAU, gamma=200 MAU.
+- name: sort by mau desc puts gamma (200) before alpha (100)
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "mau"
+    order: "desc"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "apps": [
+          {"id": "e2e-siteadmin-app-gamma", "last_month_mau": 200, "plan": "startups"},
+          {"id": "e2e-siteadmin-app-alpha", "last_month_mau": 100, "plan": "startups"}
+        ]
+      }
+
+- name: sort by mau asc puts alpha (100) before gamma (200)
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "mau"
+    order: "asc"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha", "last_month_mau": 100, "plan": "startups"},
+          {"id": "e2e-siteadmin-app-gamma", "last_month_mau": 200, "plan": "startups"}
+        ]
+      }
+
+# ── Sort: created_at ──────────────────────────────────────────────────────────
+# Within "startups": alpha created 2 months ago, gamma created 1 month ago.
+- name: sort by created_at asc puts alpha (older) before gamma
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "created_at"
+    order: "asc"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha", "plan": "startups"},
+          {"id": "e2e-siteadmin-app-gamma", "plan": "startups"}
+        ]
+      }
+
+- name: sort by created_at desc puts gamma (newer) before alpha
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "created_at"
+    order: "desc"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "apps": [
+          {"id": "e2e-siteadmin-app-gamma", "plan": "startups"},
+          {"id": "e2e-siteadmin-app-alpha", "plan": "startups"}
+        ]
+      }
+
+# ── Pagination ────────────────────────────────────────────────────────────────
+- name: pagination page 1 with page_size 1 returns first result
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "mau"
+    order: "desc"
+    page: "1"
+    page_size: "1"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "page": 1,
+        "page_size": 1,
+        "apps": [
+          {"id": "e2e-siteadmin-app-gamma", "last_month_mau": 200}
+        ]
+      }
+
+- name: pagination page 2 with page_size 1 returns second result
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    plan: "startups"
+    sort: "mau"
+    order: "desc"
+    page: "2"
+    page_size: "1"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 2,
+        "page": 2,
+        "page_size": 1,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha", "last_month_mau": 100}
+        ]
+      }
+
+# ── Get ───────────────────────────────────────────────────────────────────────
+- name: get existing app created by test framework
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/{{ .AppID }}
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "[[string]]",
+        "plan": "[[string]]",
+        "created_at": "[[string]]",
+        "owner_email": "[[string]]",
+        "last_month_mau": "[[number]]",
+        "user_count": "[[number]]"
+      }
+
+- name: get app alpha - known plan and owner email
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "e2e-siteadmin-app-alpha",
+        "plan": "startups",
+        "created_at": "[[string]]",
+        "owner_email": "owner@example.com",
+        "last_month_mau": "[[number]]",
+        "user_count": "[[number]]"
+      }
+
+- name: get non-existent app returns 404
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 404
