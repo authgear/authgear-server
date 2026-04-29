@@ -263,12 +263,14 @@ func (s *CollaboratorService) CreateCollaborator(ctx context.Context, c *model.C
 			"app_id",
 			"user_id",
 			"created_at",
+			"updated_at",
 			"role",
 		).
 		Values(
 			c.ID,
 			c.AppID,
 			c.UserID,
+			c.CreatedAt,
 			c.CreatedAt,
 			c.Role,
 		),

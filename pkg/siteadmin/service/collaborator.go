@@ -93,8 +93,8 @@ func (s *CollaboratorStore) NewCollaborator(appID string, userID string, role mo
 func (s *CollaboratorStore) CreateCollaborator(ctx context.Context, c *model.Collaborator) error {
 	_, err := s.SQLExecutor.ExecWith(ctx, s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Columns("id", "app_id", "user_id", "created_at", "role").
-		Values(c.ID, c.AppID, c.UserID, c.CreatedAt, c.Role),
+		Columns("id", "app_id", "user_id", "created_at", "updated_at", "role").
+		Values(c.ID, c.AppID, c.UserID, c.CreatedAt, c.CreatedAt, c.Role),
 	)
 	if isUniqueViolation(err) {
 		return portalservice.ErrCollaboratorDuplicate

@@ -177,11 +177,13 @@ func insertCollaborator(ctx context.Context, tx *sql.Tx, appID string, userID st
 		"app_id",
 		"user_id",
 		"created_at",
+		"updated_at",
 		"role",
 	).Values(
 		id,
 		appID,
 		userID,
+		now,
 		now,
 		role,
 	)
@@ -200,8 +202,10 @@ func insertCollaborator(ctx context.Context, tx *sql.Tx, appID string, userID st
 }
 
 func updateCollaboratorRole(ctx context.Context, tx *sql.Tx, id string, role model.CollaboratorRole) error {
+	now := time.Now().UTC()
 	builder := newSQLBuilder().Update(pq.QuoteIdentifier("_portal_app_collaborator")).
 		Set("role", role).
+		Set("updated_at", now).
 		Where("id = ?", id)
 
 	query, args, err := builder.ToSql()
