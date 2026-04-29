@@ -385,7 +385,53 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newCollaboratorPromoteHandler(p *deps.RequestProvider) http.Handler {
-	collaboratorPromoteHandler := &transport.CollaboratorPromoteHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	clockClock := _wireSystemClockValue
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	collaboratorStore := &service.CollaboratorStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	adder := &authz.Adder{
+		Clock: clockClock,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	appConfig := rootProvider.AppConfig
+	defaultDomainService := &service2.DefaultDomainService{
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+	}
+	adminAPIService := &service2.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	siteAdminHTTPClient := service.NewHTTPClient()
+	serviceAdminAPIService := &service.AdminAPIService{
+		AdminAPI:   adminAPIService,
+		HTTPClient: siteAdminHTTPClient,
+	}
+	collaboratorService := &service.CollaboratorService{
+		GlobalDatabase: handle,
+		Store:          collaboratorStore,
+		AdminAPI:       serviceAdminAPIService,
+	}
+	collaboratorPromoteHandler := &transport.CollaboratorPromoteHandler{
+		Service: collaboratorService,
+	}
 	return collaboratorPromoteHandler
 }
 

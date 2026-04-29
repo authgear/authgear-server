@@ -1,8 +1,10 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -11,8 +13,12 @@ func ConfigureCollaboratorPromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/api/v1/apps/:appID/collaborators/:collaboratorID/promote")
 }
 
+type CollaboratorPromoteService interface {
+	PromoteCollaborator(ctx context.Context, appID string, collaboratorID string) (*siteadmin.Collaborator, error)
+}
+
 type CollaboratorPromoteHandler struct {
-	// Service dependencies added in Stage 5
+	Service CollaboratorPromoteService
 }
 
 type CollaboratorPromoteParams struct {
@@ -28,6 +34,13 @@ func parseCollaboratorPromoteParams(r *http.Request) CollaboratorPromoteParams {
 }
 
 func (h *CollaboratorPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_ = parseCollaboratorPromoteParams(r)
-	http.NotFound(w, r)
+	params := parseCollaboratorPromoteParams(r)
+
+	collaborator, err := h.Service.PromoteCollaborator(r.Context(), params.AppID, params.CollaboratorID)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+
+	SiteAdminAPISuccessResponse{Body: collaborator}.WriteTo(w)
 }

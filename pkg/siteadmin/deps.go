@@ -87,4 +87,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.MonthlyActiveUsersUsageService), new(*siteadminservice.UsageService)),
 	wire.Bind(new(transport.PlansListService), new(*siteadminservice.PlanService)),
 	wire.Bind(new(transport.AppPlanChangeService), new(*siteadminservice.PlanService)),
+	wire.Bind(new(transport.CollaboratorPromoteService), new(*siteadminservice.CollaboratorService)),
 )
