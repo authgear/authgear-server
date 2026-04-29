@@ -28,10 +28,10 @@ fraud_protection:
       daily_ratio: 0.3
       hourly_ratio: 0.2
       by_phone_country:
-        - country_codes: ["HK", "SG"]
+        - geo_location_codes: ["HK", "SG"]
           daily_ratio: 0.15
           hourly_ratio: 0.1
-        - country_codes: ["JP"]
+        - geo_location_codes: ["JP"]
           daily_ratio: 0.25
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
@@ -49,7 +49,7 @@ fraud_protection:
 - Add `SMS *FraudProtectionSMSConfig` to `FraudProtectionConfig`.
 - Add `UnverifiedOTPBudget *FraudProtectionSMSUnverifiedOTPBudgetConfig` to `FraudProtectionSMSConfig`.
 - Add `DailyRatio *float64`, `HourlyRatio *float64`, and `ByPhoneCountry []*FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig` to `FraudProtectionSMSUnverifiedOTPBudgetConfig`.
-- Add `CountryCodes []string`, `DailyRatio *float64`, and `HourlyRatio *float64` to `FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig`.
+- Add `GeoLocationCodes []string`, `DailyRatio *float64`, and `HourlyRatio *float64` to `FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig`.
 - Use `omitempty` on every new field.
 - Mark the new optional pointer fields with `nullable:"true"` so `SetFieldDefaults()` treats explicit `null` the same as omission.
 - Use pointers for the ratio fields that are optional per country so omitted values can fall back independently.
@@ -59,7 +59,7 @@ fraud_protection:
 - Add `FraudProtectionSMSConfig`, `FraudProtectionSMSUnverifiedOTPBudgetConfig`, and `FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig` schema definitions in `pkg/lib/config/fraud_protection.go`.
 - `daily_ratio` and `hourly_ratio` must be numeric values in the range `0..1`.
 - `by_phone_country` remains a list, not a map.
-- `country_codes` remains a list of two-letter ISO 3166-1 alpha-2 codes.
+- `geo_location_codes` remains a list of two-letter ISO 3166-1 alpha-2 codes.
 - Mark the optional new fields as `nullable` in the JSON schema and `nullable:"true"` in the Go struct tags so explicit `null` is accepted the same as omission.
 
 ### Defaulting
@@ -70,7 +70,7 @@ fraud_protection:
 
 ### Validation
 
-- `pkg/lib/config/config.go` should validate `country_codes` arrays, including type and element-level constraints.
+- `pkg/lib/config/config.go` should validate `geo_location_codes` arrays, including type and element-level constraints.
 - The override list is order-sensitive, so resolution uses the first matching item rather than rejecting duplicate country codes across items.
 - No new feature-flag schema is needed. The existing `fraud_protection.is_modifiable` guard already covers the entire `fraud_protection` subtree.
 
@@ -90,7 +90,7 @@ fraud_protection:
 
 - Add a helper in `Service` that resolves the effective SMS budget for a phone country.
 - The helper should return one global ratio pair and the first matching country-specific override pair when present.
-- Country overrides are matched by exact country code using list order in `by_phone_country` and any entry in `country_codes`.
+- Country overrides are matched by exact country code using list order in `by_phone_country` and any entry in `geo_location_codes`.
 - If a country override omits one ratio, that dimension falls back to the global ratio.
 - IP-based thresholds always use the global ratios.
 

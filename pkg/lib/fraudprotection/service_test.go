@@ -322,13 +322,13 @@ func TestComputeThresholds(t *testing.T) {
 			cfg := defaultCfg()
 			cfg.SMS.UnverifiedOTPBudget.ByPhoneCountry = []*config.FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig{
 				{
-					CountryCodes: []string{"SG", "HK"},
-					DailyRatio:   floatPtr(0.15),
+					GeoLocationCodes: []string{"SG", "HK"},
+					DailyRatio:       floatPtr(0.15),
 				},
 				{
-					CountryCodes: []string{"SG"},
-					DailyRatio:   floatPtr(0.9),
-					HourlyRatio:  floatPtr(0.1),
+					GeoLocationCodes: []string{"SG"},
+					DailyRatio:       floatPtr(0.9),
+					HourlyRatio:      floatPtr(0.1),
 				},
 			}
 			svc := newSvc(600, 1000, 10, 600)

@@ -24,12 +24,12 @@ value:
       daily_ratio: 0.3
       hourly_ratio: 0.2
       by_phone_country:
-      - country_codes:
+      - geo_location_codes:
         - HK
         - SG
         daily_ratio: 0.15
         hourly_ratio: 0.1
-      - country_codes:
+      - geo_location_codes:
         - JP
         daily_ratio: 0.25
 ---
@@ -54,7 +54,7 @@ value:
   sms:
     unverified_otp_budget:
       by_phone_country:
-      - country_codes:
+      - geo_location_codes:
         - HK
         hourly_ratio: -0.1
 ---

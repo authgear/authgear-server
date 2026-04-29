@@ -16,11 +16,11 @@ config:
     sms:
       unverified_otp_budget:
         by_phone_country:
-          - country_codes:
+          - geo_location_codes:
               - SG
               - HK
             daily_ratio: 0.15
-          - country_codes:
+          - geo_location_codes:
               - SG
             hourly_ratio: 0.1
 
@@ -28,7 +28,7 @@ config:
 name: fraud-protection-by-phone-country-duplicate-country-in-one-item
 error: |-
   invalid configuration:
-  /fraud_protection/sms/unverified_otp_budget/by_phone_country/0/country_codes/1: duplicated
+  /fraud_protection/sms/unverified_otp_budget/by_phone_country/0/geo_location_codes/1: duplicated
 config:
   id: test
   http:
@@ -37,7 +37,7 @@ config:
     sms:
       unverified_otp_budget:
         by_phone_country:
-          - country_codes:
+          - geo_location_codes:
               - SG
               - SG
             daily_ratio: 0.15

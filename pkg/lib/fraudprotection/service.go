@@ -247,7 +247,7 @@ func (s *Service) resolveSMSUnverifiedOTPBudget(phoneCountry string) (globalDail
 	effectiveHourly = globalHourly
 
 	for _, override := range budget.ByPhoneCountry {
-		if slices.Contains(override.CountryCodes, phoneCountry) {
+		if slices.Contains(override.GeoLocationCodes, phoneCountry) {
 			if override.DailyRatio != nil {
 				effectiveDaily = *override.DailyRatio
 			}

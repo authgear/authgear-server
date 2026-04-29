@@ -262,19 +262,19 @@ func (c *AppConfig) validateFraudProtectionPhoneCountry(ctx *validation.Context)
 
 	for i, override := range c.FraudProtection.SMS.UnverifiedOTPBudget.ByPhoneCountry {
 		seen := map[string]struct{}{}
-		for j, countryCode := range override.CountryCodes {
-			if _, ok := seen[countryCode]; ok {
+		for j, geoLocationCode := range override.GeoLocationCodes {
+			if _, ok := seen[geoLocationCode]; ok {
 				ctx.Child(
 					"fraud_protection",
 					"sms",
 					"unverified_otp_budget",
 					"by_phone_country",
 					strconv.Itoa(i),
-					"country_codes",
+					"geo_location_codes",
 					strconv.Itoa(j),
 				).EmitError("duplicated", nil)
 			}
-			seen[countryCode] = struct{}{}
+			seen[geoLocationCode] = struct{}{}
 		}
 	}
 }

@@ -5,7 +5,7 @@ authgear.yaml:
       sms:
         unverified_otp_budget:
           by_phone_country:
-            - country_codes: ["SG"]
+            - geo_location_codes: ["SG"]
               hourly_ratio: 0.1
       warnings:
         - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED

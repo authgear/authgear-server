@@ -57,9 +57,9 @@ var _ = Schema.Add("FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig", 
 {
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["country_codes"],
+	"required": ["geo_location_codes"],
 	"properties": {
-		"country_codes": {
+		"geo_location_codes": {
 			"type": "array",
 			"items": {
 				"type": "string",
@@ -210,9 +210,9 @@ func (c *FraudProtectionSMSUnverifiedOTPBudgetConfig) SetDefaults() {
 }
 
 type FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig struct {
-	CountryCodes []string `json:"country_codes,omitempty"`
-	DailyRatio   *float64 `json:"daily_ratio,omitempty" nullable:"true"`
-	HourlyRatio  *float64 `json:"hourly_ratio,omitempty" nullable:"true"`
+	GeoLocationCodes []string `json:"geo_location_codes,omitempty"`
+	DailyRatio       *float64 `json:"daily_ratio,omitempty" nullable:"true"`
+	HourlyRatio      *float64 `json:"hourly_ratio,omitempty" nullable:"true"`
 }
 
 type FraudProtectionWarning struct {
