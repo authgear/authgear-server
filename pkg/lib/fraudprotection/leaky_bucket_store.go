@@ -97,12 +97,16 @@ var ipCountriesScript = `
 local now    = tonumber(ARGV[2])
 local cutoff = now - 86400
 
+-- 1. Use ZADD to record a send event in sent-countries sorted set key
 redis.call('ZADD', KEYS[1], now, ARGV[1])
+-- 2. use ZREMRANGEBYSCORE to drop records older than cutoff in both sets before processing
 redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', cutoff)
 redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', cutoff)
+-- 3. Update the expiry of both set to ensure they are not cleaned up when we still need them
 redis.call('EXPIRE', KEYS[1], ARGV[4])
 redis.call('EXPIRE', KEYS[2], ARGV[4])
 
+-- 4. Derive counties without at least one verified otp
 local sent_countries = redis.call('ZRANGE', KEYS[1], 0, -1)
 local verified_countries = redis.call('ZRANGE', KEYS[2], 0, -1)
 local verified_lookup = {}
@@ -248,6 +252,7 @@ func (s *LeakyBucketStore) RecordSMSOTPVerifiedCountry(ctx context.Context, ip, 
 
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		return conn.Eval(ctx, `
+-- Update the last verified otp timestamp of the country code in the sorted set
 redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
 redis.call('EXPIRE', KEYS[1], ARGV[3])
 return 1
