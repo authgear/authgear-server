@@ -441,7 +441,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   values={{
                     // eslint-disable-next-line react/no-unstable-nested-components
                     docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                      <ExternalLink href="https://docs.authgear.com/reference/apis/admin-api">
                         {chunks}
                       </ExternalLink>
                     ),
@@ -560,7 +560,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 
                     // eslint-disable-next-line react/no-unstable-nested-components
                     docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://docs.authgear.com/customization/admin-api">
+                      <ExternalLink href="https://docs.authgear.com/reference/apis/admin-api">
                         {chunks}
                       </ExternalLink>
                     ),
