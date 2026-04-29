@@ -384,6 +384,11 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 	return collaboratorRemoveHandler
 }
 
+func newCollaboratorPromoteHandler(p *deps.RequestProvider) http.Handler {
+	collaboratorPromoteHandler := &transport.CollaboratorPromoteHandler{}
+	return collaboratorPromoteHandler
+}
+
 func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
