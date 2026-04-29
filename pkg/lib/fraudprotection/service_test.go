@@ -314,7 +314,9 @@ func TestComputeThresholds(t *testing.T) {
 			svc := newSvc(600, 1000, 10, 0)
 			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
 			So(err, ShouldBeNil)
+			// countryDaily = max(20, max(600*0.3=180, 1000*0.3=300)) = 300
 			So(thresholds.CountryDaily, ShouldEqual, 300)
+			// countryHourly = max(3, max(600/6*0.2=20, 10*0.2=2)) = 20
 			So(thresholds.CountryHourly, ShouldEqual, 20)
 		})
 
@@ -336,9 +338,15 @@ func TestComputeThresholds(t *testing.T) {
 
 			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
 			So(err, ShouldBeNil)
+			// countryDaily = max(20, max(600*0.15=90, 1000*0.15=150)) = 150
 			So(thresholds.CountryDaily, ShouldEqual, 150)
+			// countryHourly uses the first matching override's hourly_ratio if present;
+			// here it is missing, so it falls back to the global hourly_ratio = 0.2.
+			// countryHourly = max(3, max(600/6*0.2=20, 10*0.2=2)) = 20
 			So(thresholds.CountryHourly, ShouldEqual, 20)
+			// ipDaily = max(10, 600*0.3=180) = 180
 			So(thresholds.IPDaily, ShouldEqual, 180)
+			// ipHourly = max(5, 600/6*0.2=20) = 20
 			So(thresholds.IPHourly, ShouldEqual, 20)
 		})
 
