@@ -29,6 +29,8 @@ make generate
 
 > **Avoid external type imports**: `pkg/siteadmin/model/oapi-codegen.yaml` maps `format: date` → `string` and `format: email` → `string` so that no `github.com/oapi-codegen/runtime/types` import is generated. If you add a new OpenAPI format that would otherwise pull in an external type, add a mapping to `output-options.type-mapping` in that file before regenerating.
 
+Commit: `"[Site Admin] Generate models for <feature>"`
+
 ---
 
 ## Stage 3: Create and wire the handler file
@@ -99,7 +101,7 @@ router.Add(transport.Configure<Name>Route(route), p.Handler(new<Name>Handler))
 
 Then regenerate:
 ```bash
-wire gen ./pkg/siteadmin/...
+go generate ./pkg/siteadmin/...
 go build ./pkg/siteadmin/...
 ```
 
@@ -193,7 +195,7 @@ Always set `StartTime` on fake records when date-range filtering is involved.
 
 After any `deps.go` change:
 ```bash
-wire gen ./pkg/siteadmin/...   # install with: go install github.com/google/wire/cmd/wire@latest
+go generate ./pkg/siteadmin/...
 go mod tidy
 go build ./pkg/siteadmin/...
 go build ./cmd/portal/...

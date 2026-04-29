@@ -112,6 +112,20 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newPlansListHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.PlansListHandler)),
+	))
+}
+
+func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AppPlanChangeHandler)),
+	))
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

@@ -78,6 +78,50 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v1/plans:
+    get:
+      operationId: listPlans
+      summary: List all available plans
+      responses:
+        "200":
+          description: A list of plans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlansListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/apps/{app_id}/plan:
+    post:
+      operationId: changeAppPlan
+      summary: Change the plan of an app
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeAppPlanRequest"
+      responses:
+        "200":
+          description: Plan changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/App"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v1/apps/{app_id}/usage/messaging:
     get:
       operationId: getAppMessagingUsage
@@ -524,6 +568,34 @@ components:
         last_month_mau:
           type: integer
           description: Monthly active users in the last complete calendar month. 0 if no data is available.
+
+    Plan:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The plan name
+
+    PlansListResponse:
+      type: object
+      required:
+        - plans
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: "#/components/schemas/Plan"
+
+    ChangeAppPlanRequest:
+      type: object
+      required:
+        - plan_name
+      properties:
+        plan_name:
+          type: string
+          description: The plan to assign to the app
 
     AppDetail:
       allOf:

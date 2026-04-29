@@ -325,6 +325,8 @@
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/resolver/handler/resolve.go:40:9: requestcontext
 /pkg/siteadmin/transport/handler_app_get.go:40:33: requestcontext
+/pkg/siteadmin/transport/handler_app_plan_change.go:47:65: requestcontext
+/pkg/siteadmin/transport/handler_app_plan_change.go:63:38: requestcontext
 /pkg/siteadmin/transport/handler_apps_list.go:81:37: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:47:67: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:64:49: requestcontext
@@ -332,6 +334,7 @@
 /pkg/siteadmin/transport/handler_collaborators_list.go:38:52: requestcontext
 /pkg/siteadmin/transport/handler_messaging_usage.go:78:44: requestcontext
 /pkg/siteadmin/transport/handler_monthly_active_users_usage.go:86:3: requestcontext
+/pkg/siteadmin/transport/handler_plans_list.go:25:36: requestcontext
 /pkg/siteadmin/transport/middleware_authz.go:25:10: requestcontext
 /pkg/siteadmin/transport/response.go:27:9: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext
