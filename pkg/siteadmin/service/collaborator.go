@@ -18,7 +18,7 @@ import (
 )
 
 var ErrCollaboratorOwnerDeletion = apierrors.Forbidden.WithReason("CollaboratorOwnerDeletion").New("cannot remove owner collaborator")
-var ErrCollaboratorAlreadyOwner = apierrors.Forbidden.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
+var ErrCollaboratorAlreadyOwner = apierrors.AlreadyExists.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
 
 type CollaboratorServiceStore interface {
 	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)

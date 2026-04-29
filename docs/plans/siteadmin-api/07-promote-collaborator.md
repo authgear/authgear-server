@@ -87,7 +87,7 @@ func updateCollaboratorRole(ctx context.Context, tx *sql.Tx, id string, role mod
 
 **New error:**
 ```go
-var ErrCollaboratorAlreadyOwner = apierrors.Forbidden.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
+var ErrCollaboratorAlreadyOwner = apierrors.AlreadyExists.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
 ```
 
 **`UpdateCollaborator` added to `CollaboratorServiceStore` interface:**
@@ -266,7 +266,7 @@ Four new test cases under `TestCollaboratorService`:
 |---|---|---|
 | collaboratorID not in DB | `portalservice.ErrCollaboratorNotFound` | 404 |
 | collaborator belongs to different app | `portalservice.ErrCollaboratorNotFound` | 404 |
-| collaborator is already owner | `ErrCollaboratorAlreadyOwner` | 403 |
+| collaborator is already owner | `ErrCollaboratorAlreadyOwner` | 409 |
 
 ---
 
