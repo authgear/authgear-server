@@ -6,6 +6,43 @@ config:
     public_origin: http://test
 
 ---
+name: fraud-protection-by-phone-country-first-match-is-allowed
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  fraud_protection:
+    sms:
+      unverified_otp_budget:
+        by_phone_country:
+          - geo_location_codes:
+              - SG
+              - HK
+            daily_ratio: 0.15
+          - geo_location_codes:
+              - SG
+            hourly_ratio: 0.1
+
+---
+name: fraud-protection-by-phone-country-duplicate-country-in-one-item
+error: |-
+  invalid configuration:
+  /fraud_protection/sms/unverified_otp_budget/by_phone_country/0/geo_location_codes/1: duplicated
+config:
+  id: test
+  http:
+    public_origin: http://test
+  fraud_protection:
+    sms:
+      unverified_otp_budget:
+        by_phone_country:
+          - geo_location_codes:
+              - SG
+              - SG
+            daily_ratio: 0.15
+
+---
 name: missing-id
 error: |-
   invalid configuration:

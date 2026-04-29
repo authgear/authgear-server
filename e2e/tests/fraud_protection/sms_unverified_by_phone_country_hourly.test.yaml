@@ -5,6 +5,9 @@ authgear.yaml:
       decision:
         action: deny_if_any_warning
 steps:
+  # With the default global ratios (daily=0.3, hourly=0.2) and no verified history,
+  # the decoupled hourly formula still falls back to the minimum threshold of 3.
+  # That keeps flow 4 as the first blocked send for one phone country.
   # Flow 1 - SG number, succeeds
   - name: flow 1 - create
     action: create

@@ -663,6 +663,10 @@ network_protection:
     default_action: allow
 fraud_protection:
   enabled: true
+  sms:
+    unverified_otp_budget:
+      daily_ratio: 0.3
+      hourly_ratio: 0.2
   warnings:
   - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
   - type: SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED

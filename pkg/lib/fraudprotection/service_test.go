@@ -106,6 +106,8 @@ func defaultCfg() *config.FraudProtectionConfig {
 	return c
 }
 
+func floatPtr(v float64) *float64 { return &v }
+
 // --- tests ---
 
 func TestEvaluateWarnings(t *testing.T) {
@@ -269,6 +271,7 @@ func TestComputeThresholds(t *testing.T) {
 
 		newSvc := func(rollingMax, country24h, country1h, ip24h int64) *Service {
 			return &Service{
+				Config: defaultCfg(),
 				Metrics: &stubMetrics{
 					rollingMax: rollingMax,
 					country24h: country24h,
@@ -283,33 +286,73 @@ func TestComputeThresholds(t *testing.T) {
 			svc := newSvc(0, 0, 0, 0)
 			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
 			So(err, ShouldBeNil)
-			// countryDaily = max(20, max(0*0.2, 0*0.2)) = 20
+			// countryDaily = max(20, max(0*0.3, 0*0.3)) = 20
 			So(thresholds.CountryDaily, ShouldEqual, 20)
-			// countryHourly = max(3, max(20/6, 0*0.2)) ≈ max(3, 3.33) = 3.33
-			So(thresholds.CountryHourly, ShouldAlmostEqual, 20.0/6, 0.001)
-			// ipDaily = max(10, 0*0.2) = 10
+			// countryHourly = max(3, max(0/6*0.2, 0*0.2)) = 3
+			So(thresholds.CountryHourly, ShouldEqual, 3)
+			// ipDaily = max(10, 0*0.3) = 10
 			So(thresholds.IPDaily, ShouldEqual, 10)
-			// ipHourly = max(5, 0*0.2/6) = 5
+			// ipHourly = max(5, 0/6*0.2) = 5
 			So(thresholds.IPHourly, ShouldEqual, 5)
 		})
 
 		Convey("scales with large historical counts", func() {
-			// 1000 verified in past 24h from country → daily threshold driven by count
 			svc := newSvc(500, 1000, 200, 600)
 			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
 			So(err, ShouldBeNil)
-			// countryDaily = max(20, max(500*0.2=100, 1000*0.2=200)) = 200
-			So(thresholds.CountryDaily, ShouldEqual, 200)
-			// countryHourly = max(3, max(200/6≈33.3, 200*0.2=40)) = 40
+			// countryDaily = max(20, max(500*0.3=150, 1000*0.3=300)) = 300
+			So(thresholds.CountryDaily, ShouldEqual, 300)
+			// countryHourly = max(3, max(500/6*0.2≈16.7, 200*0.2=40)) = 40
 			So(thresholds.CountryHourly, ShouldEqual, 40)
-			// ipDaily = max(10, 600*0.2=120) = 120
-			So(thresholds.IPDaily, ShouldEqual, 120)
-			// ipHourly = max(5, 600*0.2/6=20) = 20
+			// ipDaily = max(10, 600*0.3=180) = 180
+			So(thresholds.IPDaily, ShouldEqual, 180)
+			// ipHourly = max(5, 600/6*0.2=20) = 20
+			So(thresholds.IPHourly, ShouldEqual, 20)
+		})
+
+		Convey("uses the rolling-max-based hourly formula instead of daily threshold / 6", func() {
+			svc := newSvc(600, 1000, 10, 0)
+			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
+			So(err, ShouldBeNil)
+			// countryDaily = max(20, max(600*0.3=180, 1000*0.3=300)) = 300
+			So(thresholds.CountryDaily, ShouldEqual, 300)
+			// countryHourly = max(3, max(600/6*0.2=20, 10*0.2=2)) = 20
+			So(thresholds.CountryHourly, ShouldEqual, 20)
+		})
+
+		Convey("uses the first matching country override and falls back independently by dimension", func() {
+			cfg := defaultCfg()
+			cfg.SMS.UnverifiedOTPBudget.ByPhoneCountry = []*config.FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig{
+				{
+					GeoLocationCodes: []string{"SG", "HK"},
+					DailyRatio:       floatPtr(0.15),
+				},
+				{
+					GeoLocationCodes: []string{"SG"},
+					DailyRatio:       floatPtr(0.9),
+					HourlyRatio:      floatPtr(0.1),
+				},
+			}
+			svc := newSvc(600, 1000, 10, 600)
+			svc.Config = cfg
+
+			thresholds, err := svc.ComputeThresholds(ctx, "1.2.3.4", "SG")
+			So(err, ShouldBeNil)
+			// countryDaily = max(20, max(600*0.15=90, 1000*0.15=150)) = 150
+			So(thresholds.CountryDaily, ShouldEqual, 150)
+			// countryHourly uses the first matching override's hourly_ratio if present;
+			// here it is missing, so it falls back to the global hourly_ratio = 0.2.
+			// countryHourly = max(3, max(600/6*0.2=20, 10*0.2=2)) = 20
+			So(thresholds.CountryHourly, ShouldEqual, 20)
+			// ipDaily = max(10, 600*0.3=180) = 180
+			So(thresholds.IPDaily, ShouldEqual, 180)
+			// ipHourly = max(5, 600/6*0.2=20) = 20
 			So(thresholds.IPHourly, ShouldEqual, 20)
 		})
 
 		Convey("returns error when metrics query fails", func() {
 			svc := &Service{
+				Config:      defaultCfg(),
 				Metrics:     &stubMetrics{getErr: errMetricsFailure},
 				LeakyBucket: &stubLeakyBucket{},
 			}

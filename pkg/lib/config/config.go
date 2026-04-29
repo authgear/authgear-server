@@ -131,19 +131,22 @@ func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Cont
 	// Validation 5: pinned phone number country must be in allowlist.
 	c.validatePhoneInputCountry(validationCtx)
 
-	// Validation 6: fallback language must be in the list of supported language.
+	// Validation 6: fraud protection phone-country overrides must be valid.
+	c.validateFraudProtectionPhoneCountry(validationCtx)
+
+	// Validation 7: fallback language must be in the list of supported language.
 	c.validateFallbackLanguage(validationCtx)
 
-	// Validation 7: validate custom attribute
+	// Validation 8: validate custom attribute
 	c.validateCustomAttribute(validationCtx)
 
-	// Validation 8: validate lockout configs
+	// Validation 9: validate lockout configs
 	c.validateLockout(validationCtx)
 
-	// Validation 9: validate authentication flow
+	// Validation 10: validate authentication flow
 	c.validateAuthenticationFlow(validationCtx)
 
-	// Validation 10: validate saml configs
+	// Validation 11: validate saml configs
 	c.validateSAML(validationCtx)
 }
 
@@ -247,6 +250,32 @@ func (c *AppConfig) validatePhoneInputCountry(ctx *validation.Context) {
 	if !phoneInputPinnedOK {
 		ctx.Child("ui", "phone_input", "pinned_list").
 			EmitErrorMessage("pinned country code is unlisted")
+	}
+}
+
+func (c *AppConfig) validateFraudProtectionPhoneCountry(ctx *validation.Context) {
+	if c.FraudProtection == nil ||
+		c.FraudProtection.SMS == nil ||
+		c.FraudProtection.SMS.UnverifiedOTPBudget == nil {
+		return
+	}
+
+	for i, override := range c.FraudProtection.SMS.UnverifiedOTPBudget.ByPhoneCountry {
+		seen := map[string]struct{}{}
+		for j, geoLocationCode := range override.GeoLocationCodes {
+			if _, ok := seen[geoLocationCode]; ok {
+				ctx.Child(
+					"fraud_protection",
+					"sms",
+					"unverified_otp_budget",
+					"by_phone_country",
+					strconv.Itoa(i),
+					"geo_location_codes",
+					strconv.Itoa(j),
+				).EmitError("duplicated", nil)
+			}
+			seen[geoLocationCode] = struct{}{}
+		}
 	}
 }
 
