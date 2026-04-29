@@ -34,10 +34,10 @@ fraud_protection:
       daily_ratio: 0.3
       hourly_ratio: 0.2
       by_phone_country:
-        - country_codes: ["HK", "SG"]
+        - geo_location_codes: ["HK", "SG"]
           daily_ratio: 0.15
           hourly_ratio: 0.1
-        - country_codes: ["JP"]
+        - geo_location_codes: ["JP"]
           daily_ratio: 0.25
   warnings:
     - type: SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
@@ -83,12 +83,12 @@ fraud_protection:
 - `daily_ratio` (number, optional): A decimal ratio applied to verified SMS OTP counts when computing daily thresholds. `0.3` means 30%. Default `0.3`.
 - `hourly_ratio` (number, optional): A decimal ratio applied to verified SMS OTP counts when computing hourly thresholds. `0.2` means 20%. Default `0.2`.
 - `by_phone_country` (array of objects, optional): Per phone-country overrides. Each item contains:
-  - `country_codes` (array of strings): ISO 3166-1 alpha-2 country codes of the recipient phone number countries that share the same ratios.
+  - `geo_location_codes` (array of strings): ISO 3166-1 alpha-2 country codes of the recipient phone number countries that share the same ratios.
   - `daily_ratio` (number, optional): Overrides the global `daily_ratio` for this phone country.
   - `hourly_ratio` (number, optional): Overrides the global `hourly_ratio` for this phone country.
 - Optional fields should be treated as nullable in the schema so explicit `null` is accepted the same as omission.
 
-The `by_phone_country` list is ordered. For a given phone country, use the first override item whose `country_codes` list contains that country code. Each `country_codes` list must not contain duplicates.
+The `by_phone_country` list is ordered. For a given phone country, use the first override item whose `geo_location_codes` list contains that country code. Each `geo_location_codes` list must not contain duplicates.
 
 The effective ratios are resolved as follows:
 
