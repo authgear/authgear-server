@@ -86,21 +86,42 @@ return {new_level, (new_level > threshold) and 1 or 0}
 
 // ipCountriesScript tracks distinct countries seen from a given IP in the past 24h
 // using a sorted set keyed by country code with the last-seen timestamp as the score.
-// KEYS[1] = sorted set key
+// KEYS[1] = sent-countries sorted set key
+// KEYS[2] = verified-countries sorted set key
 // ARGV[1] = alpha2 country code
 // ARGV[2] = now (unix timestamp)
 // ARGV[3] = threshold (fixed = 3)
 // ARGV[4] = ttl_seconds (2 * 86400)
-// Returns {count, triggered_int}.
+// Returns {filtered_count, triggered_int}.
 var ipCountriesScript = `
 local now    = tonumber(ARGV[2])
 local cutoff = now - 86400
 
+-- 1. Use ZADD to record a send event in sent-countries sorted set key
 redis.call('ZADD', KEYS[1], now, ARGV[1])
+-- 2. use ZREMRANGEBYSCORE to drop records older than cutoff in both sets before processing
 redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', cutoff)
+redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', cutoff)
+-- 3. Update the expiry of both set to ensure they are not cleaned up when we still need them
 redis.call('EXPIRE', KEYS[1], ARGV[4])
+redis.call('EXPIRE', KEYS[2], ARGV[4])
 
-local count = redis.call('ZCARD', KEYS[1])
+-- 4. Derive counties without at least one verified otp
+local sent_countries = redis.call('ZRANGE', KEYS[1], 0, -1)
+local verified_countries = redis.call('ZRANGE', KEYS[2], 0, -1)
+local verified_lookup = {}
+
+for _, country in ipairs(verified_countries) do
+    verified_lookup[country] = true
+end
+
+local count = 0
+for _, country in ipairs(sent_countries) do
+    if not verified_lookup[country] then
+        count = count + 1
+    end
+end
+
 return {count, (count > tonumber(ARGV[3])) and 1 or 0}
 `
 
@@ -170,10 +191,11 @@ func (s *LeakyBucketStore) RecordSMSOTPSent(ctx context.Context, ip, phoneCountr
 			return err
 		}
 
-		// Update ip_countries ZSET.
+		// Update ip_countries ZSET and exclude countries with a verified OTP in the same window.
 		ipCountriesKey := s.ipCountriesKey(ip)
+		ipVerifiedCountriesKey := s.ipVerifiedCountriesKey(ip)
 		res, err := conn.Eval(ctx, ipCountriesScript,
-			[]string{ipCountriesKey},
+			[]string{ipCountriesKey, ipVerifiedCountriesKey},
 			phoneCountry, now, ipCountriesThreshold, 2*bucketWindowDaily,
 		).Slice()
 		if err != nil {
@@ -225,10 +247,30 @@ func (s *LeakyBucketStore) RecordSMSOTPVerified(ctx context.Context, ip, phoneCo
 	})
 }
 
+func (s *LeakyBucketStore) RecordSMSOTPVerifiedCountry(ctx context.Context, ip, phoneCountry string) error {
+	now := float64(s.Clock.NowUTC().Unix())
+
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return conn.Eval(ctx, `
+-- Update the last verified otp timestamp of the country code in the sorted set
+redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+redis.call('EXPIRE', KEYS[1], ARGV[3])
+return 1
+`,
+			[]string{s.ipVerifiedCountriesKey(ip)},
+			now, phoneCountry, 2*bucketWindowDaily,
+		).Err()
+	})
+}
+
 func (s *LeakyBucketStore) bucketKey(period int, dimension, value string) string {
 	return fmt.Sprintf("app:%s:fraud_protection:leaky_bucket:%d:%s:%s", string(s.AppID), period, dimension, value)
 }
 
 func (s *LeakyBucketStore) ipCountriesKey(ip string) string {
 	return fmt.Sprintf("app:%s:fraud_protection:ip_countries:%s", string(s.AppID), ip)
+}
+
+func (s *LeakyBucketStore) ipVerifiedCountriesKey(ip string) string {
+	return fmt.Sprintf("app:%s:fraud_protection:ip_verified_countries:%s", string(s.AppID), ip)
 }

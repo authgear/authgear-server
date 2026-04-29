@@ -1,0 +1,99 @@
+name: Fraud protection - SMS phone countries by IP daily excludes verified country
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+steps:
+  # Flow 1 - SG number, then successfully verify it. SG should no longer count
+  # toward the IP-country threshold for the same 24h window.
+  - name: flow 1 - create (SG)
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone (SG)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 1 - send sms (SG)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+  - name: flow 1 - verify otp (SG)
+    action: input
+    input: |
+      {"code": "111111"}
+
+  # Flows 2-4 are three distinct unverified countries from the same IP. All should
+  # still be allowed because the verified SG country is excluded from the count.
+  - name: flow 2 - create (HK)
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone (HK)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+85291230001"}
+  - name: flow 2 - send sms (HK)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 3 - create (MY)
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone (MY)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+60123450001"}
+  - name: flow 3 - send sms (MY)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 4 - create (TH)
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone (TH)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+66812340001"}
+  - name: flow 4 - send sms (TH)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 5 is the 4th unverified country from this IP, so it should be blocked.
+  - name: flow 5 - create (US)
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 5 - identify phone (US)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+12125550001"}
+  - name: flow 5 - send sms (blocked)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
