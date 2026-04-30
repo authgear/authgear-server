@@ -220,24 +220,6 @@ func TestCollaboratorService(t *testing.T) {
 			So(store.deleted, ShouldBeEmpty)
 		})
 
-		Convey("RemoveCollaborator rejects owner deletion", func() {
-			db := &fakeCollaboratorDatabase{}
-			store := &fakeCollaboratorStore{
-				existingByID: map[string]*portalmodel.Collaborator{
-					"collab-1": {ID: "collab-1", AppID: "app-1", UserID: "user-1", CreatedAt: now, Role: portalmodel.CollaboratorRoleOwner},
-				},
-			}
-			svc := &CollaboratorService{
-				GlobalDatabase: db,
-				Store:          store,
-			}
-
-			err := svc.RemoveCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
-
-			So(err, ShouldEqual, ErrCollaboratorOwnerDeletion)
-			So(store.deleted, ShouldBeEmpty)
-		})
-
 		Convey("PromoteCollaborator succeeds and resolves email outside TX", func() {
 			db := &fakeCollaboratorDatabase{}
 			store := &fakeCollaboratorStore{

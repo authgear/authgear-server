@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-var ErrCollaboratorOwnerDeletion = apierrors.Forbidden.WithReason("CollaboratorOwnerDeletion").New("cannot remove owner collaborator")
 var ErrCollaboratorAlreadyOwner = apierrors.AlreadyExists.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
 
 type CollaboratorServiceStore interface {
@@ -281,9 +280,6 @@ func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID stri
 		}
 		if c.AppID != appID {
 			return portalservice.ErrCollaboratorNotFound
-		}
-		if c.Role == model.CollaboratorRoleOwner {
-			return ErrCollaboratorOwnerDeletion
 		}
 		return s.Store.DeleteCollaborator(ctx, c)
 	})

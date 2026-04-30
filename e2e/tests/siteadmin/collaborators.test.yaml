@@ -160,7 +160,7 @@ steps:
     rows: |
       [{"id": "[[string]]"}]
 
-- name: remove owner returns 403
+- name: remove owner succeeds
   action: http_request
   http_request_method: DELETE
   http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/collaborators/{{ index (index .steps.get_owner_collab.result.rows 0) "id" }}
@@ -168,7 +168,9 @@ steps:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
   http_output:
-    http_status: 403
+    http_status: 200
+    json_body: |
+      {}
 
 # ── Promote ───────────────────────────────────────────────────────────────────
 - name: get_gamma_editor_collab
