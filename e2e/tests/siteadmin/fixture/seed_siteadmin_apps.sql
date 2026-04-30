@@ -2,11 +2,12 @@
 -- It grants Site Admin access in e2e-portal, inserts known test apps, and seeds
 -- a known owner user for e2e-siteadmin-app-alpha.
 
-INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, role)
+INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, updated_at, role)
 VALUES (
     gen_random_uuid()::text,
     'e2e-portal',
     '00000000-0000-0000-0000-000000000001',
+    NOW(),
     NOW(),
     'owner'
 )
@@ -120,12 +121,64 @@ VALUES (
 )
 ON CONFLICT DO NOTHING;
 
-INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, role)
+INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, updated_at, role)
 VALUES (
     gen_random_uuid()::text,
     'e2e-siteadmin-app-alpha',
     '00000000-0000-0000-0000-000000000002',
     NOW(),
+    NOW(),
     'owner'
 )
+ON CONFLICT (app_id, user_id) DO NOTHING;
+
+-- Users for promote tests (distinct emails to avoid polluting owner_email filters).
+INSERT INTO _auth_user (
+    id, app_id, created_at, updated_at, last_login_at, login_at,
+    is_disabled, disable_reason, standard_attributes, custom_attributes,
+    is_deactivated, delete_at, is_anonymized, anonymize_at, anonymized_at,
+    last_indexed_at, require_reindex_after
+)
+VALUES
+    (
+        '00000000-0000-0000-0000-000000000004',
+        'e2e-portal',
+        NOW(), NOW(), NULL, NULL,
+        false, NULL,
+        '{"email": "editor@example.com"}',
+        '{}',
+        false, NULL, false, NULL, NULL,
+        NOW(), NOW()
+    ),
+    (
+        '00000000-0000-0000-0000-000000000005',
+        'e2e-portal',
+        NOW(), NOW(), NULL, NULL,
+        false, NULL,
+        '{"email": "gamma-owner@example.com"}',
+        '{}',
+        false, NULL, false, NULL, NULL,
+        NOW(), NOW()
+    )
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed gamma with owner + editor so promote tests start from a known state.
+-- Uses distinct users (005 and 004) so the owner_email=owner@example.com filter
+-- in apps.test.yaml still returns only alpha.
+INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, updated_at, role)
+VALUES
+    (
+        gen_random_uuid()::text,
+        'e2e-siteadmin-app-gamma',
+        '00000000-0000-0000-0000-000000000005',
+        NOW(), NOW(),
+        'owner'
+    ),
+    (
+        gen_random_uuid()::text,
+        'e2e-siteadmin-app-gamma',
+        '00000000-0000-0000-0000-000000000004',
+        NOW(), NOW(),
+        'editor'
+    )
 ON CONFLICT (app_id, user_id) DO NOTHING;

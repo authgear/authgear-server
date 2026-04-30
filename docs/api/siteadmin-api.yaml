@@ -290,6 +290,33 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v1/apps/{app_id}/collaborators/{collaborator_id}/promote:
+    post:
+      operationId: promoteCollaboratorToOwner
+      summary: Promote a collaborator to owner, demoting the current owner to editor
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collaborator_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The promoted collaborator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collaborator"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v1/apps/{app_id}:
     get:
       operationId: getApp

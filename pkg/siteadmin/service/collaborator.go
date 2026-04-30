@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-var ErrCollaboratorOwnerDeletion = apierrors.Forbidden.WithReason("CollaboratorOwnerDeletion").New("cannot remove owner collaborator")
+var ErrCollaboratorAlreadyOwner = apierrors.AlreadyExists.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
 
 type CollaboratorServiceStore interface {
 	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)
@@ -26,6 +26,7 @@ type CollaboratorServiceStore interface {
 	NewCollaborator(appID string, userID string, role model.CollaboratorRole) *model.Collaborator
 	CreateCollaborator(ctx context.Context, c *model.Collaborator) error
 	DeleteCollaborator(ctx context.Context, c *model.Collaborator) error
+	UpdateCollaborator(ctx context.Context, c *model.Collaborator) error
 }
 
 type CollaboratorStore struct {
@@ -93,12 +94,23 @@ func (s *CollaboratorStore) NewCollaborator(appID string, userID string, role mo
 func (s *CollaboratorStore) CreateCollaborator(ctx context.Context, c *model.Collaborator) error {
 	_, err := s.SQLExecutor.ExecWith(ctx, s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Columns("id", "app_id", "user_id", "created_at", "role").
-		Values(c.ID, c.AppID, c.UserID, c.CreatedAt, c.Role),
+		Columns("id", "app_id", "user_id", "created_at", "updated_at", "role").
+		Values(c.ID, c.AppID, c.UserID, c.CreatedAt, c.CreatedAt, c.Role),
 	)
 	if isUniqueViolation(err) {
 		return portalservice.ErrCollaboratorDuplicate
 	}
+	return err
+}
+
+func (s *CollaboratorStore) UpdateCollaborator(ctx context.Context, c *model.Collaborator) error {
+	now := s.Clock.NowUTC()
+	_, err := s.SQLExecutor.ExecWith(ctx, s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_app_collaborator")).
+		Set("role", c.Role).
+		Set("updated_at", now).
+		Where("id = ?", c.ID),
+	)
 	return err
 }
 
@@ -201,6 +213,65 @@ func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string,
 	}, nil
 }
 
+func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID string, collaboratorID string) (*siteadmin.Collaborator, error) {
+	var promoted *model.Collaborator
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		target, err := s.Store.GetCollaborator(ctx, collaboratorID)
+		if err != nil {
+			return err
+		}
+		if target.AppID != appID {
+			return portalservice.ErrCollaboratorNotFound
+		}
+		if target.Role == model.CollaboratorRoleOwner {
+			return ErrCollaboratorAlreadyOwner
+		}
+
+		all, err := s.Store.ListCollaborators(ctx, appID)
+		if err != nil {
+			return err
+		}
+		var currentOwner *model.Collaborator
+		for _, c := range all {
+			if c.Role == model.CollaboratorRoleOwner {
+				currentOwner = c
+				break
+			}
+		}
+
+		target.Role = model.CollaboratorRoleOwner
+		if err := s.Store.UpdateCollaborator(ctx, target); err != nil {
+			return err
+		}
+		if currentOwner != nil {
+			currentOwner.Role = model.CollaboratorRoleEditor
+			if err := s.Store.UpdateCollaborator(ctx, currentOwner); err != nil {
+				return err
+			}
+		}
+
+		promoted = target
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	emailMap, err := s.AdminAPI.ResolveUserEmails(ctx, []string{promoted.UserID})
+	if err != nil {
+		return nil, err
+	}
+
+	return &siteadmin.Collaborator{
+		Id:        promoted.ID,
+		AppId:     promoted.AppID,
+		UserId:    promoted.UserID,
+		UserEmail: emailMap[promoted.UserID],
+		Role:      siteadmin.CollaboratorRole(promoted.Role),
+		CreatedAt: promoted.CreatedAt,
+	}, nil
+}
+
 func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID string, collaboratorID string) error {
 	return s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		c, err := s.Store.GetCollaborator(ctx, collaboratorID)
@@ -209,9 +280,6 @@ func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID stri
 		}
 		if c.AppID != appID {
 			return portalservice.ErrCollaboratorNotFound
-		}
-		if c.Role == model.CollaboratorRoleOwner {
-			return ErrCollaboratorOwnerDeletion
 		}
 		return s.Store.DeleteCollaborator(ctx, c)
 	})

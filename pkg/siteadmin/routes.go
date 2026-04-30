@@ -44,6 +44,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	router.Add(transport.ConfigureCollaboratorsListRoute(route), p.Handler(newCollaboratorsListHandler))
 	router.Add(transport.ConfigureCollaboratorAddRoute(route), p.Handler(newCollaboratorAddHandler))
 	router.Add(transport.ConfigureCollaboratorRemoveRoute(route), p.Handler(newCollaboratorRemoveHandler))
+	router.Add(transport.ConfigureCollaboratorPromoteRoute(route), p.Handler(newCollaboratorPromoteHandler))
 	router.Add(transport.ConfigureMessagingUsageRoute(route), p.Handler(newMessagingUsageHandler))
 	router.Add(transport.ConfigureMonthlyActiveUsersUsageRoute(route), p.Handler(newMonthlyActiveUsersUsageHandler))
 	router.Add(transport.ConfigurePlansListRoute(route), p.Handler(newPlansListHandler))

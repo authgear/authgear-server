@@ -98,6 +98,13 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newCollaboratorPromoteHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.CollaboratorPromoteHandler)),
+	))
+}
+
 func newMessagingUsageHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

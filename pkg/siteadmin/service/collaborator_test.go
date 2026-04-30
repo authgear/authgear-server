@@ -39,6 +39,7 @@ type fakeCollaboratorStore struct {
 	existingByAppUser map[string]*portalmodel.Collaborator
 	created           []*portalmodel.Collaborator
 	deleted           []*portalmodel.Collaborator
+	updated           []*portalmodel.Collaborator
 	now               time.Time
 }
 
@@ -83,6 +84,14 @@ func (f *fakeCollaboratorStore) CreateCollaborator(_ context.Context, c *portalm
 
 func (f *fakeCollaboratorStore) DeleteCollaborator(_ context.Context, c *portalmodel.Collaborator) error {
 	f.deleted = append(f.deleted, c)
+	return nil
+}
+
+func (f *fakeCollaboratorStore) UpdateCollaborator(_ context.Context, c *portalmodel.Collaborator) error {
+	f.updated = append(f.updated, c)
+	if existing, ok := f.existingByID[c.ID]; ok {
+		existing.Role = c.Role
+	}
 	return nil
 }
 
@@ -211,7 +220,89 @@ func TestCollaboratorService(t *testing.T) {
 			So(store.deleted, ShouldBeEmpty)
 		})
 
-		Convey("RemoveCollaborator rejects owner deletion", func() {
+		Convey("PromoteCollaborator succeeds and resolves email outside TX", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				listed: []*portalmodel.Collaborator{
+					{ID: "owner-1", AppID: "app-1", UserID: "user-owner", CreatedAt: now, Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+				existingByID: map[string]*portalmodel.Collaborator{
+					"editor-1": {ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			globalID := relay.ToGlobalID("User", "user-editor")
+			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if db.inTx.Load() {
+					http.Error(w, "admin api called while transaction is open", http.StatusInternalServerError)
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(getNodesResponse(
+					map[string]interface{}{"id": globalID, "standardAttributes": map[string]interface{}{"email": "editor@example.com"}},
+				))
+			}))
+			defer svr.Close()
+
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+			}
+
+			result, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
+
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, &siteadmin.Collaborator{
+				Id:        "editor-1",
+				AppId:     "app-1",
+				UserId:    "user-editor",
+				UserEmail: "editor@example.com",
+				Role:      siteadmin.Owner,
+				CreatedAt: now,
+			})
+			So(store.updated, ShouldHaveLength, 2)
+			So(store.updated[0].ID, ShouldEqual, "editor-1")
+			So(store.updated[0].Role, ShouldEqual, portalmodel.CollaboratorRoleOwner)
+			So(store.updated[1].ID, ShouldEqual, "owner-1")
+			So(store.updated[1].Role, ShouldEqual, portalmodel.CollaboratorRoleEditor)
+		})
+
+		Convey("PromoteCollaborator returns not found when collaboratorID is missing", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				existingByID: map[string]*portalmodel.Collaborator{},
+			}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+			}
+
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "no-such-id")
+
+			So(err, ShouldEqual, portalservice.ErrCollaboratorNotFound)
+			So(store.updated, ShouldBeEmpty)
+		})
+
+		Convey("PromoteCollaborator returns not found on cross-app access", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				existingByID: map[string]*portalmodel.Collaborator{
+					"collab-1": {ID: "collab-1", AppID: "other-app", UserID: "user-1", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+			}
+
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
+
+			So(err, ShouldEqual, portalservice.ErrCollaboratorNotFound)
+			So(store.updated, ShouldBeEmpty)
+		})
+
+		Convey("PromoteCollaborator returns AlreadyOwner when target is already owner", func() {
 			db := &fakeCollaboratorDatabase{}
 			store := &fakeCollaboratorStore{
 				existingByID: map[string]*portalmodel.Collaborator{
@@ -223,10 +314,10 @@ func TestCollaboratorService(t *testing.T) {
 				Store:          store,
 			}
 
-			err := svc.RemoveCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
 
-			So(err, ShouldEqual, ErrCollaboratorOwnerDeletion)
-			So(store.deleted, ShouldBeEmpty)
+			So(err, ShouldEqual, ErrCollaboratorAlreadyOwner)
+			So(store.updated, ShouldBeEmpty)
 		})
 	})
 }
