@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"dario.cat/mergo"
 	cp "github.com/otiai10/copy"
 	"sigs.k8s.io/yaml"
 
@@ -96,19 +95,11 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 		return "", err
 	}
 
-	var overrideCfg config.AppConfig
-	jsonData, err := yaml.YAMLToJSON([]byte(overrideYAML))
+	mergedYAML, err := mergeYAMLObjects(authgearYAML, []byte(overrideYAML))
 	if err != nil {
 		return "", err
 	}
-
-	decoder := json.NewDecoder(bytes.NewReader(jsonData))
-	err = decoder.Decode(&overrideCfg)
-	if err != nil {
-		return "", err
-	}
-
-	err = mergo.Merge(cfg, &overrideCfg, mergo.WithOverride)
+	cfg, err = config.Parse(ctx, mergedYAML)
 	if err != nil {
 		return "", err
 	}
@@ -133,29 +124,11 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 			return "", err
 		}
 
-		featuresCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, authgearFeaturesYAML)
+		newFeaturesYAML, err := mergeYAMLObjects(authgearFeaturesYAML, []byte(featuresOverrideYAML))
 		if err != nil {
 			return "", err
 		}
-
-		var featuresOverrideCfg config.FeatureConfig
-		jsonData, err := yaml.YAMLToJSON([]byte(featuresOverrideYAML))
-		if err != nil {
-			return "", err
-		}
-
-		decoder := json.NewDecoder(bytes.NewReader(jsonData))
-		err = decoder.Decode(&featuresOverrideCfg)
-		if err != nil {
-			return "", err
-		}
-
-		err = mergo.Merge(featuresCfg, &featuresOverrideCfg, mergo.WithOverride)
-		if err != nil {
-			return "", err
-		}
-
-		newFeaturesYAML, err := exportFeaturesConfig(featuresCfg)
+		_, err = config.ParseFeatureConfigWithoutDefaults(ctx, newFeaturesYAML)
 		if err != nil {
 			return "", err
 		}
@@ -167,6 +140,50 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 	}
 
 	return tempAppDir, nil
+}
+
+func mergeYAMLObjects(baseYAML []byte, overrideYAML []byte) ([]byte, error) {
+	if len(bytes.TrimSpace(overrideYAML)) == 0 {
+		return baseYAML, nil
+	}
+
+	baseJSON, err := yaml.YAMLToJSON(baseYAML)
+	if err != nil {
+		return nil, err
+	}
+	overrideJSON, err := yaml.YAMLToJSON(overrideYAML)
+	if err != nil {
+		return nil, err
+	}
+
+	var baseObj map[string]interface{}
+	if err := json.Unmarshal(baseJSON, &baseObj); err != nil {
+		return nil, err
+	}
+	var overrideObj map[string]interface{}
+	if err := json.Unmarshal(overrideJSON, &overrideObj); err != nil {
+		return nil, err
+	}
+
+	mergeJSONObject(baseObj, overrideObj)
+
+	mergedJSON, err := json.Marshal(baseObj)
+	if err != nil {
+		return nil, err
+	}
+	return yaml.JSONToYAML(mergedJSON)
+}
+
+func mergeJSONObject(dst map[string]interface{}, src map[string]interface{}) {
+	for k, srcValue := range src {
+		srcMap, srcIsMap := srcValue.(map[string]interface{})
+		dstMap, dstIsMap := dst[k].(map[string]interface{})
+		if srcIsMap && dstIsMap {
+			mergeJSONObject(dstMap, srcMap)
+			continue
+		}
+		dst[k] = srcValue
+	}
 }
 
 func exportFeaturesConfig(cfg *config.FeatureConfig) ([]byte, error) {

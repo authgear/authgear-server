@@ -22,7 +22,7 @@ authgear.yaml:
           mode: always
     verification:
       claims:
-        phone:
+        phone_number:
           enabled: true
           required: true
 steps:
