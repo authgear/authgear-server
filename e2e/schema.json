@@ -1,5 +1,61 @@
 {
   "$defs": {
+    "AdminAPIOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "AdminAPIRequest": {
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "variables"
+      ],
+      "type": "object"
+    },
+    "AdminAPIUserImportOutput": {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "AdminAPIUserImportRequest": {
+      "properties": {
+        "json_document": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "json_document"
+      ],
+      "type": "object"
+    },
+    "AuthgearFeaturesYAMLSource": {
+      "additionalProperties": false,
+      "properties": {
+        "override": {
+          "description": "Inline snippet to override authgear.features.yaml",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "AuthgearYAMLSource": {
       "additionalProperties": false,
       "properties": {
@@ -44,16 +100,70 @@
               "custom_sql"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "custom_audit_sql"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "custom_audit_sql"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "create_session"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "create_session"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "create_challenge"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "create_challenge"
+            ]
+          }
         }
       ],
       "properties": {
+        "create_challenge": {
+          "$ref": "#/$defs/BeforeHookCreateChallenge"
+        },
+        "create_session": {
+          "$ref": "#/$defs/BeforeHookCreateSession"
+        },
+        "custom_audit_sql": {
+          "$ref": "#/$defs/BeforeHookCustomAuditSQL"
+        },
         "custom_sql": {
           "$ref": "#/$defs/BeforeHookCustomSQL"
         },
         "type": {
           "enum": [
             "user_import",
-            "custom_sql"
+            "custom_sql",
+            "custom_audit_sql",
+            "create_session",
+            "create_challenge"
           ],
           "type": "string"
         },
@@ -63,6 +173,71 @@
       },
       "required": [
         "type"
+      ],
+      "type": "object"
+    },
+    "BeforeHookCreateChallenge": {
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "enum": [
+            "anonymous_request",
+            "biometric_request",
+            "app2app_request"
+          ],
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "purpose"
+      ],
+      "type": "object"
+    },
+    "BeforeHookCreateSession": {
+      "additionalProperties": false,
+      "properties": {
+        "select_user_id_sql": {
+          "description": "SQL to select an user id for the session",
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Session ID",
+          "type": "string"
+        },
+        "session_type": {
+          "description": "Session Type",
+          "enum": [
+            "idp"
+          ],
+          "type": "string"
+        },
+        "token": {
+          "description": "Token to access the session",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_type",
+        "session_id",
+        "token",
+        "select_user_id_sql"
+      ],
+      "type": "object"
+    },
+    "BeforeHookCustomAuditSQL": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Path to the custom SQL script for the audit database",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
       ],
       "type": "object"
     },
@@ -76,6 +251,56 @@
       },
       "required": [
         "path"
+      ],
+      "type": "object"
+    },
+    "HTTPOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "html_text_contains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "html_xpath_exists": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "json_body": {
+          "type": "string"
+        },
+        "redirect_path": {
+          "type": "string"
+        },
+        "saml_element": {
+          "$ref": "#/$defs/OuputSAMLElement"
+        }
+      },
+      "type": "object"
+    },
+    "OuputSAMLElement": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/SAMLBinding"
+        },
+        "element_name": {
+          "type": "string"
+        },
+        "match": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "element_name",
+        "binding",
+        "match"
       ],
       "type": "object"
     },
@@ -100,9 +325,57 @@
       },
       "type": "object"
     },
+    "SAMLBinding": {
+      "enum": [
+        "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+        "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+      ],
+      "type": "string"
+    },
+    "SAMLOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "http_status": {
+          "type": "integer"
+        },
+        "redirect_path": {
+          "type": "string"
+        },
+        "saml_element": {
+          "$ref": "#/$defs/OuputSAMLElement"
+        }
+      },
+      "type": "object"
+    },
+    "SessionCookie": {
+      "additionalProperties": false,
+      "properties": {
+        "idp_session_id": {
+          "type": "string"
+        },
+        "idp_session_token": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Step": {
       "additionalProperties": false,
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "sleep"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sleep_for"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {
@@ -173,23 +446,233 @@
               "query"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "audit_query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "audit_query"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "saml_request"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "saml_element",
+              "saml_element_name",
+              "saml_request_destination",
+              "saml_request_binding"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "http_request"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "http_request_method",
+              "http_request_url"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "hook_server_query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "hook_server_path",
+              "hook_server_output"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "smtp_log_query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "smtp_log_subject",
+              "smtp_log_recipient",
+              "smtp_log_output"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "oauth_exchange_code"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "oauth_exchange_code_code_verifier",
+              "oauth_exchange_code_redirect_uri"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "admin_api_graphql"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_api_request"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "admin_api_user_import_create"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_api_user_import_request"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "admin_api_user_import_get"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_api_user_import_id",
+              "admin_api_user_import_output"
+            ]
+          }
         }
       ],
       "properties": {
         "action": {
           "enum": [
+            "sleep",
             "create",
             "input",
             "oauth_redirect",
             "generate_totp_code",
-            "query"
+            "query",
+            "audit_query",
+            "saml_request",
+            "http_request",
+            "hook_server_query",
+            "smtp_log_query",
+            "oauth_setup",
+            "oauth_exchange_code",
+            "admin_api_graphql",
+            "admin_api_user_import_create",
+            "admin_api_user_import_get"
           ],
+          "type": "string"
+        },
+        "admin_api_output": {
+          "$ref": "#/$defs/AdminAPIOutput"
+        },
+        "admin_api_request": {
+          "$ref": "#/$defs/AdminAPIRequest"
+        },
+        "admin_api_user_import_id": {
+          "type": "string"
+        },
+        "admin_api_user_import_output": {
+          "$ref": "#/$defs/AdminAPIUserImportOutput"
+        },
+        "admin_api_user_import_request": {
+          "$ref": "#/$defs/AdminAPIUserImportRequest"
+        },
+        "audit_query": {
+          "type": "string"
+        },
+        "audit_query_output": {
+          "$ref": "#/$defs/QueryOutput"
+        },
+        "hook_server_output": {
+          "$ref": "#/$defs/QueryOutput"
+        },
+        "hook_server_path": {
+          "type": "string"
+        },
+        "http_output": {
+          "$ref": "#/$defs/HTTPOutput"
+        },
+        "http_request_body": {
+          "type": "string"
+        },
+        "http_request_follow_redirects": {
+          "default": true,
+          "type": "boolean"
+        },
+        "http_request_form_urlencoded_body": {
+          "type": "object"
+        },
+        "http_request_headers": {
+          "type": "object"
+        },
+        "http_request_method": {
+          "type": "string"
+        },
+        "http_request_query": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "http_request_session_cookie": {
+          "$ref": "#/$defs/SessionCookie"
+        },
+        "http_request_url": {
           "type": "string"
         },
         "input": {
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "oauth_exchange_code_code_verifier": {
+          "type": "string"
+        },
+        "oauth_exchange_code_redirect_uri": {
           "type": "string"
         },
         "output": {
@@ -202,6 +685,47 @@
           "$ref": "#/$defs/QueryOutput"
         },
         "redirect_uri": {
+          "type": "string"
+        },
+        "saml_element": {
+          "type": "string"
+        },
+        "saml_element_name": {
+          "enum": [
+            "SAMLRequest",
+            "SAMLResponse"
+          ],
+          "type": "string"
+        },
+        "saml_output": {
+          "$ref": "#/$defs/SAMLOutput"
+        },
+        "saml_request_binding": {
+          "$ref": "#/$defs/SAMLBinding"
+        },
+        "saml_request_destination": {
+          "type": "string"
+        },
+        "saml_request_relay_state": {
+          "type": "string"
+        },
+        "saml_request_session_cookie": {
+          "$ref": "#/$defs/SessionCookie"
+        },
+        "sleep_for": {
+          "format": "x_duration_string",
+          "type": "string"
+        },
+        "smtp_log_output": {
+          "$ref": "#/$defs/QueryOutput"
+        },
+        "smtp_log_recipient": {
+          "type": "string"
+        },
+        "smtp_log_subject": {
+          "type": "string"
+        },
+        "state_token": {
           "type": "string"
         },
         "to": {
@@ -227,6 +751,9 @@
     },
     "TestCase": {
       "properties": {
+        "authgear.features.yaml": {
+          "$ref": "#/$defs/AuthgearFeaturesYAMLSource"
+        },
         "authgear.yaml": {
           "$ref": "#/$defs/AuthgearYAMLSource"
         },
@@ -235,6 +762,9 @@
             "$ref": "#/$defs/BeforeHook"
           },
           "type": "array"
+        },
+        "extra_files_directory": {
+          "type": "string"
         },
         "focus": {
           "type": "boolean"
