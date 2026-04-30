@@ -160,6 +160,7 @@ Each step is an API call to the Authflow API. The following steps are available:
 - `action: input`: Inputs data and proceeds to the next step
 - `action: oauth_redirect`: Redirects to an OAuth provider
 - `action: query`: Query from database
+- `action: http_request`: Sends an HTTP request with the shared cookie jar
 
 #### OAuth redirect
 
@@ -212,6 +213,41 @@ The `query` action is used to query from database. The results can be accessed b
       "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
     }
 ```
+
+#### HTTP request
+
+The `http_request` action can drive Auth UI pages at the HTTP/form level. It uses the same cookie jar across steps, rewrites project hosts the same way as other e2e helpers, and behaves like a same-origin browser client for unsafe methods by auto-sending `Origin` and `Sec-Fetch-Site` when they are not provided explicitly.
+
+Real webapp CSRF protection is enabled in e2e, so POST requests to Auth UI pages should use this helper instead of ad hoc clients.
+
+```yaml
+- action: http_request
+  http_request_method: POST
+  http_request_url: "{{ .steps.get_page.result.http_final_url }}"
+  http_request_follow_redirects: false
+  http_request_form_urlencoded_body:
+    x_password: password
+  http_output:
+    http_status: 302
+```
+
+`http_request_follow_redirects` defaults to `true`. Set it to `false` to validate the immediate response, such as a `302` redirect, instead of the final response after following redirects.
+
+`http_output` supports:
+
+- `http_status`
+- `redirect_path`
+- `json_body`
+- `saml_element`
+- `html_xpath_exists`: requires each XPath to exist in the response HTML
+- `html_text_contains`: requires each substring to appear in the raw response body
+
+Each `http_request` step result also includes:
+
+- `http_response_headers`
+- `http_json_body`
+- `http_final_url`
+- `saml_relay_state`
 
 #### Assert
 
