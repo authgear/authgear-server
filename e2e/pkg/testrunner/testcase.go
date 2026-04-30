@@ -313,22 +313,37 @@ func (tc *TestCase) executeStep(
 		if headers == nil {
 			headers = map[string]string{}
 		}
+		renderedHeaders := map[string]string{}
+		for k, v := range headers {
+			renderedValue, templateOk := renderTemplateString(t, cmd, prevSteps, v)
+			if !templateOk {
+				return nil, state, false
+			}
+			renderedHeaders[k] = renderedValue
+		}
 		body := ""
 		if step.HTTPRequestBody != "" {
 			body = step.HTTPRequestBody
 		} else if step.HTTPRequestFormURLEncodedBody != nil {
-			headers["Content-Type"] = "application/x-www-form-urlencoded"
+			renderedHeaders["Content-Type"] = "application/x-www-form-urlencoded"
 			values := url.Values{}
 			for k, v := range step.HTTPRequestFormURLEncodedBody {
-				values.Add(k, v)
+				renderedValue, templateOk := renderTemplateString(t, cmd, prevSteps, v)
+				if !templateOk {
+					return nil, state, false
+				}
+				values.Add(k, renderedValue)
 			}
 			body = values.Encode()
 		}
 		err := client.MakeHTTPRequest(
-			step.HTTPRequestMethod,
-			requesturl,
-			headers,
-			body,
+			authflowclient.MakeHTTPRequestOptions{
+				Method:          step.HTTPRequestMethod,
+				URL:             requesturl,
+				Headers:         renderedHeaders,
+				Body:            body,
+				FollowRedirects: step.ResolveHTTPRequestFollowRedirects(),
+			},
 			func(r *http.Response) error {
 				if r != nil {
 					httpResult = NewResultHTTPResponse(r)
@@ -1043,7 +1058,7 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		}
 	}
 	if httpOutput.JSONBody != nil {
-		body, err := io.ReadAll(response.Body)
+		body, err := readResponseBodyPreserve(response)
 		if err != nil {
 			t.Errorf("failed to read response body: %v", err)
 			ok = false
@@ -1070,6 +1085,11 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 				t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 			}
 			t.Errorf("  result: %s\n", bodyJson)
+			ok = false
+		}
+	}
+	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 {
+		if !validateHTTPHTML(t, step, httpOutput, response) {
 			ok = false
 		}
 	}
