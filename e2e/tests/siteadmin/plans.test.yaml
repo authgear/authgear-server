@@ -39,10 +39,12 @@ steps:
       ]
 
 # ── Change App Plan ───────────────────────────────────────────────────────────
+# Use beta here so this test does not mutate alpha, which apps.test.yaml relies
+# on remaining in the startups plan for filter/sort assertions.
 - name: change_plan_to_enterprise
   action: http_request
   http_request_method: POST
-  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/plan
   http_request_headers:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
@@ -53,44 +55,41 @@ steps:
     http_status: 200
     json_body: |
       {
-        "id": "e2e-siteadmin-app-alpha",
-        "plan": "enterprise",
-        "created_at": "[[string]]",
-        "owner_email": "owner@example.com",
-        "last_month_mau": "[[number]]"
+        "id": "e2e-siteadmin-app-beta",
+        "plan": "enterprise"
       }
 
 - name: verify_plan_updated_in_db
   action: query
   query: |
     SELECT plan_name FROM _portal_config_source
-    WHERE app_id = 'e2e-siteadmin-app-alpha'
+    WHERE app_id = 'e2e-siteadmin-app-beta'
   query_output:
     rows: |
       [{"plan_name": "enterprise"}]
 
-- name: change_plan_back_to_startups
+- name: change_plan_back_to_free
   action: http_request
   http_request_method: POST
-  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/plan
   http_request_headers:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
     Content-Type: application/json
   http_request_body: |
-    {"plan_name": "startups"}
+    {"plan_name": "free"}
   http_output:
     http_status: 200
     json_body: |
       {
-        "id": "e2e-siteadmin-app-alpha",
-        "plan": "startups"
+        "id": "e2e-siteadmin-app-beta",
+        "plan": "free"
       }
 
 - name: change_plan_non_existent_plan_returns_404
   action: http_request
   http_request_method: POST
-  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/plan
   http_request_headers:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
@@ -116,7 +115,7 @@ steps:
 - name: change_plan_missing_plan_name_returns_400
   action: http_request
   http_request_method: POST
-  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/plan
   http_request_headers:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
