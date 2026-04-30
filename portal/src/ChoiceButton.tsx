@@ -63,16 +63,18 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
 
   const onRenderIcon: IRenderFunction<IButtonProps> = useCallback(
     (props?: IButtonProps) => {
-      // @ts-expect-error
-      const disabledColor = props?.styles?.iconDisabled?.color;
-      if (typeof disabledColor !== "string") {
-        return null;
-      }
       if (IconComponent == null) {
         return null;
       }
-
-      return <IconComponent disabledColor={disabledColor} />;
+      // @ts-expect-error Fluent passes icon disabled color when applicable; omit when absent.
+      const disabledColor = props?.styles?.iconDisabled?.color;
+      return (
+        <IconComponent
+          disabledColor={
+            typeof disabledColor === "string" ? disabledColor : undefined
+          }
+        />
+      );
     },
     [IconComponent]
   );

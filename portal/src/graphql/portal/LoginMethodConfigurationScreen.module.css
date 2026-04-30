@@ -59,8 +59,10 @@
   @apply gap-x-4;
 }
 
+/* Passwordless / Enter password row: keep flex growth but set a floor so the icon + text “cards” are not too narrow. */
 .authenticationButton {
   @apply flex-1 min-w-0;
+  min-width: 13.75rem;
 }
 
 .authenticationButtonIcon {

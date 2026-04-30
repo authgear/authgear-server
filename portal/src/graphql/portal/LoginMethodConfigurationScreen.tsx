@@ -216,7 +216,7 @@ type LoginMethodPasswordLoginID =
   | "phone-email"
   | "username";
 
-type LoginMethodFirstLevelOption =
+export type LoginMethodFirstLevelOption =
   | "email"
   | "phone"
   | "phone-email"
@@ -224,9 +224,9 @@ type LoginMethodFirstLevelOption =
   | "oauth"
   | "custom";
 
-type LoginMethodSecondLevelOption = "passwordless" | "password";
+export type LoginMethodSecondLevelOption = "passwordless" | "password";
 
-function loginMethodToFirstLevelOption(
+export function loginMethodToFirstLevelOption(
   loginMethod: LoginMethod
 ): LoginMethodFirstLevelOption {
   if (loginMethod.startsWith("passwordless-")) {
@@ -240,7 +240,7 @@ function loginMethodToFirstLevelOption(
   return loginMethod as LoginMethodFirstLevelOption;
 }
 
-function loginMethodToSecondLevelOption(
+export function loginMethodToSecondLevelOption(
   loginMethod: LoginMethod
 ): LoginMethodSecondLevelOption | null {
   if (loginMethod.startsWith("passwordless-")) {
@@ -252,7 +252,7 @@ function loginMethodToSecondLevelOption(
   return null;
 }
 
-type LoginMethod =
+export type LoginMethod =
   | `passwordless-${LoginMethodPasswordlessLoginID}`
   | `password-${LoginMethodPasswordLoginID}`
   | "oauth"
@@ -1517,14 +1517,22 @@ function ChosenLoginMethod(props: ChosenLoginMethodProps) {
 
 interface LoginMethodButtonProps {
   targetValue: LoginMethodFirstLevelOption;
-  currentValue: LoginMethodFirstLevelOption;
+  currentValue: LoginMethodFirstLevelOption | null;
   disabled?: boolean;
+  /** Hides the title and description; icon-only (e.g. Storybook). */
+  hideText?: boolean;
   onClick?: (firstLevelOption: LoginMethodFirstLevelOption) => void;
 }
 
 function LoginMethodButton(props: LoginMethodButtonProps) {
-  const { targetValue, currentValue, disabled, onClick: onClickProp } = props;
-  const checked = targetValue === currentValue;
+  const {
+    targetValue,
+    currentValue,
+    disabled,
+    hideText,
+    onClick: onClickProp,
+  } = props;
+  const checked = currentValue != null && targetValue === currentValue;
 
   const onRenderIcon = useCallback(() => {
     return (
@@ -1552,30 +1560,34 @@ function LoginMethodButton(props: LoginMethodButtonProps) {
         },
         flexContainer: {
           flexDirection: "column",
-          rowGap: "4px",
+          rowGap: hideText === true ? "0" : "4px",
         },
       }}
       onRenderIcon={onRenderIcon}
       onClick={onClick}
       toggle={true}
     >
-      <Text
-        block={true}
-        styles={{
-          root: {
-            fontWeight: "600",
-          },
-        }}
-      >
-        <FormattedMessage
-          id={`LoginMethodConfigurationScreen.first-level.${targetValue}.title`}
-        />
-      </Text>
-      <Text block={true}>
-        <FormattedMessage
-          id={`LoginMethodConfigurationScreen.first-level.${targetValue}.description`}
-        />
-      </Text>
+      {hideText === true ? null : (
+        <>
+          <Text
+            block={true}
+            styles={{
+              root: {
+                fontWeight: "600",
+              },
+            }}
+          >
+            <FormattedMessage
+              id={`LoginMethodConfigurationScreen.first-level.${targetValue}.title`}
+            />
+          </Text>
+          <Text block={true}>
+            <FormattedMessage
+              id={`LoginMethodConfigurationScreen.first-level.${targetValue}.description`}
+            />
+          </Text>
+        </>
+      )}
     </ActionButton>
   );
 }
@@ -1588,7 +1600,7 @@ const AUTHENTICATION_BUTTON_ICON: Record<LoginMethodSecondLevelOption, string> =
 
 interface AuthenticationButtonProps {
   targetValue: LoginMethodSecondLevelOption;
-  currentValue: LoginMethodSecondLevelOption;
+  currentValue: LoginMethodSecondLevelOption | null;
   disabled?: boolean;
   onClick?: (secondLevelOption: LoginMethodSecondLevelOption) => void;
 }
@@ -1653,6 +1665,235 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
   );
 }
 
+function buildLoginMethodFirstLevelButtons(opts: {
+  phoneLoginIDDisabled: boolean;
+  firstLevelOption: LoginMethodFirstLevelOption | null;
+  onChangeFirstLevelOption: (
+    firstLevelOption: LoginMethodFirstLevelOption
+  ) => void;
+  iconOnly?: boolean;
+}): ReactNode[] {
+  const disabled = opts.phoneLoginIDDisabled;
+  const { firstLevelOption, onChangeFirstLevelOption, iconOnly } = opts;
+  const firstLevel: ReactNode[] = [
+    <LoginMethodButton
+      key="email"
+      targetValue="email"
+      currentValue={firstLevelOption}
+      hideText={iconOnly === true}
+      onClick={onChangeFirstLevelOption}
+    />,
+  ];
+  if (!disabled) {
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone"
+        targetValue="phone"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        hideText={iconOnly === true}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone-email"
+        targetValue="phone-email"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        hideText={iconOnly === true}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+  }
+  firstLevel.push(
+    <LoginMethodButton
+      key="username"
+      targetValue="username"
+      currentValue={firstLevelOption}
+      hideText={iconOnly === true}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  firstLevel.push(
+    <LoginMethodButton
+      key="oauth"
+      targetValue="oauth"
+      currentValue={firstLevelOption}
+      hideText={iconOnly === true}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  firstLevel.push(
+    <LoginMethodButton
+      key="custom"
+      targetValue="custom"
+      currentValue={firstLevelOption}
+      hideText={iconOnly === true}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  if (disabled) {
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone"
+        targetValue="phone"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        hideText={iconOnly === true}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone-email"
+        targetValue="phone-email"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        hideText={iconOnly === true}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+  }
+  return firstLevel;
+}
+
+export interface LoginMethodFirstLevelOptionsGridProps {
+  phoneLoginIDDisabled: boolean;
+  firstLevelOption: LoginMethodFirstLevelOption | null;
+  onChangeFirstLevelOption: (
+    firstLevelOption: LoginMethodFirstLevelOption
+  ) => void;
+  /** Hides the “Select login methods” (chooser) `WidgetTitle`. */
+  showWidgetTitle?: boolean;
+  /** Hides the title + description under each icon. */
+  iconOnly?: boolean;
+}
+
+export function LoginMethodFirstLevelOptionsGrid(
+  props: LoginMethodFirstLevelOptionsGridProps
+): React.ReactElement {
+  const {
+    phoneLoginIDDisabled,
+    firstLevelOption,
+    onChangeFirstLevelOption,
+    showWidgetTitle = true,
+    iconOnly = false,
+  } = props;
+  const firstLevel = useMemo(
+    () =>
+      buildLoginMethodFirstLevelButtons({
+        phoneLoginIDDisabled,
+        firstLevelOption,
+        onChangeFirstLevelOption,
+        iconOnly,
+      }),
+    [phoneLoginIDDisabled, firstLevelOption, onChangeFirstLevelOption, iconOnly]
+  );
+
+  return (
+    <>
+      {showWidgetTitle ? (
+        <WidgetTitle>
+          <FormattedMessage id="LoginMethodConfigurationScreen.chooser.title" />
+        </WidgetTitle>
+      ) : null}
+      {phoneLoginIDDisabled ? (
+        <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+      ) : null}
+      <div className={styles.chooserGrid}>{firstLevel}</div>
+    </>
+  );
+}
+
+export interface LoginMethodSelectLoginMethodsSectionProps {
+  phoneLoginIDDisabled: boolean;
+  loginMethod: LoginMethod;
+  onChangeLoginMethod: (loginMethod: LoginMethod) => void;
+  showWidgetTitle?: boolean;
+}
+
+export function LoginMethodSelectLoginMethodsSection(
+  props: LoginMethodSelectLoginMethodsSectionProps
+): React.ReactElement {
+  const {
+    phoneLoginIDDisabled,
+    loginMethod,
+    onChangeLoginMethod,
+    showWidgetTitle = true,
+  } = props;
+  const firstLevelOption = useMemo(
+    () => loginMethodToFirstLevelOption(loginMethod),
+    [loginMethod]
+  );
+  const onChangeFirstLevelOption = useCallback(
+    (opt: LoginMethodFirstLevelOption) => {
+      if (opt === "oauth" || opt === "custom") {
+        onChangeLoginMethod(opt);
+      } else {
+        onChangeLoginMethod(`password-${opt}` as LoginMethod);
+      }
+    },
+    [onChangeLoginMethod]
+  );
+
+  return (
+    <LoginMethodFirstLevelOptionsGrid
+      phoneLoginIDDisabled={phoneLoginIDDisabled}
+      firstLevelOption={firstLevelOption}
+      onChangeFirstLevelOption={onChangeFirstLevelOption}
+      showWidgetTitle={showWidgetTitle}
+      iconOnly={false}
+    />
+  );
+}
+
+export interface LoginMethodAuthenticationSectionProps {
+  firstLevelOption: LoginMethodFirstLevelOption;
+  secondLevelOption: LoginMethodSecondLevelOption | null;
+  onChangeSecondLevelOption: (
+    secondLevelOption: LoginMethodSecondLevelOption
+  ) => void;
+  /** When false, hides the “Authentication” `WidgetSubtitle` (e.g. Storybook canvas). */
+  showSubtitle?: boolean;
+}
+
+export function LoginMethodAuthenticationSection(
+  props: LoginMethodAuthenticationSectionProps
+): React.ReactElement {
+  const {
+    firstLevelOption,
+    secondLevelOption,
+    onChangeSecondLevelOption,
+    showSubtitle = true,
+  } = props;
+
+  return (
+    <>
+      {showSubtitle ? (
+        <WidgetSubtitle>
+          <FormattedMessage id="LoginMethodConfigurationScreen.chooser.subtitle" />
+        </WidgetSubtitle>
+      ) : null}
+      <div className={styles.chooserFlex}>
+        <AuthenticationButton
+          targetValue="passwordless"
+          currentValue={secondLevelOption}
+          disabled={
+            !["email", "phone", "phone-email"].includes(firstLevelOption)
+          }
+          onClick={onChangeSecondLevelOption}
+        />
+        <AuthenticationButton
+          targetValue="password"
+          currentValue={secondLevelOption}
+          onClick={onChangeSecondLevelOption}
+        />
+      </div>
+    </>
+  );
+}
+
 interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
   phoneLoginIDDisabled: boolean;
@@ -1673,7 +1914,6 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
     combineSignupLoginFlowChecked,
     onChangeCombineSignupLoginFlowCheckedChecked,
   } = props;
-  const disabled = phoneLoginIDDisabled;
 
   const firstLevelOption = useMemo(
     () => loginMethodToFirstLevelOption(loginMethod),
@@ -1682,18 +1922,6 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
   const secondLevelOption = useMemo(
     () => loginMethodToSecondLevelOption(loginMethod),
     [loginMethod]
-  );
-
-  const onChangeFirstLevelOption = useCallback(
-    (firstLevelOption: LoginMethodFirstLevelOption) => {
-      if (firstLevelOption === "oauth" || firstLevelOption === "custom") {
-        onChangeLoginMethod(firstLevelOption);
-      } else {
-        // Reset to password.
-        onChangeLoginMethod(`password-${firstLevelOption}` as LoginMethod);
-      }
-    },
-    [onChangeLoginMethod]
   );
 
   const onChangeSecondLevelOption = useCallback(
@@ -1709,109 +1937,19 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
     [firstLevelOption, onChangeLoginMethod]
   );
 
-  const firstLevel = [
-    <LoginMethodButton
-      key="email"
-      targetValue="email"
-      currentValue={firstLevelOption}
-      onClick={onChangeFirstLevelOption}
-    />,
-  ];
-  if (!disabled) {
-    firstLevel.push(
-      <LoginMethodButton
-        key="phone"
-        targetValue="phone"
-        currentValue={firstLevelOption}
-        disabled={disabled}
-        onClick={onChangeFirstLevelOption}
-      />
-    );
-    firstLevel.push(
-      <LoginMethodButton
-        key="phone-email"
-        targetValue="phone-email"
-        currentValue={firstLevelOption}
-        disabled={disabled}
-        onClick={onChangeFirstLevelOption}
-      />
-    );
-  }
-  firstLevel.push(
-    <LoginMethodButton
-      key="username"
-      targetValue="username"
-      currentValue={firstLevelOption}
-      onClick={onChangeFirstLevelOption}
-    />
-  );
-  firstLevel.push(
-    <LoginMethodButton
-      key="oauth"
-      targetValue="oauth"
-      currentValue={firstLevelOption}
-      onClick={onChangeFirstLevelOption}
-    />
-  );
-  firstLevel.push(
-    <LoginMethodButton
-      key="custom"
-      targetValue="custom"
-      currentValue={firstLevelOption}
-      onClick={onChangeFirstLevelOption}
-    />
-  );
-  if (disabled) {
-    firstLevel.push(
-      <LoginMethodButton
-        key="phone"
-        targetValue="phone"
-        currentValue={firstLevelOption}
-        disabled={disabled}
-        onClick={onChangeFirstLevelOption}
-      />
-    );
-    firstLevel.push(
-      <LoginMethodButton
-        key="phone-email"
-        targetValue="phone-email"
-        currentValue={firstLevelOption}
-        disabled={disabled}
-        onClick={onChangeFirstLevelOption}
-      />
-    );
-  }
-
   return (
     <Widget className={styles.widget}>
-      <WidgetTitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.chooser.title" />
-      </WidgetTitle>
-      {phoneLoginIDDisabled ? (
-        <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-      ) : null}
-      <div className={styles.chooserGrid}>{firstLevel}</div>
+      <LoginMethodSelectLoginMethodsSection
+        phoneLoginIDDisabled={phoneLoginIDDisabled}
+        loginMethod={loginMethod}
+        onChangeLoginMethod={onChangeLoginMethod}
+      />
       {secondLevelOption != null ? (
-        <>
-          <WidgetSubtitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.chooser.subtitle" />
-          </WidgetSubtitle>
-          <div className={styles.chooserFlex}>
-            <AuthenticationButton
-              targetValue="passwordless"
-              currentValue={secondLevelOption}
-              disabled={
-                !["email", "phone", "phone-email"].includes(firstLevelOption)
-              }
-              onClick={onChangeSecondLevelOption}
-            />
-            <AuthenticationButton
-              targetValue="password"
-              currentValue={secondLevelOption}
-              onClick={onChangeSecondLevelOption}
-            />
-          </div>
-        </>
+        <LoginMethodAuthenticationSection
+          firstLevelOption={firstLevelOption}
+          secondLevelOption={secondLevelOption}
+          onChangeSecondLevelOption={onChangeSecondLevelOption}
+        />
       ) : null}
       {displayCombineSignupLoginFlowToggle ? (
         <Toggle
