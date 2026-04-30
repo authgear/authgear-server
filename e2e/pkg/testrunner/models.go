@@ -297,6 +297,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
 		"http_request_form_urlencoded_body": { "type": "object" },
+		"http_request_follow_redirects": { "type": "boolean", "default": true },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"hook_server_path": { "type": "string" },
@@ -537,6 +538,7 @@ type Step struct {
 	HTTPRequestHeaders            map[string]string `json:"http_request_headers"`
 	HTTPRequestBody               string            `json:"http_request_body"`
 	HTTPRequestFormURLEncodedBody map[string]string `json:"http_request_form_urlencoded_body"`
+	HTTPRequestFollowRedirects    *bool             `json:"http_request_follow_redirects"`
 	HTTPRequestSessionCookie      *SessionCookie    `json:"http_request_session_cookie"`
 	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
@@ -563,6 +565,13 @@ type Step struct {
 	AdminAPIUserImportID string `json:"admin_api_user_import_id"`
 	// `action` == "admin_api_user_import_create" or "admin_api_user_import_get"
 	AdminAPIUserImportOutput *AdminAPIUserImportOutput `json:"admin_api_user_import_output"`
+}
+
+func (s Step) ResolveHTTPRequestFollowRedirects() bool {
+	if s.HTTPRequestFollowRedirects == nil {
+		return true
+	}
+	return *s.HTTPRequestFollowRedirects
 }
 
 type StepAction string
@@ -628,16 +637,20 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"http_status": { "type": "integer" },
 		"redirect_path": { "type": "string" },
 		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" },
-		"json_body": { "type": "string" }
+		"json_body": { "type": "string" },
+		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
+		"html_text_contains": { "type": "array", "items": { "type": "string" } }
 	}
 }
 `)
 
 type HTTPOutput struct {
-	HTTPStatus   *float64          `json:"http_status"`
-	RedirectPath *string           `json:"redirect_path"`
-	SAMLElement  *OuputSAMLElement `json:"saml_element"`
-	JSONBody     *string           `json:"json_body"`
+	HTTPStatus       *float64          `json:"http_status"`
+	RedirectPath     *string           `json:"redirect_path"`
+	SAMLElement      *OuputSAMLElement `json:"saml_element"`
+	JSONBody         *string           `json:"json_body"`
+	HTMLXPathExists  []string          `json:"html_xpath_exists"`
+	HTMLTextContains []string          `json:"html_text_contains"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `
@@ -719,6 +732,7 @@ type StepResult struct {
 type ResultHTTPResponse struct {
 	HTTPResponseHeaders map[string]string `json:"http_response_headers"`
 	HTTPJSONBody        map[string]any    `json:"http_json_body"`
+	HTTPFinalURL        string            `json:"http_final_url"`
 	SAMLRelayState      string            `json:"saml_relay_state"`
 }
 
@@ -742,6 +756,7 @@ func NewResultHTTPResponse(r *http.Response) *ResultHTTPResponse {
 	return &ResultHTTPResponse{
 		HTTPResponseHeaders: headers,
 		HTTPJSONBody:        jsonBodyMap,
+		HTTPFinalURL:        r.Request.URL.String(),
 		SAMLRelayState:      samlRelayState,
 	}
 }

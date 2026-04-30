@@ -25,6 +25,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type MakeHTTPRequestOptions struct {
+	Method          string
+	URL             string
+	Headers         map[string]string
+	Body            string
+	FollowRedirects bool
+}
+
 type ProjectHostRewriteTransport struct {
 	HTTPHost     httputil.HTTPHost
 	MainEndpoint *url.URL
@@ -275,25 +283,34 @@ type OAuthExchangeCodeResult struct {
 }
 
 func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
-	// We first need to visit the RedirectURI and extract the authorization code.
-
-	req, err := http.NewRequestWithContext(c.Context, "GET", opts.RedirectURI, nil)
-	if err != nil {
-		return
-	}
-
-	resp, err := c.NoRedirectClient.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	redirectURI, err := url.Parse(resp.Header.Get("Location"))
+	redirectURI, err := url.Parse(opts.RedirectURI)
 	if err != nil {
 		return
 	}
 
 	code := redirectURI.Query().Get("code")
+	if code == "" || c.isAuthgearRedirectURI(redirectURI) {
+		// We first need to visit the RedirectURI and extract the authorization code.
+		var req *http.Request
+		req, err = http.NewRequestWithContext(c.Context, "GET", opts.RedirectURI, nil)
+		if err != nil {
+			return
+		}
+
+		var resp *http.Response
+		resp, err = c.NoRedirectClient.Do(req)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+
+		redirectURI, err = url.Parse(resp.Header.Get("Location"))
+		if err != nil {
+			return
+		}
+
+		code = redirectURI.Query().Get("code")
+	}
 
 	u := c.MainEndpoint.JoinPath("/oauth2/token")
 
@@ -327,7 +344,14 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 		return
 	}
 
-	idTokenStr := tokenRespBody["id_token"].(string)
+	idTokenValue, ok := tokenRespBody["id_token"]
+	if !ok {
+		return nil, fmt.Errorf("token response missing id_token for redirect_uri=%s code=%q: %v", opts.RedirectURI, code, tokenRespBody)
+	}
+	idTokenStr, ok := idTokenValue.(string)
+	if !ok {
+		return nil, fmt.Errorf("token response id_token is not a string: %T", idTokenValue)
+	}
 
 	idToken, err := jwt.ParseInsecure([]byte(idTokenStr))
 	if err != nil {
@@ -343,6 +367,16 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 		IDToken: idTokenMap,
 	}
 	return
+}
+
+func (c *Client) isAuthgearRedirectURI(u *url.URL) bool {
+	if u == nil {
+		return false
+	}
+	if u.Host == "" {
+		return true
+	}
+	return u.Host == c.MainEndpoint.Host || u.Host == string(c.HTTPHost)
 }
 
 // InputFlow submits the input to the flow.
@@ -404,18 +438,11 @@ func (c *Client) SendSAMLRequest(
 }
 
 func (c *Client) MakeHTTPRequest(
-	method string,
-	toURL string,
-	headers map[string]string,
-	body string,
+	opts MakeHTTPRequestOptions,
 	fn func(r *http.Response) error) error {
-	var buf *bytes.Buffer = bytes.NewBuffer([]byte(body))
+	buf := bytes.NewBufferString(opts.Body)
 
-	if body != "" {
-		buf = bytes.NewBuffer([]byte(body))
-	}
-
-	req, err := http.NewRequestWithContext(c.Context, method, toURL, buf)
+	req, err := http.NewRequestWithContext(c.Context, opts.Method, opts.URL, buf)
 	if err != nil {
 		return err
 	}
@@ -426,18 +453,41 @@ func (c *Client) MakeHTTPRequest(
 		req.Host = string(c.HTTPHost)
 	}
 
-	for k, v := range headers {
+	for k, v := range opts.Headers {
 		req.Header.Set(k, v)
+	}
+
+	if isUnsafeMethod(opts.Method) {
+		if req.Header.Get("Sec-Fetch-Site") == "" {
+			req.Header.Set("Sec-Fetch-Site", "same-origin")
+		}
+		if req.Header.Get("Origin") == "" {
+			req.Header.Set("Origin", fmt.Sprintf("http://%s", c.HTTPHost))
+		}
 	}
 
 	req.Header.Set("Content-Length", strconv.Itoa(buf.Len()))
 
-	resp, err := c.HTTPClient.Do(req)
+	httpClient := c.HTTPClient
+	if !opts.FollowRedirects {
+		httpClient = c.NoRedirectClient
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	return fn(resp)
+}
+
+func isUnsafeMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.URL, body interface{}) (*http.Request, error) {
