@@ -72,6 +72,7 @@ func init() {
 
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseSchema)
+	cmdInternalConfigSourceCreate.Flags().Bool("upsert", false, "Update existing config source if app ID already exists")
 
 	binder.BindString(cmdInternalConfigSourceUnpack.Flags(), portalcmd.ArgDataJSONFilePath)
 	binder.BindString(cmdInternalConfigSourceUnpack.Flags(), portalcmd.ArgOutputDirectoryPath)

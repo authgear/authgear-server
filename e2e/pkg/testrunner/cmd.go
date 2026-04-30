@@ -39,13 +39,18 @@ func generateAppID() string {
 }
 
 type NewEnd2EndCmdOptions struct {
+	AppID    string
 	TestCase *TestCase
 	Test     testing.TB
 }
 
 func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
+	appID := options.AppID
+	if appID == "" {
+		appID = generateAppID()
+	}
 	e := &End2EndCmd{
-		AppID:    generateAppID(),
+		AppID:    appID,
 		TestCase: *options.TestCase,
 		Test:     options.Test,
 	}

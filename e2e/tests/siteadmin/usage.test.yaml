@@ -1,0 +1,197 @@
+name: Site Admin - Usage
+app_id: e2e-portal
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_apps.sql
+- type: custom_sql
+  custom_sql:
+    path: fixture/insert_usage.sql
+
+steps:
+# ── Monthly Active Users ───────────────────────────────────────────────────────
+- name: mau_jan_feb_2020
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/monthly-active-users
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_year: "2020"
+    start_month: "1"
+    end_year: "2020"
+    end_month: "2"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "counts": [
+          {"year": 2020, "month": 1, "count": 100},
+          {"year": 2020, "month": 2, "count": 200}
+        ]
+      }
+
+- name: mau_single_month_no_record
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/monthly-active-users
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_year: "2020"
+    start_month: "3"
+    end_year: "2020"
+    end_month: "3"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "counts": [
+          {"year": 2020, "month": 3, "count": 0}
+        ]
+      }
+
+- name: mau_missing_params_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/monthly-active-users
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 400
+
+- name: mau_invalid_month_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/monthly-active-users
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_year: "2020"
+    start_month: "13"
+    end_year: "2020"
+    end_month: "1"
+  http_output:
+    http_status: 400
+
+- name: mau_range_exceeding_12_months_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/monthly-active-users
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_year: "2020"
+    start_month: "1"
+    end_year: "2021"
+    end_month: "1"
+  http_output:
+    http_status: 400
+
+# ── Messaging ─────────────────────────────────────────────────────────────────
+- name: messaging_full_january_2020
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_date: "2020-01-01"
+    end_date: "2020-01-31"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "start_date": "2020-01-01",
+        "end_date": "2020-01-31",
+        "sms_north_america_count": 15,
+        "sms_other_regions_count": 25,
+        "whatsapp_north_america_count": 30,
+        "whatsapp_other_regions_count": 40
+      }
+
+- name: messaging_single_day
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_date: "2020-01-10"
+    end_date: "2020-01-10"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "start_date": "2020-01-10",
+        "end_date": "2020-01-10",
+        "sms_north_america_count": 10,
+        "sms_other_regions_count": 20,
+        "whatsapp_north_america_count": 30,
+        "whatsapp_other_regions_count": 40
+      }
+
+- name: messaging_empty_range_returns_zeros
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_date: "2020-02-01"
+    end_date: "2020-02-28"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "start_date": "2020-02-01",
+        "end_date": "2020-02-28",
+        "sms_north_america_count": 0,
+        "sms_other_regions_count": 0,
+        "whatsapp_north_america_count": 0,
+        "whatsapp_other_regions_count": 0
+      }
+
+- name: messaging_missing_params_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 400
+
+- name: messaging_end_before_start_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_date: "2020-01-31"
+    end_date: "2020-01-01"
+  http_output:
+    http_status: 400
+
+- name: messaging_range_exceeding_1_year_returns_400
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/usage/messaging
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    start_date: "2020-01-01"
+    end_date: "2021-01-02"
+  http_output:
+    http_status: 400

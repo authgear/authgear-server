@@ -1,0 +1,36 @@
+name: Site Admin - Authorization
+app_id: e2e-portal
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/insert_collaborator.sql
+steps:
+- name: authorized_user
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": "[[array]]",
+        "total_count": "[[number]]"
+      }
+- name: unauthorized_user
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "11111111-1111-1111-1111-111111111111"
+  http_output:
+    http_status: 403
+- name: unauthenticated_user
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_output:
+    http_status: 401

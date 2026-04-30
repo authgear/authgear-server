@@ -1,0 +1,171 @@
+name: Site Admin - Collaborators
+app_id: e2e-portal
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_apps.sql
+
+steps:
+# ── List ──────────────────────────────────────────────────────────────────────
+- name: list collaborators - beta has none
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "collaborators": []
+      }
+
+- name: list_alpha
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "collaborators": [
+          {
+            "id": "[[string]]",
+            "app_id": "e2e-siteadmin-app-alpha",
+            "user_id": "00000000-0000-0000-0000-000000000002",
+            "user_email": "owner@example.com",
+            "role": "owner",
+            "created_at": "[[string]]"
+          }
+        ]
+      }
+
+# ── Add ───────────────────────────────────────────────────────────────────────
+- name: add_collaborator
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"user_email": "owner@example.com"}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "[[string]]",
+        "app_id": "e2e-siteadmin-app-beta",
+        "user_id": "00000000-0000-0000-0000-000000000002",
+        "user_email": "owner@example.com",
+        "role": "editor",
+        "created_at": "[[string]]"
+      }
+
+- name: list after add - beta has one editor
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "collaborators": [
+          {
+            "app_id": "e2e-siteadmin-app-beta",
+            "user_email": "owner@example.com",
+            "role": "editor"
+          }
+        ]
+      }
+
+- name: add duplicate returns 409
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"user_email": "owner@example.com"}
+  http_output:
+    http_status: 409
+
+- name: add non-existent user returns 404
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"user_email": "nobody@example.com"}
+  http_output:
+    http_status: 404
+
+# ── Remove ────────────────────────────────────────────────────────────────────
+- name: remove editor
+  action: http_request
+  http_request_method: DELETE
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators/{{ .steps.add_collaborator.result.http_json_body.id }}
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {}
+
+- name: list after remove - beta empty again
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "collaborators": []
+      }
+
+- name: remove non-existent collaborator returns 404
+  action: http_request
+  http_request_method: DELETE
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-beta/collaborators/00000000-0000-0000-0000-000000000099
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 404
+
+- name: get_owner_collab
+  action: query
+  query: |
+    SELECT id FROM _portal_app_collaborator
+    WHERE app_id = 'e2e-siteadmin-app-alpha'
+    AND role = 'owner'
+  query_output:
+    rows: |
+      [{"id": "[[string]]"}]
+
+- name: remove owner returns 403
+  action: http_request
+  http_request_method: DELETE
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/collaborators/{{ index (index .steps.get_owner_collab.result.rows 0) "id" }}
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 403

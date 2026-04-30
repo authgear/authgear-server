@@ -27,12 +27,18 @@ var cmdInternalConfigSourceCreate = &cobra.Command{
 			return err
 		}
 
+		upsert, err := cmd.Flags().GetBool("upsert")
+		if err != nil {
+			return err
+		}
+
 		resourceDir := args[0]
 
 		err = internal.Create(cmd.Context(), &internal.CreateOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			ResourceDir:    resourceDir,
+			Upsert:         upsert,
 		})
 		if err != nil {
 			return err

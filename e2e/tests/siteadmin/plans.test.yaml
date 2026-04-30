@@ -1,0 +1,127 @@
+name: Site Admin - Plans
+app_id: e2e-portal
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_apps.sql
+- type: custom_sql
+  custom_sql:
+    path: fixture/insert_plans.sql
+
+steps:
+# ── List Plans ────────────────────────────────────────────────────────────────
+- name: list_plans
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/plans
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "plans": "[[array]]"
+      }
+
+- name: verify_known_plans_in_db
+  action: query
+  query: |
+    SELECT name FROM _portal_plan
+    WHERE name IN ('free', 'startups', 'enterprise')
+    ORDER BY name
+  query_output:
+    rows: |
+      [
+        {"name": "enterprise"},
+        {"name": "free"},
+        {"name": "startups"}
+      ]
+
+# ── Change App Plan ───────────────────────────────────────────────────────────
+- name: change_plan_to_enterprise
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"plan_name": "enterprise"}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "e2e-siteadmin-app-alpha",
+        "plan": "enterprise",
+        "created_at": "[[string]]",
+        "owner_email": "owner@example.com",
+        "last_month_mau": "[[number]]"
+      }
+
+- name: verify_plan_updated_in_db
+  action: query
+  query: |
+    SELECT plan_name FROM _portal_config_source
+    WHERE app_id = 'e2e-siteadmin-app-alpha'
+  query_output:
+    rows: |
+      [{"plan_name": "enterprise"}]
+
+- name: change_plan_back_to_startups
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"plan_name": "startups"}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "e2e-siteadmin-app-alpha",
+        "plan": "startups"
+      }
+
+- name: change_plan_non_existent_plan_returns_404
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"plan_name": "non-existent-plan"}
+  http_output:
+    http_status: 404
+
+- name: change_plan_non_existent_app_returns_404
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app/plan
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {"plan_name": "startups"}
+  http_output:
+    http_status: 404
+
+- name: change_plan_missing_plan_name_returns_400
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha/plan
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Content-Type: application/json
+  http_request_body: |
+    {}
+  http_output:
+    http_status: 400

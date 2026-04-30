@@ -6,12 +6,17 @@ import (
 	"os/exec"
 )
 
-func CreatePortalConfigSource(dbURL string, dbSchema string, resourceDir string) error {
+func CreatePortalConfigSource(dbURL string, dbSchema string, resourceDir string, upsert bool) error {
+	upsertFlag := ""
+	if upsert {
+		upsertFlag = "--upsert"
+	}
 	cmd := fmt.Sprintf(
-		"../dist/authgear-portal internal configsource create %s --database-url=\"%s\" --database-schema=\"%s\"",
+		"../dist/authgear-portal internal configsource create %s --database-url=\"%s\" --database-schema=\"%s\" %s",
 		resourceDir,
 		dbURL,
 		dbSchema,
+		upsertFlag,
 	)
 	return ExecCmd(cmd)
 }
