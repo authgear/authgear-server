@@ -16,11 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
-//go:fix inline
-func newBool(b bool) *bool {
-	return new(b)
-}
-
 func TestProviderListCandidates(t *testing.T) {
 	Convey("Provider ListCandidates", t, func() {
 		ctrl := gomock.NewController(t)

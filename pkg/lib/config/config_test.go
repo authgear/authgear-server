@@ -22,9 +22,6 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
-//go:fix inline
-func boolPtr(b bool) *bool { return new(b) }
-
 func TestApplyFeatureConfigConstraints(t *testing.T) {
 	Convey("ApplyFeatureConfigConstraints", t, func() {
 		Convey("phone input allowlist is intersected with feature allowlist", func() {

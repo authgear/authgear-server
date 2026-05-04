@@ -11,11 +11,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-//go:fix inline
-func boolPtr(b bool) *bool {
-	return new(b)
-}
-
 func TestRateLimits(t *testing.T) {
 	Convey("RateLimit.ResolveBucketSpecs", t, func() {
 		ctx := context.Background()

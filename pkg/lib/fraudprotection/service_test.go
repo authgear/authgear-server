@@ -98,17 +98,11 @@ func (s *stubDatabaseHandle) ReadOnly(_ context.Context, do func(context.Context
 
 // --- helpers ---
 
-//go:fix inline
-func newBoolPtr(b bool) *bool { return new(b) }
-
 func defaultCfg() *config.FraudProtectionConfig {
 	c := &config.FraudProtectionConfig{}
 	config.SetFieldDefaults(c)
 	return c
 }
-
-//go:fix inline
-func floatPtr(v float64) *float64 { return new(v) }
 
 // --- tests ---
 

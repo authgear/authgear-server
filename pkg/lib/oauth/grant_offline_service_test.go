@@ -14,11 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-//go:fix inline
-func newBool(b bool) *bool {
-	return new(b)
-}
-
 // staticClientResolver implements OAuthClientResolver for testing
 type staticClientResolver struct {
 	Config *config.OAuthClientConfig

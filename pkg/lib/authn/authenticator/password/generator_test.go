@@ -10,9 +10,6 @@ import (
 	utilrand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
-//go:fix inline
-func newInt(v int) *int { return new(v) }
-
 func TestBasicPasswordGeneration(t *testing.T) {
 	Convey("Given a password generator with default settings", t, func() {
 		generator := &Generator{

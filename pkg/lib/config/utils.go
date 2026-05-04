@@ -1,14 +1,5 @@
 package config
 
-//go:fix inline
-func newBool(v bool) *bool { return new(v) }
-
-//go:fix inline
-func newFloat64(v float64) *float64 { return new(v) }
-
-//go:fix inline
-func newInt(v int) *int { return new(v) }
-
 func IntersectAllowlist(appAllowlist []string, featureAllowlist []string) []string {
 	if len(featureAllowlist) == 0 {
 		return appAllowlist
