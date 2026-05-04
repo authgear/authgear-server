@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import { IChoiceGroupOption, ITag, PivotItem } from "@fluentui/react";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
@@ -414,6 +414,10 @@ const FraudProtectionConfigurationScreen: React.VFC =
     const isModifiable =
       featureConfig.effectiveFeatureConfig?.fraud_protection?.is_modifiable ??
       false;
+
+    if (!isModifiable) {
+      return <Navigate to="../bot-protection" replace={true} />;
+    }
 
     return (
       <FormContainer
