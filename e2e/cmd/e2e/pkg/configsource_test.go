@@ -8,9 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	. "github.com/smartystreets/goconvey/convey"
 	"sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -96,8 +97,8 @@ steps:
 }
 
 func TestMergeYAMLObjectsNestedBoolOverride(t *testing.T) {
-		Convey("mergeYAMLObjects overwrites nested false without removing unrelated pointers", t, func() {
-			baseYAML := []byte(`
+	Convey("mergeYAMLObjects overwrites nested false without removing unrelated pointers", t, func() {
+		baseYAML := []byte(`
 id: test
 http:
   public_origin: http://example.com
