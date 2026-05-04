@@ -39,7 +39,7 @@
 /pkg/auth/handler/oauth/jwks.go:30:9: requestcontext
 /pkg/auth/handler/oauth/jwks.go:34:31: requestcontext
 /pkg/auth/handler/oauth/revoke.go:42:9: requestcontext
-/pkg/auth/handler/oauth/token.go:45:9: requestcontext
+/pkg/auth/handler/oauth/token.go:44:9: requestcontext
 /pkg/auth/handler/oauth/userinfo.go:40:9: requestcontext
 /pkg/auth/handler/saml/login.go:252:5: requestcontext
 /pkg/auth/handler/saml/login.go:292:3: requestcontext
@@ -87,7 +87,7 @@
 /pkg/auth/handler/webapp/authflow_view_recovery_code.go:85:26: requestcontext
 /pkg/auth/handler/webapp/authflow_wechat.go:159:26: requestcontext
 /pkg/auth/handler/webapp/authflow_whatsapp_otp.go:147:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/account_linking.go:194:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/account_linking.go:192:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/change_password.go:115:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/change_password_success.go:65:35: requestcontext
 /pkg/auth/handler/webapp/authflowv2/create_password.go:179:26: requestcontext
@@ -99,7 +99,7 @@
 /pkg/auth/handler/webapp/authflowv2/finish_flow.go:36:56: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password.go:286:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password_link_sent.go:86:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/forgot_password_otp.go:208:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/forgot_password_otp.go:205:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/internal_signup_login.go:240:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/ldap_login.go:109:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/login.go:241:33: requestcontext
@@ -132,8 +132,8 @@
 /pkg/auth/handler/webapp/authflowv2/settings_identity_list_phone.go:158:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_list_username.go:87:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_new_username.go:74:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_identity_verify_email.go:132:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_identity_verify_phone.go:149:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_identity_verify_email.go:128:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_identity_verify_phone.go:145:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_view_email.go:138:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_view_phone.go:142:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_view_username.go:112:30: requestcontext
@@ -281,7 +281,7 @@
 /pkg/images/deps/context.go:23:10: requestcontext
 /pkg/images/deps/middleware_request.go:25:10: requestcontext
 /pkg/images/handler/get.go:94:11: requestcontext
-/pkg/images/handler/post.go:57:9: requestcontext
+/pkg/images/handler/post.go:58:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:36:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:39:10: requestcontext
 /pkg/lib/authenticationflow/intl_middleware.go:16:41: requestcontext
@@ -305,7 +305,7 @@
 /pkg/lib/oauth/response_mode.go:122:40: requestcontext
 /pkg/lib/oauth/response_mode.go:149:40: requestcontext
 /pkg/lib/oauth/response_mode.go:161:40: requestcontext
-/pkg/lib/oauth/scope.go:117:34: requestcontext
+/pkg/lib/oauth/scope.go:118:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
 /pkg/lib/otelauthgear/nethttp.go:73:10: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:176:35: requestcontext
@@ -319,7 +319,7 @@
 /pkg/portal/session/middleware_session_info.go:52:9: requestcontext
 /pkg/portal/session/middleware_session_info.go:196:36: requestcontext
 /pkg/portal/session/middleware_session_required.go:12:38: requestcontext
-/pkg/portal/transport/admin_api_handler.go:39:9: requestcontext
+/pkg/portal/transport/admin_api_handler.go:40:9: requestcontext
 /pkg/portal/transport/graphql_handler.go:41:29: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:49:9: requestcontext
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
@@ -327,7 +327,7 @@
 /pkg/siteadmin/transport/handler_app_get.go:40:33: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:47:65: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:63:38: requestcontext
-/pkg/siteadmin/transport/handler_apps_list.go:81:37: requestcontext
+/pkg/siteadmin/transport/handler_apps_list.go:77:37: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:47:67: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:64:49: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_promote.go:39:53: requestcontext
