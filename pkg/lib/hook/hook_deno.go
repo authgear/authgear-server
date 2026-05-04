@@ -34,7 +34,7 @@ func (h *DenoHook) loadScript(ctx context.Context, u *url.URL) ([]byte, error) {
 	return out.([]byte), nil
 }
 
-func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
+func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, input any) (out any, err error) {
 	var script []byte
 	script, err = h.loadScript(ctx, u)
 	if err != nil {
@@ -49,7 +49,7 @@ func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, i
 	return
 }
 
-func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (err error) {
+func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, input any) (err error) {
 	logger := DenoHookLogger.GetLogger(ctx)
 	// Remove cancel from the the context.
 	// This is because the hook may finish after the current request finishes.

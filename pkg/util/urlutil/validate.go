@@ -154,8 +154,8 @@ func isHostnameSafe(h string) bool {
 		}
 	}
 
-	labels := strings.Split(h, ".")
-	for _, lbl := range labels {
+	labels := strings.SplitSeq(h, ".")
+	for lbl := range labels {
 		if lbl == "" {
 			return false
 		}

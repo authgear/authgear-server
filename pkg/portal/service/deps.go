@@ -67,11 +67,11 @@ var DependencySet = wire.NewSet(
 
 type NoopAttributesService struct{}
 
-func (*NoopAttributesService) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (*NoopAttributesService) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error {
 	return nil
 }
 
-func (*NoopAttributesService) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (*NoopAttributesService) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error {
 	return nil
 }
 

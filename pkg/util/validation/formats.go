@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 	texttemplate "text/template"
 	"time"
@@ -75,7 +76,7 @@ type FormatEmail struct {
 	AllowName bool
 }
 
-func (f FormatEmail) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatEmail) CheckFormat(ctx context.Context, value any) error {
 	s, ok := value.(string)
 	if !ok {
 		return nil
@@ -97,7 +98,7 @@ func (f FormatEmail) CheckFormat(ctx context.Context, value interface{}) error {
 type FormatURI struct {
 }
 
-func (f FormatURI) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatURI) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -118,7 +119,7 @@ func (f FormatURI) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatPicture struct{}
 
-func (FormatPicture) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatPicture) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -151,7 +152,7 @@ func (FormatPicture) CheckFormat(ctx context.Context, value interface{}) error {
 type FormatHTTPOrigin struct {
 }
 
-func (f FormatHTTPOrigin) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatHTTPOrigin) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -189,7 +190,7 @@ func (f FormatHTTPOrigin) CheckFormat(ctx context.Context, value interface{}) er
 
 type FormatHTTPOriginSpec struct{}
 
-func (FormatHTTPOriginSpec) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatHTTPOriginSpec) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -205,7 +206,7 @@ func (FormatHTTPOriginSpec) CheckFormat(ctx context.Context, value interface{}) 
 
 type FormatLDAPURL struct{}
 
-func (FormatLDAPURL) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatLDAPURL) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -244,7 +245,7 @@ func (FormatLDAPURL) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatLDAPDN struct{}
 
-func (FormatLDAPDN) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatLDAPDN) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -266,7 +267,7 @@ func (FormatLDAPDN) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatLDAPSearchFilterTemplate struct{}
 
-func (FormatLDAPSearchFilterTemplate) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatLDAPSearchFilterTemplate) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -298,7 +299,7 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(ctx context.Context, value int
 
 type FormatLDAPAttribute struct{}
 
-func (FormatLDAPAttribute) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatLDAPAttribute) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -328,7 +329,7 @@ func (FormatLDAPAttribute) CheckFormat(ctx context.Context, value interface{}) e
 type FormatWeChatAccountID struct {
 }
 
-func (f FormatWeChatAccountID) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatWeChatAccountID) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -343,7 +344,7 @@ func (f FormatWeChatAccountID) CheckFormat(ctx context.Context, value interface{
 
 type FormatBCP47 struct{}
 
-func (f FormatBCP47) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatBCP47) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -364,7 +365,7 @@ func (f FormatBCP47) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatTimezone struct{}
 
-func (FormatTimezone) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatTimezone) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -385,7 +386,7 @@ func (FormatTimezone) CheckFormat(ctx context.Context, value interface{}) error 
 
 type FormatDateTime struct{}
 
-func (FormatDateTime) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatDateTime) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -402,7 +403,7 @@ func (FormatDateTime) CheckFormat(ctx context.Context, value interface{}) error 
 // FormatCIDR checks if input is a valid CIDR notation.
 type FormatCIDR struct{}
 
-func (FormatCIDR) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatCIDR) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -415,7 +416,7 @@ func (FormatCIDR) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatBirthdate struct{}
 
-func (FormatBirthdate) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatBirthdate) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -442,16 +443,14 @@ func (FormatBirthdate) CheckFormat(ctx context.Context, value interface{}) error
 
 type FormatAlpha2 struct{}
 
-func (FormatAlpha2) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatAlpha2) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
 	}
 
-	for _, allowed := range territoryutil.Alpha2 {
-		if allowed == str {
-			return nil
-		}
+	if slices.Contains(territoryutil.Alpha2, str) {
+		return nil
 	}
 
 	return fmt.Errorf("invalid ISO 3166-1 alpha-2 code: %#v", str)
@@ -459,7 +458,7 @@ func (FormatAlpha2) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatCustomAttributePointer struct{}
 
-func (FormatCustomAttributePointer) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatCustomAttributePointer) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -515,7 +514,7 @@ func (FormatCustomAttributePointer) CheckFormat(ctx context.Context, value inter
 
 type FormatGoogleTagManagerContainerID struct{}
 
-func (FormatGoogleTagManagerContainerID) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatGoogleTagManagerContainerID) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -529,7 +528,7 @@ func (FormatGoogleTagManagerContainerID) CheckFormat(ctx context.Context, value 
 
 type FormatContractID struct{}
 
-func (FormatContractID) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatContractID) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -551,7 +550,7 @@ func (FormatContractID) CheckFormat(ctx context.Context, value interface{}) erro
 
 type FormatNetworkID struct{}
 
-func (FormatNetworkID) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatNetworkID) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -571,7 +570,7 @@ func (FormatNetworkID) CheckFormat(ctx context.Context, value interface{}) error
 
 type FormatAbsolutePath struct{}
 
-func (FormatAbsolutePath) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatAbsolutePath) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -596,7 +595,7 @@ func (FormatAbsolutePath) CheckFormat(ctx context.Context, value interface{}) er
 
 type FormatHookURI struct{}
 
-func (FormatHookURI) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatHookURI) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -624,7 +623,7 @@ func (FormatHookURI) CheckFormat(ctx context.Context, value interface{}) error {
 
 type FormatDurationString struct{}
 
-func (FormatDurationString) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatDurationString) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -642,7 +641,7 @@ func (FormatDurationString) CheckFormat(ctx context.Context, value interface{}) 
 
 type FormatBase64URL struct{}
 
-func (FormatBase64URL) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatBase64URL) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -657,7 +656,7 @@ func (FormatBase64URL) CheckFormat(ctx context.Context, value interface{}) error
 
 type FormatRe2Regex struct{}
 
-func (FormatRe2Regex) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatRe2Regex) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -673,7 +672,7 @@ func (FormatRe2Regex) CheckFormat(ctx context.Context, value interface{}) error 
 
 type FormatX509CertPem struct{}
 
-func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatX509CertPem) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -693,7 +692,7 @@ func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) err
 
 type FormatPublicHTTPSURL struct{}
 
-func (FormatPublicHTTPSURL) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatPublicHTTPSURL) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -705,7 +704,7 @@ func (FormatPublicHTTPSURL) CheckFormat(ctx context.Context, value interface{}) 
 // FormatIP checks if input is a valid IP address.
 type FormatIP struct{}
 
-func (f FormatIP) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatIP) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

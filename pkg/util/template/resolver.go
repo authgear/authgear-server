@@ -10,7 +10,7 @@ type DefaultLanguageTag string
 type SupportedLanguageTags []string
 
 type ResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 }
 
 type Resolver struct {

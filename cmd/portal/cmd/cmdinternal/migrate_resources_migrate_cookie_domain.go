@@ -63,13 +63,13 @@ func migrateCookieDomain(ctx context.Context, appID string, configSourceData map
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	httpConfig, ok := m["http"].(map[string]interface{})
+	httpConfig, ok := m["http"].(map[string]any)
 	if !ok {
 		return nil
 	}

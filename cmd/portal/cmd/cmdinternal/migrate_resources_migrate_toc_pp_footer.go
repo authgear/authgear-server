@@ -57,7 +57,7 @@ func migrateTOCPPFooter(ctx context.Context, appID string, configSourceData map[
 		return fmt.Errorf("failed decode authgear.yaml: %w", err)
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decodedConfig, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
@@ -65,15 +65,15 @@ func migrateTOCPPFooter(ctx context.Context, appID string, configSourceData map[
 
 	var supportedLanguageTags []string
 
-	emptyJSON, err := json.Marshal(map[string]interface{}{})
+	emptyJSON, err := json.Marshal(map[string]any{})
 	if err != nil {
 		return fmt.Errorf("failed marshal empty json: %w", err)
 	}
 
 	// Get all supported languages tags from the config
-	locale, ok := m["localization"].(map[string]interface{})
+	locale, ok := m["localization"].(map[string]any)
 	if ok {
-		sl, ok := locale["supported_languages"].([]interface{})
+		sl, ok := locale["supported_languages"].([]any)
 		if ok {
 			for _, t := range sl {
 				supportedLanguageTags = append(supportedLanguageTags, t.(string))
@@ -108,7 +108,7 @@ func migrateTOCPPFooter(ctx context.Context, appID string, configSourceData map[
 				log.Printf("\n%s\n", string(decoded))
 			}
 
-			m := make(map[string]interface{})
+			m := make(map[string]any)
 			err = json.Unmarshal(decoded, &m)
 			if err != nil {
 				return fmt.Errorf("failed unmarshal %s: %w", k, err)

@@ -20,7 +20,7 @@ type EdgeOOBResendCode struct {
 	OTPForm          otp.Form
 }
 
-func (e *EdgeOOBResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeOOBResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputOOBResendCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

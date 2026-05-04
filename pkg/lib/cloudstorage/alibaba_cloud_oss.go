@@ -46,30 +46,30 @@ func NewAlibabaCloudOSSStorage(accessKeyID, secretAccessKey, region, bucket stri
 
 func (s *AlibabaCloudOSSStorage) PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error) {
 	input := &oss.PutObjectRequest{
-		Bucket: oss.Ptr(s.Bucket),
-		Key:    oss.Ptr(name),
+		Bucket: new(s.Bucket),
+		Key:    new(name),
 	}
 
 	for name := range header {
 		lower := strings.ToLower(name)
 		switch lower {
 		case "content-type":
-			input.ContentType = oss.Ptr(header.Get(name))
+			input.ContentType = new(header.Get(name))
 		case "content-disposition":
-			input.ContentDisposition = oss.Ptr(header.Get(name))
+			input.ContentDisposition = new(header.Get(name))
 		case "content-encoding":
-			input.ContentEncoding = oss.Ptr(header.Get(name))
+			input.ContentEncoding = new(header.Get(name))
 		case "content-length":
 			contentLengthStr := header.Get(name)
 			contentLength, err := strconv.ParseInt(contentLengthStr, 10, 64)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse content-length: %w", err)
 			}
-			input.ContentLength = oss.Ptr(contentLength)
+			input.ContentLength = new(contentLength)
 		case "content-md5":
-			input.ContentMD5 = oss.Ptr(header.Get(name))
+			input.ContentMD5 = new(header.Get(name))
 		case "cache-control":
-			input.CacheControl = oss.Ptr(header.Get(name))
+			input.CacheControl = new(header.Get(name))
 		}
 	}
 
@@ -96,8 +96,8 @@ func (s *AlibabaCloudOSSStorage) PresignPutObject(ctx context.Context, name stri
 
 func (s *AlibabaCloudOSSStorage) PresignHeadObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
 	input := &oss.HeadObjectRequest{
-		Bucket: oss.Ptr(s.Bucket),
-		Key:    oss.Ptr(name),
+		Bucket: new(s.Bucket),
+		Key:    new(name),
 	}
 
 	result, err := s.client.Presign(ctx, input, oss.PresignExpires(expire))
@@ -115,8 +115,8 @@ func (s *AlibabaCloudOSSStorage) PresignHeadObject(ctx context.Context, name str
 
 func (s *AlibabaCloudOSSStorage) PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
 	input := &oss.GetObjectRequest{
-		Bucket: oss.Ptr(s.Bucket),
-		Key:    oss.Ptr(name),
+		Bucket: new(s.Bucket),
+		Key:    new(name),
 	}
 
 	result, err := s.client.Presign(ctx, input, oss.PresignExpires(expire))

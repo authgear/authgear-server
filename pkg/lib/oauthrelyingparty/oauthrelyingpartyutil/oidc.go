@@ -158,6 +158,6 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	return payload, nil
 }
 
-func (d *OIDCDiscoveryDocument) FetchUserInfo(ctx context.Context, client *http.Client, accessTokenResp AccessTokenResp) (userInfo map[string]interface{}, err error) {
+func (d *OIDCDiscoveryDocument) FetchUserInfo(ctx context.Context, client *http.Client, accessTokenResp AccessTokenResp) (userInfo map[string]any, err error) {
 	return FetchUserProfile(ctx, client, accessTokenResp, d.UserInfoEndpoint)
 }

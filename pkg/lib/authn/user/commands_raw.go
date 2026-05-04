@@ -23,7 +23,7 @@ func (c *RawCommands) New(userID string) *User {
 		UpdatedAt:           now,
 		MostRecentLoginAt:   nil,
 		LessRecentLoginAt:   nil,
-		StandardAttributes:  make(map[string]interface{}),
+		StandardAttributes:  make(map[string]any),
 		RequireReindexAfter: &now,
 
 		isDisabled:               false,

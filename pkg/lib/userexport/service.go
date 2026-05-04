@@ -51,7 +51,7 @@ type UserExportService struct {
 
 var UserExportLogger = slogutil.NewLogger("user-export")
 
-func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, key string) T {
+func mapGet[T string | bool | map[string]any](m map[string]any, key string) T {
 	value, _ := m[key].(T)
 	return value
 }
@@ -81,7 +81,7 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 	record.Zoneinfo = mapGet[string](user.StandardAttributes, "zoneinfo")
 	record.Locale = mapGet[string](user.StandardAttributes, "locale")
 
-	address := mapGet[map[string]interface{}](user.StandardAttributes, "address")
+	address := mapGet[map[string]any](user.StandardAttributes, "address")
 	record.Address = &Address{
 		Formatted:     mapGet[string](address, "formatted"),
 		StreetAddress: mapGet[string](address, "street_address"),
@@ -341,7 +341,7 @@ func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File,
 				return err
 			}
 
-			var recordMap interface{}
+			var recordMap any
 			err = json.Unmarshal(recordJson, &recordMap)
 			if err != nil {
 				return err

@@ -180,7 +180,7 @@ type OAuthSSOProviderDemoSecretItem struct {
 //nolint:gocognit
 func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config.SecretKey, now time.Time) (*SecretConfig, error) {
 	out := &SecretConfig{}
-	var unmaskedSecretsSet map[config.SecretKey]interface{} = map[config.SecretKey]interface{}{}
+	var unmaskedSecretsSet map[config.SecretKey]any = map[config.SecretKey]any{}
 	for _, s := range unmaskedSecrets {
 		unmaskedSecretsSet[s] = s
 	}

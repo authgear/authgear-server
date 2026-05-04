@@ -146,6 +146,6 @@ func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *G
 	return
 }
 
-func (s *Service) Accept(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
+func (s *Service) Accept(goCtx context.Context, ctx *Context, graph *Graph, input any) (*Graph, []Edge, error) {
 	return graph.accept(goCtx, ctx, input)
 }

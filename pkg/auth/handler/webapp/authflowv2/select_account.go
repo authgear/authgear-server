@@ -73,8 +73,8 @@ type AuthflowV2SelectAccountHandler struct {
 	OAuthClientResolver       handlerwebapp.WebappOAuthClientResolver
 }
 
-func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, userID string) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 

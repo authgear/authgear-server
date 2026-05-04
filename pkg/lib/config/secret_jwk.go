@@ -25,7 +25,7 @@ var _ json.Marshaler = &JWK{}
 var _ json.Unmarshaler = &JWK{}
 
 func (c *JWK) MarshalJSON() ([]byte, error) {
-	return c.Key.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Key.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *JWK) UnmarshalJSON(b []byte) error {
 	key, err := jwk.ParseKey(b)

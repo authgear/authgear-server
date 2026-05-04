@@ -25,7 +25,7 @@ type UserQueries interface {
 }
 
 type UserStore interface {
-	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]any) error
 }
 
 type EventService interface {
@@ -83,7 +83,7 @@ func (s *Service) PopulateIdentityAwareStandardAttributes(ctx context.Context, u
 	return s.ServiceNoEvent.PopulateIdentityAwareStandardAttributes(ctx, userID)
 }
 
-func (s *Service) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (s *Service) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error {
 	err := s.ServiceNoEvent.UpdateStandardAttributes(ctx, role, userID, stdAttrs)
 	if err != nil {
 		return err
@@ -118,6 +118,6 @@ func (s *Service) UpdateStandardAttributes(ctx context.Context, role accesscontr
 	return nil
 }
 
-func (s *Service) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+func (s *Service) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error) {
 	return s.ServiceNoEvent.DeriveStandardAttributes(ctx, role, userID, updatedAt, attrs)
 }

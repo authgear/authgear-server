@@ -48,7 +48,7 @@ type InputUnwrapper interface {
 	Unwrap() Input
 }
 
-func AsInput(i Input, iface interface{}) bool {
+func AsInput(i Input, iface any) bool {
 	if i == nil {
 		return false
 	}

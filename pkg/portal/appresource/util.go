@@ -1,7 +1,8 @@
 package appresource
 
 import (
-	"io/ioutil"
+	"io"
+
 	"path"
 
 	"github.com/spf13/afero"
@@ -24,7 +25,7 @@ func cloneFS(fs resource.Fs) (afero.Fs, error) {
 			}
 			defer f.Close()
 
-			data, err := ioutil.ReadAll(f)
+			data, err := io.ReadAll(f)
 			if err != nil {
 				return err
 			}

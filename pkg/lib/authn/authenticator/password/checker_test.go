@@ -445,7 +445,7 @@ func TestPasswordPolicy(t *testing.T) {
 			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
 				Policy{
 					Name: PasswordTooShort,
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"min_length": 8,
 					},
 				},
@@ -458,7 +458,7 @@ func TestPasswordPolicy(t *testing.T) {
 			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
 				Policy{
 					Name: PasswordBelowGuessableLevel,
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"min_level": 3,
 					},
 				},
@@ -473,7 +473,7 @@ func TestPasswordPolicy(t *testing.T) {
 			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
 				Policy{
 					Name: PasswordReused,
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"history_size": 10,
 						"history_days": 90,
 					},

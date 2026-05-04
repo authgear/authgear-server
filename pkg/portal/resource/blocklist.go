@@ -7,7 +7,7 @@ import (
 
 var ReservedAppIDTXT = PortalRegistry.Register(resource.NewlineJoinedDescriptor{
 	Path: "reserved_app_id.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return blocklist.New(string(data))
 	},
 })

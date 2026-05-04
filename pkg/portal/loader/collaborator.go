@@ -30,7 +30,7 @@ func NewCollaboratorLoader(
 	return l
 }
 
-func (l *CollaboratorLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *CollaboratorLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -50,7 +50,7 @@ func (l *CollaboratorLoader) LoadFunc(ctx context.Context, keys []interface{}) (
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.AppID)
@@ -81,7 +81,7 @@ func NewCollaboratorInvitationLoader(
 	return l
 }
 
-func (l *CollaboratorInvitationLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *CollaboratorInvitationLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -101,7 +101,7 @@ func (l *CollaboratorInvitationLoader) LoadFunc(ctx context.Context, keys []inte
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.AppID)

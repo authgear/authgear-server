@@ -118,7 +118,7 @@ func (*IntentVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Depe
 	return nil, nil
 }
 
-func (i *IntentVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

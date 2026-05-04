@@ -175,7 +175,7 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 	}, nil
 }
 
-func (*IntentMigrate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentMigrate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

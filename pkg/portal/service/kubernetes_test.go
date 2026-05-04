@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"testing"
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -324,7 +325,7 @@ spec:
 			objects := append(ingresses.Items, certs.Items...)
 
 			b, _ := yaml.Marshal(objects)
-			result, err := ioutil.ReadFile("testdata/ingress_result.yaml")
+			result, err := os.ReadFile("testdata/ingress_result.yaml")
 			So(string(b), ShouldEqual, string(result))
 			So(err, ShouldBeNil)
 		})

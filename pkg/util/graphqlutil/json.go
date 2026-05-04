@@ -11,16 +11,16 @@ func NewJSONObjectScalar(name string, description string) *graphql.Scalar {
 	return graphql.NewScalar(graphql.ScalarConfig{
 		Name:        name,
 		Description: description,
-		Serialize: func(value interface{}) interface{} {
+		Serialize: func(value any) any {
 			return value
 		},
-		ParseValue: func(value interface{}) interface{} {
+		ParseValue: func(value any) any {
 			return value
 		},
-		ParseLiteral: func(valueAST ast.Value) interface{} {
+		ParseLiteral: func(valueAST ast.Value) any {
 			switch valueAST := valueAST.(type) {
 			case *ast.StringValue:
-				var obj interface{}
+				var obj any
 				if err := json.Unmarshal([]byte(valueAST.Value), &obj); err == nil {
 					return obj
 				}

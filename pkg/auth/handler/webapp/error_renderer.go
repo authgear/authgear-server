@@ -49,8 +49,8 @@ func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, 
 	}
 }
 
-func (h *ErrorRenderer) GetErrorData(ctx context.Context, r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *ErrorRenderer) GetErrorData(ctx context.Context, r *http.Request, w http.ResponseWriter, err error) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	baseViewModel.SetError(ctx, err)
 	viewmodels.Embed(data, baseViewModel)
@@ -151,7 +151,7 @@ func (s *ErrorRenderer) renderAuthflowError(ctx context.Context, w http.Response
 type HTMLResult struct {
 	Renderer Renderer
 	Template *template.HTML
-	Data     interface{}
+	Data     any
 }
 
 func (re *HTMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {

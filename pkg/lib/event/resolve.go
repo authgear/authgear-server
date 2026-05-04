@@ -18,7 +18,7 @@ type ResolverImpl struct {
 	Users ResolverUserQueries
 }
 
-func (r *ResolverImpl) Resolve(ctx context.Context, anything interface{}) (err error) {
+func (r *ResolverImpl) Resolve(ctx context.Context, anything any) (err error) {
 	struc := reflect.ValueOf(anything).Elem()
 	typ := struc.Type()
 

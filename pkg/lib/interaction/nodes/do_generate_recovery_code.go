@@ -14,7 +14,7 @@ type EdgeDoGenerateRecoveryCode struct {
 	RecoveryCodes []string
 }
 
-func (e *EdgeDoGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeDoGenerateRecoveryCode{
 		RecoveryCodes: e.RecoveryCodes,
 	}, nil

@@ -54,8 +54,8 @@ type AuthflowV2SettingsBiometricHandler struct {
 	AccountManagementService *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsBiometricHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsBiometricHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
@@ -101,7 +101,7 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			return err

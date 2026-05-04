@@ -22,7 +22,7 @@ type EdgeChangePasswordBegin struct {
 	Stage authn.AuthenticationStage
 }
 
-func (e *EdgeChangePasswordBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeChangePasswordBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeChangePasswordBegin{
 		Force: e.Force,
 		Stage: e.Stage,
@@ -69,7 +69,7 @@ type EdgeChangePassword struct {
 	Reason *interaction.AuthenticatorUpdateReason
 }
 
-func (e *EdgeChangePassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
+func (e *EdgeChangePassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (node interaction.Node, err error) {
 	var input InputChangePassword
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

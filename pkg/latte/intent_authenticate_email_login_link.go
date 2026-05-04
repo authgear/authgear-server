@@ -62,8 +62,8 @@ func (i *IntentAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps 
 	return nil, nil
 }
 
-func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }
 
 func (i *IntentAuthenticateEmailLoginLink) GetAMR(w *workflow.Workflow) []string {

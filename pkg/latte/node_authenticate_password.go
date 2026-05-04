@@ -68,8 +68,8 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }
 
 func (n *NodeAuthenticatePassword) getPasswordAuthenticator(ctx context.Context, deps *workflow.Dependencies) (*authenticator.Info, error) {

@@ -2,6 +2,7 @@ package authenticationflow
 
 import (
 	"context"
+	"maps"
 
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
@@ -177,9 +178,7 @@ func (s *Session) SetBotProtectionVerificationResult(result *BotProtectionVerifi
 func (s *Session) WithSMSOTPSentCountAdded(phone string) *Session {
 	updated := *s
 	newMap := make(map[string]int, len(s.SMSOTPSentCountByPhone)+1)
-	for k, v := range s.SMSOTPSentCountByPhone {
-		newMap[k] = v
-	}
+	maps.Copy(newMap, s.SMSOTPSentCountByPhone)
 	newMap[phone]++
 	updated.SMSOTPSentCountByPhone = newMap
 	return &updated
@@ -189,9 +188,7 @@ func (s *Session) WithSMSOTPSentCountAdded(phone string) *Session {
 func (s *Session) WithSMSOTPVerifiedCountAdded(phone string) *Session {
 	updated := *s
 	newMap := make(map[string]int, len(s.SMSOTPVerifiedCountByPhone)+1)
-	for k, v := range s.SMSOTPVerifiedCountByPhone {
-		newMap[k] = v
-	}
+	maps.Copy(newMap, s.SMSOTPVerifiedCountByPhone)
 	newMap[phone]++
 	updated.SMSOTPVerifiedCountByPhone = newMap
 	return &updated

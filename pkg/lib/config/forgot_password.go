@@ -42,7 +42,7 @@ type ForgotPasswordConfig struct {
 
 func (c *ForgotPasswordConfig) SetDefaults() {
 	if c.Enabled == nil {
-		c.Enabled = newBool(true)
+		c.Enabled = new(true)
 	}
 
 	if c.Deprecated_ResetCodeExpiry == 0 {
@@ -108,7 +108,7 @@ func (c *ForgotPasswordRateLimitsEmailConfig) SetDefaults() {
 	}
 	if c.ValidatePerIP.Enabled == nil {
 		c.ValidatePerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
@@ -139,7 +139,7 @@ func (c *ForgotPasswordRateLimitsSMSConfig) SetDefaults() {
 	}
 	if c.ValidatePerIP.Enabled == nil {
 		c.ValidatePerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}

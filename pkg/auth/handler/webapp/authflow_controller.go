@@ -153,7 +153,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 	opts webapp.SessionOptions,
 	flowType authflow.FlowType,
 	handlers *AuthflowControllerHandlers,
-	input interface{}) {
+	input any) {
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
@@ -221,7 +221,7 @@ func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.Res
 		return
 	}
 
-	input := map[string]interface{}{
+	input := map[string]any{
 		"query": callbackResponse.Query,
 	}
 	result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
@@ -245,7 +245,7 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	r *http.Request,
 	opts webapp.SessionOptions,
 	handlers *AuthflowControllerHandlers,
-	input map[string]interface{},
+	input map[string]any,
 	errorHandler *AuthflowControllerErrorHandler,
 ) {
 	handleError := func(err error) {
@@ -528,7 +528,7 @@ func (c *AuthflowController) createAuthflow(ctx context.Context, r *http.Request
 }
 
 // ReplaceScreen is for switching flow.
-func (c *AuthflowController) ReplaceScreen(ctx context.Context, r *http.Request, s *webapp.Session, flowType authflow.FlowType, input map[string]interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) ReplaceScreen(ctx context.Context, r *http.Request, s *webapp.Session, flowType authflow.FlowType, input map[string]any) (result *webapp.Result, err error) {
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
@@ -539,7 +539,7 @@ func (c *AuthflowController) ReplaceScreen(ctx context.Context, r *http.Request,
 
 	flowResponse := output.ToFlowResponse()
 	emptyXStep := ""
-	var emptyInput map[string]interface{}
+	var emptyInput map[string]any
 	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
 	s.RememberScreen(screen.Screen)
 
@@ -591,7 +591,7 @@ func (c *AuthflowController) createScreenWithOutput(
 	prevXStep string,
 ) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	flowResponse := output.ToFlowResponse()
-	var emptyInput map[string]interface{}
+	var emptyInput map[string]any
 	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, prevXStep, emptyInput)
 	s.RememberScreen(screen.Screen)
 
@@ -615,7 +615,7 @@ func (c *AuthflowController) createScreen(
 	r *http.Request,
 	s *webapp.Session,
 	flowType authflow.FlowType,
-	input interface{}) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
+	input any) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
 	output1, err := c.createAuthflow(ctx, r, s, flowType)
 	if err != nil {
 		return
@@ -652,7 +652,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 	r *http.Request,
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
-	inputs []map[string]interface{},
+	inputs []map[string]any,
 	options *AdvanceOptions,
 ) (*webapp.Result, error) {
 	if options == nil {
@@ -777,15 +777,15 @@ func (c *AuthflowController) AdvanceWithInput(
 	r *http.Request,
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
-	input map[string]interface{},
+	input map[string]any,
 	options *AdvanceOptions,
 ) (result *webapp.Result, err error) {
-	return c.AdvanceWithInputs(ctx, r, s, screen0, []map[string]interface{}{input}, options)
+	return c.AdvanceWithInputs(ctx, r, s, screen0, []map[string]any{input}, options)
 }
 
 // UpdateWithInput is for feeding an input that would just update the current node.
 // One application is resend.
-func (c *AuthflowController) UpdateWithInput(ctx context.Context, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) UpdateWithInput(ctx context.Context, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]any) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
 	output, err := c.feedInput(ctx, screen.Screen.StateToken.StateToken, input)
@@ -884,11 +884,11 @@ func (c *AuthflowController) takeBranchRecursively(ctx context.Context, s *webap
 	return
 }
 
-func (c *AuthflowController) FeedInputWithoutNavigate(ctx context.Context, stateToken string, input interface{}) (*authflow.ServiceOutput, error) {
+func (c *AuthflowController) FeedInputWithoutNavigate(ctx context.Context, stateToken string, input any) (*authflow.ServiceOutput, error) {
 	return c.feedInput(ctx, stateToken, input)
 }
 
-func (c *AuthflowController) feedInput(ctx context.Context, stateToken string, input interface{}) (*authflow.ServiceOutput, error) {
+func (c *AuthflowController) feedInput(ctx context.Context, stateToken string, input any) (*authflow.ServiceOutput, error) {
 	rawMessageBytes, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -1235,7 +1235,6 @@ func (c *AuthflowController) finishSession(
 func (c *AuthflowController) GetAccountLinkingSSOCallbackURL(alias string, data declarative.AccountLinkingIdentifyData) (string, error) {
 	var idenOption *declarative.AccountLinkingIdentificationOption
 	for _, option := range data.Options {
-		option := option
 		if option.Alias == alias {
 			idenOption = &option
 			break
@@ -1259,14 +1258,13 @@ func (c *AuthflowController) UseOAuthIdentification(
 	w http.ResponseWriter, r *http.Request,
 	screen *webapp.AuthflowScreen,
 	alias string, identificationOptions []declarative.IdentificationOption,
-	flowExecutor func(input map[string]interface{},
+	flowExecutor func(input map[string]any,
 	) (
 		result *webapp.Result,
 		err error),
 ) (*webapp.Result, error) {
 	var idenOption *declarative.IdentificationOption
 	for _, option := range identificationOptions {
-		option := option
 		if option.Alias == alias {
 			idenOption = &option
 			break
@@ -1282,7 +1280,7 @@ func (c *AuthflowController) UseOAuthIdentification(
 		callbackURL = c.Endpoints.SSOCallbackURL(alias).String()
 	}
 
-	input := map[string]interface{}{
+	input := map[string]any{
 		"identification": "oauth",
 		"alias":          alias,
 		"redirect_uri":   callbackURL,

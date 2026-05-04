@@ -82,8 +82,8 @@ func (i *IntentAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *wo
 	return nil, nil
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) GetAMR(w *workflow.Workflow) []string {

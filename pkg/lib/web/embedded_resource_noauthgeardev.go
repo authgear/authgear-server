@@ -1,5 +1,4 @@
 //go:build !authgeardev
-// +build !authgeardev
 
 package web
 

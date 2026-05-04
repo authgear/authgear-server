@@ -35,7 +35,7 @@ func (s *InputSchemaTakeOOBOTPChannel) SchemaBuilder() validation.SchemaBuilder 
 		Required("channel")
 	b.Properties().Property("channel", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
-		Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](s.Channels)...))
+		Enum(slice.Cast[model.AuthenticatorOOBChannel, any](s.Channels)...))
 
 	return b
 }

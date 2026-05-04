@@ -28,7 +28,7 @@ func NewAuditLogLoader(query AuditLogQuery, handle *auditdb.ReadHandle) *AuditLo
 	return l
 }
 
-func (l *AuditLogLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *AuditLogLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -52,7 +52,7 @@ func (l *AuditLogLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]in
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		out[i] = entity

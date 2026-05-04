@@ -35,6 +35,6 @@ func (*NodeDoUpdateAuthenticator) ReactTo(ctx context.Context, deps *workflow.De
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeDoUpdateAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*NodeDoUpdateAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

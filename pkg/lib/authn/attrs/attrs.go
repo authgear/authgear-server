@@ -5,8 +5,8 @@ import (
 )
 
 type T struct {
-	Pointer string      `json:"pointer"`
-	Value   interface{} `json:"value,omitempty"`
+	Pointer string `json:"pointer"`
+	Value   any    `json:"value,omitempty"`
 }
 
 type List []T
@@ -31,7 +31,6 @@ func (l List) Separate(cfg *config.UserProfileConfig) (stdAttrs List, customAttr
 	}
 
 	for _, attr := range l {
-		attr := attr
 		if IsStandardAttributePointer(attr.Pointer) {
 			stdAttrs = append(stdAttrs, attr)
 		} else {

@@ -19,7 +19,7 @@ type EdgeEnsureVerificationBegin struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeEnsureVerificationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureVerificationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	skipVerification := false
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
@@ -108,7 +108,7 @@ type EdgeEnsureVerificationEnd struct {
 	Identity *identity.Info
 }
 
-func (e *EdgeEnsureVerificationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureVerificationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeEnsureVerificationEnd{
 		Identity: e.Identity,
 	}, nil

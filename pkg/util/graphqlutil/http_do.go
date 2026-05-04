@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -13,15 +13,15 @@ import (
 
 // DoParams is the simplfied version of graphql.Params.
 type DoParams struct {
-	OperationName string                 `json:"operationName,omitempty"`
-	Query         string                 `json:"query"`
-	Variables     map[string]interface{} `json:"variables"`
+	OperationName string         `json:"operationName,omitempty"`
+	Query         string         `json:"query"`
+	Variables     map[string]any `json:"variables"`
 }
 
 // HTTPDo is the HTTP version of graphql.Do.
 func HTTPDo(client *http.Client, r *http.Request, params DoParams) (result *graphql.Result, err error) {
 	if params.Variables == nil {
-		params.Variables = make(map[string]interface{})
+		params.Variables = make(map[string]any)
 	}
 
 	requestBody, err := json.Marshal(params)
@@ -31,7 +31,7 @@ func HTTPDo(client *http.Client, r *http.Request, params DoParams) (result *grap
 
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Content-Length", strconv.Itoa(len(requestBody)))
-	r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
+	r.Body = io.NopCloser(bytes.NewReader(requestBody))
 
 	// #nosec G704 -- Request target is constructed by trusted callers of the GraphQL client helper.
 	resp, err := client.Do(r)
@@ -42,7 +42,7 @@ func HTTPDo(client *http.Client, r *http.Request, params DoParams) (result *grap
 
 	if resp.StatusCode != 200 {
 		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return
 		}

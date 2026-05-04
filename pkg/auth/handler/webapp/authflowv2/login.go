@@ -81,8 +81,8 @@ func (h *AuthflowV2LoginHandler) getAuthflowViewModel(s *webapp.Session, screen 
 	return h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
 }
 
-func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
@@ -95,8 +95,8 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 	return data, nil
 }
 
-func (h *AuthflowV2LoginHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2LoginHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	authflowViewModel := h.AuthflowViewModel.NewWithConfig()
@@ -171,7 +171,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		loginID := r.Form.Get("x_login_id")
 		loginIDInputType := r.Form.Get("x_login_id_input_type")
 		identification := webapp.GetMostAppropriateIdentification(ctx, screen.StateTokenFlowResponse, loginID, loginIDInputType)
-		input := map[string]interface{}{
+		input := map[string]any{
 			"identification": identification,
 			"login_id":       loginID,
 		}
@@ -204,13 +204,13 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	handlers.PostAction("passkey", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 
-		var assertionResponseJSON interface{}
+		var assertionResponseJSON any
 		err := json.Unmarshal([]byte(assertionResponseStr), &assertionResponseJSON)
 		if err != nil {
 			return err
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"identification":     "passkey",
 			"assertion_response": assertionResponseJSON,
 		}
@@ -244,7 +244,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 func (h *AuthflowV2LoginHandler) makeOauthPostAction(w http.ResponseWriter, r *http.Request) func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
 	return func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
 		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
-		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
+		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]any) (result *webapp.Result, err error) {
 			err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return nil, err

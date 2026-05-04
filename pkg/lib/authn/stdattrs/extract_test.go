@@ -26,7 +26,7 @@ func makeFull() T {
 		"locale":                "zh-Hant-HK",
 		"phone_number":          "+85298765432",
 		"phone_number_verified": true,
-		"address": map[string]interface{}{
+		"address": map[string]any{
 			"formatted":      "1 Unnamed Road, Central, Hong Kong Island, HK",
 			"street_address": "1 Unnamed Road",
 			"locality":       "Central",
@@ -54,13 +54,13 @@ func TestExtract(t *testing.T) {
 		test(fullWithExtra, full)
 
 		test(T{"name": ""}, T{})
-		test(T{"address": map[string]interface{}{}}, T{})
+		test(T{"address": map[string]any{}}, T{})
 		test(T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted": "some address",
 			},
 		}, T{
-			Address: map[string]interface{}{
+			Address: map[string]any{
 				Formatted: "some address",
 			},
 		})

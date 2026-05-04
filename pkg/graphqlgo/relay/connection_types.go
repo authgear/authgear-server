@@ -26,7 +26,7 @@ func NewConnection() *Connection {
 }
 
 type Edge struct {
-	Node   interface{}      `json:"node"`
+	Node   any              `json:"node"`
 	Cursor ConnectionCursor `json:"cursor"`
 }
 
@@ -47,7 +47,7 @@ type ConnectionArgumentsConfig struct {
 	Last  *int `json:"last"`
 }
 
-func NewConnectionArguments(filters map[string]interface{}) ConnectionArguments {
+func NewConnectionArguments(filters map[string]any) ConnectionArguments {
 	conn := ConnectionArguments{
 		First:  -1,
 		Last:   -1,

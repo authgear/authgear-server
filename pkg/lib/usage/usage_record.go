@@ -40,7 +40,7 @@ type UsageRecord struct {
 	StartTime       time.Time
 	EndTime         time.Time
 	Count           int
-	AlertData       map[string]interface{}
+	AlertData       map[string]any
 	StripeTimestamp *time.Time
 }
 

@@ -99,7 +99,6 @@ func (*IntentSignupFlowStepFillInUserProfile) validate(step *config.Authenticati
 	allAllowed := []string{}
 	allRequired := []string{}
 	for _, spec := range step.UserProfile {
-		spec := spec
 		allAllowed = append(allAllowed, spec.Pointer)
 		if spec.Required {
 			allRequired = append(allRequired, spec.Pointer)
@@ -108,7 +107,6 @@ func (*IntentSignupFlowStepFillInUserProfile) validate(step *config.Authenticati
 
 	allPresent := []string{}
 	for _, attr := range attributes {
-		attr := attr
 		pointer := attr.Pointer
 		allPresent = append(allPresent, pointer)
 	}

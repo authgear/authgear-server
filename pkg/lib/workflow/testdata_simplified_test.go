@@ -68,7 +68,7 @@ func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, wo
 	}
 }
 
-func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -116,7 +116,7 @@ func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, workflows W
 	return nil, ErrIncompatibleInput
 }
 
-func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -175,7 +175,7 @@ func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow
 	}
 }
 
-func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -219,7 +219,7 @@ func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, work
 	}
 }
 
-func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -266,7 +266,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 	}
 }
 
-func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -312,7 +312,7 @@ func (*nodeLoginIDVerified) ReactTo(ctx context.Context, deps *Dependencies, wor
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (interface{}, error) {
+func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -405,7 +405,7 @@ func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, wo
 	}
 }
 
-func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -430,7 +430,7 @@ func (*nodeCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, work
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -479,6 +479,6 @@ func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, work
 	return nil, ErrIncompatibleInput
 }
 
-func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }

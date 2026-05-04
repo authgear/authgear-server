@@ -7,7 +7,7 @@ import (
 	"github.com/graphql-go/graphql/language/ast"
 )
 
-func serializeDate(value interface{}) interface{} {
+func serializeDate(value any) any {
 	switch value := value.(type) {
 	case time.Time:
 		return value.Format("2006-01-02")
@@ -21,7 +21,7 @@ func serializeDate(value interface{}) interface{} {
 	}
 }
 
-func unserializeDate(value interface{}) interface{} {
+func unserializeDate(value any) any {
 	switch value := value.(type) {
 	case []byte:
 		return unserializeDate(string(value))
@@ -56,7 +56,7 @@ var Date = graphql.NewScalar(graphql.ScalarConfig{
 		" The Date is serialized in ISO 8601 format",
 	Serialize:  serializeDate,
 	ParseValue: unserializeDate,
-	ParseLiteral: func(valueAST ast.Value) interface{} {
+	ParseLiteral: func(valueAST ast.Value) any {
 		switch valueAST := valueAST.(type) {
 		case *ast.StringValue:
 			return unserializeDate(valueAST.Value)

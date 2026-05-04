@@ -14,7 +14,7 @@ func init() {
 
 type EdgeSettingsActionEnd struct{}
 
-func (e *EdgeSettingsActionEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeSettingsActionEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeSettingsActionEnd{}, nil
 }
 

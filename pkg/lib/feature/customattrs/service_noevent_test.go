@@ -33,7 +33,7 @@ func TestServiceNoEvent(t *testing.T) {
 			}
 
 			Convey("transform to representation from", func() {
-				actual, err := s.fromStorageForm(map[string]interface{}{
+				actual, err := s.fromStorageForm(map[string]any{
 					"0000": "a",
 					"0001": "b",
 				})
@@ -45,7 +45,7 @@ func TestServiceNoEvent(t *testing.T) {
 			})
 
 			Convey("ignore unknown attributes", func() {
-				actual, err := s.fromStorageForm(map[string]interface{}{
+				actual, err := s.fromStorageForm(map[string]any{
 					"0002": "c",
 				})
 				So(err, ShouldBeNil)
@@ -79,7 +79,7 @@ func TestServiceNoEvent(t *testing.T) {
 					"b": "b",
 				})
 				So(err, ShouldBeNil)
-				So(actual, ShouldResemble, map[string]interface{}{
+				So(actual, ShouldResemble, map[string]any{
 					"0000": "a",
 					"0001": "b",
 				})
@@ -90,7 +90,7 @@ func TestServiceNoEvent(t *testing.T) {
 					"a": "a",
 				})
 				So(err, ShouldBeNil)
-				So(actual, ShouldResemble, map[string]interface{}{
+				So(actual, ShouldResemble, map[string]any{
 					"0000": "a",
 				})
 			})
@@ -280,7 +280,7 @@ func TestServiceNoEvent(t *testing.T) {
 				},
 			}
 
-			test := func(pointers []string, value map[string]interface{}, errStr string) {
+			test := func(pointers []string, value map[string]any, errStr string) {
 				err := s.validate(context.Background(), pointers, customattrs.T(value))
 				if errStr == "" {
 					So(err, ShouldBeNil)
@@ -290,14 +290,14 @@ func TestServiceNoEvent(t *testing.T) {
 			}
 
 			// Validate the only invalid value.
-			test([]string{"/number"}, map[string]interface{}{
+			test([]string{"/number"}, map[string]any{
 				"number": 3,
 			}, `invalid value:
 /number: maximum
   map[actual:3 maximum:2]`)
 
 			// Only validate listed pointers.
-			test([]string{"/number"}, map[string]interface{}{
+			test([]string{"/number"}, map[string]any{
 				"number":  3, // invalid, should be validated.
 				"integer": 0, // invalid, but should not be validated
 			}, `invalid value:
@@ -305,7 +305,7 @@ func TestServiceNoEvent(t *testing.T) {
   map[actual:3 maximum:2]`)
 
 			// Validate all invalid values.
-			test([]string{"/number", "/integer"}, map[string]interface{}{
+			test([]string{"/number", "/integer"}, map[string]any{
 				"number":  3, // invalid, should be validated.
 				"integer": 0, // invalid, should be validated.
 			}, `invalid value:
@@ -315,52 +315,52 @@ func TestServiceNoEvent(t *testing.T) {
   map[actual:3 maximum:2]`)
 
 			// Validate enum
-			test([]string{"/enum"}, map[string]interface{}{
+			test([]string{"/enum"}, map[string]any{
 				"enum": "foobar",
 			}, `invalid value:
 /enum: enum
   map[actual:foobar expected:[a b]]`)
-			test([]string{"/enum"}, map[string]interface{}{
+			test([]string{"/enum"}, map[string]any{
 				"enum": "a",
 			}, ``)
 
 			// Validate phone number
-			test([]string{"/x_phone"}, map[string]interface{}{
+			test([]string{"/x_phone"}, map[string]any{
 				"x_phone": "foobar",
 			}, `invalid value:
 /x_phone: format
   map[error:not in E.164 format format:phone]`)
-			test([]string{"/x_phone"}, map[string]interface{}{
+			test([]string{"/x_phone"}, map[string]any{
 				"x_phone": "+85298765432",
 			}, ``)
 
 			// Validate email
-			test([]string{"/x_email"}, map[string]interface{}{
+			test([]string{"/x_email"}, map[string]any{
 				"x_email": "foobar",
 			}, `invalid value:
 /x_email: format
   map[error:invalid email address: mail: missing '@' or angle-addr format:email]`)
-			test([]string{"/x_email"}, map[string]interface{}{
+			test([]string{"/x_email"}, map[string]any{
 				"x_email": "user@example.com",
 			}, ``)
 
 			// Validate url
-			test([]string{"/x_url"}, map[string]interface{}{
+			test([]string{"/x_url"}, map[string]any{
 				"x_url": "foobar",
 			}, `invalid value:
 /x_url: format
   map[error:input URL must be absolute format:uri]`)
-			test([]string{"/x_url"}, map[string]interface{}{
+			test([]string{"/x_url"}, map[string]any{
 				"x_url": "http://127.0.0.1",
 			}, ``)
 
 			// Validate alpha2
-			test([]string{"/alpha2"}, map[string]interface{}{
+			test([]string{"/alpha2"}, map[string]any{
 				"alpha2": "foobar",
 			}, `invalid value:
 /alpha2: format
   map[error:invalid ISO 3166-1 alpha-2 code: "foobar" format:iso3166-1-alpha-2]`)
-			test([]string{"/x_url"}, map[string]interface{}{
+			test([]string{"/x_url"}, map[string]any{
 				"alpha2": "US",
 			}, ``)
 

@@ -209,28 +209,28 @@ type MessagingRateLimitsConfig struct {
 func (c *MessagingRateLimitsConfig) SetDefaults() {
 	if c.SMSPerIP.Enabled == nil {
 		c.SMSPerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
 	}
 	if c.SMSPerTarget.Enabled == nil {
 		c.SMSPerTarget = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1h",
 			Burst:   10,
 		}
 	}
 	if c.EmailPerIP.Enabled == nil {
 		c.EmailPerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   200,
 		}
 	}
 	if c.EmailPerTarget.Enabled == nil {
 		c.EmailPerTarget = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "24h",
 			Burst:   50,
 		}

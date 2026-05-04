@@ -55,7 +55,7 @@ func TestService(t *testing.T) {
 				Type:   model.IdentityTypeLoginID,
 				LoginID: &identity.LoginID{
 					LoginID: loginIDValue,
-					Claims:  map[string]interface{}{},
+					Claims:  map[string]any{},
 				},
 			}
 			switch loginIDKey {
@@ -80,7 +80,7 @@ func TestService(t *testing.T) {
 				Anonymous: &identity.Anonymous{},
 			}
 		}
-		identityOAuth := func(claims map[string]interface{}) *identity.Info {
+		identityOAuth := func(claims map[string]any) *identity.Info {
 			return &identity.Info{
 				UserID: "user-id",
 				ID:     string(model.IdentityTypeOAuth),
@@ -140,7 +140,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOAuth(map[string]interface{}{"email": "bar@example.com"}),
+						identityOAuth(map[string]any{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -150,7 +150,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOAuth(map[string]interface{}{"email": "bar@example.com"}),
+						identityOAuth(map[string]any{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),

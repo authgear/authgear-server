@@ -33,7 +33,7 @@ func TestFuncsError(t *testing.T) {
 		return apiErr
 	}
 
-	execResolveErrTemplate := func(templateText string, execData interface{}) string {
+	execResolveErrTemplate := func(templateText string, execData any) string {
 		tmpl := makeTemplate()
 		tmpl, err := tmpl.Parse(templateText)
 		if err != nil {
@@ -103,7 +103,7 @@ func TestFuncsError(t *testing.T) {
 	)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-			`, map[string]interface{}{"RawError": apiErr})
+			`, map[string]any{"RawError": apiErr})
 
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": {
@@ -176,7 +176,7 @@ func TestFuncsError(t *testing.T) {
 	)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-			`, map[string]interface{}{"RawError": apiErr})
+			`, map[string]any{"RawError": apiErr})
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": null,
   "newPasswordField": null,
@@ -219,7 +219,7 @@ func TestFuncsError(t *testing.T) {
 	"confirmPasswordField" (dict)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-			`, map[string]interface{}{"RawError": apiErr})
+			`, map[string]any{"RawError": apiErr})
 
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": null,
@@ -267,7 +267,7 @@ func TestFuncsError(t *testing.T) {
 				)
 			)) -}}
 			{{- toPrettyJson $err_map | unescapeHTML -}}
-						`, map[string]interface{}{"RawError": apiErr})
+						`, map[string]any{"RawError": apiErr})
 
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": {
@@ -292,7 +292,7 @@ func TestFuncsError(t *testing.T) {
 	)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-`, map[string]interface{}{"RawError": apiErr})
+`, map[string]any{"RawError": apiErr})
 			So(errMap, ShouldEqual, `{
   "myField": {
     "code": 400,
@@ -340,7 +340,7 @@ func TestFuncsError(t *testing.T) {
 	)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-			`, map[string]interface{}{"RawError": apiErr})
+			`, map[string]any{"RawError": apiErr})
 
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": {
@@ -444,7 +444,7 @@ func TestFuncsError(t *testing.T) {
 	)
 )) -}}
 {{- toPrettyJson $err_map | unescapeHTML -}}
-			`, map[string]interface{}{"RawError": apiErr})
+			`, map[string]any{"RawError": apiErr})
 			So(errMap, ShouldEqual, `{
   "confirmPasswordField": null,
   "newPasswordField": null,

@@ -34,27 +34,27 @@ func (s *SimpleSchema) Validator() *SchemaValidator {
 
 type MultipartSchema struct {
 	mainPartID string
-	parts      map[string]interface{}
+	parts      map[string]any
 	col        *jsonschema.Collection
 }
 
 func NewMultipartSchema(mainPartID string) *MultipartSchema {
 	return &MultipartSchema{
 		mainPartID: mainPartID,
-		parts:      map[string]interface{}{},
+		parts:      map[string]any{},
 		col:        nil,
 	}
 }
 
 func (s *MultipartSchema) Add(partID string, schema string) *MultipartSchema {
-	var schemaObj interface{}
+	var schemaObj any
 	if err := json.Unmarshal([]byte(schema), &schemaObj); err != nil {
 		panic(fmt.Sprintf("validation: invalid schema part '%s': %s", partID, err))
 	}
 	return s.AddJSON(partID, schemaObj)
 }
 
-func (s *MultipartSchema) AddJSON(partID string, schema interface{}) *MultipartSchema {
+func (s *MultipartSchema) AddJSON(partID string, schema any) *MultipartSchema {
 	if s.col != nil {
 		panic("validation: cannot add part when schema is already instantiated")
 	}
@@ -63,7 +63,7 @@ func (s *MultipartSchema) AddJSON(partID string, schema interface{}) *MultipartS
 }
 
 func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, err error) {
-	schema := map[string]interface{}{
+	schema := map[string]any{
 		"$defs": s.parts,
 	}
 	if s.mainPartID != "" {

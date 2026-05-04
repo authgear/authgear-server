@@ -82,7 +82,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 						// If we redirect to the original URL, then GET request will result in infinite redirect.
 						// See https://github.com/authgear/authgear-server/issues/3509
 
-						data := make(map[string]interface{})
+						data := make(map[string]any)
 						baseViewModel := m.BaseViewModel.ViewModel(r, w)
 						viewmodels.Embed(data, baseViewModel)
 						var errorHTML *template.HTML

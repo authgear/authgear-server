@@ -27,8 +27,8 @@ func ConfigureSettingsV2AdvancedSettingsRoute(route httproute.Route) httproute.R
 		WithPathPattern(SettingsV2RouteAdvancedSettings)
 }
 
-func (h *AuthflowV2SettingsAdvancedSettingsHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsAdvancedSettingsHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)

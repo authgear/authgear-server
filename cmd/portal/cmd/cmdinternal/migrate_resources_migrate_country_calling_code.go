@@ -53,13 +53,13 @@ func migrateCountryCallingCode(ctx context.Context, appID string, configSourceDa
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	ui, ok := m["ui"].(map[string]interface{})
+	ui, ok := m["ui"].(map[string]any)
 	if !ok {
 		return nil
 	}

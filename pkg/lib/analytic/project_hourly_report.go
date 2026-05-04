@@ -35,7 +35,7 @@ func (r *ProjectHourlyReport) Run(ctx context.Context, options *ProjectHourlyRep
 
 	timeStr := options.Time.Format("2006-01-02T15")
 
-	values := make([][]interface{}, len(appIDs))
+	values := make([][]any, len(appIDs))
 	for i, appID := range appIDs {
 		var count int
 		err = r.AppDBHandle.ReadOnly(ctx, func(ctx context.Context) error {
@@ -50,7 +50,7 @@ func (r *ProjectHourlyReport) Run(ctx context.Context, options *ProjectHourlyRep
 			return
 		}
 
-		values[i] = []interface{}{
+		values[i] = []any{
 			timeStr,
 			appID,
 			count,
@@ -58,7 +58,7 @@ func (r *ProjectHourlyReport) Run(ctx context.Context, options *ProjectHourlyRep
 	}
 
 	data = &ReportData{
-		Header: []interface{}{
+		Header: []any{
 			"Hour",
 			"Project ID",
 			"Number of users",

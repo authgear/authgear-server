@@ -275,7 +275,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps
 	idx = -1
 
 	for index, branch := range step.OneOf {
-		branch := branch
 		if am == branch.Authentication {
 			idx = index
 		}
@@ -305,7 +304,6 @@ func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authf
 
 func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am model.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
-		branch := branch
 		if branch.Authentication == am {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
@@ -336,7 +334,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorOfSameType(ct
 	var existing *authenticator.Info
 
 	for _, uAuthn := range userAuthns {
-		uAuthn := uAuthn
 		if uAuthn.Type == typ {
 			existing = uAuthn
 
@@ -394,7 +391,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findSkippableOption(
 	}
 	// For each option, see if any existing identities can be reused
 	for idx, option := range i.Options {
-		option := option
 		existingAuthn := i.findAuthenticatorByOption(userAuthns, option)
 		if existingAuthn != nil {
 			return &option, idx, existingAuthn, nil

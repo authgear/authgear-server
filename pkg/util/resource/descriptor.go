@@ -30,7 +30,7 @@ type DescriptedPath struct {
 type Descriptor interface {
 	MatchResource(path string) (*Match, bool)
 	FindResources(fs Fs) ([]Location, error)
-	ViewResources(ctx context.Context, resources []ResourceFile, view View) (interface{}, error)
+	ViewResources(ctx context.Context, resources []ResourceFile, view View) (any, error)
 	UpdateResource(ctx context.Context, resourcesInAllFss []ResourceFile, resourceInTargetFs *ResourceFile, data []byte) (*ResourceFile, error)
 }
 
@@ -62,7 +62,7 @@ func (d SimpleDescriptor) FindResources(fs Fs) ([]Location, error) {
 	return []Location{location}, nil
 }
 
-func (d SimpleDescriptor) ViewResources(ctx context.Context, resources []ResourceFile, rawView View) (interface{}, error) {
+func (d SimpleDescriptor) ViewResources(ctx context.Context, resources []ResourceFile, rawView View) (any, error) {
 	switch rawView.(type) {
 	case AppFileView:
 		var appResources []ResourceFile
@@ -84,7 +84,7 @@ func (d SimpleDescriptor) ViewResources(ctx context.Context, resources []Resourc
 	}
 }
 
-func (d SimpleDescriptor) viewResources(resources []ResourceFile) (interface{}, error) {
+func (d SimpleDescriptor) viewResources(resources []ResourceFile) (any, error) {
 	if len(resources) == 0 {
 		return nil, ErrResourceNotFound
 	}
@@ -101,7 +101,7 @@ func (d SimpleDescriptor) UpdateResource(_ context.Context, _ []ResourceFile, re
 
 type NewlineJoinedDescriptor struct {
 	Path  string
-	Parse func([]byte) (interface{}, error)
+	Parse func([]byte) (any, error)
 }
 
 var _ Descriptor = NewlineJoinedDescriptor{}
@@ -127,7 +127,7 @@ func (d NewlineJoinedDescriptor) FindResources(fs Fs) ([]Location, error) {
 	return []Location{location}, nil
 }
 
-func (d NewlineJoinedDescriptor) ViewResources(ctx context.Context, resources []ResourceFile, rawView View) (interface{}, error) {
+func (d NewlineJoinedDescriptor) ViewResources(ctx context.Context, resources []ResourceFile, rawView View) (any, error) {
 	switch rawView.(type) {
 	case AppFileView:
 		var appResources []ResourceFile

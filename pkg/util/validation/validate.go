@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
@@ -16,7 +16,7 @@ import (
 var errJSONSyntaxErrorOfEmptyInput error
 
 func init() {
-	var unimportant interface{}
+	var unimportant any
 	// errJSONSyntaxErrorOfEmptyInput is a *json.SyntaxError with msg set.
 	// We have to do this because *json.SyntaxError.msg is private,
 	// we cannot initialize msg.
@@ -28,12 +28,12 @@ type SchemaValidator struct {
 	Reference string
 }
 
-func (v *SchemaValidator) Parse(ctx context.Context, r io.Reader, value interface{}) error {
+func (v *SchemaValidator) Parse(ctx context.Context, r io.Reader, value any) error {
 	return v.ParseWithMessage(ctx, r, defaultErrorMessage, value)
 }
 
-func (v *SchemaValidator) ParseWithMessage(ctx context.Context, r io.Reader, msg string, value interface{}) error {
-	data, err := ioutil.ReadAll(r)
+func (v *SchemaValidator) ParseWithMessage(ctx context.Context, r io.Reader, msg string, value any) error {
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
 	}
@@ -51,15 +51,15 @@ func (v *SchemaValidator) ParseWithMessage(ctx context.Context, r io.Reader, msg
 	return nil
 }
 
-func (v *SchemaValidator) ParseJSONRawMessage(ctx context.Context, msg json.RawMessage, value interface{}) error {
+func (v *SchemaValidator) ParseJSONRawMessage(ctx context.Context, msg json.RawMessage, value any) error {
 	return v.ParseWithMessage(ctx, bytes.NewReader(msg), defaultErrorMessage, value)
 }
 
-func (v *SchemaValidator) ValidateValue(ctx context.Context, value interface{}) error {
+func (v *SchemaValidator) ValidateValue(ctx context.Context, value any) error {
 	return v.ValidateValueWithMessage(ctx, value, defaultErrorMessage)
 }
 
-func (v *SchemaValidator) ValidateValueWithMessage(ctx context.Context, value interface{}, msg string) error {
+func (v *SchemaValidator) ValidateValueWithMessage(ctx context.Context, value any, msg string) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
@@ -112,11 +112,11 @@ func (v *SchemaValidator) ValidateWithMessage(ctx context.Context, r io.Reader, 
 			if keyword == "format" {
 				if len(info) == 0 {
 					if err, ok := n.Info.(error); ok {
-						info = map[string]interface{}{
+						info = map[string]any{
 							"error": err.Error(),
 						}
 					} else if info == nil {
-						info = map[string]interface{}{}
+						info = map[string]any{}
 					}
 				}
 				info["format"] = n.Annotation.(string)
@@ -142,13 +142,13 @@ func (v *SchemaValidator) ValidateWithMessage(ctx context.Context, r io.Reader, 
 	return nil
 }
 
-func toJSONObject(data interface{}) (map[string]interface{}, error) {
+func toJSONObject(data any) (map[string]any, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	var obj map[string]interface{}
+	var obj map[string]any
 	err = json.Unmarshal(jsonData, &obj)
 	if err != nil {
 		return nil, err

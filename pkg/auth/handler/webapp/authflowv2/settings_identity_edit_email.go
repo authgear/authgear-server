@@ -62,8 +62,8 @@ type AuthflowV2SettingsIdentityEditEmailHandler struct {
 	Identities        SettingsIdentityService
 }
 
-func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 	identityID := r.Form.Get("q_identity_id")
@@ -119,7 +119,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			if err != nil {

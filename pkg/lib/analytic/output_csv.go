@@ -28,7 +28,7 @@ func (o *OutputCSV) OutputReport(ctx context.Context, data *ReportData) error {
 }
 
 func (*OutputCSV) convert(data *ReportData) (records [][]string, err error) {
-	toString := func(i interface{}) (string, error) {
+	toString := func(i any) (string, error) {
 		switch i := i.(type) {
 		case int:
 			return fmt.Sprintf("%d", i), nil

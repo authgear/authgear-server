@@ -34,8 +34,8 @@ var pluralTestQueryType = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Map from a username to the user",
 			InputType:   graphql.String,
 			OutputType:  pluralTestUserType,
-			ResolveSingleInput: func(username interface{}) interface{} {
-				return map[string]interface{}{
+			ResolveSingleInput: func(username any) any {
+				return map[string]any{
 					"username": fmt.Sprintf("%v", username),
 					"url":      fmt.Sprintf("www.facebook.com/%v", username),
 				}
@@ -56,17 +56,17 @@ func TestPluralIdentifyingRootField_AllowsFetching(t *testing.T) {
       }
     }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"usernames": []interface{}{
-				map[string]interface{}{
+		Data: map[string]any{
+			"usernames": []any{
+				map[string]any{
 					"username": "dschafer",
 					"url":      "www.facebook.com/dschafer",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"username": "leebyron",
 					"url":      "www.facebook.com/leebyron",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"username": "schrockn",
 					"url":      "www.facebook.com/schrockn",
 				},
@@ -116,22 +116,22 @@ func TestPluralIdentifyingRootField_CorrectlyIntrospects(t *testing.T) {
       }
     }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__schema": map[string]interface{}{
-				"queryType": map[string]interface{}{
-					"fields": []interface{}{
-						map[string]interface{}{
+		Data: map[string]any{
+			"__schema": map[string]any{
+				"queryType": map[string]any{
+					"fields": []any{
+						map[string]any{
 							"name": "usernames",
-							"args": []interface{}{
-								map[string]interface{}{
+							"args": []any{
+								map[string]any{
 									"name": "usernames",
-									"type": map[string]interface{}{
+									"type": map[string]any{
 										"kind": "NON_NULL",
-										"ofType": map[string]interface{}{
+										"ofType": map[string]any{
 											"kind": "LIST",
-											"ofType": map[string]interface{}{
+											"ofType": map[string]any{
 												"kind": "NON_NULL",
-												"ofType": map[string]interface{}{
+												"ofType": map[string]any{
 													"name": "String",
 													"kind": "SCALAR",
 												},
@@ -140,9 +140,9 @@ func TestPluralIdentifyingRootField_CorrectlyIntrospects(t *testing.T) {
 									},
 								},
 							},
-							"type": map[string]interface{}{
+							"type": map[string]any{
 								"kind": "LIST",
-								"ofType": map[string]interface{}{
+								"ofType": map[string]any{
 									"name": "User",
 									"kind": "OBJECT",
 								},
@@ -188,7 +188,7 @@ func TestPluralIdentifyingRootField_Configuration_ResolveSingleInputIsNil(t *tes
       }
     }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"usernames": nil,
 		},
 	}

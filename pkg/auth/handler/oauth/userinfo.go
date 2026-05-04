@@ -20,7 +20,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error)
 }
 
 var UserInfoHandlerLogger = slogutil.NewLogger("handler-user-info")
@@ -40,7 +40,7 @@ func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s := session.GetSession(ctx)
 	clientLike := oauth.SessionClientLike(s, h.OAuthClientResolver)
-	var userInfo map[string]interface{}
+	var userInfo map[string]any
 	err := h.Database.WithTx(ctx, func(ctx context.Context) (err error) {
 		userInfo, err = h.UserInfoProvider.GetUserInfo(ctx, s.GetAuthenticationInfo().UserID, clientLike)
 		return

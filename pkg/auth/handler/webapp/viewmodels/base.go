@@ -29,12 +29,12 @@ import (
 
 type TranslationService interface {
 	HasKey(ctx context.Context, key string) (bool, error)
-	RenderText(ctx context.Context, key string, args interface{}) (string, error)
+	RenderText(ctx context.Context, key string, args any) (string, error)
 }
 
 type TranslationsCompat interface {
 	HasKey(key string) (bool, error)
-	RenderText(key string, args interface{}) (string, error)
+	RenderText(key string, args any) (string, error)
 }
 
 type TranslationsCompatImpl struct {
@@ -48,7 +48,7 @@ func (t *TranslationsCompatImpl) HasKey(key string) (bool, error) {
 	return t.TranslationService.HasKey(t.Context, key)
 }
 
-func (t *TranslationsCompatImpl) RenderText(key string, args interface{}) (string, error) {
+func (t *TranslationsCompatImpl) RenderText(key string, args any) (string, error) {
 	return t.TranslationService.RenderText(t.Context, key, args)
 }
 
@@ -76,13 +76,13 @@ type BaseViewModel struct {
 	ClientName            string
 	LogoURI               string
 	ReplaceProjectLogo    bool
-	SliceContains         func([]interface{}, interface{}) bool
+	SliceContains         func([]any, any) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeURLWithBackURL    func(path string, pairs ...string) string
 	MakeBackURL           func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
-	Error                 interface{}
+	Error                 any
 	TrackingID            string
 	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
@@ -130,7 +130,7 @@ func (m *BaseViewModel) SetError(ctx context.Context, err error) {
 		if err != nil {
 			panic(err)
 		}
-		var eJSON map[string]interface{}
+		var eJSON map[string]any
 		err = json.Unmarshal(b, &eJSON)
 		if err != nil {
 			panic(err)

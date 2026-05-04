@@ -57,8 +57,8 @@ type AuthflowV2SettingsIdentityListPhoneHandler struct {
 	Renderer                 handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 
@@ -158,7 +158,7 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			return err

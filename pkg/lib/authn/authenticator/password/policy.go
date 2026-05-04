@@ -26,7 +26,7 @@ const (
 
 type Policy struct {
 	Name PolicyName
-	Info map[string]interface{} `json:",omitempty"`
+	Info map[string]any `json:",omitempty"`
 }
 
 func (v Policy) Kind() string {

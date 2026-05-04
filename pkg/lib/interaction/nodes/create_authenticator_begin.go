@@ -23,7 +23,7 @@ type EdgeCreateAuthenticatorBegin struct {
 	AuthenticatorType *model.AuthenticatorType
 }
 
-func (e *EdgeCreateAuthenticatorBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	skipMFASetup := false
 	var skipMFASetupInput interface{ SkipMFASetup() bool }
 	if interaction.Input(input, &skipMFASetupInput) {

@@ -1,12 +1,12 @@
 package userimport
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
-	"golang.org/x/exp/constraints"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
@@ -144,7 +144,7 @@ var nonIdentityAwareStandardAttributeKeys []string = []string{
 	"address",
 }
 
-func mapGetNullable[M ~map[string]interface{}, T constraints.Ordered | ~bool](m M, key string) (*T, bool) {
+func mapGetNullable[M ~map[string]any, T cmp.Ordered | ~bool](m M, key string) (*T, bool) {
 	iface, ok := m[key]
 	if !ok {
 		return nil, false
@@ -160,7 +160,7 @@ func mapGetNullable[M ~map[string]interface{}, T constraints.Ordered | ~bool](m 
 	return &v, true
 }
 
-func mapGetNonNull[M ~map[string]interface{}, T constraints.Ordered | ~bool](m M, key string) (T, bool) {
+func mapGetNonNull[M ~map[string]any, T cmp.Ordered | ~bool](m M, key string) (T, bool) {
 	var t T
 	iface, ok := m[key]
 	if !ok {
@@ -176,7 +176,7 @@ func mapGetNonNull[M ~map[string]interface{}, T constraints.Ordered | ~bool](m M
 	return v, true
 }
 
-func mapGetNullableMap[M ~map[string]interface{}, T ~map[string]interface{}](m M, key string) (value T, exist bool, ok bool) {
+func mapGetNullableMap[M ~map[string]any, T ~map[string]any](m M, key string) (value T, exist bool, ok bool) {
 	iface, ok := m[key]
 	if !ok {
 		return nil, false, false
@@ -191,7 +191,7 @@ func mapGetNullableMap[M ~map[string]interface{}, T ~map[string]interface{}](m M
 	return v, true, true
 }
 
-func mapGetNonNullMap[M ~map[string]interface{}, T ~map[string]interface{}](m M, key string) (T, bool) {
+func mapGetNonNullMap[M ~map[string]any, T ~map[string]any](m M, key string) (T, bool) {
 	iface, ok := m[key]
 	if !ok {
 		return nil, false
@@ -207,14 +207,14 @@ func mapGetNonNullMap[M ~map[string]interface{}, T ~map[string]interface{}](m M,
 	return v, true
 }
 
-func mapGetArrayOfNonNullItems[M ~map[string]interface{}, T constraints.Ordered | ~bool](m M, key string) ([]T, bool) {
+func mapGetArrayOfNonNullItems[M ~map[string]any, T cmp.Ordered | ~bool](m M, key string) ([]T, bool) {
 	iface, ok := m[key]
 	if !ok {
 		return nil, false
 	}
 
 	var ts []T
-	sliceIface, ok := iface.([]interface{})
+	sliceIface, ok := iface.([]any)
 	if !ok {
 		panic(fmt.Errorf("%v is expected to be of type %T, but was %T", key, ts, iface))
 	}
@@ -230,8 +230,8 @@ func mapGetArrayOfNonNullItems[M ~map[string]interface{}, T constraints.Ordered 
 	return ts, true
 }
 
-func mapGetRFC3339InUTC[M ~map[string]interface{}](m M, key string) (*time.Time, bool) {
-	var iface interface{}
+func mapGetRFC3339InUTC[M ~map[string]any](m M, key string) (*time.Time, bool) {
+	var iface any
 	iface, ok := m[key]
 	if !ok {
 		return nil, false
@@ -266,7 +266,7 @@ const (
 	PasswordTypeBcrypt = "bcrypt"
 )
 
-type Password map[string]interface{}
+type Password map[string]any
 
 func (m Password) Type() string {
 	return m["type"].(string)
@@ -285,7 +285,7 @@ func (m Password) Redact() {
 	m["password_hash"] = RedactPlaceholder
 }
 
-type TOTP map[string]interface{}
+type TOTP map[string]any
 
 func (m TOTP) Redact() {
 	m["secret"] = RedactPlaceholder
@@ -295,7 +295,7 @@ func (m TOTP) Secret() string {
 	return m["secret"].(string)
 }
 
-type MFA map[string]interface{}
+type MFA map[string]any
 
 func (m MFA) Redact() {
 	if password, exist, ok := m.MaybePassword(); ok {
@@ -318,23 +318,23 @@ func (m MFA) PhoneNumber() (*string, bool) {
 	return mapGetNullable[MFA, string](m, "phone_number")
 }
 
-func (m MFA) Password() (map[string]interface{}, bool) {
-	return mapGetNonNullMap[MFA, map[string]interface{}](m, "password")
+func (m MFA) Password() (map[string]any, bool) {
+	return mapGetNonNullMap[MFA, map[string]any](m, "password")
 }
 
-func (m MFA) MaybePassword() (value map[string]interface{}, exist bool, ok bool) {
-	return mapGetNullableMap[MFA, map[string]interface{}](m, "password")
+func (m MFA) MaybePassword() (value map[string]any, exist bool, ok bool) {
+	return mapGetNullableMap[MFA, map[string]any](m, "password")
 }
 
-func (m MFA) TOTP() (map[string]interface{}, bool) {
-	return mapGetNonNullMap[MFA, map[string]interface{}](m, "totp")
+func (m MFA) TOTP() (map[string]any, bool) {
+	return mapGetNonNullMap[MFA, map[string]any](m, "totp")
 }
 
-func (m MFA) MaybeTOTP() (value map[string]interface{}, exist bool, ok bool) {
-	return mapGetNullableMap[MFA, map[string]interface{}](m, "totp")
+func (m MFA) MaybeTOTP() (value map[string]any, exist bool, ok bool) {
+	return mapGetNullableMap[MFA, map[string]any](m, "totp")
 }
 
-type Record map[string]interface{}
+type Record map[string]any
 
 func (m Record) Redact() {
 	if password, exist, ok := m.MaybePassword(); ok {
@@ -381,8 +381,8 @@ func (m Record) PhoneNumberVerified() (bool, bool) {
 	return mapGetNonNull[Record, bool](m, "phone_number_verified")
 }
 
-func (m Record) nonIdentityAwareStandardAttributes() (map[string]interface{}, bool) {
-	attrs := make(map[string]interface{})
+func (m Record) nonIdentityAwareStandardAttributes() (map[string]any, bool) {
+	attrs := make(map[string]any)
 	for key := range m {
 		for _, k := range nonIdentityAwareStandardAttributeKeys {
 			if key == k {
@@ -412,8 +412,8 @@ func (m Record) NonIdentityAwareStandardAttributesList() (attrsList attrs.List) 
 	return
 }
 
-func (m Record) customAttributes() (map[string]interface{}, bool) {
-	return mapGetNonNullMap[Record, map[string]interface{}](m, "custom_attributes")
+func (m Record) customAttributes() (map[string]any, bool) {
+	return mapGetNonNullMap[Record, map[string]any](m, "custom_attributes")
 }
 
 func (m Record) CustomAttributesList() (attrsList attrs.List) {
@@ -440,20 +440,20 @@ func (m Record) Groups() ([]string, bool) {
 	return mapGetArrayOfNonNullItems[Record, string](m, "groups")
 }
 
-func (m Record) Password() (map[string]interface{}, bool) {
-	return mapGetNonNullMap[Record, map[string]interface{}](m, "password")
+func (m Record) Password() (map[string]any, bool) {
+	return mapGetNonNullMap[Record, map[string]any](m, "password")
 }
 
-func (m Record) MaybePassword() (value map[string]interface{}, exist bool, ok bool) {
-	return mapGetNullableMap[Record, map[string]interface{}](m, "password")
+func (m Record) MaybePassword() (value map[string]any, exist bool, ok bool) {
+	return mapGetNullableMap[Record, map[string]any](m, "password")
 }
 
-func (m Record) MFA() (map[string]interface{}, bool) {
-	return mapGetNonNullMap[Record, map[string]interface{}](m, "mfa")
+func (m Record) MFA() (map[string]any, bool) {
+	return mapGetNonNullMap[Record, map[string]any](m, "mfa")
 }
 
-func (m Record) MaybeMFA() (value map[string]interface{}, exist bool, ok bool) {
-	return mapGetNullableMap[Record, map[string]interface{}](m, "mfa")
+func (m Record) MaybeMFA() (value map[string]any, exist bool, ok bool) {
+	return mapGetNullableMap[Record, map[string]any](m, "mfa")
 }
 
 type Request struct {

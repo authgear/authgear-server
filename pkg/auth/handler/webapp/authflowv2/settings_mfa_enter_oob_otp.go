@@ -130,9 +130,9 @@ type AuthflowV2SettingsMFAEnterOOBOTPHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]any, error) {
 	now := h.Clock.NowUTC()
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	channel := tokenAuthenticator.OOBOTPChannel
 	target := tokenAuthenticator.OOBOTPTarget

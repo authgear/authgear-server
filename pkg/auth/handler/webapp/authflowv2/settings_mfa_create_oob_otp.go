@@ -60,8 +60,8 @@ func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel) 
 	}
 }
 
-func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]any, error) {
+	data := make(map[string]any)
 	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -90,7 +90,7 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 
 	ctrl.Get(func(ctx context.Context) error {
 		channel := model.AuthenticatorOOBChannel(httproute.GetParam(r, "channel"))
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w, channel)
 			if err != nil {

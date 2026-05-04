@@ -338,7 +338,6 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	idx = -1
 
 	for index, branch := range step.OneOf {
-		branch := branch
 		if im == branch.Identification {
 			idx = index
 		}
@@ -368,7 +367,6 @@ func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) 
 
 func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
-		branch := branch
 		if branch.Identification == im {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
@@ -414,7 +412,6 @@ func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(ctx context.Contex
 	var idenWithSameType *identity.Info
 
 	for _, uiden := range userIdens {
-		uiden := uiden
 		if uiden.Type == spec.Type {
 			if spec.Type == model.IdentityTypeLoginID {
 				// Only login id needs to check the key
@@ -470,7 +467,6 @@ func (i *IntentSignupFlowStepIdentify) findSkippableOption(ctx context.Context, 
 	}
 	// For each option, see if any existing identities can be reused
 	for idx, option := range i.Options {
-		option := option
 		existingIden := i.findIdentityByOption(userIdens, option)
 		if existingIden != nil {
 			return &option, idx, existingIden, nil
@@ -482,7 +478,6 @@ func (i *IntentSignupFlowStepIdentify) findSkippableOption(ctx context.Context, 
 func (i *IntentSignupFlowStepIdentify) findIdentityByOption(in []*identity.Info, option IdentificationOption) *identity.Info {
 	findLoginID := func(typ model.LoginIDKeyType) *identity.Info {
 		for _, iden := range in {
-			iden := iden
 			if iden.Type != model.IdentityTypeLoginID {
 				continue
 			}
@@ -495,7 +490,6 @@ func (i *IntentSignupFlowStepIdentify) findIdentityByOption(in []*identity.Info,
 
 	findOAuth := func(alias string) *identity.Info {
 		for _, iden := range in {
-			iden := iden
 			if iden.Type != model.IdentityTypeOAuth {
 				continue
 			}

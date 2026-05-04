@@ -15,7 +15,7 @@ func NewOAuthErrorViewModel(rawError *apierrors.APIError) OAuthErrorViewModel {
 		if rawError.Reason == "UserNotFound" && rawError.Info_ReadOnly["IdentityTypeExisting"] != nil {
 			return rawError
 		} else if rawError.Reason == "InvariantViolated" {
-			cause, ok := rawError.Info_ReadOnly["cause"].(map[string]interface{})
+			cause, ok := rawError.Info_ReadOnly["cause"].(map[string]any)
 			if !ok {
 				return nil
 			}

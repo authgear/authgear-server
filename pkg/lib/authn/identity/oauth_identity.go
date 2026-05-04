@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"maps"
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -18,8 +19,8 @@ type OAuth struct {
 	UserID            string                       `json:"user_id"`
 	ProviderID        oauthrelyingparty.ProviderID `json:"provider_id"`
 	ProviderSubjectID string                       `json:"provider_subject_id"`
-	UserProfile       map[string]interface{}       `json:"user_profile,omitempty"`
-	Claims            map[string]interface{}       `json:"claims,omitempty"`
+	UserProfile       map[string]any               `json:"user_profile,omitempty"`
+	Claims            map[string]any               `json:"claims,omitempty"`
 	// This is a derived field and NOT persisted to database.
 	// We still include it in JSON serialization so it can be persisted in the graph.
 	ProviderAlias string `json:"provider_alias,omitempty"`
@@ -75,7 +76,7 @@ func (i *OAuth) GetDisplayName() string {
 	return ""
 }
 
-func (i *OAuth) Apple_MergeRawProfileAndClaims(rawProfile map[string]interface{}, claims map[string]interface{}) {
+func (i *OAuth) Apple_MergeRawProfileAndClaims(rawProfile map[string]any, claims map[string]any) {
 	// Use this heuristic to determine whether it is THE FIRST TIME authorization.
 	_, isFirstTimeAuthorization := rawProfile[stdattrs.GivenName]
 	if isFirstTimeAuthorization {
@@ -83,17 +84,13 @@ func (i *OAuth) Apple_MergeRawProfileAndClaims(rawProfile map[string]interface{}
 		i.Claims = claims
 	} else {
 		// Otherwise we use the existing given_name and family_name.
-		mergedRawProfile := make(map[string]interface{})
-		mergedClaims := make(map[string]interface{})
+		mergedRawProfile := make(map[string]any)
+		mergedClaims := make(map[string]any)
 
-		for k, v := range rawProfile {
-			mergedRawProfile[k] = v
-		}
-		for k, v := range claims {
-			mergedClaims[k] = v
-		}
+		maps.Copy(mergedRawProfile, rawProfile)
+		maps.Copy(mergedClaims, claims)
 
-		merge := func(targetMap map[string]interface{}, sourceMap map[string]interface{}, key string) {
+		merge := func(targetMap map[string]any, sourceMap map[string]any, key string) {
 			if v, ok := sourceMap[key]; ok {
 				targetMap[key] = v
 			}

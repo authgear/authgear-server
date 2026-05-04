@@ -42,7 +42,6 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 
 	var issuerConfig *config.ExternalJWTIssuerConfig
 	for _, c := range s.ExternalJWTConfig.Issuers {
-		c := c
 		if c.Iss == issuer {
 			issuerConfig = &c
 			break

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -98,10 +99,8 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 
 func (h *EndSessionHandler) validateRedirectURI(redirectURI string) (valid bool, client *config.OAuthClientConfig) {
 	for _, client := range h.Config.Clients {
-		for _, uri := range client.PostLogoutRedirectURIs {
-			if uri == redirectURI {
-				return true, &client
-			}
+		if slices.Contains(client.PostLogoutRedirectURIs, redirectURI) {
+			return true, &client
 		}
 	}
 	return false, nil

@@ -43,8 +43,8 @@ type SettingsDeleteAccountSuccessAuthenticationInfoService interface {
 	Get(ctx context.Context, entryID string) (entry *authenticationinfo.Entry, err error)
 }
 
-func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)

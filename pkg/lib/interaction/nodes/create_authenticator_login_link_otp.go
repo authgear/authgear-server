@@ -25,7 +25,7 @@ type EdgeCreateAuthenticatorLoginLinkOTP struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputCreateAuthenticatorLoginLinkOTP
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

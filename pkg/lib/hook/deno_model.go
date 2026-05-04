@@ -1,8 +1,8 @@
 package hook
 
 type RunRequest struct {
-	Script string      `json:"script"`
-	Input  interface{} `json:"input"`
+	Script string `json:"script"`
+	Input  any    `json:"input"`
 }
 
 type Stream struct {
@@ -18,11 +18,11 @@ const (
 )
 
 type RunResponse struct {
-	Error     string      `json:"error,omitempty"`
-	ErrorCode ErrorCode   `json:"error_code,omitempty"`
-	Output    interface{} `json:"output,omitempty"`
-	Stderr    *Stream     `json:"stderr,omitempty"`
-	Stdout    *Stream     `json:"stdout,omitempty"`
+	Error     string    `json:"error,omitempty"`
+	ErrorCode ErrorCode `json:"error_code,omitempty"`
+	Output    any       `json:"output,omitempty"`
+	Stderr    *Stream   `json:"stderr,omitempty"`
+	Stdout    *Stream   `json:"stdout,omitempty"`
 }
 
 type CheckRequest struct {

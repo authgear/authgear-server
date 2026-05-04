@@ -44,7 +44,7 @@ func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candid
 	return candidates
 }
 
-func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputUseIdentityOAuthProvider
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

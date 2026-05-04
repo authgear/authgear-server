@@ -86,7 +86,7 @@ func (*IntentReauthForgotPassword) GetEffects(ctx context.Context, deps *workflo
 	return nil, nil
 }
 
-func (*IntentReauthForgotPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentReauthForgotPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

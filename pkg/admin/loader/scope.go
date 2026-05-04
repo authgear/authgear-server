@@ -25,7 +25,7 @@ func NewScopeLoader(scopes ScopeLoaderScopes) *ScopeLoader {
 	return l
 }
 
-func (l *ScopeLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *ScopeLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -44,7 +44,7 @@ func (l *ScopeLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]inter
 		entityMap[entity.Meta.ID] = entity
 	}
 
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		out[i] = entity

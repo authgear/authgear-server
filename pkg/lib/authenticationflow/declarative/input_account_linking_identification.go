@@ -33,8 +33,6 @@ func (i *InputSchemaAccountLinkingIdentification) SchemaBuilder() validation.Sch
 	oneOf := []validation.SchemaBuilder{}
 
 	for index, option := range i.Options {
-		index := index
-		option := option
 		b := validation.SchemaBuilder{}
 		required := []string{"index"}
 		b.Properties().Property("index", validation.SchemaBuilder{}.Const(index))

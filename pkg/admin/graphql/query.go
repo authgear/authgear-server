@@ -69,7 +69,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: sortDirection,
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -85,13 +85,13 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					SortDirection: sortDirection,
 				}
 
-				groupKeyIfaces, _ := p.Args["groupKeys"].([]interface{})
+				groupKeyIfaces, _ := p.Args["groupKeys"].([]any)
 				groupKeys := make([]string, len(groupKeyIfaces))
 				for i := range groupKeyIfaces {
 					groupKeys[i] = groupKeyIfaces[i].(string)
 				}
 
-				roleKeyIfaces, _ := p.Args["roleKeys"].([]interface{})
+				roleKeyIfaces, _ := p.Args["roleKeys"].([]any)
 				roleKeys := make([]string, len(roleKeyIfaces))
 				for i := range roleKeyIfaces {
 					roleKeys[i] = roleKeyIfaces[i].(string)
@@ -140,7 +140,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -148,7 +148,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
-				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]interface{})
+				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]any)
 				excludedNodeIDs := make([]string, len(excludedIDsIfaces))
 				for i, v := range excludedIDsIfaces {
 					excludedNodeIDs[i] = v.(string)
@@ -195,7 +195,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -203,7 +203,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
-				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]interface{})
+				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]any)
 				excludedNodeIDs := make([]string, len(excludedIDsIfaces))
 				for i, v := range excludedIDsIfaces {
 					excludedNodeIDs[i] = v.(string)
@@ -265,7 +265,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: sortDirection,
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -284,7 +284,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				var activityTypes []string
-				if arr, ok := p.Args["activityTypes"].([]interface{}); ok {
+				if arr, ok := p.Args["activityTypes"].([]any); ok {
 					for _, v := range arr {
 						if s, ok := v.(string); ok {
 							activityTypes = append(activityTypes, s)
@@ -293,7 +293,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				var userIDs []string
-				if arr, ok := p.Args["userIDs"].([]interface{}); ok {
+				if arr, ok := p.Args["userIDs"].([]any); ok {
 					for _, v := range arr {
 						if s, ok := v.(string); ok {
 							resolvedNodeID := relay.FromGlobalID(s)
@@ -306,7 +306,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				var emailAddresses []string
-				if arr, ok := p.Args["emailAddresses"].([]interface{}); ok {
+				if arr, ok := p.Args["emailAddresses"].([]any); ok {
 					for _, v := range arr {
 						if s, ok := v.(string); ok {
 							emailAddresses = append(emailAddresses, s)
@@ -315,7 +315,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				var phoneNumbers []string
-				if arr, ok := p.Args["phoneNumbers"].([]interface{}); ok {
+				if arr, ok := p.Args["phoneNumbers"].([]any); ok {
 					for _, v := range arr {
 						if s, ok := v.(string); ok {
 							phoneNumbers = append(phoneNumbers, s)
@@ -360,7 +360,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.DateTime,
 				},
 			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				var rangeFrom *time.Time
@@ -409,7 +409,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
@@ -449,7 +449,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -490,7 +490,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -502,7 +502,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return slice.Map(userIDs, func(userID string) interface{} {
+				return slice.Map(userIDs, func(userID string) any {
 					lazyItem, _ := graphqlutil.NewLazyValue(gqlCtx.Users.Load(ctx, userID)).Value()
 					return lazyItem
 				}), err
@@ -519,7 +519,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -548,7 +548,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 

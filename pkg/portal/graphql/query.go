@@ -27,7 +27,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"viewer": &graphql.Field{
 			Description: "The current viewer",
 			Type:        nodeViewer,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -48,7 +48,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					"publicOrigin": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 				},
 			}))),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -70,7 +70,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Check whether the viewer can accept the collaboration invitation",
 			Type:        checkCollaboratorInvitationPayload,
 			Args:        graphql.FieldConfigArgument{"code": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.String)}},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 
@@ -86,7 +86,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				sessionInfo := session.GetValidSessionInfo(ctx)
 				if sessionInfo == nil {
-					return graphqlutil.NewLazyValue(map[string]interface{}{
+					return graphqlutil.NewLazyValue(map[string]any{
 						"isInvitee": false,
 						"appID":     invitation.AppID,
 					}).Value, nil
@@ -96,7 +96,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				err = gqlCtx.CollaboratorService.CheckInviteeEmail(ctx, invitation, actorID)
 				if err != nil {
 					if errors.Is(err, service.ErrCollaboratorInvitationInvalidEmail) {
-						return graphqlutil.NewLazyValue(map[string]interface{}{
+						return graphqlutil.NewLazyValue(map[string]any{
 							"isInvitee": false,
 							"appID":     invitation.AppID,
 						}).Value, nil
@@ -104,7 +104,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return graphqlutil.NewLazyValue(map[string]interface{}{
+				return graphqlutil.NewLazyValue(map[string]any{
 					"isInvitee": true,
 					"appID":     invitation.AppID,
 				}).Value, nil
@@ -118,7 +118,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.NewNonNull(periodicalEnum),
 				},
 			}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 
 				gqlCtx := GQLContext(ctx)
@@ -156,7 +156,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Total users count chart dataset",
 			Type:        totalUserCountChart,
 			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 
 				gqlCtx := GQLContext(ctx)
@@ -192,7 +192,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Signup conversion rate dashboard data",
 			Type:        signupConversionRate,
 			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
@@ -227,7 +227,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "Signup by methods dataset",
 			Type:        signupByMethodsChart,
 			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
@@ -261,7 +261,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"subscriptionPlans": &graphql.Field{
 			Description: "Available subscription plans",
 			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(subscriptionPlan))),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				plans, err := gqlCtx.StripeService.FetchSubscriptionPlans(ctx)

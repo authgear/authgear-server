@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -259,12 +260,7 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) model.Authentication
 func KeepAuthenticationMethod(ams ...model.AuthenticationFlowAuthentication) authenticator.Filter {
 	return authenticator.FilterFunc(func(ai *authenticator.Info) bool {
 		am := AuthenticationFromAuthenticator(ai)
-		for _, t := range ams {
-			if t == am {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(ams, am)
 	})
 }
 

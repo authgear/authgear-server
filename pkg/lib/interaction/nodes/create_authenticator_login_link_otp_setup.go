@@ -39,7 +39,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) AuthenticatorType() model.Aut
 	return model.AuthenticatorTypeOOBEmail
 }
 
-func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var target string
 	if e.Stage == authn.AuthenticationStagePrimary {
 		var input InputCreateAuthenticatorLoginLinkOTPSetupSelect

@@ -24,9 +24,9 @@ func TestMessagingSMSGateway(t *testing.T) {
 		defer f.Close()
 
 		type TestCase struct {
-			Name   string      `yaml:"name"`
-			Error  *string     `yaml:"error"`
-			Config interface{} `yaml:"config"`
+			Name   string  `yaml:"name"`
+			Error  *string `yaml:"error"`
+			Config any     `yaml:"config"`
 		}
 
 		decoder := goyaml.NewDecoder(f)

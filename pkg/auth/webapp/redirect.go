@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -36,14 +37,7 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 		}
 
 		allowedURIs := client.RedirectURIs
-		allowed := false
-
-		for _, u := range allowedURIs {
-			if u == redirectURI {
-				allowed = true
-				break
-			}
-		}
+		allowed := slices.Contains(allowedURIs, redirectURI)
 
 		// 1. Redirect URL in query param (must be whitelisted)
 		if allowed && redirectURI != "" {
@@ -69,10 +63,8 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 
 func ResolvePostLogoutRedirectURI(client *config.OAuthClientConfig, givenPostLogoutRedirectURI string, uiConfig *config.UIConfig) string {
 	if client != nil && givenPostLogoutRedirectURI != "" {
-		for _, v := range client.PostLogoutRedirectURIs {
-			if v == givenPostLogoutRedirectURI {
-				return givenPostLogoutRedirectURI
-			}
+		if slices.Contains(client.PostLogoutRedirectURIs, givenPostLogoutRedirectURI) {
+			return givenPostLogoutRedirectURI
 		}
 	}
 

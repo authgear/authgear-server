@@ -9,7 +9,7 @@ type MetadataProvider struct {
 	Endpoints EndpointsProvider
 }
 
-func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
+func (p *MetadataProvider) PopulateMetadata(meta map[string]any) {
 	meta["authorization_endpoint"] = p.Endpoints.AuthorizeEndpointURL().String()
 	meta["token_endpoint"] = p.Endpoints.TokenEndpointURL().String()
 	meta["response_types_supported"] = []string{"code", "urn:authgear:params:oauth:response-type:settings-action", "none"}

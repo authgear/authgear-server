@@ -16,7 +16,7 @@ type OOBOTP struct {
 	OOBAuthenticatorType model.AuthenticatorType `json:"oob_authenticator_type"`
 	Phone                string                  `json:"phone,omitempty"`
 	Email                string                  `json:"email,omitempty"`
-	Metadata             map[string]interface{}  `json:"metadata,omitempty"`
+	Metadata             map[string]any          `json:"metadata,omitempty"`
 }
 
 func (a *OOBOTP) ToInfo() *Info {
@@ -72,7 +72,7 @@ func (a *OOBOTP) LastUsedChannel() model.AuthenticatorOOBChannel {
 
 func (a *OOBOTP) SetLastUsedChannel(lastUsedChannel model.AuthenticatorOOBChannel) {
 	if a.Metadata == nil {
-		a.Metadata = make(map[string]interface{})
+		a.Metadata = make(map[string]any)
 	}
 	if lastUsedChannel == "" {
 		a.Metadata[metadataLastUsedChannel] = nil

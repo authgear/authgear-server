@@ -21,7 +21,7 @@ type Claim struct {
 	Name      string
 	Value     string
 	CreatedAt time.Time
-	Metadata  map[string]interface{}
+	Metadata  map[string]any
 }
 
 type claim struct {
@@ -45,7 +45,7 @@ func (c *Claim) VerifiedByChannel() model.AuthenticatorOOBChannel {
 
 func (c *Claim) SetVerifiedByChannel(verifiedByChannel model.AuthenticatorOOBChannel) {
 	if c.Metadata == nil {
-		c.Metadata = make(map[string]interface{})
+		c.Metadata = make(map[string]any)
 	}
 	if verifiedByChannel == "" {
 		c.Metadata["verified_by_channel"] = nil

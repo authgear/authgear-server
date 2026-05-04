@@ -1,6 +1,6 @@
 package interaction
 
-func IsAdminAPI(input interface{}) bool {
+func IsAdminAPI(input any) bool {
 	isAdminAPI := false
 	var adminInput interface{ IsAdminAPI() bool }
 	if Input(input, &adminInput) {

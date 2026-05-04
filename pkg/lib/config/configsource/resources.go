@@ -79,8 +79,8 @@ func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Locati
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-	app := func() (interface{}, error) {
+func (d AuthgearYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
+	app := func() (any, error) {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
 			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
@@ -95,7 +95,7 @@ func (d AuthgearYAMLDescriptor) ViewResources(ctx context.Context, resources []r
 		return target.Data, nil
 	}
 
-	effective := func() (interface{}, error) {
+	effective := func() (any, error) {
 		bytes, err := app()
 		if err != nil {
 			return nil, err
@@ -467,7 +467,7 @@ func (d AuthgearSecretYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return d.viewAppFile(resources, view)
@@ -482,7 +482,7 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(ctx context.Context, resourc
 	}
 }
 
-func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (any, error) {
 	var target *resource.ResourceFile
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
@@ -512,7 +512,7 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	return bytes, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (any, error) {
 	var cfgs []*config.SecretConfig
 	for _, layer := range resources {
 		var cfg config.SecretConfig
@@ -670,8 +670,8 @@ func (d AuthgearFeatureYAMLDescriptor) FindResources(fs resource.Fs) ([]resource
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearFeatureYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-	app := func() (interface{}, error) {
+func (d AuthgearFeatureYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
+	app := func() (any, error) {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
 			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
@@ -700,7 +700,7 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(ctx context.Context, resour
 	}
 }
 
-func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (any, error) {
 	var cfgs []*config.FeatureConfig
 	for _, layer := range resources {
 		cfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, layer.Data)

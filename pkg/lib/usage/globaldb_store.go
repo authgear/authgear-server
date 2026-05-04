@@ -45,10 +45,7 @@ func (s *GlobalDBStore) GetAppIDs(ctx context.Context) (appIDs []string, err err
 func (s *GlobalDBStore) UpsertUsageRecords(ctx context.Context, usageRecords []*UsageRecord) error {
 	batchSize := 100
 	for i := 0; i < len(usageRecords); i += batchSize {
-		j := i + batchSize
-		if j > len(usageRecords) {
-			j = len(usageRecords)
-		}
+		j := min(i+batchSize, len(usageRecords))
 		batch := usageRecords[i:j]
 
 		err := s.upsertUsageRecords(ctx, batch)

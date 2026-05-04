@@ -180,7 +180,7 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 
 	err := validation.FormatEmail{}.CheckFormat(ctx, loginID)
 	if err != nil {
-		validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+		validationCtx.EmitError("format", map[string]any{"format": "email"})
 		return
 	}
 
@@ -195,7 +195,7 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 
 	if *c.Config.BlockPlusSign {
 		if strings.Contains(local, "+") {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "BlockPlusSign"})
+			validationCtx.EmitError("blocked", map[string]any{"reason": "BlockPlusSign"})
 			return
 		}
 	}
@@ -204,11 +204,11 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 		matched, err := c.DomainBlockList.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]any{"format": "email"})
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{
+			validationCtx.EmitError("blocked", map[string]any{
 				"reason":    "EmailDomainBlocklist",
 				"blocklist": "custom",
 			})
@@ -220,11 +220,11 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 		matched, err := c.BlockFreeEmailProviderDomains.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]any{"format": "email"})
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{
+			validationCtx.EmitError("blocked", map[string]any{
 				"reason":    "EmailDomainBlocklist",
 				"blocklist": "free",
 			})
@@ -235,11 +235,11 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 	if c.BlockDisposableEmailDomains != nil {
 		matched, err := c.BlockDisposableEmailDomains.Matched(domain)
 		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]any{"format": "email"})
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{
+			validationCtx.EmitError("blocked", map[string]any{
 				"reason":    "EmailDomainBlocklist",
 				"blocklist": "disposable",
 			})
@@ -251,11 +251,11 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 		matched, err := c.DomainAllowList.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]any{"format": "email"})
 			return
 		}
 		if !matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainAllowlist"})
+			validationCtx.EmitError("blocked", map[string]any{"reason": "EmailDomainAllowlist"})
 			return
 		}
 	}
@@ -287,13 +287,13 @@ func (c *UsernameChecker) Validate(ctx context.Context, validationCtx *validatio
 	p := precis.NewIdentifier(precis.FoldCase())
 	cfLoginID, err := p.String(loginID)
 	if err != nil {
-		validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
+		validationCtx.EmitError("format", map[string]any{"format": "username"})
 		return
 	}
 
 	if c.ReservedNames != nil {
 		if c.ReservedNames.IsBlocked(cfLoginID) {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
+			validationCtx.EmitError("blocked", map[string]any{"reason": "UsernameReserved"})
 			return
 		}
 	}
@@ -302,18 +302,18 @@ func (c *UsernameChecker) Validate(ctx context.Context, validationCtx *validatio
 		matched, err := c.ExcludedKeywords.Matched(cfLoginID)
 		if err != nil {
 			// username cannot be fold case
-			validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
+			validationCtx.EmitError("format", map[string]any{"format": "username"})
 			return
 		}
 		if matched {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "UsernameExcludedKeywords"})
+			validationCtx.EmitError("blocked", map[string]any{"reason": "UsernameExcludedKeywords"})
 			return
 		}
 	}
 
 	if *c.Config.ASCIIOnly {
 		if !usernameRegex.MatchString(loginID) {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
+			validationCtx.EmitError("format", map[string]any{"format": "username"})
 			return
 		}
 	}
@@ -333,18 +333,18 @@ func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.C
 
 	parsed, err := phone.ParsePhoneNumberWithUserInput(loginID)
 	if err != nil {
-		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		validationCtx.EmitError("format", map[string]any{"format": "phone"})
 		return
 	}
 
 	err = config.FormatPhone{}.CheckFormat(ctx, parsed.E164)
 	if err != nil {
-		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		validationCtx.EmitError("format", map[string]any{"format": "phone"})
 		return
 	}
 
 	if !phone.IsPhoneNumberCountryAllowed(parsed, c.Alpha2AllowList) {
-		validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+		validationCtx.EmitError("blocked", map[string]any{"reason": "PhoneNumberCountryCodeAllowlist"})
 		return
 	}
 }

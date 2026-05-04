@@ -352,7 +352,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				},
 			}
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"identification": "email",
 				"login_id":       "johndoe@example.com",
 			}
@@ -415,7 +415,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				},
 			}
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"identification": "email",
 				"login_id":       "johndoe@example.com",
 			}

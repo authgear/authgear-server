@@ -53,6 +53,6 @@ func (n *NodeVerifiedProofOfPhoneNumberVerification) ReactTo(ctx context.Context
 	return workflow.NewSubWorkflow(intent), nil
 }
 
-func (n *NodeVerifiedProofOfPhoneNumberVerification) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (n *NodeVerifiedProofOfPhoneNumberVerification) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }

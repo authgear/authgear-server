@@ -93,10 +93,10 @@ func TestParseHookResponse(t *testing.T) {
 			IsAllowed: true,
 			Mutations: Mutations{
 				User: UserMutations{
-					StandardAttributes: map[string]interface{}{
+					StandardAttributes: map[string]any{
 						"given_name": "johndoe",
 					},
-					CustomAttributes: map[string]interface{}{
+					CustomAttributes: map[string]any{
 						"foobar": "42",
 					},
 				},
@@ -118,8 +118,8 @@ func TestParseHookResponse(t *testing.T) {
 			IsAllowed: true,
 			Mutations: Mutations{
 				JWT: JWTMutations{
-					Payload: map[string]interface{}{
-						"https://example.com": map[string]interface{}{
+					Payload: map[string]any{
+						"https://example.com": map[string]any{
 							"foo": "bar",
 						},
 					},
@@ -142,8 +142,8 @@ func TestParseHookResponse(t *testing.T) {
 			IsAllowed: true,
 			Mutations: Mutations{
 				IDToken: IDTokenMutations{
-					Payload: map[string]interface{}{
-						"https://example.com": map[string]interface{}{
+					Payload: map[string]any{
+						"https://example.com": map[string]any{
 							"foo": "bar",
 						},
 					},
@@ -203,7 +203,7 @@ func TestParseHookResponse(t *testing.T) {
 			IsAllowed: true,
 			Mutations: Mutations{
 				User: UserMutations{
-					StandardAttributes: map[string]interface{}{
+					StandardAttributes: map[string]any{
 						"given_name": "johndoe",
 					},
 				},

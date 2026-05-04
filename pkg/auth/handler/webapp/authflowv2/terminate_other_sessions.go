@@ -28,8 +28,8 @@ type AuthflowV2TerminateOtherSessionsHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2TerminateOtherSessionsHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2TerminateOtherSessionsHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -49,7 +49,7 @@ func (h *AuthflowV2TerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 	handlers.PostAction("confirm", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"confirm_terminate_other_sessions": true,
 		}
 

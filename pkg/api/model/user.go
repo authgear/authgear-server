@@ -23,15 +23,15 @@ type User struct {
 	AccountValidUntil        *time.Time `json:"account_valid_until,omitempty"`
 	AccountStatusStaleFrom   *time.Time `json:"-"`
 
-	CanReauthenticate  bool                   `json:"can_reauthenticate"`
-	StandardAttributes map[string]interface{} `json:"standard_attributes"`
-	CustomAttributes   map[string]interface{} `json:"custom_attributes"`
+	CanReauthenticate  bool           `json:"can_reauthenticate"`
+	StandardAttributes map[string]any `json:"standard_attributes"`
+	CustomAttributes   map[string]any `json:"custom_attributes"`
 	// Web3 is kept for backwards compatibility purpose.
 	// It is always an empty map.
-	Web3                 map[string]interface{} `json:"x_web3"`
-	Roles                []string               `json:"roles"`
-	Groups               []string               `json:"groups"`
-	MFAGracePeriodtEndAt *time.Time             `json:"mfa_grace_period_end_at,omitempty"`
+	Web3                 map[string]any `json:"x_web3"`
+	Roles                []string       `json:"roles"`
+	Groups               []string       `json:"groups"`
+	MFAGracePeriodtEndAt *time.Time     `json:"mfa_grace_period_end_at,omitempty"`
 
 	EndUserAccountID string `json:"-"`
 }
@@ -51,7 +51,7 @@ type SearchUserRaw struct {
 	PreferredUsername  []string
 	PhoneNumber        []string
 	OAuthSubjectID     []string
-	StandardAttributes map[string]interface{}
+	StandardAttributes map[string]any
 
 	Groups         []*Group
 	EffectiveRoles []*Role

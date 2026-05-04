@@ -34,7 +34,6 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 	oneOf := []validation.SchemaBuilder{}
 
 	for _, option := range i.Options {
-		option := option
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
 		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(option.Authentication))

@@ -13,7 +13,7 @@ func RenderSAMLEntityID(cfg config.SAMLEnvironmentConfig, appID string) string {
 		panic(err)
 	}
 	var idpEntityIDBytes bytes.Buffer
-	err = idpEntityIdTemplate.Execute(&idpEntityIDBytes, map[string]interface{}{
+	err = idpEntityIdTemplate.Execute(&idpEntityIDBytes, map[string]any{
 		"app_id": appID,
 	})
 	if err != nil {

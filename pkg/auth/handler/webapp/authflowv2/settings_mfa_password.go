@@ -34,9 +34,9 @@ func ConfigureAuthflowV2SettingsMFAPassword(route httproute.Route) httproute.Rou
 		WithPathPattern(AuthflowV2RouteSettingsMFAPassword)
 }
 
-func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter) (map[string]any, error) {
 	userID := session.GetUserID(ctx)
-	data := map[string]interface{}{}
+	data := map[string]any{}
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
@@ -62,7 +62,7 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			if err != nil {

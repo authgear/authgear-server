@@ -19,7 +19,7 @@ func init() {
 type EdgeDoCreateUser struct {
 }
 
-func (e *EdgeDoCreateUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	publicSignupDisabled := ctx.Config.Authentication.PublicSignupDisabled
 
 	bypassPublicSignupDisabled := false

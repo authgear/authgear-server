@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httputil"
+	"slices"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
@@ -80,13 +81,7 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found := false
-	for _, id := range appIDs {
-		if id == appID {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(appIDs, appID)
 	if !found {
 		logger.Debug(ctx, "authenticated user does not have access to the app")
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

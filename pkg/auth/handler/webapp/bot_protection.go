@@ -31,17 +31,17 @@ func IsBotProtectionInputValid(ctx context.Context, formData url.Values) bool {
 	return err == nil
 }
 
-func InsertBotProtection(formData url.Values, input map[string]interface{}) {
+func InsertBotProtection(formData url.Values, input map[string]any) {
 	bpType := formData.Get("x_bot_protection_provider_type")
 	bpResp := formData.Get("x_bot_protection_provider_response")
-	bot_protection := map[string]interface{}{
+	bot_protection := map[string]any{
 		"type":     bpType,
 		"response": bpResp,
 	}
 	input["bot_protection"] = bot_protection
 }
 
-func HandleIdentificationBotProtection(ctx context.Context, identification model.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleIdentificationBotProtection(ctx context.Context, identification model.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]any) (err error) {
 	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ func HandleIdentificationBotProtection(ctx context.Context, identification model
 
 // As IntentAccountRecoveryFlowStepIdentify has it's own IdentificationData type to narrow down Identification as {"email", "phone"},
 // we imitate the same logic in HandleIdentificationBotProtection here for account recovery
-func HandleAccountRecoveryIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleAccountRecoveryIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]any) (err error) {
 	bpRequired, err := webapp.IsAccountRecoveryIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)
@@ -73,7 +73,7 @@ func HandleAccountRecoveryIdentificationBotProtection(ctx context.Context, ident
 	return
 }
 
-func HandleAuthenticationBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleAuthenticationBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]any) (err error) {
 	bpRequired, err := webapp.IsAuthenticateStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)
@@ -88,7 +88,7 @@ func HandleAuthenticationBotProtection(ctx context.Context, authentication model
 	return
 }
 
-func HandleCreateAuthenticatorBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleCreateAuthenticatorBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]any) (err error) {
 	bpRequired, err := webapp.IsCreateAuthenticatorStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)

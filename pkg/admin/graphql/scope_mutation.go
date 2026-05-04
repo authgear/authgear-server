@@ -21,7 +21,7 @@ func init() {
 		scopeBuilder.MaxLength(100)
 		scopeBuilder.Not((func() validation.SchemaBuilder {
 			notBuilder := validation.SchemaBuilder{}
-			scopesIntf := make([]interface{}, len(oauth.AllowedScopes))
+			scopesIntf := make([]any, len(oauth.AllowedScopes))
 			for i, s := range oauth.AllowedScopes {
 				scopesIntf[i] = s
 			}
@@ -70,9 +70,9 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createScopeInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 
 			err := createScopeSchema.Validator().ValidateValue(ctx, input)
 			if err != nil {
@@ -105,7 +105,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"scope": scope,
 			}).Value, nil
 		},
@@ -149,8 +149,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(updateScopeInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			resourceURI := input["resourceURI"].(string)
 			scopeStr := input["scope"].(string)
@@ -187,7 +187,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"scope": scope,
 			}).Value, nil
 		},
@@ -227,8 +227,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteScopeInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			resourceURI := input["resourceURI"].(string)
 			scopeStr := input["scope"].(string)
@@ -253,7 +253,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"ok": true,
 			}, nil
 		},

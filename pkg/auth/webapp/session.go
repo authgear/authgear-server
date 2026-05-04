@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"maps"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -27,7 +28,7 @@ type SessionOptions struct {
 	RedirectURI      string
 	KeepAfterFinish  bool
 	Prompt           []string
-	Extra            map[string]interface{}
+	Extra            map[string]any
 	Page             string
 	// TODO(authflow): UserIDHint is now handled natively by authflow.
 	UserIDHint                 string
@@ -81,7 +82,7 @@ type Session struct {
 	KeepAfterFinish bool `json:"keep_after_finish,omitempty"`
 
 	// Extra is used to store extra information for use of webapp.
-	Extra map[string]interface{} `json:"extra"`
+	Extra map[string]any `json:"extra"`
 
 	// Prompt is used to indicate requested authentication behavior
 	// which includes both supported and unsupported prompt
@@ -134,7 +135,7 @@ func NewSession(options SessionOptions) *Session {
 		ClientID:                   options.ClientID,
 		RedirectURI:                options.RedirectURI,
 		KeepAfterFinish:            options.KeepAfterFinish,
-		Extra:                      make(map[string]interface{}),
+		Extra:                      make(map[string]any),
 		Prompt:                     options.Prompt,
 		Page:                       options.Page,
 		UpdatedAt:                  options.UpdatedAt,
@@ -145,9 +146,7 @@ func NewSession(options SessionOptions) *Session {
 		LoginHint:                  options.LoginHint,
 		SettingsActionID:           options.SettingsActionID,
 	}
-	for k, v := range options.Extra {
-		s.Extra[k] = v
-	}
+	maps.Copy(s.Extra, options.Extra)
 	return s
 }
 

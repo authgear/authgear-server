@@ -1,5 +1,7 @@
 package slice
 
+import "slices"
+
 // ExceptStrings return a new slice that without the element appears in the
 // second slice.
 func ExceptStrings(slice []string, except []string) []string {
@@ -24,13 +26,7 @@ func strAt(slice []string, str string) int {
 
 // ContainsString determine whether the input slice contains the specified string.
 func ContainsString(in []string, elem string) bool {
-	for i := 0; i < len(in); i++ {
-		if in[i] == elem {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(in, elem)
 }
 
 func AppendIfUniqueStrings(slice []string, elem string) []string {

@@ -180,7 +180,6 @@ func (i *IntentSignupLoginFlowStepIdentify) checkIdentificationMethod(deps *auth
 	idx = -1
 
 	for index, branch := range step.OneOf {
-		branch := branch
 		if im == branch.Identification {
 			idx = index
 		}

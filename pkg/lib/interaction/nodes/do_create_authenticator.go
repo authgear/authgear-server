@@ -17,7 +17,7 @@ type EdgeDoCreateAuthenticator struct {
 	Authenticators []*authenticator.Info
 }
 
-func (e *EdgeDoCreateAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	return &NodeDoCreateAuthenticator{
 		Stage:          e.Stage,

@@ -14,7 +14,7 @@ func init() {
 
 type FormatTextTemplate struct{}
 
-func (FormatTextTemplate) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatTextTemplate) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

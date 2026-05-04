@@ -49,6 +49,6 @@ func (*IntentProtectedAuthenticate) GetEffects(ctx context.Context, deps *workfl
 	return nil, nil
 }
 
-func (*IntentProtectedAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentProtectedAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

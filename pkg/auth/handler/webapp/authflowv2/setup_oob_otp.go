@@ -79,8 +79,8 @@ func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	}
 }
 
-func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -138,7 +138,7 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			channel = option.Channels[0]
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication": authentication,
 			"target":         target,
 			"channel":        channel,

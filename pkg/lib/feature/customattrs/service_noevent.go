@@ -22,7 +22,7 @@ type UserQueries interface {
 }
 
 type UserStore interface {
-	UpdateCustomAttributes(ctx context.Context, userID string, storageForm map[string]interface{}) error
+	UpdateCustomAttributes(ctx context.Context, userID string, storageForm map[string]any) error
 }
 
 type ServiceNoEvent struct {
@@ -31,7 +31,7 @@ type ServiceNoEvent struct {
 	UserStore   UserStore
 }
 
-func (s *ServiceNoEvent) fromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
+func (s *ServiceNoEvent) fromStorageForm(storageForm map[string]any) (customattrs.T, error) {
 	out := make(customattrs.T)
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -49,8 +49,8 @@ func (s *ServiceNoEvent) fromStorageForm(storageForm map[string]interface{}) (cu
 	return out, nil
 }
 
-func (s *ServiceNoEvent) toStorageForm(t customattrs.T) (map[string]interface{}, error) {
-	out := make(map[string]interface{})
+func (s *ServiceNoEvent) toStorageForm(t customattrs.T) (map[string]any, error) {
+	out := make(map[string]any)
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
 		if err != nil {
@@ -118,7 +118,7 @@ func (s *ServiceNoEvent) validate(ctx context.Context, pointers []string, input 
 		Schema: col,
 	}
 
-	err = validator.ValidateValue(ctx, map[string]interface{}(input))
+	err = validator.ValidateValue(ctx, map[string]any(input))
 	if err != nil {
 		return err
 	}
@@ -133,14 +133,14 @@ func (s *ServiceNoEvent) allPointers() (out []string) {
 	return
 }
 
-func (s *ServiceNoEvent) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]any) error {
 	pointers := s.allPointers()
 	return s.updateCustomAttributes(ctx, role, userID, pointers, reprForm)
 }
 
 func (s *ServiceNoEvent) UpdateCustomAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, l attrs.List) error {
 	var pointers []string
-	reprForm := make(map[string]interface{})
+	reprForm := make(map[string]any)
 
 	for _, attr := range l {
 		for _, c := range s.Config.CustomAttributes.Attributes {
@@ -170,7 +170,7 @@ func (s *ServiceNoEvent) UpdateCustomAttributesWithList(ctx context.Context, rol
 
 func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(ctx context.Context, role accesscontrol.Role, userID string, form map[string]string) error {
 	var pointers []string
-	reprForm := make(map[string]interface{})
+	reprForm := make(map[string]any)
 
 	for ptrStr, strRepr := range form {
 		for _, c := range s.Config.CustomAttributes.Attributes {
@@ -206,7 +206,7 @@ func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(ctx context.Context, rol
 	return s.updateCustomAttributes(ctx, role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) updateCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) updateCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, pointers []string, reprForm map[string]any) error {
 	incoming := customattrs.T(reprForm)
 
 	err := s.validate(ctx, pointers, incoming)
@@ -248,8 +248,8 @@ func (s *ServiceNoEvent) ReadCustomAttributesInStorageForm(
 	ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
-	storageForm map[string]interface{},
-) (map[string]interface{}, error) {
+	storageForm map[string]any,
+) (map[string]any, error) {
 	accessControl := s.Config.CustomAttributes.GetAccessControl()
 	repr, err := s.fromStorageForm(storageForm)
 	if err != nil {
@@ -264,13 +264,13 @@ func (s *ServiceNoEvent) ReadCustomAttributesInStorageFormForUsers(
 	ctx context.Context,
 	role accesscontrol.Role,
 	userIDs []string,
-	storageForms []map[string]interface{},
-) (map[string]map[string]interface{}, error) {
+	storageForms []map[string]any,
+) (map[string]map[string]any, error) {
 	if len(userIDs) != len(storageForms) {
 		panic("customattrs: expeceted same length of arguments")
 	}
 
-	customAttrsByUserID := map[string]map[string]interface{}{}
+	customAttrsByUserID := map[string]map[string]any{}
 
 	for idx, userID := range userIDs {
 		storageForm := storageForms[idx]

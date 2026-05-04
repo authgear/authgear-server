@@ -129,7 +129,6 @@ func filterAMROptionsByAMRConstraint[T AMROption](options []T, amrConstraints []
 	// If there are other constraints, the user can only choose options that can fulfil the remaining constraints
 	var newOptions []T = []T{}
 	for _, option := range options {
-		option := option
 		for _, amr := range option.GetAMR() {
 			if slice.ContainsString(amrConstraints, amr) {
 				newOptions = append(newOptions, option)

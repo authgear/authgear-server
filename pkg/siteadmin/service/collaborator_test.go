@@ -140,7 +140,7 @@ func TestCollaboratorService(t *testing.T) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				_ = json.NewEncoder(w).Encode(getNodesResponse(
-					map[string]interface{}{"id": globalID, "standardAttributes": map[string]interface{}{"email": "alice@example.com"}},
+					map[string]any{"id": globalID, "standardAttributes": map[string]any{"email": "alice@example.com"}},
 				))
 			}))
 			defer svr.Close()
@@ -239,7 +239,7 @@ func TestCollaboratorService(t *testing.T) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				_ = json.NewEncoder(w).Encode(getNodesResponse(
-					map[string]interface{}{"id": globalID, "standardAttributes": map[string]interface{}{"email": "editor@example.com"}},
+					map[string]any{"id": globalID, "standardAttributes": map[string]any{"email": "editor@example.com"}},
 				))
 			}))
 			defer svr.Close()

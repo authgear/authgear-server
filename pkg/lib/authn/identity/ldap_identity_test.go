@@ -39,23 +39,23 @@ func TestLDAPIdentity(t *testing.T) {
 		Convey("Test EntryJSON", func() {
 			Convey("It should only return all attributes", func() {
 				ldap := &LDAP{
-					RawEntryJSON: map[string]interface{}{
+					RawEntryJSON: map[string]any{
 						"dn": "dn",
-						"objectGUID": []interface{}{
+						"objectGUID": []any{
 							"j0qa0XMlMkW6rz1jahPVBg==",
 						},
-						"employeeID": []interface{}{
+						"employeeID": []any{
 							"MTIzNA==",
 						},
-						"unknown-attr-printable": []interface{}{
+						"unknown-attr-printable": []any{
 							"MTIzNA==",
 						},
-						"unknown-attr-non-printable": []interface{}{
+						"unknown-attr-non-printable": []any{
 							"AQI=",
 						},
 					},
 				}
-				So(ldap.EntryJSON(), ShouldResemble, map[string]interface{}{
+				So(ldap.EntryJSON(), ShouldResemble, map[string]any{
 					"dn": "dn",
 					"objectGUID": []string{
 						"8f4a9ad1-7325-3245-baaf-3d636a13d506",
@@ -76,12 +76,12 @@ func TestLDAPIdentity(t *testing.T) {
 		Convey("Test DisplayID", func() {
 			Convey("It should DN if exists", func() {
 				ldap := &LDAP{
-					RawEntryJSON: map[string]interface{}{
+					RawEntryJSON: map[string]any{
 						"dn": "dn",
-						"objectGUID": []interface{}{
+						"objectGUID": []any{
 							"j0qa0XMlMkW6rz1jahPVBg==",
 						},
-						"employeeID": []interface{}{
+						"employeeID": []any{
 							"MTIzNA==",
 						},
 					},
@@ -92,11 +92,11 @@ func TestLDAPIdentity(t *testing.T) {
 				ldap := &LDAP{
 					UserIDAttributeName:  "uid",
 					UserIDAttributeValue: []byte("example-user"),
-					RawEntryJSON: map[string]interface{}{
-						"objectGUID": []interface{}{
+					RawEntryJSON: map[string]any{
+						"objectGUID": []any{
 							"j0qa0XMlMkW6rz1jahPVBg==",
 						},
-						"employeeID": []interface{}{
+						"employeeID": []any{
 							"MTIzNA==",
 						},
 					},
@@ -107,11 +107,11 @@ func TestLDAPIdentity(t *testing.T) {
 				ldap := &LDAP{
 					UserIDAttributeName:  "Some=Attribute",
 					UserIDAttributeValue: []byte("ExampleUser"),
-					RawEntryJSON: map[string]interface{}{
-						"objectGUID": []interface{}{
+					RawEntryJSON: map[string]any{
+						"objectGUID": []any{
 							"j0qa0XMlMkW6rz1jahPVBg==",
 						},
-						"employeeID": []interface{}{
+						"employeeID": []any{
 							"MTIzNA==",
 						},
 					},

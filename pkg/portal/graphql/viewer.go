@@ -15,7 +15,7 @@ import (
 
 const typeViewer = "Viewer"
 
-var viewerSubresolver = func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+var viewerSubresolver = func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 	userIface, err := gqlCtx.Users.Load(ctx, id).Value()
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ var nodeViewer = node(
 			},
 			"isOnboardingSurveyCompleted": &graphql.Field{
 				Type: graphql.Boolean,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					user := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -72,7 +72,7 @@ var nodeViewer = node(
 		},
 	}),
 	&model.User{},
-	func(ctx context.Context, id string) (interface{}, error) {
+	func(ctx context.Context, id string) (any, error) {
 		gqlCtx := GQLContext(ctx)
 
 		// Ensure only the authenticated user can fetch their own viewer.

@@ -36,7 +36,7 @@ func (s *AdminAPIService) FindUserIDsByEmail(ctx context.Context, email string) 
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"name":  "email",
 			"value": email,
 		},
@@ -50,12 +50,12 @@ func (s *AdminAPIService) FindUserIDsByEmail(ctx context.Context, email string) 
 		return nil, fmt.Errorf("failed to search users by email: %v", result.Errors)
 	}
 
-	data := result.Data.(map[string]interface{})
-	users := data["users"].([]interface{})
+	data := result.Data.(map[string]any)
+	users := data["users"].([]any)
 
 	ids := make([]string, 0, len(users))
 	for _, u := range users {
-		userNode, ok := u.(map[string]interface{})
+		userNode, ok := u.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -91,7 +91,7 @@ func (s *AdminAPIService) ResolveUserEmails(ctx context.Context, userIDs []strin
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"ids": globalIDs,
 		},
 	}
@@ -105,10 +105,10 @@ func (s *AdminAPIService) ResolveUserEmails(ctx context.Context, userIDs []strin
 	}
 
 	emailMap := make(map[string]string, len(userIDs))
-	data := result.Data.(map[string]interface{})
-	nodes := data["nodes"].([]interface{})
+	data := result.Data.(map[string]any)
+	nodes := data["nodes"].([]any)
 	for _, node := range nodes {
-		userNode, ok := node.(map[string]interface{})
+		userNode, ok := node.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -117,7 +117,7 @@ func (s *AdminAPIService) ResolveUserEmails(ctx context.Context, userIDs []strin
 		if resolvedID == nil || resolvedID.ID == "" {
 			continue
 		}
-		attrs, ok := userNode["standardAttributes"].(map[string]interface{})
+		attrs, ok := userNode["standardAttributes"].(map[string]any)
 		if !ok {
 			continue
 		}

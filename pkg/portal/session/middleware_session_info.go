@@ -117,7 +117,7 @@ func (m *SessionInfoMiddleware) jwtToSessionInfo(jwkSet jwk.Set, header http.Hea
 
 	// amr is newly added to at+jwt, so it may not be present.
 	if amrIface, ok := token.Get(string(model.ClaimAMR)); ok {
-		amrSlice := amrIface.([]interface{})
+		amrSlice := amrIface.([]any)
 		for _, amrValue := range amrSlice {
 			amrStr := amrValue.(string)
 			sessionInfo.SessionAMR = append(sessionInfo.SessionAMR, amrStr)
@@ -128,7 +128,7 @@ func (m *SessionInfoMiddleware) jwtToSessionInfo(jwkSet jwk.Set, header http.Hea
 	if !ok {
 		panic(fmt.Errorf("expected claim to be present: %v", model.ClaimAuthgearRoles))
 	}
-	rolesSlice := rolesIface.([]interface{})
+	rolesSlice := rolesIface.([]any)
 	for _, roleIface := range rolesSlice {
 		role := roleIface.(string)
 		sessionInfo.EffectiveRoles = append(sessionInfo.EffectiveRoles, role)

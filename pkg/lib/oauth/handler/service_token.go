@@ -34,7 +34,7 @@ type IssueOfflineGrantOptions struct {
 	Scopes             []string
 	AuthorizationID    string
 	IDPSessionID       string
-	DeviceInfo         map[string]interface{}
+	DeviceInfo         map[string]any
 	IdentityID         string
 	SSOEnabled         bool
 	App2AppDeviceKey   jwk.Key

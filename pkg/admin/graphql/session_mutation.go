@@ -43,8 +43,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(revokeSessionInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			sessionID := input["sessionID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(sessionID)
@@ -78,7 +78,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
@@ -114,8 +114,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(revokeAllSessionsInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -143,7 +143,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
@@ -196,14 +196,14 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createSessionInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			if !(*gqlCtx.AdminAPIFeatureConfig.CreateSessionEnabled) {
 				return nil, apierrors.NewForbidden("CreateSession is disabled")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -214,7 +214,7 @@ var _ = registerMutationField(
 
 			clientID := input["clientID"].(string)
 
-			var deviceInfo map[string]interface{}
+			var deviceInfo map[string]any
 			if deviceInfoBase64, ok := input["deviceInfo"].(string); ok {
 				deviceInfoBytes, err := base64.RawURLEncoding.DecodeString(deviceInfoBase64)
 				if err != nil {
@@ -244,7 +244,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"refreshToken": resp["refresh_token"],
 				"accessToken":  resp["access_token"],
 				"tokenType":    resp["token_type"],

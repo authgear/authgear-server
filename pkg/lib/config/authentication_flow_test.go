@@ -25,7 +25,7 @@ func TestAuthenticationFlowSignupFlow(t *testing.T) {
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
 			So(err, ShouldBeNil)
 
-			var input interface{}
+			var input any
 			err = json.Unmarshal([]byte(inputJSON), &input)
 			So(err, ShouldBeNil)
 
@@ -76,7 +76,7 @@ func TestAuthenticationFlowLoginFlow(t *testing.T) {
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
 			So(err, ShouldBeNil)
 
-			var input interface{}
+			var input any
 			err = json.Unmarshal([]byte(inputJSON), &input)
 			So(err, ShouldBeNil)
 
@@ -125,7 +125,7 @@ func TestAuthenticationFlowSignupLoginFlow(t *testing.T) {
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
 			So(err, ShouldBeNil)
 
-			var input interface{}
+			var input any
 			err = json.Unmarshal([]byte(inputJSON), &input)
 			So(err, ShouldBeNil)
 
@@ -168,7 +168,7 @@ func TestAuthenticationFlowReauthFlow(t *testing.T) {
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
 			So(err, ShouldBeNil)
 
-			var input interface{}
+			var input any
 			err = json.Unmarshal([]byte(inputJSON), &input)
 			So(err, ShouldBeNil)
 
@@ -215,7 +215,7 @@ func TestAuthenticationFlowAccountRecoveryFlow(t *testing.T) {
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
 			So(err, ShouldBeNil)
 
-			var input interface{}
+			var input any
 			err = json.Unmarshal([]byte(inputJSON), &input)
 			So(err, ShouldBeNil)
 

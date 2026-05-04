@@ -51,8 +51,8 @@ type AuthflowV2SettingsIdentityNewUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityNewUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsIdentityNewUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := map[string]any{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
@@ -74,7 +74,7 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(w, r)
 			return err

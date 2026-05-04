@@ -367,7 +367,6 @@ func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.Authenticatio
 	allAllowed := []model.AuthenticationFlowAuthentication{}
 
 	for _, branch := range step.OneOf {
-		branch := branch
 		allAllowed = append(allAllowed, branch.Authentication)
 	}
 
@@ -444,7 +443,6 @@ func (*IntentLoginFlowStepAuthenticate) authenticationMethod(flows authflow.Flow
 
 func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, am model.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
-		branch := branch
 		if branch.Authentication == am {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}

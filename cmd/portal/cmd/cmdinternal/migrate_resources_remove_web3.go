@@ -65,7 +65,7 @@ func migrateRemoveWeb3_authgear_yaml(appID string, configSourceData map[string]s
 		return fmt.Errorf("failed decode authgear.yaml: %w", err)
 	}
 
-	authgearYAML := make(map[string]interface{})
+	authgearYAML := make(map[string]any)
 	err = yaml.Unmarshal(decodedAuthgearYAML, &authgearYAML)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
@@ -86,11 +86,11 @@ func migrateRemoveWeb3_authgear_yaml(appID string, configSourceData map[string]s
 	// identity.login_id.keys = [{ type: "email" }]
 	// authentication.primary_authenticators = ["password"]
 
-	authentication, ok := authgearYAML["authentication"].(map[string]interface{})
+	authentication, ok := authgearYAML["authentication"].(map[string]any)
 	if ok {
 		authenticationIdentitiesContainSIWE := false
 
-		identities, ok := authentication["identities"].([]interface{})
+		identities, ok := authentication["identities"].([]any)
 		if ok {
 			for _, i := range identities {
 				if i, ok := i.(string); ok {
@@ -105,17 +105,17 @@ func migrateRemoveWeb3_authgear_yaml(appID string, configSourceData map[string]s
 		if authenticationIdentitiesContainSIWE {
 			changed = true
 
-			authentication["identities"] = []interface{}{
+			authentication["identities"] = []any{
 				"login_id",
 				"oauth",
 			}
-			authentication["primary_authenticators"] = []interface{}{
+			authentication["primary_authenticators"] = []any{
 				"password",
 			}
-			authgearYAML["identity"] = map[string]interface{}{
-				"login_id": map[string]interface{}{
-					"keys": []interface{}{
-						map[string]interface{}{
+			authgearYAML["identity"] = map[string]any{
+				"login_id": map[string]any{
+					"keys": []any{
+						map[string]any{
 							"type": "email",
 						},
 					},
@@ -146,7 +146,7 @@ func migrateRemoveWeb3_authgear_features_yaml(appID string, configSourceData map
 		return fmt.Errorf("failed decode authgear.features.yaml: %w", err)
 	}
 
-	authgearFeaturesYAML := make(map[string]interface{})
+	authgearFeaturesYAML := make(map[string]any)
 	err = yaml.Unmarshal(decodedAuthgearFeaturesYAML, &authgearFeaturesYAML)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)

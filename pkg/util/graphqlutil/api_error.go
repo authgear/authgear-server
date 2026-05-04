@@ -62,7 +62,7 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 
 			apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 			if gqlError.Extensions == nil {
-				gqlError.Extensions = make(map[string]interface{})
+				gqlError.Extensions = make(map[string]any)
 			}
 			gqlError.Message = apiError.Message
 			gqlError.Extensions["errorName"] = apiError.Name
@@ -76,12 +76,12 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 }
 
 func (a APIErrorExtension) ResolveFieldDidStart(ctx context.Context, info *graphql.ResolveInfo) (context.Context, graphql.ResolveFieldFinishFunc) {
-	return ctx, func(i interface{}, err error) {}
+	return ctx, func(i any, err error) {}
 }
 
 func (a APIErrorExtension) HasResult() bool { return false }
 
-func (a APIErrorExtension) GetResult(ctx context.Context) interface{} { return nil }
+func (a APIErrorExtension) GetResult(ctx context.Context) any { return nil }
 
 func originalError(err error) error {
 	for err != nil {

@@ -1,5 +1,7 @@
 package event
 
+import "maps"
+
 // @JSONSchema
 const ContextSchema = `
 {
@@ -51,9 +53,7 @@ type AuditContext map[string]any
 
 func NewAuditContext(httpURL string, info map[string]any) AuditContext {
 	auditCtx := AuditContext{}
-	for k, v := range info {
-		auditCtx[k] = v
-	}
+	maps.Copy(auditCtx, info)
 	auditCtx["http_url"] = httpURL
 	return auditCtx
 }

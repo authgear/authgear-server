@@ -177,9 +177,9 @@ func TestPlanService_ChangeAppPlan(t *testing.T) {
 		Convey("returns App with owner email resolved", func() {
 			globalID := relay.ToGlobalID("User", "user1")
 			svr := adminAPIServer(getNodesResponse(
-				map[string]interface{}{
+				map[string]any{
 					"id":                 globalID,
-					"standardAttributes": map[string]interface{}{"email": "owner@example.com"},
+					"standardAttributes": map[string]any{"email": "owner@example.com"},
 				},
 			))
 			defer svr.Close()

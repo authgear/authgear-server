@@ -14,8 +14,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
+//go:fix inline
 func newBool(b bool) *bool {
-	return &b
+	return new(b)
 }
 
 // staticClientResolver implements OAuthClientResolver for testing
@@ -47,7 +48,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           3600,
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        300,
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}
@@ -149,7 +150,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           3600,
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        300,
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}
@@ -239,7 +240,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           3600,
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        601, // 10 minutes + 1 sec
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}
@@ -325,7 +326,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           365 * 24 * 60 * 60, // 1 year
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        30 * 24 * 60 * 60, // 30 day
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}
@@ -433,7 +434,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           365 * 24 * 60 * 60, // 1 year
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        30 * 24 * 60 * 60, // 30 day
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}
@@ -569,7 +570,7 @@ func TestOfflineGrantService(t *testing.T) {
 			testClientCfg := &config.OAuthClientConfig{
 				ClientID:                       "testclient",
 				RefreshTokenLifetime:           365 * 24 * 60 * 60, // 1 year
-				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeoutEnabled: new(true),
 				RefreshTokenIdleTimeout:        30 * 24 * 60 * 60, // 30 day
 			}
 			testResolver := &staticClientResolver{Config: testClientCfg}

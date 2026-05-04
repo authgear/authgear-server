@@ -156,25 +156,25 @@ type LoginIDEmailConfig struct {
 
 func (c *LoginIDEmailConfig) SetDefaults() {
 	if c.CaseSensitive == nil {
-		c.CaseSensitive = newBool(false)
+		c.CaseSensitive = new(false)
 	}
 	if c.BlockPlusSign == nil {
-		c.BlockPlusSign = newBool(false)
+		c.BlockPlusSign = new(false)
 	}
 	if c.IgnoreDotSign == nil {
-		c.IgnoreDotSign = newBool(false)
+		c.IgnoreDotSign = new(false)
 	}
 	if c.DomainBlocklistEnabled == nil {
-		c.DomainBlocklistEnabled = newBool(false)
+		c.DomainBlocklistEnabled = new(false)
 	}
 	if c.DomainAllowlistEnabled == nil {
-		c.DomainAllowlistEnabled = newBool(false)
+		c.DomainAllowlistEnabled = new(false)
 	}
 	if c.BlockFreeEmailProviderDomains == nil {
-		c.BlockFreeEmailProviderDomains = newBool(false)
+		c.BlockFreeEmailProviderDomains = new(false)
 	}
 	if c.BlockDisposableEmailDomains == nil {
-		c.BlockDisposableEmailDomains = newBool(false)
+		c.BlockDisposableEmailDomains = new(false)
 	}
 }
 
@@ -200,16 +200,16 @@ type LoginIDUsernameConfig struct {
 
 func (c *LoginIDUsernameConfig) SetDefaults() {
 	if c.BlockReservedUsernames == nil {
-		c.BlockReservedUsernames = newBool(true)
+		c.BlockReservedUsernames = new(true)
 	}
 	if c.ExcludeKeywordsEnabled == nil {
-		c.ExcludeKeywordsEnabled = newBool(false)
+		c.ExcludeKeywordsEnabled = new(false)
 	}
 	if c.ASCIIOnly == nil {
-		c.ASCIIOnly = newBool(true)
+		c.ASCIIOnly = new(true)
 	}
 	if c.CaseSensitive == nil {
-		c.CaseSensitive = newBool(false)
+		c.CaseSensitive = new(false)
 	}
 }
 
@@ -249,22 +249,22 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 			// Instagram is 30.
 			// Telegram is 32.
 			// Seems average is around about ~40 characters.
-			c.MaxLength = newInt(40)
+			c.MaxLength = new(40)
 
 		case model.LoginIDKeyTypePhone:
-			c.MaxLength = newInt(40)
+			c.MaxLength = new(40)
 
 		default:
 			// Maximum length of email address:
 			// https://tools.ietf.org/html/rfc3696#section-3
-			c.MaxLength = newInt(320)
+			c.MaxLength = new(320)
 		}
 	}
 	if c.Key == "" {
 		c.Key = string(c.Type)
 	}
 	if c.Deprecated_ModifyDisabled == nil {
-		c.Deprecated_ModifyDisabled = newBool(false)
+		c.Deprecated_ModifyDisabled = new(false)
 	}
 	if c.UpdateDisabled == nil {
 		b := *c.Deprecated_ModifyDisabled
@@ -487,6 +487,6 @@ type BiometricConfig struct {
 
 func (c *BiometricConfig) SetDefaults() {
 	if c.ListEnabled == nil {
-		c.ListEnabled = newBool(false)
+		c.ListEnabled = new(false)
 	}
 }

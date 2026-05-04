@@ -63,7 +63,7 @@ func (s *MetricsStore) insertAuditMetricCount(ctx context.Context, metricName, i
 		Insert(tableName).
 		Columns("id", "name", "key", "created_at")
 
-	for i := 0; i < count; i++ {
+	for range count {
 		builder = builder.
 			Values(uuid.New(), metricName, ipKey, now).
 			Values(uuid.New(), metricName, countryKey, now)

@@ -26,7 +26,7 @@ type PreviewWidgetHandler struct {
 }
 
 func (h *PreviewWidgetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{}
+	data := map[string]any{}
 
 	baseViewModel := h.BaseViewModeler.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)

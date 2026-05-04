@@ -89,7 +89,7 @@ func (s *CreationOptionsService) MakeCreationOptions(ctx context.Context, userID
 					Algorithm: webauthncose.AlgRS256,
 				},
 			},
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				// We want to know user verification method (uvm).
 				// https://www.w3.org/TR/webauthn-2/#sctn-uvm-extension
 				"uvm": true,

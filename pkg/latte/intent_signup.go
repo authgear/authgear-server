@@ -184,7 +184,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 	}, nil
 }
 
-func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

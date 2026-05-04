@@ -21,7 +21,7 @@ type EdgeSelectIdentityEnd struct {
 }
 
 //nolint:gocognit
-func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
 	if interaction.Input(input, &bypassInput) {

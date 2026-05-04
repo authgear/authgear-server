@@ -45,23 +45,23 @@ type EntityRef interface {
 func entityIDField(typeName string) *graphql.Field {
 	return relay.GlobalIDField(
 		typeName,
-		func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+		func(obj any, info graphql.ResolveInfo, ctx context.Context) (string, error) {
 			meta := obj.(EntityRef).GetMeta()
 			return meta.ID, nil
 		},
 	)
 }
 
-func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *graphqlutil.Lazy) *graphql.Field {
+func entityCreatedAtField(objFn func(ctx context.Context, obj any) *graphqlutil.Lazy) *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The creation time of entity",
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			obj := graphqlutil.NewLazyValue(p.Source)
 			if objFn != nil {
 				obj = objFn(p.Context, p.Source)
 			}
-			obj = obj.Map(func(value interface{}) (interface{}, error) {
+			obj = obj.Map(func(value any) (any, error) {
 				meta := value.(EntityRef).GetMeta()
 				return meta.CreatedAt, nil
 			})
@@ -70,16 +70,16 @@ func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *grap
 	}
 }
 
-func entityUpdatedAtField(objFn func(ctx context.Context, obj interface{}) *graphqlutil.Lazy) *graphql.Field {
+func entityUpdatedAtField(objFn func(ctx context.Context, obj any) *graphqlutil.Lazy) *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The update time of entity",
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			obj := graphqlutil.NewLazyValue(p.Source)
 			if objFn != nil {
 				obj = objFn(p.Context, p.Source)
 			}
-			obj = obj.Map(func(value interface{}) (interface{}, error) {
+			obj = obj.Map(func(value any) (any, error) {
 				meta := value.(EntityRef).GetMeta()
 				return meta.UpdatedAt, nil
 			})

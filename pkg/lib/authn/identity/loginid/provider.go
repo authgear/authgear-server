@@ -175,7 +175,7 @@ func (p *Provider) New(ctx context.Context, userID string, spec identity.LoginID
 		return nil, err
 	}
 
-	claims := make(map[string]interface{})
+	claims := make(map[string]any)
 	if claimName, ok := model.GetLoginIDKeyTypeClaim(spec.Type); ok {
 		claims[string(claimName)] = normalized
 	}
@@ -211,7 +211,7 @@ func (p *Provider) WithValue(ctx context.Context, iden *identity.LoginID, value 
 		return nil, err
 	}
 
-	claims := make(map[string]interface{})
+	claims := make(map[string]any)
 	if claimName, ok := model.GetLoginIDKeyTypeClaim(spec.Type); ok {
 		claims[string(claimName)] = normalized
 	}

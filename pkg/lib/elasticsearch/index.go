@@ -10,208 +10,208 @@ const IndexNameUser = "user"
 
 const PrefixMinChars = 3
 
-func makeSearchConditions(searchKeyword string) []interface{} {
-	should := []interface{}{
-		map[string]interface{}{
-			"term": map[string]interface{}{
+func makeSearchConditions(searchKeyword string) []any {
+	should := []any{
+		map[string]any{
+			"term": map[string]any{
 				"id": searchKeyword,
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"email": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"email": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"email_local_part": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"email_local_part": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"email_domain": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"email_domain": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"preferred_username": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"preferred_username": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"phone_number": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"phone_number": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"phone_number_country_code": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"phone_number_country_code": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"phone_number_national_number": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"phone_number_national_number": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"oauth_subject_id": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"oauth_subject_id": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
 		// standard attributes
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"family_name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"family_name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"given_name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"given_name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"middle_name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"middle_name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"nickname": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"nickname": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"formatted": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"formatted": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"street_address": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"street_address": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"locality": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"locality": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"region": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"region": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"gender": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"gender": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"zoneinfo": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"zoneinfo": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"locale": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"locale": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"country": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"country": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"postal_code": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"postal_code": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
 		// Roles and Groups
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"role_key": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"role_key": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"role_name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"role_name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
 		},
-		map[string]interface{}{
-			"term": map[string]interface{}{
-				"group_key": map[string]interface{}{
+		map[string]any{
+			"term": map[string]any{
+				"group_key": map[string]any{
 					"value":            searchKeyword,
 					"case_insensitive": true,
 				},
 			},
 		},
-		map[string]interface{}{
-			"match": map[string]interface{}{
-				"group_name": map[string]interface{}{
+		map[string]any{
+			"match": map[string]any{
+				"group_name": map[string]any{
 					"query": searchKeyword,
 				},
 			},
@@ -226,64 +226,64 @@ func makeSearchConditions(searchKeyword string) []interface{} {
 	// Cannot invoke Object.hashCode() because this.rewriteMethod is null.
 	// When "rewrite" is set to "constant_score_boolean", this error seems gone.
 	if len(searchKeyword) >= PrefixMinChars {
-		should = append(should, []interface{}{
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"email_text": map[string]interface{}{
+		should = append(should, []any{
+			map[string]any{
+				"prefix": map[string]any{
+					"email_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"email_local_part_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"email_local_part_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"email_domain_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"email_domain_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"preferred_username_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"preferred_username_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"phone_number_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"phone_number_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"phone_number_national_number_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"phone_number_national_number_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
-			map[string]interface{}{
-				"prefix": map[string]interface{}{
-					"oauth_subject_id_text": map[string]interface{}{
+			map[string]any{
+				"prefix": map[string]any{
+					"oauth_subject_id_text": map[string]any{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",
@@ -297,22 +297,22 @@ func makeSearchConditions(searchKeyword string) []interface{} {
 }
 
 func makeFilterConditions(
-	filterOptions libuser.FilterOptions) []interface{} {
+	filterOptions libuser.FilterOptions) []any {
 
-	filters := []interface{}{}
+	filters := []any{}
 
 	if len(filterOptions.RoleKeys) > 0 {
-		roleKeyShoulds := slice.Map(filterOptions.RoleKeys, func(roleKey string) interface{} {
-			return map[string]interface{}{
-				"term": map[string]interface{}{
-					"role_key": map[string]interface{}{
+		roleKeyShoulds := slice.Map(filterOptions.RoleKeys, func(roleKey string) any {
+			return map[string]any{
+				"term": map[string]any{
+					"role_key": map[string]any{
 						"value": roleKey,
 					},
 				},
 			}
 		})
-		filters = append(filters, map[string]interface{}{
-			"bool": map[string]interface{}{
+		filters = append(filters, map[string]any{
+			"bool": map[string]any{
 				"minimum_should_match": 1,
 				"should":               roleKeyShoulds,
 			},
@@ -320,17 +320,17 @@ func makeFilterConditions(
 	}
 
 	if len(filterOptions.GroupKeys) > 0 {
-		groupKeyShoulds := slice.Map(filterOptions.GroupKeys, func(groupKey string) interface{} {
-			return map[string]interface{}{
-				"term": map[string]interface{}{
-					"group_key": map[string]interface{}{
+		groupKeyShoulds := slice.Map(filterOptions.GroupKeys, func(groupKey string) any {
+			return map[string]any{
+				"term": map[string]any{
+					"group_key": map[string]any{
 						"value": groupKey,
 					},
 				},
 			}
 		})
-		filters = append(filters, map[string]interface{}{
-			"bool": map[string]interface{}{
+		filters = append(filters, map[string]any{
+			"bool": map[string]any{
 				"minimum_should_match": 1,
 				"should":               groupKeyShoulds,
 			},
@@ -345,19 +345,19 @@ func MakeSearchBody(
 	searchKeyword string,
 	filterOptions libuser.FilterOptions,
 	sortOption libuser.SortOption,
-) map[string]interface{} {
-	var should []interface{}
+) map[string]any {
+	var should []any
 	if searchKeyword != "" {
 		should = makeSearchConditions(searchKeyword)
 	} else {
-		should = []interface{}{map[string]interface{}{
-			"match_all": map[string]interface{}{},
+		should = []any{map[string]any{
+			"match_all": map[string]any{},
 		}}
 	}
 
-	filter := []interface{}{
-		map[string]interface{}{
-			"term": map[string]interface{}{
+	filter := []any{
+		map[string]any{
+			"term": map[string]any{
 				"app_id": appID,
 			},
 		},
@@ -368,9 +368,9 @@ func MakeSearchBody(
 		filter = append(filter, makeFilterConditions(filterOptions)...)
 	}
 
-	body := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
+	body := map[string]any{
+		"query": map[string]any{
+			"bool": map[string]any{
 				"minimum_should_match": 1,
 				"filter":               filter,
 				"should":               should,
@@ -384,9 +384,9 @@ func MakeSearchBody(
 
 	dir := sortOption.GetSortDirection()
 
-	var sort []interface{}
-	sort = append(sort, map[string]interface{}{
-		string(sortBy): map[string]interface{}{
+	var sort []any
+	sort = append(sort, map[string]any{
+		string(sortBy): map[string]any{
 			"order": dir,
 		},
 	})

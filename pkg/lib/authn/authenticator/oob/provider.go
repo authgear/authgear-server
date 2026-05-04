@@ -66,7 +66,7 @@ func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthent
 		validationCtx := &validation.Context{}
 		err := validation.FormatEmail{AllowName: false}.CheckFormat(ctx, target)
 		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]any{"format": "email"})
 		}
 		err = validationCtx.Error("invalid target")
 		if err != nil {
@@ -85,14 +85,14 @@ func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthent
 		// Parse phone number
 		parsed, err := phone.ParsePhoneNumberWithUserInput(target)
 		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+			validationCtx.EmitError("format", map[string]any{"format": "phone"})
 			return nil, validationCtx.Error("invalid target")
 		}
 
 		// Validate phone format
 		err = config.FormatPhone{}.CheckFormat(ctx, parsed.E164)
 		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+			validationCtx.EmitError("format", map[string]any{"format": "phone"})
 			return nil, validationCtx.Error("invalid target")
 		}
 
@@ -102,7 +102,7 @@ func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthent
 			allowlist = p.UIConfig.PhoneInput.AllowList
 		}
 		if !phone.IsPhoneNumberCountryAllowed(parsed, allowlist) {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+			validationCtx.EmitError("blocked", map[string]any{"reason": "PhoneNumberCountryCodeAllowlist"})
 			return nil, validationCtx.Error("invalid target")
 		}
 

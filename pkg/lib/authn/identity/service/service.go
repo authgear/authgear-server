@@ -60,7 +60,7 @@ type AnonymousIdentityProvider interface {
 }
 
 type BiometricIdentityProvider interface {
-	New(userID string, keyID string, key []byte, deviceInfo map[string]interface{}) *identity.Biometric
+	New(userID string, keyID string, key []byte, deviceInfo map[string]any) *identity.Biometric
 
 	Get(ctx context.Context, userID, id string) (*identity.Biometric, error)
 	GetMany(ctx context.Context, ids []string) ([]*identity.Biometric, error)
@@ -98,10 +98,10 @@ type LDAPIdentityProvider interface {
 		loginUserName *string,
 		userIDAttributeName string,
 		userIDAttributeValue []byte,
-		claims map[string]interface{},
-		rawEntryJSON map[string]interface{},
+		claims map[string]any,
+		rawEntryJSON map[string]any,
 	) *identity.LDAP
-	WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
+	WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]any, rawEntryJSON map[string]any) *identity.LDAP
 
 	Get(ctx context.Context, userID, id string) (*identity.LDAP, error)
 	GetMany(ctx context.Context, ids []string) ([]*identity.LDAP, error)
@@ -381,7 +381,7 @@ func (s *Service) SearchBySpec(ctx context.Context, spec *identity.Spec) (exactM
 	// Do not consider api.ErrIdentityNotFound as error.
 	err = nil
 
-	claimsToSearch := make(map[string]interface{})
+	claimsToSearch := make(map[string]any)
 
 	// Otherwise we have to search.
 	switch spec.Type {

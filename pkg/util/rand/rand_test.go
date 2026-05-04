@@ -13,7 +13,7 @@ func TestRandStringWithCharset(t *testing.T) {
 		length := 10
 		rands := []*mrand.Rand{SecureRand, InsecureRand}
 		for _, r := range rands {
-			for i := 0; i < 1000; i++ {
+			for range 1000 {
 				out := StringWithAlphabet(length, alphabet, r)
 				for _, run := range out {
 					So(run >= '0', ShouldBeTrue)

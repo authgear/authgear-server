@@ -44,7 +44,7 @@ func NewHookHTTPClient(timeout SMSHookTimeout) HookHTTPClient {
 }
 
 type HookDenoClient interface {
-	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
+	Run(ctx context.Context, script string, input any) (out any, err error)
 }
 
 type HookDenoClientImpl struct {
@@ -122,7 +122,7 @@ func NewSMSDenoHookForTest(denoEndpoint config.DenoEndpoint, smsCfg *config.Cust
 }
 
 type DenoHook interface {
-	RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input interface{}) (out interface{}, err error)
+	RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input any) (out any, err error)
 	SupportURL(u *url.URL) bool
 }
 
@@ -149,7 +149,7 @@ func (d *SMSDenoHook) Test(ctx context.Context, script string, payload SendOptio
 	return d.handleOutput(anything)
 }
 
-func (d *SMSDenoHook) handleOutput(output interface{}) error {
+func (d *SMSDenoHook) handleOutput(output any) error {
 	if output == nil {
 		// This is a null, but we should still consider it is a success for backward compatibility.
 		return nil

@@ -80,7 +80,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	target := n.Authenticator.OOBOTP.Phone
 	state, err := deps.OTPCodes.InspectState(ctx,
 		otp.KindOOBOTPCode(deps.Config, model.AuthenticatorOOBChannelSMS),

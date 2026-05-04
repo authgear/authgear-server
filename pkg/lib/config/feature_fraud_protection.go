@@ -18,7 +18,7 @@ var _ MergeableFeatureConfig = &FraudProtectionFeatureConfig{}
 
 func (c *FraudProtectionFeatureConfig) SetDefaults() {
 	if c.IsModifiable == nil {
-		c.IsModifiable = newBool(false)
+		c.IsModifiable = new(false)
 	}
 }
 

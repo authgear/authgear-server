@@ -44,7 +44,7 @@ func NewUserLoader(adminAPI UserLoaderAdminAPIService, apps UserLoaderAppService
 	return l
 }
 
-func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *UserLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	var globalIDs []string
 	var ids []string
 	for _, iface := range keys {
@@ -66,7 +66,7 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"ids": globalIDs,
 		},
 	}
@@ -102,13 +102,13 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 		return nil, err
 	}
 
-	var userModels []interface{}
+	var userModels []any
 
-	data := result.Data.(map[string]interface{})
-	nodes := data["nodes"].([]interface{})
+	data := result.Data.(map[string]any)
+	nodes := data["nodes"].([]any)
 	for idx, iface := range nodes {
 		// It could be null.
-		userNode, ok := iface.(map[string]interface{})
+		userNode, ok := iface.(map[string]any)
 		if !ok {
 			userModels = append(userModels, nil)
 		} else {
@@ -118,7 +118,7 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 
 			userModel.ID = resolvedNodeID.ID
 
-			standardAttributes := userNode["standardAttributes"].(map[string]interface{})
+			standardAttributes := userNode["standardAttributes"].(map[string]any)
 			email, ok := standardAttributes["email"].(string)
 			if ok {
 				userModel.Email = email

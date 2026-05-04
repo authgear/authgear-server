@@ -12,14 +12,14 @@ import (
 // because this struct is directly returned in the GraphQL endpoint.
 // Making the keys in camel case saves us from writing boilerplate resolver code.
 type Log struct {
-	ID           string                 `json:"id"`
-	CreatedAt    time.Time              `json:"createdAt"`
-	ActivityType string                 `json:"activityType"`
-	UserID       string                 `json:"userID,omitempty"`
-	IPAddress    string                 `json:"ipAddress,omitempty"`
-	UserAgent    string                 `json:"userAgent,omitempty"`
-	ClientID     string                 `json:"clientID,omitempty"`
-	Data         map[string]interface{} `json:"data,omitempty"`
+	ID           string         `json:"id"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	ActivityType string         `json:"activityType"`
+	UserID       string         `json:"userID,omitempty"`
+	IPAddress    string         `json:"ipAddress,omitempty"`
+	UserAgent    string         `json:"userAgent,omitempty"`
+	ClientID     string         `json:"clientID,omitempty"`
+	Data         map[string]any `json:"data,omitempty"`
 }
 
 func NewLog(e *event.Event) (*Log, error) {
@@ -33,7 +33,7 @@ func NewLog(e *event.Event) (*Log, error) {
 		return nil, err
 	}
 
-	var data map[string]interface{}
+	var data map[string]any
 	err = json.Unmarshal(b, &data)
 	if err != nil {
 		return nil, err

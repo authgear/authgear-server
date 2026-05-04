@@ -70,10 +70,7 @@ func NewAuthflowForgotPasswordOTPViewModel(
 	maskedClaimValue := data.MaskedDisplayName
 	codeLength := data.CodeLength
 	failedAttemptRateLimitExceeded := data.FailedAttemptRateLimitExceeded
-	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
-	if resendCooldown < 0 {
-		resendCooldown = 0
-	}
+	resendCooldown := max(int(data.CanResendAt.Sub(now).Seconds()), 0)
 
 	vm := &AuthflowForgotPasswordOTPViewModel{
 		Channel:                        channel,
@@ -130,7 +127,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		now := h.Clock.NowUTC()
-		data := make(map[string]interface{})
+		data := make(map[string]any)
 
 		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 		viewmodels.Embed(data, baseViewModel)
@@ -145,7 +142,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		return nil
 	})
 	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"resend": true,
 		}
 
@@ -164,7 +161,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 			return err
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"index": xIndex,
 		}
 
@@ -193,7 +190,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 
 		code := r.Form.Get("x_code")
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"account_recovery_code": code,
 		}
 

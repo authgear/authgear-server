@@ -52,12 +52,12 @@ func parseMessagingUsageParams(r *http.Request) (MessagingUsageParams, error) {
 	end, _ := time.Parse("2006-01-02", endDate)
 	if start.After(end) {
 		return MessagingUsageParams{}, makeValidationError(func(ctx *validation.Context) {
-			ctx.Child("end_date").EmitError("range", map[string]interface{}{"details": "end_date must not be before start_date"})
+			ctx.Child("end_date").EmitError("range", map[string]any{"details": "end_date must not be before start_date"})
 		})
 	}
 	if end.After(start.AddDate(1, 0, 0)) {
 		return MessagingUsageParams{}, makeValidationError(func(ctx *validation.Context) {
-			ctx.Child("end_date").EmitError("range", map[string]interface{}{"details": "date range must not exceed 1 year"})
+			ctx.Child("end_date").EmitError("range", map[string]any{"details": "date range must not exceed 1 year"})
 		})
 	}
 

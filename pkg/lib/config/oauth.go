@@ -380,11 +380,7 @@ func (c *OAuthClientConfig) SetDefaults() {
 	}
 
 	if c.RefreshTokenLifetime == 0 {
-		if c.AccessTokenLifetime > DefaultRefreshTokenLifetime {
-			c.RefreshTokenLifetime = c.AccessTokenLifetime
-		} else {
-			c.RefreshTokenLifetime = DefaultRefreshTokenLifetime
-		}
+		c.RefreshTokenLifetime = max(c.AccessTokenLifetime, DefaultRefreshTokenLifetime)
 	}
 
 	if c.RefreshTokenIdleTimeoutEnabled == nil {

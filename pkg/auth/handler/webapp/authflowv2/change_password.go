@@ -48,8 +48,8 @@ type AuthflowV2ChangePasswordHandler struct {
 	Renderer                handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -95,7 +95,7 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"new_password": newPlainPassword,
 		}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
-var arrayConnectionTestLetters = []interface{}{
+var arrayConnectionTestLetters = []any{
 	"A", "B", "C", "D", "E",
 }
 
@@ -55,7 +55,7 @@ func TestConnectionFromArray_HandlesBasicSlicing_ReturnsAllElementsWithoutFilter
 func TestConnectionFromArray_HandlesBasicSlicing_RespectsASmallerFirst(t *testing.T) {
 	// Create connection arguments from map[string]interface{},
 	// which you usually get from types.GQLParams.Args
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 2,
 	}
 	args := relay.NewConnectionArguments(filter)
@@ -90,7 +90,7 @@ func TestConnectionFromArray_HandlesBasicSlicing_RespectsASmallerFirst(t *testin
 }
 func TestConnectionFromArray_HandlesBasicSlicing_RespectsAnOverlyLargeFirst(t *testing.T) {
 
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 10,
 	}
 	args := relay.NewConnectionArguments(filter)
@@ -133,7 +133,7 @@ func TestConnectionFromArray_HandlesBasicSlicing_RespectsAnOverlyLargeFirst(t *t
 }
 func TestConnectionFromArray_HandlesBasicSlicing_RespectsASmallerLast(t *testing.T) {
 
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last": 2,
 	}
 	args := relay.NewConnectionArguments(filter)
@@ -164,7 +164,7 @@ func TestConnectionFromArray_HandlesBasicSlicing_RespectsASmallerLast(t *testing
 }
 func TestConnectionFromArray_HandlesBasicSlicing_RespectsAnOverlyLargeLast(t *testing.T) {
 
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last": 10,
 	}
 	args := relay.NewConnectionArguments(filter)
@@ -208,7 +208,7 @@ func TestConnectionFromArray_HandlesBasicSlicing_RespectsAnOverlyLargeLast(t *te
 
 func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfter(t *testing.T) {
 
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 2,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -240,7 +240,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfter(t *testing.
 }
 func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterWithLongFirst(t *testing.T) {
 
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 10,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -275,7 +275,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterWithLongFirs
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsLastAndBefore(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last":   2,
 		"before": "YXJyYXljb25uZWN0aW9uOjM=",
 	}
@@ -306,7 +306,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsLastAndBefore(t *testing.
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsLastAndBeforeWithLongLast(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last":   10,
 		"before": "YXJyYXljb25uZWN0aW9uOjM=",
 	}
@@ -341,7 +341,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsLastAndBeforeWithLongLast
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_TooFew(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first":  2,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -373,7 +373,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_To
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_TooMany(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first":  4,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -409,7 +409,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_To
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_ExactlyRight(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first":  3,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -445,7 +445,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsFirstAndAfterAndBefore_Ex
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsLastAndAfterAndBefore_TooFew(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last":   2,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -477,7 +477,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsLastAndAfterAndBefore_Too
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsLasttAndAfterAndBefore_TooMany(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last":   4,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -513,7 +513,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsLasttAndAfterAndBefore_To
 	}
 }
 func TestConnectionFromArray_HandlesPagination_RespectsLastAndAfterAndBefore_ExactlyRight(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"last":   3,
 		"after":  "YXJyYXljb25uZWN0aW9uOjA=",
 		"before": "YXJyYXljb25uZWN0aW9uOjQ=",
@@ -550,7 +550,7 @@ func TestConnectionFromArray_HandlesPagination_RespectsLastAndAfterAndBefore_Exa
 }
 
 func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsNoElementsIfFirstIsZero(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 0,
 	}
 	args := relay.NewConnectionArguments(filter)
@@ -569,7 +569,7 @@ func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsNoElementsIfFirstIsZe
 	}
 }
 func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsAllElementsIfCursorsAreInvalid(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"before": "invalid",
 		"after":  "invalid",
 	}
@@ -612,7 +612,7 @@ func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsAllElementsIfCursorsA
 	}
 }
 func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsAllElementsIfCursorsAreOnTheOutside(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"before": "YXJyYXljb25uZWN0aW9uOjYK",     // ==> offset: int(6)
 		"after":  "YXJyYXljb25uZWN0aW9uOi0xCg==", // ==> offset: int(-1)
 	}
@@ -656,7 +656,7 @@ func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsAllElementsIfCursorsA
 }
 
 func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsNullIfCursorsIsConsecutive(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"before": "YXJyYXljb25uZWN0aW9uOjM=", // ==> offset: int(3)
 		"after":  "YXJyYXljb25uZWN0aW9uOjI=", // ==> offset: int(2)
 	}
@@ -673,7 +673,7 @@ func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsNullIfCursorsIsConsec
 	}
 }
 func TestConnectionFromArray_HandlesCursorEdgeCases_ReturnsNoElementsIfCursorsCross(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"before": "YXJyYXljb25uZWN0aW9uOjI=", // ==> offset: int(2)
 		"after":  "YXJyYXljb25uZWN0aW9uOjQ=", // ==> offset: int(4)
 	}
@@ -704,7 +704,7 @@ func TestConnectionFromArray_CursorForObjectInConnection_ReturnsEmptyCursor_Give
 }
 
 func TestConnectionFromArraySlice_JustRightArraySlice(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 2,
 		"after": "YXJyYXljb25uZWN0aW9uOjA=",
 	}
@@ -743,7 +743,7 @@ func TestConnectionFromArraySlice_JustRightArraySlice(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_OversizedSliceLeft(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 2,
 		"after": "YXJyYXljb25uZWN0aW9uOjA=",
 	}
@@ -782,7 +782,7 @@ func TestConnectionFromArraySlice_OversizedSliceLeft(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_OversizedSliceRight(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 1,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -817,7 +817,7 @@ func TestConnectionFromArraySlice_OversizedSliceRight(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_OversizedSliceBoth(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 1,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -852,7 +852,7 @@ func TestConnectionFromArraySlice_OversizedSliceBoth(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_UndersizedSliceLeft(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 3,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -891,7 +891,7 @@ func TestConnectionFromArraySlice_UndersizedSliceLeft(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_UndersizedSliceRight(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 3,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}
@@ -930,7 +930,7 @@ func TestConnectionFromArraySlice_UndersizedSliceRight(t *testing.T) {
 }
 
 func TestConnectionFromArraySlice_UndersizedSliceBoth(t *testing.T) {
-	filter := map[string]interface{}{
+	filter := map[string]any{
 		"first": 3,
 		"after": "YXJyYXljb25uZWN0aW9uOjE=",
 	}

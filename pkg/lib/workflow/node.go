@@ -20,8 +20,8 @@ type nodeSimpleJSON struct {
 }
 
 type NodeSimpleOutput struct {
-	Kind string      `json:"kind"`
-	Data interface{} `json:"data,omitempty"`
+	Kind string `json:"kind"`
+	Data any    `json:"data,omitempty"`
 }
 
 type NodeOutput struct {
@@ -209,7 +209,7 @@ type NodeSimple interface {
 	InputReactor
 	EffectGetter
 	Kind() string
-	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error)
 }
 
 type NodeFactory func() NodeSimple

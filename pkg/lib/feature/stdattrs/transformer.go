@@ -11,8 +11,8 @@ import (
 )
 
 type Transformer interface {
-	StorageFormToRepresentationForm(key string, value interface{}) (interface{}, error)
-	RepresentationFormToStorageForm(key string, value interface{}) (interface{}, error)
+	StorageFormToRepresentationForm(key string, value any) (any, error)
+	RepresentationFormToStorageForm(key string, value any) (any, error)
 }
 
 type PictureTransformer struct {
@@ -23,7 +23,7 @@ type PictureTransformer struct {
 
 var _ Transformer = &PictureTransformer{}
 
-func (t *PictureTransformer) StorageFormToRepresentationForm(key string, value interface{}) (interface{}, error) {
+func (t *PictureTransformer) StorageFormToRepresentationForm(key string, value any) (any, error) {
 	if key != stdattrs.Picture {
 		return value, nil
 	}
@@ -55,7 +55,7 @@ func (t *PictureTransformer) StorageFormToRepresentationForm(key string, value i
 	return u.String(), nil
 }
 
-func (t *PictureTransformer) RepresentationFormToStorageForm(key string, value interface{}) (interface{}, error) {
+func (t *PictureTransformer) RepresentationFormToStorageForm(key string, value any) (any, error) {
 	if key != stdattrs.Picture {
 		return value, nil
 	}

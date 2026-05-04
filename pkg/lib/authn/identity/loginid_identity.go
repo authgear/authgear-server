@@ -7,16 +7,16 @@ import (
 )
 
 type LoginID struct {
-	ID              string                 `json:"id"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
-	UserID          string                 `json:"user_id"`
-	LoginIDKey      string                 `json:"login_id_key"`
-	LoginIDType     model.LoginIDKeyType   `json:"login_id_type"`
-	LoginID         string                 `json:"login_id"`
-	OriginalLoginID string                 `json:"original_login_id"`
-	UniqueKey       string                 `json:"unique_key"`
-	Claims          map[string]interface{} `json:"claims,omitempty"`
+	ID              string               `json:"id"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	UserID          string               `json:"user_id"`
+	LoginIDKey      string               `json:"login_id_key"`
+	LoginIDType     model.LoginIDKeyType `json:"login_id_type"`
+	LoginID         string               `json:"login_id"`
+	OriginalLoginID string               `json:"original_login_id"`
+	UniqueKey       string               `json:"unique_key"`
+	Claims          map[string]any       `json:"claims,omitempty"`
 }
 
 func (i *LoginID) ToInfo() *Info {

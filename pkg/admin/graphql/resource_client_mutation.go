@@ -40,8 +40,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addResourceToClientIDInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			resourceURI := input["resourceURI"].(string)
 			clientID := input["clientID"].(string)
@@ -66,7 +66,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"resource": resource,
 			}).Value, nil
 		},
@@ -106,8 +106,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeResourceFromClientIDInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			resourceURI := input["resourceURI"].(string)
 			clientID := input["clientID"].(string)
@@ -132,7 +132,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"resource": resource,
 			}).Value, nil
 		},

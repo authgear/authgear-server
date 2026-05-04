@@ -377,13 +377,13 @@ var _ json.Marshaler = &OAuthKeyMaterials{}
 var _ json.Unmarshaler = &OAuthKeyMaterials{}
 
 func (c *OAuthKeyMaterials) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *OAuthKeyMaterials) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *OAuthKeyMaterials) SensitiveStrings() []string {
@@ -400,13 +400,13 @@ var _ json.Marshaler = &CSRFKeyMaterials{}
 var _ json.Unmarshaler = &CSRFKeyMaterials{}
 
 func (c *CSRFKeyMaterials) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *CSRFKeyMaterials) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *CSRFKeyMaterials) SensitiveStrings() []string {
@@ -424,13 +424,13 @@ var _ json.Marshaler = &WebhookKeyMaterials{}
 var _ json.Unmarshaler = &WebhookKeyMaterials{}
 
 func (c *WebhookKeyMaterials) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *WebhookKeyMaterials) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {
@@ -448,13 +448,13 @@ var _ json.Marshaler = &AdminAPIAuthKey{}
 var _ json.Unmarshaler = &AdminAPIAuthKey{}
 
 func (c *AdminAPIAuthKey) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *AdminAPIAuthKey) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *AdminAPIAuthKey) SensitiveStrings() []string {
@@ -471,13 +471,13 @@ var _ json.Marshaler = &ImagesKeyMaterials{}
 var _ json.Unmarshaler = &ImagesKeyMaterials{}
 
 func (c *ImagesKeyMaterials) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *ImagesKeyMaterials) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *ImagesKeyMaterials) SensitiveStrings() []string {
@@ -575,7 +575,7 @@ func (c *OAuthClientCredentialsItem) MarshalJSON() ([]byte, error) {
 	}
 
 	// convert the json string to map
-	var dataMap map[string]interface{}
+	var dataMap map[string]any
 	err = json.Unmarshal(keyJSON, &dataMap)
 	if err != nil {
 		return nil, err
@@ -596,7 +596,7 @@ func (c *OAuthClientCredentialsItem) UnmarshalJSON(b []byte) error {
 	}
 
 	// unmarshal to the map
-	var dataMap map[string]interface{}
+	var dataMap map[string]any
 	err = json.Unmarshal(b, &dataMap)
 	if err != nil {
 		return err
@@ -619,13 +619,13 @@ var _ json.Marshaler = &OAuthClientCredentialsKeySet{}
 var _ json.Unmarshaler = &OAuthClientCredentialsKeySet{}
 
 func (c *OAuthClientCredentialsKeySet) MarshalJSON() ([]byte, error) {
-	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+	return c.Set.(any).(json.Marshaler).MarshalJSON()
 }
 func (c *OAuthClientCredentialsKeySet) UnmarshalJSON(b []byte) error {
 	if c.Set == nil {
 		c.Set = jwk.NewSet()
 	}
-	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+	return c.Set.(any).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *OAuthClientCredentialsKeySet) SensitiveStrings() []string {

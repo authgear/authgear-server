@@ -35,7 +35,7 @@ const (
 
 type Github struct{}
 
-func (Github) GetJSONSchema() map[string]interface{} {
+func (Github) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -105,7 +105,7 @@ func (p Github) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 
 	authInfo.ProviderUserID = id
 	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
-	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
+	stdAttrs, err := stdattrs.Extract(map[string]any{
 		stdattrs.Email:     email,
 		stdattrs.Name:      login,
 		stdattrs.GivenName: login,
@@ -167,7 +167,7 @@ func (Github) exchangeCode(ctx context.Context, deps oauthrelyingparty.Dependenc
 	return
 }
 
-func (Github) fetchUserInfo(ctx context.Context, deps oauthrelyingparty.Dependencies, accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
+func (Github) fetchUserInfo(ctx context.Context, deps oauthrelyingparty.Dependencies, accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]any, err error) {
 	tokenType := accessTokenResp.TokenType()
 	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)

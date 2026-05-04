@@ -30,6 +30,6 @@ type Deprecated_Web3NFTFeatureConfig struct {
 
 func (c *Deprecated_Web3NFTFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
-		c.Maximum = newInt(3)
+		c.Maximum = new(3)
 	}
 }

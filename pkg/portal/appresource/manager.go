@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"net/url"
 	"os"
 	"path"
@@ -115,11 +116,11 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 	return matches, nil
 }
 
-func (m *Manager) ReadAppFile(ctx context.Context, desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
+func (m *Manager) ReadAppFile(ctx context.Context, desc resource.Descriptor, view resource.AppFileView) (any, error) {
 	return m.AppResourceManager.Read(ctx, desc, view)
 }
 
-func (m *Manager) ReadEffectiveFile(ctx context.Context, desc resource.Descriptor, view resource.EffectiveResourceView) (interface{}, error) {
+func (m *Manager) ReadEffectiveFile(ctx context.Context, desc resource.Descriptor, view resource.EffectiveResourceView) (any, error) {
 	return m.AppResourceManager.Read(ctx, desc, view)
 }
 
@@ -245,7 +246,7 @@ func (m *Manager) getFromAppFs(newAppFs resource.LeveledAferoFs, location resour
 	}
 	defer f.Close()
 
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}

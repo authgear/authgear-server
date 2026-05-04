@@ -43,7 +43,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 }
 
 // nolint: gocognit
-func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var target string
 	var channel model.AuthenticatorOOBChannel
 	if e.Stage == authn.AuthenticationStagePrimary {

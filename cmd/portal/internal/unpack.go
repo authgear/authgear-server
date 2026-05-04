@@ -28,7 +28,7 @@ func Unpack(opts *UnpackOptions) (err error) {
 	}
 	defer f.Close()
 
-	var data map[string]interface{}
+	var data map[string]any
 	err = json.NewDecoder(f).Decode(&data)
 	if err != nil {
 		err = fmt.Errorf("failed to decode data JSON file: %w", err)

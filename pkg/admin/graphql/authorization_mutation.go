@@ -39,8 +39,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteAuthorizationInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			authorizationID := input["authorizationID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(authorizationID)
@@ -69,7 +69,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},

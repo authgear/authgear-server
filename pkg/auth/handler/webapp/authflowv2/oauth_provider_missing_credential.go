@@ -26,7 +26,7 @@ type AuthflowV2OAuthProviderMissingCredentialsHandler struct {
 }
 
 func (h *AuthflowV2OAuthProviderMissingCredentialsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)

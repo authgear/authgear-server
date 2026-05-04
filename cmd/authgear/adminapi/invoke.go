@@ -79,7 +79,7 @@ func (i *Invoker) Invoke(ctx context.Context, options InvokeOptions) (*InvokeRes
 
 	u.Path = "/_api/admin/graphql"
 
-	body := map[string]interface{}{
+	body := map[string]any{
 		"query": options.Query,
 	}
 	if options.VariablesJSON != "" {
@@ -133,7 +133,7 @@ func (i *Invoker) Invoke(ctx context.Context, options InvokeOptions) (*InvokeRes
 		DumpedResponse: dumpedResponse,
 	}
 
-	var respJSON map[string]interface{}
+	var respJSON map[string]any
 	err = json.Unmarshal(respBody, &respJSON)
 	if err != nil {
 		return nil, errors.Join(err, result)

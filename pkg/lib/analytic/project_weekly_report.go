@@ -56,7 +56,7 @@ func (r *ProjectWeeklyReport) Run(ctx context.Context, options *ProjectWeeklyRep
 	}
 
 	userIDs := []string{}
-	userIDsSet := map[string]interface{}{}
+	userIDsSet := map[string]any{}
 	appToOwnerUserIDMap := map[string]string{}
 	for _, ap := range appOwners {
 		appToOwnerUserIDMap[ap.AppID] = ap.UserID
@@ -75,7 +75,7 @@ func (r *ProjectWeeklyReport) Run(ctx context.Context, options *ProjectWeeklyRep
 		return
 	}
 
-	values := make([][]interface{}, len(appIDs))
+	values := make([][]any, len(appIDs))
 	for i, appID := range appIDs {
 		ownerID := appToOwnerUserIDMap[appID]
 		email := userIDToEmailMap[ownerID]
@@ -118,7 +118,7 @@ func (r *ProjectWeeklyReport) Run(ctx context.Context, options *ProjectWeeklyRep
 			return
 		}
 
-		values[i] = []interface{}{
+		values[i] = []any{
 			options.Year,
 			options.Week,
 			rangeFrom.UTC().Format(time.RFC3339),
@@ -134,7 +134,7 @@ func (r *ProjectWeeklyReport) Run(ctx context.Context, options *ProjectWeeklyRep
 	}
 
 	data = &ReportData{
-		Header: []interface{}{
+		Header: []any{
 			"Year",
 			"Week",
 			"Range From",

@@ -47,10 +47,7 @@ func (f *fakeConfigSourceStore) ListPaged(_ context.Context, limit uint64, offse
 	if offset >= uint64(len(f.sources)) {
 		return nil, nil
 	}
-	end := offset + limit
-	if end > uint64(len(f.sources)) {
-		end = uint64(len(f.sources))
-	}
+	end := min(offset+limit, uint64(len(f.sources)))
 	return f.sources[int(offset):int(end)], nil
 }
 
@@ -127,10 +124,7 @@ func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsSto
 	if offset >= total {
 		return nil, total, nil
 	}
-	end := offset + int(params.PageSize)
-	if end > total {
-		end = total
-	}
+	end := min(offset+int(params.PageSize), total)
 	return filtered[offset:end], total, nil
 }
 
@@ -162,7 +156,7 @@ func (f *fakeAdminAPI) SelfDirector(_ context.Context, _ string, _ portalservice
 
 // adminAPIServer starts a test HTTP server that always responds with the given
 // value serialised as JSON.
-func adminAPIServer(response interface{}) *httptest.Server {
+func adminAPIServer(response any) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -172,20 +166,20 @@ func adminAPIServer(response interface{}) *httptest.Server {
 
 // getUsersByEmailResponse builds a GraphQL data envelope for the
 // getUsersByStandardAttribute query.
-func getUsersByEmailResponse(globalIDs ...string) map[string]interface{} {
-	users := make([]interface{}, len(globalIDs))
+func getUsersByEmailResponse(globalIDs ...string) map[string]any {
+	users := make([]any, len(globalIDs))
 	for i, id := range globalIDs {
-		users[i] = map[string]interface{}{"id": id}
+		users[i] = map[string]any{"id": id}
 	}
-	return map[string]interface{}{
-		"data": map[string]interface{}{"users": users},
+	return map[string]any{
+		"data": map[string]any{"users": users},
 	}
 }
 
 // getNodesResponse builds a GraphQL data envelope for the getUserNodes query.
-func getNodesResponse(nodes ...interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"data": map[string]interface{}{"nodes": nodes},
+func getNodesResponse(nodes ...any) map[string]any {
+	return map[string]any{
+		"data": map[string]any{"nodes": nodes},
 	}
 }
 
@@ -255,8 +249,8 @@ func TestAppService(t *testing.T) {
 			globalID1 := relay.ToGlobalID("User", "user-1")
 			globalID2 := relay.ToGlobalID("User", "user-2")
 			svr := adminAPIServer(getNodesResponse(
-				map[string]interface{}{"id": globalID1, "standardAttributes": map[string]interface{}{"email": "alice@example.com"}},
-				map[string]interface{}{"id": globalID2, "standardAttributes": map[string]interface{}{"email": "bob@example.com"}},
+				map[string]any{"id": globalID1, "standardAttributes": map[string]any{"email": "alice@example.com"}},
+				map[string]any{"id": globalID2, "standardAttributes": map[string]any{"email": "bob@example.com"}},
 			))
 			defer svr.Close()
 
@@ -472,7 +466,7 @@ func TestAppService(t *testing.T) {
 			src := &configsource.DatabaseSource{AppID: "app-1", PlanName: "free", CreatedAt: now}
 			globalID := relay.ToGlobalID("User", "user-1")
 			svr := adminAPIServer(getNodesResponse(
-				map[string]interface{}{"id": globalID, "standardAttributes": map[string]interface{}{"email": "alice@example.com"}},
+				map[string]any{"id": globalID, "standardAttributes": map[string]any{"email": "alice@example.com"}},
 			))
 			defer svr.Close()
 

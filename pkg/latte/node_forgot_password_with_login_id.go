@@ -32,8 +32,8 @@ func (*NodeForgotPasswordWithLoginID) ReactTo(ctx context.Context, deps *workflo
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeForgotPasswordWithLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	output := map[string]interface{}{}
+func (n *NodeForgotPasswordWithLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	output := map[string]any{}
 	maskedLoginID := mail.MaskAddress(n.LoginID)
 	if maskedLoginID == "" {
 		maskedLoginID = phone.Mask(n.LoginID)

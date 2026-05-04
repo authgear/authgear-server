@@ -71,6 +71,6 @@ type PasswordPolicyItemFeatureConfig struct {
 
 func (c *PasswordPolicyItemFeatureConfig) SetDefaults() {
 	if c.Disabled == nil {
-		c.Disabled = newBool(false)
+		c.Disabled = new(false)
 	}
 }

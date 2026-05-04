@@ -27,8 +27,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(saveOnboardingSurveyInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			surveyJSON := input["surveyJSON"].(string)
 
 			ctx := p.Context

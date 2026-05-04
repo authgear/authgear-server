@@ -26,7 +26,7 @@ func ConfigureAppStaticAssetsRoute(route httproute.Route) httproute.Route {
 }
 
 type ResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 	Resolve(path string) (resource.Descriptor, bool)
 }
 

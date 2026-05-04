@@ -163,14 +163,14 @@ type VerificationFacade interface {
 }
 
 type UserProfileFacade interface {
-	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
-	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error)
+	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]any) (map[string]any, error)
 	UpdateUserProfile(
 		ctx context.Context,
 		role accesscontrol.Role,
 		userID string,
-		stdAttrs map[string]interface{},
-		customAttrs map[string]interface{},
+		stdAttrs map[string]any,
+		customAttrs map[string]any,
 	) error
 }
 
@@ -188,7 +188,7 @@ type AuthorizationFacade interface {
 }
 
 type OAuthFacade interface {
-	CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]interface{}) (session.ListableSession, protocol.TokenResponse, error)
+	CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]any) (session.ListableSession, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {

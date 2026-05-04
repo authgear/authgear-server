@@ -30,7 +30,7 @@ const (
 
 type Facebook struct{}
 
-func (Facebook) GetJSONSchema() map[string]interface{} {
+func (Facebook) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -60,7 +60,7 @@ func (Facebook) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpar
 	//
 	// Rotating the OAuth application is problematic.
 	// But if email remains unchanged, the user can associate their account.
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"client_id": cfg.ClientID(),
 	}
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
@@ -149,8 +149,8 @@ func (Facebook) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 	name, _ := userProfile["name"].(string)
 	shortName, _ := userProfile["short_name"].(string)
 	var picture string
-	if pictureObj, ok := userProfile["picture"].(map[string]interface{}); ok {
-		if data, ok := pictureObj["data"].(map[string]interface{}); ok {
+	if pictureObj, ok := userProfile["picture"].(map[string]any); ok {
+		if data, ok := pictureObj["data"].(map[string]any); ok {
 			if url, ok := data["url"].(string); ok {
 				picture = url
 			}
@@ -159,7 +159,7 @@ func (Facebook) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 
 	authInfo.ProviderUserID = id
 	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
-	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
+	stdAttrs, err := stdattrs.Extract(map[string]any{
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,
 		stdattrs.FamilyName: lastName,

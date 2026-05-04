@@ -89,10 +89,10 @@ func (m *MockSAMLUserInfoProvider) EXPECT() *MockSAMLUserInfoProviderMockRecorde
 }
 
 // GetUserInfo mocks base method.
-func (m *MockSAMLUserInfoProvider) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+func (m *MockSAMLUserInfoProvider) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserInfo", ctx, userID, clientLike)
-	ret0, _ := ret[0].(map[string]interface{})
+	ret0, _ := ret[0].(map[string]any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -203,7 +203,7 @@ func (m *MockTemplateEngine) EXPECT() *MockTemplateEngineMockRecorder {
 }
 
 // RenderPublicText mocks base method.
-func (m *MockTemplateEngine) RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error) {
+func (m *MockTemplateEngine) RenderPublicText(ctx context.Context, tpl string, data any) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderPublicText", ctx, tpl, data)
 	ret0, _ := ret[0].(string)

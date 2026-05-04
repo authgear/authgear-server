@@ -64,7 +64,6 @@ func (m *SAMLSpSigningMaterials) Resolve(clientID string) (*SAMLSpSigningCertifi
 		return nil, -1, false
 	}
 	for idx, item := range *m {
-		item := item
 		if item.ServiceProviderID == clientID {
 			return &item, idx, true
 		}

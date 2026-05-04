@@ -170,7 +170,7 @@ func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Depend
 	return nil, ErrIncompatibleInput
 }
 
-func (i *intentNoValidateDuringUnmarshal) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (i *intentNoValidateDuringUnmarshal) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 

@@ -11,7 +11,7 @@ import (
 
 func makeFull() *model.User {
 	return &model.User{
-		StandardAttributes: map[string]interface{}{
+		StandardAttributes: map[string]any{
 			stdattrs.Email:               "johndoe@example.com",
 			stdattrs.EmailVerified:       true,
 			stdattrs.PhoneNumber:         "+1234567890",
@@ -35,7 +35,7 @@ func makeFull() *model.User {
 
 func makeFalsy() *model.User {
 	return &model.User{
-		StandardAttributes: map[string]interface{}{
+		StandardAttributes: map[string]any{
 			stdattrs.Email:               "",
 			stdattrs.EmailVerified:       false,
 			stdattrs.PhoneNumber:         "",
@@ -59,7 +59,7 @@ func makeFalsy() *model.User {
 
 func makePartial() *model.User {
 	return &model.User{
-		StandardAttributes: map[string]interface{}{
+		StandardAttributes: map[string]any{
 			stdattrs.Email:             "johndoe@example.com",
 			stdattrs.EmailVerified:     true,
 			stdattrs.PreferredUsername: "johndoe",

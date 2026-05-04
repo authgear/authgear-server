@@ -39,7 +39,7 @@ func (m *MockStandardAttributesServiceNoEvent) EXPECT() *MockStandardAttributesS
 }
 
 // UpdateStandardAttributes mocks base method.
-func (m *MockStandardAttributesServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (m *MockStandardAttributesServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateStandardAttributes", ctx, role, userID, stdAttrs)
 	ret0, _ := ret[0].(error)
@@ -76,7 +76,7 @@ func (m *MockCustomAttributesServiceNoEvent) EXPECT() *MockCustomAttributesServi
 }
 
 // UpdateAllCustomAttributes mocks base method.
-func (m *MockCustomAttributesServiceNoEvent) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+func (m *MockCustomAttributesServiceNoEvent) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAllCustomAttributes", ctx, role, userID, reprForm)
 	ret0, _ := ret[0].(error)

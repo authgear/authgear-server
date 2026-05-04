@@ -22,8 +22,8 @@ type CSRFErrorInstructionHandler struct {
 	Renderer      Renderer
 }
 
-func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)

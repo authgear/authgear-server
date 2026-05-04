@@ -157,7 +157,7 @@ func HTTP303HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI st
 func FormPost(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, response map[string]string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	err := formPostTemplate.Execute(w, map[string]interface{}{
+	err := formPostTemplate.Execute(w, map[string]any{
 		"CSPNonce":     httputil.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI.String(),
 		"response":     response,

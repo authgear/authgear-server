@@ -87,7 +87,7 @@ type SettingsProfileEditUserService interface {
 }
 
 type SettingsProfileEditStdAttrsService interface {
-	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error
 }
 
 type SettingsProfileEditCustomAttrsService interface {
@@ -110,10 +110,10 @@ func PatchGenderForm(form url.Values) {
 	}
 }
 
-func (h *AuthflowV2SettingsProfileEditHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsProfileEditHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
 	userID := session.GetUserID(ctx)
 
-	data := map[string]interface{}{}
+	data := map[string]any{}
 	data["Pointer"] = r.Form.Get("pointer")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -173,7 +173,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 	ctrl.Get(func(ctx context.Context) error {
 		variant := httproute.GetParam(r, "variant")
 
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			if err != nil {

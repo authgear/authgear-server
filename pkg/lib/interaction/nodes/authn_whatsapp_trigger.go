@@ -48,7 +48,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputAuthenticationWhatsappTrigger
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

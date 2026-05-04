@@ -23,7 +23,7 @@ type EdgeDoUseAuthenticator struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeDoUseAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUseAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	n := &NodeDoUseAuthenticator{
 		Stage:         e.Stage,
 		Authenticator: e.Authenticator,

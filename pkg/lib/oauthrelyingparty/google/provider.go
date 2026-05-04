@@ -50,7 +50,7 @@ const (
 
 type Google struct{}
 
-func (Google) GetJSONSchema() map[string]interface{} {
+func (Google) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().

@@ -56,6 +56,6 @@ func (i *IntentChangePassword) GetEffects(ctx context.Context, deps *workflow.De
 	return nil, nil
 }
 
-func (i *IntentChangePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentChangePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

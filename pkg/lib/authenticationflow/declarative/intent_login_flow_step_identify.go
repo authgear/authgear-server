@@ -257,7 +257,6 @@ func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dep
 	idx = -1
 
 	for index, branch := range step.OneOf {
-		branch := branch
 		if im == branch.Identification {
 			idx = index
 		}
@@ -284,7 +283,6 @@ func (*IntentLoginFlowStepIdentify) identificationMethod(flows authflow.Flows) m
 
 func (i *IntentLoginFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
-		branch := branch
 		if branch.Identification == im {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}

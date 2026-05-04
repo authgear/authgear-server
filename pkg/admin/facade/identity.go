@@ -88,7 +88,7 @@ func (f *IdentityFacade) Create(ctx context.Context, userID string, identityDef 
 }
 
 func (f *IdentityFacade) Update(ctx context.Context, identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error) {
-	var input interface{} = &updateIdentityInput{identityDef: identityDef}
+	var input any = &updateIdentityInput{identityDef: identityDef}
 
 	_, err := f.Interaction.Perform(
 		ctx,

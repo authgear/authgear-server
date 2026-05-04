@@ -5,7 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v7"
@@ -48,7 +49,7 @@ type queryUserResponse struct {
 		} `json:"total"`
 		Hits []struct {
 			Source model.SearchUserSource `json:"_source"`
-			Sort   interface{}            `json:"sort"`
+			Sort   any                    `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -99,7 +100,7 @@ func (s *Service) QueryUser(
 	defer res.Body.Close()
 
 	if res.IsError() {
-		bytes, err := ioutil.ReadAll(res.Body)
+		bytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, nil, err
 		}

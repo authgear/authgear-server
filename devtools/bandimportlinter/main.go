@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +27,7 @@ type Linter struct {
 }
 
 func NewLinter() (*Linter, error) {
-	contentbytes, err := ioutil.ReadFile(".bandimportpackages")
+	contentbytes, err := os.ReadFile(".bandimportpackages")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load .bandimportpackages, %w", err)
 	}
@@ -73,7 +73,7 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violation error, err e
 	}
 	defer f.Close()
 
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		return
 	}

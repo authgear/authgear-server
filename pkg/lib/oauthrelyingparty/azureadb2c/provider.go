@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -40,7 +41,7 @@ var _ oauthrelyingparty.Provider = AzureADB2C{}
 
 type AzureADB2C struct{}
 
-func (AzureADB2C) GetJSONSchema() map[string]interface{} {
+func (AzureADB2C) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -74,7 +75,7 @@ func (AzureADB2C) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingp
 	//
 	// See https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview#claims
 	tenant := ProviderConfig(cfg).Tenant()
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"tenant": tenant,
 	}
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
@@ -195,7 +196,7 @@ func (p AzureADB2C) GetUserProfile(ctx context.Context, deps oauthrelyingparty.D
 	return
 }
 
-func (AzureADB2C) extract(deps oauthrelyingparty.Dependencies, claims map[string]interface{}) (stdattrs.T, error) {
+func (AzureADB2C) extract(deps oauthrelyingparty.Dependencies, claims map[string]any) (stdattrs.T, error) {
 	// Here is the list of possible builtin claims of user flows
 	// https://learn.microsoft.com/en-us/azure/active-directory-b2c/user-flow-overview#user-flows
 	// city: free text
@@ -216,7 +217,7 @@ func (AzureADB2C) extract(deps oauthrelyingparty.Dependencies, claims map[string
 	// https://learn.microsoft.com/en-us/azure/active-directory-b2c/user-profile-attributes
 	// signInNames.emailAddress: string
 
-	extractString := func(input map[string]interface{}, output stdattrs.T, key string) {
+	extractString := func(input map[string]any, output stdattrs.T, key string) {
 		if value, ok := input[key].(string); ok && value != "" {
 			output[key] = value
 		}
@@ -230,7 +231,7 @@ func (AzureADB2C) extract(deps oauthrelyingparty.Dependencies, claims map[string
 
 	var email string
 	if email == "" {
-		if ifaceSlice, ok := claims["emails"].([]interface{}); ok {
+		if ifaceSlice, ok := claims["emails"].([]any); ok {
 			for _, iface := range ifaceSlice {
 				if str, ok := iface.(string); ok && str != "" {
 					email = str
@@ -256,10 +257,8 @@ func (AzureADB2C) extract(deps oauthrelyingparty.Dependencies, claims map[string
 func (AzureADB2C) getPrompt(prompt []string) []string {
 	// The only supported value is login.
 	// See https://docs.microsoft.com/en-us/azure/active-directory-b2c/openid-connect
-	for _, p := range prompt {
-		if p == "login" {
-			return []string{"login"}
-		}
+	if slices.Contains(prompt, "login") {
+		return []string{"login"}
 	}
 	return []string{}
 }

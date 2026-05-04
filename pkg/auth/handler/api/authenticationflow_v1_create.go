@@ -38,7 +38,7 @@ func init() {
 		Items(validation.SchemaBuilder{}.Type(validation.TypeObject)))
 	b.Properties().Property("type", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
-		Enum(slice.Cast[authflow.FlowType, interface{}](authflow.AllFlowTypes)...))
+		Enum(slice.Cast[authflow.FlowType, any](authflow.AllFlowTypes)...))
 
 	AuthenticationFlowV1NonRestfulCreateRequestSchema = b.ToSimpleSchema()
 }

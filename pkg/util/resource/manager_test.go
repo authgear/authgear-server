@@ -22,7 +22,7 @@ func TestResourceManager(t *testing.T) {
 
 		resourceA := r.Register(resource.NewlineJoinedDescriptor{
 			Path: "resourceA.txt",
-			Parse: func(data []byte) (interface{}, error) {
+			Parse: func(data []byte) (any, error) {
 				return data, nil
 			},
 		})

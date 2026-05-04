@@ -32,8 +32,8 @@ type AuthflowV2ResetPasswordSuccessViewModel struct {
 	CanBackToSignIn bool
 }
 
-func (h *AuthflowV2ResetPasswordSuccessHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ResetPasswordSuccessHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	resetPasswordSuccessViewModel := &AuthflowV2ResetPasswordSuccessViewModel{

@@ -38,8 +38,6 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 	}{}
 
 	for index, option := range i.Options {
-		index := index
-		option := option
 
 		addPair := func() {
 			optionSchema := validation.SchemaBuilder{}
@@ -84,7 +82,7 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 
 	b.Properties().Property("index", validation.SchemaBuilder{}.
 		Type(validation.TypeInteger).
-		Enum(slice.Cast[int, interface{}](indice)...),
+		Enum(slice.Cast[int, any](indice)...),
 	)
 	b.AllOf(allOfs...)
 

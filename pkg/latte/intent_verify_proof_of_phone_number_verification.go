@@ -48,6 +48,6 @@ func (i *IntentVerifyProofOfPhoneNumberVerification) GetEffects(ctx context.Cont
 	return nil, nil
 }
 
-func (i *IntentVerifyProofOfPhoneNumberVerification) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (i *IntentVerifyProofOfPhoneNumberVerification) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }

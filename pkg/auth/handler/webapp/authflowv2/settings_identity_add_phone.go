@@ -53,8 +53,8 @@ type AuthflowV2SettingsIdentityAddPhoneHandler struct {
 	AccountManagement   accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 

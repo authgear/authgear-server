@@ -20,8 +20,8 @@ type OAuthSpec struct {
 
 	ProviderID     oauthrelyingparty.ProviderID `json:"provider_id"`
 	SubjectID      string                       `json:"subject_id"`
-	RawProfile     map[string]interface{}       `json:"raw_profile,omitempty"`
-	StandardClaims map[string]interface{}       `json:"standard_claims,omitempty"`
+	RawProfile     map[string]any               `json:"raw_profile,omitempty"`
+	StandardClaims map[string]any               `json:"standard_claims,omitempty"`
 }
 
 func NewIncomingOAuthSpec(providerConfig oauthrelyingparty.ProviderConfig, userProfile oauthrelyingparty.UserProfile) *OAuthSpec {

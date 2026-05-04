@@ -18,7 +18,7 @@ import (
 )
 
 type CustomAttribute struct {
-	Value          interface{}
+	Value          any
 	Label          string
 	EnumValueLabel string
 	Pointer        string
@@ -145,7 +145,7 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 		return value
 	}
 	addressStr := func(key string) string {
-		address, ok := stdAttrs[stdattrs.Address].(map[string]interface{})
+		address, ok := stdAttrs[stdattrs.Address].(map[string]any)
 		if !ok {
 			return ""
 		}
@@ -205,7 +205,7 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 				return nil, err
 			}
 
-			var value interface{}
+			var value any
 			if v, err := ptr.Traverse(user.CustomAttributes); err == nil {
 				value = v
 			}

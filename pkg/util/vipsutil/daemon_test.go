@@ -19,8 +19,8 @@ func NewPNG(width int, height int) []byte {
 	c := color.RGBA{}
 	rect := image.Rect(0, 0, width, height)
 	img := image.NewRGBA(rect)
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
+	for x := range width {
+		for y := range height {
 			img.Set(x, y, c)
 		}
 	}
@@ -64,7 +64,7 @@ func TestDaemonGoroutineCharacteristics(t *testing.T) {
 		numRequest := 100
 		var wg sync.WaitGroup
 
-		for i := 0; i < numRequest; i++ {
+		for i := range numRequest {
 			wg.Add(1)
 			go func(i int) {
 				img := NewPNG(1, 1)

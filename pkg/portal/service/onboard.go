@@ -71,7 +71,7 @@ func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.Onb
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userID":           id,
 			"customAttributes": entry,
 		},
@@ -82,11 +82,11 @@ func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.Onb
 		return err
 	}
 
-	event := map[string]interface{}{
+	event := map[string]any{
 		"event":       "onboardingSurvey.set-completed-survey",
 		"distinct_id": actorID,
-		"properties": map[string]interface{}{
-			"$set": map[string]interface{}{
+		"properties": map[string]any{
+			"$set": map[string]any{
 				"survey_json": json.RawMessage(entry.SurveyJSON),
 			},
 		},
@@ -103,11 +103,11 @@ func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.Onb
 	return nil
 }
 
-func unwrap(thing interface{}, keys []string) (interface{}, bool) {
+func unwrap(thing any, keys []string) (any, bool) {
 	if len(keys) == 0 {
 		return thing, true
 	}
-	mapThing, ok := thing.(map[string]interface{})
+	mapThing, ok := thing.(map[string]any)
 	if !ok {
 		return nil, false
 	}
@@ -131,7 +131,7 @@ func (s *OnboardService) CheckOnboardingSurveyCompletion(ctx context.Context, ac
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userID": id,
 		},
 	}

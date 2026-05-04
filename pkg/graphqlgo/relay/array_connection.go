@@ -21,7 +21,7 @@ A simple function that accepts an array and connection arguments, and returns
 a connection object for use in GraphQL. It uses array offsets as pagination,
 so pagination will only work if the array is static.
 */
-func ConnectionFromArray(data []interface{}, args ConnectionArguments) *Connection {
+func ConnectionFromArray(data []any, args ConnectionArguments) *Connection {
 	return ConnectionFromArraySlice(
 		data,
 		args,
@@ -42,7 +42,7 @@ to materialize the entire array, and instead wish pass in a slice of the
 total result large enough to cover the range specified in `args`.
 */
 func ConnectionFromArraySlice(
-	arraySlice []interface{},
+	arraySlice []any,
 	args ConnectionArguments,
 	meta ArraySliceMetaInfo,
 ) *Connection {
@@ -138,7 +138,7 @@ func CursorToOffset(cursor ConnectionCursor) (int, error) {
 }
 
 // Return the cursor associated with an object in an array.
-func CursorForObjectInConnection(data []interface{}, object interface{}) ConnectionCursor {
+func CursorForObjectInConnection(data []any, object any) ConnectionCursor {
 	offset := -1
 	for i, d := range data {
 		// TODO: better object comparison
@@ -164,22 +164,8 @@ func GetOffsetWithDefault(cursor ConnectionCursor, defaultOffset int) int {
 	return offset
 }
 
-func max(a, b int) int {
-	if a < b {
-		return b
-	}
-	return a
-}
-
 func ternaryMax(a, b, c int) int {
 	return max(max(a, b), c)
-}
-
-func min(a, b int) int {
-	if a > b {
-		return b
-	}
-	return a
 }
 
 func ternaryMin(a, b, c int) int {

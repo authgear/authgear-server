@@ -392,7 +392,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(updateAppInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -400,9 +400,9 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can update app")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
-			updates, _ := input["updates"].([]interface{})
+			updates, _ := input["updates"].([]any)
 			appConfigJSONValue := input["appConfig"]
 			appConfigChecksum, _ := input["appConfigChecksum"].(string)
 			secretConfigUpdateInstructionsJSONValue := input["secretConfigUpdateInstructions"]
@@ -432,7 +432,7 @@ var _ = registerMutationField(
 			var resourceUpdates []appresource.Update
 			var auditedUpdatePaths []string = []string{}
 			for _, f := range updates {
-				f := f.(map[string]interface{})
+				f := f.(map[string]any)
 				path := f["path"].(string)
 				if path == configsource.AuthgearSecretYAML {
 					return nil, errors.New("direct update on authgear.secrets.yaml is disallowed")
@@ -505,7 +505,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 			var updatedSecrets []string = []string{}
-			if secretUpdateInstructionsMap, ok := secretConfigUpdateInstructionsJSONValue.(map[string]interface{}); ok {
+			if secretUpdateInstructionsMap, ok := secretConfigUpdateInstructionsJSONValue.(map[string]any); ok {
 				for k := range secretUpdateInstructionsMap {
 					updatedSecrets = append(updatedSecrets, k)
 				}
@@ -522,7 +522,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
@@ -562,8 +562,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createAppInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			appID := input["id"].(string)
 			projectWizardData := input["projectWizardData"]
 
@@ -601,7 +601,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
@@ -637,7 +637,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(skipAppTutorialInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenicated user.
@@ -646,7 +646,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["id"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
@@ -669,7 +669,7 @@ var _ = registerMutationField(
 			}
 
 			appLazy := gqlCtx.Apps.Load(ctx, appID)
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": appLazy,
 			}).Value, nil
 		},
@@ -709,7 +709,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(skipAppTutorialProgressInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -717,7 +717,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["id"].(string)
 			progressStr := input["progress"].(string)
 
@@ -746,7 +746,7 @@ var _ = registerMutationField(
 			}
 
 			appLazy := gqlCtx.Apps.Load(ctx, appID)
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": appLazy,
 			}).Value, nil
 		},
@@ -787,7 +787,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(generateAppSecretVisitTokenInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -795,9 +795,9 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can visit secrets")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["id"].(string)
-			secretsRaw := input["secrets"].([]interface{})
+			secretsRaw := input["secrets"].([]any)
 			var appSecretKeys []string = []string{}
 			var secrets []config.SecretKey = []config.SecretKey{}
 			for _, s := range secretsRaw {
@@ -838,7 +838,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"token": token.TokenID,
 			}).Value, nil
 		},
@@ -879,7 +879,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(generateTestTokenInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenicated user.
@@ -888,7 +888,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can generate tester token")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["id"].(string)
 			returnURI := input["returnUri"].(string)
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
@@ -915,7 +915,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"token": token.TokenID,
 			}).Value, nil
 		},
@@ -955,7 +955,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(saveProjectWizardDataInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -963,7 +963,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can saveProjectWizardData")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["id"].(string)
 			data := input["data"]
 
@@ -987,7 +987,7 @@ var _ = registerMutationField(
 			}
 
 			appLazy := gqlCtx.Apps.Load(ctx, appID)
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": appLazy,
 			}).Value, nil
 		},

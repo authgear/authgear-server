@@ -338,7 +338,6 @@ func (s *AppService) LoadEffectiveSecretConfig(ctx context.Context, app *model.A
 	}
 
 	for _, item := range demoSecrets.Items {
-		item := item
 		effectiveSecretConfig.OAuthSSOProviderDemoSecrets = append(effectiveSecretConfig.OAuthSSOProviderDemoSecrets, model.OAuthSSOProviderDemoSecretItem{
 			Type: item.ProviderConfig.Type(),
 		})

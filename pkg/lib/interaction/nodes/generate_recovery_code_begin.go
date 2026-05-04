@@ -15,7 +15,7 @@ type EdgeGenerateRecoveryCode struct {
 	IsRegenerate bool
 }
 
-func (e *EdgeGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	// Regenerate recovery codes if explicitly requested
 	doGenerate := e.IsRegenerate
 

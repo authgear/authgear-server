@@ -44,6 +44,6 @@ func (*NodeVerifiedIdentity) ReactTo(ctx context.Context, deps *workflow.Depende
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeVerifiedIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*NodeVerifiedIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

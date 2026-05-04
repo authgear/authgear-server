@@ -22,7 +22,8 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
-func boolPtr(b bool) *bool { return &b }
+//go:fix inline
+func boolPtr(b bool) *bool { return new(b) }
 
 func TestApplyFeatureConfigConstraints(t *testing.T) {
 	Convey("ApplyFeatureConfigConstraints", t, func() {
@@ -91,13 +92,13 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 
 		Convey("fraud protection is reset to defaults when IsModifiable is false", func() {
 			customFP := &config.FraudProtectionConfig{
-				Enabled:  boolPtr(false),
+				Enabled:  new(false),
 				Warnings: nil,
 			}
 			appConfig := &config.AppConfig{FraudProtection: customFP}
 			featureConfig := &config.FeatureConfig{
 				FraudProtection: &config.FraudProtectionFeatureConfig{
-					IsModifiable: boolPtr(false),
+					IsModifiable: new(false),
 				},
 			}
 
@@ -112,13 +113,13 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 
 		Convey("fraud protection is left unchanged when IsModifiable is true", func() {
 			customFP := &config.FraudProtectionConfig{
-				Enabled:  boolPtr(false),
+				Enabled:  new(false),
 				Warnings: nil,
 			}
 			appConfig := &config.AppConfig{FraudProtection: customFP}
 			featureConfig := &config.FeatureConfig{
 				FraudProtection: &config.FraudProtectionFeatureConfig{
-					IsModifiable: boolPtr(true),
+					IsModifiable: new(true),
 				},
 			}
 
@@ -128,7 +129,7 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 		})
 
 		Convey("fraud protection is left unchanged when feature config has no fraud protection entry", func() {
-			customFP := &config.FraudProtectionConfig{Enabled: boolPtr(false)}
+			customFP := &config.FraudProtectionConfig{Enabled: new(false)}
 			appConfig := &config.AppConfig{FraudProtection: customFP}
 
 			config.ApplyFeatureConfigConstraints(appConfig, &config.FeatureConfig{})
@@ -224,9 +225,9 @@ identity:
 			defer f.Close()
 
 			type TestCase struct {
-				Name   string      `yaml:"name"`
-				Error  *string     `yaml:"error"`
-				Config interface{} `yaml:"config"`
+				Name   string  `yaml:"name"`
+				Error  *string `yaml:"error"`
+				Config any     `yaml:"config"`
 			}
 
 			decoder := goyaml.NewDecoder(f)

@@ -29,7 +29,7 @@ var _ oauthrelyingparty.Provider = AzureADv2{}
 
 type AzureADv2 struct{}
 
-func (AzureADv2) GetJSONSchema() map[string]interface{} {
+func (AzureADv2) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -64,7 +64,7 @@ func (AzureADv2) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpa
 	// But rotating the tenant is problematic.
 	// But if email remains unchanged, the user can associate their account.
 	tenant := ProviderConfig(cfg).Tenant()
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"tenant": tenant,
 	}
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)

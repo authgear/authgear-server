@@ -12,16 +12,16 @@ import (
 )
 
 type LDAP struct {
-	ID                   string                 `json:"id"`
-	CreatedAt            time.Time              `json:"created_at"`
-	UpdatedAt            time.Time              `json:"updated_at"`
-	UserID               string                 `json:"user_id"`
-	ServerName           string                 `json:"server_name"`
-	UserIDAttributeName  string                 `json:"user_id_attribute_name"`
-	UserIDAttributeValue []byte                 `json:"user_id_attribute_value"`
-	Claims               map[string]interface{} `json:"claims,omitempty"`
-	RawEntryJSON         map[string]interface{} `json:"raw_entry_json,omitempty"`
-	LastLoginUserName    *string                `json:"last_login_username"`
+	ID                   string         `json:"id"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+	UserID               string         `json:"user_id"`
+	ServerName           string         `json:"server_name"`
+	UserIDAttributeName  string         `json:"user_id_attribute_name"`
+	UserIDAttributeValue []byte         `json:"user_id_attribute_value"`
+	Claims               map[string]any `json:"claims,omitempty"`
+	RawEntryJSON         map[string]any `json:"raw_entry_json,omitempty"`
+	LastLoginUserName    *string        `json:"last_login_username"`
 }
 
 func (i *LDAP) UserIDAttributeValueDisplayValue() string {
@@ -29,8 +29,8 @@ func (i *LDAP) UserIDAttributeValueDisplayValue() string {
 }
 
 // EntryJSON returns a map that with attributes rendered.
-func (i *LDAP) EntryJSON() map[string]interface{} {
-	result := map[string]interface{}{}
+func (i *LDAP) EntryJSON() map[string]any {
+	result := map[string]any{}
 	for name, values := range i.RawEntryJSON {
 		switch name {
 		case "dn":
@@ -39,7 +39,7 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 			}
 		default:
 			var stringValues []string
-			for _, byteStr := range values.([]interface{}) {
+			for _, byteStr := range values.([]any) {
 				bytes, err := base64.StdEncoding.DecodeString(byteStr.(string))
 				if err != nil {
 					panic(fmt.Errorf("ldap: unexpected malformed base64 encoded string: %w", err))

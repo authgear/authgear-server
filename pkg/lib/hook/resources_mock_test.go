@@ -36,10 +36,10 @@ func (m *MockResourceManager) EXPECT() *MockResourceManagerMockRecorder {
 }
 
 // Read mocks base method.
-func (m *MockResourceManager) Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error) {
+func (m *MockResourceManager) Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Read", ctx, desc, view)
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

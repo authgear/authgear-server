@@ -59,8 +59,8 @@ type AuthflowV2UsePasskeyHandler struct {
 	Renderer                               handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -77,8 +77,8 @@ func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Req
 	return data, nil
 }
 
-func (h *AuthflowV2UsePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2UsePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -109,7 +109,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 
-		var assertionResponseJSON interface{}
+		var assertionResponseJSON any
 		err := json.Unmarshal([]byte(assertionResponseStr), &assertionResponseJSON)
 		if err != nil {
 			return err
@@ -120,7 +120,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication":     option.Authentication,
 			"assertion_response": assertionResponseJSON,
 		}

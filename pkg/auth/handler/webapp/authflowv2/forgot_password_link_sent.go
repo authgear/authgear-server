@@ -36,8 +36,8 @@ type AuthflowV2ForgotPasswordLinkSentHandler struct {
 	Clock         clock.Clock
 }
 
-func (h *AuthflowV2ForgotPasswordLinkSentHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ForgotPasswordLinkSentHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 	now := h.Clock.NowUTC()
 
 	screenData, ok := screen.StateTokenFlowResponse.Action.
@@ -72,7 +72,7 @@ func (h *AuthflowV2ForgotPasswordLinkSentHandler) ServeHTTP(w http.ResponseWrite
 	})
 
 	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]any{
 			"resend": true,
 		}, nil)
 		if err != nil {

@@ -97,7 +97,7 @@ func (f *RolesGroupsFacade) ListRoles(ctx context.Context, options *rolesgroups.
 		return nil, nil, err
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return count, nil
 	})), nil
 }
@@ -140,7 +140,7 @@ func (f *RolesGroupsFacade) ListGroups(ctx context.Context, options *rolesgroups
 		return nil, nil, err
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return count, nil
 	})), nil
 }
@@ -279,7 +279,7 @@ func (f *RolesGroupsFacade) ListUserIDsByRoleID(ctx context.Context, roleID stri
 		return nil, nil, err
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		// No need to report the total number of groups. So we return nil here.
 		return nil, nil
 	})), nil
@@ -299,7 +299,7 @@ func (f *RolesGroupsFacade) ListUserIDsByGroupID(ctx context.Context, groupID st
 		return nil, nil, err
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		// No need to report the total number of groups. So we return nil here.
 		return nil, nil
 	})), nil

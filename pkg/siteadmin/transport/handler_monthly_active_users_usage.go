@@ -62,7 +62,7 @@ func parseMonthlyActiveUsersUsageParams(r *http.Request) (MonthlyActiveUsersUsag
 	totalMonths := (endYear-startYear)*12 + (endMonth - startMonth)
 	if totalMonths < 0 || totalMonths > 11 {
 		return MonthlyActiveUsersUsageParams{}, makeValidationError(func(ctx *validation.Context) {
-			ctx.EmitError("range", map[string]interface{}{"details": "date range must be within 1 year"})
+			ctx.EmitError("range", map[string]any{"details": "date range must be within 1 year"})
 		})
 	}
 

@@ -69,7 +69,7 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 	endpoint = endpoint.JoinPath(c.Credentials.PhoneNumberID, "messages")
 
 	// I prefer we just use map here, instead of introducing lots of one-time use structs.
-	bodyJSON := map[string]interface{}{
+	bodyJSON := map[string]any{
 		// According to the doc, it is maximum 512 characters only.
 		// I guess it means it is 512 bytes only.
 		"biz_opaque_callback_data": c.AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData(),
@@ -78,28 +78,28 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 		"recipient_type":    "individual",
 		"to":                opts.To,
 		"type":              "template",
-		"template": map[string]interface{}{
+		"template": map[string]any{
 			"name": c.Credentials.AuthenticationTemplateConfig.CopyCodeButton.Name,
-			"language": map[string]interface{}{
+			"language": map[string]any{
 				"policy": "deterministic",
 				"code":   lang,
 			},
-			"components": []interface{}{
-				map[string]interface{}{
+			"components": []any{
+				map[string]any{
 					"type": "body",
-					"parameters": []interface{}{
-						map[string]interface{}{
+					"parameters": []any{
+						map[string]any{
 							"type": "text",
 							"text": opts.OTP,
 						},
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"type":     "button",
 					"sub_type": "url",
 					"index":    "0",
-					"parameters": []interface{}{
-						map[string]interface{}{
+					"parameters": []any{
+						map[string]any{
 							"type": "text",
 							"text": opts.OTP,
 						},

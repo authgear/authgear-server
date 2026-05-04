@@ -161,7 +161,7 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 }
 
 // Resolve mocks base method.
-func (m *MockResolver) Resolve(ctx context.Context, anything interface{}) error {
+func (m *MockResolver) Resolve(ctx context.Context, anything any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resolve", ctx, anything)
 	ret0, _ := ret[0].(error)

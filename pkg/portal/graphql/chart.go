@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+	"maps"
 	"time"
 
 	"github.com/graphql-go/graphql"
@@ -85,13 +86,11 @@ var analyticArgs = graphql.FieldConfigArgument{
 }
 
 func newAnalyticArgs(configMap graphql.FieldConfigArgument) graphql.FieldConfigArgument {
-	for fieldName, argConfig := range analyticArgs {
-		configMap[fieldName] = argConfig
-	}
+	maps.Copy(configMap, analyticArgs)
 	return configMap
 }
 
-func getAnalyticArgs(args map[string]interface{}) (appID string, rangeFrom *time.Time, rangeTo *time.Time, err error) {
+func getAnalyticArgs(args map[string]any) (appID string, rangeFrom *time.Time, rangeTo *time.Time, err error) {
 	appNodeID := args["appID"].(string)
 	resolvedNodeID := relay.FromGlobalID(appNodeID)
 	if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {

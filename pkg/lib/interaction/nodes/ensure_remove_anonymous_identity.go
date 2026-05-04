@@ -15,7 +15,7 @@ func init() {
 
 type EdgeEnsureRemoveAnonymousIdentity struct{}
 
-func (e *EdgeEnsureRemoveAnonymousIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureRemoveAnonymousIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeEnsureRemoveAnonymousIdentity{
 		IsAdminAPI: interaction.IsAdminAPI(input),
 	}, nil

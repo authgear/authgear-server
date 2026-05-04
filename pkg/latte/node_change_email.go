@@ -63,6 +63,6 @@ func (n *NodeChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (n *NodeChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }

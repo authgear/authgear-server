@@ -17,12 +17,12 @@ func NewTesterToken(returnURI string) *TesterToken {
 }
 
 type TesterResult struct {
-	ID        string                 `json:"id"`
-	ReturnURI string                 `json:"return_uri"`
-	UserInfo  map[string]interface{} `json:"user_info"`
+	ID        string         `json:"id"`
+	ReturnURI string         `json:"return_uri"`
+	UserInfo  map[string]any `json:"user_info"`
 }
 
-func NewTesterResultFromToken(token *TesterToken, userInfo map[string]interface{}) *TesterResult {
+func NewTesterResultFromToken(token *TesterToken, userInfo map[string]any) *TesterResult {
 	return &TesterResult{
 		ID:        newTesterResultID(),
 		ReturnURI: token.ReturnURI,

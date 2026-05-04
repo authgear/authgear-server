@@ -8,12 +8,12 @@ import (
 
 func TestClone(t *testing.T) {
 	Convey("it should clone a json", t, func() {
-		m1 := map[string]interface{}{
+		m1 := map[string]any{
 			"a": "bbb",
-			"b": map[string]interface{}{
+			"b": map[string]any{
 				"c": 123,
 			},
-			"d": map[string]interface{}{
+			"d": map[string]any{
 				"e": []int{1, 2, 3},
 			},
 		}
@@ -25,15 +25,15 @@ func TestClone(t *testing.T) {
 		// change m1
 		m1["a"] = "zzz"
 		delete(m1, "b")
-		m1["d"].(map[string]interface{})["e"] = []int{4, 5, 6}
+		m1["d"].(map[string]any)["e"] = []int{4, 5, 6}
 
-		So(m1, ShouldResemble, map[string]interface{}{"a": "zzz", "d": map[string]interface{}{"e": []int{4, 5, 6}}})
-		So(m2, ShouldResemble, map[string]interface{}{
+		So(m1, ShouldResemble, map[string]any{"a": "zzz", "d": map[string]any{"e": []int{4, 5, 6}}})
+		So(m2, ShouldResemble, map[string]any{
 			"a": "bbb",
-			"b": map[string]interface{}{
+			"b": map[string]any{
 				"c": 123,
 			},
-			"d": map[string]interface{}{
+			"d": map[string]any{
 				"e": []int{1, 2, 3},
 			},
 		})
@@ -45,10 +45,10 @@ func TestClone(t *testing.T) {
 		}
 
 		type Foo struct {
-			Value *interface{}
+			Value *any
 		}
 
-		ifacePtr := func(v interface{}) *interface{} {
+		ifacePtr := func(v any) *any {
 			return &v
 		}
 
@@ -61,7 +61,7 @@ func TestClone(t *testing.T) {
 	})
 
 	Convey("it should copy primitives", t, func() {
-		ps := []interface{}{
+		ps := []any{
 			42,
 			"foo",
 			1.2,
@@ -78,7 +78,7 @@ func TestClone(t *testing.T) {
 		i := 42
 		s := "foo"
 		f := 1.2
-		ps := []interface{}{
+		ps := []any{
 			&i,
 			&s,
 			&f,

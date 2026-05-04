@@ -15,12 +15,12 @@ type Intent interface {
 	EffectGetter
 	Kind() string
 	JSONSchema() *validation.SimpleSchema
-	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error)
 }
 
 type IntentOutput struct {
-	Kind string      `json:"kind"`
-	Data interface{} `json:"data,omitempty"`
+	Kind string `json:"kind"`
+	Data any    `json:"data,omitempty"`
 }
 
 type IntentJSON struct {

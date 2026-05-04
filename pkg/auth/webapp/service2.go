@@ -37,7 +37,7 @@ type GraphService interface {
 	Get(ctx context.Context, instanceID string) (*interaction.Graph, error)
 	DryRun(ctx context.Context, contextValues interaction.ContextValues, fn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error)) error
 	Run(ctx context.Context, contextValues interaction.ContextValues, graph *interaction.Graph) error
-	Accept(ctx context.Context, interactionCtx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
+	Accept(ctx context.Context, interactionCtx *interaction.Context, graph *interaction.Graph, input any) (*interaction.Graph, []interaction.Edge, error)
 }
 
 type CookiesGetter interface {
@@ -164,7 +164,7 @@ func (s *Service2) PostWithIntent(
 	ctx context.Context,
 	session *Session,
 	intent interaction.Intent,
-	inputFn func() (interface{}, error),
+	inputFn func() (any, error),
 ) (result *Result, err error) {
 	return s.doPost(ctx, session, inputFn, true, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		return s.Graph.NewGraph(ctx, interactionCtx, intent)
@@ -174,7 +174,7 @@ func (s *Service2) PostWithIntent(
 func (s *Service2) PostWithInput(
 	ctx context.Context,
 	session *Session,
-	inputFn func() (interface{}, error),
+	inputFn func() (any, error),
 ) (result *Result, err error) {
 	return s.doPost(ctx, session, inputFn, false, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		return s.Graph.Get(ctx, session.CurrentStep().GraphID)
@@ -185,7 +185,7 @@ func (s *Service2) PostWithInput(
 func (s *Service2) doPost(
 	ctx context.Context,
 	session *Session,
-	inputFn func() (interface{}, error),
+	inputFn func() (any, error),
 	isNewGraph bool,
 	graphFn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error),
 ) (*Result, error) {
@@ -223,7 +223,7 @@ func (s *Service2) doPost(
 				}
 			}
 			if len(authDeviceToken) > 0 && !deviceTokenAttempted {
-				inputFn = func() (interface{}, error) {
+				inputFn = func() (any, error) {
 					return &inputAuthDeviceToken{
 						DeviceToken: authDeviceToken,
 					}, nil
@@ -254,7 +254,7 @@ func (s *Service2) doPost(
 					graph.InstanceID,
 				))
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				inputFn = func() (input interface{}, err error) {
+				inputFn = func() (input any, err error) {
 					input = &inputTriggerOOB{
 						AuthenticatorType:  string(defaultEdge.OOBAuthenticatorType),
 						AuthenticatorIndex: 0,
@@ -262,14 +262,14 @@ func (s *Service2) doPost(
 					return
 				}
 			case *nodes.EdgeAuthenticationWhatsappTrigger:
-				inputFn = func() (input interface{}, err error) {
+				inputFn = func() (input any, err error) {
 					input = &inputTriggerWhatsapp{
 						AuthenticatorIndex: 0,
 					}
 					return
 				}
 			case *nodes.EdgeAuthenticationLoginLinkTrigger:
-				inputFn = func() (input interface{}, err error) {
+				inputFn = func() (input any, err error) {
 					input = &inputTriggerLoginLink{
 						AuthenticatorIndex: 0,
 					}
@@ -293,7 +293,7 @@ func (s *Service2) doPost(
 				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
 				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
-					inputFn = func() (interface{}, error) {
+					inputFn = func() (any, error) {
 						return &inputSelectOOB{}, nil
 					}
 				} else {
@@ -312,12 +312,12 @@ func (s *Service2) doPost(
 					))
 				}
 			case *nodes.EdgeCreateAuthenticatorTOTPSetup:
-				inputFn = func() (interface{}, error) {
+				inputFn = func() (any, error) {
 					return &inputSelectTOTP{}, nil
 				}
 			case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
 				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
-					inputFn = func() (interface{}, error) {
+					inputFn = func() (any, error) {
 						return &inputSelectWhatsappOTP{}, nil
 					}
 				} else {
@@ -328,7 +328,7 @@ func (s *Service2) doPost(
 				}
 			case *nodes.EdgeCreateAuthenticatorLoginLinkOTPSetup:
 				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
-					inputFn = func() (interface{}, error) {
+					inputFn = func() (any, error) {
 						return &inputSelectLoginLinkOTP{}, nil
 					}
 				} else {
@@ -344,11 +344,11 @@ func (s *Service2) doPost(
 		case SessionStepVerifyIdentityBegin:
 			switch defaultEdge := edges[0].(type) {
 			case *nodes.EdgeVerifyIdentity:
-				inputFn = func() (interface{}, error) {
+				inputFn = func() (any, error) {
 					return &inputSelectVerifyIdentityViaOOBOTP{}, nil
 				}
 			case *nodes.EdgeVerifyIdentityViaWhatsapp:
-				inputFn = func() (interface{}, error) {
+				inputFn = func() (any, error) {
 					return &inputSelectVerifyIdentityViaWhatsapp{}, nil
 				}
 			default:
@@ -377,7 +377,7 @@ func (s *Service2) runGraph(
 	ctx context.Context,
 	session *Session,
 	result *Result,
-	inputFn func() (interface{}, error),
+	inputFn func() (any, error),
 	graphFn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error),
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
@@ -647,18 +647,18 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	}
 }
 
-func collectExtras(node interaction.Node) map[string]interface{} {
+func collectExtras(node interaction.Node) map[string]any {
 	switch node := node.(type) {
 	case *nodes.NodeForgotPasswordEnd:
-		return map[string]interface{}{
+		return map[string]any{
 			"login_id": node.LoginID,
 		}
 	case *nodes.NodeEnsureVerificationEnd:
-		return map[string]interface{}{
+		return map[string]any{
 			"display_id": node.Identity.DisplayID(),
 		}
 	case *nodes.NodeDoVerifyIdentity:
-		return map[string]interface{}{
+		return map[string]any{
 			"display_id": node.Identity.DisplayID(),
 		}
 	default:

@@ -72,8 +72,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(checkIPInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			err := checkIPInputSchema.Validator().ValidateValue(p.Context, input)
 			if err != nil {
@@ -82,8 +82,8 @@ var _ = registerMutationField(
 
 			appNodeID := input["appID"].(string)
 			ipAddress := input["ipAddress"].(string)
-			cidrs := input["cidrs"].([]interface{})
-			countryCodes := input["countryCodes"].([]interface{})
+			cidrs := input["cidrs"].([]any)
+			countryCodes := input["countryCodes"].([]any)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {

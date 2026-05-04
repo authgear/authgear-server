@@ -16,7 +16,7 @@ type EdgeWhatsappOTPResendCode struct {
 	OTPKindFactory otp.DeprecatedKindFactory
 }
 
-func (e *EdgeWhatsappOTPResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeWhatsappOTPResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputWhatsappOTPResendCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

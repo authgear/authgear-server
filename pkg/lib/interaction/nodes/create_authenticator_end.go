@@ -17,7 +17,7 @@ type EdgeCreateAuthenticatorEnd struct {
 	Authenticators []*authenticator.Info
 }
 
-func (e *EdgeCreateAuthenticatorEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeCreateAuthenticatorEnd{
 		Stage:          e.Stage,
 		Authenticators: e.Authenticators,

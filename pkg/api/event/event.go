@@ -10,11 +10,11 @@ import (
 type Type string
 
 type StandardAttributesServiceNoEvent interface {
-	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error
 }
 
 type CustomAttributesServiceNoEvent interface {
-	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]any) error
 }
 
 type RolesAndGroupsServiceNoEvent interface {

@@ -535,7 +535,7 @@ func (s *CollaboratorService) SendInvitation(
 	q.Set("code", code)
 	link.RawQuery = q.Encode()
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"AppName": appID,
 		"Link":    link,
 	}
@@ -777,7 +777,7 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"id": id,
 		},
 	}
@@ -804,9 +804,9 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 	}
 
 	var email string
-	data := result.Data.(map[string]interface{})
-	if userNode, ok := data["node"].(map[string]interface{}); ok {
-		if standardAttributes, ok := userNode["standardAttributes"].(map[string]interface{}); ok {
+	data := result.Data.(map[string]any)
+	if userNode, ok := data["node"].(map[string]any); ok {
+		if standardAttributes, ok := userNode["standardAttributes"].(map[string]any); ok {
 			if e, ok := standardAttributes["email"].(string); ok {
 				email = e
 			}
@@ -831,7 +831,7 @@ func (s *CollaboratorService) checkInviteeExistenceByEmail(ctx context.Context, 
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"name":  "email",
 			"value": inviteeEmail,
 		},
@@ -859,8 +859,8 @@ func (s *CollaboratorService) checkInviteeExistenceByEmail(ctx context.Context, 
 		return
 	}
 
-	data := result.Data.(map[string]interface{})
-	users := data["users"].([]interface{})
+	data := result.Data.(map[string]any)
+	users := data["users"].([]any)
 	if len(users) > 0 {
 		inviteeExists = true
 		return
@@ -891,7 +891,7 @@ func (s *CollaboratorService) createAccountForInvitee(ctx context.Context, actor
 			}
 		}
 		`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"email": inviteeEmail,
 		},
 	}

@@ -20,7 +20,7 @@ type EdgeDoUpdateIdentity struct {
 	IdentityAfterUpdate  *identity.Info
 }
 
-func (e *EdgeDoUpdateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUpdateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	updateDisabled := e.IdentityBeforeUpdate.UpdateDisabled(ctx.Config.Identity)
 	if !isAdminAPI && updateDisabled {

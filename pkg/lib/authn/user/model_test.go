@@ -43,35 +43,35 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 	// }).EndUserAccountID(), ShouldEqual, "user@example.com")
 	// })
 	Convey("ComputeUserEndUserActionID", t, func() {
-		So(computeEndUserAccountID(map[string]interface{}{}, nil), ShouldEqual, "")
+		So(computeEndUserAccountID(map[string]any{}, nil), ShouldEqual, "")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"email": "user@example.com",
 			},
 			nil), ShouldEqual, "user@example.com")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"preferred_username": "user",
 			},
 			nil), ShouldEqual, "user")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"phone_number": "+85298765432",
 			},
 			nil), ShouldEqual, "+85298765432")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"preferred_username": "user",
 				"phone_number":       "+85298765432",
 			},
 			nil), ShouldEqual, "user")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"email":              "user@example.com",
 				"preferred_username": "user",
 				"phone_number":       "+85298765432",
@@ -79,7 +79,7 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 			nil), ShouldEqual, "user@example.com")
 
 		So(computeEndUserAccountID(
-			map[string]interface{}{
+			map[string]any{
 				"email":              "user@example.com",
 				"preferred_username": "user",
 				"phone_number":       "+85298765432",
@@ -88,25 +88,25 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 				{
 					Type: model.IdentityTypeLDAP,
 					LDAP: &identity.LDAP{
-						RawEntryJSON: map[string]interface{}{
+						RawEntryJSON: map[string]any{
 							"dn": "cn=user,dc=example,dc=org",
 						},
 					},
 				},
 			}), ShouldEqual, "user@example.com")
 
-		So(computeEndUserAccountID(map[string]interface{}{}, []*identity.Info{
+		So(computeEndUserAccountID(map[string]any{}, []*identity.Info{
 			{
 				Type: model.IdentityTypeLDAP,
 				LDAP: &identity.LDAP{
-					RawEntryJSON: map[string]interface{}{
+					RawEntryJSON: map[string]any{
 						"dn": "cn=user,dc=example,dc=org",
 					},
 				},
 			},
 		}), ShouldEqual, "cn=user,dc=example,dc=org")
 
-		So(computeEndUserAccountID(map[string]interface{}{}, []*identity.Info{
+		So(computeEndUserAccountID(map[string]any{}, []*identity.Info{
 			{
 				Type: model.IdentityTypeLDAP,
 				LDAP: &identity.LDAP{

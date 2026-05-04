@@ -24,7 +24,7 @@ type EdgeAuthenticationWhatsapp struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeAuthenticationWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputAuthenticationWhatsapp
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

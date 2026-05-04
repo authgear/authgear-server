@@ -76,7 +76,7 @@ func (s *Service) RecordProgresses(ctx context.Context, appID string, ps []Progr
 }
 
 // SaveProjectWizardData acquires connection.
-func (s *Service) SaveProjectWizardData(ctx context.Context, appID string, data interface{}) error {
+func (s *Service) SaveProjectWizardData(ctx context.Context, appID string, data any) error {
 	return s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		entry, err := s.Store.Get(ctx, appID)
 		if err != nil {

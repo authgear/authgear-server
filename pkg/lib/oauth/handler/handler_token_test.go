@@ -241,7 +241,7 @@ func TestTokenHandler(t *testing.T) {
 				ctx := context.Background()
 				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(res.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["refresh_token"], ShouldEqual, "grant-id.new-refresh-token")
@@ -306,7 +306,7 @@ func TestTokenHandler(t *testing.T) {
 				ctx := context.Background()
 				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(res.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body, ShouldNotContainKey, "refresh_token")
@@ -339,7 +339,7 @@ func TestTokenHandler(t *testing.T) {
 				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 429)
 
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(res.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "x_rate_limited")
@@ -464,7 +464,7 @@ func TestTokenHandler(t *testing.T) {
 			resp := handle(ctx, req, request)
 
 			So(resp.Result().StatusCode, ShouldEqual, 200)
-			var body map[string]interface{}
+			var body map[string]any
 			err := json.Unmarshal(resp.Body.Bytes(), &body)
 			So(err, ShouldBeNil)
 
@@ -563,7 +563,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 200)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["access_token"], ShouldEqual, accessToken)
@@ -625,7 +625,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 200)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["access_token"], ShouldEqual, accessToken)
@@ -676,7 +676,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_scope")
@@ -723,7 +723,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_target")
@@ -770,7 +770,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_target")
@@ -816,7 +816,7 @@ func TestTokenHandler(t *testing.T) {
 				resp := handle(ctx, req, r)
 
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				var body map[string]interface{}
+				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_target")

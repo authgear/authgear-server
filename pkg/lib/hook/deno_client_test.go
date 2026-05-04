@@ -26,12 +26,12 @@ func TestDenoClient(t *testing.T) {
 
 			gock.New("http://localhost:8090").
 				Post("/run").
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"script": "export default function(a) { return a }",
 					"input":  42,
 				}).
 				Reply(200).
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"output": 42,
 				})
 			defer func() { gock.Flush() }()
@@ -46,11 +46,11 @@ func TestDenoClient(t *testing.T) {
 
 			gock.New("http://localhost:8090").
 				Post("/check").
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"script": "export default function(a) { return a }",
 				}).
 				Reply(200).
-				JSON(map[string]interface{}{})
+				JSON(map[string]any{})
 			defer func() { gock.Flush() }()
 
 			err := denoClient.Check(ctx, "export default function(a) { return a }")
@@ -62,11 +62,11 @@ func TestDenoClient(t *testing.T) {
 
 			gock.New("http://localhost:8090").
 				Post("/check").
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"script": "syntax error",
 				}).
 				Reply(200).
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"stderr": "error: The module's source code could not be parsed: Expected ';', '}' or <eof> at FILE:1:8",
 				})
 			defer func() { gock.Flush() }()
@@ -80,7 +80,7 @@ func TestDenoClient(t *testing.T) {
 
 			gock.New("http://localhost:8090").
 				Post("/run").
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"script": "export default function(a) { return a }",
 					"input":  42,
 				}).
@@ -96,14 +96,14 @@ func TestDenoClient(t *testing.T) {
 
 			gock.New("http://localhost:8090").
 				Post("/run").
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"script": "export default function(a) { return a }",
 					"input":  42,
 				}).
 				Reply(200).
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"error": "script error",
-					"stderr": map[string]interface{}{
+					"stderr": map[string]any{
 						"string": "undefined variable",
 					},
 				})

@@ -182,10 +182,10 @@ func TestSink(t *testing.T) {
 					Payload: &MockBlockingEvent1{
 						MockUserEventBase: MockUserEventBase{
 							User: model.User{
-								StandardAttributes: map[string]interface{}{
+								StandardAttributes: map[string]any{
 									"name": "John Doe",
 								},
-								CustomAttributes: map[string]interface{}{
+								CustomAttributes: map[string]any{
 									"a": "a",
 								},
 							},
@@ -217,10 +217,10 @@ func TestSink(t *testing.T) {
 						IsAllowed: true,
 						Mutations: event.Mutations{
 							User: event.UserMutations{
-								StandardAttributes: map[string]interface{}{
+								StandardAttributes: map[string]any{
 									"name": "John Doe",
 								},
-								CustomAttributes: map[string]interface{}{
+								CustomAttributes: map[string]any{
 									"a": "a",
 								},
 							},
@@ -245,7 +245,7 @@ func TestSink(t *testing.T) {
 					ctx,
 					accesscontrol.RoleGreatest,
 					gomock.Any(),
-					map[string]interface{}{
+					map[string]any{
 						"name": "John Doe",
 					},
 				).Times(1).Return(nil)
@@ -254,7 +254,7 @@ func TestSink(t *testing.T) {
 					ctx,
 					accesscontrol.RoleGreatest,
 					gomock.Any(),
-					map[string]interface{}{
+					map[string]any{
 						"a": "a",
 					},
 				).Times(1).Return(nil)

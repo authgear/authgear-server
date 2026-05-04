@@ -16,7 +16,7 @@ type EdgeUpdateIdentityEnd struct {
 	IdentitySpec *identity.Spec
 }
 
-func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	identityID := graph.MustGetUpdateIdentityID()
 
 	oldInfo, err := ctx.Identities.Get(goCtx, identityID)

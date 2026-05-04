@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -16,7 +17,7 @@ import (
 
 type AuthflowViewModel struct {
 	IdentificationOptions []declarative.IdentificationOption
-	IdentityCandidates    []map[string]interface{}
+	IdentityCandidates    []map[string]any
 
 	LoginIDDisabled        bool
 	PhoneLoginIDEnabled    bool
@@ -237,7 +238,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 
 	loginIDDisabled := !hasEmail && !hasUsername && !hasPhone
 
-	makeLoginIDCandidate := func(t model.LoginIDKeyType) map[string]interface{} {
+	makeLoginIDCandidate := func(t model.LoginIDKeyType) map[string]any {
 		var inputType string
 		switch t {
 		case model.LoginIDKeyTypePhone:
@@ -249,7 +250,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 		default:
 			panic(fmt.Errorf("unexpected login id key: %v", t))
 		}
-		candidate := map[string]interface{}{
+		candidate := map[string]any{
 			"type":                string(model.IdentityTypeLoginID),
 			"login_id_type":       string(t),
 			"login_id_key":        string(t),
@@ -258,7 +259,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 		return candidate
 	}
 
-	var candidates []map[string]interface{}
+	var candidates []map[string]any
 	for _, o := range options {
 		switch o.Identification {
 		case model.AuthenticationFlowIdentificationEmail:
@@ -268,7 +269,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 		case model.AuthenticationFlowIdentificationUsername:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeUsername))
 		case model.AuthenticationFlowIdentificationOAuth:
-			candidate := map[string]interface{}{
+			candidate := map[string]any{
 				"type":              string(model.IdentityTypeOAuth),
 				"provider_type":     string(o.ProviderType),
 				"provider_alias":    o.Alias,
@@ -277,7 +278,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 			}
 			candidates = append(candidates, candidate)
 		case model.AuthenticationFlowIdentificationLDAP:
-			candidate := map[string]interface{}{
+			candidate := map[string]any{
 				"type":        string(model.IdentityTypeLDAP),
 				"server_name": o.ServerName,
 			}
@@ -371,12 +372,9 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 			hasUsername = true
 		}
 	}
-	for _, identityType := range m.Authentication.Identities {
-		if identityType == model.IdentityTypePasskey {
-			passkeyEnabled = true
-			passkeyRequestOptionsJSON = "{}"
-			break
-		}
+	if slices.Contains(m.Authentication.Identities, model.IdentityTypePasskey) {
+		passkeyEnabled = true
+		passkeyRequestOptionsJSON = "{}"
 	}
 
 	// Then we determine NonPhoneLoginIDInputType.
@@ -430,7 +428,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 
 	loginIDDisabled := !hasEmail && !hasUsername && !hasPhone
 
-	makeLoginIDCandidate := func(t model.LoginIDKeyType) map[string]interface{} {
+	makeLoginIDCandidate := func(t model.LoginIDKeyType) map[string]any {
 		var inputType string
 		switch t {
 		case model.LoginIDKeyTypePhone:
@@ -442,7 +440,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 		default:
 			panic(fmt.Errorf("unexpected login id key: %v", t))
 		}
-		candidate := map[string]interface{}{
+		candidate := map[string]any{
 			"type":                string(model.IdentityTypeLoginID),
 			"login_id_type":       string(t),
 			"login_id_key":        string(t),
@@ -451,7 +449,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 		return candidate
 	}
 
-	var candidates []map[string]interface{}
+	var candidates []map[string]any
 	for _, loginIDKey := range m.Identity.LoginID.Keys {
 		switch loginIDKey.Type {
 		case model.LoginIDKeyTypeEmail:
@@ -464,7 +462,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 	}
 
 	for _, oauthProvider := range m.Identity.OAuth.Providers {
-		candidate := map[string]interface{}{
+		candidate := map[string]any{
 			"type":              string(model.IdentityTypeOAuth),
 			"provider_type":     oauthProvider.AsProviderConfig().Type(),
 			"provider_alias":    oauthProvider.Alias(),
@@ -475,7 +473,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 	}
 
 	for _, ldapServer := range m.Identity.LDAP.Servers {
-		candidate := map[string]interface{}{
+		candidate := map[string]any{
 			"type":        string(model.IdentityTypeLDAP),
 			"server_name": ldapServer.Name,
 		}

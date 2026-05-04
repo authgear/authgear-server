@@ -3,13 +3,14 @@ package template
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-type ResolveErrorRawInput map[string]interface{} // actually map[string][]string, but go template dict always map[string]interface{}
+type ResolveErrorRawInput map[string]any // actually map[string][]string, but go template dict always map[string]interface{}
 type ResolveErrorInput map[string]*GetErrorInput
 
 func newResolveErrorInput(input ResolveErrorRawInput) (ResolveErrorInput, error) {
@@ -29,7 +30,7 @@ func newResolveErrorInput(input ResolveErrorRawInput) (ResolveErrorInput, error)
 	return resolveErrInput, nil
 }
 
-func toErrorJSON(apiErr *apierrors.APIError) interface{} {
+func toErrorJSON(apiErr *apierrors.APIError) any {
 	if apiErr == nil {
 		return nil
 	}
@@ -39,7 +40,7 @@ func toErrorJSON(apiErr *apierrors.APIError) interface{} {
 	if err != nil {
 		return nil
 	}
-	var eJSON map[string]interface{}
+	var eJSON map[string]any
 	err = json.Unmarshal(b, &eJSON)
 	if err != nil {
 		return nil
@@ -47,7 +48,7 @@ func toErrorJSON(apiErr *apierrors.APIError) interface{} {
 	return eJSON["error"]
 }
 
-func ResolveError(apiErr *apierrors.APIError, input ResolveErrorRawInput) map[string]interface{} {
+func ResolveError(apiErr *apierrors.APIError, input ResolveErrorRawInput) map[string]any {
 	if apiErr == nil {
 		return nil
 	}
@@ -60,7 +61,7 @@ func ResolveError(apiErr *apierrors.APIError, input ResolveErrorRawInput) map[st
 
 	errMap := resolveError(apiErr, resolveErrInput)
 
-	newErrMap := make(map[string]interface{})
+	newErrMap := make(map[string]any)
 	for errK, errV := range errMap {
 		newErrMap[errK] = toErrorJSON(errV)
 	}
@@ -109,10 +110,8 @@ func getError(apiErr *apierrors.APIError, getErrInput *GetErrorInput) *apierrors
 }
 
 func getErrorByReason(apiErr *apierrors.APIError, reasons []string) *apierrors.APIError {
-	for _, reason := range reasons {
-		if apiErr.Reason == reason {
-			return apiErr
-		}
+	if slices.Contains(reasons, apiErr.Reason) {
+		return apiErr
 	}
 	return nil
 }
@@ -123,19 +122,19 @@ func getErrorByReason(apiErr *apierrors.APIError, reasons []string) *apierrors.A
 // nolint: gocognit
 func getValidationErrorByLocation(apiErr *apierrors.APIError, locations []string) *apierrors.APIError {
 	out := apiErr.Clone()
-	causes, ok := out.Info_ReadOnly["causes"].([]interface{})
+	causes, ok := out.Info_ReadOnly["causes"].([]any)
 	if !ok {
 		return nil
 	}
-	typedCauses := slice.Map(causes, func(cause interface{}) map[string]interface{} {
-		_cause, ok := cause.(map[string]interface{})
+	typedCauses := slice.Map(causes, func(cause any) map[string]any {
+		_cause, ok := cause.(map[string]any)
 		if !ok {
 			return nil
 		}
 		return _cause
 	})
 
-	typedCausesWithoutNil := slice.Filter(typedCauses, func(cause map[string]interface{}) bool {
+	typedCausesWithoutNil := slice.Filter(typedCauses, func(cause map[string]any) bool {
 		return cause != nil
 	})
 
@@ -152,8 +151,8 @@ func getValidationErrorByLocation(apiErr *apierrors.APIError, locations []string
 //   - have mismatching location; AND
 //   - have details with ALL missing and expected fields that does not match required fields
 //     -- i.e. partially-matched cause will not be removed
-func trimValidationErrorCauses(causes []map[string]interface{}, locations []string) []map[string]interface{} {
-	trimmedCauses := slice.Map(causes, func(cause map[string]interface{}) map[string]interface{} {
+func trimValidationErrorCauses(causes []map[string]any, locations []string) []map[string]any {
+	trimmedCauses := slice.Map(causes, func(cause map[string]any) map[string]any {
 		causeLoc, ok := cause["location"].(string)
 		if !ok {
 			return nil
@@ -166,7 +165,7 @@ func trimValidationErrorCauses(causes []map[string]interface{}, locations []stri
 		}
 	})
 
-	trimmedCausesWithoutNil := slice.Filter(trimmedCauses, func(cause map[string]interface{}) bool {
+	trimmedCausesWithoutNil := slice.Filter(trimmedCauses, func(cause map[string]any) bool {
 		return cause != nil
 	})
 
@@ -174,7 +173,7 @@ func trimValidationErrorCauses(causes []map[string]interface{}, locations []stri
 }
 
 // trimCauseWithLocation returns matching location cause, otherwise nil
-func trimCauseWithLocation(cause map[string]interface{}, locations []string) map[string]interface{} {
+func trimCauseWithLocation(cause map[string]any, locations []string) map[string]any {
 	for _, loc := range locations {
 		if cause["location"] == loc {
 			return cause
@@ -184,7 +183,7 @@ func trimCauseWithLocation(cause map[string]interface{}, locations []string) map
 }
 
 // trimCauseWithoutLocation removes causes with missing and expected fields that does not match required fields
-func trimCauseWithoutLocation(cause map[string]interface{}, requiredFields []string) map[string]interface{} {
+func trimCauseWithoutLocation(cause map[string]any, requiredFields []string) map[string]any {
 	kind, ok := cause["kind"].(string)
 	if !ok {
 		return nil
@@ -192,11 +191,11 @@ func trimCauseWithoutLocation(cause map[string]interface{}, requiredFields []str
 	if kind != "required" {
 		return nil
 	}
-	newCause := make(map[string]interface{})
+	newCause := make(map[string]any)
 	for k, v := range cause {
 		switch k {
 		case "details":
-			newDetails := trimCauseDetails(v.(map[string]interface{}), requiredFields)
+			newDetails := trimCauseDetails(v.(map[string]any), requiredFields)
 			if isRequiredDetailsEmpty(newDetails) {
 				return nil
 			}
@@ -211,18 +210,18 @@ func trimCauseWithoutLocation(cause map[string]interface{}, requiredFields []str
 }
 
 // trimCauseDetails removes missing and expected fields that does not match required fields
-func trimCauseDetails(details map[string]interface{}, requiredFields []string) map[string]interface{} {
-	newDetails := make(map[string]interface{})
+func trimCauseDetails(details map[string]any, requiredFields []string) map[string]any {
+	newDetails := make(map[string]any)
 	for k, v := range details {
 		switch k {
 		case "missing":
-			missings := details["missing"].([]interface{})
-			newDetails["missing"] = slice.Filter(missings, func(missingItem interface{}) bool {
+			missings := details["missing"].([]any)
+			newDetails["missing"] = slice.Filter(missings, func(missingItem any) bool {
 				return slice.ContainsString(requiredFields, missingItem.(string))
 			})
 		case "expected":
-			expecteds := details["expected"].([]interface{})
-			newDetails["expected"] = slice.Filter(expecteds, func(expectedItem interface{}) bool {
+			expecteds := details["expected"].([]any)
+			newDetails["expected"] = slice.Filter(expecteds, func(expectedItem any) bool {
 				return slice.ContainsString(requiredFields, expectedItem.(string))
 			})
 		default:
@@ -233,8 +232,8 @@ func trimCauseDetails(details map[string]interface{}, requiredFields []string) m
 }
 
 // isRequiredDetailsEmpty returns true if missing and expected fields are empty
-func isRequiredDetailsEmpty(details map[string]interface{}) bool {
-	return len(details["missing"].([]interface{})) == 0 || len(details["expected"].([]interface{})) == 0
+func isRequiredDetailsEmpty(details map[string]any) bool {
+	return len(details["missing"].([]any)) == 0 || len(details["expected"].([]any)) == 0
 }
 
 func addUnknownError(apiErr *apierrors.APIError, currOutput map[string]*apierrors.APIError) map[string]*apierrors.APIError {

@@ -21,7 +21,7 @@ type InputConsumeRecoveryCode interface {
 
 type EdgeConsumeRecoveryCode struct{}
 
-func (e *EdgeConsumeRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeConsumeRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputConsumeRecoveryCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

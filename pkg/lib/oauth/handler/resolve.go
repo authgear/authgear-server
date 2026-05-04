@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -68,11 +69,8 @@ func validateRedirectURI(
 	allowed := false
 	redirectURIString := redirectURI.String()
 
-	for _, u := range client.RedirectURIs {
-		if u == redirectURIString {
-			allowed = true
-			break
-		}
+	if slices.Contains(client.RedirectURIs, redirectURIString) {
+		allowed = true
 	}
 
 	// Implicitly allow URIs at same origin as the AS.

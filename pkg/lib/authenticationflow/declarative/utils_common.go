@@ -64,7 +64,6 @@ func flowRootObjectForSignupFlow(cfg *config.AppConfig, flowReference authflow.F
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.SignupFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -85,7 +84,6 @@ func flowRootObjectForPromoteFlow(cfg *config.AppConfig, flowReference authflow.
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.PromoteFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -106,7 +104,6 @@ func flowRootObjectForLoginFlow(cfg *config.AppConfig, flowReference authflow.Fl
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.LoginFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -127,7 +124,6 @@ func flowRootObjectForSignupLoginFlow(cfg *config.AppConfig, flowReference authf
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.SignupLoginFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -148,7 +144,6 @@ func flowRootObjectForReauthFlow(cfg *config.AppConfig, flowReference authflow.F
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.ReauthFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -169,7 +164,6 @@ func flowRootObjectForAccountRecoveryFlow(cfg *config.AppConfig, flowReference a
 	var root config.AuthenticationFlowObject
 
 	for _, f := range cfg.AuthenticationFlow.AccountRecoveryFlows {
-		f := f
 		if f.Name == flowReference.Name {
 			root = f
 			break
@@ -633,10 +627,9 @@ func identityFillDetailsMany(err error, spec *identity.Spec, existingSpecs []*id
 			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(firstExistingSpec.OAuth.ProviderID.Type)
 		}
 
-		specDetails := []map[string]interface{}{}
+		specDetails := []map[string]any{}
 		for _, existingSpec := range existingSpecs {
-			existingSpec := existingSpec
-			thisDetail := map[string]interface{}{}
+			thisDetail := map[string]any{}
 			thisDetail["IdentityType"] = existingSpec.Type
 			switch existingSpec.Type {
 			case model.IdentityTypeLoginID:

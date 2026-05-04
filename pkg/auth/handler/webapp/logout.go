@@ -73,7 +73,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl.Get(func(ctx context.Context) error {
 		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 
-		data := map[string]interface{}{}
+		data := map[string]any{}
 
 		viewmodels.Embed(data, baseViewModel)
 

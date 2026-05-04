@@ -46,7 +46,7 @@ func migrateRateLimits(ctx context.Context, appID string, configSourceData map[s
 		return fmt.Errorf("failed decode authgear.yaml: %w", err)
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)

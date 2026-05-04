@@ -16,7 +16,7 @@ type EdgeEnsurePasswordChange struct {
 	Stage authn.AuthenticationStage
 }
 
-func (e *EdgeEnsurePasswordChange) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeEnsurePasswordChange) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	authenticator, reason, ok := graph.GetRequireUpdateAuthenticator(e.Stage)
 	if ok && authenticator.Type == model.AuthenticatorTypePassword {
 		return &NodeChangePasswordBegin{

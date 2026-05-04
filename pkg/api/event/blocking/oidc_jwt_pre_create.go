@@ -40,7 +40,7 @@ func init() {
 }
 
 type OIDCJWT struct {
-	Payload map[string]interface{} `json:"payload"`
+	Payload map[string]any `json:"payload"`
 }
 
 type OIDCJWTPreCreateBlockingEventPayload struct {

@@ -67,7 +67,7 @@ func (e *Engine) parseTranslations(translations map[string]Translation) (*Transl
 	return &TranslationMap{items: items}, nil
 }
 
-func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguages []string, data any) (*RenderResult, error) {
 	switch desc := resource.(type) {
 	case *HTML:
 		return e.renderHTML(ctx, desc, preferredLanguages, data)
@@ -82,7 +82,7 @@ func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguag
 	}
 }
 
-func (e *Engine) RenderPublicText(ctx context.Context, tplStr string, data interface{}) (string, error) {
+func (e *Engine) RenderPublicText(ctx context.Context, tplStr string, data any) (string, error) {
 	tpl := &texttemplate.Template{}
 	tpl, err := tpl.Parse(tplStr)
 	if err != nil {
@@ -106,7 +106,7 @@ func (e *Engine) RenderPublicText(ctx context.Context, tplStr string, data inter
 	return buf.String(), nil
 }
 
-func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages []string, data any) (*RenderResult, error) {
 	t := htmltemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -167,7 +167,7 @@ func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages 
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderMessageHTML(ctx context.Context, desc *MessageHTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderMessageHTML(ctx context.Context, desc *MessageHTML, preferredLanguages []string, data any) (*RenderResult, error) {
 	t := htmltemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -223,7 +223,7 @@ func (e *Engine) renderMessageHTML(ctx context.Context, desc *MessageHTML, prefe
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderPlainText(ctx context.Context, desc *PlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderPlainText(ctx context.Context, desc *PlainText, preferredLanguages []string, data any) (*RenderResult, error) {
 	t := texttemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -284,7 +284,7 @@ func (e *Engine) renderPlainText(ctx context.Context, desc *PlainText, preferred
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string, data any) (*RenderResult, error) {
 	t := texttemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -340,7 +340,7 @@ func (e *Engine) renderMessagePlainText(ctx context.Context, desc *MessagePlainT
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) RenderStatus(w http.ResponseWriter, r *http.Request, status int, tpl Resource, data interface{}) {
+func (e *Engine) RenderStatus(w http.ResponseWriter, r *http.Request, status int, tpl Resource, data any) {
 	ctx := r.Context()
 	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	out, err := e.Render(

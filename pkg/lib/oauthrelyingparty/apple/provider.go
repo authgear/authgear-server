@@ -64,7 +64,7 @@ type AuthorizationResponseFormField_user_name struct {
 
 type Apple struct{}
 
-func (Apple) GetJSONSchema() map[string]interface{} {
+func (Apple) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -99,7 +99,7 @@ func (Apple) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty.
 	// But rotating the Apple Developer account is problematic.
 	// Since Apple has private relay to hide the real email,
 	// the user may not be associate their account.
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"team_id": team_id,
 	}
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)

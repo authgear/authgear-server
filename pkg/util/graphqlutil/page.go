@@ -23,17 +23,11 @@ func NewPageArgsWithMaxPageSize(args relay.ConnectionArguments, maxPageSize uint
 
 	var first, last *uint64
 	if args.First >= 0 {
-		value := uint64(args.First)
-		if value > maxPageSize {
-			value = maxPageSize
-		}
+		value := min(uint64(args.First), maxPageSize)
 		first = &value
 	}
 	if args.Last >= 0 {
-		value := uint64(args.Last)
-		if value > maxPageSize {
-			value = maxPageSize
-		}
+		value := min(uint64(args.Last), maxPageSize)
 		last = &value
 	}
 	if first == nil && last == nil {

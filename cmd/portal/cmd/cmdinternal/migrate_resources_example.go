@@ -51,18 +51,18 @@ func migrateResourcesExample(ctx context.Context, appID string, configSourceData
 	log.Printf("Before updated:")
 	log.Printf("\n%s\n", string(decoded))
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
 	uiSettingMap := m["ui"]
-	var uiSetting map[interface{}]interface{}
+	var uiSetting map[any]any
 	if uiSettingMap != nil {
-		uiSetting = uiSettingMap.(map[interface{}]interface{})
+		uiSetting = uiSettingMap.(map[any]any)
 	} else {
-		uiSetting = make(map[interface{}]interface{})
+		uiSetting = make(map[any]any)
 	}
 
 	uiSetting["dark_theme_disabled"] = true

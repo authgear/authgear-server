@@ -23,7 +23,7 @@ type tpl interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func MakeTemplateFuncMap(t tpl) map[string]interface{} {
+func MakeTemplateFuncMap(t tpl) map[string]any {
 	templateFuncMap := makeTemplateFuncMap()
 	templateFuncMap["include"] = makeInclude(t)
 	templateFuncMap["translate"] = makeTranslate(t)
@@ -32,7 +32,7 @@ func MakeTemplateFuncMap(t tpl) map[string]interface{} {
 	return templateFuncMap
 }
 
-func makeTemplateFuncMap() map[string]interface{} {
+func makeTemplateFuncMap() map[string]any {
 	var templateFuncMap = sprig.HermeticHtmlFuncMap()
 	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
 	templateFuncMap["rfc3339"] = RFC3339
@@ -43,7 +43,7 @@ func makeTemplateFuncMap() map[string]interface{} {
 	return templateFuncMap
 }
 
-func RFC3339(date interface{}) interface{} {
+func RFC3339(date any) any {
 	switch date := date.(type) {
 	case *time.Time:
 		return date.UTC().Format(time.RFC3339)
@@ -54,7 +54,7 @@ func RFC3339(date interface{}) interface{} {
 	}
 }
 
-func EnsureTime(anyValue interface{}) interface{} {
+func EnsureTime(anyValue any) any {
 	switch anyValue := anyValue.(type) {
 	case *time.Time:
 		return anyValue
@@ -77,14 +77,14 @@ func EnsureTime(anyValue interface{}) interface{} {
 	}
 }
 
-func IsNil(v interface{}) bool {
+func IsNil(v any) bool {
 	return v == nil ||
-		(reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
+		(reflect.ValueOf(v).Kind() == reflect.Pointer && reflect.ValueOf(v).IsNil())
 }
 
-func ShowAttributeValue(v interface{}) string {
+func ShowAttributeValue(v any) string {
 	value := reflect.ValueOf(v)
-	if value.Kind() == reflect.Ptr {
+	if value.Kind() == reflect.Pointer {
 		if !value.IsNil() {
 			return ShowAttributeValue(reflect.ValueOf(v).Elem().Interface())
 		}
@@ -141,7 +141,7 @@ func makeTranslate(t tpl) func(tranlsationKey string, data any) (template.HTML, 
 			return template.HTML(""), err
 		}
 		buf := &bytes.Buffer{}
-		d := make(map[string]interface{})
+		d := make(map[string]any)
 		d["Key"] = tranlsationKey
 		d["Value"] = included
 		err = t.ExecuteTemplate(buf, templateTranslationMessageTemplateName, d)
@@ -152,7 +152,7 @@ func makeTranslate(t tpl) func(tranlsationKey string, data any) (template.HTML, 
 	}
 }
 
-func trimHTML(input interface{}) interface{} {
+func trimHTML(input any) any {
 	switch input := input.(type) {
 	case string:
 		return strings.TrimSpace(input)

@@ -2,6 +2,7 @@ package customattrs
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -13,13 +14,11 @@ import (
 
 // T is the representation form of custom attributes.
 // The keys are derived from pointers.
-type T map[string]interface{}
+type T map[string]any
 
 func (t T) Clone() T {
 	out := make(T)
-	for k, v := range t {
-		out[k] = v
-	}
+	maps.Copy(out, t)
 	return out
 }
 
@@ -85,6 +84,6 @@ func (t T) ReadWithAccessControl(accessControl accesscontrol.T, role accesscontr
 	return out
 }
 
-func (t T) ToMap() map[string]interface{} {
-	return map[string]interface{}(t)
+func (t T) ToMap() map[string]any {
+	return map[string]any(t)
 }

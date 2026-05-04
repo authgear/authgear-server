@@ -30,7 +30,7 @@ var collaborator = graphql.NewObject(graphql.ObjectConfig{
 
 		"user": &graphql.Field{
 			Type: graphql.NewNonNull(nodeUser),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				source := p.Source.(*model.Collaborator)
 				gqlCtx := GQLContext(ctx)
@@ -55,7 +55,7 @@ var collaboratorInvitation = graphql.NewObject(graphql.ObjectConfig{
 
 		"invitedBy": &graphql.Field{
 			Type: graphql.NewNonNull(nodeUser),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				source := p.Source.(*model.CollaboratorInvitation)
 				gqlCtx := GQLContext(ctx)

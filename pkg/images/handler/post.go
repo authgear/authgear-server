@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -105,7 +106,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Transform the form into PresignUploadRequest.
 	presignUploadRequest := imagesservice.PresignUploadRequest{
 		Key:     key,
-		Headers: map[string]interface{}{},
+		Headers: map[string]any{},
 	}
 
 	// Transform the file field.
@@ -189,7 +190,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		resp.StatusCode = 200
-		body := &api.Response{Result: map[string]interface{}{
+		body := &api.Response{Result: map[string]any{
 			"url": fmt.Sprintf("authgearimages:///%s", key),
 		}}
 		bodyBytes, err := body.EncodeToJSON(ctx)
@@ -200,7 +201,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		resp.Header = http.Header{}
 		resp.Header.Set("Content-Type", "application/json")
 		resp.Header.Set("Content-Length", strconv.FormatInt(resp.ContentLength, 10))
-		resp.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
+		resp.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 		return nil
 	}
 

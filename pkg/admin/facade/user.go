@@ -68,7 +68,7 @@ func (f *UserFacade) ListPage(ctx context.Context, listOption user.ListOptions, 
 		return nil, nil, err
 	}
 
-	return values, graphqlutil.NewPageResult(pageArgs, len(values), graphqlutil.NewLazy(func() (interface{}, error) {
+	return values, graphqlutil.NewPageResult(pageArgs, len(values), graphqlutil.NewLazy(func() (any, error) {
 		return f.Users.Count(ctx)
 	})), nil
 }
@@ -83,7 +83,7 @@ func (f *UserFacade) SearchPage(
 	if err != nil {
 		return nil, nil, err
 	}
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return stats.TotalCount, nil
 	})), nil
 }

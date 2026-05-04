@@ -19,7 +19,7 @@ func init() {
 
 type EdgeReauthenticationBegin struct{}
 
-func (e *EdgeReauthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeReauthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	stage, _, err := e.getAuthenticators(goCtx, ctx, graph)
 	if err != nil {
 		// This is must be reported with panic.

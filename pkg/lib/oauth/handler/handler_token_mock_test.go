@@ -477,7 +477,7 @@ func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthe
 }
 
 // UpdateOfflineGrantDeviceInfo mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]any, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceInfo", ctx, id, deviceInfo, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)

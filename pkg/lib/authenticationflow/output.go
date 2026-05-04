@@ -24,7 +24,7 @@ type EndOfFlowDataOutputer interface {
 	OutputEndOfFlowData(ctx context.Context, deps *Dependencies, flows Flows, baseData *DataFinishRedirectURI) (Data, error)
 }
 
-type mapData map[string]interface{}
+type mapData map[string]any
 
 var _ Data = mapData{}
 

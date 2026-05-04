@@ -10,13 +10,13 @@ import (
 )
 
 type Biometric struct {
-	ID         string                 `json:"id"`
-	CreatedAt  time.Time              `json:"created_at"`
-	UpdatedAt  time.Time              `json:"updated_at"`
-	UserID     string                 `json:"user_id"`
-	KeyID      string                 `json:"key_id"`
-	Key        []byte                 `json:"key"`
-	DeviceInfo map[string]interface{} `json:"device_info"`
+	ID         string         `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	UserID     string         `json:"user_id"`
+	KeyID      string         `json:"key_id"`
+	Key        []byte         `json:"key"`
+	DeviceInfo map[string]any `json:"device_info"`
 }
 
 func (i *Biometric) ToJWK() (jwk.Key, error) {

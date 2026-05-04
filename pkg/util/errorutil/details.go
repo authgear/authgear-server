@@ -2,9 +2,10 @@ package errorutil
 
 import (
 	"errors"
+	"maps"
 )
 
-type Details map[string]interface{}
+type Details map[string]any
 
 type Detailer interface {
 	error
@@ -27,9 +28,7 @@ func WithDetails(err error, d Details) error {
 func (e *errorDetails) Error() string { return e.inner.Error() }
 func (e *errorDetails) Unwrap() error { return e.inner }
 func (e *errorDetails) FillDetails(d Details) {
-	for key, value := range e.details {
-		d[key] = value
-	}
+	maps.Copy(d, e.details)
 }
 
 func CollectDetails(err error, d Details) Details {

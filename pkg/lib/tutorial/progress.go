@@ -29,21 +29,21 @@ func ProgressFromString(s string) (Progress, bool) {
 
 type Entry struct {
 	AppID string
-	Data  map[string]interface{}
+	Data  map[string]any
 }
 
 func NewEntry(appID string) *Entry {
 	return &Entry{
 		AppID: appID,
-		Data: map[string]interface{}{
-			"progress": make(map[string]interface{}),
+		Data: map[string]any{
+			"progress": make(map[string]any),
 			"skipped":  false,
 		},
 	}
 }
 
 func (e *Entry) AddProgress(ps []Progress) {
-	m := e.Data["progress"].(map[string]interface{})
+	m := e.Data["progress"].(map[string]any)
 	for _, p := range ps {
 		m[string(p)] = true
 	}
@@ -53,6 +53,6 @@ func (e *Entry) Skip() {
 	e.Data["skipped"] = true
 }
 
-func (e *Entry) SetProjectWizardData(data interface{}) {
+func (e *Entry) SetProjectWizardData(data any) {
 	e.Data["project_wizard"] = data
 }

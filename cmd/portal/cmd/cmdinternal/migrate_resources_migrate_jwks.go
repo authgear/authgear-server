@@ -37,10 +37,10 @@ var cmdInternalMigrateJWKs = &cobra.Command{
 	},
 }
 
-func ensureUseSigAndHS256Key(data map[interface{}]interface{}) map[interface{}]interface{} {
-	keys := data["keys"].([]interface{})
+func ensureUseSigAndHS256Key(data map[any]any) map[any]any {
+	keys := data["keys"].([]any)
 	for i, key := range keys {
-		perKey := key.(map[interface{}]interface{})
+		perKey := key.(map[any]any)
 		perKey["use"] = "sig"
 		perKey["alg"] = "HS256"
 		keys[i] = perKey
@@ -49,10 +49,10 @@ func ensureUseSigAndHS256Key(data map[interface{}]interface{}) map[interface{}]i
 	return data
 }
 
-func ensureUseSig(data map[interface{}]interface{}) map[interface{}]interface{} {
-	keys := data["keys"].([]interface{})
+func ensureUseSig(data map[any]any) map[any]any {
+	keys := data["keys"].([]any)
 	for i, key := range keys {
-		perKey := key.(map[interface{}]interface{})
+		perKey := key.(map[any]any)
 		perKey["use"] = "sig"
 		keys[i] = perKey
 	}
@@ -73,18 +73,18 @@ func migrateResourcesJWKs(ctx context.Context, appID string, configSourceData ma
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
 	secretsList := m["secrets"]
-	secrets := secretsList.([]interface{})
+	secrets := secretsList.([]any)
 
 	for i, s := range secrets {
-		perSecret := s.(map[interface{}]interface{})
-		data := perSecret["data"].(map[interface{}]interface{})
+		perSecret := s.(map[any]any)
+		data := perSecret["data"].(map[any]any)
 		key := perSecret["key"].(string)
 		switch key {
 		case "admin-api.auth", "oauth":

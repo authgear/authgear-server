@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -80,10 +81,8 @@ func (c *CloudflareClient) Verify(ctx context.Context, token string, remoteip st
 	}
 
 	for _, suErrCode := range CloudFlareTurnstileServiceUnavailableErrorCodes {
-		for _, errCode := range respBody.ErrorCodes {
-			if errCode == suErrCode {
-				return nil, errors.Join(ErrVerificationServiceUnavailable, respBody)
-			}
+		if slices.Contains(respBody.ErrorCodes, suErrCode) {
+			return nil, errors.Join(ErrVerificationServiceUnavailable, respBody)
 		}
 	}
 

@@ -857,7 +857,7 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 func makeTransitionError(fromType accountStatusType, targetType accountStatusType) error {
 	return InvalidAccountStatusTransition.NewWithInfo(
 		fmt.Sprintf("invalid account status transition: %v -> %v", fromType, targetType),
-		map[string]interface{}{
+		map[string]any{
 			"from": fromType,
 			"to":   targetType,
 		},

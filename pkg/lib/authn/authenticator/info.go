@@ -90,8 +90,8 @@ func (i *Info) Equal(that *Info) bool {
 	}
 }
 
-func (i *Info) ToPublicClaims() map[string]interface{} {
-	claims := make(map[string]interface{})
+func (i *Info) ToPublicClaims() map[string]any {
+	claims := make(map[string]any)
 	switch i.Type {
 	case model.AuthenticatorTypeTOTP:
 		claims[AuthenticatorClaimTOTPDisplayName] = i.TOTP.DisplayName

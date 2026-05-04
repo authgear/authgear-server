@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -65,7 +66,8 @@ func (a AuthorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 
 		oauth.WriteResponse(rw, r, writeResponseOptions)
 	} else {
-		err := "Invalid OAuth authorization request:\n"
+		var err strings.Builder
+		err.WriteString("Invalid OAuth authorization request:\n")
 		keys := make([]string, 0, len(a.Response))
 		for k := range a.Response {
 			keys = append(keys, k)
@@ -73,11 +75,11 @@ func (a AuthorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 		sort.Strings(keys)
 		for i, k := range keys {
 			if i != 0 {
-				err += "\n"
+				err.WriteString("\n")
 			}
-			err += fmt.Sprintf("%s: %s", k, a.Response[k])
+			err.WriteString(fmt.Sprintf("%s: %s", k, a.Response[k]))
 		}
-		http.Error(rw, err, http.StatusBadRequest)
+		http.Error(rw, err.String(), http.StatusBadRequest)
 	}
 }
 

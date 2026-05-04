@@ -152,8 +152,8 @@ func TestBuildFromMap(t *testing.T) {
 	}
 
 	Convey("BuildFromMap", t, func() {
-		m := map[string]interface{}{
-			"https://example.com": map[string]interface{}{
+		m := map[string]any{
+			"https://example.com": map[string]any{
 				"foo": "bar",
 			},
 		}
@@ -179,7 +179,7 @@ func TestBuildFromMap(t *testing.T) {
 		actual, err := ToMap(payload)
 		So(err, ShouldBeNil)
 
-		expected := map[string]interface{}{
+		expected := map[string]any{
 			"exp": 1136171045.0,
 		}
 
@@ -204,7 +204,7 @@ func TestPrepareForMutations(t *testing.T) {
 
 func TestApplyMutations(t *testing.T) {
 	Convey("ApplyMutations", t, func() {
-		test := func(forMutation map[string]interface{}, forBackup map[string]interface{}, expectedErr error) {
+		test := func(forMutation map[string]any, forBackup map[string]any, expectedErr error) {
 			_, err := ApplyMutations(forMutation, forBackup)
 			if expectedErr != nil {
 				So(err, ShouldResemble, expectedErr)
@@ -213,26 +213,26 @@ func TestApplyMutations(t *testing.T) {
 			}
 		}
 
-		test(map[string]interface{}{}, map[string]interface{}{
+		test(map[string]any{}, map[string]any{
 			"iss": "issuer",
 		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
 			"removed": []string{"iss"},
 			"changed": []string{},
 		}))
 
-		test(map[string]interface{}{
+		test(map[string]any{
 			"iss": "another-issuer",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"iss": "issuer",
 		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
 			"removed": []string{},
 			"changed": []string{"iss"},
 		}))
 
-		test(map[string]interface{}{
+		test(map[string]any{
 			"iat": 1,
 			"foo": "bar",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"iat": 1,
 		}, nil)
 	})

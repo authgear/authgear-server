@@ -21,7 +21,7 @@ type EdgeDoVerifyIdentity struct {
 	RequestedByUser  bool
 }
 
-func (e *EdgeDoVerifyIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoVerifyIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	skipVerificationEvent := !e.RequestedByUser
 

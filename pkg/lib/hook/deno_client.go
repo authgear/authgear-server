@@ -23,7 +23,7 @@ import (
 var DenoClientLogger = slogutil.NewLogger("deno-client")
 
 type DenoClient interface {
-	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
+	Run(ctx context.Context, script string, input any) (out any, err error)
 }
 
 type SyncDenoClient interface {
@@ -53,7 +53,7 @@ type DenoClientImpl struct {
 	HTTPClient *http.Client
 }
 
-func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interface{}) (interface{}, error) {
+func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input any) (any, error) {
 	logger := DenoClientLogger.GetLogger(ctx)
 
 	u, err := url.JoinPath(c.Endpoint, "/run")

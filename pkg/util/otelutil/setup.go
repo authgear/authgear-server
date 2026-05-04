@@ -219,8 +219,8 @@ func newPropagator() (out propagation.TextMapPropagator, err error) {
 	}
 
 	var propagators []propagation.TextMapPropagator
-	parts := strings.Split(OTEL_PROPAGATORS, ",")
-	for _, part := range parts {
+	parts := strings.SplitSeq(OTEL_PROPAGATORS, ",")
+	for part := range parts {
 		switch part {
 		case "tracecontext":
 			propagators = append(propagators, propagation.TraceContext{})
@@ -280,8 +280,8 @@ func newMetricExportersFromEnv(ctx context.Context) (exporters []sdkmetric.Expor
 	}
 
 	// The spec says the implementation SHOULD support comma-separated list.
-	parts := strings.Split(OTEL_METRICS_EXPORTER, ",")
-	for _, part := range parts {
+	parts := strings.SplitSeq(OTEL_METRICS_EXPORTER, ",")
+	for part := range parts {
 		switch part {
 		case "otlp":
 			exporter, err := otlpmetrichttp.New(ctx)
@@ -331,8 +331,8 @@ func newTraceExportersFromEnv(ctx context.Context) (exporters []trace.SpanExport
 	}
 
 	// The spec says the implementation SHOULD support comma-separated list.
-	parts := strings.Split(OTEL_TRACES_EXPORTER, ",")
-	for _, part := range parts {
+	parts := strings.SplitSeq(OTEL_TRACES_EXPORTER, ",")
+	for part := range parts {
 		switch part {
 		case "otlp":
 			exporter, err := otlptracehttp.New(ctx)

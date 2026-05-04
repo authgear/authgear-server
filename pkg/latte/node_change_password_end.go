@@ -29,6 +29,6 @@ func (n *NodeChangePasswordEnd) ReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeChangePasswordEnd) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (n *NodeChangePasswordEnd) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }

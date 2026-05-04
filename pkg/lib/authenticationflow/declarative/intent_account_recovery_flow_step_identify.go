@@ -210,7 +210,6 @@ func (*IntentAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	idx = -1
 
 	for index, branch := range step.OneOf {
-		branch := branch
 		if im == branch.Identification {
 			idx = index
 		}
@@ -240,7 +239,6 @@ func (i *IntentAccountRecoveryFlowStepIdentify) jsonPointer(
 	im config.AuthenticationFlowAccountRecoveryIdentification,
 ) jsonpointer.T {
 	for idx, branch := range step.OneOf {
-		branch := branch
 		if branch.Identification == im {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}

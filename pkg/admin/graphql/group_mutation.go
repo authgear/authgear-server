@@ -50,8 +50,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createGroupInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			key := input["key"].(string)
 
@@ -90,7 +90,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 		},
@@ -138,8 +138,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(updateGroupInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupNodeID := input["id"].(string)
 
@@ -203,7 +203,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 		},
@@ -239,8 +239,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteGroupInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupNodeID := input["id"].(string)
 
@@ -282,7 +282,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"ok": true,
 			}, nil
 		},

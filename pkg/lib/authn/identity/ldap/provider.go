@@ -59,14 +59,14 @@ func (p *Provider) New(
 	loginUserName *string,
 	userIDAttributeName string,
 	userIDAttributeValue []byte,
-	claims map[string]interface{},
-	rawEntryJSON map[string]interface{},
+	claims map[string]any,
+	rawEntryJSON map[string]any,
 ) *identity.LDAP {
 	if claims == nil {
-		claims = make(map[string]interface{})
+		claims = make(map[string]any)
 	}
 	if rawEntryJSON == nil {
-		rawEntryJSON = make(map[string]interface{})
+		rawEntryJSON = make(map[string]any)
 	}
 	return &identity.LDAP{
 		ID:                   uuid.New(),
@@ -80,7 +80,7 @@ func (p *Provider) New(
 	}
 }
 
-func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]any, rawEntryJSON map[string]any) *identity.LDAP {
 	newIden := *iden
 	newIden.Claims = claims
 	newIden.RawEntryJSON = rawEntryJSON
@@ -115,7 +115,7 @@ func (p *Provider) MakeSpecFromEntry(ctx context.Context, serverConfig *config.L
 	userIDAttributeName := serverConfig.UserIDAttributeName
 	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
 
-	claims := map[string]interface{}{}
+	claims := map[string]any{}
 	if v := entry.GetAttributeValue(ldap.AttributeMail.Name); v != "" {
 		claims[string(model.ClaimEmail)] = v
 	}

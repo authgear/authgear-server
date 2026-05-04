@@ -13,7 +13,7 @@ func init() {
 type EdgeDoResetLockoutAttempts struct {
 }
 
-func (e *EdgeDoResetLockoutAttempts) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoResetLockoutAttempts) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	n := &NodeDoResetLockoutAttempts{}
 
 	return n, nil

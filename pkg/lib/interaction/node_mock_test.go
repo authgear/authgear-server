@@ -102,7 +102,7 @@ func (m *MockEdge) EXPECT() *MockEdgeMockRecorder {
 }
 
 // Instantiate mocks base method.
-func (m *MockEdge) Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (Node, error) {
+func (m *MockEdge) Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input any) (Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Instantiate", goCtx, ctx, graph, input)
 	ret0, _ := ret[0].(Node)

@@ -1,6 +1,7 @@
 package relay
 
 import (
+	context0 "context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/graphql-go/graphql"
-	"golang.org/x/net/context"
 )
 
 // NodeIDEncoding is Base64 URL encoding without padding.
@@ -25,8 +25,8 @@ type NodeDefinitionsConfig struct {
 	IDFetcher   IDFetcherFn
 	TypeResolve graphql.ResolveTypeFn
 }
-type IDFetcherFn func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error)
-type GlobalIDFetcherFn func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error)
+type IDFetcherFn func(id string, info graphql.ResolveInfo, ctx context0.Context) (any, error)
+type GlobalIDFetcherFn func(obj any, info graphql.ResolveInfo, ctx context0.Context) (string, error)
 
 /*
 	Given a function to map from an ID to an underlying object, and a function
@@ -62,7 +62,7 @@ func NewNodeDefinitions(config NodeDefinitionsConfig) *NodeDefinitions {
 				Description: "The ID of an object",
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			if config.IDFetcher == nil {
 				return nil, nil
 			}
@@ -84,12 +84,12 @@ func NewNodeDefinitions(config NodeDefinitionsConfig) *NodeDefinitions {
 				Description: "The list of node IDs.",
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			if config.IDFetcher == nil {
 				return nil, nil
 			}
-			var nodes []interface{}
-			ifaces := p.Args["ids"].([]interface{})
+			var nodes []any
+			ifaces := p.Args["ids"].([]any)
 			for _, iface := range ifaces {
 				id := iface.(string)
 				node, err := config.IDFetcher(id, p.Info, p.Context)
@@ -158,7 +158,7 @@ func GlobalIDField(typeName string, idFetcher GlobalIDFetcherFn) *graphql.Field 
 		Name:        "id",
 		Description: "The ID of an object",
 		Type:        graphql.NewNonNull(graphql.ID),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			id := ""
 			if idFetcher != nil {
 				fetched, err := idFetcher(p.Source, p.Info, p.Context)
@@ -168,11 +168,11 @@ func GlobalIDField(typeName string, idFetcher GlobalIDFetcherFn) *graphql.Field 
 				}
 			} else {
 				// try to get from p.Source (data)
-				var objMap interface{}
+				var objMap any
 				b, _ := json.Marshal(p.Source)
 				_ = json.Unmarshal(b, &objMap)
 				switch obj := objMap.(type) {
-				case map[string]interface{}:
+				case map[string]any:
 					if iid, ok := obj["id"]; ok {
 						id = fmt.Sprintf("%v", iid)
 					}

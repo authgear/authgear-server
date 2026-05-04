@@ -15,10 +15,10 @@ func TestDataLoader(t *testing.T) {
 		loadCounter := 0
 		var loadedIDs [][]string
 		var loaderErr error
-		loader := graphqlutil.NewDataLoader(func(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+		loader := graphqlutil.NewDataLoader(func(ctx context.Context, keys []any) ([]any, error) {
 			loadCounter++
 			ids := make([]string, len(keys))
-			values := make([]interface{}, len(keys))
+			values := make([]any, len(keys))
 			for i, id := range keys {
 				ids[i] = id.(string)
 				values[i] = "value " + ids[i]
@@ -177,25 +177,25 @@ func TestDataLoader(t *testing.T) {
 			ctx := context.Background()
 			So(loadCounter, ShouldEqual, 0)
 
-			lazy1 := loader.LoadMany(ctx, []interface{}{"1", "2"})
+			lazy1 := loader.LoadMany(ctx, []any{"1", "2"})
 			values, err := lazy1.Value()
 			So(err, ShouldBeNil)
 			So(loadCounter, ShouldEqual, 1)
-			So(values, ShouldResemble, []interface{}{"value 1", "value 2"})
+			So(values, ShouldResemble, []any{"value 1", "value 2"})
 
-			lazy2 := loader.LoadMany(ctx, []interface{}{"1", "2", "1"})
+			lazy2 := loader.LoadMany(ctx, []any{"1", "2", "1"})
 			values, err = lazy2.Value()
 			So(err, ShouldBeNil)
 			So(loadCounter, ShouldEqual, 1)
-			So(values, ShouldResemble, []interface{}{"value 1", "value 2", "value 1"})
+			So(values, ShouldResemble, []any{"value 1", "value 2", "value 1"})
 
 			loader.ClearAll()
 
-			lazy3 := loader.LoadMany(ctx, []interface{}{"1", "2", "3", "4"})
+			lazy3 := loader.LoadMany(ctx, []any{"1", "2", "3", "4"})
 			values, err = lazy3.Value()
 			So(err, ShouldBeNil)
 			So(loadCounter, ShouldEqual, 3)
-			So(values, ShouldResemble, []interface{}{"value 1", "value 2", "value 3", "value 4"})
+			So(values, ShouldResemble, []any{"value 1", "value 2", "value 3", "value 4"})
 		})
 
 		Convey("should reset cached value", func() {

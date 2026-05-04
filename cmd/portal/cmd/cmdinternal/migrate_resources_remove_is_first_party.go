@@ -53,25 +53,25 @@ func migrateRemoveIsFirstParty(ctx context.Context, appID string, configSourceDa
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	oauthConfig, ok := m["oauth"].(map[string]interface{})
+	oauthConfig, ok := m["oauth"].(map[string]any)
 	if !ok {
 		return nil
 	}
 
-	clients, ok := oauthConfig["clients"].([]interface{})
+	clients, ok := oauthConfig["clients"].([]any)
 	if !ok {
 		return fmt.Errorf("cannot read oauth.clients from authgear.yaml: %s", appID)
 	}
 
 	removedIsFirstParty := false
 	for i, clientItf := range clients {
-		client, ok := clientItf.(map[string]interface{})
+		client, ok := clientItf.(map[string]any)
 		if !ok {
 			return fmt.Errorf("cannot read oauth.clients[%d] from authgear.yaml: %s", i, appID)
 		}

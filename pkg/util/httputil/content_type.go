@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -44,13 +45,7 @@ func makeCheckContentTypeHandlerFunc(next http.Handler, allowedMediaTypes []stri
 			return
 		}
 
-		isAllowed := false
-		for _, allowedMediaType := range allowedMediaTypes {
-			if allowedMediaType == requestContentType {
-				isAllowed = true
-				break
-			}
-		}
+		isAllowed := slices.Contains(allowedMediaTypes, requestContentType)
 		if !isAllowed {
 			http.Error(w, fmt.Sprintf("invalid content type: %v", requestContentType), http.StatusUnsupportedMediaType)
 			return

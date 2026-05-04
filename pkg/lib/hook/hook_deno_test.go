@@ -18,7 +18,7 @@ import (
 
 type withoutCancelMatcher struct{}
 
-func (withoutCancelMatcher) Matches(x interface{}) bool {
+func (withoutCancelMatcher) Matches(x any) bool {
 	if ctx, ok := x.(context.Context); ok {
 		s := fmt.Sprintf("%v", ctx)
 		if strings.HasSuffix(s, "WithoutCancel") {
@@ -58,7 +58,7 @@ func TestDenoHook(t *testing.T) {
 			resourceManager.EXPECT().Read(gomock.Any(), DenoFile, resource.AppFile{
 				Path: "deno/a.ts",
 			}).Times(1).Return([]byte("script"), nil)
-			syncDenoClient.EXPECT().Run(gomock.Any(), "script", e).Times(1).Return(map[string]interface{}{
+			syncDenoClient.EXPECT().Run(gomock.Any(), "script", e).Times(1).Return(map[string]any{
 				"is_allowed": true,
 			}, nil)
 

@@ -2,6 +2,7 @@ package identity
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -132,21 +133,17 @@ func (i *Info) AMR() []string {
 }
 
 func (i *Info) ToModel() model.Identity {
-	claims := make(map[string]interface{})
+	claims := make(map[string]any)
 	switch i.Type {
 	case model.IdentityTypeLoginID:
-		for k, v := range i.LoginID.Claims {
-			claims[k] = v
-		}
+		maps.Copy(claims, i.LoginID.Claims)
 		claims[IdentityClaimLoginIDType] = i.LoginID.LoginIDType
 		claims[IdentityClaimLoginIDKey] = i.LoginID.LoginIDKey
 		claims[IdentityClaimLoginIDOriginalValue] = i.LoginID.OriginalLoginID
 		claims[IdentityClaimLoginIDValue] = i.LoginID.LoginID
 
 	case model.IdentityTypeOAuth:
-		for k, v := range i.OAuth.Claims {
-			claims[k] = v
-		}
+		maps.Copy(claims, i.OAuth.Claims)
 		claims[IdentityClaimOAuthProviderType] = i.OAuth.ProviderID.Type
 		claims[IdentityClaimOAuthSubjectID] = i.OAuth.ProviderSubjectID
 		claims[IdentityClaimOAuthProfile] = i.OAuth.UserProfile
@@ -255,8 +252,8 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	return map[model.ClaimName]string{}
 }
 
-func (i *Info) AllStandardClaims() map[string]interface{} {
-	claims := make(map[string]interface{})
+func (i *Info) AllStandardClaims() map[string]any {
+	claims := make(map[string]any)
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		return i.LoginID.Claims

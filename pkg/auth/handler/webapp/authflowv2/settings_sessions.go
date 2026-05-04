@@ -58,8 +58,8 @@ type AuthflowV2SettingsSessionsHandler struct {
 	SessionListing    SettingsSessionListingService
 }
 
-func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
+	data := map[string]any{}
 	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
@@ -130,7 +130,7 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 	redirectURI := httputil.HostRelative(r.URL).String()
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w, currentSession)
 			return err

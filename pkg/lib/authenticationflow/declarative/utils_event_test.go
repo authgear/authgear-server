@@ -38,7 +38,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 					LoginIDType:     model.LoginIDKeyTypeEmail,
 					LoginID:         "test@example.com",
 					OriginalLoginID: "test@example.com",
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						string(model.ClaimEmail): "test@example.com",
 					},
 				},
@@ -238,7 +238,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 					LoginIDType:     model.LoginIDKeyTypeEmail,
 					LoginID:         "test@example.com",
 					OriginalLoginID: "test@example.com",
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						string(model.ClaimEmail): "test@example.com",
 					},
 				},

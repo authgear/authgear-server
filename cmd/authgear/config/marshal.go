@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/cliutil"
 )
 
-func MarshalConfigYAML(ctx context.Context, cmd *cobra.Command, cfg interface{}, outputFolderPath string, fileName string) error {
+func MarshalConfigYAML(ctx context.Context, cmd *cobra.Command, cfg any, outputFolderPath string, fileName string) error {
 	yaml, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err

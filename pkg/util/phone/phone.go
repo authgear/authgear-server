@@ -35,7 +35,7 @@ func MaskWithCustomRune(phone string, r rune) string {
 
 	buf.WriteRune('+')
 	buf.WriteString(strconv.Itoa(countryCallingCode))
-	for i := 0; i < length; i++ {
+	for i := range length {
 		if i < halfLength {
 			buf.WriteRune(runes[i])
 		} else {

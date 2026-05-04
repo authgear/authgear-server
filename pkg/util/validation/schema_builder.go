@@ -11,7 +11,7 @@ import (
 // The zero value of a SchemaBuilder is an empty schema (by definition).
 // This is NOT meant to be complete.
 // It just supports the internal use cases we have.
-type SchemaBuilder map[string]interface{}
+type SchemaBuilder map[string]any
 
 type Type string
 
@@ -94,12 +94,12 @@ func (b SchemaBuilder) AddRequired(keys ...string) SchemaBuilder {
 	return b
 }
 
-func (b SchemaBuilder) Enum(values ...interface{}) SchemaBuilder {
+func (b SchemaBuilder) Enum(values ...any) SchemaBuilder {
 	b["enum"] = values
 	return b
 }
 
-func (b SchemaBuilder) Const(value interface{}) SchemaBuilder {
+func (b SchemaBuilder) Const(value any) SchemaBuilder {
 	b["const"] = value
 	return b
 }

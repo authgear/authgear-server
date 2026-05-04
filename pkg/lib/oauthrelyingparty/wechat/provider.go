@@ -49,7 +49,7 @@ func (c ProviderConfig) IsSandboxAccount() bool {
 
 func (c ProviderConfig) WechatRedirectURIs() []string {
 	var out []string
-	wechat_redirect_uris, _ := c["wechat_redirect_uris"].([]interface{})
+	wechat_redirect_uris, _ := c["wechat_redirect_uris"].([]any)
 	for _, iface := range wechat_redirect_uris {
 		if s, ok := iface.(string); ok {
 			out = append(out, s)
@@ -77,7 +77,7 @@ const (
 
 type Wechat struct{}
 
-func (Wechat) GetJSONSchema() map[string]interface{} {
+func (Wechat) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -115,7 +115,7 @@ func (Wechat) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 	wechatCfg := ProviderConfig(cfg)
 	account_id := wechatCfg.AccountID()
 	is_sandbox_account := wechatCfg.IsSandboxAccount()
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"account_id":         account_id,
 		"is_sandbox_account": strconv.FormatBool(is_sandbox_account),
 	}
@@ -246,7 +246,7 @@ func (r *wechatOAuthErrorResp) AsError() error {
 	}
 }
 
-type wechatAccessTokenResp map[string]interface{}
+type wechatAccessTokenResp map[string]any
 
 func (r wechatAccessTokenResp) AccessToken() string {
 	accessToken, ok := r["access_token"].(string)
@@ -272,7 +272,7 @@ func (r wechatAccessTokenResp) UnionID() string {
 	return ""
 }
 
-type wechatUserInfoResp map[string]interface{}
+type wechatUserInfoResp map[string]any
 
 func (r wechatUserInfoResp) OpenID() string {
 	openid, ok := r["openid"].(string)

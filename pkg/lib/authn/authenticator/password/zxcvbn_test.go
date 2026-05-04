@@ -1,5 +1,4 @@
 //go:build zxcvbn_test
-// +build zxcvbn_test
 
 package password_test
 

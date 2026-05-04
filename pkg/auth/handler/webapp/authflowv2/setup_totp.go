@@ -53,8 +53,8 @@ type AuthflowV2SetupTOTPHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -107,7 +107,7 @@ func (h *AuthflowV2SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 		code := r.Form.Get("x_code")
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"code": code,
 		}
 

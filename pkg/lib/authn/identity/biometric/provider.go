@@ -61,7 +61,7 @@ func (p *Provider) New(
 	userID string,
 	keyID string,
 	key []byte,
-	deviceInfo map[string]interface{},
+	deviceInfo map[string]any,
 ) *identity.Biometric {
 	i := &identity.Biometric{
 		ID:         uuid.New(),

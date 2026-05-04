@@ -1,6 +1,10 @@
 package relay
 
-import "github.com/graphql-go/graphql"
+import (
+	"maps"
+
+	"github.com/graphql-go/graphql"
+)
 
 /*
 Returns a GraphQLFieldConfigArgumentMap appropriate to include
@@ -22,9 +26,7 @@ var ConnectionArgs = graphql.FieldConfigArgument{
 }
 
 func NewConnectionArgs(configMap graphql.FieldConfigArgument) graphql.FieldConfigArgument {
-	for fieldName, argConfig := range ConnectionArgs {
-		configMap[fieldName] = argConfig
-	}
+	maps.Copy(configMap, ConnectionArgs)
 	return configMap
 }
 
@@ -36,7 +38,7 @@ type ConnectionConfig struct {
 }
 
 type EdgeType struct {
-	Node   interface{}      `json:"node"`
+	Node   any              `json:"node"`
 	Cursor ConnectionCursor `json:"cursor"`
 }
 type GraphQLConnectionDefinitions struct {

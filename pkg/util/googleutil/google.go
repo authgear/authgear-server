@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -13,7 +13,7 @@ import (
 )
 
 func GetOAuth2Config(credentialsJSONFilePath string, scope ...string) (*oauth2.Config, error) {
-	b, err := ioutil.ReadFile(credentialsJSONFilePath)
+	b, err := os.ReadFile(credentialsJSONFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read client secret file: %v", err)
 	}
@@ -44,7 +44,7 @@ func GetTokenFromWeb(ctx context.Context, config *oauth2.Config) (*oauth2.Token,
 }
 
 func GetTokenFromFile(path string) (*oauth2.Token, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read token file: %v", err)
 	}
@@ -65,7 +65,7 @@ func SaveToken(path string, token *oauth2.Token) error {
 		return fmt.Errorf("Unable to encode token to json: %v", err)
 	}
 
-	err = ioutil.WriteFile(path, tokenJSON, 0600)
+	err = os.WriteFile(path, tokenJSON, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to save token.json: %v", err)
 	}

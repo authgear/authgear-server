@@ -59,9 +59,9 @@ var nodeAuthenticator = node(
 			"updatedAt": entityUpdatedAtField(loadAuthenticator),
 			"expireAfter": &graphql.Field{
 				Type: graphql.DateTime,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					info := loadAuthenticator(p.Context, p.Source)
-					return info.Map(func(value interface{}) (interface{}, error) {
+					return info.Map(func(value any) (any, error) {
 						p := value.(*authenticator.Info).Password
 						if p == nil {
 							return nil, nil
@@ -73,16 +73,16 @@ var nodeAuthenticator = node(
 			},
 			"type": &graphql.Field{
 				Type: graphql.NewNonNull(authenticatorType),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ref := p.Source.(interface{ ToRef() *authenticator.Ref }).ToRef()
 					return string(ref.Type), nil
 				},
 			},
 			"kind": &graphql.Field{
 				Type: graphql.NewNonNull(authenticatorKind),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					info := loadAuthenticator(p.Context, p.Source)
-					return info.Map(func(value interface{}) (interface{}, error) {
+					return info.Map(func(value any) (any, error) {
 						a := value.(*authenticator.Info)
 						return string(a.Kind), nil
 					}).Value, nil
@@ -90,9 +90,9 @@ var nodeAuthenticator = node(
 			},
 			"isDefault": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					info := loadAuthenticator(p.Context, p.Source)
-					return info.Map(func(value interface{}) (interface{}, error) {
+					return info.Map(func(value any) (any, error) {
 						a := value.(*authenticator.Info)
 						return a.IsDefault, nil
 					}).Value, nil
@@ -103,13 +103,13 @@ var nodeAuthenticator = node(
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					names, hasNames := p.Args["names"].([]interface{})
+				Resolve: func(p graphql.ResolveParams) (any, error) {
+					names, hasNames := p.Args["names"].([]any)
 					info := loadAuthenticator(p.Context, p.Source)
-					claims := info.Map(func(value interface{}) (interface{}, error) {
+					claims := info.Map(func(value any) (any, error) {
 						claims := value.(*authenticator.Info).ToPublicClaims()
 						if hasNames {
-							filteredClaims := make(map[string]interface{})
+							filteredClaims := make(map[string]any)
 							for _, name := range names {
 								name := name.(string)
 								if value, ok := claims[name]; ok {
@@ -126,14 +126,14 @@ var nodeAuthenticator = node(
 		},
 	}),
 	&authenticator.Info{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Authenticators.Load(ctx, id).Value, nil
 	},
 )
 
 var connAuthenticator = graphqlutil.NewConnectionDef(nodeAuthenticator)
 
-func loadAuthenticator(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
+func loadAuthenticator(ctx context.Context, obj any) *graphqlutil.Lazy {
 	switch obj := obj.(type) {
 	case *authenticator.Info:
 		return graphqlutil.NewLazyValue(obj)

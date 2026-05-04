@@ -17,9 +17,9 @@ type SendOptions struct {
 
 // See docs/specs/sms_gateway.md
 type ResponseBody struct {
-	Code        string                 `json:"code"`
-	Description string                 `json:"description,omitempty"`
-	Info        map[string]interface{} `json:"info,omitempty"`
+	Code        string         `json:"code"`
+	Description string         `json:"description,omitempty"`
+	Info        map[string]any `json:"info,omitempty"`
 }
 
 func ParseResponseBody(jsonData []byte) (*ResponseBody, error) {

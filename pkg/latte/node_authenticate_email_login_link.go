@@ -81,7 +81,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	target := n.Authenticator.OOBOTP.Email
 	state, err := deps.OTPCodes.InspectState(ctx,
 		otp.KindOOBOTPLink(deps.Config, model.AuthenticatorOOBChannelEmail),

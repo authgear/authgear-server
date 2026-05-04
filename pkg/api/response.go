@@ -8,13 +8,13 @@ import (
 )
 
 type Response struct {
-	Result interface{}
+	Result any
 	Error  error
 }
 
 func (r *Response) EncodeToJSON(ctx context.Context) ([]byte, error) {
 	return json.Marshal(struct {
-		Result interface{}         `json:"result,omitempty"`
+		Result any                 `json:"result,omitempty"`
 		Error  *apierrors.APIError `json:"error,omitempty"`
 	}{r.Result, apierrors.AsAPIErrorWithContext(ctx, r.Error)})
 }

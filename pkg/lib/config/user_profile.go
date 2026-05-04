@@ -385,7 +385,7 @@ func (c *CustomAttributesAttributeConfig) ToSchemaBuilder() (builder validation.
 		}
 	case CustomAttributeTypeEnum:
 		builder.Type(validation.TypeString)
-		builder.Enum(slice.Cast[string, interface{}](c.Enum)...)
+		builder.Enum(slice.Cast[string, any](c.Enum)...)
 	case CustomAttributeTypePhoneNumber:
 		builder.Type(validation.TypeString)
 		builder.Format("phone")
@@ -405,7 +405,7 @@ func (c *CustomAttributesAttributeConfig) ToSchemaBuilder() (builder validation.
 	return
 }
 
-func (c *CustomAttributesAttributeConfig) ParseString(strRepr string) (interface{}, error) {
+func (c *CustomAttributesAttributeConfig) ParseString(strRepr string) (any, error) {
 	switch c.Type {
 	case CustomAttributeTypeString:
 		return strRepr, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -311,11 +312,9 @@ func (s *Service) Create(ctx context.Context, info *authenticator.Info) error {
 		return err
 	}
 
-	for _, a := range ais {
-		if info.Equal(a) {
-			err = authenticator.NewErrDuplicatedAuthenticator(info.Type)
-			return err
-		}
+	if slices.ContainsFunc(ais, info.Equal) {
+		err = authenticator.NewErrDuplicatedAuthenticator(info.Type)
+		return err
 	}
 
 	switch info.Type {

@@ -54,8 +54,8 @@ func NewAuthflowV2EnterTOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	}
 }
 
-func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	screenViewModel := NewAuthflowV2EnterTOTPViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
@@ -69,8 +69,8 @@ func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	return data, nil
 }
 
-func (h *AuthflowV2EnterTOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterTOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -101,7 +101,7 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		code := r.Form.Get("x_code")
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication":       model.AuthenticationFlowAuthenticationSecondaryTOTP,
 			"code":                 code,
 			"request_device_token": requestDeviceToken,

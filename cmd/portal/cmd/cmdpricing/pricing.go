@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -137,7 +137,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		featureConfigPath := binder.GetString(cmd, portalcmd.ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
-			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
+			featureConfigYAML, err = os.ReadFile(featureConfigPath)
 			if err != nil {
 				return err
 			}
@@ -264,7 +264,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 		featureConfigPath := binder.GetString(cmd, portalcmd.ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
-			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
+			featureConfigYAML, err = os.ReadFile(featureConfigPath)
 			if err != nil {
 				return err
 			}

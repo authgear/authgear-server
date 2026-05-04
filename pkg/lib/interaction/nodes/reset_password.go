@@ -44,7 +44,7 @@ type InputResetPasswordByCode interface {
 
 type EdgeResetPassword struct{}
 
-func (e *EdgeResetPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeResetPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var resetInput InputResetPassword
 	var codeInput InputResetPasswordByCode
 	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/flows/reset_password/success")
