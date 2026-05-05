@@ -144,6 +144,10 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     return false;
   }, [effectiveFeatureConfig]);
 
+  const fraudProtectionModifiable = useMemo(() => {
+    return effectiveFeatureConfig?.fraud_protection?.is_modifiable ?? false;
+  }, [effectiveFeatureConfig]);
+
   const label = renderToString("ScreenNav.label");
 
   const links: NavLinkItem[] = useMemo(() => {
@@ -307,11 +311,15 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.bot-protection",
             url: `/project/${appID}/attack-protection/bot-protection`,
           },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.fraud-protection",
-            url: `/project/${appID}/attack-protection/fraud-protection`,
-          },
+          ...(fraudProtectionModifiable
+            ? [
+                {
+                  type: "link" as const,
+                  textKey: "ScreenNav.fraud-protection",
+                  url: `/project/${appID}/attack-protection/fraud-protection`,
+                },
+              ]
+            : []),
           {
             type: "link" as const,
             textKey: "ScreenNav.ip-blocklist",
@@ -430,6 +438,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     appID,
     analyticEnabled,
     app2appEnabled,
+    fraudProtectionModifiable,
     showIntegrations,
     auditLogEnabled,
   ]);
