@@ -27,6 +27,7 @@ type UsageAlertEmailService interface {
 }
 
 type UsageAlertEmailServiceImpl struct {
+	AppID              config.AppID
 	TranslationService TranslationService
 	MailSender         MailSender
 	DevMode            config.DevMode
@@ -38,6 +39,7 @@ func (s *UsageAlertEmailServiceImpl) Send(ctx context.Context, recipients []stri
 	}
 
 	data, err := s.TranslationService.EmailMessageData(ctx, translation.MessageUsageAlert, &translation.PartialTemplateVariables{
+		AppID:             string(s.AppID),
 		UsageName:         string(payload.Usage.Name),
 		UsageAction:       string(payload.Usage.Action),
 		UsagePeriod:       string(payload.Usage.Period),

@@ -316,6 +316,7 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 	}
 
 	return &PreparedTemplateVariables{
+		AppID:       v.AppID,
 		AppName:     appName,
 		ClientID:    uiParams.ClientID,
 		ClientName:  clientName,

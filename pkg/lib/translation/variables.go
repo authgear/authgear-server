@@ -16,6 +16,7 @@ type PartialTemplateVariables struct {
 	Password string
 
 	// Usage alert
+	AppID             string
 	UsageName         string
 	UsageAction       string
 	UsagePeriod       string
@@ -24,6 +25,7 @@ type PartialTemplateVariables struct {
 }
 
 type PreparedTemplateVariables struct {
+	AppID             string
 	AppName           string
 	ClientID          string
 	ClientName        string
