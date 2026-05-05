@@ -76,3 +76,10 @@
 # Anthropic crawlers
 /(?i)\bClaudeBot\b/
 /(?i)\bClaude-SearchBot\b/
+
+# Facebook / Meta crawlers
+/(?i)\bfacebookexternalhit\b/
+/(?i)\bFacebookBot\b/
+/(?i)\bFacebot\b/
+/(?i)\bmeta-externalagent\b/
+/(?i)\bmeta-externalfetcher\b/
