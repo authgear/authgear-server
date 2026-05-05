@@ -816,6 +816,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,
@@ -1825,6 +1826,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,
@@ -2281,6 +2283,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,
@@ -2738,6 +2741,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,
