@@ -97,7 +97,7 @@ Use existing repo skills instead of one-off instructions when they fit:
 - `new-siteadmin-api`
 - `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls)
 - `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects)
-- `write-e2e-test`
+- `write-e2e-test` — **use this before writing, editing, or running e2e tests**
 - Repo-local skills for Go tests, Portal GraphQL operations, Go version updates, important-module updates, and vetted-position updates
 
 ## Git workflow
