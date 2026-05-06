@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "あなたの {{ .UsageDisplayName }} 使用量が {{ .UsageCurrentValue }} に達しました ({{ template \"app.name\" }})",
-      "Body": "こんにちは、<br><br>あなたの Authgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageDisplayName }} クォータの {{ .UsageCurrentValue }} を使用しています。<br><br>現在のところ、アクションは必要ありません。これはあなたの使用量を確認できるようにするための通知です。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いします。<br>Authgear チーム"
+      "Title": "お客様の{{ .UsageDisplayName }}使用量が{{ .UsageCurrentValue }}に達しました({{ .AppID }})",
+      "Body": "こんにちは、<br><br>Authgearプロジェクト{{ .AppID }}は、この請求期間中に{{ .UsageDisplayName }}クォータの{{ .UsageCurrentValue }}を使用しています。<br><br>現在のところ、対応は必要ありません。これはお客様の使用状況を確認していただくための通知です。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いいたします。<br>Authgearチーム"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} 使用量がブロックされました",
-      "Body": "こんにちは、<br><br>あなたのプロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用量はブロックされています。<br><br>サービスを再開するには、プランをアップグレードしてください。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いします。<br>Authgear チーム"
+      "Title": "{{ .UsageDisplayName }}使用量がブロックされました",
+      "Body": "こんにちは、<br><br>お客様のプロジェクト{{ .AppID }}は、この請求期間中に{{ .UsageQuota }}{{ .UsageDisplayName }}のハード制限に達しました。追加の{{ .UsageDisplayName }}使用量はブロックされています。<br><br>サービスを再開するには、プランをアップグレードしてください。<br><br>ご質問がある場合は、お気軽にお問い合わせください。<br><br>よろしくお願いいたします。<br>Authgearチーム"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "あなたの {{ .UsageDisplayName }} 使用量が {{ .UsageCurrentValue }} に達しました ({{ template \"app.name\" }})",
-      "Body": "こんにちは、\n\nあなたの Authgear プロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageDisplayName }} クォータの {{ .UsageCurrentValue }} を使用しています。\n\n現在のところ、アクションは必要ありません。これはあなたの使用量を確認できるようにするための通知です。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いします。\nAuthgear チーム"
+      "Title": "お客様の{{ .UsageDisplayName }}使用量が{{ .UsageCurrentValue }}に達しました({{ .AppID }})",
+      "Body": "こんにちは、\n\nAuthgearプロジェクト{{ .AppID }}は、この請求期間中に{{ .UsageDisplayName }}クォータの{{ .UsageCurrentValue }}を使用しています。\n\n現在のところ、対応は必要ありません。これはお客様の使用状況を確認していただくための通知です。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いいたします。\nAuthgearチーム"
     },
     "Block": {
-      "Title": "{{ .UsageDisplayName }} 使用量がブロックされました",
-      "Body": "こんにちは、\n\nあなたのプロジェクト {{ template \"app.name\" }} は、この請求期間中に {{ .UsageQuota }} {{ .UsageDisplayName }} のハード制限に達しました。追加の {{ .UsageDisplayName }} 使用量はブロックされています。\n\nサービスを再開するには、プランをアップグレードしてください。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いします。\nAuthgear チーム"
+      "Title": "{{ .UsageDisplayName }}使用量がブロックされました",
+      "Body": "こんにちは、\n\nお客様のプロジェクト{{ .AppID }}は、この請求期間中に{{ .UsageQuota }}{{ .UsageDisplayName }}のハード制限に達しました。追加の{{ .UsageDisplayName }}使用量はブロックされています。\n\nサービスを再開するには、プランをアップグレードしてください。\n\nご質問がある場合は、お気軽にお問い合わせください。\n\nよろしくお願いいたします。\nAuthgearチーム"
     }
   }
 }

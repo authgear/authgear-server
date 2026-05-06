@@ -701,6 +701,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,

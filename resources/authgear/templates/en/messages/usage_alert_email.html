@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has
-                                    been blocked{{ else }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
+                                    {{ if eq .UsageAction "alert" }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppID }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} usage has been blocked{{
+                                    else }}Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppID }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,12 +144,12 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}Hi there,<br /><br />Your Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br /><br />No
+                                    {{ if eq .UsageAction "alert" }}Hi there,<br /><br />Your Authgear project, {{ .AppID }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br /><br />No
                                     action is needed right now. This is just a heads-up so you can review your usage.<br /><br />If you have any questions, please contact us.<br /><br />Best,<br />Authgear Team{{ else if eq .UsageAction
-                                    "block" }}Hi there,<br /><br />Your project, {{ template "app.name" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }}
-                                    usage has been blocked.<br /><br />To resume service, please upgrade your plan.<br /><br />If you have any questions, please contact us.<br /><br />Best,<br />Authgear Team{{ else }}Hi there,<br /><br />Your
-                                    Authgear project, {{ template "app.name" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br /><br />No action is needed right now. This is just a
-                                    heads-up so you can review your usage.<br /><br />If you have any questions, please contact us.<br /><br />Best,<br />Authgear Team{{ end }}
+                                    "block" }}Hi there,<br /><br />Your project, {{ .AppID }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been
+                                    blocked.<br /><br />To resume service, please upgrade your plan.<br /><br />If you have any questions, please contact us.<br /><br />Best,<br />Authgear Team{{ else }}Hi there,<br /><br />Your Authgear
+                                    project, {{ .AppID }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br /><br />No action is needed right now. This is just a heads-up so you can review
+                                    your usage.<br /><br />If you have any questions, please contact us.<br /><br />Best,<br />Authgear Team{{ end }}
                                   </div>
                                 </td>
                               </tr>

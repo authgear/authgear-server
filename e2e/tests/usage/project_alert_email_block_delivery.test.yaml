@@ -91,13 +91,13 @@ steps:
     sleep_for: 2s
   - name: query smtp log
     action: smtp_log_query
-    smtp_log_subject: "SMS usage has been blocked (Authgear)"
+    smtp_log_subject: "SMS usage has been blocked ({{ .AppID }})"
     smtp_log_recipient: "usage-alert@example.com"
     smtp_log_output:
       rows: |
         [
           {
-            "subject": "SMS usage has been blocked (Authgear)",
+            "subject": "SMS usage has been blocked ({{ .AppID }})",
             "recipient": "usage-alert@example.com"
           }
         ]

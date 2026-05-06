@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
-      "Body": "Olá,<br><br>O seu projeto Authgear, {{ template \"app.name\" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.<br><br>Nenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear"
+      "Title": "O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ .AppID }})",
+      "Body": "Olá,<br><br>O seu projeto Authgear, {{ .AppID }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.<br><br>Nenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear"
     },
     "Block": {
       "Title": "O uso de {{ .UsageDisplayName }} foi bloqueado",
-      "Body": "Olá,<br><br>O seu projeto, {{ template \"app.name\" }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.<br><br>Para retomar o serviço, atualize o seu plano.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear"
+      "Body": "Olá,<br><br>O seu projeto, {{ .AppID }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.<br><br>Para retomar o serviço, atualize o seu plano.<br><br>Se tiver alguma dúvida, contacte-nos.<br><br>Cumprimentos,<br>Equipa Authgear"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
-      "Body": "Olá,\n\nO seu projeto Authgear, {{ template \"app.name\" }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.\n\nNenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.\n\nSe tiver alguma dúvida, contacte-nos.\n\nCumprimentos,\nEquipa Authgear"
+      "Title": "O seu uso de {{ .UsageDisplayName }} atingiu {{ .UsageCurrentValue }} ({{ .AppID }})",
+      "Body": "Olá,\n\nO seu projeto Authgear, {{ .AppID }}, utilizou {{ .UsageCurrentValue }} da sua quota de {{ .UsageDisplayName }} para este período de faturação.\n\nNenhuma ação é necessária neste momento. Esta é apenas uma notificação para que possa rever o seu uso.\n\nSe tiver alguma dúvida, contacte-nos.\n\nCumprimentos,\nEquipa Authgear"
     },
     "Block": {
       "Title": "O uso de {{ .UsageDisplayName }} foi bloqueado",
-      "Body": "Olá,\n\nO seu projeto, {{ template \"app.name\" }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.\n\nPara retomar o serviço, atualize o seu plano.\n\nSe tiver alguma dúvida, contacte-nos.\n\nCumprimentos,\nEquipa Authgear"
+      "Body": "Olá,\n\nO seu projeto, {{ .AppID }}, atingiu o seu limite máximo de {{ .UsageQuota }} {{ .UsageDisplayName }} neste período de faturação. O uso adicional de {{ .UsageDisplayName }} foi bloqueado.\n\nPara retomar o serviço, atualize o seu plano.\n\nSe tiver alguma dúvida, contacte-nos.\n\nCumprimentos,\nEquipa Authgear"
     }
   }
 }

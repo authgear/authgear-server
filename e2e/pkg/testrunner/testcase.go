@@ -408,9 +408,13 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 		if step.SMTPLogOutput != nil {
-			ok := validateQueryResult(t, Step{
+			renderedRows, ok := renderTemplateString(t, cmd, prevSteps, step.SMTPLogOutput.Rows)
+			if !ok {
+				return nil, state, false
+			}
+			ok = validateQueryResult(t, Step{
 				Name:        step.Name,
-				QueryOutput: step.SMTPLogOutput,
+				QueryOutput: &QueryOutput{Rows: renderedRows},
 			}, rows)
 			if !ok {
 				return nil, state, false

@@ -188,22 +188,22 @@
   },
   "UsageAlert": {
     "Alert": {
-      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
-      "Body": "Hi there,<br><br>Your Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br><br>No action is needed right now. This is just a heads-up so you can review your usage.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
+      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppID }})",
+      "Body": "Hi there,<br><br>Your Authgear project, {{ .AppID }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.<br><br>No action is needed right now. This is just a heads-up so you can review your usage.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
     },
     "Block": {
       "Title": "{{ .UsageDisplayName }} usage has been blocked",
-      "Body": "Hi there,<br><br>Your project, {{ template \"app.name\" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
+      "Body": "Hi there,<br><br>Your project, {{ .AppID }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.<br><br>To resume service, please upgrade your plan.<br><br>If you have any questions, please contact us.<br><br>Best,<br>Authgear Team"
     }
   },
   "UsageAlertTXT": {
     "Alert": {
-      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ template \"app.name\" }})",
-      "Body": "Hi there,\n\nYour Authgear project, {{ template \"app.name\" }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.\n\nNo action is needed right now. This is just a heads-up so you can review your usage.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
+      "Title": "Your {{ .UsageDisplayName }} usage has reached {{ .UsageCurrentValue }} ({{ .AppID }})",
+      "Body": "Hi there,\n\nYour Authgear project, {{ .AppID }}, has used {{ .UsageCurrentValue }} of its {{ .UsageDisplayName }} quota for this billing period.\n\nNo action is needed right now. This is just a heads-up so you can review your usage.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
     },
     "Block": {
       "Title": "{{ .UsageDisplayName }} usage has been blocked",
-      "Body": "Hi there,\n\nYour project, {{ template \"app.name\" }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.\n\nTo resume service, please upgrade your plan.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
+      "Body": "Hi there,\n\nYour project, {{ .AppID }}, has reached its hard limit of {{ .UsageQuota }} {{ .UsageDisplayName }} in this billing period. Additional {{ .UsageDisplayName }} usage has been blocked.\n\nTo resume service, please upgrade your plan.\n\nIf you have any questions, please contact us.\n\nBest,\nAuthgear Team"
     }
   }
 }

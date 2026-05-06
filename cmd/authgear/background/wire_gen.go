@@ -770,6 +770,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	devMode := environmentConfig.DevMode
 	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              configAppID,
 		TranslationService: translationService,
 		MailSender:         sender,
 		DevMode:            devMode,

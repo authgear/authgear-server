@@ -32,11 +32,17 @@ Follow this workflow whenever updating email templates.
 2. Generate `.mjml` from `.mjml.gotemplate`:
    - `go run ./scripts/generatemjml/main.go -i resources/authgear/templates`
 3. Commit source edits and generated `.mjml` in one commit.
-4. In a separate commit, generate non-English translations:
+4. Before regenerating non-English translations, delete the changed keys from all non-`en` locale files so the generator knows to recreate them:
+   - For `en/messages/translation.json` changes, delete the **top-level key** (e.g. `UsageAlert`, not `UsageAlert.Alert.Title`) from all non-`en` `messages/translation.json` files:
+     - `make templates-translation-json-del-key KEY=<TopLevelKey>`
+   - For `en/translation.json` subject changes, delete the changed key from all non-`en` `translation.json` files:
+     - `make translation-json-del-key KEY=<key>`
+   - Run once per changed top-level key.
+5. In a separate commit, generate non-English translations:
    - `make -C scripts/python generate-translations`
    - `ANTHROPIC_API_KEY` must be set.
    - If `ANTHROPIC_API_KEY` is not set, stop and ask the user to run this step.
-5. Finally, generate HTML emails:
+6. Finally, generate HTML emails:
    - `make html-email`
 
 ## Commit Boundaries (Required)

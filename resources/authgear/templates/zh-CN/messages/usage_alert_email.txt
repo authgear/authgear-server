@@ -1,8 +1,8 @@
-{{ if eq .UsageAction "alert" }}您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用量已被阻止{{ else }}您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ template "app.name" }}){{ end }}
+{{ if eq .UsageAction "alert" }}您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ .AppID }}){{ else if eq .UsageAction "block" }}{{ .UsageDisplayName }} 使用量已被限制{{ else }}您的 {{ .UsageDisplayName }} 使用量已达到 {{ .UsageCurrentValue }} ({{ .AppID }}){{ end }}
 
 {{ if eq .UsageAction "alert" }}您好，
 
-您的 Authgear 项目 {{ template "app.name" }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。
+您的 Authgear 项目 {{ .AppID }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。
 
 目前无需采取任何行动。这只是一个提醒，以便您可以查看您的使用情况。
 
@@ -12,7 +12,7 @@
 敬礼
 Authgear 团队{{ else if eq .UsageAction "block" }}您好，
 
-您的项目 {{ template "app.name" }} 在本计费周期内已达到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。额外的 {{ .UsageDisplayName }} 使用已被阻止。
+您的项目 {{ .AppID }} 在本计费周期内已达到 {{ .UsageQuota }} {{ .UsageDisplayName }} 的硬限制。额外的 {{ .UsageDisplayName }} 使用已被限制。
 
 要恢复服务，请升级您的计划。
 
@@ -22,7 +22,7 @@ Authgear 团队{{ else if eq .UsageAction "block" }}您好，
 敬礼
 Authgear 团队{{ else }}您好，
 
-您的 Authgear 项目 {{ template "app.name" }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。
+您的 Authgear 项目 {{ .AppID }} 在本计费周期内已使用 {{ .UsageCurrentValue }} 的 {{ .UsageDisplayName }} 配额。
 
 目前无需采取任何行动。这只是一个提醒，以便您可以查看您的使用情况。
 
