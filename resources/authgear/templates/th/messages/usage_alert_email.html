@@ -107,8 +107,8 @@
                                       color: #000000;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}การใช้งาน {{ .UsageDisplayName }}
-                                    ถูกบล็อกแล้ว{{ else }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ end }}
+                                    {{ if eq .UsageAction "alert" }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ .AppID }}){{ else if eq .UsageAction "block" }}การใช้งาน {{ .UsageDisplayName }}
+                                    ถูกบล็อกแล้ว{{ else }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ .AppID }}){{ end }}
                                   </div>
                                 </td>
                               </tr>
@@ -144,12 +144,12 @@
                                       color: #201f1e;
                                     "
                                   >
-                                    {{ if eq .UsageAction "alert" }}สวัสดี<br /><br />โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้<br /><br />ไม่จำเป็นต้องดำเนินการใดๆ
+                                    {{ if eq .UsageAction "alert" }}สวัสดีค่ะ<br /><br />โปรเจกต์ Authgear ของคุณ {{ .AppID }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้<br /><br />ไม่จำเป็นต้องดำเนินการใดๆ
                                     ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้<br /><br />หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br /><br />ด้วยความเคารพ<br />ทีม Authgear{{ else if eq .UsageAction "block"
-                                    }}สวัสดี<br /><br />โปรเจกต์ของคุณ {{ template "app.name" }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }}
-                                    เพิ่มเติมถูกบล็อกแล้ว<br /><br />เพื่อเรียกใช้บริการต่อ โปรดอัปเกรดแผนของคุณ<br /><br />หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br /><br />ด้วยความเคารพ<br />ทีม Authgear{{ else }}สวัสดี<br /><br />โปรเจกต์
-                                    Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้<br /><br />ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้
-                                    นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้<br /><br />หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br /><br />ด้วยความเคารพ<br />ทีม Authgear{{ end }}
+                                    }}สวัสดีค่ะ<br /><br />โปรเจกต์ของคุณ {{ .AppID }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว<br /><br />เพื่อเรียกใช้บริการต่อ
+                                    โปรดอัปเกรดแผนของคุณ<br /><br />หากคุณมีคำถามใดๆ โปรดติดต่อเรา<br /><br />ด้วยความเคารพ<br />ทีม Authgear{{ else }}สวัสดีค่ะ<br /><br />โปรเจกต์ Authgear ของคุณ {{ .AppID }} ได้ใช้ {{ .UsageCurrentValue
+                                    }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้<br /><br />ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้<br /><br />หากคุณมีคำถามใดๆ
+                                    โปรดติดต่อเรา<br /><br />ด้วยความเคารพ<br />ทีม Authgear{{ end }}
                                   </div>
                                 </td>
                               </tr>

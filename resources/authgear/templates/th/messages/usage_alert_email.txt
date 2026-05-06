@@ -1,26 +1,26 @@
-{{ if eq .UsageAction "alert" }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ else if eq .UsageAction "block" }}การใช้งาน {{ .UsageDisplayName }} ถูกบล็อกแล้ว{{ else }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ template "app.name" }}){{ end }}
+{{ if eq .UsageAction "alert" }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ .AppID }}){{ else if eq .UsageAction "block" }}การใช้งาน {{ .UsageDisplayName }} ถูกบล็อกแล้ว{{ else }}การใช้งาน {{ .UsageDisplayName }} ของคุณถึง {{ .UsageCurrentValue }} แล้ว ({{ .AppID }}){{ end }}
 
-{{ if eq .UsageAction "alert" }}สวัสดี
+{{ if eq .UsageAction "alert" }}สวัสดีค่ะ
 
-โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
+โปรเจกต์ Authgear ของคุณ {{ .AppID }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
 
 ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้
 
 หากคุณมีคำถามใดๆ โปรดติดต่อเรา
 
 ด้วยความเคารพ
-ทีม Authgear{{ else if eq .UsageAction "block" }}สวัสดี
+ทีม Authgear{{ else if eq .UsageAction "block" }}สวัสดีค่ะ
 
-โปรเจกต์ของคุณ {{ template "app.name" }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว
+โปรเจกต์ของคุณ {{ .AppID }} ถึงขีดจำกัดสูงสุด {{ .UsageQuota }} {{ .UsageDisplayName }} ในรอบการเรียกเก็บเงินนี้แล้ว การใช้งาน {{ .UsageDisplayName }} เพิ่มเติมถูกบล็อกแล้ว
 
 เพื่อเรียกใช้บริการต่อ โปรดอัปเกรดแผนของคุณ
 
 หากคุณมีคำถามใดๆ โปรดติดต่อเรา
 
 ด้วยความเคารพ
-ทีม Authgear{{ else }}สวัสดี
+ทีม Authgear{{ else }}สวัสดีค่ะ
 
-โปรเจกต์ Authgear ของคุณ {{ template "app.name" }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
+โปรเจกต์ Authgear ของคุณ {{ .AppID }} ได้ใช้ {{ .UsageCurrentValue }} จากโควตา {{ .UsageDisplayName }} ของคุณในรอบการเรียกเก็บเงินนี้
 
 ไม่จำเป็นต้องดำเนินการใดๆ ในตอนนี้ นี่เป็นเพียงการแจ้งเตือนเพื่อให้คุณสามารถตรวจสอบการใช้งานของคุณได้
 
