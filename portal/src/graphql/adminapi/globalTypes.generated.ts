@@ -243,6 +243,7 @@ export enum AuditLogActivityType {
   IdentityUsernameRemoved = 'IDENTITY_USERNAME_REMOVED',
   IdentityUsernameUpdated = 'IDENTITY_USERNAME_UPDATED',
   M2MTokenCreated = 'M2M_TOKEN_CREATED',
+  ProjectAppCreated = 'PROJECT_APP_CREATED',
   ProjectAppSecretViewed = 'PROJECT_APP_SECRET_VIEWED',
   ProjectAppUpdated = 'PROJECT_APP_UPDATED',
   ProjectBillingCheckoutCreated = 'PROJECT_BILLING_CHECKOUT_CREATED',

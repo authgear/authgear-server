@@ -1490,6 +1490,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED": "Admin API Mutation: Add scopes to client",
   "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED": "Admin API Mutation: Remove scopes from client",
   "AuditLogActivityType.ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED": "Admin API Mutation: Replace scopes of client",
+  "AuditLogActivityType.PROJECT_APP_CREATED": "Project: App created",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
   "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",
