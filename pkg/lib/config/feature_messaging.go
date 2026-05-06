@@ -78,34 +78,34 @@ func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureCon
 func (c *MessagingFeatureConfig) SetDefaults() {
 	if c.SMSUsage.Enabled == nil {
 		c.SMSUsage = &Deprecated_UsageLimitConfig{
-			Enabled: newBool(false),
+			Enabled: new(false),
 		}
 	}
 	if c.EmailUsage.Enabled == nil {
 		c.EmailUsage = &Deprecated_UsageLimitConfig{
-			Enabled: newBool(false),
+			Enabled: new(false),
 		}
 	}
 	if c.WhatsappUsage.Enabled == nil {
 		c.WhatsappUsage = &Deprecated_UsageLimitConfig{
-			Enabled: newBool(false),
+			Enabled: new(false),
 		}
 	}
 
 	if c.SMSUsageCountDisabled == nil {
-		c.SMSUsageCountDisabled = newBool(false)
+		c.SMSUsageCountDisabled = new(false)
 	}
 	if c.WhatsappUsageCountDisabled == nil {
-		c.WhatsappUsageCountDisabled = newBool(false)
+		c.WhatsappUsageCountDisabled = new(false)
 	}
 	if c.TemplateCustomizationDisabled == nil {
-		c.TemplateCustomizationDisabled = newBool(false)
+		c.TemplateCustomizationDisabled = new(false)
 	}
 	if c.CustomSMTPDisabled == nil {
-		c.CustomSMTPDisabled = newBool(false)
+		c.CustomSMTPDisabled = new(false)
 	}
 	if c.CustomSMSProviderDisabled == nil {
-		c.CustomSMSProviderDisabled = newBool(false)
+		c.CustomSMSProviderDisabled = new(false)
 	}
 }
 
@@ -136,28 +136,28 @@ type MessagingRateLimitsFeatureConfig struct {
 func (c *MessagingRateLimitsFeatureConfig) SetDefaults() {
 	if c.SMSPerIP.Enabled == nil {
 		c.SMSPerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
 	}
 	if c.SMSPerTarget.Enabled == nil {
 		c.SMSPerTarget = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1h",
 			Burst:   10,
 		}
 	}
 	if c.EmailPerIP.Enabled == nil {
 		c.EmailPerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   200,
 		}
 	}
 	if c.EmailPerTarget.Enabled == nil {
 		c.EmailPerTarget = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "24h",
 			Burst:   50,
 		}

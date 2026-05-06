@@ -22,7 +22,7 @@ var UserOutsideValidPeriod = apierrors.Forbidden.WithReason("UserOutsideValidPer
 var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
 
 func NewErrDisabledUser(reason *string) error {
-	return DisabledUser.NewWithInfo("user is disabled", map[string]interface{}{
+	return DisabledUser.NewWithInfo("user is disabled", map[string]any{
 		"reason": reason,
 	})
 }
@@ -33,19 +33,19 @@ var ErrAnonymizedUser = AnonymizedUser.New("user is anonymized")
 var ErrUserOutsideValidPeriod = UserOutsideValidPeriod.New("user is outside valid period")
 
 func NewErrScheduledDeletionByAdmin(deleteAt time.Time) error {
-	return ScheduledDeletionByAdmin.NewWithInfo("user was scheduled for deletion by admin", map[string]interface{}{
+	return ScheduledDeletionByAdmin.NewWithInfo("user was scheduled for deletion by admin", map[string]any{
 		"delete_at": deleteAt,
 	})
 }
 
 func NewErrScheduledDeletionByEndUser(deleteAt time.Time) error {
-	return ScheduledDeletionByEndUser.NewWithInfo("user was scheduled for deletion by end-user", map[string]interface{}{
+	return ScheduledDeletionByEndUser.NewWithInfo("user was scheduled for deletion by end-user", map[string]any{
 		"delete_at": deleteAt,
 	})
 }
 
 func NewErrScheduledAnonymizationByAdmin(anonymizeAt time.Time) error {
-	return ScheduledAnonymizationByAdmin.NewWithInfo("user was scheduled for anonymization by admin", map[string]interface{}{
+	return ScheduledAnonymizationByAdmin.NewWithInfo("user was scheduled for anonymization by admin", map[string]any{
 		"anonymize_at": anonymizeAt,
 	})
 }

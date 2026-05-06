@@ -40,10 +40,10 @@ type AuthflowV2SettingsHandler struct {
 	AccountDeletion          *config.AccountDeletionConfig
 }
 
-func (h *AuthflowV2SettingsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
 	userID := session.GetUserID(ctx)
 
-	data := map[string]interface{}{}
+	data := map[string]any{}
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -89,7 +89,7 @@ func (h *AuthflowV2SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			if err != nil {

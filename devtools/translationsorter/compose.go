@@ -22,7 +22,7 @@ func ComposeJSON(kvPairs []KeyValuePair, path string) (err error) {
 		if _, err = f.Write([]byte(lineStart + "  ")); err != nil {
 			return fmt.Errorf("failed to write: %w", err)
 		}
-		byteArray := []byte(fmt.Sprintf("%q: %q", kvPair.Key, kvPair.Value))
+		byteArray := fmt.Appendf(nil, "%q: %q", kvPair.Key, kvPair.Value)
 		_, err = f.Write(byteArray)
 		if err != nil {
 			return fmt.Errorf("failed to write: %w", err)

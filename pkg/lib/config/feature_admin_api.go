@@ -49,16 +49,16 @@ func (c *AdminAPIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConf
 
 func (c *AdminAPIFeatureConfig) SetDefaults() {
 	if c.CreateSessionEnabled == nil {
-		c.CreateSessionEnabled = newBool(false)
+		c.CreateSessionEnabled = new(false)
 	}
 	if c.UserImportUsage.Enabled == nil {
 		c.UserImportUsage = &Deprecated_UsageLimitConfig{
-			Enabled: newBool(false),
+			Enabled: new(false),
 		}
 	}
 	if c.UserExportUsage.Enabled == nil {
 		c.UserExportUsage = &Deprecated_UsageLimitConfig{
-			Enabled: newBool(false),
+			Enabled: new(false),
 		}
 	}
 }

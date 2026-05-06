@@ -10,8 +10,6 @@ import (
 	utilrand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
-func newInt(v int) *int { return &v }
-
 func TestBasicPasswordGeneration(t *testing.T) {
 	Convey("Given a password generator with default settings", t, func() {
 		generator := &Generator{
@@ -20,7 +18,7 @@ func TestBasicPasswordGeneration(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength: newInt(8),
+					MinLength: new(8),
 				},
 			},
 		}
@@ -42,7 +40,7 @@ func TestUppercaseRequirement(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength:         newInt(8),
+					MinLength:         new(8),
 					UppercaseRequired: true,
 				},
 			},
@@ -65,7 +63,7 @@ func TestLowercaseRequirement(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength:         newInt(8),
+					MinLength:         new(8),
 					LowercaseRequired: true,
 				},
 			},
@@ -88,7 +86,7 @@ func TestCombinedRequirements(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength:         newInt(12),
+					MinLength:         new(12),
 					UppercaseRequired: true,
 					LowercaseRequired: true,
 					DigitRequired:     true,
@@ -118,7 +116,7 @@ func TestMinLengthRequirement(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength: newInt(40),
+					MinLength: new(40),
 				},
 			},
 		}
@@ -140,7 +138,7 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 			Rand:      NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength:             newInt(8),
+					MinLength:             new(8),
 					MinimumGuessableLevel: 4,
 				},
 			},
@@ -189,7 +187,7 @@ func TestExcludedKeywordsRequirement(t *testing.T) {
 			},
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
-					MinLength:        newInt(8),
+					MinLength:        new(8),
 					DigitRequired:    true,
 					ExcludedKeywords: excluded,
 				},

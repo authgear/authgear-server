@@ -8,7 +8,7 @@ import (
 )
 
 func GetAMR(w *workflow.Workflow) []string {
-	amrSet := map[string]interface{}{}
+	amrSet := map[string]any{}
 	workflows := workflow.FindSubWorkflows[AMRGetter](w)
 
 	authCount := 0

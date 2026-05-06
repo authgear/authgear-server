@@ -56,8 +56,8 @@ type AuthflowV2SettingsMFACreateTOTPHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, tokenString string, totpSecret string, otpauthURI string) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, tokenString string, totpSecret string, otpauthURI string) (map[string]any, error) {
+	data := make(map[string]any)
 	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -117,7 +117,7 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) ServeHTTP(w http.ResponseWriter
 		}
 		totpauthURI := totp.GetURI(opts).String()
 
-		var data map[string]interface{}
+		var data map[string]any
 		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w, tokenString, totp.Secret, totpauthURI)
 			return err

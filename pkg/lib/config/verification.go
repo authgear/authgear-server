@@ -85,10 +85,10 @@ type VerificationClaimConfig struct {
 
 func (c *VerificationClaimConfig) SetDefaults() {
 	if c.Enabled == nil {
-		c.Enabled = newBool(true)
+		c.Enabled = new(true)
 	}
 	if c.Required == nil {
-		c.Required = newBool(true)
+		c.Required = new(true)
 	}
 }
 
@@ -136,7 +136,7 @@ func (c *VerificationRateLimitsEmailConfig) SetDefaults() {
 	}
 	if c.ValidatePerIP.Enabled == nil {
 		c.ValidatePerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
@@ -171,7 +171,7 @@ func (c *VerificationRateLimitsSMSConfig) SetDefaults() {
 	}
 	if c.ValidatePerIP.Enabled == nil {
 		c.ValidatePerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}

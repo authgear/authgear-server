@@ -48,7 +48,7 @@ type PubSubMessageLeave struct {
 // PubSub is an actor wrapping redis.PubSub
 type PubSub struct {
 	ConnKey           string
-	SupervisorMailbox chan interface{}
+	SupervisorMailbox chan any
 
 	PubSub     *redis.PubSub
 	Subscriber map[string][]Subscriber
@@ -56,15 +56,15 @@ type PubSub struct {
 	// 1. When the mailbox is closed, that means the actor should die.
 	// 2. PubSubMessageJoin
 	// 3. PubSubMessageLeave
-	Mailbox chan interface{}
+	Mailbox chan any
 }
 
 // NewPubSub creates a running PubSub actor.
 //
 //nolint:gocognit
-func NewPubSub(ctx context.Context, client *redis.Client, connKey string, supervisorMailbox chan interface{}) *PubSub {
+func NewPubSub(ctx context.Context, client *redis.Client, connKey string, supervisorMailbox chan any) *PubSub {
 	redisPubSub := client.Subscribe(ctx)
-	mailbox := make(chan interface{})
+	mailbox := make(chan any)
 	pubsub := &PubSub{
 		ConnKey:           connKey,
 		SupervisorMailbox: supervisorMailbox,
@@ -201,7 +201,7 @@ type Hub struct {
 	PubSub       map[string]*PubSub
 	// Mailbox handles 3 messages.
 	// This mailbox is never closed.
-	Mailbox chan interface{}
+	Mailbox chan any
 	// 1. HubMessageSubscribe
 	// 2. HubMessagePubSubCancel
 	// 3. HubMessagePubSubDead
@@ -210,7 +210,7 @@ type Hub struct {
 var RedisHubLogger = slogutil.NewLogger("redis-hub")
 
 func NewHub(ctx context.Context, pool *Pool) *Hub {
-	mailbox := make(chan interface{})
+	mailbox := make(chan any)
 	h := &Hub{
 		Pool:         pool,
 		SubscriberID: &SubscriberID{},

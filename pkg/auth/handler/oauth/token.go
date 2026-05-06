@@ -3,6 +3,7 @@ package oauth
 import (
 	"context"
 	"errors"
+	"maps"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -37,9 +38,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	req := protocol.TokenRequest{}
-	for name, values := range r.Form {
-		req[name] = values
-	}
+	maps.Copy(req, r.Form)
 
 	var result httputil.Result
 	ctx := r.Context()

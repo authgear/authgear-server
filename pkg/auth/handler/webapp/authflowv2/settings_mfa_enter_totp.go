@@ -59,8 +59,8 @@ type AuthflowV2SettingsMFAEnterTOTPHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFAEnterTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SettingsMFAEnterTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)

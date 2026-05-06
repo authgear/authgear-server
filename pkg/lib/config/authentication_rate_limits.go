@@ -54,14 +54,14 @@ type AuthenticationRateLimitsGeneralConfig struct {
 func (c *AuthenticationRateLimitsGeneralConfig) SetDefaults() {
 	if c.PerIP.Enabled == nil {
 		c.PerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
 	}
 	if c.PerUserPerIP.Enabled == nil {
 		c.PerUserPerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   10,
 		}
@@ -253,7 +253,7 @@ type AuthenticationRateLimitsSignupConfig struct {
 func (c *AuthenticationRateLimitsSignupConfig) SetDefaults() {
 	if c.PerIP.Enabled == nil {
 		c.PerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   10,
 		}
@@ -277,7 +277,7 @@ type AuthenticationRateLimitsSignupAnonymousConfig struct {
 func (c *AuthenticationRateLimitsSignupAnonymousConfig) SetDefaults() {
 	if c.PerIP.Enabled == nil {
 		c.PerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   60,
 		}
@@ -301,7 +301,7 @@ type AuthenticationRateLimitsAccountEnumerationConfig struct {
 func (c *AuthenticationRateLimitsAccountEnumerationConfig) SetDefaults() {
 	if c.PerIP.Enabled == nil {
 		c.PerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   10,
 		}

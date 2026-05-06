@@ -56,8 +56,8 @@ func NewAuthflowV2EnterRecoveryCodeViewModel(s *webapp.Session, screen *webapp.A
 	}
 }
 
-func (h *AuthflowV2EnterRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	screenViewModel := NewAuthflowV2EnterRecoveryCodeViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
@@ -91,7 +91,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 		recoveryCode := r.Form.Get("x_recovery_code")
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication":       "recovery_code",
 			"recovery_code":        recoveryCode,
 			"request_device_token": requestDeviceToken,

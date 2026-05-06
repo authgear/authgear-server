@@ -46,7 +46,7 @@ type AuthenticatorPasswordConfig struct {
 
 func (c *AuthenticatorPasswordConfig) SetDefaults() {
 	if c.ForceChange == nil {
-		c.ForceChange = newBool(true)
+		c.ForceChange = new(true)
 	}
 
 	c.Deprecated_Ratelimit = nil
@@ -90,7 +90,7 @@ func (c *PasswordPolicyConfig) IsEnabled() bool {
 
 func (c *PasswordPolicyConfig) SetDefaults() {
 	if c.MinLength == nil {
-		c.MinLength = newInt(8)
+		c.MinLength = new(8)
 	}
 }
 
@@ -221,7 +221,7 @@ type AuthenticatorTOTPConfig struct {
 
 func (c *AuthenticatorTOTPConfig) SetDefaults() {
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 }
 
@@ -344,7 +344,7 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 		c.PhoneOTPMode = AuthenticatorPhoneOTPModeWhatsappSMS
 	}
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 	if c.Deprecated_CodeValidPeriod == "" {
 		c.Deprecated_CodeValidPeriod = DurationString("300s")
@@ -407,7 +407,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 		c.EmailOTPMode = AuthenticatorEmailOTPModeCodeOnly
 	}
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 	switch c.EmailOTPMode {
 	case AuthenticatorEmailOTPModeCodeOnly:

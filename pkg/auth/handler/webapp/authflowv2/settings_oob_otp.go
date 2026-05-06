@@ -47,8 +47,8 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 	Authenticators       authenticatorservice.Service
 }
 
-func (h *AuthflowV2SettingsOOBOTPHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsOOBOTPHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := map[string]any{}
 	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
@@ -104,7 +104,7 @@ func (h *AuthflowV2SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, w, r)
 			return err

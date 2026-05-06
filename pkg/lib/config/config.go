@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"slices"
 	"strconv"
 
 	"sigs.k8s.io/yaml"
@@ -199,7 +200,7 @@ func (c *AppConfig) validateIdentityPrimaryAuthenticatorOthers(
 		ctx.Child("authentication", "identities", strconv.Itoa(idx)).
 			EmitError(
 				"noPrimaryAuthenticator",
-				map[string]interface{}{
+				map[string]any{
 					"identity_type": it,
 				},
 			)
@@ -229,7 +230,7 @@ func (c *AppConfig) validateSecondaryAuthenticator(ctx *validation.Context) {
 			ctx.Child("authentication", "secondary_authentication_mode").
 				EmitError(
 					"noSecondaryAuthenticator",
-					map[string]interface{}{"secondary_authentication_mode": c.Authentication.SecondaryAuthenticationMode})
+					map[string]any{"secondary_authentication_mode": c.Authentication.SecondaryAuthenticationMode})
 		}
 	}
 }
@@ -327,7 +328,7 @@ func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 					"attributes",
 					strconv.Itoa(i),
 					"minimum",
-				).EmitError("maximum", map[string]interface{}{
+				).EmitError("maximum", map[string]any{
 					"maximum": *customAttributeConfig.Maximum,
 					"actual":  *customAttributeConfig.Minimum,
 				})
@@ -340,7 +341,7 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 	minDuration, isMinDurationValid := c.Authentication.Lockout.MinimumDuration.MaybeDuration()
 	maxDuration, isMaxDurationValid := c.Authentication.Lockout.MaximumDuration.MaybeDuration()
 	if isMaxDurationValid && isMinDurationValid && minDuration.Seconds() > maxDuration.Seconds() {
-		ctx.Child("authentication", "lockout", "minimum_duration").EmitError("maximum", map[string]interface{}{
+		ctx.Child("authentication", "lockout", "minimum_duration").EmitError("maximum", map[string]any{
 			"maximum": maxDuration.Seconds(),
 			"actual":  minDuration.Seconds(),
 		})
@@ -371,7 +372,7 @@ func (c *AppConfig) validateSAML(ctx *validation.Context) {
 	if len(c.SAML.ServiceProviders) > 0 {
 		if c.SAML.Signing.KeyID == "" {
 			// Signing key must be configured if at least one service provider exist
-			ctx.Child("saml", "signing", "key_id").EmitError("minLength", map[string]interface{}{
+			ctx.Child("saml", "signing", "key_id").EmitError("minLength", map[string]any{
 				"expected": 1,
 				"actual":   0,
 			})
@@ -498,11 +499,8 @@ func validateGroupAllowlist(ctx *validation.Context, allowlist []*Authentication
 			groupIsDefined = true
 		}
 
-		for _, definedGroup := range definedlist {
-			if group.Name == definedGroup {
-				groupIsDefined = true
-				break
-			}
+		if slices.Contains(definedlist, group.Name) {
+			groupIsDefined = true
 		}
 
 		if !groupIsDefined {

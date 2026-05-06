@@ -10,7 +10,7 @@ import (
 func PortalCSPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		nonce, r := httputil.CSPNoncePerRequest(r)
-		data := map[string]interface{}{
+		data := map[string]any{
 			"CSPNonce": nonce,
 		}
 		r = r.WithContext(context.WithValue(r.Context(), httputil.FileServerIndexHTMLtemplateDataKey, data))

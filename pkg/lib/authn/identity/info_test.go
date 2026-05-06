@@ -43,7 +43,7 @@ func TestInfoJSON(t *testing.T) {
 				LoginID:         "user@example.com",
 				OriginalLoginID: "user@example.com",
 				UniqueKey:       "user@example.com",
-				Claims: map[string]interface{}{
+				Claims: map[string]any{
 					"email": "user@example.com",
 				},
 			},
@@ -64,15 +64,15 @@ func TestInfoJSON(t *testing.T) {
 
 				ProviderID: oauthrelyingparty.ProviderID{
 					Type: "provider",
-					Keys: map[string]interface{}{
+					Keys: map[string]any{
 						"client_id": "client_id",
 					},
 				},
 				ProviderSubjectID: "sub",
-				UserProfile: map[string]interface{}{
+				UserProfile: map[string]any{
 					"email": "user@example.com",
 				},
-				Claims: map[string]interface{}{
+				Claims: map[string]any{
 					"email": "user@example.com",
 				},
 			},
@@ -111,7 +111,7 @@ func TestInfoJSON(t *testing.T) {
 
 				KeyID: "keyid",
 				Key:   []byte("abc"),
-				DeviceInfo: map[string]interface{}{
+				DeviceInfo: map[string]any{
 					"name": "name",
 				},
 			},

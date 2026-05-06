@@ -23,7 +23,7 @@ var WebHookLogger = slogutil.NewLogger("webhook")
 
 type WebHook interface {
 	SupportURL(u *url.URL) bool
-	PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error)
+	PrepareRequest(ctx context.Context, u *url.URL, body any) (*http.Request, error)
 	PerformWithResponse(ctx context.Context, client *http.Client, request *http.Request) (resp *http.Response, err error)
 	PerformNoResponse(ctx context.Context, client *http.Client, request *http.Request) error
 }
@@ -38,7 +38,7 @@ func (h *WebHookImpl) SupportURL(u *url.URL) bool {
 	return u.Scheme == "http" || u.Scheme == "https"
 }
 
-func (h *WebHookImpl) PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error) {
+func (h *WebHookImpl) PrepareRequest(ctx context.Context, u *url.URL, body any) (*http.Request, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err

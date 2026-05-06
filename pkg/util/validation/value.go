@@ -23,7 +23,7 @@ func (c *Context) Child(path ...string) *Context {
 	return &Context{pointer: append(c.pointer, path...), errors: c.errors}
 }
 
-func (c *Context) EmitError(keyword string, info map[string]interface{}) {
+func (c *Context) EmitError(keyword string, info map[string]any) {
 	if c.errors == nil {
 		c.errors = &[]Error{}
 	}
@@ -31,7 +31,7 @@ func (c *Context) EmitError(keyword string, info map[string]interface{}) {
 }
 
 func (c *Context) EmitErrorMessage(msg string) {
-	c.EmitError("general", map[string]interface{}{"msg": msg})
+	c.EmitError("general", map[string]any{"msg": msg})
 }
 
 func (c *Context) AddError(err error) {
@@ -56,7 +56,7 @@ func (c *Context) AddError(err error) {
 	}
 }
 
-func (c *Context) Validate(ctx context.Context, value interface{}) {
+func (c *Context) Validate(ctx context.Context, value any) {
 	if v, ok := value.(Validator); ok {
 		v.Validate(ctx, c)
 	}
@@ -69,11 +69,11 @@ func (c *Context) Error(msg string) error {
 	return &AggregatedError{Message: msg, Errors: *c.errors}
 }
 
-func ValidateValue(ctx context.Context, value interface{}) error {
+func ValidateValue(ctx context.Context, value any) error {
 	return ValidateValueWithMessage(ctx, value, defaultErrorMessage)
 }
 
-func ValidateValueWithMessage(ctx context.Context, value interface{}, msg string) error {
+func ValidateValueWithMessage(ctx context.Context, value any, msg string) error {
 	valicationCtx := &Context{}
 	valicationCtx.Validate(ctx, value)
 	return valicationCtx.Error(msg)

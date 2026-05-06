@@ -73,7 +73,7 @@ func NewEnvConfig(dbCredentials *CmdDBCredential) *config.EnvironmentConfig {
 }
 
 type NilResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 	AssetName(key string) (name string, err error)
 }
 

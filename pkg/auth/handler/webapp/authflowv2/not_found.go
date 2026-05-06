@@ -19,8 +19,8 @@ type AuthflowV2NotFoundHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2NotFoundHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2NotFoundHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil

@@ -19,7 +19,7 @@ type EdgeDoRemoveAuthenticator struct {
 	BypassMFARequirement bool
 }
 
-func (e *EdgeDoRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	return &NodeDoRemoveAuthenticator{
 		Authenticator:        e.Authenticator,
@@ -75,7 +75,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 						return api.NewInvariantViolated(
 							"RemoveLastPrimaryAuthenticator",
 							"cannot remove last primary authenticator for identity",
-							map[string]interface{}{"identity_id": i.ID},
+							map[string]any{"identity_id": i.ID},
 						)
 					}
 				}

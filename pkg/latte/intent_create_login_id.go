@@ -153,8 +153,8 @@ func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Depen
 	return nil, nil
 }
 
-func (i *IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (i *IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }
 
 func (*IntentCreateLoginID) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {

@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func Input(i interface{}, input interface{}) bool {
+func Input(i any, input any) bool {
 	if i == nil {
 		return false
 	}
@@ -16,7 +16,7 @@ func Input(i interface{}, input interface{}) bool {
 			val.Elem().Set(reflect.ValueOf(i))
 			return true
 		}
-		if x, ok := i.(interface{ Input() interface{} }); ok {
+		if x, ok := i.(interface{ Input() any }); ok {
 			i = x.Input()
 		} else {
 			break

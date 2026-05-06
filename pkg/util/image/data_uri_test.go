@@ -23,8 +23,8 @@ func TestDataURIFromImage(t *testing.T) {
 			return color.RGBA{v, v, v, 0xff}
 		}
 
-		for x := 0; x < width; x++ {
-			for y := 0; y < height; y++ {
+		for x := range width {
+			for y := range height {
 				color := makeColor(x+y, width+height)
 				img.Set(x, y, color)
 			}

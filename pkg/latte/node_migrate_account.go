@@ -33,7 +33,7 @@ func (*NodeMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Dependenc
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeMigrateAccount) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeMigrateAccount) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	type NodeMigrateAccountOutput struct {
 		IdentityMigrateSpecs []*identity.MigrateSpec `json:"identity_migrate_specs"`
 	}

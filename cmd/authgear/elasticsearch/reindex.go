@@ -30,7 +30,7 @@ type queryUserResponse struct {
 			Source       struct {
 				ID string `json:"id"`
 			} `json:"_source"`
-			Sort interface{} `json:"sort"`
+			Sort any `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -213,25 +213,25 @@ func (q *Reindexer) cleanupDeletedUsers(ctx context.Context, es *elasticsearch.C
 	// Each user ID is 128-bit UUID == 16 bytes
 	// 1M users take 16MiB memory
 	size := 1000
-	var searchAfter interface{}
+	var searchAfter any
 
 	underscoreIDsToDelete := make(map[string]struct{})
 	for {
-		bodyJSONValue := map[string]interface{}{
+		bodyJSONValue := map[string]any{
 			"size": size,
-			"query": map[string]interface{}{
-				"bool": map[string]interface{}{
-					"filter": []interface{}{
-						map[string]interface{}{
-							"term": map[string]interface{}{
+			"query": map[string]any{
+				"bool": map[string]any{
+					"filter": []any{
+						map[string]any{
+							"term": map[string]any{
 								"app_id": string(q.AppID),
 							},
 						},
 					},
 				},
 			},
-			"sort": []interface{}{
-				map[string]interface{}{
+			"sort": []any{
+				map[string]any{
 					"created_at": "asc",
 				},
 			},

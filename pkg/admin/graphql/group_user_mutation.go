@@ -46,11 +46,11 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addGroupToUsersInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupKey := input["groupKey"].(string)
-			userIDIfaces := input["userIDs"].([]interface{})
+			userIDIfaces := input["userIDs"].([]any)
 			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
 				userNodeIDs[i] = v.(string)
@@ -83,7 +83,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 
@@ -124,11 +124,11 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeGroupFromUsersInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupKey := input["groupKey"].(string)
-			userIDIfaces := input["userIDs"].([]interface{})
+			userIDIfaces := input["userIDs"].([]any)
 			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
 				userNodeIDs[i] = v.(string)
@@ -161,7 +161,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 
@@ -202,8 +202,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addUserToGroupsInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -211,7 +211,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid user ID")
 			}
 			userID := resolvedNodeID.ID
-			groupKeyIfaces := input["groupKeys"].([]interface{})
+			groupKeyIfaces := input["groupKeys"].([]any)
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
@@ -241,7 +241,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
@@ -282,8 +282,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeUserFromGroupsInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -291,7 +291,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid user ID")
 			}
 			userID := resolvedNodeID.ID
-			groupKeyIfaces := input["groupKeys"].([]interface{})
+			groupKeyIfaces := input["groupKeys"].([]any)
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
@@ -321,7 +321,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 

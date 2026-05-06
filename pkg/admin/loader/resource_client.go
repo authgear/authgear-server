@@ -24,7 +24,7 @@ func NewResourceClientLoader(resources ResourceClientLoaderResources) *ResourceC
 	return l
 }
 
-func (l *ResourceClientLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *ResourceClientLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	resourceIDs := make([]string, len(keys))
 	for i, key := range keys {
@@ -37,7 +37,7 @@ func (l *ResourceClientLoader) LoadFunc(ctx context.Context, keys []interface{})
 		return nil, err
 	}
 
-	out := make([]interface{}, len(resourceIDs))
+	out := make([]any, len(resourceIDs))
 	for idx, resourceID := range resourceIDs {
 		clientIDsForResource, ok := resourceIDToClientIDsMap[resourceID]
 		if !ok {

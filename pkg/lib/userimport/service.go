@@ -72,7 +72,7 @@ type VerifiedClaimService interface {
 }
 
 type StandardAttributesService interface {
-	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error
 }
 
 type CustomAttributesService interface {
@@ -964,7 +964,6 @@ func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, detail *D
 func (s *UserImportService) removeIdentityInTxn(ctx context.Context, detail *Detail, infos []*identity.Info, typ model.LoginIDKeyType) error {
 	var toBeRemoved []*identity.Info
 	for _, info := range infos {
-		info := info
 		if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == typ && info.LoginID.LoginIDKey == string(typ) {
 			toBeRemoved = append(toBeRemoved, info)
 		}
@@ -986,7 +985,6 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Det
 
 	isUpdated := false
 	for _, info := range infos {
-		info := info
 
 		if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == spec.LoginID.Type && info.LoginID.LoginIDKey == spec.LoginID.Key {
 			isUpdated = true

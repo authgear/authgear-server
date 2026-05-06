@@ -4,14 +4,14 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"io/ioutil"
+
 	"log"
 	"os"
 	"path"
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/rubenv/sql-migrate"
+	migrate "github.com/rubenv/sql-migrate"
 )
 
 type ConnectionOptions struct {
@@ -66,7 +66,7 @@ func (s MigrationSet) Create(name string) (fileName string, err error) {
 		return
 	}
 
-	err = ioutil.WriteFile(path.Join(s.OutputPathRelativeToWorkingDirectory, fileName), []byte(migrationTemplate), 0o600)
+	err = os.WriteFile(path.Join(s.OutputPathRelativeToWorkingDirectory, fileName), []byte(migrationTemplate), 0o600)
 	if err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (s MigrationSet) makeSource(opts ConnectionOptions) *TemplateMigrationSourc
 			FileSystem: s.EmbedFS,
 			Root:       s.EmbedFSRoot,
 		},
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"SCHEMA": opts.DatabaseSchema,
 		},
 	}

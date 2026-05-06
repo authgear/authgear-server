@@ -177,7 +177,7 @@ type FraudProtectionConfig struct {
 
 func (c *FraudProtectionConfig) SetDefaults() {
 	if c.Enabled == nil {
-		c.Enabled = newBool(true)
+		c.Enabled = new(true)
 	}
 	if c.Warnings == nil {
 		c.Warnings = []*FraudProtectionWarning{
@@ -202,10 +202,10 @@ type FraudProtectionSMSUnverifiedOTPBudgetConfig struct {
 
 func (c *FraudProtectionSMSUnverifiedOTPBudgetConfig) SetDefaults() {
 	if c.DailyRatio == nil {
-		c.DailyRatio = newFloat64(0.3)
+		c.DailyRatio = new(0.3)
 	}
 	if c.HourlyRatio == nil {
-		c.HourlyRatio = newFloat64(0.2)
+		c.HourlyRatio = new(0.2)
 	}
 }
 

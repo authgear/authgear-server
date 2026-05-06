@@ -10,7 +10,7 @@ import (
 )
 
 type TokenRequest url.Values
-type TokenResponse map[string]interface{}
+type TokenResponse map[string]any
 
 // OAuth 2.0
 
@@ -53,7 +53,7 @@ func (r TokenRequest) CodeChallenge() string       { return url.Values(r).Get("c
 func (r TokenRequest) CodeChallengeMethod() string { return url.Values(r).Get("code_challenge_method") }
 
 // Proprietary
-func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
+func (r TokenRequest) DeviceInfo() (map[string]any, error) {
 	encoded := url.Values(r).Get("x_device_info")
 	if encoded == "" {
 		return nil, nil
@@ -64,7 +64,7 @@ func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var deviceInfo map[string]interface{}
+	var deviceInfo map[string]any
 	err = json.Unmarshal(bytes, &deviceInfo)
 	if err != nil {
 		return nil, err

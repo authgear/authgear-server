@@ -43,10 +43,10 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addScopesToClientIDInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			resourceURI := input["resourceURI"].(string)
-			scopesIface := input["scopes"].([]interface{})
+			scopesIface := input["scopes"].([]any)
 			clientID := input["clientID"].(string)
 
 			scopes := make([]string, len(scopesIface))
@@ -70,7 +70,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"scopes": finalscopes,
 			}, nil
 		},
@@ -114,10 +114,10 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeScopesFromClientIDInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			resourceURI := input["resourceURI"].(string)
-			scopesIface := input["scopes"].([]interface{})
+			scopesIface := input["scopes"].([]any)
 			clientID := input["clientID"].(string)
 
 			scopes := make([]string, len(scopesIface))
@@ -141,7 +141,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"scopes": finalscopes,
 			}, nil
 		},
@@ -185,11 +185,11 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(replaceScopesOfClientIDInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			resourceURI := input["resourceURI"].(string)
 			clientID := input["clientID"].(string)
-			scopesIface := input["scopes"].([]interface{})
+			scopesIface := input["scopes"].([]any)
 			scopes := make([]string, len(scopesIface))
 			for i, s := range scopesIface {
 				scopes[i] = s.(string)
@@ -211,7 +211,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return map[string]interface{}{
+			return map[string]any{
 				"scopes": finalscopes,
 			}, nil
 		},

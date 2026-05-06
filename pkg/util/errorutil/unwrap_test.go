@@ -3,6 +3,7 @@ package errorutil_test
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -49,11 +50,8 @@ func TestUnwrap(t *testing.T) {
 	}
 
 	collect := func(err error, arr []error) []error {
-		for _, e := range elements {
-			// We intentionally do not use errors.Is here.
-			if err == e {
-				return append(arr, err)
-			}
+		if slices.Contains(elements, err) {
+			return append(arr, err)
 		}
 		return arr
 	}

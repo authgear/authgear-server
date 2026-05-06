@@ -412,14 +412,14 @@ func TestRecord(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("custom_attributes is expected to be non-null"))
 
 			r = Record{
-				"custom_attributes": map[string]interface{}{},
+				"custom_attributes": map[string]any{},
 			}
 
 			l = r.CustomAttributesList()
 			So(l, ShouldBeEmpty)
 
 			r = Record{
-				"custom_attributes": map[string]interface{}{
+				"custom_attributes": map[string]any{
 					"a": "b",
 				},
 			}
@@ -442,7 +442,7 @@ func TestRecord(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("roles is expected to be of type []string, but was <nil>"))
 
 			r = Record{
-				"roles": []interface{}{"a"},
+				"roles": []any{"a"},
 			}
 
 			v, ok := r.Roles()
@@ -464,7 +464,7 @@ func TestRecord(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("groups is expected to be of type []string, but was <nil>"))
 
 			r = Record{
-				"groups": []interface{}{"a"},
+				"groups": []any{"a"},
 			}
 
 			v, ok := r.Groups()
@@ -486,7 +486,7 @@ func TestRecord(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("password is expected to be non-null"))
 
 			r = Record{
-				"password": map[string]interface{}{},
+				"password": map[string]any{},
 			}
 
 			v, ok := r.Password()
@@ -509,7 +509,7 @@ func TestRecord(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("mfa is expected to be non-null"))
 
 			r = Record{
-				"mfa": map[string]interface{}{},
+				"mfa": map[string]any{},
 			}
 
 			v, ok := r.MFA()
@@ -757,7 +757,7 @@ func TestMFA(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("password is expected to be non-null"))
 
 			r = MFA{
-				"password": map[string]interface{}{},
+				"password": map[string]any{},
 			}
 
 			v, ok := r.Password()
@@ -780,7 +780,7 @@ func TestMFA(t *testing.T) {
 			}, ShouldPanicWith, fmt.Errorf("totp is expected to be non-null"))
 
 			r = MFA{
-				"totp": map[string]interface{}{},
+				"totp": map[string]any{},
 			}
 
 			v, ok := r.TOTP()

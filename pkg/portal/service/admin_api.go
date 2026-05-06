@@ -18,7 +18,7 @@ type AuthzAdder interface {
 		auth config.AdminAPIAuth,
 		appID config.AppID,
 		authKey *config.AdminAPIAuthKey,
-		auditContext interface{},
+		auditContext any,
 		hdr http.Header) (err error)
 }
 

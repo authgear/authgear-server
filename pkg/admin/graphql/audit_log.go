@@ -432,7 +432,7 @@ var nodeAuditLog = node(
 			},
 			"user": &graphql.Field{
 				Type: nodeUser,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*audit.Log)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -454,7 +454,7 @@ var nodeAuditLog = node(
 		},
 	}),
 	&audit.Log{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.AuditLogs.Load(ctx, id).Value, nil
 	},
 )

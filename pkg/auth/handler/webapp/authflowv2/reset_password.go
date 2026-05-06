@@ -62,8 +62,8 @@ type AuthflowV2ResetPasswordHandler struct {
 	Database                     ResetPasswordHandlerDatabase
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -79,8 +79,8 @@ func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWrite
 
 	return data, nil
 }
-func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -100,8 +100,8 @@ func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, 
 	return data, nil
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	baseViewModel.SetError(ctx, err)
@@ -139,7 +139,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]any{
 			"new_password": newPassword,
 		}, nil)
 
@@ -166,7 +166,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 
 	code := r.URL.Query().Get("code")
 	if code != "" {
-		h.Controller.HandleResumeOfFlow(r.Context(), w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
+		h.Controller.HandleResumeOfFlow(r.Context(), w, r, webapp.SessionOptions{}, &handlers, map[string]any{
 			"account_recovery_code": code,
 		}, &errorHandler)
 	} else {

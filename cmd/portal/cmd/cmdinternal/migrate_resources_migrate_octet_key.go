@@ -58,18 +58,18 @@ func migrateOctetKey(ctx context.Context, appID string, configSourceData map[str
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	secrets := m["secrets"].([]interface{})
+	secrets := m["secrets"].([]any)
 	for idx, secretItemIface := range secrets {
-		secretItem := secretItemIface.(map[string]interface{})
+		secretItem := secretItemIface.(map[string]any)
 		key := secretItem["key"].(string)
 		if key == "csrf" || key == "webhook" {
-			data := secretItem["data"].(map[string]interface{})
+			data := secretItem["data"].(map[string]any)
 			dataBytes, err := json.Marshal(data)
 			if err != nil {
 				return err
@@ -95,7 +95,7 @@ func migrateOctetKey(ctx context.Context, appID string, configSourceData map[str
 				return err
 			}
 
-			var dataJSON map[string]interface{}
+			var dataJSON map[string]any
 			err = json.Unmarshal(dataBytes, &dataJSON)
 			if err != nil {
 				return err

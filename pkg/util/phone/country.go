@@ -43,7 +43,7 @@ func init() {
 		AllAlpha2[i] = c.Alpha2
 	}
 
-	jsonSchema := map[string]interface{}{
+	jsonSchema := map[string]any{
 		"type": "string",
 		"enum": AllAlpha2,
 	}

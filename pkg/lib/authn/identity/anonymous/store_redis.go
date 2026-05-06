@@ -64,7 +64,7 @@ func (s *StoreRedis) get(ctx context.Context, conn redis.Redis_6_0_Cmdable, key 
 	return data, nil
 }
 
-func (s *StoreRedis) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time) error {
+func (s *StoreRedis) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, value any, expireAt time.Time) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err

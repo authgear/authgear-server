@@ -50,7 +50,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createDomainInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenticated user.
@@ -59,7 +59,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
 			domain := input["domain"].(string)
 
@@ -100,7 +100,7 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx.Domains.Prime(domainModel.ID, domainModel)
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"domain": gqlCtx.Domains.Load(ctx, domainModel.ID),
 				"app":    gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
@@ -139,7 +139,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteDomainInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenticated user.
@@ -148,7 +148,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can delete domain")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
 			domainID := input["domainID"].(string)
 
@@ -210,7 +210,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
@@ -293,7 +293,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(verifyDomainInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenticated user.
@@ -302,7 +302,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can verify domain")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
 			domainID := input["domainID"].(string)
 
@@ -340,7 +340,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"domain": gqlCtx.Domains.Load(ctx, domain.ID),
 				"app":    gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil

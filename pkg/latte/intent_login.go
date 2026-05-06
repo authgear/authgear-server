@@ -174,7 +174,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 	}, nil
 }
 
-func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	methods, err := i.getVerifiedAuthenticationLockoutMethods(workflows.Nearest)
 	if err != nil {
 		return nil, err

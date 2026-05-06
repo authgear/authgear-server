@@ -42,7 +42,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteCollaboratorInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
 			// Access Control: authenticated user.
@@ -51,7 +51,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can delete collaborator")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			collaboratorID := input["collaboratorID"].(string)
 
 			gqlCtx := GQLContext(ctx)
@@ -96,7 +96,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
@@ -130,7 +130,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteCollaboratorInvitationInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -138,7 +138,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can delete collaborator invitation")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			collaboratorInvitationID := input["collaboratorInvitationID"].(string)
 
 			gqlCtx := GQLContext(ctx)
@@ -172,7 +172,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, invitation.AppID),
 			}).Value, nil
 		},
@@ -225,10 +225,10 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createCollaboratorInvitationInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(ctx)
@@ -283,7 +283,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app":                    gqlCtx.Apps.Load(ctx, appID),
 				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(ctx, invitation.ID),
 			}).Value, nil
@@ -318,8 +318,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(acceptCollaboratorInvitationInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			code := input["code"].(string)
 
 			ctx := p.Context
@@ -352,7 +352,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"app": gqlCtx.Apps.Load(ctx, collaborator.AppID),
 			}).Value, nil
 		},

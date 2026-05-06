@@ -26,7 +26,7 @@ func TestIdentitiesDisplayName(t *testing.T) {
 			ProviderID: oauthrelyingparty.ProviderID{
 				Type: "provider",
 			},
-			Claims: map[string]interface{}{
+			Claims: map[string]any{
 				"email": "user@oauth-provider.com",
 			},
 		},
@@ -38,7 +38,7 @@ func TestIdentitiesDisplayName(t *testing.T) {
 			ProviderID: oauthrelyingparty.ProviderID{
 				Type: "provider2",
 			},
-			Claims: map[string]interface{}{},
+			Claims: map[string]any{},
 		},
 	}
 

@@ -48,7 +48,7 @@ type MetadataProvider struct {
 	Endpoints EndpointsProvider
 }
 
-func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
+func (p *MetadataProvider) PopulateMetadata(meta map[string]any) {
 	meta["issuer"] = p.Endpoints.Origin().String()
 	meta["scopes_supported"] = oauth.AllowedScopes
 	meta["subject_types_supported"] = []string{"public"}

@@ -1,5 +1,7 @@
 package accesscontrol
 
+import "maps"
+
 type Role string
 
 // RoleGreatest is the greatest role.
@@ -35,11 +37,7 @@ func (t T) GetLevel(subject Subject, role Role, defaultLevel Level) Level {
 
 func (t T) MergedWith(that T) T {
 	out := make(T)
-	for k, v := range t {
-		out[k] = v
-	}
-	for k, v := range that {
-		out[k] = v
-	}
+	maps.Copy(out, t)
+	maps.Copy(out, that)
 	return out
 }

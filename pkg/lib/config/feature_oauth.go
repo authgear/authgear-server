@@ -53,19 +53,19 @@ type OAuthClientFeatureConfig struct {
 
 func (c *OAuthClientFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 
 	if c.SoftMaximum == nil {
-		c.SoftMaximum = newInt(99)
+		c.SoftMaximum = new(99)
 	}
 
 	if c.CustomUIEnabled == nil {
-		c.CustomUIEnabled = newBool(false)
+		c.CustomUIEnabled = new(false)
 	}
 
 	if c.App2AppEnabled == nil {
-		c.App2AppEnabled = newBool(false)
+		c.App2AppEnabled = new(false)
 	}
 }
 

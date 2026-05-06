@@ -32,7 +32,6 @@ func (i *InputSchemaLoginFlowStepCreateAuthenticator) SchemaBuilder() validation
 	oneOf := []validation.SchemaBuilder{}
 
 	for _, branch := range i.OneOf {
-		branch := branch
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
 		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))

@@ -53,7 +53,7 @@ type OfflineGrant struct {
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
 
-	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
+	DeviceInfo map[string]any `json:"device_info,omitempty"`
 
 	SSOEnabled bool `json:"sso_enabled,omitempty"`
 
@@ -157,12 +157,12 @@ func (g *OfflineGrant) ListableSession()          {}
 func (g *OfflineGrant) SessionID() string         { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
 
-func (g *OfflineGrant) GetCreatedAt() time.Time                       { return g.CreatedAt }
-func (g *OfflineGrant) GetAuthenticatedAt() time.Time                 { return g.AuthenticatedAt }
-func (g *OfflineGrant) GetAccessInfo() *access.Info                   { return &g.AccessInfo }
-func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g.DeviceInfo, true }
-func (g *OfflineGrant) GetUserID() string                             { return g.Attrs.UserID }
-func (g *OfflineGrant) GetOIDCAMR() ([]string, bool)                  { return g.Attrs.GetAMR() }
+func (g *OfflineGrant) GetCreatedAt() time.Time               { return g.CreatedAt }
+func (g *OfflineGrant) GetAuthenticatedAt() time.Time         { return g.AuthenticatedAt }
+func (g *OfflineGrant) GetAccessInfo() *access.Info           { return &g.AccessInfo }
+func (g *OfflineGrant) GetDeviceInfo() (map[string]any, bool) { return g.DeviceInfo, true }
+func (g *OfflineGrant) GetUserID() string                     { return g.Attrs.UserID }
+func (g *OfflineGrant) GetOIDCAMR() ([]string, bool)          { return g.Attrs.GetAMR() }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	var displayName string
@@ -374,7 +374,7 @@ func (g *OfflineGrant) GetAllRemovableInitialTokenHashesExcludeClientIDs(
 	clientIDs []string) (tokenHashes []string, shouldRemoveOfflinegrant bool) {
 	shouldRemoveOfflinegrant = false
 	tokenHashes = []string{}
-	clientIDsSet := map[string]interface{}{}
+	clientIDsSet := map[string]any{}
 	for _, clientID := range clientIDs {
 		clientIDsSet[clientID] = clientID
 	}
@@ -446,7 +446,7 @@ func (g *OfflineGrant) HasAllScopes(clientID string, requiredScopes []string) bo
 
 func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
 	result := true
-	clientIDSet := map[string]interface{}{}
+	clientIDSet := map[string]any{}
 	for _, clientID := range clientIDs {
 		clientIDSet[clientID] = clientID
 	}

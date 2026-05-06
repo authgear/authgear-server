@@ -23,7 +23,7 @@ type EdgeAuthenticationEnd struct {
 	RecoveryCode          *mfa.RecoveryCode
 }
 
-func (e *EdgeAuthenticationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	node := &NodeAuthenticationEnd{
 		Stage:                 e.Stage,
 		AuthenticationType:    e.AuthenticationType,

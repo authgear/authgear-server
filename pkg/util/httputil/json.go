@@ -65,7 +65,7 @@ func IsJSONContentType(contentType string) bool {
 	return strings.ToLower(charset) == "utf-8"
 }
 
-func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, interface{}) error, payload interface{}, options ...JSONOption) error {
+func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, any) error, payload any, options ...JSONOption) error {
 	option := applyJSONOptions(options...)
 	if !IsJSONContentType(r.Header.Get("Content-Type")) {
 		return apierrors.NewBadRequest("request content type is invalid")
@@ -91,10 +91,10 @@ type BodyDefaulter interface {
 	SetDefaults()
 }
 
-func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaValidator, payload interface{}, options ...JSONOption) error {
+func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaValidator, payload any, options ...JSONOption) error {
 	const errorMessage = "invalid request body"
 	ctx := r.Context()
-	return ParseJSONBody(r, w, func(reader io.Reader, value interface{}) error {
+	return ParseJSONBody(r, w, func(reader io.Reader, value any) error {
 		err := v.ParseWithMessage(ctx, reader, errorMessage, value)
 		if err != nil {
 			return err

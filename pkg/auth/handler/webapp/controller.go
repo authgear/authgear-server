@@ -32,12 +32,12 @@ type PageService interface {
 		ctx context.Context,
 		session *webapp.Session,
 		intent interaction.Intent,
-		inputFn func() (interface{}, error),
+		inputFn func() (any, error),
 	) (result *webapp.Result, err error)
 	PostWithInput(
 		ctx context.Context,
 		session *webapp.Session,
-		inputFn func() (interface{}, error),
+		inputFn func() (any, error),
 	) (result *webapp.Result, err error)
 }
 
@@ -278,7 +278,7 @@ func (c *Controller) EntryPointPost(
 	ctx context.Context,
 	opts webapp.SessionOptions,
 	intent interaction.Intent,
-	inputFn func() (interface{}, error),
+	inputFn func() (any, error),
 ) (*webapp.Result, error) {
 	return c.Page.PostWithIntent(ctx, c.EntryPointSession(ctx, opts), intent, inputFn)
 }
@@ -340,7 +340,7 @@ func (c *Controller) InteractionGetWithSession(ctx context.Context, s *webapp.Se
 	return c.Page.Get(ctx, s)
 }
 
-func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interface{}, error)) (*webapp.Result, error) {
+func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (any, error)) (*webapp.Result, error) {
 	s, err := c.InteractionSession(ctx)
 	if err != nil {
 		return nil, err
@@ -354,7 +354,7 @@ func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interf
 }
 
 func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput InputOAuthCallback, oauthState *webappoauth.WebappOAuthState) (*webapp.Result, error) {
-	inputFn := func() (input interface{}, err error) {
+	inputFn := func() (input any, err error) {
 		input = &oauthInput
 		return
 	}

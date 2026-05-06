@@ -39,7 +39,7 @@ type ListableSession interface {
 	ListableSession()
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
-	GetDeviceInfo() (map[string]interface{}, bool)
+	GetDeviceInfo() (map[string]any, bool)
 
 	ToAPIModel() *model.Session
 

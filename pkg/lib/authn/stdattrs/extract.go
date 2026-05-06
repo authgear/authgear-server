@@ -1,20 +1,20 @@
 package stdattrs
 
-func extractString(input map[string]interface{}, output T, key string) {
+func extractString(input map[string]any, output T, key string) {
 	if value, ok := input[key].(string); ok && value != "" {
 		output[key] = value
 	}
 }
 
-func extractBool(input map[string]interface{}, output T, key string) {
+func extractBool(input map[string]any, output T, key string) {
 	if value, ok := input[key].(bool); ok {
 		output[key] = value
 	}
 }
 
-func extractAddress(input map[string]interface{}, output T) {
-	if inAddr, ok := input[Address].(map[string]interface{}); ok {
-		outAddr := make(map[string]interface{})
+func extractAddress(input map[string]any, output T) {
+	if inAddr, ok := input[Address].(map[string]any); ok {
+		outAddr := make(map[string]any)
 		extractString(inAddr, T(outAddr), Formatted)
 		extractString(inAddr, T(outAddr), StreetAddress)
 		extractString(inAddr, T(outAddr), Locality)
@@ -33,7 +33,7 @@ type ExtractOptions struct {
 
 // Extract extracts OIDC standard claims.
 // The output is NOT normalized.
-func Extract(claims map[string]interface{}, opts ExtractOptions) (T, error) {
+func Extract(claims map[string]any, opts ExtractOptions) (T, error) {
 	out := T{}
 
 	extractString(claims, out, Name)

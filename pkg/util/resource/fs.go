@@ -2,7 +2,7 @@ package resource
 
 import (
 	"io"
-	"io/ioutil"
+
 	"os"
 	"path"
 
@@ -60,7 +60,7 @@ func ReadLocation(location Location) ([]byte, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return ioutil.ReadAll(file)
+	return io.ReadAll(file)
 }
 
 func readDirNames(fs Fs, dir string) ([]string, error) {

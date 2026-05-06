@@ -52,8 +52,8 @@ func (h *AuthflowV2PromoteHandler) GetData(
 	w http.ResponseWriter, r *http.Request,
 	s *webapp.Session,
 	screen *webapp.AuthflowScreenWithFlowResponse,
-) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -89,7 +89,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
 		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
-		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
+		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]any) (result *webapp.Result, err error) {
 			err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return nil, err
@@ -114,7 +114,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		loginIDKey := r.Form.Get("q_login_id_key")
 		loginID := r.Form.Get("q_login_id")
 		identification := loginIDKey
-		input := map[string]interface{}{
+		input := map[string]any{
 			"identification": identification,
 			"login_id":       loginID,
 		}

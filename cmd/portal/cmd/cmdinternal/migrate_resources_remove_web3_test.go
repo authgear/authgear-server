@@ -27,7 +27,7 @@ func TestMigrateRemoveWeb3(t *testing.T) {
 			So(src, ShouldResemble, expectedOutput) // src was modified in-place
 		}
 
-		toJSON := func(anything interface{}) string {
+		toJSON := func(anything any) string {
 			b, err := json.Marshal(anything)
 			if err != nil {
 				panic(err)
@@ -40,12 +40,12 @@ func TestMigrateRemoveWeb3(t *testing.T) {
 		}
 
 		Convey("do nothing if the project is not using SIWE", func() {
-			test(toJSON(map[string]interface{}{
+			test(toJSON(map[string]any{
 				"authgear.yaml": toB64(`http:
   public_origin: http://localhost:3100
 id: app
 `),
-			}), toJSON(map[string]interface{}{
+			}), toJSON(map[string]any{
 				"authgear.yaml": toB64(`http:
   public_origin: http://localhost:3100
 id: app
@@ -54,14 +54,14 @@ id: app
 		})
 
 		Convey("migrate authgear.yaml if authentication.identities contain siwe", func() {
-			test(toJSON(map[string]interface{}{
+			test(toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities: ["siwe"]
 http:
   public_origin: http://localhost:3100
 id: app
 `),
-			}), toJSON(map[string]interface{}{
+			}), toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities:
   - login_id
@@ -80,7 +80,7 @@ identity:
 		})
 
 		Convey("remove web3 in authgear.yaml if it is present", func() {
-			test(toJSON(map[string]interface{}{
+			test(toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities: ["siwe"]
 http:
@@ -91,7 +91,7 @@ web3:
     networks:
     - "1"
 `),
-			}), toJSON(map[string]interface{}{
+			}), toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities:
   - login_id
@@ -110,7 +110,7 @@ identity:
 		})
 
 		Convey("remove web3 in authgear.features.yaml if it is present", func() {
-			test(toJSON(map[string]interface{}{
+			test(toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities: ["siwe"]
 http:
@@ -127,7 +127,7 @@ web3:
   nft:
     maximum: 2
 `),
-			}), toJSON(map[string]interface{}{
+			}), toJSON(map[string]any{
 				"authgear.yaml": toB64(`authentication:
   identities:
   - login_id

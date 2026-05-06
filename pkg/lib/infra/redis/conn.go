@@ -72,7 +72,7 @@ func (c *otelRedisConn) Get(ctx context.Context, key string) *goredis.StringCmd 
 	return cmd
 }
 
-func (c *otelRedisConn) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.StatusCmd {
+func (c *otelRedisConn) Set(ctx context.Context, key string, value any, expiration time.Duration) *goredis.StatusCmd {
 	var cmd *goredis.StatusCmd
 	c.withSpan(ctx, "SET", func(ctx context.Context) error {
 		cmd = c.conn.Set(ctx, key, value, expiration)
@@ -81,7 +81,7 @@ func (c *otelRedisConn) Set(ctx context.Context, key string, value interface{}, 
 	return cmd
 }
 
-func (c *otelRedisConn) SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.StatusCmd {
+func (c *otelRedisConn) SetEx(ctx context.Context, key string, value any, expiration time.Duration) *goredis.StatusCmd {
 	var cmd *goredis.StatusCmd
 	c.withSpan(ctx, "SETEX", func(ctx context.Context) error {
 		cmd = c.conn.SetEx(ctx, key, value, expiration)
@@ -90,7 +90,7 @@ func (c *otelRedisConn) SetEx(ctx context.Context, key string, value interface{}
 	return cmd
 }
 
-func (c *otelRedisConn) SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.BoolCmd {
+func (c *otelRedisConn) SetNX(ctx context.Context, key string, value any, expiration time.Duration) *goredis.BoolCmd {
 	var cmd *goredis.BoolCmd
 	c.withSpan(ctx, "SETNX", func(ctx context.Context) error {
 		cmd = c.conn.SetNX(ctx, key, value, expiration)
@@ -99,7 +99,7 @@ func (c *otelRedisConn) SetNX(ctx context.Context, key string, value interface{}
 	return cmd
 }
 
-func (c *otelRedisConn) SetXX(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.BoolCmd {
+func (c *otelRedisConn) SetXX(ctx context.Context, key string, value any, expiration time.Duration) *goredis.BoolCmd {
 	var cmd *goredis.BoolCmd
 	c.withSpan(ctx, "SETXX", func(ctx context.Context) error {
 		cmd = c.conn.SetXX(ctx, key, value, expiration)
@@ -171,7 +171,7 @@ func (c *otelRedisConn) HDel(ctx context.Context, key string, fields ...string) 
 	return cmd
 }
 
-func (c *otelRedisConn) HSet(ctx context.Context, key string, values ...interface{}) *goredis.IntCmd {
+func (c *otelRedisConn) HSet(ctx context.Context, key string, values ...any) *goredis.IntCmd {
 	var cmd *goredis.IntCmd
 	c.withSpan(ctx, "HSET", func(ctx context.Context) error {
 		cmd = c.conn.HSet(ctx, key, values...)
@@ -189,7 +189,7 @@ func (c *otelRedisConn) HGetAll(ctx context.Context, key string) *goredis.MapStr
 	return cmd
 }
 
-func (c *otelRedisConn) LPush(ctx context.Context, key string, values ...interface{}) *goredis.IntCmd {
+func (c *otelRedisConn) LPush(ctx context.Context, key string, values ...any) *goredis.IntCmd {
 	var cmd *goredis.IntCmd
 	c.withSpan(ctx, "LPUSH", func(ctx context.Context) error {
 		cmd = c.conn.LPush(ctx, key, values...)
@@ -216,7 +216,7 @@ func (c *otelRedisConn) PFCount(ctx context.Context, keys ...string) *goredis.In
 	return cmd
 }
 
-func (c *otelRedisConn) PFAdd(ctx context.Context, key string, els ...interface{}) *goredis.IntCmd {
+func (c *otelRedisConn) PFAdd(ctx context.Context, key string, els ...any) *goredis.IntCmd {
 	var cmd *goredis.IntCmd
 	c.withSpan(ctx, "PFADD", func(ctx context.Context) error {
 		cmd = c.conn.PFAdd(ctx, key, els...)
@@ -225,7 +225,7 @@ func (c *otelRedisConn) PFAdd(ctx context.Context, key string, els ...interface{
 	return cmd
 }
 
-func (c *otelRedisConn) Eval(ctx context.Context, script string, keys []string, args ...interface{}) *goredis.Cmd {
+func (c *otelRedisConn) Eval(ctx context.Context, script string, keys []string, args ...any) *goredis.Cmd {
 	var cmd *goredis.Cmd
 	c.withSpan(ctx, "EVAL", func(ctx context.Context) error {
 		cmd = c.conn.Eval(ctx, script, keys, args...)
@@ -234,7 +234,7 @@ func (c *otelRedisConn) Eval(ctx context.Context, script string, keys []string, 
 	return cmd
 }
 
-func (c *otelRedisConn) EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *goredis.Cmd {
+func (c *otelRedisConn) EvalSha(ctx context.Context, sha1 string, keys []string, args ...any) *goredis.Cmd {
 	var cmd *goredis.Cmd
 	c.withSpan(ctx, "EVALSHA", func(ctx context.Context) error {
 		cmd = c.conn.EvalSha(ctx, sha1, keys, args...)
@@ -243,7 +243,7 @@ func (c *otelRedisConn) EvalSha(ctx context.Context, sha1 string, keys []string,
 	return cmd
 }
 
-func (c *otelRedisConn) EvalRO(ctx context.Context, script string, keys []string, args ...interface{}) *goredis.Cmd {
+func (c *otelRedisConn) EvalRO(ctx context.Context, script string, keys []string, args ...any) *goredis.Cmd {
 	var cmd *goredis.Cmd
 	c.withSpan(ctx, "EVAL_RO", func(ctx context.Context) error {
 		cmd = c.conn.EvalRO(ctx, script, keys, args...)
@@ -252,7 +252,7 @@ func (c *otelRedisConn) EvalRO(ctx context.Context, script string, keys []string
 	return cmd
 }
 
-func (c *otelRedisConn) EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...interface{}) *goredis.Cmd {
+func (c *otelRedisConn) EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...any) *goredis.Cmd {
 	var cmd *goredis.Cmd
 	c.withSpan(ctx, "EVALSHA_RO", func(ctx context.Context) error {
 		cmd = c.conn.EvalShaRO(ctx, sha1, keys, args...)

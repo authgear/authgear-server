@@ -84,7 +84,7 @@ func (a NonLocaleAwareImageDescriptor) FindResources(fs resource.Fs) ([]resource
 	return locations, nil
 }
 
-func (a NonLocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
@@ -99,7 +99,7 @@ func (a NonLocaleAwareImageDescriptor) ViewResources(ctx context.Context, resour
 	}
 }
 
-func (a NonLocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (any, error) {
 	path := view.AppFilePath()
 	var appResources []resource.ResourceFile
 	for _, resrc := range resources {
@@ -114,7 +114,7 @@ func (a NonLocaleAwareImageDescriptor) viewAppFile(resources []resource.Resource
 	return asset.Data, nil
 }
 
-func (a NonLocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (any, error) {
 	path := view.EffectiveFilePath()
 	asset, err := a.viewByPath(resources, path)
 	if err != nil {
@@ -123,7 +123,7 @@ func (a NonLocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.Re
 	return asset.Data, nil
 }
 
-func (a NonLocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (any, error) {
 	for _, fsLevel := range imageResolveFsLevelPriority {
 		for _, resrc := range resources {
 			if resrc.Location.Fs.GetFsLevel() == fsLevel {
@@ -143,7 +143,7 @@ func (a NonLocaleAwareImageDescriptor) viewEffectiveResource(resources []resourc
 	return nil, resource.ErrResourceNotFound
 }
 
-func (a NonLocaleAwareImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (any, error) {
 	// Ensure there is at most one resource
 	// For each Fs, remember how many paths we have seen.
 	seen := make(map[resource.Fs][]string)
@@ -305,7 +305,7 @@ func (a LocaleAwareImageDescriptor) FindResources(fs resource.Fs) ([]resource.Lo
 	return locations, nil
 }
 
-func (a LocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
@@ -337,7 +337,7 @@ func (a LocaleAwareImageDescriptor) UpdateResource(_ context.Context, _ []resour
 	}, nil
 }
 
-func (a LocaleAwareImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (any, error) {
 	// Ensure there is at most one resource
 	// For each Fs and for each locale, remember how many paths we have seen.
 	seen := make(map[resource.Fs]map[string][]string)
@@ -364,7 +364,7 @@ func (a LocaleAwareImageDescriptor) viewValidateResource(resources []resource.Re
 	return nil, nil
 }
 
-func (a LocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (any, error) {
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
@@ -443,7 +443,7 @@ func (a LocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.R
 	}, nil
 }
 
-func (a LocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (any, error) {
 	path := view.AppFilePath()
 	var appResources []resource.ResourceFile
 	for _, resrc := range resources {
@@ -458,7 +458,7 @@ func (a LocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFil
 	return asset.Data, nil
 }
 
-func (a LocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (any, error) {
 	path := view.EffectiveFilePath()
 	asset, err := a.viewByPath(resources, path)
 	if err != nil {
@@ -568,7 +568,7 @@ func (a StaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Locatio
 	return locations, nil
 }
 
-func (a StaticImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a StaticImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return nil, nil
@@ -583,7 +583,7 @@ func (a StaticImageDescriptor) ViewResources(ctx context.Context, resources []re
 	}
 }
 
-func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (any, error) {
 	path := view.EffectiveFilePath()
 	asset, err := a.viewByPath(resources, path)
 	if err != nil {
@@ -592,7 +592,7 @@ func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFi
 	return asset.Data, nil
 }
 
-func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (any, error) {
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin {
 			mimeType := http.DetectContentType(resrc.Data)
@@ -610,7 +610,7 @@ func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.Resour
 	return nil, resource.ErrResourceNotFound
 }
 
-func (a StaticImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (a StaticImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (any, error) {
 	return nil, nil
 }
 

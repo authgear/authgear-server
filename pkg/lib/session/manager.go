@@ -85,7 +85,6 @@ func (m *Manager) invalidate(ctx context.Context, session SessionBase, option *r
 
 	var provider ManagementService
 	for _, s := range sessions {
-		s := s
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
 			invalidatedSessions = append(invalidatedSessions, s)

@@ -18,7 +18,7 @@ type EdgeDoUpdateAuthenticator struct {
 	AuthenticatorAfterUpdate  *authenticator.Info
 }
 
-func (e *EdgeDoUpdateAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUpdateAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeDoUpdateAuthenticator{
 		Stage:                     e.Stage,
 		AuthenticatorBeforeUpdate: e.AuthenticatorBeforeUpdate,

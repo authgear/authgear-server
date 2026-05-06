@@ -25,7 +25,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          400,
 			Message:       "crypto/bcrypt: hashedSecret too short to be a bcrypted password",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 		test(bcrypt.ErrPasswordTooLong, &apierrors.APIError{
 			Kind: apierrors.Kind{
@@ -34,7 +34,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          400,
 			Message:       "bcrypt: password length exceeds 72 bytes",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 		test(bcrypt.HashVersionTooNewError('3'), &apierrors.APIError{
 			Kind: apierrors.Kind{
@@ -43,7 +43,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          400,
 			Message:       "crypto/bcrypt: bcrypt algorithm version '3' requested is newer than current version '2'",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 		test(bcrypt.InvalidHashPrefixError('#'), &apierrors.APIError{
 			Kind: apierrors.Kind{
@@ -52,7 +52,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          400,
 			Message:       "crypto/bcrypt: bcrypt hashes must start with '$', but hashedSecret started with '#'",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 		test(bcrypt.InvalidCostError(100), &apierrors.APIError{
 			Kind: apierrors.Kind{
@@ -61,7 +61,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          400,
 			Message:       "crypto/bcrypt: cost 100 is outside allowed inclusive range 4..31",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 		test(fmt.Errorf("something else"), &apierrors.APIError{
 			Kind: apierrors.Kind{
@@ -70,7 +70,7 @@ func TestTranslateBcryptError(t *testing.T) {
 			},
 			Code:          500,
 			Message:       "unexpected error occurred",
-			Info_ReadOnly: make(map[string]interface{}),
+			Info_ReadOnly: make(map[string]any),
 		})
 	})
 }

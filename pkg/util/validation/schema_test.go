@@ -61,7 +61,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/b",
 					Keyword:  "minLength",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"actual":   1.0,
 						"expected": 4.0,
 					},
@@ -69,7 +69,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/c/0",
 					Keyword:  "minimum",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"actual":  4.0,
 						"minimum": 5.0,
 					},
@@ -115,7 +115,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/b",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "expect input URL with scheme http / https",
 						"format": "http_origin",
 					},
@@ -134,7 +134,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/b",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "expect input URL with non-empty host",
 						"format": "http_origin",
 					},
@@ -153,7 +153,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/b",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "expect input URL without user info, path, query and fragment",
 						"format": "http_origin",
 					},
@@ -168,7 +168,7 @@ func TestSchemaValidate(t *testing.T) {
 				{
 					Location: "/b",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"Err":    "`",
 						"Op":     "parse",
 						"URL":    "abc://efg``",

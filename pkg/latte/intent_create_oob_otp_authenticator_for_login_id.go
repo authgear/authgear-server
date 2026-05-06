@@ -78,7 +78,7 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetEffects(ctx context.Context
 	return nil, nil
 }
 
-func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

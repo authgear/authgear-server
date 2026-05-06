@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 	html "html/template"
+	"slices"
 	"sort"
 	text "text/template"
 	"text/template/parse"
@@ -156,12 +157,7 @@ func (v *Validator) validateCommandNode(tree *parse.Tree, n *parse.CommandNode) 
 }
 
 func checkIdentifier(id string, badIdentifiers []string) bool {
-	for _, badID := range badIdentifiers {
-		if id == badID {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(badIdentifiers, id)
 }
 
 func formatLocation(tree *parse.Tree, n parse.Node) string {

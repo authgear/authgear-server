@@ -45,7 +45,7 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(generateShortLivedAdminAPITokenInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
@@ -55,7 +55,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can visit secrets")
 			}
 
-			input := p.Args["input"].(map[string]interface{})
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
 			appSecretVisitToken := input["appSecretVisitToken"].(string)
 
@@ -99,7 +99,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInternalError("failed to generate short-lived admin API token")
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"token": token,
 			}).Value, nil
 		},

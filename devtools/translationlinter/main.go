@@ -113,7 +113,7 @@ func doMain() (err error) {
 		}
 		defer f.Close()
 
-		var jsonObject map[string]interface{}
+		var jsonObject map[string]any
 		err = json.NewDecoder(f).Decode(&jsonObject)
 		if err != nil {
 			return

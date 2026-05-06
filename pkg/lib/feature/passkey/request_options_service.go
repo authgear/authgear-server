@@ -43,7 +43,7 @@ func (s *RequestOptionsService) MakeModalRequestOptions(ctx context.Context) (*m
 			UserVerification: config.AuthenticatorSelection.UserVerification,
 			// Any credential that exists on the platform is allowed
 			AllowCredentials: nil,
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				// We want to know user verification method (uvm).
 				// https://www.w3.org/TR/webauthn-2/#sctn-uvm-extension
 				"uvm": true,
@@ -80,7 +80,7 @@ func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(ctx context.Cont
 			Timeout:          config.MediationModalTimeout,
 			RPID:             config.RPID,
 			UserVerification: config.AuthenticatorSelection.UserVerification,
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				// We want to know user verification method (uvm).
 				// https://www.w3.org/TR/webauthn-2/#sctn-uvm-extension
 				"uvm": true,

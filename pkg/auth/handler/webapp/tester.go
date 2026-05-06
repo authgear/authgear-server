@@ -77,7 +77,7 @@ type TesterCookieManager interface {
 }
 
 type TesterUserInfoProvider interface {
-	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error)
 }
 
 type TesterOfflineGrantService interface {
@@ -154,8 +154,8 @@ func (h *TesterHandler) getData(
 	rw http.ResponseWriter,
 	r *http.Request,
 	result *tester.TesterResult,
-) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+) (map[string]any, error) {
+	data := make(map[string]any)
 
 	userInfoJsonBytes, err := json.MarshalIndent(result.UserInfo, "", "  ")
 	if err != nil {

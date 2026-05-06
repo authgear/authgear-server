@@ -46,7 +46,7 @@ func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
 	return SessionStep{
 		Kind:     kind,
 		GraphID:  graphID,
-		FormData: make(map[string]interface{}),
+		FormData: make(map[string]any),
 	}
 }
 
@@ -156,7 +156,7 @@ type SessionStep struct {
 	// The only use case currently is verification email being opened in another user agent.
 	// In that case, the form submitted by the other user agent will update FormData.
 	// The original user agent will then read from it to fill in its form.
-	FormData map[string]interface{} `json:"form_data"`
+	FormData map[string]any `json:"form_data"`
 }
 
 func (s SessionStep) URL() *url.URL {

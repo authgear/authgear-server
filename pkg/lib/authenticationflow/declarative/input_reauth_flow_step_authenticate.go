@@ -35,8 +35,6 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 	oneOf := []validation.SchemaBuilder{}
 
 	for index, option := range i.Options {
-		index := index
-		option := option
 
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
@@ -62,7 +60,7 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 				required = append(required, "channel")
 				b.Properties().Property("channel", validation.SchemaBuilder{}.
 					Type(validation.TypeString).
-					Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](option.Channels)...),
+					Enum(slice.Cast[model.AuthenticatorOOBChannel, any](option.Channels)...),
 				)
 			}
 		}

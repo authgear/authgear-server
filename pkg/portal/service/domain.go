@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -306,13 +307,7 @@ func (s *DomainService) verifyDomain(ctx context.Context, domain *domain) error 
 	}
 
 	expectedRecord := domainVerificationDNSRecord(domain.VerificationNonce)
-	found := false
-	for _, record := range txtRecords {
-		if record == expectedRecord {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(txtRecords, expectedRecord)
 	if !found {
 		return errors.New("expected TXT record not found")
 	}

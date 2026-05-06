@@ -330,11 +330,11 @@ func TestGraphFindLastNode(t *testing.T) {
 		So(graph.FindLastNodeAndPosition(&d), ShouldEqual, -1)
 
 		var e interface{ E() }
-		So(graph.FindLastNodeFromList([]interface{}{&a, &b, &d}), ShouldEqual, &b)
-		So(graph.FindLastNodeFromList([]interface{}{&a, &b, &c}), ShouldEqual, &b)
-		So(graph.FindLastNodeFromList([]interface{}{&a, &b, &c, &d}), ShouldEqual, &b)
-		So(graph.FindLastNodeFromList([]interface{}{&d, &a}), ShouldEqual, &a)
-		So(graph.FindLastNodeFromList([]interface{}{&d, &e}), ShouldEqual, nil)
+		So(graph.FindLastNodeFromList([]any{&a, &b, &d}), ShouldEqual, &b)
+		So(graph.FindLastNodeFromList([]any{&a, &b, &c}), ShouldEqual, &b)
+		So(graph.FindLastNodeFromList([]any{&a, &b, &c, &d}), ShouldEqual, &b)
+		So(graph.FindLastNodeFromList([]any{&d, &a}), ShouldEqual, &a)
+		So(graph.FindLastNodeFromList([]any{&d, &e}), ShouldEqual, nil)
 
 	})
 }

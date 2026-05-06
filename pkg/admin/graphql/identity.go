@@ -53,7 +53,7 @@ var nodeIdentity = node(
 			"updatedAt": entityUpdatedAtField(loadIdentity),
 			"type": &graphql.Field{
 				Type: graphql.NewNonNull(identityType),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ref := p.Source.(interface{ ToRef() *model.IdentityRef }).ToRef()
 					return string(ref.Type), nil
 				},
@@ -63,15 +63,15 @@ var nodeIdentity = node(
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					names, hasNames := p.Args["names"].([]interface{})
+				Resolve: func(p graphql.ResolveParams) (any, error) {
+					names, hasNames := p.Args["names"].([]any)
 					info := loadIdentity(p.Context, p.Source)
-					claims := info.Map(func(value interface{}) (interface{}, error) {
+					claims := info.Map(func(value any) (any, error) {
 						info := value.(*identity.Info)
 						m := info.ToModel()
 						claims := m.Claims
 						if hasNames {
-							filteredClaims := make(map[string]interface{})
+							filteredClaims := make(map[string]any)
 							for _, name := range names {
 								name := name.(string)
 								if value, ok := claims[name]; ok {
@@ -88,14 +88,14 @@ var nodeIdentity = node(
 		},
 	}),
 	&identity.Info{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Identities.Load(ctx, id).Value, nil
 	},
 )
 
 var connIdentity = graphqlutil.NewConnectionDef(nodeIdentity)
 
-func loadIdentity(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
+func loadIdentity(ctx context.Context, obj any) *graphqlutil.Lazy {
 	switch obj := obj.(type) {
 	case *identity.Info:
 		return graphqlutil.NewLazyValue(obj)

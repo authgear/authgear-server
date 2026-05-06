@@ -21,7 +21,7 @@ import (
 var errConsentRequiredError = errors.New("consent required")
 
 type Renderer interface {
-	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
+	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data any)
 }
 
 func ConfigureConsentRoute(route httproute.Route) httproute.Route {
@@ -130,7 +130,7 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	data := map[string]interface{}{}
+	data := map[string]any{}
 	viewmodels.Embed(data, baseViewModel)
 
 	identities, err := h.Identities.ListByUser(ctx, consentRequired.UserID)

@@ -40,7 +40,7 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 		Type(validation.TypeString).
 		Enum(oauthrelyingparty.ResponseModeFormPost, oauthrelyingparty.ResponseModeQuery))
 
-	var enumValues []interface{}
+	var enumValues []any
 	for _, c := range i.OAuthOptions {
 		enumValues = append(enumValues, c.Alias)
 

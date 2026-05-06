@@ -98,15 +98,11 @@ func (s *stubDatabaseHandle) ReadOnly(_ context.Context, do func(context.Context
 
 // --- helpers ---
 
-func newBoolPtr(b bool) *bool { return &b }
-
 func defaultCfg() *config.FraudProtectionConfig {
 	c := &config.FraudProtectionConfig{}
 	config.SetFieldDefaults(c)
 	return c
 }
-
-func floatPtr(v float64) *float64 { return &v }
 
 // --- tests ---
 
@@ -325,12 +321,12 @@ func TestComputeThresholds(t *testing.T) {
 			cfg.SMS.UnverifiedOTPBudget.ByPhoneCountry = []*config.FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig{
 				{
 					GeoLocationCodes: []string{"SG", "HK"},
-					DailyRatio:       floatPtr(0.15),
+					DailyRatio:       new(0.15),
 				},
 				{
 					GeoLocationCodes: []string{"SG"},
-					DailyRatio:       floatPtr(0.9),
-					HourlyRatio:      floatPtr(0.1),
+					DailyRatio:       new(0.9),
+					HourlyRatio:      new(0.1),
 				},
 			}
 			svc := newSvc(600, 1000, 10, 600)
@@ -378,7 +374,7 @@ func TestCheckAndRecord(t *testing.T) {
 		}
 		config.SetFieldDefaults(enabledCfg.Decision)
 
-		disabledCfg := &config.FraudProtectionConfig{Enabled: newBoolPtr(false)}
+		disabledCfg := &config.FraudProtectionConfig{Enabled: new(false)}
 
 		Convey("returns nil immediately when disabled", func() {
 			svc := &Service{

@@ -50,9 +50,9 @@ func renderFatalErrorPage(t *testing.T, reason string) string {
 	t.Helper()
 
 	engine := newFatalErrorTemplateEngine(t)
-	result, err := engine.Render(context.Background(), TemplateWebFatalErrorHTML, []string{"en"}, map[string]interface{}{
+	result, err := engine.Render(context.Background(), TemplateWebFatalErrorHTML, []string{"en"}, map[string]any{
 		"Platform": "",
-		"Error": map[string]interface{}{
+		"Error": map[string]any{
 			"reason": reason,
 		},
 	})

@@ -20,7 +20,7 @@ func TestTemplateMigrationSource(t *testing.T) {
 					},
 				},
 			},
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"Schema": "myapp",
 			},
 		}

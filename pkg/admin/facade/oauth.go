@@ -56,7 +56,7 @@ type OAuthFacade struct {
 	OAuthClientResolver OAuthClientResolver
 }
 
-func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]interface{}) (session.ListableSession, protocol.TokenResponse, error) {
+func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]any) (session.ListableSession, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
 		oauth.OfflineAccess,

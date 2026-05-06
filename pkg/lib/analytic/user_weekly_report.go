@@ -51,7 +51,7 @@ func (r *UserWeeklyReport) Run(ctx context.Context, options *UserWeeklyReportOpt
 	}
 
 	// userIDSet store the users who have created app
-	userIDsSet := map[string]interface{}{}
+	userIDsSet := map[string]any{}
 	for _, perAppOwners := range appOwners {
 		userIDsSet[perAppOwners.UserID] = struct{}{}
 	}
@@ -64,7 +64,7 @@ func (r *UserWeeklyReport) Run(ctx context.Context, options *UserWeeklyReportOpt
 		}
 	}
 
-	entry := []interface{}{
+	entry := []any{
 		options.Year,
 		options.Week,
 		rangeFrom.UTC().Format(time.RFC3339),
@@ -74,7 +74,7 @@ func (r *UserWeeklyReport) Run(ctx context.Context, options *UserWeeklyReportOpt
 	}
 
 	data = &ReportData{
-		Header: []interface{}{
+		Header: []any{
 			"Year",
 			"Week",
 			"Range From",
@@ -82,7 +82,7 @@ func (r *UserWeeklyReport) Run(ctx context.Context, options *UserWeeklyReportOpt
 			"Number of new users",
 			"Number of new users who have created project",
 		},
-		Values: [][]interface{}{
+		Values: [][]any{
 			entry,
 		},
 	}

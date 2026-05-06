@@ -165,7 +165,7 @@ func (c *SecretConfig) validateOAuthProviders(ctx *validation.Context, appConfig
 				if matchedItem.ClientSecret == "" && p.GetCredentialsBehavior() == OAuthSSOProviderCredentialsBehaviorUseProjectCredentials {
 					ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
 						"required",
-						map[string]interface{}{
+						map[string]any{
 							"expected": []string{"alias", "client_secret"},
 							"actual":   []string{"alias"},
 							"missing":  []string{"client_secret"},
@@ -421,7 +421,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
 }
 
-var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
+var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]any{
 	"type": "string",
 	"enum": func() []string {
 		var keys []string
@@ -433,31 +433,31 @@ var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
 	}(),
 })
 
-var _ = SecretConfigSchema.AddJSON("SecretItem", map[string]interface{}{
+var _ = SecretConfigSchema.AddJSON("SecretItem", map[string]any{
 	"type":                 "object",
 	"additionalProperties": false,
-	"properties": map[string]interface{}{
-		"key":  map[string]interface{}{"$ref": "#/$defs/SecretKey"},
-		"data": map[string]interface{}{},
+	"properties": map[string]any{
+		"key":  map[string]any{"$ref": "#/$defs/SecretKey"},
+		"data": map[string]any{},
 	},
-	"allOf": func() []interface{} {
+	"allOf": func() []any {
 		var keys []string
 		for key := range secretItemKeys {
 			keys = append(keys, string(key))
 		}
 		sort.Strings(keys)
 
-		var schemas []interface{}
+		var schemas []any
 		for _, key := range keys {
-			schemas = append(schemas, map[string]interface{}{
-				"if": map[string]interface{}{
-					"properties": map[string]interface{}{
-						"key": map[string]interface{}{"const": string(key)},
+			schemas = append(schemas, map[string]any{
+				"if": map[string]any{
+					"properties": map[string]any{
+						"key": map[string]any{"const": string(key)},
 					},
 				},
-				"then": map[string]interface{}{
-					"properties": map[string]interface{}{
-						"data": map[string]interface{}{"$ref": "#/$defs/" + secretItemKeys[SecretKey(key)].schemaID},
+				"then": map[string]any{
+					"properties": map[string]any{
+						"data": map[string]any{"$ref": "#/$defs/" + secretItemKeys[SecretKey(key)].schemaID},
 					},
 				},
 			})

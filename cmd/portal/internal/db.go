@@ -51,7 +51,7 @@ func WithTx(ctx context.Context, db *sql.DB, do func(tx *sql.Tx) error) (err err
 }
 
 type Queryer interface {
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 type ConfigSource struct {

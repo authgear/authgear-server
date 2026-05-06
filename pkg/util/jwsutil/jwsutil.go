@@ -46,7 +46,7 @@ func VerifyWithSet(keySet jwk.Set, compact []byte) (hdr jws.Headers, payload jwt
 		alg = string(hdrAlg)
 	}
 
-	var rawKey interface{}
+	var rawKey any
 	if err = key.Raw(&rawKey); err != nil {
 		err = fmt.Errorf("failed to materialize jwk.Key: %w", err)
 		return

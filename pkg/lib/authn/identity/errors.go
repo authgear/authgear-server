@@ -68,10 +68,9 @@ func NewErrDuplicatedIdentityMany(incoming *Spec, existings []*Spec) error {
 			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(firstExistingSpec.OAuth.ProviderID.Type)
 		}
 
-		specDetails := []map[string]interface{}{}
+		specDetails := []map[string]any{}
 		for _, existingSpec := range existings {
-			existingSpec := existingSpec
-			thisDetail := map[string]interface{}{}
+			thisDetail := map[string]any{}
 			thisDetail["IdentityType"] = existingSpec.Type
 			switch existingSpec.Type {
 			case model.IdentityTypeLoginID:

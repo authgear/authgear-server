@@ -4,7 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-type ResolveSingleInputFn func(input interface{}) interface{}
+type ResolveSingleInputFn func(input any) any
 type PluralIdentifyingRootFieldConfig struct {
 	ArgName            string               `json:"argName"`
 	InputType          graphql.Input        `json:"inputType"`
@@ -25,7 +25,7 @@ func PluralIdentifyingRootField(config PluralIdentifyingRootFieldConfig) *graphq
 		Description: config.Description,
 		Type:        graphql.NewList(config.OutputType),
 		Args:        inputArgs,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			inputs, ok := p.Args[config.ArgName]
 			if !ok {
 				return nil, nil
@@ -35,8 +35,8 @@ func PluralIdentifyingRootField(config PluralIdentifyingRootFieldConfig) *graphq
 				return nil, nil
 			}
 			switch inputs := inputs.(type) {
-			case []interface{}:
-				res := []interface{}{}
+			case []any:
+				res := []any{}
 				for _, input := range inputs {
 					r := config.ResolveSingleInput(input)
 					res = append(res, r)

@@ -27,7 +27,7 @@ func (i *SortableAuthenticatorInfo) IsDefaultAuthenticator() bool {
 // The item in the slice must somehow associated with a single AuthenticatorType.
 func SortAuthenticators(
 	preferred []model.AuthenticatorType,
-	slice interface{},
+	slice any,
 	toSortable func(i int) SortableAuthenticator,
 ) {
 	// Non-passkey authenticators must come BEFORE passkey authenticators.

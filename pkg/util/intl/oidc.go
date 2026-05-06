@@ -6,7 +6,7 @@ import (
 )
 
 // LocalizeJSONObject returns the localized value of key in jsonObject according to preferredLanguageTags.
-func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, jsonObject map[string]interface{}, key string) string {
+func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, jsonObject map[string]any, key string) string {
 	fallbackLanguageTag := string(fallbackLanguage)
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
@@ -17,8 +17,8 @@ func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage Fallbac
 		}
 		if k == key {
 			m[fallbackLanguageTag] = stringValue
-		} else if strings.HasPrefix(k, prefix) {
-			tag := strings.TrimPrefix(k, prefix)
+		} else if after, ok0 := strings.CutPrefix(k, prefix); ok0 {
+			tag := after
 			m[tag] = stringValue
 		}
 	}
@@ -43,8 +43,8 @@ func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguage Fallback
 	for k, stringValue := range stringMap {
 		if k == key {
 			m[fallbackLanguageTag] = stringValue
-		} else if strings.HasPrefix(k, prefix) {
-			tag := strings.TrimPrefix(k, prefix)
+		} else if after, ok := strings.CutPrefix(k, prefix); ok {
+			tag := after
 			m[tag] = stringValue
 		}
 	}

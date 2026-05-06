@@ -5,15 +5,15 @@ import (
 )
 
 // Embed embeds the given value into data.
-func Embed(data map[string]interface{}, value interface{}) {
+func Embed(data map[string]any, value any) {
 	v := reflect.ValueOf(value)
 	typ := v.Type()
 	switch typ.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		Embed(data, v.Elem().Interface())
 	case reflect.Struct:
 		numField := typ.NumField()
-		for i := 0; i < numField; i++ {
+		for i := range numField {
 			structField := typ.Field(i)
 			data[structField.Name] = v.Field(i).Interface()
 		}

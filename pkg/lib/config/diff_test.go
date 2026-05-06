@@ -2,7 +2,8 @@ package config_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -34,7 +35,7 @@ func TestDiffAppConfig(t *testing.T) {
 
 			fmt.Println(diff)
 
-			data, err := ioutil.ReadFile("testdata/diff.txt")
+			data, err := os.ReadFile("testdata/diff.txt")
 			if err != nil {
 				panic(err)
 			}

@@ -19,7 +19,7 @@ type EdgeDoRemoveIdentity struct {
 	Identity *identity.Info
 }
 
-func (e *EdgeDoRemoveIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoRemoveIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	deleteDisabled := e.Identity.DeleteDisabled(ctx.Config.Identity)
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	if !isAdminAPI && deleteDisabled {

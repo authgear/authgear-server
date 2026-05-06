@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
 	"time"
@@ -98,7 +99,7 @@ type AuthflowScreen struct {
 	PreviousXStep string `json:"previous_x_step,omitempty"`
 	// PreviousInput is the input that leads to this screen.
 	// It can be nil.
-	PreviousInput map[string]interface{} `json:"previous_input,omitempty"`
+	PreviousInput map[string]any `json:"previous_input,omitempty"`
 	// StateToken is always present.
 	StateToken *AuthflowStateToken `json:"state_token,omitempty"`
 	// BranchStateToken is only present when the underlying authflow step has branches.
@@ -119,7 +120,7 @@ type AuthflowScreen struct {
 	OAuthProviderDemoCredentialViewModel *authflowv2viewmodels.OAuthProviderDemoCredentialViewModel `json:"oauth_provider_demo_credential,omitempty"`
 }
 
-func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	switch {
 	case flowResponse.Action.Type == authflow.FlowActionTypeFinished:
 		bytes, err := json.Marshal(flowResponse.Action.Data)
@@ -127,7 +128,7 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 			panic(err)
 		}
 
-		var data map[string]interface{}
+		var data map[string]any
 		err = json.Unmarshal(bytes, &data)
 		if err != nil {
 			panic(err)
@@ -164,15 +165,15 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 	}
 }
 
-func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	return newAuthflowScreenSignupPromote(flowResponse, previousXStep, previousInput)
 }
 
-func newAuthflowScreenPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	return newAuthflowScreenSignupPromote(flowResponse, previousXStep, previousInput)
 }
 
-func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -210,7 +211,7 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 	return screen
 }
 
-func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -244,7 +245,7 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep s
 	return screen
 }
 
-func newAuthflowScreenReauth(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenReauth(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -266,7 +267,7 @@ func newAuthflowScreenReauth(flowResponse *authflow.FlowResponse, previousXStep 
 	return screen
 }
 
-func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -285,7 +286,7 @@ func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousX
 	return screen
 }
 
-func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -335,7 +336,7 @@ func NewAuthflowDelayedScreenWithResult(
 	}
 }
 
-func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
+func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]any) *AuthflowScreenWithFlowResponse {
 	screen := newAuthflowScreen(flowResponse, previousXStep, previousInput)
 	screenWithResponse := &AuthflowScreenWithFlowResponse{
 		Screen:                 screen,
@@ -375,7 +376,7 @@ type TakeBranchResultSimple struct {
 
 func (TakeBranchResultSimple) takeBranchResult() {}
 
-type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
+type TakeBranchResultInputRetryHandler func(err error) (nextInput any)
 type TakeBranchOutputTransformer func(ctx context.Context, output *authflow.ServiceOutput, err error, deps TransformerDependencies) (*authflow.ServiceOutput, error)
 
 type AuthflowService interface {
@@ -387,7 +388,7 @@ type TransformerDependencies struct {
 	Authflows AuthflowService
 }
 type TakeBranchResultInput struct {
-	Input                 map[string]interface{}
+	Input                 map[string]any
 	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse
 	TransformOutput       *TakeBranchOutputTransformer
 	OnRetry               *TakeBranchResultInputRetryHandler
@@ -463,8 +464,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 		if input.Channel == "" {
 			input.Channel = data.Channels[0]
 		}
-		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
-			return map[string]interface{}{
+		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]any {
+			return map[string]any{
 				"channel": c,
 			}
 		}
@@ -529,14 +530,14 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 				return s.takeBranchResultSimple(input, true)
 			}
 
-			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
-				out := map[string]interface{}{
+			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]any {
+				out := map[string]any{
 					"authentication": option.Authentication,
 					"index":          input.Index,
 					"channel":        c,
 				}
 				if input.HasBotProtectionInput() {
-					bp := map[string]interface{}{
+					bp := map[string]any{
 						"type":     input.BotProtectionProviderType,
 						"response": input.BotProtectionProviderResponse,
 					}
@@ -640,8 +641,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 				return s.takeBranchResultSimple(input, true)
 			}
 
-			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
-				return map[string]interface{}{
+			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]any {
+				return map[string]any{
 					"authentication": option.Authentication,
 					"index":          input.Index,
 					"channel":        c,
@@ -719,7 +720,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(input *TakeBranc
 
 func (s *AuthflowScreenWithFlowResponse) makeScreenForTakenBranch(
 	flowResponse *authflow.FlowResponse,
-	input map[string]interface{},
+	input map[string]any,
 	index *int,
 	channel model.AuthenticatorOOBChannel,
 	isContinuation func(flowResponse *authflow.FlowResponse) bool,
@@ -784,9 +785,7 @@ func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *
 	q := url.Values{}
 	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 
-	for k, v := range query {
-		q[k] = v
-	}
+	maps.Copy(q, query)
 
 	u, _ := url.Parse(route)
 	u.RawQuery = q.Encode()
@@ -796,10 +795,10 @@ func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *
 }
 
 func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandler(
-	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
+	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]any,
 	channels []model.AuthenticatorOOBChannel,
 	disableFallbackToSMS bool) TakeBranchResultInputRetryHandler {
-	return func(err error) interface{} {
+	return func(err error) any {
 		if disableFallbackToSMS {
 			return nil
 		}
@@ -900,7 +899,7 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 }
 
 func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPInputOptions(
-	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
+	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]any,
 	channels []model.AuthenticatorOOBChannel,
 	disableFallbackToSMS bool,
 ) struct {
@@ -934,7 +933,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 		return s.takeBranchResultSimple(input, false)
 	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		// This branch requires input to take.
-		resultInput := map[string]interface{}{
+		resultInput := map[string]any{
 			"authentication": "secondary_totp",
 		}
 		return TakeBranchResultInput{
@@ -955,8 +954,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 		if input.Channel == "" {
 			input.Channel = selectedOption.Channels[0]
 		}
-		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
-			return map[string]interface{}{
+		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]any {
+			return map[string]any{
 				"authentication": selectedOption.Authentication,
 				"channel":        c,
 			}

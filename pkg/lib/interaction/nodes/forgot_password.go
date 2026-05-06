@@ -24,7 +24,7 @@ type EdgeForgotPasswordBegin struct {
 	IdentityInfo *identity.Info `json:"identity_info"`
 }
 
-func (e *EdgeForgotPasswordBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeForgotPasswordBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeForgotPasswordBegin{
 		IdentityInfo: e.IdentityInfo,
 	}, nil
@@ -75,7 +75,7 @@ func (e *EdgeForgotPasswordSelectLoginID) GetIdentityCandidates() []identity.Can
 	return candidates
 }
 
-func (e *EdgeForgotPasswordSelectLoginID) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeForgotPasswordSelectLoginID) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	if e.IdentityInfo == nil {
 		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	}

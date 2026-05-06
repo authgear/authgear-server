@@ -23,8 +23,8 @@ type Entry struct {
 	*ldap.Entry
 }
 
-func (e *Entry) ToJSON() map[string]interface{} {
-	dict := map[string]interface{}{}
+func (e *Entry) ToJSON() map[string]any {
+	dict := map[string]any{}
 	dict["dn"] = e.DN
 	for _, attr := range e.Attributes {
 		dict[attr.Name] = attr.ByteValues

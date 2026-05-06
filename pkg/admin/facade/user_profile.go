@@ -12,13 +12,13 @@ import (
 )
 
 type StandardAttributesService interface {
-	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
-	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error
+	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error)
 }
 
 type CustomAttributesService interface {
-	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
-	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error
+	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]any) (map[string]any, error)
+	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, customAttrs map[string]any) error
 }
 
 type EventService interface {
@@ -32,23 +32,23 @@ type UserProfileFacade struct {
 	Events             EventService
 }
 
-func (f *UserProfileFacade) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+func (f *UserProfileFacade) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error) {
 	return f.StandardAttributes.DeriveStandardAttributes(ctx, role, userID, updatedAt, attrs)
 }
 
 func (f *UserProfileFacade) ReadCustomAttributesInStorageForm(ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
-	storageForm map[string]interface{},
-) (map[string]interface{}, error) {
+	storageForm map[string]any,
+) (map[string]any, error) {
 	return f.CustomAttributes.ReadCustomAttributesInStorageForm(ctx, role, userID, storageForm)
 }
 
 func (f *UserProfileFacade) UpdateUserProfile(ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
-	stdAttrs map[string]interface{},
-	customAttrs map[string]interface{},
+	stdAttrs map[string]any,
+	customAttrs map[string]any,
 ) (err error) {
 	updated := false
 	err = f.User.CheckUserAnonymized(ctx, userID)

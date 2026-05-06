@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -158,7 +159,7 @@ func (s *Service) FetchCheckoutSession(ctx context.Context, checkoutSessionID st
 
 func (s *Service) ConstructEvent(ctx context.Context, r *http.Request) (Event, error) {
 	logger := ServiceLogger.GetLogger(ctx)
-	payload, err := ioutil.ReadAll(r.Body)
+	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +208,7 @@ func (s *Service) CreateSubscriptionIfNotExists(ctx context.Context, checkoutSes
 			Context: ctx,
 		},
 		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
-			DefaultPaymentMethod: stripe.String(pm.ID),
+			DefaultPaymentMethod: new(pm.ID),
 		},
 	}
 
@@ -249,7 +250,7 @@ func (s *Service) CreateSubscriptionIfNotExists(ctx context.Context, checkoutSes
 	subscriptionItems := []*stripe.SubscriptionItemsParams{}
 	for _, p := range subscriptionPlan.Prices {
 		subscriptionItems = append(subscriptionItems, &stripe.SubscriptionItemsParams{
-			Price: stripe.String(p.StripePriceID),
+			Price: new(p.StripePriceID),
 		})
 	}
 
@@ -267,7 +268,7 @@ func (s *Service) CreateSubscriptionIfNotExists(ctx context.Context, checkoutSes
 		Items:              subscriptionItems,
 		BillingCycleAnchor: &billingCycleAnchorUnix,
 		AutomaticTax: &stripe.SubscriptionAutomaticTaxParams{
-			Enabled: stripe.Bool(true),
+			Enabled: new(true),
 		},
 	})
 	if err != nil {
@@ -278,7 +279,7 @@ func (s *Service) CreateSubscriptionIfNotExists(ctx context.Context, checkoutSes
 
 func (s *Service) SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error) {
 	params := &stripe.SubscriptionParams{
-		CancelAtPeriodEnd: stripe.Bool(cancelAtPeriodEnd),
+		CancelAtPeriodEnd: new(cancelAtPeriodEnd),
 	}
 	subscription, err := s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, params)
 	if err != nil {
@@ -323,7 +324,7 @@ func (s *Service) fetchProducts(ctx context.Context) ([]*stripe.Product, error) 
 			Context: ctx,
 			Expand:  []*string{&expandDefaultPrice, &expandTiers},
 		},
-		Active: stripe.Bool(true),
+		Active: new(true),
 	}
 	iter := s.ClientAPI.Products.List(listProductParams)
 	for iter.Next() {
@@ -450,7 +451,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 		if !ok {
 			return nil, ErrUnknownEvent
 		}
-		metadata, ok := object["metadata"].(map[string]interface{})
+		metadata, ok := object["metadata"].(map[string]any)
 		if !ok {
 			return nil, ErrUnknownEvent
 		}
@@ -485,7 +486,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 		if !ok {
 			return nil, ErrUnknownEvent
 		}
-		metadata, ok := object["metadata"].(map[string]interface{})
+		metadata, ok := object["metadata"].(map[string]any)
 		if !ok {
 			return nil, ErrUnknownEvent
 		}
@@ -538,8 +539,8 @@ func (s *Service) GenerateCustomerPortalSession(appID string, customerID string)
 	u := s.Endpoints.BillingEndpointURL(relay.ToGlobalID("App", appID))
 
 	params := &stripe.BillingPortalSessionParams{
-		Customer:  stripe.String(customerID),
-		ReturnURL: stripe.String(u.String()),
+		Customer:  new(customerID),
+		ReturnURL: new(u.String()),
 	}
 
 	return s.ClientAPI.BillingPortalSessions.New(params)
@@ -549,7 +550,7 @@ func (s *Service) UpdateSubscription(ctx context.Context, stripeSubscriptionID s
 	getParams := &stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: ctx,
-			Expand:  []*string{stripe.String("items.data.price.product")},
+			Expand:  []*string{new("items.data.price.product")},
 		},
 	}
 	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
@@ -586,7 +587,7 @@ func (s *Service) PreviewUpdateSubscription(ctx context.Context, stripeSubscript
 	getParams := &stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: ctx,
-			Expand:  []*string{stripe.String("items.data.price.product")},
+			Expand:  []*string{new("items.data.price.product")},
 		},
 	}
 	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
@@ -603,8 +604,8 @@ func (s *Service) PreviewUpdateSubscription(ctx context.Context, stripeSubscript
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Customer:          stripe.String(sub.Customer.ID),
-		Subscription:      stripe.String(sub.ID),
+		Customer:          new(sub.Customer.ID),
+		Subscription:      new(sub.ID),
 		SubscriptionItems: itemsParams,
 	}
 
@@ -648,16 +649,16 @@ func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscr
 		for _, item := range sub.Items.Data {
 			if item.Price.ID == priceToBeRemoved.StripePriceID {
 				out = append(out, &stripe.SubscriptionItemsParams{
-					ID:         stripe.String(item.ID),
-					Deleted:    stripe.Bool(true),
-					ClearUsage: stripe.Bool(priceToBeRemoved.ShouldClearUsage()),
+					ID:         new(item.ID),
+					Deleted:    new(true),
+					ClearUsage: new(priceToBeRemoved.ShouldClearUsage()),
 				})
 			}
 		}
 	}
 	for _, priceToBeAdded := range pricesToBeAdded {
 		out = append(out, &stripe.SubscriptionItemsParams{
-			Price: stripe.String(priceToBeAdded.StripePriceID),
+			Price: new(priceToBeAdded.StripePriceID),
 		})
 	}
 
@@ -669,8 +670,8 @@ func (s *Service) GetSubscription(ctx context.Context, stripeCustomerID string) 
 		ListParams: stripe.ListParams{
 			Context: ctx,
 			Expand: []*string{
-				stripe.String("data.latest_invoice"),
-				stripe.String("data.latest_invoice.payment_intent"),
+				new("data.latest_invoice"),
+				new("data.latest_invoice.payment_intent"),
 			},
 		},
 		Customer: stripeCustomerID,

@@ -651,7 +651,7 @@ func (mr *MockBiometricIdentityProviderMockRecorder) List(ctx, userID interface{
 }
 
 // New mocks base method.
-func (m *MockBiometricIdentityProvider) New(userID, keyID string, key []byte, deviceInfo map[string]interface{}) *identity.Biometric {
+func (m *MockBiometricIdentityProvider) New(userID, keyID string, key []byte, deviceInfo map[string]any) *identity.Biometric {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, keyID, key, deviceInfo)
 	ret0, _ := ret[0].(*identity.Biometric)
@@ -1043,7 +1043,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(ctx, name, value int
 }
 
 // New mocks base method.
-func (m *MockLDAPIdentityProvider) New(userID, serverName string, loginUserName *string, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) New(userID, serverName string, loginUserName *string, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]any) *identity.LDAP {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
@@ -1071,7 +1071,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) Update(ctx, i interface{}) *gomo
 }
 
 // WithUpdate mocks base method.
-func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims, rawEntryJSON map[string]any) *identity.LDAP {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithUpdate", iden, loginUserName, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)

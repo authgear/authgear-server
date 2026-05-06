@@ -32,12 +32,9 @@ func Start(ctx context.Context, daemons ...Daemon) {
 	shutdown := make(chan struct{})
 
 	for _, daemon := range daemons {
-		daemon := daemon
 
 		go daemon.Start(startCtx)
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
+		waitGroup.Go(func() {
 
 			<-shutdown
 
@@ -46,7 +43,7 @@ func Start(ctx context.Context, daemons ...Daemon) {
 			if err != nil {
 				logger.WithError(err).Error(ctx, "failed to stop gracefully", slog.String("display_name", daemon.DisplayName()))
 			}
-		}()
+		})
 	}
 
 	sigChan := make(chan os.Signal, 1)

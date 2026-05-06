@@ -10,11 +10,11 @@ var escapeCharRegex = regexp.MustCompile("[^a-zA-Z-.]")
 
 func EscapePath(path string) string {
 	return escapeCharRegex.ReplaceAllStringFunc(path, func(s string) string {
-		seq := ""
+		var seq strings.Builder
 		for _, c := range s {
-			seq += "_" + strconv.FormatInt(int64(c), 16) + "_"
+			seq.WriteString("_" + strconv.FormatInt(int64(c), 16) + "_")
 		}
-		return seq
+		return seq.String()
 	})
 }
 

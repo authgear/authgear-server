@@ -54,7 +54,7 @@ func TestEventWebHook(t *testing.T) {
 				JSON(e).
 				HeaderPresent(HeaderRequestBodySignature).
 				Reply(200).
-				JSON(map[string]interface{}{
+				JSON(map[string]any{
 					"is_allowed": true,
 				})
 			defer func() { gock.Flush() }()

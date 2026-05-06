@@ -15,11 +15,11 @@ import (
 
 var ErrInvalidJWTMutations = apierrors.Invalid.WithReason("InvalidJWTMutations")
 
-func Sign(t jwt.Token, alg jwa.SignatureAlgorithm, key interface{}) (token []byte, err error) {
+func Sign(t jwt.Token, alg jwa.SignatureAlgorithm, key any) (token []byte, err error) {
 	return SignWithHeader(t, jws.NewHeaders(), alg, key)
 }
 
-func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, key interface{}) (token []byte, err error) {
+func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, key any) (token []byte, err error) {
 	buf, err := json.Marshal(t)
 	if err != nil {
 		return
@@ -86,7 +86,7 @@ func SplitWithoutVerify(compact []byte) (hdr jws.Headers, payload jwt.Token, err
 	return
 }
 
-func BuildFromMap(m map[string]interface{}) (jwt.Token, error) {
+func BuildFromMap(m map[string]any) (jwt.Token, error) {
 	b := jwt.NewBuilder()
 	for key, val := range m {
 		b.Claim(key, val)
@@ -94,13 +94,13 @@ func BuildFromMap(m map[string]interface{}) (jwt.Token, error) {
 	return b.Build()
 }
 
-func ToMap(t jwt.Token) (map[string]interface{}, error) {
+func ToMap(t jwt.Token) (map[string]any, error) {
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return nil, err
 	}
 
-	var m map[string]interface{}
+	var m map[string]any
 	err = json.Unmarshal(bytes, &m)
 	if err != nil {
 		return nil, err
@@ -110,8 +110,8 @@ func ToMap(t jwt.Token) (map[string]interface{}, error) {
 }
 
 func PrepareForMutations(t jwt.Token) (
-	forMutation map[string]interface{},
-	forBackup map[string]interface{},
+	forMutation map[string]any,
+	forBackup map[string]any,
 	err error,
 ) {
 	cloned, err := t.Clone()
@@ -133,8 +133,8 @@ func PrepareForMutations(t jwt.Token) (
 }
 
 func ApplyMutations(
-	forMutation map[string]interface{},
-	forBackup map[string]interface{},
+	forMutation map[string]any,
+	forBackup map[string]any,
 ) (applied jwt.Token, err error) {
 	// We need to check 2 things here.
 	// 1. No keys in forBackup were removed.

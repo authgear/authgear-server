@@ -106,9 +106,9 @@ func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) [
 
 type Identity struct {
 	Meta
-	Type   string                 `json:"type"`
-	UserID string                 `json:"user_id"`
-	Claims map[string]interface{} `json:"claims"`
+	Type   string         `json:"type"`
+	UserID string         `json:"user_id"`
+	Claims map[string]any `json:"claims"`
 }
 
 type IdentityRef struct {

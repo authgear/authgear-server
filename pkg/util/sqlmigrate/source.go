@@ -9,7 +9,7 @@ import (
 
 type TemplateMigrationSource struct {
 	OriginSource migrate.MigrationSource
-	Data         interface{}
+	Data         any
 }
 
 func (s TemplateMigrationSource) FindMigrations() (migrations []*migrate.Migration, err error) {

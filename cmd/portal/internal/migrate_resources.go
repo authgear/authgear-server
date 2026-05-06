@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"log"
+	"maps"
 	"os"
 	"os/exec"
 	"reflect"
@@ -35,9 +36,7 @@ func MigrateResources(ctx context.Context, opt *MigrateResourcesOptions) {
 	var configSourcesToUpdate []*ConfigSource
 	for _, c := range configSourceList {
 		original := make(map[string]string)
-		for k, v := range c.Data {
-			original[k] = v
-		}
+		maps.Copy(original, c.Data)
 
 		if err := opt.UpdateConfigSourceFunc(ctx, c.AppID, c.Data, dryRun); err != nil {
 			log.Fatalf("failed to convert resources: %s, %s", c.AppID, err)

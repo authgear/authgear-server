@@ -43,7 +43,7 @@ func (m MockSession) GetAuthenticatedAt() time.Time { return time.Time{} }
 
 func (m MockSession) GetAccessInfo() *access.Info { return nil }
 
-func (m MockSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
+func (m MockSession) GetDeviceInfo() (map[string]any, bool) { return nil, false }
 
 func (m *MockSession) GetUserID() string { return m.Attrs.UserID }
 

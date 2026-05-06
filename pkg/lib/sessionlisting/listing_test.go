@@ -16,20 +16,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 )
 
-func makeDeviceInfo(deviceName string, deviceModel string) map[string]interface{} {
-	return map[string]interface{}{
-		"ios": map[string]interface{}{
-			"UIDevice": map[string]interface{}{
+func makeDeviceInfo(deviceName string, deviceModel string) map[string]any {
+	return map[string]any{
+		"ios": map[string]any{
+			"UIDevice": map[string]any{
 				"name": deviceName,
 			},
-			"uname": map[string]interface{}{
+			"uname": map[string]any{
 				"machine": deviceModel,
 			},
 		},
 	}
 }
 
-func makeOfflineGrant(id string, lastAccessAt time.Time, deviceInfo map[string]interface{}, idpSessionID string, clientID string, ssoEnabled bool) *oauth.OfflineGrant {
+func makeOfflineGrant(id string, lastAccessAt time.Time, deviceInfo map[string]any, idpSessionID string, clientID string, ssoEnabled bool) *oauth.OfflineGrant {
 	return &oauth.OfflineGrant{
 		ID:              id,
 		InitialClientID: clientID,

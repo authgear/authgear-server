@@ -26,6 +26,6 @@ func (c *AuditLogFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConf
 func (c *AuditLogFeatureConfig) SetDefaults() {
 	if c.RetrievalDays == nil {
 		// -1 means no limit
-		c.RetrievalDays = newInt(-1)
+		c.RetrievalDays = new(-1)
 	}
 }

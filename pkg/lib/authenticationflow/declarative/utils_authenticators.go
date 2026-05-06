@@ -8,7 +8,6 @@ import (
 
 func findPassword(in []*authenticator.Info, kind model.AuthenticatorKind) *authenticator.Info {
 	for _, authn := range in {
-		authn := authn
 		if authn.Type != model.AuthenticatorTypePassword {
 			continue
 		}
@@ -21,7 +20,6 @@ func findPassword(in []*authenticator.Info, kind model.AuthenticatorKind) *authe
 
 func findPrimaryPasskey(in []*authenticator.Info, kind model.AuthenticatorKind) *authenticator.Info {
 	for _, authn := range in {
-		authn := authn
 		if authn.Type != model.AuthenticatorTypePasskey {
 			continue
 		}
@@ -34,7 +32,6 @@ func findPrimaryPasskey(in []*authenticator.Info, kind model.AuthenticatorKind) 
 
 func findEmailOOB(in []*authenticator.Info, kind model.AuthenticatorKind, target string) *authenticator.Info {
 	for _, authn := range in {
-		authn := authn
 		if authn.Type != model.AuthenticatorTypeOOBEmail {
 			continue
 		}
@@ -47,7 +44,6 @@ func findEmailOOB(in []*authenticator.Info, kind model.AuthenticatorKind, target
 
 func findSMSOOB(in []*authenticator.Info, kind model.AuthenticatorKind, target string) *authenticator.Info {
 	for _, authn := range in {
-		authn := authn
 		if authn.Type != model.AuthenticatorTypeOOBSMS {
 			continue
 		}
@@ -60,7 +56,6 @@ func findSMSOOB(in []*authenticator.Info, kind model.AuthenticatorKind, target s
 
 func findTOTP(in []*authenticator.Info, kind model.AuthenticatorKind) *authenticator.Info {
 	for _, authn := range in {
-		authn := authn
 		if authn.Type != model.AuthenticatorTypeTOTP {
 			continue
 		}

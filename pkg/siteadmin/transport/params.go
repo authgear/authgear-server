@@ -22,7 +22,7 @@ func getOptionalIntParam(q url.Values, name string) (*int, error) {
 	v, err := strconv.Atoi(s)
 	if err != nil {
 		return nil, makeValidationError(func(ctx *validation.Context) {
-			ctx.Child(name).EmitError("type", map[string]interface{}{"expected": "integer"})
+			ctx.Child(name).EmitError("type", map[string]any{"expected": "integer"})
 		})
 	}
 	return &v, nil
@@ -48,7 +48,7 @@ func getOptionalDateParam(q url.Values, name string) (*string, error) {
 	}
 	if _, err := time.Parse("2006-01-02", s); err != nil {
 		return nil, makeValidationError(func(ctx *validation.Context) {
-			ctx.Child(name).EmitError("format", map[string]interface{}{"expected": "date"})
+			ctx.Child(name).EmitError("format", map[string]any{"expected": "date"})
 		})
 	}
 	return &s, nil
@@ -70,7 +70,7 @@ func getDateParam(q url.Values, name string) (string, error) {
 func validateMonth(name string, v int) error {
 	if v < 1 || v > 12 {
 		return makeValidationError(func(ctx *validation.Context) {
-			ctx.Child(name).EmitError("range", map[string]interface{}{"minimum": 1, "maximum": 12})
+			ctx.Child(name).EmitError("range", map[string]any{"minimum": 1, "maximum": 12})
 		})
 	}
 	return nil

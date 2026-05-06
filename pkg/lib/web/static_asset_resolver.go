@@ -38,7 +38,7 @@ var StaticAssetResources = map[string]resource.Descriptor{
 }
 
 type ResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 }
 
 type EmbeddedResourceManager interface {

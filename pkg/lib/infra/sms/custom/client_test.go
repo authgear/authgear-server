@@ -29,7 +29,7 @@ func (m *mockWebHook) PerformWithResponse(ctx context.Context, client *http.Clie
 }
 
 // PrepareRequest implements hook.WebHook.
-func (m *mockWebHook) PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error) {
+func (m *mockWebHook) PrepareRequest(ctx context.Context, u *url.URL, body any) (*http.Request, error) {
 	return &http.Request{}, nil
 }
 
@@ -51,11 +51,11 @@ func (m *mockWebHookClient) Do(req *http.Request) (*http.Response, error) {
 var _ HookHTTPClient = &mockWebHookClient{}
 
 type mockDenoHook struct {
-	Output interface{}
+	Output any
 }
 
 // RunSync implements DenoHook.
-func (m *mockDenoHook) RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
+func (m *mockDenoHook) RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input any) (out any, err error) {
 	return m.Output, nil
 }
 
@@ -68,7 +68,7 @@ var _ DenoHook = &mockDenoHook{}
 
 type mockDenoHookClient struct{}
 
-func (m *mockDenoHookClient) Run(ctx context.Context, script string, input interface{}) (out interface{}, err error) {
+func (m *mockDenoHookClient) Run(ctx context.Context, script string, input any) (out any, err error) {
 	return nil, nil
 }
 
@@ -138,7 +138,7 @@ func TestCustomClient(t *testing.T) {
 
 		Convey("incompatible output is ok", func() {
 			var denohook DenoHook = &mockDenoHook{
-				Output: map[string]interface{}{"code": 1},
+				Output: map[string]any{"code": 1},
 			}
 
 			smsDenoHook := &SMSDenoHook{

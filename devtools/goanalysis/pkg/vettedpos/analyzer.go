@@ -16,7 +16,7 @@ func NewAnalyzer(pos *vettedposutil.VettedPositions, analyzers ...*analysis.Anal
 	requires = append(requires, inspect.Analyzer)
 	requires = append(requires, analyzers...)
 
-	run := func(pass *analysis.Pass) (interface{}, error) {
+	run := func(pass *analysis.Pass) (any, error) {
 		inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 		traverse := func(n ast.Node) {
 			if n, ok := n.(*ast.File); ok {

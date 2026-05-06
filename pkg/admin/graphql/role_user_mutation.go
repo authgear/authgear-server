@@ -46,11 +46,11 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addRoleToUsersInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			roleKey := input["roleKey"].(string)
-			userIDIfaces := input["userIDs"].([]interface{})
+			userIDIfaces := input["userIDs"].([]any)
 			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
 				userNodeIDs[i] = v.(string)
@@ -83,7 +83,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 
@@ -124,11 +124,11 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeRoleFromUsersInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			roleKey := input["roleKey"].(string)
-			userIDIfaces := input["userIDs"].([]interface{})
+			userIDIfaces := input["userIDs"].([]any)
 			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
 				userNodeIDs[i] = v.(string)
@@ -161,7 +161,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 
@@ -202,8 +202,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addUserToRolesInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -211,7 +211,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid user ID")
 			}
 			userID := resolvedNodeID.ID
-			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeyIfaces := input["roleKeys"].([]any)
 			roleKeys := make([]string, len(roleKeyIfaces))
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
@@ -241,7 +241,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
@@ -282,8 +282,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeUserFromRolesInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -291,7 +291,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid user ID")
 			}
 			userID := resolvedNodeID.ID
-			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeyIfaces := input["roleKeys"].([]any)
 			roleKeys := make([]string, len(roleKeyIfaces))
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
@@ -320,7 +320,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 

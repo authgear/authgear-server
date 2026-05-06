@@ -21,7 +21,7 @@ type PublicKeyCredentialCreationOptions struct {
 	Hints                         []protocol.PublicKeyCredentialHints `json:"hints,omitempty"`
 	Attestation                   protocol.ConveyancePreference       `json:"attestation"`
 	AttestationFormats            []protocol.AttestationFormat        `json:"attestationFormats,omitempty"`
-	Extensions                    map[string]interface{}              `json:"extensions,omitempty"`
+	Extensions                    map[string]any                      `json:"extensions,omitempty"`
 }
 
 type PublicKeyCredentialRpEntity struct {

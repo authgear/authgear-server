@@ -17,7 +17,7 @@ type AuthenticationFlowRateLimitsConfig struct {
 func (c *AuthenticationFlowRateLimitsConfig) SetDefaults() {
 	if c.PerIP.Enabled == nil {
 		c.PerIP = &RateLimitConfig{
-			Enabled: newBool(true),
+			Enabled: new(true),
 			Period:  "1m",
 			Burst:   1200,
 		}

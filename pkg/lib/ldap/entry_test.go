@@ -32,7 +32,7 @@ func TestEntry(t *testing.T) {
 
 			So(jsonMap, ShouldContainKey, attrName)
 			So(jsonMap[attrName], ShouldHaveLength, 1)
-			So(jsonMap[attrName].([]interface{})[0], ShouldEqual, expectedBase64)
+			So(jsonMap[attrName].([]any)[0], ShouldEqual, expectedBase64)
 		})
 	})
 }

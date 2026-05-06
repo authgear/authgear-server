@@ -14,8 +14,8 @@ func (a inputA) X() string { return "X" }
 
 type inputB struct{ A inputA }
 
-func (b inputB) Y() string          { return "Y" }
-func (b inputB) Input() interface{} { return b.A }
+func (b inputB) Y() string  { return "Y" }
+func (b inputB) Input() any { return b.A }
 
 func TestInput(t *testing.T) {
 	Convey("Input", t, func() {
@@ -36,7 +36,7 @@ func TestInput(t *testing.T) {
 
 	Convey("Input incompatible nil", t, func() {
 		var x interface{ X() string }
-		var a interface{} = nil
+		var a any = nil
 		So(interaction.Input(a, &x), ShouldBeFalse)
 	})
 

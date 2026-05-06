@@ -26,7 +26,7 @@ func NewUserLoader(users UserLoaderUserService) *UserLoader {
 	return l
 }
 
-func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *UserLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -46,7 +46,7 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		out[i] = entity

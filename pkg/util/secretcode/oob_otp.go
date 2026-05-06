@@ -34,7 +34,7 @@ func (OOBOTPSecretCodeType) Compare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
-func (OOBOTPSecretCodeType) CheckFormat(ctx context.Context, value interface{}) error {
+func (OOBOTPSecretCodeType) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

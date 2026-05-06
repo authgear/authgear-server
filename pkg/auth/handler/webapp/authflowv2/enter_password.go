@@ -98,8 +98,8 @@ func NewInlinePreviewAuthflowEnterPasswordViewModel() AuthflowEnterPasswordViewM
 	}
 }
 
-func (h *AuthflowV2EnterPasswordHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterPasswordHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -113,8 +113,8 @@ func (h *AuthflowV2EnterPasswordHandler) GetData(ctx context.Context, w http.Res
 	return data, nil
 }
 
-func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -153,7 +153,7 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		plainPassword := r.Form.Get("x_password")
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication":       option.Authentication,
 			"password":             plainPassword,
 			"request_device_token": requestDeviceToken,

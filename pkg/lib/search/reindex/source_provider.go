@@ -129,7 +129,7 @@ func (s *SourceProvider) getSource(ctx context.Context, user *user.User) (*model
 }
 
 func RawToSource(raw *model.SearchUserRaw) *model.SearchUserSource {
-	extractString := func(attrs map[string]interface{}, key string) string {
+	extractString := func(attrs map[string]any, key string) string {
 		if attrs == nil {
 			return ""
 		}
@@ -139,11 +139,11 @@ func RawToSource(raw *model.SearchUserRaw) *model.SearchUserSource {
 		return ""
 	}
 
-	extractAddressString := func(attrs map[string]interface{}, key string) string {
+	extractAddressString := func(attrs map[string]any, key string) string {
 		if attrs == nil {
 			return ""
 		}
-		address, ok := attrs[stdattrs.Address].(map[string]interface{})
+		address, ok := attrs[stdattrs.Address].(map[string]any)
 		if !ok {
 			return ""
 		}

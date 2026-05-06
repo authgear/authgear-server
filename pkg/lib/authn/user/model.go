@@ -81,8 +81,8 @@ type User struct {
 	UpdatedAt            time.Time
 	MostRecentLoginAt    *time.Time
 	LessRecentLoginAt    *time.Time
-	StandardAttributes   map[string]interface{}
-	CustomAttributes     map[string]interface{}
+	StandardAttributes   map[string]any
+	CustomAttributes     map[string]any
 	LastIndexedAt        *time.Time
 	RequireReindexAfter  *time.Time
 	MFAGracePeriodtEndAt *time.Time
@@ -163,16 +163,16 @@ func newUserModel(
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isVerified bool,
-	derivedStandardAttributes map[string]interface{},
-	customAttributes map[string]interface{},
+	derivedStandardAttributes map[string]any,
+	customAttributes map[string]any,
 	roles []string,
 	groups []string,
 ) *model.User {
 	if derivedStandardAttributes == nil {
-		derivedStandardAttributes = make(map[string]interface{})
+		derivedStandardAttributes = make(map[string]any)
 	}
 	if customAttributes == nil {
-		customAttributes = make(map[string]interface{})
+		customAttributes = make(map[string]any)
 	}
 	if roles == nil {
 		roles = make([]string, 0)
@@ -229,7 +229,7 @@ func newUserModel(
 		CustomAttributes:   customAttributes,
 		// For backwards compatibility, we always output an empty object here.
 		// The AdminAPI has marked this field non-null, so it MUST BE a map.
-		Web3:                 make(map[string]interface{}),
+		Web3:                 make(map[string]any),
 		Roles:                roles,
 		Groups:               groups,
 		MFAGracePeriodtEndAt: user.MFAGracePeriodtEndAt,
@@ -245,7 +245,7 @@ type UserForExport struct {
 	Authenticators []*authenticator.Info
 }
 
-func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info) string {
+func computeEndUserAccountID(derivedStandardAttributes map[string]any, identities []*identity.Info) string {
 	var endUserAccountID string
 
 	var ldapDisplayID string

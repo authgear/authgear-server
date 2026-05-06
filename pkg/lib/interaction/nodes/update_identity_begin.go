@@ -16,7 +16,7 @@ type EdgeUpdateIdentityBegin struct {
 	IdentityID string
 }
 
-func (e *EdgeUpdateIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeUpdateIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeUpdateIdentityBegin{IdentityID: e.IdentityID}, nil
 }
 

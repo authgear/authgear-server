@@ -7,7 +7,7 @@ import (
 
 var UserAgentBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "user_agent_blocklist.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return blocklist.New(string(data))
 	},
 })

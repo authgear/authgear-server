@@ -37,7 +37,6 @@ func traverseFlow(t Traverser, w *Flow, intentFirst bool) error {
 		}
 	}
 	for _, node := range w.Nodes {
-		node := node
 		err := traverseNode(t, w, &node, intentFirst)
 		if err != nil {
 			return err
@@ -90,7 +89,6 @@ func TraverseIntentFromNodeToRoot(t IntentTraverser, w *Flow, startingNode NodeO
 	var traverse func(w *Flow)
 	traverse = func(w *Flow) {
 		for _, node := range w.Nodes {
-			node := node
 			switch node.Type {
 			case NodeTypeSimple:
 				parentMap[node.Simple] = w.Intent

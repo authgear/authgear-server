@@ -13,7 +13,7 @@ import (
 )
 
 type TranslationService interface {
-	RenderText(ctx context.Context, key string, args interface{}) (string, error)
+	RenderText(ctx context.Context, key string, args any) (string, error)
 }
 
 type ConfigService struct {

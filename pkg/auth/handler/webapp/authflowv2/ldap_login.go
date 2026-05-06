@@ -55,8 +55,8 @@ func NewAuthflowLDAPLoginViewModel(ldapServerName string, apiError *apierrors.AP
 	return viewModel
 }
 
-func (h *AuthflowV2LDAPLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, ldapServerName string) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2LDAPLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, ldapServerName string) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -89,7 +89,7 @@ func (h *AuthflowV2LDAPLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		plainUsername := r.Form.Get("x_username")
 		plainPassword := r.Form.Get("x_password")
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"identification": "ldap",
 			"server_name":    serverName,
 			"username":       plainUsername,

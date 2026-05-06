@@ -16,8 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
-func FormToJSON(form url.Values) map[string]interface{} {
-	j := make(map[string]interface{})
+func FormToJSON(form url.Values) map[string]any {
+	j := make(map[string]any)
 	// Do not support recurring parameter
 	for name := range form {
 		value := form.Get(name)

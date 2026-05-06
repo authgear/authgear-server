@@ -209,15 +209,15 @@ func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID stri
 
 	authgearYAMLBytes := appConfigSource.Data["authgear.yaml"]
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(authgearYAMLBytes, &m)
 	if err != nil {
 		return nil, err
 	}
 
 	var applicationCount int
-	if oauthConfig, ok := m["oauth"].(map[string]interface{}); ok {
-		if clients, ok := oauthConfig["clients"].([]interface{}); ok {
+	if oauthConfig, ok := m["oauth"].(map[string]any); ok {
+		if clients, ok := oauthConfig["clients"].([]any); ok {
 			applicationCount = len(clients)
 		}
 	}
@@ -239,7 +239,7 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 	var events []json.RawMessage
 
 	for _, g := range groups {
-		group_set := map[string]interface{}{
+		group_set := map[string]any{
 			"mau":                 g.MAU,
 			"user_count":          g.UserCount,
 			"collaborator_count":  g.CollaboratorCount,
@@ -250,10 +250,10 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 			group_set["project_plan"] = g.ProjectPlan
 		}
 
-		event := map[string]interface{}{
+		event := map[string]any{
 			"event":       "$groupidentify",
 			"distinct_id": "groups_setup_id",
-			"properties": map[string]interface{}{
+			"properties": map[string]any{
 				"$geoip_disable": true,
 				"$group_type":    "project",
 				"$group_key":     g.ProjectID,
@@ -276,15 +276,15 @@ func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessa
 	var events []json.RawMessage
 
 	for _, u := range users {
-		set := map[string]interface{}{}
+		set := map[string]any{}
 		if u.Email != "" {
 			set["email"] = u.Email
 		}
 
-		event := map[string]interface{}{
+		event := map[string]any{
 			"event":       "$identify",
 			"distinct_id": u.ID,
-			"properties": map[string]interface{}{
+			"properties": map[string]any{
 				"$set":           set,
 				"$geoip_disable": true,
 			},
@@ -343,10 +343,7 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 	chunkSize := 1000
 	for i, chunkNum := 0, 0; i < len(events); i, chunkNum = i+chunkSize, chunkNum+1 {
 		start := i
-		end := i + chunkSize
-		if end > len(events) {
-			end = len(events)
-		}
+		end := min(i+chunkSize, len(events))
 
 		chunk := events[start:end]
 		chunks = append(chunks, chunk)

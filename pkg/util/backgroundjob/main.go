@@ -23,15 +23,12 @@ func Main(ctx context.Context, runners []*Runner) {
 
 	for _, runner := range runners {
 		// Capture
-		runner := runner
 
 		go runner.Start(ctx)
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
+		waitGroup.Go(func() {
 			<-shutdown
 			runner.Stop(ctx)
-		}()
+		})
 	}
 
 	sigChan := make(chan os.Signal, 1)

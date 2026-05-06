@@ -93,7 +93,7 @@ type OAuthSSOFeatureConfig struct {
 
 func (c *OAuthSSOFeatureConfig) SetDefaults() {
 	if c.MaximumProviders == nil {
-		c.MaximumProviders = newInt(99)
+		c.MaximumProviders = new(99)
 	}
 }
 
@@ -183,6 +183,6 @@ type BiometricFeatureConfig struct {
 
 func (c *BiometricFeatureConfig) SetDefaults() {
 	if c.Disabled == nil {
-		c.Disabled = newBool(false)
+		c.Disabled = new(false)
 	}
 }

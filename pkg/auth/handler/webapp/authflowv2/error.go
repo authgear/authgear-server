@@ -24,8 +24,8 @@ type AuthflowV2ErrorHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -33,8 +33,8 @@ func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request)
 	return data, nil
 }
 
-func (h *AuthflowV2ErrorHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2ErrorHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)

@@ -107,11 +107,11 @@ type Address struct {
 }
 
 type Identity struct {
-	Type    model.IdentityType     `json:"type"`
-	LoginID *IdentityLoginID       `json:"login_id,omitempty"`
-	OAuth   *IdentityOAuth         `json:"oauth,omitempty"`
-	LDAP    *IdentityLDAP          `json:"ldap,omitempty"`
-	Claims  map[string]interface{} `json:"claims,omitempty"`
+	Type    model.IdentityType `json:"type"`
+	LoginID *IdentityLoginID   `json:"login_id,omitempty"`
+	OAuth   *IdentityOAuth     `json:"oauth,omitempty"`
+	LDAP    *IdentityLDAP      `json:"ldap,omitempty"`
+	Claims  map[string]any     `json:"claims,omitempty"`
 }
 
 type IdentityLoginID struct {
@@ -122,18 +122,18 @@ type IdentityLoginID struct {
 }
 
 type IdentityLDAP struct {
-	ServerName           string                 `json:"server_name,omitempty"`
-	LastLoginUsername    string                 `json:"last_login_username,omitempty"`
-	UserIDAttributeName  string                 `json:"user_id_attribute_name,omitempty"`
-	UserIDAttributeValue string                 `json:"user_id_attribute_value,omitempty"`
-	Attributes           map[string]interface{} `json:"attributes,omitempty"`
+	ServerName           string         `json:"server_name,omitempty"`
+	LastLoginUsername    string         `json:"last_login_username,omitempty"`
+	UserIDAttributeName  string         `json:"user_id_attribute_name,omitempty"`
+	UserIDAttributeValue string         `json:"user_id_attribute_value,omitempty"`
+	Attributes           map[string]any `json:"attributes,omitempty"`
 }
 
 type IdentityOAuth struct {
-	ProviderAlias     string                 `json:"provider_alias,omitempty"`
-	ProviderType      string                 `json:"provider_type,omitempty"`
-	ProviderSubjectID string                 `json:"provider_subject_id,omitempty"`
-	UserProfile       map[string]interface{} `json:"user_profile,omitempty"`
+	ProviderAlias     string         `json:"provider_alias,omitempty"`
+	ProviderType      string         `json:"provider_type,omitempty"`
+	ProviderSubjectID string         `json:"provider_subject_id,omitempty"`
+	UserProfile       map[string]any `json:"user_profile,omitempty"`
 }
 
 type MFATOTP struct {
@@ -173,7 +173,7 @@ type Record struct {
 	Address    *Address `json:"address,omitempty"`
 
 	// Authgear Claims
-	CustomAttributes map[string]interface{} `json:"custom_attributes,omitempty"`
+	CustomAttributes map[string]any `json:"custom_attributes,omitempty"`
 
 	Roles  []string `json:"roles,omitempty"`
 	Groups []string `json:"groups,omitempty"`
@@ -266,7 +266,7 @@ func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields []string,
 	return fields, nil
 }
 
-func TraverseRecordValue(jsonMap interface{}, pointer string) (fieldValue string, err error) {
+func TraverseRecordValue(jsonMap any, pointer string) (fieldValue string, err error) {
 	ptr, err := jsonpointer.Parse(pointer)
 	if err != nil {
 		return "", err
@@ -283,10 +283,10 @@ func TraverseRecordValue(jsonMap interface{}, pointer string) (fieldValue string
 		} else {
 			fieldValue = "false"
 		}
-	case []interface{}:
+	case []any:
 		valueJson, _ := json.Marshal(v)
 		fieldValue = string(valueJson)
-	case map[string]interface{}:
+	case map[string]any:
 		valueJson, _ := json.Marshal(v)
 		fieldValue = string(valueJson)
 	case float64:

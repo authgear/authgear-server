@@ -33,8 +33,8 @@ type AuthflowV2ViewRecoveryCodeHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2ViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := map[string]any{}
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -71,7 +71,7 @@ func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *
 		return nil
 	})
 	handlers.PostAction("proceed", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"confirm_recovery_code": true,
 		}
 

@@ -200,8 +200,8 @@ func (h *AuthflowV2ForgotPasswordHandler) GetData(
 	r *http.Request,
 	s *webapp.Session,
 	initialScreen *webapp.AuthflowScreenWithFlowResponse,
-	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	// Put authflowViewModel first to avoid other fields of authflowViewModel override below
 	authflowViewModel := h.AuthflowViewModel.NewWithAccountRecoveryAuthflow(initialScreen.StateTokenFlowResponse, r)
@@ -297,7 +297,7 @@ func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(
 	options := []declarative.AccountRecoveryDestinationOption{}
 	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		input := map[string]interface{}{
+		input := map[string]any{
 			"identification": identification,
 			"login_id":       loginID,
 		}
@@ -335,12 +335,12 @@ func (h *AuthflowV2ForgotPasswordHandler) makeInputs(
 	screen *webapp.AuthflowScreenWithFlowResponse,
 	identification string,
 	loginID string,
-	optionIndex int) (inputs []map[string]interface{}) {
+	optionIndex int) (inputs []map[string]any) {
 	// screen can be identity or select_destination depends on the query
 	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// We need data of both steps, so they must be two inputs
-		inputs = []map[string]interface{}{
+		inputs = []map[string]any{
 			{
 				"identification": identification,
 				"login_id":       loginID,
@@ -350,7 +350,7 @@ func (h *AuthflowV2ForgotPasswordHandler) makeInputs(
 			},
 		}
 	case config.AuthenticationFlowStepTypeSelectDestination:
-		inputs = []map[string]interface{}{
+		inputs = []map[string]any{
 			{
 				"index": optionIndex,
 			},

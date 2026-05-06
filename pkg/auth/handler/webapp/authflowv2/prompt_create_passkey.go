@@ -35,8 +35,8 @@ type AuthflowV2PromptCreatePasskeyHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2PromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2PromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -57,8 +57,8 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r 
 	return data, nil
 }
 
-func (h *AuthflowV2PromptCreatePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2PromptCreatePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -83,7 +83,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 	handlers.PostAction("skip", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"skip": true,
 		}
 
@@ -96,7 +96,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 	handlers.PostAction("skip_and_do_not_ask_again", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"skip":             true,
 			"do_not_ask_again": true,
 		}
@@ -112,13 +112,13 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		attestationResponseStr := r.Form.Get("x_attestation_response")
 
-		var creationResponseJSON interface{}
+		var creationResponseJSON any
 		err := json.Unmarshal([]byte(attestationResponseStr), &creationResponseJSON)
 		if err != nil {
 			return err
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"creation_response": creationResponseJSON,
 		}
 

@@ -44,7 +44,7 @@ func isOfPackagePath(pass *analysis.Pass, packagePath string) bool {
 	return pass.Pkg.Path() == packagePath
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	traverse := func(n ast.Node) {
 		isTestFile := isATestFile(pass, n)

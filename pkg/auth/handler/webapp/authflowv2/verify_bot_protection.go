@@ -31,8 +31,8 @@ type AuthflowV2VerifyBotProtectionHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2VerifyBotProtectionHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2VerifyBotProtectionHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
@@ -80,7 +80,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) advanceWithBotProtection(
 	case declarative.StepAuthenticateData:
 		option := data.Options[index]
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"authentication": option.Authentication,
 			"index":          index,
 		}
@@ -93,7 +93,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) advanceWithBotProtection(
 		})
 	case declarative.AccountLinkingIdentifyData:
 		option := data.Options[index]
-		input := map[string]interface{}{
+		input := map[string]any{
 			"index": index,
 		}
 		if option.Identifcation == model.AuthenticationFlowIdentificationOAuth {

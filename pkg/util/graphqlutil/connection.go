@@ -16,7 +16,7 @@ type LazyItem struct {
 type Connection struct {
 	Edges      []*relay.Edge  `json:"edges"`
 	PageInfo   relay.PageInfo `json:"pageInfo"`
-	TotalCount interface{}    `json:"totalCount"`
+	TotalCount any            `json:"totalCount"`
 }
 
 func NewConnectionFromResult(lazyItems []LazyItem, result *PageResult) (*Connection, error) {
@@ -53,7 +53,7 @@ func NewConnectionFromResult(lazyItems []LazyItem, result *PageResult) (*Connect
 	}, nil
 }
 
-func NewConnectionFromArray(data []interface{}, args relay.ConnectionArguments) *Connection {
+func NewConnectionFromArray(data []any, args relay.ConnectionArguments) *Connection {
 	conn := relay.ConnectionFromArray(data, args)
 	return &Connection{
 		Edges:      conn.Edges,

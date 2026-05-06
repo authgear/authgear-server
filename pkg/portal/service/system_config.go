@@ -17,7 +17,7 @@ import (
 )
 
 type ResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 }
 
 type SystemConfigProvider struct {
@@ -76,7 +76,7 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 	}, nil
 }
 
-func (p *SystemConfigProvider) loadJSON(ctx context.Context, desc resource.Descriptor) (interface{}, error) {
+func (p *SystemConfigProvider) loadJSON(ctx context.Context, desc resource.Descriptor) (any, error) {
 
 	result, err := p.Resources.Read(ctx, desc, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
@@ -88,7 +88,7 @@ func (p *SystemConfigProvider) loadJSON(ctx context.Context, desc resource.Descr
 
 	bytes := result.([]byte)
 
-	var data interface{}
+	var data any
 
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {

@@ -58,10 +58,10 @@ type FeatureConfig struct {
 }
 
 func (c *FeatureConfig) Merge(layer *FeatureConfig) *FeatureConfig {
-	t := reflect.TypeOf(*c)
+	t := reflect.TypeFor[FeatureConfig]()
 	v := reflect.ValueOf(c).Elem()
 	numField := t.NumField()
-	for j := 0; j < numField; j++ {
+	for j := range numField {
 		field := v.Field(j)
 		if mergeable, ok := field.Interface().(MergeableFeatureConfig); ok {
 			newValue := mergeable.Merge(layer)

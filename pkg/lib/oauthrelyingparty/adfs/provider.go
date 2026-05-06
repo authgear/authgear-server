@@ -2,6 +2,7 @@ package adfs
 
 import (
 	"context"
+	"slices"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -28,7 +29,7 @@ var _ oauthrelyingparty.Provider = ADFS{}
 
 type ADFS struct{}
 
-func (ADFS) GetJSONSchema() map[string]interface{} {
+func (ADFS) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -172,10 +173,8 @@ func (p ADFS) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 func (ADFS) getPrompt(prompt []string) []string {
 	// ADFS only supports prompt=login
 	// https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/operations/ad-fs-prompt-login
-	for _, p := range prompt {
-		if p == "login" {
-			return []string{"login"}
-		}
+	if slices.Contains(prompt, "login") {
+		return []string{"login"}
 	}
 	return []string{}
 }

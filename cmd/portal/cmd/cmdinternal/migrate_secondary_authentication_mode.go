@@ -49,13 +49,13 @@ func migrateSecondaryAuthenticationMode(ctx context.Context, appID string, confi
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	authentication, ok := m["authentication"].(map[string]interface{})
+	authentication, ok := m["authentication"].(map[string]any)
 	if !ok {
 		return nil
 	}
@@ -69,7 +69,7 @@ func migrateSecondaryAuthenticationMode(ctx context.Context, appID string, confi
 			updated = true
 		}
 	}
-	if secondaryAuthenticators, ok := authentication["secondary_authenticators"].([]interface{}); ok {
+	if secondaryAuthenticators, ok := authentication["secondary_authenticators"].([]any); ok {
 		// Treat empty secondary_authenticators as disabled.
 		if secondaryAuthenticators != nil && len(secondaryAuthenticators) == 0 {
 			authentication["secondary_authentication_mode"] = "disabled"

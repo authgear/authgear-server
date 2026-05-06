@@ -17,18 +17,16 @@ func TestFilesystemCache(t *testing.T) {
 
 		var waitGroup sync.WaitGroup
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			r, _ := http.NewRequest("GET", "/a.json", nil)
 			h := cache.Serve(r, func() ([]byte, error) {
 				callTime++
 				return []byte(`{"a": "b"}`), nil
 			})
 			w := httptest.NewRecorder()
-			waitGroup.Add(1)
-			go func() {
+			waitGroup.Go(func() {
 				h.ServeHTTP(w, r)
-				waitGroup.Done()
-			}()
+			})
 		}
 
 		waitGroup.Wait()

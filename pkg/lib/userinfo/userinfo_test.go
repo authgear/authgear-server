@@ -25,9 +25,9 @@ func TestUserInfoSerialization(t *testing.T) {
 	Convey("UserInfo serialization", t, func() {
 		u := &UserInfo{
 			User: &model.User{
-				StandardAttributes: map[string]interface{}{},
-				CustomAttributes:   map[string]interface{}{},
-				Web3:               map[string]interface{}{},
+				StandardAttributes: map[string]any{},
+				CustomAttributes:   map[string]any{},
+				Web3:               map[string]any{},
 				Roles:              []string{},
 				Groups:             []string{},
 			},

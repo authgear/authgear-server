@@ -25,7 +25,7 @@ func NewRoleLoader(roles RoleLoaderRoles) *RoleLoader {
 	return l
 }
 
-func (l *RoleLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *RoleLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -44,7 +44,7 @@ func (l *RoleLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 		entityMap[entity.ID] = entity
 	}
 
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		out[i] = entity

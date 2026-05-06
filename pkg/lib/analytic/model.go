@@ -12,8 +12,8 @@ type AppConfigSource struct {
 }
 
 type ReportData struct {
-	Header []interface{}
-	Values [][]interface{}
+	Header []any
+	Values [][]any
 }
 
 // DataPoint represent data point of a chart

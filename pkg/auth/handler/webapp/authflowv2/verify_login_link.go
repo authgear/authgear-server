@@ -95,8 +95,8 @@ type AuthflowV2VerifyLoginLinkOTPHandler struct {
 	Config                      *config.AppConfig
 }
 
-func (h *AuthflowV2VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, NewVerifyLoginLinkOTPViewModel(r))
 	viewmodels.Embed(data, baseViewModel)

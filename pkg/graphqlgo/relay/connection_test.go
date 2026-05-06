@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
-var connectionTestAllUsers = []interface{}{
+var connectionTestAllUsers = []any{
 	&user{Name: "Dan"},
 	&user{Name: "Nick"},
 	&user{Name: "Lee"},
@@ -40,7 +40,7 @@ func init() {
 		EdgeFields: graphql.Fields{
 			"friendshipTime": &graphql.Field{
 				Type: graphql.String,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return "Yesterday", nil
 				},
 			},
@@ -48,7 +48,7 @@ func init() {
 		ConnectionFields: graphql.Fields{
 			"totalCount": &graphql.Field{
 				Type: graphql.Int,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return len(connectionTestAllUsers), nil
 				},
 			},
@@ -59,7 +59,7 @@ func init() {
 	connectionTestUserType.AddFieldConfig("friends", &graphql.Field{
 		Type: connectionTestConnectionDef.ConnectionType,
 		Args: relay.ConnectionArgs,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			arg := relay.NewConnectionArguments(p.Args)
 			res := relay.ConnectionFromArray(connectionTestAllUsers, arg)
 			return res, nil
@@ -71,7 +71,7 @@ func init() {
 		Fields: graphql.Fields{
 			"user": &graphql.Field{
 				Type: connectionTestUserType,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return connectionTestAllUsers[0], nil
 				},
 			},
@@ -104,20 +104,20 @@ func TestConnectionDefinition_IncludesConnectionAndEdgeFields(t *testing.T) {
       }
     `
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"user": map[string]interface{}{
-				"friends": map[string]interface{}{
+		Data: map[string]any{
+			"user": map[string]any{
+				"friends": map[string]any{
 					"totalCount": 5,
-					"edges": []interface{}{
-						map[string]interface{}{
+					"edges": []any{
+						map[string]any{
 							"friendshipTime": "Yesterday",
-							"node": map[string]interface{}{
+							"node": map[string]any{
 								"name": "Dan",
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"friendshipTime": "Yesterday",
-							"node": map[string]interface{}{
+							"node": map[string]any{
 								"name": "Nick",
 							},
 						},

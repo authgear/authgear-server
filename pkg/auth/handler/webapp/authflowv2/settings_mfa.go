@@ -45,7 +45,7 @@ func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	ctrl.Get(func(ctx context.Context) error {
 		userID := session.GetUserID(ctx)
 
-		data := map[string]interface{}{}
+		data := map[string]any{}
 
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			baseViewModel := h.BaseViewModel.ViewModel(r, w)

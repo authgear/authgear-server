@@ -1,11 +1,5 @@
 package config
 
-func newBool(v bool) *bool { return &v }
-
-func newFloat64(v float64) *float64 { return &v }
-
-func newInt(v int) *int { return &v }
-
 func IntersectAllowlist(appAllowlist []string, featureAllowlist []string) []string {
 	if len(featureAllowlist) == 0 {
 		return appAllowlist

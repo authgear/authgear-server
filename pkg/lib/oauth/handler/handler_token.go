@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -104,7 +105,7 @@ type TokenHandlerSettingsActionGrantStore interface {
 type TokenHandlerOfflineGrantStore interface {
 	DeleteOfflineGrant(ctx context.Context, g *oauth.OfflineGrant) error
 
-	UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]any, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(ctx context.Context, id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantDeviceSecretHash(
@@ -335,13 +336,7 @@ func (h *TokenHandler) doHandleWithTx(
 ) (*HandleResult, error) {
 	allowedGrantTypes := oauth.GetAllowedGrantTypes(client)
 
-	ok := false
-	for _, grantType := range allowedGrantTypes {
-		if r.GrantType() == grantType {
-			ok = true
-			break
-		}
-	}
+	ok := slices.Contains(allowedGrantTypes, r.GrantType())
 	if !ok {
 		return nil, protocol.NewError("unauthorized_client", "grant type is not allowed for this client")
 	}
@@ -1686,7 +1681,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
-	deviceInfo map[string]interface{},
+	deviceInfo map[string]any,
 	app2appDeviceKeyJWT string,
 ) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
@@ -1704,14 +1699,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 
 	if issueRefreshToken {
 		// Only if client is allowed to use refresh tokens
-		allowRefreshToken := false
-
-		for _, grantType := range oauth.GetAllowedGrantTypes(client) {
-			if grantType == oauth.RefreshTokenGrantType {
-				allowRefreshToken = true
-				break
-			}
-		}
+		allowRefreshToken := slices.Contains(oauth.GetAllowedGrantTypes(client), oauth.RefreshTokenGrantType)
 		if !allowRefreshToken {
 			issueRefreshToken = false
 		}
@@ -1966,13 +1954,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	offlineGrantSession *oauth.OfflineGrantSession,
 	authz *oauth.Authorization,
 ) (*HandleResult, error) {
-	issueIDToken := false
-	for _, scope := range offlineGrantSession.Scopes {
-		if scope == "openid" {
-			issueIDToken = true
-			break
-		}
-	}
+	issueIDToken := slices.Contains(offlineGrantSession.Scopes, "openid")
 
 	resp := protocol.TokenResponse{}
 

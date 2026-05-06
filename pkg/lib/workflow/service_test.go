@@ -278,7 +278,7 @@ func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow
 	return NewNodeSimple(&nodeNilInput{}), nil
 }
 
-func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -302,7 +302,7 @@ func (*nodeNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflows 
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -345,7 +345,7 @@ func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, wo
 
 }
 
-func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
+func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
 	return nil, nil
 }
 
@@ -396,7 +396,7 @@ func (*nodeServiceContext) ReactTo(ctx context.Context, deps *Dependencies, work
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (interface{}, error) {
+func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (any, error) {
 	return nil, nil
 }
 

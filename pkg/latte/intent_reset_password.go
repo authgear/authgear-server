@@ -77,7 +77,7 @@ func (*IntentResetPassword) GetEffects(ctx context.Context, deps *workflow.Depen
 	return nil, nil
 }
 
-func (*IntentResetPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentResetPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

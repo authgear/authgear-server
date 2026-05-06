@@ -102,7 +102,7 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(ctx context.Con
 	return
 }
 
-func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]any) error {
 	// Remove derived attributes to avoid failing the validation.
 	stdAttrs = stdattrs.T(stdAttrs).WithDerivedAttributesRemoved()
 
@@ -203,8 +203,8 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 	role accesscontrol.Role,
 	userIDs []string,
 	updatedAts []time.Time,
-	attrsList []map[string]interface{},
-) (map[string]map[string]interface{}, error) {
+	attrsList []map[string]any,
+) (map[string]map[string]any, error) {
 
 	if len(userIDs) != len(updatedAts) || len(userIDs) != len(attrsList) {
 		panic("stdattrs: expeceted same length of arguments")
@@ -221,13 +221,13 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 		claimsByUserID[c.UserID] = append(claimsByUserID[c.UserID], c)
 	}
 
-	result := map[string]map[string]interface{}{}
+	result := map[string]map[string]any{}
 
 	for idx, userID := range userIDs {
 		attrs := attrsList[idx]
 		userClaims := claimsByUserID[userID]
 		updatedAt := updatedAts[idx]
-		out := make(map[string]interface{})
+		out := make(map[string]any)
 		for key, value := range attrs {
 			value, err := s.Transformer.StorageFormToRepresentationForm(key, value)
 			if err != nil {
@@ -292,12 +292,12 @@ func (s *ServiceNoEvent) DeriveStandardAttributes(
 	role accesscontrol.Role,
 	userID string,
 	updatedAt time.Time,
-	attrs map[string]interface{},
-) (map[string]interface{}, error) {
+	attrs map[string]any,
+) (map[string]any, error) {
 	result, err := s.DeriveStandardAttributesForUsers(ctx, role,
 		[]string{userID},
 		[]time.Time{updatedAt},
-		[]map[string]interface{}{attrs},
+		[]map[string]any{attrs},
 	)
 	if err != nil {
 		return nil, err

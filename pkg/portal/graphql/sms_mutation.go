@@ -110,8 +110,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(sendTestSMSInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			appNodeID := input["appID"].(string)
 			to := input["to"].(string)
 			providerConfigurationInput := input["providerConfiguration"]

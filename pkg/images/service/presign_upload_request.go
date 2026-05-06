@@ -6,13 +6,13 @@ import (
 )
 
 type PresignUploadRequest struct {
-	Key     string                 `json:"key"`
-	Headers map[string]interface{} `json:"headers"`
+	Key     string         `json:"key"`
+	Headers map[string]any `json:"headers"`
 }
 
 func (r *PresignUploadRequest) Sanitize() {
 	// Remove any header whose value is empty string
-	headers := make(map[string]interface{})
+	headers := make(map[string]any)
 	for key, value := range r.Headers {
 		if v, ok := value.(string); ok && v == "" {
 			continue

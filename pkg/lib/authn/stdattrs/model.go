@@ -2,6 +2,7 @@ package stdattrs
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -14,7 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/nameutil"
 )
 
-type T map[string]interface{}
+type T map[string]any
 
 func (t T) FormattedName() string {
 	// Choose between name or given_name+middle_name+family_name
@@ -80,15 +81,13 @@ func (t T) FormattedNames() string {
 	return ""
 }
 
-func (t T) ToClaims() map[string]interface{} {
-	return map[string]interface{}(t)
+func (t T) ToClaims() map[string]any {
+	return map[string]any(t)
 }
 
 func (t T) WithNameCopiedToGivenName() T {
 	out := make(T)
-	for k, v := range t {
-		out[k] = v
-	}
+	maps.Copy(out, t)
 
 	if name, ok := t[Name].(string); ok && name != "" {
 		if _, ok := t[GivenName].(string); !ok {
@@ -114,13 +113,9 @@ func (t T) NonIdentityAware() T {
 // MergedWith returns a T with that merged into t.
 func (t T) MergedWith(that T) T {
 	out := make(T)
-	for k, v := range t {
-		out[k] = v
-	}
+	maps.Copy(out, t)
 
-	for k, v := range that {
-		out[k] = v
-	}
+	maps.Copy(out, that)
 
 	return out
 }
@@ -129,11 +124,9 @@ func (t T) Clone() T {
 	out := make(T)
 	for k, v := range t {
 		if k == Address {
-			address := make(map[string]interface{})
-			if m, ok := v.(map[string]interface{}); ok {
-				for mk, mv := range m {
-					address[mk] = mv
-				}
+			address := make(map[string]any)
+			if m, ok := v.(map[string]any); ok {
+				maps.Copy(address, m)
 			}
 			out[k] = address
 		} else {
@@ -145,7 +138,7 @@ func (t T) Clone() T {
 
 func (t T) Tidy() T {
 	out := t.Clone()
-	if address, ok := out[Address].(map[string]interface{}); ok {
+	if address, ok := out[Address].(map[string]any); ok {
 		if len(address) <= 0 {
 			delete(out, Address)
 		}

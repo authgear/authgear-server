@@ -225,7 +225,7 @@ func (i *Importer) ImportFromCSV(ctx context.Context, csvPath string, opts Impor
 }
 
 func StandardAttributes(name string, email string) ([]byte, error) {
-	attrs := map[string]interface{}{
+	attrs := map[string]any{
 		"name":  name,
 		"email": email,
 	}
@@ -233,7 +233,7 @@ func StandardAttributes(name string, email string) ([]byte, error) {
 }
 
 func Claims(email string) ([]byte, error) {
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"email": email,
 	}
 	return json.Marshal(claims)

@@ -15,10 +15,7 @@ type AuditDBWriteStore struct {
 func (s *AuditDBWriteStore) UpsertCounts(ctx context.Context, counts []*Count) error {
 	batchSize := 100
 	for i := 0; i < len(counts); i += batchSize {
-		j := i + batchSize
-		if j > len(counts) {
-			j = len(counts)
-		}
+		j := min(i+batchSize, len(counts))
 		batch := counts[i:j]
 
 		err := s.upsertCounts(ctx, batch)

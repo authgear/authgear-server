@@ -22,9 +22,9 @@ type IdentityDef interface {
 	Type() model.IdentityType
 }
 
-func ParseIdentityDef(data map[string]interface{}) (IdentityDef, error) {
+func ParseIdentityDef(data map[string]any) (IdentityDef, error) {
 	var key string
-	var value map[string]interface{}
+	var value map[string]any
 	for k, v := range data {
 		if v == nil {
 			continue
@@ -35,7 +35,7 @@ func ParseIdentityDef(data map[string]interface{}) (IdentityDef, error) {
 			break
 		}
 		key = k
-		value = v.(map[string]interface{})
+		value = v.(map[string]any)
 	}
 	if value == nil {
 		return nil, apierrors.NewInvalid("exactly 1 field must be present in identity definition")

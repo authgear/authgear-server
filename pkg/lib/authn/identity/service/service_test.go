@@ -16,10 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
-func newBool(b bool) *bool {
-	return &b
-}
-
 func TestProviderListCandidates(t *testing.T) {
 	Convey("Provider ListCandidates", t, func() {
 		ctrl := gomock.NewController(t)
@@ -93,9 +89,9 @@ func TestProviderListCandidates(t *testing.T) {
 				{
 					Type:           "email",
 					Key:            "email",
-					UpdateDisabled: newBool(false),
-					DeleteDisabled: newBool(false),
-					CreateDisabled: newBool(false),
+					UpdateDisabled: new(false),
+					DeleteDisabled: new(false),
+					CreateDisabled: new(false),
 				},
 			}
 
@@ -130,9 +126,9 @@ func TestProviderListCandidates(t *testing.T) {
 				{
 					Type:           "email",
 					Key:            "email",
-					UpdateDisabled: newBool(false),
-					DeleteDisabled: newBool(false),
-					CreateDisabled: newBool(false),
+					UpdateDisabled: new(false),
+					DeleteDisabled: new(false),
+					CreateDisabled: new(false),
 				},
 			}
 
@@ -150,9 +146,9 @@ func TestProviderListCandidates(t *testing.T) {
 				{
 					Type:           "email",
 					Key:            "email",
-					UpdateDisabled: newBool(false),
-					DeleteDisabled: newBool(false),
-					CreateDisabled: newBool(false),
+					UpdateDisabled: new(false),
+					DeleteDisabled: new(false),
+					CreateDisabled: new(false),
 				},
 			}
 
@@ -162,7 +158,7 @@ func TestProviderListCandidates(t *testing.T) {
 					LoginIDKey:      "email",
 					LoginID:         "john.doe@example.com",
 					OriginalLoginID: "john.doe@example.com",
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						"email": "john.doe@example.com",
 					},
 				},
@@ -208,10 +204,10 @@ func TestProviderListCandidates(t *testing.T) {
 				{
 					ProviderID: oauthrelyingparty.ProviderID{
 						Type: google.Type,
-						Keys: map[string]interface{}{},
+						Keys: map[string]any{},
 					},
 					ProviderSubjectID: "john.doe@gmail.com",
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						"email": "john.doe@gmail.com",
 					},
 				},
@@ -304,7 +300,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 					LoginID:         email,
 					OriginalLoginID: email,
 					UniqueKey:       email,
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						"email": email,
 					},
 				},
@@ -318,7 +314,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 				OAuth: &identity.OAuth{
 					UserID:            userID,
 					ProviderSubjectID: providerSubjectID,
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						"email": email,
 					},
 				},
@@ -334,7 +330,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 					ServerName:           serverName,
 					UserIDAttributeName:  "email",
 					UserIDAttributeValue: []byte(email),
-					Claims: map[string]interface{}{
+					Claims: map[string]any{
 						"email": email,
 					},
 				},

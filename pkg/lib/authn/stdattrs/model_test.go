@@ -109,20 +109,20 @@ func TestT(t *testing.T) {
 
 		Convey("Clone", func() {
 			a := T{
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"street_address": "a",
 				},
 			}
 			b := a.Clone()
-			b["address"].(map[string]interface{})["street_address"] = "b"
+			b["address"].(map[string]any)["street_address"] = "b"
 
 			So(b, ShouldResemble, T{
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"street_address": "b",
 				},
 			})
 			So(a, ShouldResemble, T{
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"street_address": "a",
 				},
 			})
@@ -131,7 +131,7 @@ func TestT(t *testing.T) {
 		Convey("Tidy", func() {
 			a := T{
 				"name":    "John Doe",
-				"address": map[string]interface{}{},
+				"address": map[string]any{},
 			}
 			So(a.Tidy(), ShouldResemble, T{
 				"name": "John Doe",
@@ -149,7 +149,7 @@ func TestT(t *testing.T) {
 				"name":        "John Doe",
 				"given_name":  "John",
 				"family_name": "Doe",
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"street_address": "Some street",
 				},
 			}, map[string]string{

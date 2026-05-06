@@ -214,18 +214,18 @@ type Mutations struct {
 }
 
 type UserMutations struct {
-	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
-	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
-	Roles              []string               `json:"roles,omitempty"`
-	Groups             []string               `json:"groups,omitempty"`
+	StandardAttributes map[string]any `json:"standard_attributes,omitempty"`
+	CustomAttributes   map[string]any `json:"custom_attributes,omitempty"`
+	Roles              []string       `json:"roles,omitempty"`
+	Groups             []string       `json:"groups,omitempty"`
 }
 
 type JWTMutations struct {
-	Payload map[string]interface{} `json:"payload,omitempty"`
+	Payload map[string]any `json:"payload,omitempty"`
 }
 
 type IDTokenMutations struct {
-	Payload map[string]interface{} `json:"payload,omitempty"`
+	Payload map[string]any `json:"payload,omitempty"`
 }
 
 func ParseHookResponse(ctx context.Context, eventType Type, r io.Reader) (*HookResponse, error) {

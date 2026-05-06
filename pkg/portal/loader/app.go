@@ -25,7 +25,7 @@ func NewAppLoader(appService AppLoaderAppService, authz AuthzService) *AppLoader
 	return l
 }
 
-func (l *AppLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *AppLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -45,7 +45,7 @@ func (l *AppLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interfa
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
 		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.ID)

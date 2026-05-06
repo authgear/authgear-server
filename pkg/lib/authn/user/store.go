@@ -28,8 +28,8 @@ type store interface {
 	UpdateLoginTime(ctx context.Context, userID string, loginAt time.Time) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error
 	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatusWithRefTime) error
-	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
-	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]any) error
+	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]any) error
 	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
 	SetAllAttributesToNull(ctx context.Context, userID string) error
@@ -51,7 +51,7 @@ const keyScheduleDeletionReason = "schedule_deletion_reason"
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
 	if stdAttrs == nil {
-		stdAttrs = make(map[string]interface{})
+		stdAttrs = make(map[string]any)
 	}
 
 	stdAttrsBytes, err := json.Marshal(stdAttrs)
@@ -61,7 +61,7 @@ func (s *Store) Create(ctx context.Context, u *User) (err error) {
 
 	customAttrs := u.CustomAttributes
 	if customAttrs == nil {
-		customAttrs = make(map[string]interface{})
+		customAttrs = make(map[string]any)
 	}
 
 	customAttrsBytes, err := json.Marshal(customAttrs)
@@ -250,7 +250,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		}
 	}
 
-	var metadata map[string]interface{}
+	var metadata map[string]any
 	if len(metadataBytes) > 0 {
 		if err := json.Unmarshal(metadataBytes, &metadata); err != nil {
 			return nil, err
@@ -269,10 +269,10 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	}
 
 	if u.StandardAttributes == nil {
-		u.StandardAttributes = make(map[string]interface{})
+		u.StandardAttributes = make(map[string]any)
 	}
 	if u.CustomAttributes == nil {
-		u.CustomAttributes = make(map[string]interface{})
+		u.CustomAttributes = make(map[string]any)
 	}
 
 	return u, nil
@@ -451,11 +451,11 @@ func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountS
 	return nil
 }
 
-func (s *Store) UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error {
+func (s *Store) UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]any) error {
 	now := s.Clock.NowUTC()
 
 	if stdAttrs == nil {
-		stdAttrs = make(map[string]interface{})
+		stdAttrs = make(map[string]any)
 	}
 
 	stdAttrsBytes, err := json.Marshal(stdAttrs)
@@ -477,11 +477,11 @@ func (s *Store) UpdateStandardAttributes(ctx context.Context, userID string, std
 	return nil
 }
 
-func (s *Store) UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error {
+func (s *Store) UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]any) error {
 	now := s.Clock.NowUTC()
 
 	if customAttrs == nil {
-		customAttrs = make(map[string]interface{})
+		customAttrs = make(map[string]any)
 	}
 
 	customAttrsBytes, err := json.Marshal(customAttrs)

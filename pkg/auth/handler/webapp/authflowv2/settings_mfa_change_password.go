@@ -52,8 +52,8 @@ func ConfigureAuthflowV2SettingsMFAChangePassword(route httproute.Route) httprou
 		WithPathPattern(AuthflowV2RouteSettingsMFAChangePassword)
 }
 
-func (h *AuthflowV2SettingsMFAChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SettingsMFAChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)

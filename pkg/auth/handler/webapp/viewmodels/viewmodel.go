@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-func SliceContains(slice []interface{}, value interface{}) bool {
+func SliceContains(slice []any, value any) bool {
 	for _, v := range slice {
 		if reflect.DeepEqual(v, value) {
 			return true
@@ -17,14 +17,14 @@ func SliceContains(slice []interface{}, value interface{}) bool {
 	return false
 }
 
-func asAPIError(ctx context.Context, anyError interface{}) *apierrors.APIError {
+func asAPIError(ctx context.Context, anyError any) *apierrors.APIError {
 	if err, ok := anyError.(error); ok {
 		return apierrors.AsAPIErrorWithContext(ctx, err)
 	}
 	return nil
 }
 
-func Embed(data map[string]interface{}, s interface{}) {
+func Embed(data map[string]any, s any) {
 	template.Embed(data, s)
 }
 

@@ -36,7 +36,7 @@ func (r *ProjectMonthlyReport) Run(ctx context.Context, options *ProjectMonthlyR
 		return
 	}
 
-	values := make([][]interface{}, len(appIDs))
+	values := make([][]any, len(appIDs))
 	for i, appID := range appIDs {
 		monthlyActiveUserCount := 0
 		err = r.AuditDBHandle.ReadOnly(ctx, func(ctx context.Context) (e error) {
@@ -59,7 +59,7 @@ func (r *ProjectMonthlyReport) Run(ctx context.Context, options *ProjectMonthlyR
 			return
 		}
 
-		values[i] = []interface{}{
+		values[i] = []any{
 			options.Year,
 			options.Month,
 			appID,
@@ -68,7 +68,7 @@ func (r *ProjectMonthlyReport) Run(ctx context.Context, options *ProjectMonthlyR
 	}
 
 	data = &ReportData{
-		Header: []interface{}{
+		Header: []any{
 			"Year",
 			"Month",
 			"Project ID",

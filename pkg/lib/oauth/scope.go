@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -172,12 +173,7 @@ func ContainsAllScopes(scopes []string, shouldContainsScopes []string) bool {
 }
 
 func IsScopeAllowed(scope string, allowedScopes []string) bool {
-	for _, s := range allowedScopes {
-		if s == scope {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowedScopes, scope)
 }
 
 func ScopeAllowsClaim(scope string, claimName string) bool {
@@ -221,13 +217,7 @@ func ValidateScopes(scopes []string, allowedScopes []string) error {
 }
 
 func ValidateScopesByClientConfig(client *config.OAuthClientConfig, scopes []string) error {
-	allowOfflineAccess := false
-	for _, grantType := range GetAllowedGrantTypes(client) {
-		if grantType == RefreshTokenGrantType {
-			allowOfflineAccess = true
-			break
-		}
-	}
+	allowOfflineAccess := slices.Contains(GetAllowedGrantTypes(client), RefreshTokenGrantType)
 	hasOIDC := false
 	hasDeviceSSO := false
 	if err := ValidateScopes(scopes, AllowedScopes); err != nil {

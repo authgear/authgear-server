@@ -41,7 +41,7 @@ func init() {
 }
 
 type OIDCIDToken struct {
-	Payload map[string]interface{} `json:"payload"`
+	Payload map[string]any `json:"payload"`
 }
 
 type OIDCIDTokenPreCreateBlockingEventPayload struct {

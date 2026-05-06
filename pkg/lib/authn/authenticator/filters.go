@@ -1,6 +1,8 @@
 package authenticator
 
 import (
+	"slices"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -43,12 +45,7 @@ func KeepKind(kind Kind) Filter {
 
 func KeepType(types ...model.AuthenticatorType) Filter {
 	return FilterFunc(func(ai *Info) bool {
-		for _, t := range types {
-			if ai.Type == t {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(types, ai.Type)
 	})
 }
 

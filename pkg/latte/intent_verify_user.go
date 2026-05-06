@@ -83,6 +83,6 @@ func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependen
 	}, nil
 }
 
-func (i *IntentVerifyUser) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentVerifyUser) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

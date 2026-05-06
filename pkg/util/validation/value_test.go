@@ -27,7 +27,7 @@ func (s structA) Validate(ctx context.Context, vctx *validation.Context) {
 
 func (s structB) Validate(ctx context.Context, vctx *validation.Context) {
 	if s.Z < 12 {
-		vctx.Child("z").EmitError("minimum", map[string]interface{}{"minimum": 12})
+		vctx.Child("z").EmitError("minimum", map[string]any{"minimum": 12})
 	}
 }
 

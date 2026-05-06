@@ -41,8 +41,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteAuthenticatorInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			authenticatorNodeID := input["authenticatorID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(authenticatorNodeID)
@@ -75,7 +75,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, info.UserID),
 			}).Value, nil
 		},
@@ -115,9 +115,9 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createAuthenticatorInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
-			definition := input["definition"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
+			definition := input["definition"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -139,7 +139,7 @@ var _ = registerMutationField(
 
 			switch authnType {
 			case string(apimodel.AuthenticatorTypeOOBEmail):
-				oobOtpEmail, ok := definition["oobOtpEmail"].(map[string]interface{})
+				oobOtpEmail, ok := definition["oobOtpEmail"].(map[string]any)
 				if !ok {
 					return nil, apierrors.NewInvalid("definition/oobOtpEmail is required")
 				}
@@ -148,7 +148,7 @@ var _ = registerMutationField(
 					Email: oobOtpEmail["email"].(string),
 				}
 			case string(apimodel.AuthenticatorTypeOOBSMS):
-				oobOtpSMS, ok := definition["oobOtpSMS"].(map[string]interface{})
+				oobOtpSMS, ok := definition["oobOtpSMS"].(map[string]any)
 				if !ok {
 					return nil, apierrors.NewInvalid("definition/oobOtpSMS is required")
 				}
@@ -157,7 +157,7 @@ var _ = registerMutationField(
 					Phone: oobOtpSMS["phone"].(string),
 				}
 			case string(apimodel.AuthenticatorTypePassword):
-				password, ok := definition["password"].(map[string]interface{})
+				password, ok := definition["password"].(map[string]any)
 				if !ok {
 					return nil, apierrors.NewInvalid("definition/password is required")
 				}
@@ -186,7 +186,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"authenticator": gqlCtx.Authenticators.Load(ctx, info.ID),
 			}).Value, nil
 		},

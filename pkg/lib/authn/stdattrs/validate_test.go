@@ -27,7 +27,7 @@ func makeValid() T {
 		"zoneinfo":           "Asia/Hong_Kong",
 		"locale":             "zh-Hant-HK",
 		"phone_number":       "+85298765432",
-		"address": map[string]interface{}{
+		"address": map[string]any{
 			"formatted":      "1 Unnamed Road, Central, Hong Kong Island, HK",
 			"street_address": "1 Unnamed Road",
 			"locality":       "Central",
@@ -178,7 +178,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/name",
 					Keyword:  "minLength",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"actual":   0.0,
 						"expected": 1.0,
 					},
@@ -193,7 +193,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/email",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "invalid email address: mail: missing '@' or angle-addr",
 						"format": "email",
 					},
@@ -208,7 +208,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/phone_number",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "not in E.164 format",
 						"format": "phone",
 					},
@@ -223,7 +223,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/picture",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "invalid scheme: ",
 						"format": "x_picture",
 					},
@@ -238,7 +238,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/birthdate",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  `invalid birthdate: "invalid"`,
 						"format": "birthdate",
 					},
@@ -253,7 +253,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/zoneinfo",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  `valid timezone name has at least 1 slash: "invalid"`,
 						"format": "timezone",
 					},
@@ -268,7 +268,7 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/locale",
 					Keyword:  "format",
-					Info: map[string]interface{}{
+					Info: map[string]any{
 						"error":  "invalid BCP 47 tag: language: tag is not well-formed",
 						"format": "bcp47",
 					},
@@ -283,9 +283,9 @@ func TestValidate(t *testing.T) {
 				{
 					Location: "/address",
 					Keyword:  "type",
-					Info: map[string]interface{}{
-						"actual":   []interface{}{"integer", "number"},
-						"expected": []interface{}{"object"},
+					Info: map[string]any{
+						"actual":   []any{"integer", "number"},
+						"expected": []any{"object"},
 					},
 				},
 			},

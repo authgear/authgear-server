@@ -29,7 +29,7 @@ func (i *InputSchemaStepAccountRecoverySelectDestination) GetFlowRootObject() co
 
 func (i *InputSchemaStepAccountRecoverySelectDestination) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}
-	indices := []interface{}{}
+	indices := []any{}
 	for idx := range i.Options {
 		indices = append(indices, idx)
 	}

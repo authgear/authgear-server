@@ -16,7 +16,7 @@ func init() {
 
 type EdgePromptCreatePasskeyBegin struct{}
 
-func (e *EdgePromptCreatePasskeyBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgePromptCreatePasskeyBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	userID := graph.MustGetUserID()
 	ais, err := ctx.Authenticators.List(goCtx,
 		userID,
@@ -77,7 +77,7 @@ type InputPromptCreatePasskey interface {
 
 type EdgePromptCreatePasskey struct{}
 
-func (e *EdgePromptCreatePasskey) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgePromptCreatePasskey) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputPromptCreatePasskey
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

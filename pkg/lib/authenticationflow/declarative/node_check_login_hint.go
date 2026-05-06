@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -64,10 +65,8 @@ func (n *NodeCheckLoginHint) checkEnforcedLoginID(ctx context.Context, deps *aut
 	if err != nil {
 		return err
 	}
-	for _, userID := range userIDs {
-		if userID == n.UserID {
-			return nil
-		}
+	if slices.Contains(userIDs, n.UserID) {
+		return nil
 	}
 	return ErrDifferentUserID
 }

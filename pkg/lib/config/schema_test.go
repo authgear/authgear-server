@@ -55,10 +55,10 @@ func TestAppConfigSchema(t *testing.T) {
 	}
 
 	type TestCase struct {
-		Part  string      `yaml:"part"`
-		Name  string      `yaml:"name"`
-		Error *string     `yaml:"error"`
-		Value interface{} `yaml:"value"`
+		Part  string  `yaml:"part"`
+		Name  string  `yaml:"name"`
+		Error *string `yaml:"error"`
+		Value any     `yaml:"value"`
 	}
 	var testCases []TestCase
 	loadTestCases := func(filename string) {

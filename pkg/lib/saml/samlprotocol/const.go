@@ -2,6 +2,7 @@ package samlprotocol
 
 import (
 	"fmt"
+	"slices"
 )
 
 type SAMLBinding string
@@ -26,12 +27,7 @@ var ACSSupportedBindings []SAMLBinding = []SAMLBinding{
 }
 
 func (b SAMLBinding) IsACSSupported() bool {
-	for _, supported := range ACSSupportedBindings {
-		if b == supported {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ACSSupportedBindings, b)
 }
 
 type SAMLNameIDFormat string

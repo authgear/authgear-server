@@ -25,7 +25,7 @@ func NewIdentityLoader(identities IdentityLoaderIdentityService) *IdentityLoader
 	return l
 }
 
-func (l *IdentityLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
+func (l *IdentityLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -45,7 +45,7 @@ func (l *IdentityLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]in
 	}
 
 	// Ensure output is in correct order.
-	out := make([]interface{}, len(keys))
+	out := make([]any, len(keys))
 	for i, key := range keys {
 		entity := entityMap[key.(string)]
 		out[i] = entity

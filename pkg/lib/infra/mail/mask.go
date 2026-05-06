@@ -19,7 +19,7 @@ func MaskAddress(s string) string {
 	halfLength := length / 2
 
 	var buf strings.Builder
-	for i := 0; i < length; i++ {
+	for i := range length {
 		if i < halfLength {
 			buf.WriteRune(runes[i])
 		} else {

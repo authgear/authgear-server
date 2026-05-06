@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/url"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -87,7 +88,7 @@ type PrepareIDTokenOptions struct {
 
 type PrepareIDTokenResult struct {
 	event     *event.Event
-	forBackup map[string]interface{}
+	forBackup map[string]any
 }
 
 func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDTokenOptions) (*PrepareIDTokenResult, error) {
@@ -268,7 +269,7 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token 
 	return nil
 }
 
-func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error) {
 	userInfo, err := ti.UserInfoService.GetUserInfoBearer(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -285,7 +286,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 		return isAllowed
 	}
 
-	out := make(map[string]interface{})
+	out := make(map[string]any)
 	out[jwt.SubjectKey] = userID
 	out[string(model.ClaimUserIsAnonymous)] = userInfo.User.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = userInfo.User.IsVerified
@@ -301,9 +302,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 
 	if clientLike.IsFirstParty {
 		// When the client is first party, we always include all standard attributes, all custom attributes.
-		for k, v := range userInfo.User.StandardAttributes {
-			out[k] = v
-		}
+		maps.Copy(out, userInfo.User.StandardAttributes)
 
 		out["custom_attributes"] = userInfo.User.CustomAttributes
 		out["x_web3"] = userInfo.User.Web3

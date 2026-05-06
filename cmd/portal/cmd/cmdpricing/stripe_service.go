@@ -289,9 +289,9 @@ func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 	}
 
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
-		SubscriptionItem: stripe.String(si.ID),
+		SubscriptionItem: new(si.ID),
 		Action:           stripe.String(stripe.UsageRecordActionSet),
-		Quantity:         stripe.Int64(int64(quantity)),
+		Quantity:         new(int64(quantity)),
 		Timestamp:        ToStripeConvention(timestamp),
 	})
 	if err != nil {
@@ -347,10 +347,7 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 			return fmt.Errorf("price %v has invalid free_quantity %#v: %w", si.Price.ID, freeQuantityStr, err)
 		}
 
-		quantity = quantity - freeQuantity
-		if quantity < 0 {
-			quantity = 0
-		}
+		quantity = max(quantity-freeQuantity, 0)
 	}
 
 	// We encounter this error
@@ -376,9 +373,9 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 	logger.Info(ctx, "subscription timestamps")
 
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
-		SubscriptionItem: stripe.String(si.ID),
+		SubscriptionItem: new(si.ID),
 		Action:           stripe.String(stripe.UsageRecordActionSet),
-		Quantity:         stripe.Int64(int64(quantity)),
+		Quantity:         new(int64(quantity)),
 		Timestamp:        ToStripeConvention(timestamp),
 	})
 	if err != nil {
@@ -398,8 +395,8 @@ func (s *StripeService) getStripeSubscription(ctx context.Context, stripeSubscri
 		Params: stripe.Params{
 			Context: ctx,
 			Expand: []*string{
-				stripe.String("items.data.price.product"),
-				stripe.String("latest_invoice"),
+				new("items.data.price.product"),
+				new("latest_invoice"),
 			},
 		},
 	}

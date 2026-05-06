@@ -12,7 +12,7 @@ import (
 // and the doc of UnmarshalText says it only accept RFC3339.
 // That is, the input timestamp also has an explicit timezone.
 // The job of this function is to ensure the returned time is always in UTC.
-func GetDateTimeInUTCFromInput(input map[string]interface{}, key string) *time.Time {
+func GetDateTimeInUTCFromInput(input map[string]any, key string) *time.Time {
 	val, ok := input[key]
 	if !ok {
 		return nil

@@ -93,6 +93,6 @@ func (*NodeDoEnsureSession) ReactTo(ctx context.Context, deps *workflow.Dependen
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeDoEnsureSession) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeDoEnsureSession) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

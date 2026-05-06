@@ -22,7 +22,7 @@ type EdgeDoCreateIdentity struct {
 	IsAddition bool
 }
 
-func (e *EdgeDoCreateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	createDisabled := e.Identity.CreateDisabled(ctx.Config.Identity)
 	if e.IsAddition && !isAdminAPI && createDisabled {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,9 +31,7 @@ func CutSuffix(s, suffix string) (before string, found bool) {
 
 func cloneMap(original map[string]any) map[string]any {
 	copied := make(map[string]any)
-	for k, v := range original {
-		copied[k] = v
-	}
+	maps.Copy(copied, original)
 	return copied
 }
 
@@ -192,7 +191,7 @@ func loadJson(path string) (map[string]any, error) {
 		return nil, err
 	}
 
-	var config map[string]interface{}
+	var config map[string]any
 	err = json.Unmarshal(rawConfig, &config)
 	if err != nil {
 		return nil, err

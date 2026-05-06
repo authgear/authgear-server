@@ -18,7 +18,7 @@ func (t *TranslationMap) HasKey(key string) bool {
 	return ok && !messageformat.IsEmptyParseTree(tree)
 }
 
-func (t *TranslationMap) RenderText(key string, args interface{}) (string, error) {
+func (t *TranslationMap) RenderText(key string, args any) (string, error) {
 	tree, ok := t.items[key]
 	if !ok {
 		return "", fmt.Errorf("%w: translation key not found: %s", ErrNotFound, key)

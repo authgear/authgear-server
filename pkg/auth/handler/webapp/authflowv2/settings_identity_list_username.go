@@ -41,9 +41,9 @@ type AuthflowV2SettingsIdentityListUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]any, error) {
 	loginIDKey := r.Form.Get("q_login_id_key")
-	data := map[string]interface{}{}
+	data := map[string]any{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
@@ -87,7 +87,7 @@ func (h *AuthflowV2SettingsIdentityListUsernameHandler) ServeHTTP(w http.Respons
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, w, r)
 			return err

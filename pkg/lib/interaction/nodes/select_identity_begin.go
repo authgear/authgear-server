@@ -17,7 +17,7 @@ type EdgeSelectIdentityBegin struct {
 	IsAuthentication bool
 }
 
-func (e *EdgeSelectIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeSelectIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return &NodeSelectIdentityBegin{
 		IsAuthentication: e.IsAuthentication,
 	}, nil

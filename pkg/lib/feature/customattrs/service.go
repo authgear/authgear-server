@@ -22,7 +22,7 @@ type Service struct {
 	Events         EventService
 }
 
-func (s *Service) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+func (s *Service) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]any) error {
 	err := s.ServiceNoEvent.UpdateAllCustomAttributes(ctx, role, userID, reprForm)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (s *Service) ReadCustomAttributesInStorageForm(
 	ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
-	storageForm map[string]interface{},
-) (map[string]interface{}, error) {
+	storageForm map[string]any,
+) (map[string]any, error) {
 	return s.ServiceNoEvent.ReadCustomAttributesInStorageForm(ctx, role, userID, storageForm)
 }

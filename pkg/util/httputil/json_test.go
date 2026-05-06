@@ -22,7 +22,7 @@ func TestBindJSONBody(t *testing.T) {
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
-			var m interface{}
+			var m any
 			err := BindJSONBody(r, w, schema.Validator(), &m, WithBodyMaxSize(1))
 			So(apierrors.AsAPIErrorWithContext(context.Background(), err), ShouldResemble, &apierrors.APIError{
 				Kind: apierrors.Kind{
@@ -31,7 +31,7 @@ func TestBindJSONBody(t *testing.T) {
 				},
 				Message: "request body too large",
 				Code:    413,
-				Info_ReadOnly: map[string]interface{}{
+				Info_ReadOnly: map[string]any{
 					"limit": int64(1),
 				},
 			})
@@ -47,7 +47,7 @@ func TestBindJSONBody(t *testing.T) {
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
-			var m interface{}
+			var m any
 			err := BindJSONBody(r, w, schema.Validator(), &m)
 			So(err, ShouldBeError, `invalid request body:
 <root>: type

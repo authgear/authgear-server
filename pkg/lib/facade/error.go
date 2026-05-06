@@ -6,7 +6,7 @@ import (
 
 var InvariantViolated = apierrors.Invalid.WithReason("InvariantViolated")
 
-func NewInvariantViolated(cause string, msg string, data map[string]interface{}) error {
+func NewInvariantViolated(cause string, msg string, data map[string]any) error {
 	return InvariantViolated.NewWithCause(
 		msg,
 		apierrors.MapCause{

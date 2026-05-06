@@ -20,7 +20,7 @@ func ConfigureOAuthMetadataRoute(route httproute.Route) httproute.Route {
 }
 
 type MetadataProvider interface {
-	PopulateMetadata(meta map[string]interface{})
+	PopulateMetadata(meta map[string]any)
 }
 
 type MetadataHandler struct {
@@ -28,7 +28,7 @@ type MetadataHandler struct {
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	meta := map[string]interface{}{}
+	meta := map[string]any{}
 	for _, provider := range h.Providers {
 		provider.PopulateMetadata(meta)
 	}

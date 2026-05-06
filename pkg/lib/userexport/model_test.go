@@ -226,7 +226,7 @@ func TestRequest(t *testing.T) {
   "passkey_count": 0
 }
 		`
-		var recordJson interface{}
+		var recordJson any
 		_ = json.Unmarshal([]byte(record), &recordJson)
 
 		stringValue, _ := TraverseRecordValue(recordJson, "/sub")

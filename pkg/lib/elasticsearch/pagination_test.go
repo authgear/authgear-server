@@ -16,7 +16,7 @@ func TestCursorToSearchAfter(t *testing.T) {
 
 		actual, err = CursorToSearchAfter(model.PageCursor("WzEyM10"))
 		So(err, ShouldBeNil)
-		So(actual, ShouldResemble, []interface{}{123.0})
+		So(actual, ShouldResemble, []any{123.0})
 	})
 }
 
@@ -26,7 +26,7 @@ func TestSortToCursor(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(actual, ShouldEqual, model.PageCursor(""))
 
-		actual, err = SortToCursor([]interface{}{123})
+		actual, err = SortToCursor([]any{123})
 		So(err, ShouldBeNil)
 		So(actual, ShouldEqual, model.PageCursor("WzEyM10"))
 	})

@@ -92,6 +92,6 @@ func (*IntentAuthenticate) GetEffects(ctx context.Context, deps *workflow.Depend
 	return nil, nil
 }
 
-func (*IntentAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

@@ -2,6 +2,7 @@ package identity
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -34,12 +35,7 @@ func ApplyFilters(iis []*Info, filters ...Filter) (out []*Info) {
 
 func KeepType(types ...model.IdentityType) Filter {
 	return FilterFunc(func(ii *Info) bool {
-		for _, t := range types {
-			if ii.Type == t {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(types, ii.Type)
 	})
 }
 

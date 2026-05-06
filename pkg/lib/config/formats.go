@@ -19,7 +19,7 @@ func init() {
 // This design allows this format to validate optional phone number.
 type FormatPhone struct{}
 
-func (f FormatPhone) CheckFormat(ctx context.Context, value interface{}) error {
+func (f FormatPhone) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

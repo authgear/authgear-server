@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"os"
 	"os/exec"
 	"runtime"
@@ -58,7 +58,7 @@ func editInEditor(filePrefix, fileExt string, r io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	os.Remove(path)
 	return bytes, err
 }
@@ -94,8 +94,8 @@ func addErrorHeaders(w io.Writer, err error) {
 
 func removeComments(b []byte) []byte {
 	newLines := [][]byte{}
-	lines := bytes.Split(b, []byte("\n"))
-	for _, line := range lines {
+	lines := bytes.SplitSeq(b, []byte("\n"))
+	for line := range lines {
 		if !bytes.HasPrefix(line, []byte("#")) {
 			newLines = append(newLines, line)
 		}

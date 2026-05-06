@@ -19,7 +19,7 @@ func TestPictureTransformer(t *testing.T) {
 		}
 
 		Convey("has no effect on non-picture attributes", func() {
-			test := func(key string, anyValue interface{}) {
+			test := func(key string, anyValue any) {
 				actual, err := t.StorageFormToRepresentationForm(key, anyValue)
 				So(err, ShouldBeNil)
 				So(actual, ShouldEqual, anyValue)
@@ -34,7 +34,7 @@ func TestPictureTransformer(t *testing.T) {
 		})
 
 		Convey("has no effect if the value is not a string", func() {
-			test := func(anyValue interface{}) {
+			test := func(anyValue any) {
 				actual, err := t.StorageFormToRepresentationForm(stdattrs.Picture, anyValue)
 				So(err, ShouldBeNil)
 				So(actual, ShouldEqual, anyValue)

@@ -40,12 +40,12 @@ func TestClientResolver(t *testing.T) {
 		}
 
 		type TestCase struct {
-			Name                 string      `yaml:"name"`
-			AuthgearYAML         interface{} `yaml:"authgear.yaml"`
-			AuthgearSecretsYAML  interface{} `yaml:"authgear.secrets.yaml"`
-			EnvironmentVariables *string     `yaml:"environment_variables"`
-			Result               interface{} `yaml:"result"`
-			Error                string      `yaml:"error"`
+			Name                 string  `yaml:"name"`
+			AuthgearYAML         any     `yaml:"authgear.yaml"`
+			AuthgearSecretsYAML  any     `yaml:"authgear.secrets.yaml"`
+			EnvironmentVariables *string `yaml:"environment_variables"`
+			Result               any     `yaml:"result"`
+			Error                string  `yaml:"error"`
 		}
 
 		decoder := goyaml.NewDecoder(f)
@@ -102,7 +102,7 @@ func TestClientResolver(t *testing.T) {
 
 				var smsGatewayEnvironmentConfig config.SMSGatewayEnvironmentConfig
 				if testCase.EnvironmentVariables != nil {
-					for _, ln := range strings.Split(*testCase.EnvironmentVariables, "\n") {
+					for ln := range strings.SplitSeq(*testCase.EnvironmentVariables, "\n") {
 						var keyval = strings.Split(ln, "=")
 						if len(keyval) < 2 {
 							continue
@@ -127,7 +127,7 @@ func TestClientResolver(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				var result interface{}
+				var result any
 				err = json.Unmarshal(resultData, &result)
 				if err != nil {
 					panic(err)

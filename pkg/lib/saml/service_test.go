@@ -446,7 +446,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 
-			var userInfo map[string]interface{}
+			var userInfo map[string]any
 			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
 			So(err, ShouldBeNil)
 			attrs, err := svc.ResolveUserAttributes(context.Background(), sp, userInfo)
@@ -549,7 +549,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 
-			var userInfo map[string]interface{}
+			var userInfo map[string]any
 			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
 			So(err, ShouldBeNil)
 			_, err = svc.ResolveUserAttributes(context.Background(), sp, userInfo)

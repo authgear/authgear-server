@@ -5,13 +5,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 )
 
-type UserProfile map[string]interface{}
+type UserProfile map[string]any
 
 func makeIsPresentAttr(name string) string {
 	return name + "_is_present"
 }
 
-func extractString(attrs map[string]interface{}, output UserProfile, key string) {
+func extractString(attrs map[string]any, output UserProfile, key string) {
 	if value, ok := attrs[key].(string); ok && value != "" {
 		output[makeIsPresentAttr(key)] = true
 		output[key] = value
@@ -21,7 +21,7 @@ func extractString(attrs map[string]interface{}, output UserProfile, key string)
 	}
 }
 
-func extractBool(attrs map[string]interface{}, output UserProfile, key string) {
+func extractBool(attrs map[string]any, output UserProfile, key string) {
 	if value, ok := attrs[key].(bool); ok {
 		output[makeIsPresentAttr(key)] = true
 		output[key] = value

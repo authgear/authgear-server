@@ -30,8 +30,8 @@ type FeatureDisabledHandler struct {
 	Renderer          Renderer
 }
 
-func (h *FeatureDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *FeatureDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 

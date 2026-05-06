@@ -46,15 +46,15 @@ func newGraph(intent Intent) *Graph {
 	}
 }
 
-func (g *Graph) FindLastNode(node interface{}) bool {
+func (g *Graph) FindLastNode(node any) bool {
 	idx := g.FindLastNodeAndPosition(node)
 	return idx >= 0
 }
 
-func (g *Graph) FindLastNodeAndPosition(node interface{}) int {
+func (g *Graph) FindLastNodeAndPosition(node any) int {
 	val := reflect.ValueOf(node)
 	typ := val.Type()
-	if typ.Kind() != reflect.Ptr || val.IsNil() {
+	if typ.Kind() != reflect.Pointer || val.IsNil() {
 		panic("interaction: node must be a non-nil pointer")
 	}
 	if e := typ.Elem(); e.Kind() != reflect.Interface {
@@ -72,7 +72,7 @@ func (g *Graph) FindLastNodeAndPosition(node interface{}) int {
 }
 
 // FindLastNodeFromList find the last node from a list of node interface
-func (g *Graph) FindLastNodeFromList(nodes []interface{}) (node interface{}) {
+func (g *Graph) FindLastNodeFromList(nodes []any) (node any) {
 	maxNodePosition := -1
 	nodeIdx := -1
 	for i, n := range nodes {
@@ -357,7 +357,7 @@ func (g *Graph) Apply(goCtx context.Context, ctx *Context) error {
 }
 
 // Accept run the graph to the deepest node using the input
-func (g *Graph) accept(goCtx context.Context, ctx *Context, input interface{}) (*Graph, []Edge, error) {
+func (g *Graph) accept(goCtx context.Context, ctx *Context, input any) (*Graph, []Edge, error) {
 	graph := g
 	for {
 		node := graph.CurrentNode()

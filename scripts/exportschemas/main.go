@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+
 	"log"
 	"os"
 	"path/filepath"
@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile(*output, []byte(json), 0666)
+	err = os.WriteFile(*output, []byte(json), 0666)
 	if err != nil {
 		panic(err)
 	}

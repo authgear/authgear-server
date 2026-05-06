@@ -52,8 +52,8 @@ type AuthflowV2SettingsChangePasswordHandler struct {
 	PasswordPolicy           SettingsChangePasswordHandlerPasswordPolicy
 }
 
-func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)

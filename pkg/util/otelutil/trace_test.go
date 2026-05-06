@@ -2,6 +2,7 @@ package otelutil
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -42,12 +43,12 @@ func TestBaggage(t *testing.T) {
 		})
 
 		Convey("should ignore keys if value is too long", func() {
-			val := ""
-			for i := 0; i < 600; i++ {
-				val += "a"
+			var val strings.Builder
+			for range 600 {
+				val.WriteString("a")
 			}
 
-			m1, _ := baggage.NewMember("authgear_sdk_user_id", val)
+			m1, _ := baggage.NewMember("authgear_sdk_user_id", val.String())
 			b, _ := baggage.New(m1)
 			ctx := baggage.ContextWithBaggage(ctx, b)
 

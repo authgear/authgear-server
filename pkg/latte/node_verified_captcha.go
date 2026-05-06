@@ -29,6 +29,6 @@ func (*NodeVerifiedCaptcha) ReactTo(ctx context.Context, deps *workflow.Dependen
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeVerifiedCaptcha) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*NodeVerifiedCaptcha) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

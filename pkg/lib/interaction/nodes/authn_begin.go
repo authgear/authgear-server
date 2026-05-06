@@ -21,7 +21,7 @@ type EdgeAuthenticationBegin struct {
 	Stage authn.AuthenticationStage
 }
 
-func (e *EdgeAuthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeAuthenticationBegin{
 		Stage: e.Stage,
 	}, nil

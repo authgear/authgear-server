@@ -31,7 +31,7 @@ func (e *EdgeCreateAuthenticatorPassword) IsDefaultAuthenticator() bool {
 	return false
 }
 
-func (e *EdgeCreateAuthenticatorPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var stageInput InputAuthenticationStage
 	if !interaction.Input(rawInput, &stageInput) {
 		return nil, interaction.ErrIncompatibleInput

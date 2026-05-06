@@ -39,7 +39,7 @@ var nodeResource = node(
 			"clientIDs": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 				Description: "The list of client IDs associated with this Resource.",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					resource := p.Source.(*model.Resource)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -50,7 +50,7 @@ var nodeResource = node(
 		},
 	}),
 	&model.Resource{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Resources.Load(ctx, id).Value, nil
 	},
 )
@@ -63,7 +63,7 @@ func init() {
 			"clientID":      &graphql.ArgumentConfig{Type: graphql.String},
 			"searchKeyword": &graphql.ArgumentConfig{Type: graphql.String},
 		}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.Resource)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)

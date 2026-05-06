@@ -116,7 +116,7 @@ func normalizeBirthdate(ctx context.Context, t T) {
 }
 
 func normalizeAddress(t T) {
-	if value, ok := t[Address].(map[string]interface{}); ok {
+	if value, ok := t[Address].(map[string]any); ok {
 		normalizeString(T(value), Formatted)
 		normalizeString(T(value), StreetAddress)
 		normalizeString(T(value), Locality)

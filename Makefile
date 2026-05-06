@@ -82,6 +82,10 @@ lint:
 	$(MAKE) lint-translation-keys
 	go run ./devtools/goanalysis ./cmd/... ./pkg/...
 
+.PHONY: go-fix
+go-fix:
+	go fix -omitzero=false ./...
+
 .PHONY: sort-translations
 sort-translations:
 	go run ./devtools/translationsorter
@@ -109,6 +113,7 @@ check-tidy:
 	# So `make fmt` has to be run after `make generate`.
 	$(MAKE) sort-vettedpositions
 	$(MAKE) generate
+	$(MAKE) go-fix
 	$(MAKE) fmt
 	$(MAKE) html-email
 	$(MAKE) export-schemas

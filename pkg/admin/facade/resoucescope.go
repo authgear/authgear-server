@@ -84,7 +84,7 @@ func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string,
 		refs[i] = model.PageItemRef{ID: s.ID, Cursor: cursor}
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return result.TotalCount, nil
 	})), nil
 }
@@ -106,7 +106,7 @@ func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resour
 		refs[i] = model.PageItemRef{ID: r.ID, Cursor: cursor}
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return result.TotalCount, nil
 	})), nil
 }

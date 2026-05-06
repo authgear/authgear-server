@@ -31,7 +31,7 @@ func (c *Checker) validateOne(ctx context.Context, validationCtx *validation.Con
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
 			if len(loginID.Value.TrimSpace()) > *keyConfig.MaxLength {
-				validationCtx.EmitError("maxLength", map[string]interface{}{
+				validationCtx.EmitError("maxLength", map[string]any{
 					"expected": *keyConfig.MaxLength,
 					"actual":   len(loginID.Value.TrimSpace()),
 				})

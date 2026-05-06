@@ -107,10 +107,7 @@ func checkPasswordGuessableLevel(password string, minLevel int) (int, bool) {
 	if minLevel <= 0 {
 		return 0, true
 	}
-	minScore := minLevel - 1
-	if minScore > 4 {
-		minScore = 4
-	}
+	minScore := min(minLevel-1, 4)
 	result := zxcvbn.PasswordStrength(password, nil)
 	ok := result.Score >= minScore
 	return result.Score + 1, ok
@@ -138,7 +135,7 @@ type Checker struct {
 func (pc *Checker) policyPasswordLength() Policy {
 	return Policy{
 		Name: PasswordTooShort,
-		Info: map[string]interface{}{
+		Info: map[string]any{
 			"min_length": pc.PwMinLength,
 		},
 	}
@@ -200,7 +197,7 @@ func (pc *Checker) checkPasswordExcludedKeywords(password string) *Policy {
 func (pc *Checker) policyPasswordGuessableLevel() Policy {
 	return Policy{
 		Name: PasswordBelowGuessableLevel,
-		Info: map[string]interface{}{
+		Info: map[string]any{
 			"min_level": pc.PwMinGuessableLevel,
 		},
 	}
@@ -222,7 +219,7 @@ func (pc *Checker) checkPasswordGuessableLevel(password string) *Policy {
 func (pc *Checker) policyPasswordHistory() Policy {
 	return Policy{
 		Name: PasswordReused,
-		Info: map[string]interface{}{
+		Info: map[string]any{
 			"history_size": pc.PwHistorySize,
 			"history_days": int(pc.PwHistoryDays),
 		},

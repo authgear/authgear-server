@@ -6,7 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
+
 	"log/slog"
 	texttemplate "text/template"
 
@@ -212,7 +213,7 @@ func (k *Kubernetes) DeleteResourcesForDomain(ctx context.Context, domainID stri
 }
 
 func (k *Kubernetes) generateResources(def *ResourceTemplateData) ([]*KubernetesResource, error) {
-	b, err := ioutil.ReadFile(k.AppConfig.Kubernetes.IngressTemplateFile)
+	b, err := os.ReadFile(k.AppConfig.Kubernetes.IngressTemplateFile)
 	if err != nil {
 		return nil, err
 	}
@@ -386,7 +387,7 @@ func GenerateResources(def *ResourceTemplateData, templateBytes []byte) ([]*Kube
 	var output []*KubernetesResource
 	decoder := goyaml.NewDecoder(bytes.NewReader(buf.Bytes()))
 	for {
-		var document interface{}
+		var document any
 		err := decoder.Decode(&document)
 		if errors.Is(err, io.EOF) {
 			break

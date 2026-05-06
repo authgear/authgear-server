@@ -27,7 +27,6 @@ var _ authflow.InputSchema = &InputSchemaFillInUserProfile{}
 func (s *InputSchemaFillInUserProfile) buildCustomAttrPointerToItsConfigMap() map[string]*config.CustomAttributesAttributeConfig {
 	customAttrPointerToItsConfig := make(map[string]*config.CustomAttributesAttributeConfig)
 	for _, c := range s.CustomAttributes {
-		c := c
 		customAttrPointerToItsConfig[c.Pointer] = c
 	}
 
@@ -94,7 +93,7 @@ func (s *InputSchemaFillInUserProfile) SchemaBuilder() validation.SchemaBuilder 
 	items.Properties().Property("pointer", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
 		Format("json-pointer").
-		Enum(slice.Cast[string, interface{}](pointerEnum)...))
+		Enum(slice.Cast[string, any](pointerEnum)...))
 	items.AllOf(itemsAllOf...)
 
 	b := validation.SchemaBuilder{}.

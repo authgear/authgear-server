@@ -1,6 +1,7 @@
 package relay_test
 
 import (
+	context0 "context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/testutil"
-	"golang.org/x/net/context"
 
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
@@ -33,7 +33,7 @@ var globalIDTestUserType *graphql.Object
 var globalIDTestPhotoType *graphql.Object
 
 var globalIDTestDef = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
-	IDFetcher: func(globalID string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
+	IDFetcher: func(globalID string, info graphql.ResolveInfo, ctx context0.Context) (any, error) {
 		resolvedGlobalID := relay.FromGlobalID(globalID)
 		if resolvedGlobalID == nil {
 			return nil, errors.New("Unknown node id")
@@ -65,8 +65,8 @@ var globalIDTestQueryType = graphql.NewObject(graphql.ObjectConfig{
 		"node": globalIDTestDef.NodeField,
 		"allObjects": &graphql.Field{
 			Type: graphql.NewList(globalIDTestDef.NodeInterface),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return []interface{}{
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				return []any{
 					globalIDTestUserData["1"],
 					globalIDTestUserData["2"],
 					globalIDTestPhotoData["1"],
@@ -91,7 +91,7 @@ func init() {
 		},
 		Interfaces: []*graphql.Interface{globalIDTestDef.NodeInterface},
 	})
-	photoIDFetcher := func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+	photoIDFetcher := func(obj any, info graphql.ResolveInfo, ctx context0.Context) (string, error) {
 		switch obj := obj.(type) {
 		case *photo2:
 			return fmt.Sprintf("%v", obj.PhotoId), nil
@@ -122,18 +122,18 @@ func TestGlobalIDFields_GivesDifferentIDs(t *testing.T) {
       }
     }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"allObjects": []interface{}{
-				map[string]interface{}{
+		Data: map[string]any{
+			"allObjects": []any{
+				map[string]any{
 					"id": "VXNlcjox",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"id": "VXNlcjoy",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"id": "UGhvdG86MQ",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"id": "UGhvdG86Mg",
 				},
 			},
@@ -165,12 +165,12 @@ func TestGlobalIDFields_RefetchesTheIDs(t *testing.T) {
       }
     }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"user": map[string]interface{}{
+		Data: map[string]any{
+			"user": map[string]any{
 				"id":   "VXNlcjox",
 				"name": "John Doe",
 			},
-			"photo": map[string]interface{}{
+			"photo": map[string]any{
 				"id":    "UGhvdG86MQ",
 				"width": 300,
 			},

@@ -13,7 +13,7 @@ import (
 )
 
 func NewAnalyzer(pos *vettedposutil.VettedPositions) *analysis.Analyzer {
-	run := func(pass *analysis.Pass) (interface{}, error) {
+	run := func(pass *analysis.Pass) (any, error) {
 		inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 		traverse := func(n ast.Node) {
 			isTestFile := isATestFile(pass, n)

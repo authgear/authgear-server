@@ -84,7 +84,7 @@ type InsertBuilder struct {
 }
 
 // nolint: golint
-func (b InsertBuilder) ToSql() (string, []interface{}, error) {
+func (b InsertBuilder) ToSql() (string, []any, error) {
 	return b.builder.ToSql()
 }
 
@@ -93,13 +93,13 @@ func (b InsertBuilder) Columns(columns ...string) InsertBuilder {
 	return b
 }
 
-func (b InsertBuilder) Values(values ...interface{}) InsertBuilder {
-	values = append([]interface{}{b.appID}, values...)
+func (b InsertBuilder) Values(values ...any) InsertBuilder {
+	values = append([]any{b.appID}, values...)
 	b.builder = b.builder.Values(values...)
 	return b
 }
 
-func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
+func (b InsertBuilder) Suffix(sql string, args ...any) InsertBuilder {
 	b.builder = b.builder.Suffix(sql, args...)
 	return b
 }
@@ -110,7 +110,7 @@ type SelectBuilder struct {
 }
 
 // nolint: golint
-func (b SelectBuilder) ToSql() (string, []interface{}, error) {
+func (b SelectBuilder) ToSql() (string, []any, error) {
 	return b.builder.ToSql()
 }
 
@@ -131,21 +131,21 @@ func (b SelectBuilder) FromSelect(from SelectBuilder, alias string) SelectBuilde
 	return b
 }
 
-func (b SelectBuilder) Join(from string, alias string, pred string, args ...interface{}) SelectBuilder {
+func (b SelectBuilder) Join(from string, alias string, pred string, args ...any) SelectBuilder {
 	join := fmt.Sprintf("%s AS %s ON %s", from, alias, pred)
 	b.builder = b.builder.Join(join, args...)
 	b.builder = b.builder.Where(alias+".app_id = ?", b.appID)
 	return b
 }
 
-func (b SelectBuilder) LeftJoin(from string, alias string, pred string, args ...interface{}) SelectBuilder {
+func (b SelectBuilder) LeftJoin(from string, alias string, pred string, args ...any) SelectBuilder {
 	join := fmt.Sprintf("%s AS %s ON %s", from, alias, pred)
 	b.builder = b.builder.LeftJoin(join, args...)
 	b.builder = b.builder.Where(alias+".app_id = ?", b.appID)
 	return b
 }
 
-func (b SelectBuilder) Where(pred interface{}, args ...interface{}) SelectBuilder {
+func (b SelectBuilder) Where(pred any, args ...any) SelectBuilder {
 	b.builder = b.builder.Where(pred, args...)
 	return b
 }

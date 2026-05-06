@@ -37,7 +37,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) AuthenticatorType() model.Auth
 	return model.AuthenticatorTypeOOBSMS
 }
 
-func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var userID string
 	var phone string
 	if e.Stage == authn.AuthenticationStagePrimary {

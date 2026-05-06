@@ -11,7 +11,7 @@ import (
 type EdgeIncompatibleInput struct {
 }
 
-func (e *EdgeIncompatibleInput) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeIncompatibleInput) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	return nil, interaction.ErrIncompatibleInput
 }
 

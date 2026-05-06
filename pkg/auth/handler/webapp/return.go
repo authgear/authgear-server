@@ -26,8 +26,8 @@ type ReturnHandler struct {
 	Renderer          Renderer
 }
 
-func (h *ReturnHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *ReturnHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]any, error) {
+	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil

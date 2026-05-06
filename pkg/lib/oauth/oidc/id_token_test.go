@@ -178,7 +178,7 @@ func TestIDTokenIssuer(t *testing.T) {
 		So(isAnonymous, ShouldEqual, false)
 		So(isVerified, ShouldEqual, true)
 		So(canReauthenticate, ShouldEqual, true)
-		So(roles, ShouldResemble, []interface{}{"role-1", "role-3"})
+		So(roles, ShouldResemble, []any{"role-1", "role-3"})
 
 		// Session claims
 		encodedSessionID, _ := token.Get(string(model.ClaimSID))
@@ -329,7 +329,7 @@ func TestGetUserInfo(t *testing.T) {
 					IsAnonymous:       false,
 					IsVerified:        true,
 					CanReauthenticate: true,
-					StandardAttributes: map[string]interface{}{
+					StandardAttributes: map[string]any{
 						"email": "test@example.com",
 					},
 				},

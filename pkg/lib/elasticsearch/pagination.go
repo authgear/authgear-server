@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-func CursorToSearchAfter(cursor model.PageCursor) (searchAfter interface{}, err error) {
+func CursorToSearchAfter(cursor model.PageCursor) (searchAfter any, err error) {
 	if cursor == "" {
 		return
 	}
@@ -25,7 +25,7 @@ func CursorToSearchAfter(cursor model.PageCursor) (searchAfter interface{}, err 
 	return
 }
 
-func SortToCursor(sort interface{}) (cursor model.PageCursor, err error) {
+func SortToCursor(sort any) (cursor model.PageCursor, err error) {
 	if sort == nil {
 		return
 	}

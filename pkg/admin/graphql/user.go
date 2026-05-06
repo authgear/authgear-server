@@ -24,7 +24,7 @@ func init() {
 		Type:        connRole.ConnectionType,
 		Description: "The list of roles this user has.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.User)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
@@ -34,7 +34,7 @@ func init() {
 				return nil, err
 			}
 
-			roleIfaces := make([]interface{}, len(roles))
+			roleIfaces := make([]any, len(roles))
 			for i, r := range roles {
 				roleIfaces[i] = r
 			}
@@ -48,7 +48,7 @@ func init() {
 		Type:        connGroup.ConnectionType,
 		Description: "The list of groups this user has.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.User)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
@@ -58,7 +58,7 @@ func init() {
 				return nil, err
 			}
 
-			groupIfaces := make([]interface{}, len(groups))
+			groupIfaces := make([]any, len(groups))
 			for i, r := range groups {
 				groupIfaces[i] = r
 			}
@@ -72,7 +72,7 @@ func init() {
 		Type:        connRole.ConnectionType,
 		Description: "The list of computed roles this user has.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.User)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
@@ -82,7 +82,7 @@ func init() {
 				return nil, err
 			}
 
-			roleIfaces := make([]interface{}, len(roles))
+			roleIfaces := make([]any, len(roles))
 			for i, r := range roles {
 				roleIfaces[i] = r
 			}
@@ -137,7 +137,7 @@ var nodeUser = node(
 						Type: identityType,
 					},
 				}),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -153,7 +153,7 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					var identities []interface{}
+					var identities []any
 					for _, i := range refs {
 						identities = append(identities, i)
 					}
@@ -207,7 +207,7 @@ var nodeUser = node(
 						Type: authenticatorKind,
 					},
 				}),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -231,7 +231,7 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					var authenticators []interface{}
+					var authenticators []any
 					for _, i := range refs {
 						authenticators = append(authenticators, i)
 					}
@@ -243,7 +243,7 @@ var nodeUser = node(
 			"verifiedClaims": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
 				Description: "The list of user's verified claims",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(p.Context)
@@ -259,7 +259,7 @@ var nodeUser = node(
 				Type:        connSession.ConnectionType,
 				Description: "The list of first party app sessions",
 				Args:        relay.ConnectionArgs,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -273,7 +273,7 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					var sessions []interface{}
+					var sessions []any
 					for _, i := range sessionModels {
 						sessions = append(sessions, i.Session)
 					}
@@ -285,7 +285,7 @@ var nodeUser = node(
 				Type:        connAuthorization.ConnectionType,
 				Description: "The list of third party app authorizations",
 				Args:        relay.ConnectionArgs,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -297,7 +297,7 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					var authzs []interface{}
+					var authzs []any
 					for _, i := range as {
 						authzs = append(authzs, i.ToAPIModel())
 					}
@@ -368,7 +368,7 @@ var nodeUser = node(
 			"formattedName": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The user's formatted name",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					formattedName := stdattrs.T(source.StandardAttributes).FormattedName()
 					if formattedName == "" {
@@ -380,7 +380,7 @@ var nodeUser = node(
 			"endUserAccountID": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The end user account id constructed based on user's personal data. (e.g. email, phone...etc)",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					endUserAccountID := source.EndUserAccountID
 					if endUserAccountID == "" {
@@ -392,7 +392,7 @@ var nodeUser = node(
 			"mfaGracePeriodEndAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "Indicate when will user's MFA grace period will end",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					return source.MFAGracePeriodtEndAt, nil
 				},
@@ -400,15 +400,15 @@ var nodeUser = node(
 		},
 	}),
 	&model.User{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Users.Load(ctx, id).Value, nil
 	},
 )
 
 var connUser = graphqlutil.NewConnectionDef(nodeUser)
 
-func identitiesResolverByType(typ model.IdentityType) func(p graphql.ResolveParams) (interface{}, error) {
-	return func(p graphql.ResolveParams) (interface{}, error) {
+func identitiesResolverByType(typ model.IdentityType) func(p graphql.ResolveParams) (any, error) {
+	return func(p graphql.ResolveParams) (any, error) {
 		source := p.Source.(*model.User)
 		gqlCtx := GQLContext(p.Context)
 		identities, err := gqlCtx.IdentityFacade.List(p.Context, source.ID, &typ)
@@ -420,8 +420,8 @@ func identitiesResolverByType(typ model.IdentityType) func(p graphql.ResolvePara
 	}
 }
 
-func authenticatorResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (interface{}, error) {
-	return func(p graphql.ResolveParams) (interface{}, error) {
+func authenticatorResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (any, error) {
+	return func(p graphql.ResolveParams) (any, error) {
 		source := p.Source.(*model.User)
 		ctx := p.Context
 		gqlCtx := GQLContext(ctx)
@@ -439,8 +439,8 @@ func authenticatorResolverByTypeAndKind(authenticatorType apimodel.Authenticator
 	}
 }
 
-func authenticatorsResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (interface{}, error) {
-	return func(p graphql.ResolveParams) (interface{}, error) {
+func authenticatorsResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (any, error) {
+	return func(p graphql.ResolveParams) (any, error) {
 		source := p.Source.(*model.User)
 		ctx := p.Context
 		gqlCtx := GQLContext(ctx)

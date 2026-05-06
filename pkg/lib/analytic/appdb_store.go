@@ -116,10 +116,7 @@ func (s *AppDBStore) GetUserVerifiedEmails(ctx context.Context, appID string, us
 	result = map[string]string{}
 	batchSize := 50
 	for i := 0; i < len(userIDs); i += batchSize {
-		j := i + batchSize
-		if j > len(userIDs) {
-			j = len(userIDs)
-		}
+		j := min(i+batchSize, len(userIDs))
 		batch := userIDs[i:j]
 
 		err = getUserVerifiedEmails(appID, batch, result)

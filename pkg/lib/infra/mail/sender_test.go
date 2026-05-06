@@ -69,7 +69,6 @@ func TestSetFromHeader(t *testing.T) {
 		}
 
 		for _, tc := range nonASCIICases {
-			tc := tc
 			Convey(tc.name, func() {
 				msg := newMsg()
 				err := SetFromHeader(msg, tc.sender)

@@ -11,10 +11,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func boolPtr(b bool) *bool {
-	return &b
-}
-
 func TestRateLimits(t *testing.T) {
 	Convey("RateLimit.ResolveBucketSpecs", t, func() {
 		ctx := context.Background()
@@ -1625,9 +1621,9 @@ func TestRateLimits(t *testing.T) {
 				// featureCfg rate is smaller, so it will be used
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						SMS:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1}, // rate 1/m < 10/m
-						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2}, // rate 2/m < 20/m
-						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3}, // rate 3/m < 30/m
+						SMS:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 1}, // rate 1/m < 10/m
+						SMSPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 2}, // rate 2/m < 20/m
+						SMSPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 3}, // rate 3/m < 30/m
 					},
 				}}
 
@@ -1730,9 +1726,9 @@ func TestRateLimits(t *testing.T) {
 				// featureCfg rate is larger, so it will NOT be used
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						SMS:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 100}, // rate 100/m > 10/m
-						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 200}, // rate 200/m > 20/m
-						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 300}, // rate 300/m > 30/m
+						SMS:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 100}, // rate 100/m > 10/m
+						SMSPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 200}, // rate 200/m > 20/m
+						SMSPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 300}, // rate 300/m > 30/m
 					},
 				}}
 
@@ -1834,9 +1830,9 @@ func TestRateLimits(t *testing.T) {
 
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						SMS:          &config.RateLimitConfig{Enabled: boolPtr(false)},
-						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(false)},
-						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(false)},
+						SMS:          &config.RateLimitConfig{Enabled: new(false)},
+						SMSPerIP:     &config.RateLimitConfig{Enabled: new(false)},
+						SMSPerTarget: &config.RateLimitConfig{Enabled: new(false)},
 					},
 				}}
 
@@ -1932,9 +1928,9 @@ func TestRateLimits(t *testing.T) {
 
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						SMS:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1},
-						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2},
-						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3},
+						SMS:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 1},
+						SMSPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 2},
+						SMSPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 3},
 					},
 				}}
 
@@ -2041,9 +2037,9 @@ func TestRateLimits(t *testing.T) {
 				// featureCfg rate is smaller, so it will be used
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						Email:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1}, // rate 1/m < 10/m
-						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2}, // rate 2/m < 20/m
-						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3}, // rate 3/m < 30/m
+						Email:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 1}, // rate 1/m < 10/m
+						EmailPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 2}, // rate 2/m < 20/m
+						EmailPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 3}, // rate 3/m < 30/m
 					},
 				}}
 
@@ -2146,9 +2142,9 @@ func TestRateLimits(t *testing.T) {
 				// featureCfg rate is larger, so it will NOT be used
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						Email:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 100}, // rate 100/m > 10/m
-						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 200}, // rate 200/m > 20/m
-						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 300}, // rate 300/m > 30/m
+						Email:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 100}, // rate 100/m > 10/m
+						EmailPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 200}, // rate 200/m > 20/m
+						EmailPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 300}, // rate 300/m > 30/m
 					},
 				}}
 
@@ -2250,9 +2246,9 @@ func TestRateLimits(t *testing.T) {
 
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						Email:          &config.RateLimitConfig{Enabled: boolPtr(false)},
-						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(false)},
-						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(false)},
+						Email:          &config.RateLimitConfig{Enabled: new(false)},
+						EmailPerIP:     &config.RateLimitConfig{Enabled: new(false)},
+						EmailPerTarget: &config.RateLimitConfig{Enabled: new(false)},
 					},
 				}}
 
@@ -2348,9 +2344,9 @@ func TestRateLimits(t *testing.T) {
 
 				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
 					RateLimits: &config.MessagingRateLimitsFeatureConfig{
-						Email:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1},
-						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2},
-						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3},
+						Email:          &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 1},
+						EmailPerIP:     &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 2},
+						EmailPerTarget: &config.RateLimitConfig{Enabled: new(true), Period: "1m", Burst: 3},
 					},
 				}}
 
@@ -2563,7 +2559,6 @@ func TestRateLimits(t *testing.T) {
 			}
 
 			for _, limit := range limitsWithFallback {
-				limit := limit
 				Convey(string(limit), func() {
 					ctx := WithRateLimitWeights(context.Background())
 					weights := map[RateLimitGroup]float64{

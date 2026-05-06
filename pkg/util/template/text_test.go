@@ -79,57 +79,57 @@ func TestAGTextTemplate(t *testing.T) {
 		cases := []testCase{
 			{
 				tpl:    "{{.a}}",
-				data:   map[string]interface{}{},
+				data:   map[string]any{},
 				output: "",
 			},
 			{
 				tpl: "{{.a.b.c}}",
-				data: map[string]interface{}{
-					"a": map[string]interface{}{},
+				data: map[string]any{
+					"a": map[string]any{},
 				},
 				output: "",
 			},
 			{
 				tpl: "{{.a}}",
-				data: map[string]interface{}{
+				data: map[string]any{
 					"a": "<button/>",
 				},
 				output: "<button/>",
 			},
 			{
 				tpl: "{{.f}}",
-				data: map[string]interface{}{
+				data: map[string]any{
 					"f": 1.23,
 				},
 				output: "1.23",
 			},
 			{
 				tpl: "{{.b}}",
-				data: map[string]interface{}{
+				data: map[string]any{
 					"b": false,
 				},
 				output: "false",
 			},
 			{
 				tpl: `{{if .a}}Test{{end}}`,
-				data: map[string]interface{}{
+				data: map[string]any{
 					"a": false,
 				},
 				output: "",
 			},
 			{
 				tpl: `{{if eq .a "A"}}Test{{end}}`,
-				data: map[string]interface{}{
+				data: map[string]any{
 					"a": "A",
 				},
 				output: "Test",
 			},
 			{
 				tpl: `{{range .items}}{{.a}}{{end}}`,
-				data: map[string]interface{}{
-					"items": []interface{}{map[string]interface{}{
+				data: map[string]any{
+					"items": []any{map[string]any{
 						"a": 1,
-					}, map[string]interface{}{
+					}, map[string]any{
 						"b": 2,
 					}},
 				},
@@ -137,7 +137,7 @@ func TestAGTextTemplate(t *testing.T) {
 			},
 			{
 				tpl: "{{.ptr}}",
-				data: map[string]interface{}{
+				data: map[string]any{
 					"ptr": func() *string {
 						s := "p"
 						return &s
@@ -181,9 +181,9 @@ func TestAGTextTemplate(t *testing.T) {
 				// Go 1.23.6 does not support {{ range int }} yet, so we simulate it with a nested data
 				makeNestedData := func(n int) [][]string {
 					nestedData := [][]string{}
-					for i := 0; i < n; i++ {
+					for range n {
 						el := []string{}
-						for j := 0; j < n; j++ {
+						for range n {
 							el = append(el, ".")
 						}
 						nestedData = append(nestedData, el)

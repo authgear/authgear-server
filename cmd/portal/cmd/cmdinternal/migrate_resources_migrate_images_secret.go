@@ -59,15 +59,15 @@ func migrateImagesSecret(ctx context.Context, appID string, configSourceData map
 		log.Printf("\n%s\n", string(decoded))
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	err = yaml.Unmarshal(decoded, &m)
 	if err != nil {
 		return fmt.Errorf("failed unmarshal yaml: %w", err)
 	}
 
-	secrets := m["secrets"].([]interface{})
+	secrets := m["secrets"].([]any)
 	for _, secretItemIface := range secrets {
-		secretItem := secretItemIface.(map[string]interface{})
+		secretItem := secretItemIface.(map[string]any)
 		key := secretItem["key"].(string)
 		if key == string(config.ImagesKeyMaterialsKey) {
 			if dryRun {
@@ -89,13 +89,13 @@ func migrateImagesSecret(ctx context.Context, appID string, configSourceData map
 		return err
 	}
 
-	var dataJSON map[string]interface{}
+	var dataJSON map[string]any
 	err = json.Unmarshal(dataBytes, &dataJSON)
 	if err != nil {
 		return err
 	}
 
-	secretItem := map[string]interface{}{}
+	secretItem := map[string]any{}
 	secretItem["key"] = config.ImagesKeyMaterialsKey
 	secretItem["data"] = dataJSON
 	secrets = append(secrets, secretItem)

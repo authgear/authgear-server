@@ -29,7 +29,7 @@ var nodeScope = node(
 			"updatedAt": entityUpdatedAtField(nil),
 			"resourceID": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.ID),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.Scope)
 					return relay.ToGlobalID(typeResource, source.ResourceID), nil
 				},
@@ -46,7 +46,7 @@ var nodeScope = node(
 		},
 	}),
 	&model.Scope{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Scopes.Load(ctx, id).Value, nil
 	},
 )

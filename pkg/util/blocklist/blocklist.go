@@ -35,8 +35,8 @@ func New(data string) (*Blocklist, error) {
 
 		// Negated patterns start with '!'
 		var e entry
-		if strings.HasPrefix(line, "!") {
-			line = strings.TrimPrefix(line, "!")
+		if after, ok := strings.CutPrefix(line, "!"); ok {
+			line = after
 			e.negated = true
 		}
 

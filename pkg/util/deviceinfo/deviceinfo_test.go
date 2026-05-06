@@ -86,11 +86,11 @@ const ExampleAndroid = `
 
 func TestDevicePlatform(t *testing.T) {
 	Convey("DevicePlatform", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -106,11 +106,11 @@ func TestDevicePlatform(t *testing.T) {
 
 func TestDeviceModelCodename(t *testing.T) {
 	Convey("DeviceModelCodename", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -126,11 +126,11 @@ func TestDeviceModelCodename(t *testing.T) {
 
 func TestDeviceModel(t *testing.T) {
 	Convey("DeviceModel", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -143,27 +143,27 @@ func TestDeviceModel(t *testing.T) {
 		So(DeviceModel(nil), ShouldEqual, "")
 
 		// Allow unknown iPhone.
-		So(DeviceModel(map[string]interface{}{
-			"ios": map[string]interface{}{
-				"uname": map[string]interface{}{
+		So(DeviceModel(map[string]any{
+			"ios": map[string]any{
+				"uname": map[string]any{
 					"machine": "iPhone9999,9999",
 				},
 			},
 		}), ShouldEqual, "iPhone9999,9999")
 
 		// iPhone in 2023.
-		So(DeviceModel(map[string]interface{}{
-			"ios": map[string]interface{}{
-				"uname": map[string]interface{}{
+		So(DeviceModel(map[string]any{
+			"ios": map[string]any{
+				"uname": map[string]any{
 					"machine": "iPhone16,2",
 				},
 			},
 		}), ShouldEqual, "iPhone 15 Pro Max")
 
 		// iPhone in 2024.
-		So(DeviceModel(map[string]interface{}{
-			"ios": map[string]interface{}{
-				"uname": map[string]interface{}{
+		So(DeviceModel(map[string]any{
+			"ios": map[string]any{
+				"uname": map[string]any{
 					"machine": "iPhone17,2",
 				},
 			},
@@ -173,11 +173,11 @@ func TestDeviceModel(t *testing.T) {
 
 func TestDeviceName(t *testing.T) {
 	Convey("DeviceName", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -193,11 +193,11 @@ func TestDeviceName(t *testing.T) {
 
 func TestApplicationName(t *testing.T) {
 	Convey("ApplicationName", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -213,11 +213,11 @@ func TestApplicationName(t *testing.T) {
 
 func TestApplicationID(t *testing.T) {
 	Convey("ApplicationID", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
@@ -233,11 +233,11 @@ func TestApplicationID(t *testing.T) {
 
 func TestProbablySame(t *testing.T) {
 	Convey("ProbablySame", t, func() {
-		var ios map[string]interface{}
+		var ios map[string]any
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		var android map[string]interface{}
+		var android map[string]any
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 

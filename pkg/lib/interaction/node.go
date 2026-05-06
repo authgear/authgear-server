@@ -24,7 +24,7 @@ type Edge interface {
 	// It may return ErrSameNode if the edge loops back to self.
 	// This is used to model side-effect only actions, such as sending
 	// OTP message.
-	Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (Node, error)
+	Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input any) (Node, error)
 }
 
 type NodeFactory func() Node

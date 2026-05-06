@@ -255,7 +255,7 @@ func (s *Service) HasKey(ctx context.Context, key string) (bool, error) {
 	return t.HasKey(key), nil
 }
 
-func (s *Service) RenderText(ctx context.Context, key string, args interface{}) (string, error) {
+func (s *Service) RenderText(ctx context.Context, key string, args any) (string, error) {
 	t, err := s.translationMap(ctx)
 	if err != nil {
 		return "", err

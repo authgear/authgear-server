@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"slices"
 	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -73,12 +74,12 @@ func (t *MessageHTML) FindResources(fs resource.Fs) ([]resource.Location, error)
 	return readTemplates(fs, t.Name)
 }
 
-func (t *HTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *HTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (any, error) {
 	skipValidate := true
 	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
 
-func (t *MessageHTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *MessageHTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (any, error) {
 	skipValidate := false
 	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
@@ -133,12 +134,12 @@ func (t *MessagePlainText) FindResources(fs resource.Fs) ([]resource.Location, e
 	return readTemplates(fs, t.Name)
 }
 
-func (t *PlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *PlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (any, error) {
 	skipValidate := true
 	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }
 
-func (t *MessagePlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *MessagePlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (any, error) {
 	skipValidate := false
 	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }
@@ -193,13 +194,7 @@ func matchTemplatePath(path string, templateName string) (*resource.Match, bool)
 
 	languageTag := matches[1]
 
-	isLanguageTagValid := false
-	for _, localeKey := range intl.AvailableLanguages {
-		if languageTag == localeKey {
-			isLanguageTagValid = true
-			break
-		}
-	}
+	isLanguageTagValid := slices.Contains(intl.AvailableLanguages, languageTag)
 	if !isLanguageTagValid {
 		return nil, false
 	}
@@ -251,7 +246,7 @@ func (t languageTemplate) GetLanguageTag() string {
 
 var templateLanguageTagRegex = regexp.MustCompile("^templates/([a-zA-Z0-9-_]+)/")
 
-func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFileView) (any, error) {
 	// When template is viewed as AppFile,
 	// the exact file is returned.
 	path := view.AppFilePath()
@@ -272,7 +267,7 @@ func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFi
 	return bytes, nil
 }
 
-func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (any, error) {
 	// When template is viewed as EffectiveFile, the most specific template is returned.
 	path := view.EffectiveFilePath()
 
@@ -345,7 +340,7 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 	return &tagger, nil
 }
 
-func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (interface{}, error) {
+func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		bytes, err := viewTemplatesAppFile(resources, view)
@@ -401,7 +396,7 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView r
 
 }
 
-func viewTextTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (interface{}, error) {
+func viewTextTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		bytes, err := viewTemplatesAppFile(resources, view)

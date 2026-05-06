@@ -231,7 +231,6 @@ func (c *Commands) ReplaceScopesOfClientID(ctx context.Context, resourceURI, cli
 	}
 	currentSet := make(map[string]*Scope)
 	for _, s := range currentScopes {
-		s := s
 		currentSet[s.Scope] = s
 	}
 	// Build desired set

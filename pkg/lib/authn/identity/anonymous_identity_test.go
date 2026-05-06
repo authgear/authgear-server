@@ -42,7 +42,7 @@ func TestRaw(t *testing.T) {
 		key, err := iden.ToJWK()
 		So(err, ShouldBeNil)
 
-		var ptrKey interface{}
+		var ptrKey any
 		err = key.Raw(&ptrKey)
 		So(err, ShouldBeNil)
 		So(ptrKey, ShouldNotBeNil)

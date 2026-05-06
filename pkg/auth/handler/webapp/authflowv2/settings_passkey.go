@@ -52,8 +52,8 @@ type AuthflowV2SettingsChangePasskeyHandler struct {
 	Passkey           PasskeyCreationOptionsService
 }
 
-func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
@@ -106,7 +106,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
+		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
 			if err != nil {

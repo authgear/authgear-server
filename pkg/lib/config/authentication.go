@@ -267,7 +267,7 @@ type RecoveryCodeConfig struct {
 
 func (c *RecoveryCodeConfig) SetDefaults() {
 	if c.Disabled == nil {
-		c.Disabled = newBool(false)
+		c.Disabled = new(false)
 	}
 	if c.Count == 0 {
 		c.Count = 16

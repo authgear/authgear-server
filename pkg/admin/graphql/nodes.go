@@ -10,13 +10,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
-type Resolver func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error)
+type Resolver func(ctx context.Context, gqlCtx *Context, id string) (any, error)
 
 var resolvers = map[string]Resolver{}
 var typeMapping = map[reflect.Type]*graphql.Object{}
 
 var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
-	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
+	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (any, error) {
 		// If the ID is invalid, we should return null instead of returning an error.
 		// This behavior conforms the schema.
 		resolvedID := relay.FromGlobalID(id)
@@ -38,7 +38,7 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 	},
 })
 
-func node(schema *graphql.Object, modelType interface{}, resolver Resolver) *graphql.Object {
+func node(schema *graphql.Object, modelType any, resolver Resolver) *graphql.Object {
 	resolvers[schema.Name()] = resolver
 	typeMapping[reflect.TypeOf(modelType)] = schema
 	return schema

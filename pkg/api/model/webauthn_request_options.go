@@ -18,5 +18,5 @@ type PublicKeyCredentialRequestOptions struct {
 	// and it is an array if the value is non-nil.
 	AllowCredentials *[]PublicKeyCredentialDescriptor    `json:"allowCredentials,omitempty"`
 	Hints            []protocol.PublicKeyCredentialHints `json:"hints,omitempty"`
-	Extensions       map[string]interface{}              `json:"extensions,omitempty"`
+	Extensions       map[string]any                      `json:"extensions,omitempty"`
 }

@@ -106,7 +106,7 @@ func (r *Restorer) Restore(ctx context.Context) error {
 
 }
 
-func (r *Restorer) convertToDatabaseData(csvRecords [][]string) (columns []string, rows [][]interface{}, err error) {
+func (r *Restorer) convertToDatabaseData(csvRecords [][]string) (columns []string, rows [][]any, err error) {
 	if len(csvRecords) == 0 {
 		err = fmt.Errorf("csv missing header")
 		return
@@ -118,7 +118,7 @@ func (r *Restorer) convertToDatabaseData(csvRecords [][]string) (columns []strin
 			err = fmt.Errorf("invalid format")
 			return
 		}
-		row := []interface{}{}
+		row := []any{}
 		for _, value := range csvRow {
 			v := value
 			if value == NULL {

@@ -572,7 +572,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURLWithTx(
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "invalid id_token_hint")
 	}
-	var sidInt interface{}
+	var sidInt any
 	if sidInt, ok = idToken.Get(string(model.ClaimSID)); !ok {
 		return nil, protocol.NewError("invalid_request", "required sid in id_token_hint")
 	}

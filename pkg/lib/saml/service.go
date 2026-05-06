@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -49,7 +50,7 @@ type SAMLEndpoints interface {
 }
 
 type SAMLUserInfoProvider interface {
-	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error)
 }
 
 type IDPSessionProvider interface {
@@ -69,7 +70,7 @@ type OfflineGrantService interface {
 }
 
 type TemplateEngine interface {
-	RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error)
+	RenderPublicText(ctx context.Context, tpl string, data any) (string, error)
 }
 
 type Service struct {
@@ -173,10 +174,8 @@ func (s *Service) validateDestination(sp *config.SAMLServiceProviderConfig, dest
 		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.ClientID).String())
 	}
 
-	for _, allowedDestination := range allowedDestinations {
-		if destination == allowedDestination {
-			return nil
-		}
+	if slices.Contains(allowedDestinations, destination) {
+		return nil
 	}
 	return &samlprotocol.InvalidRequestError{
 		Field:    "Destination",
@@ -742,7 +741,7 @@ func (s *Service) constructSigningValue(
 func (s *Service) getUserNameID(
 	format samlprotocol.SAMLNameIDFormat,
 	sp *config.SAMLServiceProviderConfig,
-	userInfo map[string]interface{},
+	userInfo map[string]any,
 ) (string, error) {
 	switch format {
 	case samlprotocol.SAMLNameIDFormatEmailAddress:
@@ -896,7 +895,7 @@ func (s *Service) recordSessionParticipant(
 	return nil
 }
 
-func (s *Service) getUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+func (s *Service) getUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]any, error) {
 	userInfo, err := s.UserInfoProvider.GetUserInfo(ctx, userID, clientLike)
 	if err != nil {
 		return nil, err
@@ -908,7 +907,7 @@ func (s *Service) getUserInfo(ctx context.Context, userID string, clientLike *oa
 		// This should not fail, panic if failed
 		panic(err)
 	}
-	var parsedRaw map[string]interface{}
+	var parsedRaw map[string]any
 	err = json.Unmarshal(rawBytes, &parsedRaw)
 	if err != nil {
 		// This should not fail, panic if failed
@@ -919,7 +918,7 @@ func (s *Service) getUserInfo(ctx context.Context, userID string, clientLike *oa
 	return userInfo, nil
 }
 
-func (s *Service) ResolveUserAttributes(ctx context.Context, sp *config.SAMLServiceProviderConfig, userInfo map[string]interface{}) ([]samlprotocol.Attribute, error) {
+func (s *Service) ResolveUserAttributes(ctx context.Context, sp *config.SAMLServiceProviderConfig, userInfo map[string]any) ([]samlprotocol.Attribute, error) {
 	attrs := []samlprotocol.Attribute{
 		{
 			FriendlyName: "User ID",
@@ -1008,7 +1007,7 @@ func (x *x509KeyStore) GetKeyPair() (privateKey *rsa.PrivateKey, cert []byte, er
 	return x.privateKey, x.cert, nil
 }
 
-func formatAttribute(raw interface{}) ([]samlprotocol.AttributeValue, error) {
+func formatAttribute(raw any) ([]samlprotocol.AttributeValue, error) {
 
 	formatSlice := func(raw []any) ([]samlprotocol.AttributeValue, error) {
 		values := []samlprotocol.AttributeValue{}

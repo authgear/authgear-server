@@ -35,7 +35,7 @@ type EdgeDoEnsureSession struct {
 	Mode         EnsureSessionMode
 }
 
-func (e *EdgeDoEnsureSession) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeDoEnsureSession) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	amr := graph.GetAMR()
 	userID := graph.MustGetUserID()
 

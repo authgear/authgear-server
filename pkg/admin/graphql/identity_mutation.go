@@ -41,8 +41,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(deleteIdentityInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			identityNodeID := input["identityID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(identityNodeID)
@@ -75,7 +75,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, info.UserID),
 			}).Value, nil
 		},
@@ -122,8 +122,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(createIdentityInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -132,7 +132,7 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			defData := input["definition"].(map[string]interface{})
+			defData := input["definition"].(map[string]any)
 			identityDef, err := model.ParseIdentityDef(defData)
 			if err != nil {
 				return nil, err
@@ -165,7 +165,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user":     gqlCtx.Users.Load(ctx, userID),
 				"identity": ref,
 			}).Value, nil
@@ -213,8 +213,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(updateIdentityInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			userNodeID := input["userID"].(string)
 			resolvedUserNodeID := relay.FromGlobalID(userNodeID)
@@ -230,7 +230,7 @@ var _ = registerMutationField(
 			}
 			identityID := resolvedIdentityNodeID.ID
 
-			defData := input["definition"].(map[string]interface{})
+			defData := input["definition"].(map[string]any)
 			identityDef, err := model.ParseIdentityDef(defData)
 			if err != nil {
 				return nil, err
@@ -261,7 +261,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user":     gqlCtx.Users.Load(ctx, userID),
 				"identity": ref,
 			}).Value, nil

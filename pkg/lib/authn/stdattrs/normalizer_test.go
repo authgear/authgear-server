@@ -164,24 +164,24 @@ func TestNormalizer(t *testing.T) {
 			"address": 1,
 		}, T{})
 		test(T{
-			"address": map[string]interface{}{},
+			"address": map[string]any{},
 		}, T{})
 		test(T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted": "",
 			},
 		}, T{})
 		test(T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted": "1 Unnamed Road, Central, Hong Kong Island, HK",
 			},
 		}, T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted": "1 Unnamed Road, Central, Hong Kong Island, HK",
 			},
 		})
 		test(T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted":      "1 Unnamed Road, Central, Hong Kong Island, HK",
 				"street_address": "1 Unnamed Road",
 				"locality":       "Central",
@@ -190,7 +190,7 @@ func TestNormalizer(t *testing.T) {
 				"country":        "HK",
 			},
 		}, T{
-			"address": map[string]interface{}{
+			"address": map[string]any{
 				"formatted":      "1 Unnamed Road, Central, Hong Kong Island, HK",
 				"street_address": "1 Unnamed Road",
 				"locality":       "Central",

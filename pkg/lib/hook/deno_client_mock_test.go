@@ -35,10 +35,10 @@ func (m *MockDenoClient) EXPECT() *MockDenoClientMockRecorder {
 }
 
 // Run mocks base method.
-func (m *MockDenoClient) Run(ctx context.Context, script string, input interface{}) (interface{}, error) {
+func (m *MockDenoClient) Run(ctx context.Context, script string, input any) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Run", ctx, script, input)
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -73,10 +73,10 @@ func (m *MockSyncDenoClient) EXPECT() *MockSyncDenoClientMockRecorder {
 }
 
 // Run mocks base method.
-func (m *MockSyncDenoClient) Run(ctx context.Context, script string, input interface{}) (interface{}, error) {
+func (m *MockSyncDenoClient) Run(ctx context.Context, script string, input any) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Run", ctx, script, input)
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -111,10 +111,10 @@ func (m *MockAsyncDenoClient) EXPECT() *MockAsyncDenoClientMockRecorder {
 }
 
 // Run mocks base method.
-func (m *MockAsyncDenoClient) Run(ctx context.Context, script string, input interface{}) (interface{}, error) {
+func (m *MockAsyncDenoClient) Run(ctx context.Context, script string, input any) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Run", ctx, script, input)
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

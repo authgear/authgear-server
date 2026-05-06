@@ -19,7 +19,7 @@ func init() {
 
 type FormatResourceURI struct{}
 
-func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatResourceURI) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -60,7 +60,7 @@ func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) err
 
 type FormatScopeToken struct{}
 
-func (FormatScopeToken) CheckFormat(ctx context.Context, value interface{}) error {
+func (FormatScopeToken) CheckFormat(ctx context.Context, value any) error {
 	scope, ok := value.(string)
 	if !ok {
 		return nil

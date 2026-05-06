@@ -24,7 +24,6 @@ func resolveAccountLinkingConfigsOAuth(
 	matches := []*config.AccountLinkingOAuthItem{}
 
 	for _, oauthConfig := range cfg.OAuth {
-		oauthConfig := oauthConfig
 		if oauthConfig.Alias == request.Spec.OAuth.ProviderAlias {
 			matches = append(matches, oauthConfig)
 		}
@@ -49,7 +48,6 @@ func resolveAccountLinkingConfigsLoginID(
 	matches := []*config.AccountLinkingLoginIDItem{}
 
 	for _, loginIDConfig := range cfg.LoginID {
-		loginIDConfig := loginIDConfig
 		if loginIDConfig.Key == request.Spec.LoginID.Key {
 			matches = append(matches, loginIDConfig)
 		}
@@ -104,7 +102,6 @@ func newAccountLinkingConflictWithIncomingOAuth(identity *identity.Info, cfg *co
 	if overrides != nil && cfg.Name != "" {
 		var overrideItem *config.AuthenticationFlowAccountLinkingOAuthItem
 		for _, item := range overrides.OAuth {
-			item := item
 			if item.Name != cfg.Name {
 				continue
 			}
@@ -133,7 +130,6 @@ func newAccountLinkingConflictWithIncomingLoginID(iden *identity.Info, cfg *conf
 	if overrides != nil && cfg.Name != "" {
 		var overrideItem *config.AuthenticationFlowAccountLinkingLoginIDItem
 		for _, item := range overrides.LoginID {
-			item := item
 			if item.Name != cfg.Name {
 				continue
 			}
@@ -183,7 +179,7 @@ func linkByIncomingOAuthSpec(
 	}
 
 	// For deduplication
-	conflictedIdentityIDs := map[string]interface{}{}
+	conflictedIdentityIDs := map[string]any{}
 
 	for _, oauthConfig := range oauthConfigs {
 		value, traverseErr := oauthConfig.OAuthClaim.MustGetOneLevelJSONPointerOrPanic().Traverse(request.Spec.OAuth.StandardClaims)
@@ -209,7 +205,6 @@ func linkByIncomingOAuthSpec(
 		}
 
 		for _, iden := range idenConflicts {
-			iden := iden
 
 			// Exclude identities that actually belong to this user.
 			if iden.UserID == userID {
@@ -228,7 +223,6 @@ func linkByIncomingOAuthSpec(
 
 	// check for identical identities
 	for _, conflict := range conflicts {
-		conflict := conflict
 		if conflict.Identity.Type != model.IdentityTypeOAuth {
 			// Not the same type, so must be not identical
 			continue
@@ -284,7 +278,7 @@ func linkByIncomingLoginIDSpec(
 	}
 
 	// For deduplication
-	conflictedIdentityIDs := map[string]interface{}{}
+	conflictedIdentityIDs := map[string]any{}
 
 	for _, loginIDConfig := range loginIDConfigs {
 
@@ -297,7 +291,6 @@ func linkByIncomingLoginIDSpec(
 		}
 
 		for _, iden := range idenConflicts {
-			iden := iden
 
 			// Exclude identities that actually belong to this user.
 			if iden.UserID == userID {
@@ -316,7 +309,6 @@ func linkByIncomingLoginIDSpec(
 
 	// check for identical identities
 	for _, conflict := range conflicts {
-		conflict := conflict
 		if conflict.Identity.Type != model.IdentityTypeLoginID {
 			// Not the same type, so must be not identical
 			continue
@@ -355,7 +347,7 @@ func linkByIncomingLDAPSpec(
 	}
 
 	// For deduplication
-	conflictedIdentityIDs := map[string]interface{}{}
+	conflictedIdentityIDs := map[string]any{}
 
 	for _, ldapConfig := range ldapConfigs {
 		value, traverseErr := ldapConfig.AttributeName.MustGetOneLevelJSONPointerOrPanic().Traverse(request.Spec.LDAP.Claims)
@@ -381,7 +373,6 @@ func linkByIncomingLDAPSpec(
 		}
 
 		for _, iden := range idenConflicts {
-			iden := iden
 
 			// Exclude identities that actually belong to this user.
 			if iden.UserID == userID {
@@ -405,7 +396,6 @@ func linkByIncomingLDAPSpec(
 
 	// check for identical identities
 	for _, conflict := range conflicts {
-		conflict := conflict
 		if conflict.Identity.Type != model.IdentityTypeLDAP {
 			// Not the same type, so must be not identical
 			continue

@@ -62,7 +62,7 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 		})
 		if err != nil {
 			if errors.Is(err, configsource.ErrAppNotFound) {
-				data := map[string]interface{}{
+				data := map[string]any{
 					"HTTPHost": string(m.HTTPHost),
 				}
 				baseViewModel := m.BaseViewModeler.ViewModel(r, w)

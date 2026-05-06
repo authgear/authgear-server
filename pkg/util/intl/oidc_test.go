@@ -9,7 +9,7 @@ import (
 func TestLocalizeJSONObject(t *testing.T) {
 	Convey("LocalizeJSONObject", t, func() {
 		Convey("simple", func() {
-			jsonObject := map[string]interface{}{
+			jsonObject := map[string]any{
 				"client_name":            "client_name default",
 				"client_name#zh":         "client_name zh",
 				"client_name#zh-Hant-HK": "client_name zh-Hant-HK",
@@ -26,7 +26,7 @@ func TestLocalizeJSONObject(t *testing.T) {
 		})
 
 		Convey("invalid fallback", func() {
-			jsonObject := map[string]interface{}{
+			jsonObject := map[string]any{
 				"client_name#zh":         "client_name zh",
 				"client_name#zh-Hant-HK": "client_name zh-Hant-HK",
 			}

@@ -87,8 +87,8 @@ type AuthflowV2OOBOTPLinkHandler struct {
 	Clock                                  clock.Clock
 }
 
-func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := map[string]any{}
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -103,8 +103,8 @@ func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Req
 	return data, nil
 }
 
-func (h *AuthflowV2OOBOTPLinkHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2OOBOTPLinkHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := map[string]any{}
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -130,7 +130,7 @@ func (h *AuthflowV2OOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"resend": true,
 		}
 
@@ -145,7 +145,7 @@ func (h *AuthflowV2OOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	handlers.PostAction("check", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"check":                true,
 			"request_device_token": requestDeviceToken,
 		}

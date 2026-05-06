@@ -40,7 +40,7 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		data := map[string]interface{}{}
+		data := map[string]any{}
 		var viewModelPtr *viewmodels.SettingsProfileViewModel
 
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {

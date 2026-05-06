@@ -361,7 +361,7 @@ func (d *Database) cleanupCache(ctx context.Context, done <-chan struct{}) {
 		case <-time.After(time.Minute):
 			now := d.Clock.NowMonotonic().Unix()
 			numDel := 0
-			d.appMap.Range(func(key, value interface{}) bool {
+			d.appMap.Range(func(key, value any) bool {
 				app := value.(*dbApp)
 				if atomic.LoadInt64(&app.lastUsedAt) < now-60 {
 					d.appMap.Delete(key)

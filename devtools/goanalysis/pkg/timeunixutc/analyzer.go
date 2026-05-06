@@ -46,7 +46,7 @@ func isUTC(n ast.Node) bool {
 	return false
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	traverse := func(n ast.Node, push bool, stack []ast.Node) (proceed bool) {
 		if push == false {

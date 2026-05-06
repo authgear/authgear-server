@@ -362,7 +362,7 @@ var nodeApp = node(
 			nodeDefs.NodeInterface,
 		},
 		Fields: graphql.Fields{
-			"id": relay.GlobalIDField(typeApp, func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+			"id": relay.GlobalIDField(typeApp, func(obj any, info graphql.ResolveInfo, ctx context.Context) (string, error) {
 				return obj.(*model.App).ID, nil
 			}),
 			"resources": &graphql.Field{
@@ -372,10 +372,10 @@ var nodeApp = node(
 						Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 					},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					var paths []string
 					if argPaths, ok := p.Args["paths"]; ok {
-						for _, path := range argPaths.([]interface{}) {
+						for _, path := range argPaths.([]any) {
 							path := path.(string)
 							// Note we do not block direct access to authgear.yaml
 							if path == configsource.AuthgearSecretYAML {
@@ -409,7 +409,7 @@ var nodeApp = node(
 			},
 			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -419,7 +419,7 @@ var nodeApp = node(
 			},
 			"rawAppConfigChecksum": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -434,7 +434,7 @@ var nodeApp = node(
 						Type: graphql.String,
 					},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					var token string
@@ -459,7 +459,7 @@ var nodeApp = node(
 			},
 			"secretConfigChecksum": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					var token string
@@ -483,7 +483,7 @@ var nodeApp = node(
 			},
 			"effectiveSecretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(effectiveSecretConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -500,13 +500,13 @@ var nodeApp = node(
 			},
 			"effectiveAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return p.Source.(*model.App).Context.Config.AppConfig, nil
 				},
 			},
 			"effectiveFeatureConfig": &graphql.Field{
 				Type: graphql.NewNonNull(FeatureConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return model.NewPortalFeatureConfig(p.Source.(*model.App).Context.Config.FeatureConfig), nil
 				},
 			},
@@ -517,7 +517,7 @@ var nodeApp = node(
 						Type: graphql.NewNonNull(graphql.DateTime),
 					},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
@@ -533,7 +533,7 @@ var nodeApp = node(
 			},
 			"planName": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return p.Source.(*model.App).Context.PlanName, nil
 				},
 			},
@@ -544,7 +544,7 @@ var nodeApp = node(
 						Type: graphql.NewNonNull(graphql.DateTime),
 					},
 				},
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
@@ -566,7 +566,7 @@ var nodeApp = node(
 			},
 			"subscription": &graphql.Field{
 				Type: subscription,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
@@ -583,7 +583,7 @@ var nodeApp = node(
 			},
 			"isProcessingSubscription": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
@@ -597,7 +597,7 @@ var nodeApp = node(
 			},
 			"lastStripeError": &graphql.Field{
 				Type: StripeError,
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
@@ -619,7 +619,7 @@ var nodeApp = node(
 			},
 			"domains": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -628,7 +628,7 @@ var nodeApp = node(
 						return nil, err
 					}
 
-					ids := make([]interface{}, len(domains))
+					ids := make([]any, len(domains))
 					for i, domain := range domains {
 						id := domain.ID
 						ids[i] = id
@@ -640,7 +640,7 @@ var nodeApp = node(
 			},
 			"collaborators": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaborator))),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -649,7 +649,7 @@ var nodeApp = node(
 						return nil, err
 					}
 
-					ids := make([]interface{}, len(collaborators))
+					ids := make([]any, len(collaborators))
 					for i, collaborator := range collaborators {
 						id := collaborator.ID
 						ids[i] = id
@@ -661,7 +661,7 @@ var nodeApp = node(
 			},
 			"viewer": &graphql.Field{
 				Type: graphql.NewNonNull(collaborator),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 
@@ -681,7 +681,7 @@ var nodeApp = node(
 			},
 			"collaboratorInvitations": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaboratorInvitation))),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -690,7 +690,7 @@ var nodeApp = node(
 						return nil, err
 					}
 
-					ids := make([]interface{}, len(invitations))
+					ids := make([]any, len(invitations))
 					for i, invitation := range invitations {
 						id := invitation.ID
 						ids[i] = id
@@ -702,7 +702,7 @@ var nodeApp = node(
 			},
 			"tutorialStatus": &graphql.Field{
 				Type: graphql.NewNonNull(tutorialStatus),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -717,7 +717,7 @@ var nodeApp = node(
 			},
 			"samlIdpEntityID": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
@@ -730,7 +730,7 @@ var nodeApp = node(
 		},
 	}),
 	&model.App{},
-	func(ctx context.Context, id string) (interface{}, error) {
+	func(ctx context.Context, id string) (any, error) {
 		gqlCtx := GQLContext(ctx)
 		// return nil without error for both inaccessible / not found apps
 		_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, id)

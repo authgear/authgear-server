@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 
@@ -69,7 +70,7 @@ func (t *translationJSON) FindResources(fs resource.Fs) ([]resource.Location, er
 	return readTemplates(fs, TranslationJSONName)
 }
 
-func (t *translationJSON) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (t *translationJSON) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (any, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return t.viewAppFile(resources, view)
@@ -135,7 +136,7 @@ func (t *translationJSON) getDefaultTranslationObj(all []resource.ResourceFile, 
 			continue
 		}
 
-		var jsonObj map[string]interface{}
+		var jsonObj map[string]any
 		err := json.Unmarshal(r.Data, &jsonObj)
 		if err != nil {
 			return nil, fmt.Errorf("translation file must be JSON: %w", err)
@@ -160,7 +161,7 @@ func (t *translationJSON) processAppTranslationData(ctx context.Context, data []
 	}
 	isCustomizationDisallowed := *fc.Messaging.TemplateCustomizationDisabled
 
-	appTranslationRaw := make(map[string]interface{})
+	appTranslationRaw := make(map[string]any)
 	err := json.Unmarshal(data, &appTranslationRaw)
 	if err != nil {
 		return nil, fmt.Errorf("translation file must be JSON: %w", err)
@@ -202,11 +203,11 @@ func (t *translationJSON) processAppTranslationData(ctx context.Context, data []
 	return appTranslationData, nil
 }
 
-func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (any, error) {
 	for _, resrc := range resources {
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 
-		var jsonObj map[string]interface{}
+		var jsonObj map[string]any
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
 			return nil, fmt.Errorf("translation file must be JSON: %w", err)
 		}
@@ -239,7 +240,7 @@ func (t *translationJSON) prepareTranslationMaps(resources []resource.ResourceFi
 	translationMap = make(map[translationKey]map[languageTag]translationValue)
 
 	add := func(langTag string, resrc resource.ResourceFile) error {
-		var jsonObj map[string]interface{}
+		var jsonObj map[string]any
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
 			return fmt.Errorf("translation file must be JSON: %w", err)
 		}
@@ -296,7 +297,7 @@ func (t *translationJSON) prepareTranslationMaps(resources []resource.ResourceFi
 	return
 }
 
-func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (any, error) {
 
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
@@ -325,9 +326,7 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 	if err != nil {
 		return nil, err
 	}
-	for k, v := range appSpecificTranslationData {
-		translationData[k] = v
-	}
+	maps.Copy(translationData, appSpecificTranslationData)
 
 	// translationData
 	return translationData, nil
@@ -416,7 +415,7 @@ func (t *translationJSON) viewEffectiveResourceMakeAppSpecificData(
 	return
 }
 
-func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (any, error) {
 	// AppFileView on translation.json returns the translation.json in the app FS if exists.
 	path := view.AppFilePath()
 
@@ -436,7 +435,7 @@ func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view re
 	return bytes, nil
 }
 
-func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (any, error) {
 	// EffectiveFileView on translation.json is a simple merge
 	// on the same file across different FSs.
 
@@ -454,7 +453,7 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 
 		if langTag == requestedLangTag {
-			var jsonObj map[string]interface{}
+			var jsonObj map[string]any
 			err := json.Unmarshal(resrc.Data, &jsonObj)
 			if err != nil {
 				return nil, fmt.Errorf("translation file must be JSON: %w", err)

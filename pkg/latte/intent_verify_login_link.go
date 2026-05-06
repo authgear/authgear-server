@@ -94,6 +94,6 @@ func (i *IntentVerifyLoginLink) GetEffects(ctx context.Context, deps *workflow.D
 	return nil, nil
 }
 
-func (i *IntentVerifyLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{}, nil
+func (i *IntentVerifyLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
+	return map[string]any{}, nil
 }

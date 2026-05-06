@@ -1,6 +1,7 @@
 package relay_test
 
 import (
+	context0 "context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,7 +11,6 @@ import (
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/location"
 	"github.com/graphql-go/graphql/testutil"
-	"golang.org/x/net/context"
 
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
@@ -39,7 +39,7 @@ var nodeTestUserType *graphql.Object
 var nodeTestPhotoType *graphql.Object
 
 var nodeTestDef = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
-	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
+	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context0.Context) (any, error) {
 		if user, ok := nodeTestUserData[id]; ok {
 			return user, nil
 		}
@@ -107,8 +107,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectIDForUsers(t *tes
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id": "1",
 			},
 		},
@@ -129,8 +129,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectIDForPhotos(t *te
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id": "4",
 			},
 		},
@@ -154,8 +154,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectNameForUsers(t *t
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id":   "1",
 				"name": "John Doe",
 			},
@@ -180,8 +180,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectWidthForPhotos(t 
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id":    "4",
 				"width": 400,
 			},
@@ -204,8 +204,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectTypeNameForUsers(
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id":         "1",
 				"__typename": "User",
 			},
@@ -228,8 +228,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_GetsTheCorrectTypeNameForPhotos
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id":         "4",
 				"__typename": "Photo",
 			},
@@ -254,8 +254,8 @@ func TestNodeInterfaceAndFields_AllowsRefetching_IgnoresPhotoFragmentsOnUser(t *
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"node": map[string]interface{}{
+		Data: map[string]any{
+			"node": map[string]any{
 				"id": "1",
 			},
 		},
@@ -278,7 +278,7 @@ func SkipTestNodeInterfaceAndFields_AllowsRefetching_ReturnsNullForBadIDs(t *tes
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"node": nil,
 		},
 		Errors: []gqlerrors.FormattedError{
@@ -315,16 +315,16 @@ func TestNodeInterfaceAndFields_CorrectlyIntrospects_HasCorrectNodeInterface(t *
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__type": map[string]interface{}{
+		Data: map[string]any{
+			"__type": map[string]any{
 				"name": "Node",
 				"kind": "INTERFACE",
-				"fields": []interface{}{
-					map[string]interface{}{
+				"fields": []any{
+					map[string]any{
 						"name": "id",
-						"type": map[string]interface{}{
+						"type": map[string]any{
 							"kind": "NON_NULL",
-							"ofType": map[string]interface{}{
+							"ofType": map[string]any{
 								"name": "ID",
 								"kind": "SCALAR",
 							},
@@ -368,22 +368,22 @@ func TestNodeInterfaceAndFields_CorrectlyIntrospects_HasCorrectNodeRootField(t *
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__schema": map[string]interface{}{
-				"queryType": map[string]interface{}{
-					"fields": []interface{}{
-						map[string]interface{}{
+		Data: map[string]any{
+			"__schema": map[string]any{
+				"queryType": map[string]any{
+					"fields": []any{
+						map[string]any{
 							"name": "node",
-							"type": map[string]interface{}{
+							"type": map[string]any{
 								"name": "Node",
 								"kind": "INTERFACE",
 							},
-							"args": []interface{}{
-								map[string]interface{}{
+							"args": []any{
+								map[string]any{
 									"name": "id",
-									"type": map[string]interface{}{
+									"type": map[string]any{
 										"kind": "NON_NULL",
-										"ofType": map[string]interface{}{
+										"ofType": map[string]any{
 											"name": "ID",
 											"kind": "SCALAR",
 										},

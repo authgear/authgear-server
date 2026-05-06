@@ -9,10 +9,10 @@ import (
 func TestCast(t *testing.T) {
 	Convey("Cast", t, func() {
 		original := []string{"a", "b", "c"}
-		var anySlice []interface{}
-		anySlice = Cast[string, interface{}](original)
+		var anySlice []any
+		anySlice = Cast[string, any](original)
 
-		stringSlice := Cast[interface{}, string](anySlice)
+		stringSlice := Cast[any, string](anySlice)
 		So(stringSlice, ShouldResemble, original)
 	})
 }

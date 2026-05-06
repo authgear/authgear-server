@@ -56,7 +56,7 @@ func (*IntentMigrateOOBOTPAuthenticator) GetEffects(ctx context.Context, deps *w
 	return nil, nil
 }
 
-func (*IntentMigrateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentMigrateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

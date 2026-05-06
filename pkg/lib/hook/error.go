@@ -23,7 +23,7 @@ func newErrorOperationDisallowed(eventType string, items []OperationDisallowedIt
 	// These are not causes. Causes are pre-defined, and reasons are provided by hook handlers.
 	return HookDisallowed.NewWithInfo(
 		"disallowed by hook event handler",
-		map[string]interface{}{
+		map[string]any{
 			"event_type": eventType,
 			"reasons":    items,
 		},

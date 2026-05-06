@@ -59,7 +59,7 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 	}
 
 	Convey("ToSchemaBuilder", t, func() {
-		test := func(c *CustomAttributesAttributeConfig, expected map[string]interface{}) {
+		test := func(c *CustomAttributesAttributeConfig, expected map[string]any) {
 			builder, err := c.ToSchemaBuilder()
 			So(err, ShouldBeNil)
 
@@ -74,21 +74,21 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeString,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":      "string",
 			"minLength": 1,
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeNumber,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type": "number",
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type:    CustomAttributeTypeNumber,
 			Minimum: newFloat(0),
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":    "number",
 			"minimum": 0.0,
 		})
@@ -96,21 +96,21 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(&CustomAttributesAttributeConfig{
 			Type:    CustomAttributeTypeNumber,
 			Maximum: newFloat(1),
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":    "number",
 			"maximum": 1.0,
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeInteger,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type": "integer",
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type:    CustomAttributeTypeInteger,
 			Minimum: newFloat(0),
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":    "integer",
 			"minimum": newInt64(0),
 		})
@@ -118,7 +118,7 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(&CustomAttributesAttributeConfig{
 			Type:    CustomAttributeTypeInteger,
 			Maximum: newFloat(1),
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":    "integer",
 			"maximum": newInt64(1),
 		})
@@ -126,42 +126,42 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeEnum,
 			Enum: []string{"a", "b"},
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type": "string",
 			"enum": []string{"a", "b"},
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypePhoneNumber,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":   "string",
 			"format": "phone",
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeEmail,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":   "string",
 			"format": "email",
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeURL,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":   "string",
 			"format": "uri",
 		})
 
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeCountryCode,
-		}, map[string]interface{}{
+		}, map[string]any{
 			"type":   "string",
 			"format": "iso3166-1-alpha-2",
 		})
 	})
 
 	Convey("ParseString", t, func() {
-		test := func(typ CustomAttributeType, str string, expected interface{}) {
+		test := func(typ CustomAttributeType, str string, expected any) {
 			c := &CustomAttributesAttributeConfig{
 				Type: typ,
 			}

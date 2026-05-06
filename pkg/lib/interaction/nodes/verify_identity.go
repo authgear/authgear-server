@@ -27,7 +27,7 @@ type EdgeVerifyIdentity struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeVerifyIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputVerifyIdentity
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -158,7 +158,7 @@ type EdgeVerifyIdentityCheckCode struct {
 	Identity *identity.Info
 }
 
-func (e *EdgeVerifyIdentityCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputVerifyIdentityCheckCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -199,7 +199,7 @@ type EdgeVerifyIdentityResendCode struct {
 	Node *NodeVerifyIdentity
 }
 
-func (e *EdgeVerifyIdentityResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityResendCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputVerifyIdentityResendCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

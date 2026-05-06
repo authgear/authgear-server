@@ -3,6 +3,7 @@ package nodes
 import (
 	"context"
 	"encoding/json"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -27,19 +28,13 @@ type EdgeUseIdentityBiometric struct {
 	IsCreating       bool
 }
 
-func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputUseIdentityBiometric
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	enabled := false
-	for _, t := range ctx.Config.Authentication.Identities {
-		if t == model.IdentityTypeBiometric {
-			enabled = true
-			break
-		}
-	}
+	enabled := slices.Contains(ctx.Config.Authentication.Identities, model.IdentityTypeBiometric)
 
 	if !enabled {
 		return nil, api.NewInvariantViolated(

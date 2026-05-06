@@ -340,7 +340,6 @@ func (i *IntentAccountLinking) resolveBotProtectionOptionData(
 func (i *IntentAccountLinking) errorIfSomeConflictIsError() error {
 	var errorConflicts []*AccountLinkingConflict = []*AccountLinkingConflict{}
 	for _, conflict := range i.Conflicts {
-		conflict := conflict
 		if conflict.Action == config.AccountLinkingActionError {
 			errorConflicts = append(errorConflicts, conflict)
 		}

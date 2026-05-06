@@ -25,7 +25,7 @@ func TestRawToSource(t *testing.T) {
 			PreferredUsername: []string{"user"},
 			PhoneNumber:       []string{"+85298765432"},
 			OAuthSubjectID:    []string{"PROVIDER_SUBJECT_ID"},
-			StandardAttributes: map[string]interface{}{
+			StandardAttributes: map[string]any{
 				stdattrs.Name:   "User",
 				stdattrs.Locale: "en",
 			},

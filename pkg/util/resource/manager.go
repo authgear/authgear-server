@@ -59,7 +59,7 @@ func (m *Manager) Overlay(fs Fs) *Manager {
 	return NewManager(m.Registry, newFs)
 }
 
-func (m *Manager) Read(ctx context.Context, desc Descriptor, view View) (interface{}, error) {
+func (m *Manager) Read(ctx context.Context, desc Descriptor, view View) (any, error) {
 	var locations []Location
 	for _, fs := range m.Fs {
 		ls, err := desc.FindResources(fs)

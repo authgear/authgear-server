@@ -17,14 +17,14 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 	Fields: graphql.Fields{
 		"path": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				r := p.Source.(*model.AppResource)
 				return r.DescriptedPath.Path, nil
 			},
 		},
 		"languageTag": &graphql.Field{
 			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				r := p.Source.(*model.AppResource)
 				match, ok := r.DescriptedPath.Descriptor.MatchResource(r.DescriptedPath.Path)
 				if !ok || match.LanguageTag == "" {
@@ -35,7 +35,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"data": &graphql.Field{
 			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)
@@ -55,7 +55,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"effectiveData": &graphql.Field{
 			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				r := p.Source.(*model.AppResource)
 				result, err := r.Context.Resources.Read(p.Context, r.DescriptedPath.Descriptor, resource.EffectiveFile{
 					Path: r.DescriptedPath.Path,
@@ -70,7 +70,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"checksum": &graphql.Field{
 			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)

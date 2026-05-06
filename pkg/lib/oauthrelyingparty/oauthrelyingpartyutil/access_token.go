@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type AccessTokenResp map[string]interface{}
+type AccessTokenResp map[string]any
 
 func NewBearerAccessTokenResp(accessToken string) AccessTokenResp {
 	return AccessTokenResp{

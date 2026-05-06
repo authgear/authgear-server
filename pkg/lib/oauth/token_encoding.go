@@ -83,7 +83,7 @@ func (r *prepareUserAccessTokenResultOpaque) prepareUserAccessTokenResult() {}
 
 type prepareUserAccessTokenResultJWT struct {
 	Event        *event.Event
-	ForBackup    map[string]interface{}
+	ForBackup    map[string]any
 	ClientConfig *config.OAuthClientConfig
 }
 

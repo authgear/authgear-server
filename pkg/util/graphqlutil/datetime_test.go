@@ -10,13 +10,13 @@ import (
 func TestGetDateTimeInUTCFromInput(t *testing.T) {
 	Convey("GetDateTimeInUTCFromInput", t, func() {
 		Convey("should return nil when key does not exist", func() {
-			input := map[string]interface{}{}
+			input := map[string]any{}
 			result := GetDateTimeInUTCFromInput(input, "nonexistent")
 			So(result, ShouldBeNil)
 		})
 
 		Convey("should return nil when value is nil", func() {
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": nil,
 			}
 
@@ -28,7 +28,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 			// Create a time in a specific timezone (not UTC)
 			originalTime := time.Date(2006, 1, 2, 3, 4, 5, 6, time.Local)
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": originalTime,
 			}
 
@@ -44,7 +44,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 			// Create a time in a specific timezone (not UTC)
 			originalTime := time.Date(2006, 1, 2, 3, 4, 5, 6, time.Local)
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": &originalTime,
 			}
 
@@ -59,7 +59,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 		Convey("should handle time.Time already in UTC", func() {
 			originalTime := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": originalTime,
 			}
 
@@ -73,7 +73,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 		Convey("should handle *time.Time already in UTC", func() {
 			originalTime := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": &originalTime,
 			}
 
@@ -85,7 +85,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 		})
 
 		Convey("should panic with invalid type", func() {
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": "invalid-string",
 			}
 
@@ -95,7 +95,7 @@ func TestGetDateTimeInUTCFromInput(t *testing.T) {
 		})
 
 		Convey("should panic with integer value", func() {
-			input := map[string]interface{}{
+			input := map[string]any{
 				"timestamp": 123456789,
 			}
 

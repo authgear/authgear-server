@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -58,10 +59,8 @@ var Prompt_PhoneOTPMode = cliutil.PromptString{
 	NonInteractiveFlagName:      "phone-otp-mode",
 	Validate: func(ctx context.Context, value string) error {
 		validChoices := []string{"sms", "whatsapp", "whatsapp_sms"}
-		for _, choice := range validChoices {
-			if value == choice {
-				return nil
-			}
+		if slices.Contains(validChoices, value) {
+			return nil
 		}
 		return errors.New("must enter 'sms', 'whatsapp', or 'whatsapp_sms'")
 	},
@@ -117,10 +116,8 @@ var Prompt_SearchImplementation = cliutil.PromptString{
 			string(config.SearchImplementationPostgresql),
 			string(config.SearchImplementationNone),
 		}
-		for _, choice := range validChoices {
-			if value == choice {
-				return nil
-			}
+		if slices.Contains(validChoices, value) {
+			return nil
 		}
 		return errors.New("must enter 'elasticsearch', 'postgresql' or 'none'")
 	},

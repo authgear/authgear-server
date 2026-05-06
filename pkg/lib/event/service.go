@@ -33,7 +33,7 @@ type Store interface {
 }
 
 type Resolver interface {
-	Resolve(ctx context.Context, anything interface{}) (err error)
+	Resolve(ctx context.Context, anything any) (err error)
 }
 
 var EventLogger = slogutil.NewLogger("event")

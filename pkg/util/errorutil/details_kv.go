@@ -8,17 +8,17 @@ const (
 	SafeDetail DetailTag = "safe"
 )
 
-func (t DetailTag) Value(value interface{}) DetailTaggedValue {
+func (t DetailTag) Value(value any) DetailTaggedValue {
 	return DetailTaggedValue{t, value}
 }
 
 type DetailTaggedValue struct {
 	Tag   DetailTag
-	Value interface{}
+	Value any
 }
 
 func (tv DetailTaggedValue) MarshalText() ([]byte, error) {
-	return []byte(fmt.Sprintf("[detail: %s]", SafeDetail)), nil
+	return fmt.Appendf(nil, "[detail: %s]", SafeDetail), nil
 }
 
 func FilterDetails(d Details, tag DetailTag) Details {

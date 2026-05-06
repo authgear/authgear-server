@@ -2,6 +2,8 @@
 // ref: https://www.crockford.com/base32.html
 package base32
 
+import "slices"
+
 // Alphabet of base32 encoding
 const Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
@@ -35,13 +37,7 @@ func Normalize(value string) (normalizedValue string, err error) {
 	normalizedDigits := make([]rune, len(value))
 	i := 0
 	for _, digit := range value {
-		isSep := false
-		for _, sep := range Separators {
-			if digit == sep {
-				isSep = true
-				break
-			}
-		}
+		isSep := slices.Contains(Separators, digit)
 		if isSep {
 			continue
 		}

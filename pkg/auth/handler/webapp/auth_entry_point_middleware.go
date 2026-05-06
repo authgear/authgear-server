@@ -83,7 +83,7 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *AuthEntryPointMiddleware) renderBlocked(w http.ResponseWriter, r *http.Request) {
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	baseViewModel := m.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	m.Renderer.RenderHTML(w, r, TemplateDirectAccessDisable, data)

@@ -34,7 +34,7 @@ func (w *ResponseWriter) WriteResponse(rw http.ResponseWriter, req *http.Request
 	httputil.WriteJSONResponse(req.Context(), rw, resp)
 }
 
-func (w *ResponseWriter) PrepareData(ctx context.Context, err error) map[string]interface{} {
+func (w *ResponseWriter) PrepareData(ctx context.Context, err error) map[string]any {
 	apiError := apierrors.AsAPIErrorWithContext(ctx, err)
 	b, err := json.Marshal(struct {
 		Error *apierrors.APIError `json:"error"`
@@ -42,10 +42,10 @@ func (w *ResponseWriter) PrepareData(ctx context.Context, err error) map[string]
 	if err != nil {
 		panic(err)
 	}
-	var eJSON map[string]interface{}
+	var eJSON map[string]any
 	err = json.Unmarshal(b, &eJSON)
 	if err != nil {
 		panic(err)
 	}
-	return map[string]interface{}{"Error": eJSON["error"]}
+	return map[string]any{"Error": eJSON["error"]}
 }

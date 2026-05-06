@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
-type Candidate map[string]interface{}
+type Candidate map[string]any
 
 const (
 	CandidateKeyIdentityID = "identity_id"

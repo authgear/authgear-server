@@ -15,7 +15,7 @@ func init() {
 
 type EdgeCreateIdentityBegin struct{}
 
-func (e *EdgeCreateIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeCreateIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeCreateIdentityBegin{}, nil
 }
 

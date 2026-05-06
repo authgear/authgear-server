@@ -9,7 +9,7 @@ import (
 
 // AssignToJSONObject treats all references tokens of t are map keys.
 // It assigns value at t in target.
-func AssignToJSONObject(t jsonpointer.T, target interface{}, value interface{}) (err error) {
+func AssignToJSONObject(t jsonpointer.T, target any, value any) (err error) {
 	if len(t) == 0 {
 		err = fmt.Errorf("assigning to root is not supported")
 		return
@@ -33,8 +33,7 @@ func AssignToJSONObject(t jsonpointer.T, target interface{}, value interface{}) 
 	case reflect.Map:
 		child := reflectValue.MapIndex(reflect.ValueOf(head))
 		if !child.IsValid() {
-			sampleMap := map[string]interface{}{}
-			m := reflect.MakeMap(reflect.TypeOf(sampleMap))
+			m := reflect.MakeMap(reflect.TypeFor[map[string]any]())
 			reflectValue.SetMapIndex(reflect.ValueOf(head), m)
 		}
 	default:
@@ -48,7 +47,7 @@ func AssignToJSONObject(t jsonpointer.T, target interface{}, value interface{}) 
 	return
 }
 
-func RemoveFromJSONObject(t jsonpointer.T, target interface{}) (err error) {
+func RemoveFromJSONObject(t jsonpointer.T, target any) (err error) {
 	if len(t) == 0 {
 		err = fmt.Errorf("removing from root is not supported")
 		return
@@ -74,8 +73,7 @@ func RemoveFromJSONObject(t jsonpointer.T, target interface{}) (err error) {
 	case reflect.Map:
 		child := reflectValue.MapIndex(reflect.ValueOf(head))
 		if !child.IsValid() {
-			sampleMap := map[string]interface{}{}
-			m := reflect.MakeMap(reflect.TypeOf(sampleMap))
+			m := reflect.MakeMap(reflect.TypeFor[map[string]any]())
 			reflectValue.SetMapIndex(reflect.ValueOf(head), m)
 		}
 	default:

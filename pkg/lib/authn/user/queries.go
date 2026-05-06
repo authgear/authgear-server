@@ -25,24 +25,24 @@ type VerificationService interface {
 }
 
 type StandardAttributesService interface {
-	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error)
 	DeriveStandardAttributesForUsers(
 		ctx context.Context,
 		role accesscontrol.Role,
 		userIDs []string,
 		updatedAts []time.Time,
-		attrsList []map[string]interface{},
-	) (map[string]map[string]interface{}, error)
+		attrsList []map[string]any,
+	) (map[string]map[string]any, error)
 }
 
 type CustomAttributesService interface {
-	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]any) (map[string]any, error)
 	ReadCustomAttributesInStorageFormForUsers(
 		ctx context.Context,
 		role accesscontrol.Role,
 		userIDs []string,
-		storageForms []map[string]interface{},
-	) (map[string]map[string]interface{}, error)
+		storageForms []map[string]any,
+	) (map[string]map[string]any, error)
 }
 
 type RolesAndGroupsService interface {
@@ -85,8 +85,8 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 
 	userIDs := []string{}
 	updatedAts := []time.Time{}
-	stdAttrsList := []map[string]interface{}{}
-	customAttrsList := []map[string]interface{}{}
+	stdAttrsList := []map[string]any{}
+	customAttrsList := []map[string]any{}
 	for _, rawUser := range rawUsers {
 		if rawUser == nil {
 			continue
@@ -189,8 +189,8 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 
 	userIDs := []string{}
 	updatedAts := []time.Time{}
-	stdAttrsList := []map[string]interface{}{}
-	customAttrsList := []map[string]interface{}{}
+	stdAttrsList := []map[string]any{}
+	customAttrsList := []map[string]any{}
 	for _, rawUser := range rawUsers {
 		if rawUser == nil {
 			continue

@@ -74,7 +74,7 @@ var nodeSession = node(
 		},
 	}),
 	&model.Session{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		s, err := gqlCtx.SessionFacade.Get(ctx, id)
 		if err != nil {
 			return nil, err

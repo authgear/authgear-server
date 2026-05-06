@@ -9,9 +9,9 @@ import (
 var defaultErrorMessage = "invalid value"
 
 type Error struct {
-	Location string                 `json:"location"`
-	Keyword  string                 `json:"kind"`
-	Info     map[string]interface{} `json:"details,omitempty"`
+	Location string         `json:"location"`
+	Keyword  string         `json:"kind"`
+	Info     map[string]any `json:"details,omitempty"`
 }
 
 func (e *Error) Kind() string { return e.Keyword }

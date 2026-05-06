@@ -15,9 +15,9 @@ const (
 )
 
 type Request struct {
-	Key        jwk.Key                `json:"-"`
-	KeyID      string                 `json:"-"`
-	DeviceInfo map[string]interface{} `json:"device_info"`
-	Challenge  string                 `json:"challenge"`
-	Action     RequestAction          `json:"action"`
+	Key        jwk.Key        `json:"-"`
+	KeyID      string         `json:"-"`
+	DeviceInfo map[string]any `json:"device_info"`
+	Challenge  string         `json:"challenge"`
+	Action     RequestAction  `json:"action"`
 }

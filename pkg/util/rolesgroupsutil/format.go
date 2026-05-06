@@ -10,7 +10,7 @@ var KeyReservedPrefix = "authgear:"
 
 type FormatKey struct{}
 
-func (_ FormatKey) CheckFormat(ctx context.Context, value interface{}) error {
+func (_ FormatKey) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

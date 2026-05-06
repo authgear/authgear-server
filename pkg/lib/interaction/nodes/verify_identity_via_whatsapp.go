@@ -25,7 +25,7 @@ type EdgeVerifyIdentityViaWhatsapp struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	var input InputVerifyIdentityViaWhatsapp
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -101,7 +101,7 @@ type EdgeVerifyIdentityViaWhatsappCheckCode struct {
 	Identity *identity.Info `json:"identity"`
 }
 
-func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	if err := ensurePhoneLoginIDIdentity(e.Identity); err != nil {
 		panic(err)
 	}

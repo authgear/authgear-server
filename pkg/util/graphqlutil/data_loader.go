@@ -12,25 +12,25 @@ import (
 //
 // So it is the responsibility of LoadFunc to satisfy these conditions.
 // The underlying implementation used by LoadFunc may not satisfy the conditions.
-type LoadFunc func(ctx context.Context, keys []interface{}) ([]interface{}, error)
+type LoadFunc func(ctx context.Context, keys []any) ([]any, error)
 
 type dataLoaderTask struct {
-	key    interface{}
-	settle func(value interface{}, err error)
+	key    any
+	settle func(value any, err error)
 }
 
 type DataLoaderInterface interface {
-	Load(ctx context.Context, key interface{}) *Lazy
-	LoadMany(ctx context.Context, keys []interface{}) *Lazy
-	Clear(key interface{})
+	Load(ctx context.Context, key any) *Lazy
+	LoadMany(ctx context.Context, keys []any) *Lazy
+	Clear(key any)
 	ClearAll()
-	Prime(key interface{}, value interface{})
+	Prime(key any, value any)
 }
 
 type DataLoader struct {
 	MaxBatch int
 	loadFn   LoadFunc
-	cache    map[interface{}]*Lazy
+	cache    map[any]*Lazy
 	queue    []dataLoaderTask
 }
 
@@ -38,12 +38,12 @@ func NewDataLoader(loadFn LoadFunc) *DataLoader {
 	return &DataLoader{
 		MaxBatch: 20,
 		loadFn:   loadFn,
-		cache:    make(map[interface{}]*Lazy),
+		cache:    make(map[any]*Lazy),
 	}
 }
 
 func (l *DataLoader) run(ctx context.Context) {
-	keys := make([]interface{}, len(l.queue))
+	keys := make([]any, len(l.queue))
 	for i, p := range l.queue {
 		keys[i] = p.key
 	}
@@ -58,7 +58,7 @@ func (l *DataLoader) run(ctx context.Context) {
 	l.queue = nil
 }
 
-func (l *DataLoader) Load(ctx context.Context, key interface{}) *Lazy {
+func (l *DataLoader) Load(ctx context.Context, key any) *Lazy {
 	p, ok := l.cache[key]
 	if !ok {
 		if len(l.queue) >= l.MaxBatch {
@@ -66,9 +66,9 @@ func (l *DataLoader) Load(ctx context.Context, key interface{}) *Lazy {
 		}
 
 		settled := false
-		var value interface{}
+		var value any
 		var err error
-		p = NewLazy(func() (interface{}, error) {
+		p = NewLazy(func() (any, error) {
 			if !settled {
 				l.run(ctx)
 			}
@@ -76,7 +76,7 @@ func (l *DataLoader) Load(ctx context.Context, key interface{}) *Lazy {
 		})
 		l.queue = append(l.queue, dataLoaderTask{
 			key: key,
-			settle: func(v interface{}, e error) {
+			settle: func(v any, e error) {
 				value = v
 				err = e
 				settled = true
@@ -87,8 +87,8 @@ func (l *DataLoader) Load(ctx context.Context, key interface{}) *Lazy {
 	return p
 }
 
-func (l *DataLoader) LoadMany(ctx context.Context, keys []interface{}) *Lazy {
-	values := make([]interface{}, len(keys))
+func (l *DataLoader) LoadMany(ctx context.Context, keys []any) *Lazy {
+	values := make([]any, len(keys))
 	for idx, key := range keys {
 		value := l.Load(ctx, key)
 		values[idx] = value
@@ -96,15 +96,15 @@ func (l *DataLoader) LoadMany(ctx context.Context, keys []interface{}) *Lazy {
 	return NewLazyValue(values)
 }
 
-func (l *DataLoader) Clear(key interface{}) {
+func (l *DataLoader) Clear(key any) {
 	delete(l.cache, key)
 }
 
 func (l *DataLoader) ClearAll() {
-	l.cache = make(map[interface{}]*Lazy)
+	l.cache = make(map[any]*Lazy)
 }
 
-func (l *DataLoader) Prime(key interface{}, value interface{}) {
+func (l *DataLoader) Prime(key any, value any) {
 	_, ok := l.cache[key]
 	if ok {
 		return

@@ -27,7 +27,7 @@ func DiffAppConfig(originalConfig *AppConfig, newConfig *AppConfig) (string, err
 		ShowArrayIndex: true,
 		Coloring:       false,
 	}
-	var oMap map[string]interface{}
+	var oMap map[string]any
 	err = json.Unmarshal(oBytes, &oMap)
 	if err != nil {
 		return "", err

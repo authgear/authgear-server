@@ -17,7 +17,7 @@ type EdgeDoUseIdentity struct {
 	UserIDHint string
 }
 
-func (e *EdgeDoUseIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUseIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	if e.UserIDHint != "" {
 		if e.UserIDHint != e.Identity.UserID {
 			return nil, api.ErrMismatchedUser

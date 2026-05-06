@@ -25,7 +25,7 @@ const (
 
 type Linkedin struct{}
 
-func (Linkedin) GetJSONSchema() map[string]interface{} {
+func (Linkedin) GetJSONSchema() map[string]any {
 	builder := validation.SchemaBuilder{}
 	builder.Type(validation.TypeObject)
 	builder.Properties().
@@ -54,7 +54,7 @@ func (Linkedin) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpar
 	// Therefore, ProviderID is Type + client_id.
 	//
 	// Rotating the OAuth application is problematic.
-	keys := map[string]interface{}{
+	keys := map[string]any{
 		"client_id": cfg.ClientID(),
 	}
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)

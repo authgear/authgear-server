@@ -39,6 +39,6 @@ func (LinkOTPSecretCodeType) Compare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
-func (LinkOTPSecretCodeType) CheckFormat(ctx context.Context, value interface{}) error {
+func (LinkOTPSecretCodeType) CheckFormat(ctx context.Context, value any) error {
 	return nil
 }

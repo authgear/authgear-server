@@ -8,20 +8,20 @@ type defaulter interface {
 	SetDefaults()
 }
 
-func SetFieldDefaults(value interface{}) {
+func SetFieldDefaults(value any) {
 	var set func(t reflect.Type, v reflect.Value)
 
 	set = func(t reflect.Type, v reflect.Value) {
 		switch t.Kind() {
 		case reflect.Slice:
-			itemT := reflect.PtrTo(t.Elem())
+			itemT := reflect.PointerTo(t.Elem())
 			for i := 0; i < v.Len(); i++ {
 				item := v.Index(i).Addr()
 				set(itemT, item)
 			}
 		case reflect.Struct:
 			numField := t.NumField()
-			for j := 0; j < numField; j++ {
+			for j := range numField {
 				field := v.Field(j)
 				ft := t.Field(j)
 				isNullable := ft.Tag.Get("nullable") == "true"
@@ -30,7 +30,7 @@ func SetFieldDefaults(value interface{}) {
 					set(ft.Type, field)
 				}
 			}
-		case reflect.Ptr:
+		case reflect.Pointer:
 			ele := v.Elem()
 			if !ele.IsValid() && t.Elem().Kind() == reflect.Struct {
 				ele = reflect.New(t.Elem())

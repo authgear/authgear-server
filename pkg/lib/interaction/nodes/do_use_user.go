@@ -14,7 +14,7 @@ type EdgeDoUseUser struct {
 	UseUserID string
 }
 
-func (e *EdgeDoUseUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeDoUseUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input any) (interaction.Node, error) {
 	return &NodeDoUseUser{
 		UseUserID: e.UseUserID,
 	}, nil

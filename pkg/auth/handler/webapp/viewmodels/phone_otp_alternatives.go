@@ -27,7 +27,7 @@ func (m *PhoneOTPAlternativeStepsViewModel) AddAlternatives(graph *interaction.G
 	var node1 CreateAuthenticatorBeginNode
 	var node2 AuthenticationBeginNode
 	var node3 EnsureVerificationBeginNode
-	nodesInf := []interface{}{
+	nodesInf := []any{
 		&node1,
 		&node2,
 		&node3,

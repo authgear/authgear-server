@@ -6,14 +6,14 @@ import (
 )
 
 type Attrs struct {
-	UserID string                          `json:"user_id"`
-	Claims map[model.ClaimName]interface{} `json:"claims"`
+	UserID string                  `json:"user_id"`
+	Claims map[model.ClaimName]any `json:"claims"`
 }
 
 func NewAttrs(userID string) *Attrs {
 	return &Attrs{
 		UserID: userID,
-		Claims: map[model.ClaimName]interface{}{},
+		Claims: map[model.ClaimName]any{},
 	}
 }
 

@@ -74,7 +74,7 @@ func (p *HistoryStore) RemovePasswordHistory(ctx context.Context, userID string,
 	}
 
 	oldestTime := history[len(history)-1].CreatedAt
-	ids := []interface{}{}
+	ids := []any{}
 	for _, h := range history {
 		ids = append(ids, h.ID)
 	}

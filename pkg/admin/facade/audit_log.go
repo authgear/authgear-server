@@ -50,7 +50,7 @@ func (f *AuditLogFacade) QueryPage(ctx context.Context, opts audit.QueryPageOpti
 		return nil, nil, err
 	}
 
-	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (any, error) {
 		return count, nil
 	})), nil
 }
@@ -95,7 +95,7 @@ func (f *AuditLogFacade) QueryFraudProtectionDecisionRecordsPage(
 		return nil, 0, nil, err
 	}
 
-	return items, offset, graphqlutil.NewPageResult(pageArgs, len(items), graphqlutil.NewLazy(func() (interface{}, error) {
+	return items, offset, graphqlutil.NewPageResult(pageArgs, len(items), graphqlutil.NewLazy(func() (any, error) {
 		return count, nil
 	})), nil
 }

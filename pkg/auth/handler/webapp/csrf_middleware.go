@@ -48,7 +48,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 			uiImpl := m.UIImplementationService.GetUIImplementation()
 
-			data := make(map[string]interface{})
+			data := make(map[string]any)
 			baseViewModel := m.BaseViewModel.ViewModelForAuthFlow(r, w)
 			viewmodels.Embed(data, baseViewModel)
 

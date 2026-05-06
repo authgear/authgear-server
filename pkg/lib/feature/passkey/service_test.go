@@ -34,7 +34,7 @@ const packedAttestationChallenge = "P_JKQid1tvs4BltiZ1CsEfXl3GZ0IpmLPUQFlY-o0x9s
 
 type testTranslationService struct{}
 
-func (s *testTranslationService) RenderText(ctx context.Context, key string, args interface{}) (string, error) {
+func (s *testTranslationService) RenderText(ctx context.Context, key string, args any) (string, error) {
 	return "Test App", nil
 }
 
@@ -164,7 +164,7 @@ func mustParseCredentialID(t *testing.T, attestationResponse []byte) string {
 func mustOverrideCredentialID(t *testing.T, attestationResponse string, credentialID string) []byte {
 	t.Helper()
 
-	var payload map[string]interface{}
+	var payload map[string]any
 	if err := json.Unmarshal([]byte(attestationResponse), &payload); err != nil {
 		t.Fatalf("failed to unmarshal attestation response: %v", err)
 	}

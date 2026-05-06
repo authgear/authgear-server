@@ -76,8 +76,6 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 	options := []AuthflowV2AccountLinkingOption{}
 
 	for idx, option := range data.Options {
-		idx := idx
-		option := option
 
 		options = append(options, AuthflowV2AccountLinkingOption{
 			Identification:    option.Identifcation,
@@ -94,8 +92,8 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 	}
 }
 
-func (h *AuthflowV2AccountLinkingHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2AccountLinkingHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -151,14 +149,14 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return nil
 		}
 
-		var input map[string]interface{}
+		var input map[string]any
 		switch option.Identifcation {
 		case model.AuthenticationFlowIdentificationEmail:
 			fallthrough
 		case model.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case model.AuthenticationFlowIdentificationUsername:
-			input = map[string]interface{}{
+			input = map[string]any{
 				"index": index,
 			}
 		case model.AuthenticationFlowIdentificationOAuth:
@@ -168,7 +166,7 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			if err != nil {
 				return err
 			}
-			input = map[string]interface{}{
+			input = map[string]any{
 				"index":        index,
 				"redirect_uri": redirectURI,
 			}

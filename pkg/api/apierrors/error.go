@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
@@ -27,16 +28,14 @@ func (c StringCause) MarshalJSON() ([]byte, error) {
 
 type MapCause struct {
 	CauseKind string
-	Data      map[string]interface{}
+	Data      map[string]any
 }
 
 func (c MapCause) Kind() string { return c.CauseKind }
 func (c MapCause) MarshalJSON() ([]byte, error) {
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	data["kind"] = c.CauseKind
-	for k, v := range c.Data {
-		data[k] = v
-	}
+	maps.Copy(data, c.Data)
 	return json.Marshal(data)
 }
 
@@ -61,9 +60,7 @@ func (e *APIError) Error() string {
 }
 
 func (e *APIError) FillDetails(details Details) {
-	for key, val := range e.Info_ReadOnly {
-		details[key] = val
-	}
+	maps.Copy(details, e.Info_ReadOnly)
 }
 
 func (e *APIError) HasCause(kind string) bool {
@@ -141,12 +138,10 @@ func IsAPIError(err error) bool {
 	return errors.As(err, &v)
 }
 
-func mergeInfo(infos ...map[string]interface{}) map[string]interface{} {
-	out := make(map[string]interface{})
+func mergeInfo(infos ...map[string]any) map[string]any {
+	out := make(map[string]any)
 	for _, info := range infos {
-		for k, v := range info {
-			out[k] = v
-		}
+		maps.Copy(out, info)
 	}
 	return out
 }
@@ -197,7 +192,6 @@ func asAPIError(err error) *APIError {
 	} else if v := (*validation.AggregatedError)(nil); errors.As(err, &v) {
 		causes := make([]Cause, len(v.Errors))
 		for i, c := range v.Errors {
-			c := c
 			causes[i] = &c
 		}
 		info["causes"] = causes
@@ -265,7 +259,7 @@ func newInvalidJSON(err *json.SyntaxError) *APIError {
 		Kind:    Kind{Name: BadRequest, Reason: "InvalidJSON"},
 		Message: err.Error(),
 		Code:    BadRequest.HTTPStatus(),
-		Info_ReadOnly: map[string]interface{}{
+		Info_ReadOnly: map[string]any{
 			"byte_offset": err.Offset,
 		},
 	}
@@ -276,6 +270,6 @@ func newRequestBodyTooLarge(err *http.MaxBytesError) *APIError {
 		Kind:          Kind{Name: RequestEntityTooLarge, Reason: "RequestEntityTooLarge"},
 		Message:       err.Error(),
 		Code:          RequestEntityTooLarge.HTTPStatus(),
-		Info_ReadOnly: map[string]interface{}{},
+		Info_ReadOnly: map[string]any{},
 	}
 }

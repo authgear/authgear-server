@@ -15,7 +15,7 @@ func NewErrDuplicatedAuthenticator(typ model.AuthenticatorType) error {
 			"duplicated authenticator",
 			apierrors.MapCause{
 				CauseKind: "DuplicatedAuthenticator",
-				Data: map[string]interface{}{
+				Data: map[string]any{
 					"AuthenticatorType": string(typ),
 				},
 			},

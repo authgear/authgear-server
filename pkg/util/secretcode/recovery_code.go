@@ -31,7 +31,7 @@ func (RecoveryCodeType) FormatForComparison(code string) (formatted string, err 
 	return
 }
 
-func (t RecoveryCodeType) CheckFormat(ctx context.Context, value interface{}) error {
+func (t RecoveryCodeType) CheckFormat(ctx context.Context, value any) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

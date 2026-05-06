@@ -102,7 +102,7 @@ func (s *UsageService) GetMonthlyActiveUsersUsage(ctx context.Context, appID str
 	}
 	counts := make([]siteadmin.MonthlyActiveUsersCount, 0, totalMonths)
 	year, month := startYear, startMonth
-	for i := 0; i < totalMonths; i++ {
+	for range totalMonths {
 		t := timeutil.FirstDayOfTheMonth(time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC))
 		counts = append(counts, siteadmin.MonthlyActiveUsersCount{
 			Year:  year,

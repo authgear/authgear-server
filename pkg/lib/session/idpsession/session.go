@@ -43,14 +43,14 @@ func (s *IDPSession) ListableSession() {}
 func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
-func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
-func (s *IDPSession) GetExpireAt() time.Time                        { return s.ExpireAtForResolvedSession }
-func (s *IDPSession) GetAuthenticatedAt() time.Time                 { return s.AuthenticatedAt }
-func (s *IDPSession) GetClientID() string                           { return "" }
-func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }
-func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
-func (s *IDPSession) GetUserID() string                             { return s.Attrs.UserID }
-func (s *IDPSession) GetOIDCAMR() ([]string, bool)                  { return s.Attrs.GetAMR() }
+func (s *IDPSession) GetCreatedAt() time.Time               { return s.CreatedAt }
+func (s *IDPSession) GetExpireAt() time.Time                { return s.ExpireAtForResolvedSession }
+func (s *IDPSession) GetAuthenticatedAt() time.Time         { return s.AuthenticatedAt }
+func (s *IDPSession) GetClientID() string                   { return "" }
+func (s *IDPSession) GetAccessInfo() *access.Info           { return &s.AccessInfo }
+func (s *IDPSession) GetDeviceInfo() (map[string]any, bool) { return nil, false }
+func (s *IDPSession) GetUserID() string                     { return s.Attrs.UserID }
+func (s *IDPSession) GetOIDCAMR() ([]string, bool)          { return s.Attrs.GetAMR() }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)

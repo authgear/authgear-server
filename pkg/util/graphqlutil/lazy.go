@@ -1,20 +1,20 @@
 package graphqlutil
 
 type Lazy struct {
-	init  func() (interface{}, error)
-	value interface{}
+	init  func() (any, error)
+	value any
 	err   error
 }
 
-func NewLazy(init func() (interface{}, error)) *Lazy {
+func NewLazy(init func() (any, error)) *Lazy {
 	return &Lazy{init: init}
 }
 
-func NewLazyValue(value interface{}) *Lazy {
+func NewLazyValue(value any) *Lazy {
 	switch value := value.(type) {
 	case *Lazy:
 		return value
-	case func() (interface{}, error):
+	case func() (any, error):
 		return NewLazy(value)
 	default:
 		return &Lazy{value: value}
@@ -25,7 +25,7 @@ func NewLazyError(err error) *Lazy {
 	return &Lazy{err: err}
 }
 
-func (l *Lazy) Value() (interface{}, error) {
+func (l *Lazy) Value() (any, error) {
 	if l.init != nil {
 		l.value, l.err = l.init()
 		l.init = nil
@@ -44,7 +44,7 @@ func (l *Lazy) Value() (interface{}, error) {
 	}
 
 	// Evaluate object with lazy values
-	if obj, ok := l.value.(map[string]interface{}); ok {
+	if obj, ok := l.value.(map[string]any); ok {
 		for key, value := range obj {
 			lazy := NewLazyValue(value)
 
@@ -59,7 +59,7 @@ func (l *Lazy) Value() (interface{}, error) {
 	}
 
 	// Evaluate slice with lazy values
-	if slice, ok := l.value.([]interface{}); ok {
+	if slice, ok := l.value.([]any); ok {
 		for idx, value := range slice {
 			lazy := NewLazyValue(value)
 
@@ -76,8 +76,8 @@ func (l *Lazy) Value() (interface{}, error) {
 	return l.value, l.err
 }
 
-func (l *Lazy) Map(mapFn func(interface{}) (interface{}, error)) *Lazy {
-	return NewLazy(func() (interface{}, error) {
+func (l *Lazy) Map(mapFn func(any) (any, error)) *Lazy {
+	return NewLazy(func() (any, error) {
 		value, err := l.Value()
 		if err != nil {
 			return nil, err
@@ -90,8 +90,8 @@ func (l *Lazy) Map(mapFn func(interface{}) (interface{}, error)) *Lazy {
 	})
 }
 
-func (l *Lazy) MapTo(value interface{}) *Lazy {
-	return l.Map(func(interface{}) (interface{}, error) {
+func (l *Lazy) MapTo(value any) *Lazy {
+	return l.Map(func(any) (any, error) {
 		return NewLazyValue(value).Value()
 	})
 }

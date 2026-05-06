@@ -13,7 +13,7 @@ import (
 )
 
 type InteractionService interface {
-	Perform(ctx context.Context, intent interaction.Intent, input interface{}) (*interaction.Graph, error)
+	Perform(ctx context.Context, intent interaction.Intent, input any) (*interaction.Graph, error)
 }
 
 // adminAPIOp represents common characteristics applicable to Admin API operations.
@@ -77,7 +77,7 @@ type updateIdentityInput struct {
 	identityDef model.IdentityDef
 }
 
-func (i *updateIdentityInput) Input() interface{} {
+func (i *updateIdentityInput) Input() any {
 	return i.identityDef
 }
 
@@ -97,7 +97,7 @@ func (i *removeAuthenticatorInput) GetAuthenticatorID() string {
 
 type addPasswordInput struct {
 	adminAPIOp
-	inner    interface{}
+	inner    any
 	password string
 }
 
@@ -107,7 +107,7 @@ var _ nodes.InputAuthenticationStage = &addPasswordInput{}
 func (i *addPasswordInput) GetPassword() string {
 	return i.password
 }
-func (i *addPasswordInput) Input() interface{} {
+func (i *addPasswordInput) Input() any {
 	return i.inner
 }
 
@@ -158,7 +158,7 @@ var _ nodes.InputPromptCreatePasskey = &createUserInput{}
 func (i *createUserInput) GetPassword() string {
 	return i.password
 }
-func (i *createUserInput) Input() interface{} {
+func (i *createUserInput) Input() any {
 	return i.identityDef
 }
 func (i *createUserInput) GetAuthenticationStage() authn.AuthenticationStage {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func MakeError(val interface{}) error {
+func MakeError(val any) error {
 	if val == nil {
 		return nil
 	}

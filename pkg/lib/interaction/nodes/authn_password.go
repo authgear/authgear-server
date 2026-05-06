@@ -32,7 +32,7 @@ func (e *EdgeAuthenticationPassword) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	// We first check the stage so that if password + additional password is used,
 	// we do not advance too far.
 	// That is, we do not check the given primary password against secondary password and report error.

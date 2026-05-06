@@ -106,7 +106,7 @@ func (s *Store) unmarshalPreAuthenticatedURLToken(data []byte) (*oauth.PreAuthen
 	return &t, nil
 }
 
-func (s *Store) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
+func (s *Store) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, value any, expireAt time.Time, ifNotExists bool) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -317,7 +317,7 @@ func (s *Store) UpdateOfflineGrantWithMutator(ctx context.Context, grantID strin
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantDeviceInfo(ctx context.Context, grantID string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantDeviceInfo(ctx context.Context, grantID string, deviceInfo map[string]any, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(ctx)
@@ -557,7 +557,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID str
 		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	tokenHashesSet := map[string]interface{}{}
+	tokenHashesSet := map[string]any{}
 	for _, hash := range initialTokenHashes {
 		tokenHashesSet[hash] = hash
 	}
@@ -569,7 +569,6 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID str
 
 	newRefreshTokens := []oauth.OfflineGrantRefreshToken{}
 	for _, token := range grant.RefreshTokens {
-		token := token
 		if _, exist := tokenHashesSet[token.InitialTokenHash]; !exist {
 			newRefreshTokens = append(newRefreshTokens, token)
 		}

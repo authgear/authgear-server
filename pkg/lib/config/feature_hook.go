@@ -41,7 +41,7 @@ type BlockingHandlerFeatureConfig struct {
 
 func (c *BlockingHandlerFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 }
 
@@ -61,6 +61,6 @@ type NonBlockingHandlerFeatureConfig struct {
 
 func (c *NonBlockingHandlerFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
-		c.Maximum = newInt(99)
+		c.Maximum = new(99)
 	}
 }

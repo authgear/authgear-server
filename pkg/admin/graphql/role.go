@@ -18,7 +18,7 @@ func init() {
 		Type:        connGroup.ConnectionType,
 		Description: "The list of groups this role is in.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.Role)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
@@ -28,7 +28,7 @@ func init() {
 				return nil, err
 			}
 
-			groupIfaces := make([]interface{}, len(groups))
+			groupIfaces := make([]any, len(groups))
 			for i, g := range groups {
 				groupIfaces[i] = g
 			}
@@ -42,7 +42,7 @@ func init() {
 		Type:        connUser.ConnectionType,
 		Description: "The list of users who has this role.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		Resolve: func(p graphql.ResolveParams) (any, error) {
 			source := p.Source.(*model.Role)
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
@@ -95,7 +95,7 @@ var nodeRole = node(
 		},
 	}),
 	&model.Role{},
-	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	func(ctx context.Context, gqlCtx *Context, id string) (any, error) {
 		return gqlCtx.Roles.Load(ctx, id).Value, nil
 	},
 )

@@ -1,5 +1,4 @@
 //go:build authgearonce
-// +build authgearonce
 
 package service
 

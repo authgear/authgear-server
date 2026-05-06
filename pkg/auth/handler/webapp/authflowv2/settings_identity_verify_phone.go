@@ -81,8 +81,8 @@ type AuthflowV2SettingsIdentityVerifyPhoneHandler struct {
 	AuthenticatorConfig *config.AuthenticatorConfig
 }
 
-func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
+func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+	data := map[string]any{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 	tokenString := r.Form.Get("q_token")
@@ -127,11 +127,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(ctx context.Conte
 		return nil, err
 	}
 	cooldown := int(math.Ceil(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())) // Use ceil, because int conversion truncates decimal and can lead to Please Wait Before Resending error.
-	if cooldown < 0 {
-		vm.ResendCooldown = 0
-	} else {
-		vm.ResendCooldown = cooldown
-	}
+	vm.ResendCooldown = max(cooldown, 0)
 
 	vm.FailedAttemptRateLimitExceeded = state.TooManyAttempts
 

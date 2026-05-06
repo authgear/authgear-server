@@ -32,7 +32,7 @@ func (s *EventStoreRedis) AppendEvent(ctx context.Context, sessionID string, exp
 	args := &goredis.XAddArgs{
 		Stream: streamKey,
 		ID:     "*",
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			eventTypeAccessEvent: data,
 		},
 	}

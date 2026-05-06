@@ -25,7 +25,7 @@ func (g *GraphiQL) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	nonce := httputil.GetCSPNonce(r.Context())
-	data := map[string]interface{}{
+	data := map[string]any{
 		"Title":    g.Title,
 		"CSPNonce": nonce,
 		"IsPortal": g.IsPortal,

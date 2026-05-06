@@ -763,7 +763,6 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) delete(currentConfig *SecretCon
 	deletingKeyIDsSet := setutil.NewSetFromSlice(i.DeleteData.KeyIDs, setutil.Identity)
 
 	for _, cert := range credentials.Certificates {
-		cert := cert
 		if deletingKeyIDsSet.Has(cert.Key.KeyID()) {
 			continue
 		}

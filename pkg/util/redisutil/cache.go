@@ -10,7 +10,7 @@ import (
 
 // SimpleCmdable is a simplified version of redis.Cmdable.
 type SimpleCmdable interface {
-	SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
+	SetEx(ctx context.Context, key string, value any, expiration time.Duration) *redis.StatusCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
 }
 

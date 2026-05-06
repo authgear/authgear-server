@@ -78,7 +78,7 @@ func TestNewlineJoinedDescriptor(t *testing.T) {
 
 		lines := resource.NewlineJoinedDescriptor{
 			Path: "static/list.txt",
-			Parse: func(bytes []byte) (interface{}, error) {
+			Parse: func(bytes []byte) (any, error) {
 				return bytes, nil
 			},
 		}

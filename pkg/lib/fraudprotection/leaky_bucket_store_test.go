@@ -84,7 +84,7 @@ func TestLeakyBucketStoreRecordUnverifiedSMSOTPSent(t *testing.T) {
 
 		Convey("IPHourly triggers after exceeding IP hourly threshold", func() {
 			// ipHourly threshold = 5; send 6 times without time advancing
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				_, _, err := store.RecordUnverifiedSMSOTPSent(ctx, "1.2.3.4", "SG", thresholds)
 				So(err, ShouldBeNil)
 			}
@@ -95,7 +95,7 @@ func TestLeakyBucketStoreRecordUnverifiedSMSOTPSent(t *testing.T) {
 
 		Convey("CountryHourly triggers after exceeding country hourly threshold", func() {
 			// countryHourly threshold = 3; use different IPs to avoid IP bucket interference
-			for i := 0; i < 3; i++ {
+			for range 3 {
 				_, _, err := store.RecordUnverifiedSMSOTPSent(ctx, "10.0.0.1", "SG", thresholds)
 				So(err, ShouldBeNil)
 			}
@@ -164,7 +164,7 @@ func TestLeakyBucketStoreRecordUnverifiedSMSOTPSent(t *testing.T) {
 
 		Convey("level drains over time and no longer triggers after sufficient drain", func() {
 			// Fill country hourly bucket (threshold=3) past the threshold.
-			for i := 0; i < 4; i++ {
+			for range 4 {
 				_, _, _ = store.RecordUnverifiedSMSOTPSent(ctx, "1.2.3.4", "SG", thresholds)
 			}
 
@@ -200,7 +200,7 @@ func TestLeakyBucketStoreDrainUnverifiedSMSOTPSent(t *testing.T) {
 
 		Convey("draining after fills brings bucket back below threshold", func() {
 			// Fill IP hourly bucket past threshold (threshold=5, send 6).
-			for i := 0; i < 6; i++ {
+			for range 6 {
 				_, _, _ = store.RecordUnverifiedSMSOTPSent(ctx, "1.2.3.4", "SG", thresholds)
 			}
 

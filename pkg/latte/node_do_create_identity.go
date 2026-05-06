@@ -40,6 +40,6 @@ func (*NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *workflow.Depende
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeDoCreateIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeDoCreateIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

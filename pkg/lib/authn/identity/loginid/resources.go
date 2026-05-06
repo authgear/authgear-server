@@ -9,26 +9,26 @@ import (
 )
 
 type ResourceManager interface {
-	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
 }
 
 var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "reserved_name.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return blocklist.New(string(data))
 	},
 })
 
 var UsernameExcludedKeywordsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "username_excluded_keywords.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return matchlist.New(string(data), true, true)
 	},
 })
 
 var EmailDomainBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_blocklist.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return matchlist.New(string(data), true, false)
 	},
 })
@@ -37,7 +37,7 @@ var EmailDomainBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDe
 // https://github.com/Kikobeats/free-email-domains/blob/master/domains.json
 var FreeEmailProviderDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "free_email_provider_domain_list.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return matchlist.New(string(data), true, false)
 	},
 })
@@ -46,14 +46,14 @@ var FreeEmailProviderDomainsTXT = resource.RegisterResource(resource.NewlineJoin
 // https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf
 var DisposableEmailDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "disposable_email_domain_list.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return matchlist.New(string(data), true, false)
 	},
 })
 
 var EmailDomainAllowListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_allowlist.txt",
-	Parse: func(data []byte) (interface{}, error) {
+	Parse: func(data []byte) (any, error) {
 		return matchlist.New(string(data), true, false)
 	},
 })

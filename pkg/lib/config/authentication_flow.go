@@ -778,7 +778,6 @@ func (f *AuthenticationFlowSignupFlow) GetName() string { return f.Name }
 func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -825,7 +824,6 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -841,7 +839,6 @@ func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []Aut
 	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -882,7 +879,6 @@ func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowSignupFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -937,7 +933,6 @@ func (f *AuthenticationFlowLoginFlow) GetName() string {
 func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -986,7 +981,6 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject 
 	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -1002,7 +996,6 @@ func (s *AuthenticationFlowLoginFlowStep) GetSignupFlowOrLoginFlowOneOf() []Auth
 	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -1045,7 +1038,6 @@ func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowLoginFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -1087,7 +1079,6 @@ func (f *AuthenticationFlowSignupLoginFlow) GetName() string { return f.Name }
 func (f *AuthenticationFlowSignupLoginFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -1112,7 +1103,6 @@ func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowO
 	case AuthenticationFlowSignupLoginFlowStepTypeIdentify:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -1168,7 +1158,6 @@ func (f *AuthenticationFlowReauthFlow) GetName() string { return f.Name }
 func (f *AuthenticationFlowReauthFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -1204,7 +1193,6 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject
 	case AuthenticationFlowReauthFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -1237,7 +1225,6 @@ func (f *AuthenticationFlowReauthFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowReauthFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -1270,7 +1257,6 @@ func (f *AuthenticationFlowAccountRecoveryFlow) GetName() string {
 func (f *AuthenticationFlowAccountRecoveryFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out
@@ -1345,7 +1331,6 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationF
 	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
-			v := v
 			out[i] = v
 		}
 		return out
@@ -1386,7 +1371,6 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
-		v := v
 		out[i] = v
 	}
 	return out

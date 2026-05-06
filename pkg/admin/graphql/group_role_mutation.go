@@ -43,12 +43,12 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addRoleToGroupsInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			roleKey := input["roleKey"].(string)
 
-			groupKeyIfaces := input["groupKeys"].([]interface{})
+			groupKeyIfaces := input["groupKeys"].([]any)
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
@@ -86,7 +86,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 		},
@@ -126,12 +126,12 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeRoleFromGroupsInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			roleKey := input["roleKey"].(string)
 
-			groupKeyIfaces := input["groupKeys"].([]interface{})
+			groupKeyIfaces := input["groupKeys"].([]any)
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
@@ -169,7 +169,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 		},
@@ -209,12 +209,12 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(addGroupToRolesInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupKey := input["groupKey"].(string)
 
-			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeyIfaces := input["roleKeys"].([]any)
 			roleKeys := make([]string, len(roleKeyIfaces))
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
@@ -252,7 +252,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 		},
@@ -292,12 +292,12 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(removeGroupFromRolesInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 
 			groupKey := input["groupKey"].(string)
 
-			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeyIfaces := input["roleKeys"].([]any)
 			roleKeys := make([]string, len(roleKeyIfaces))
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
@@ -334,7 +334,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 		},

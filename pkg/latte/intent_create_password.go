@@ -74,6 +74,6 @@ func (*IntentCreatePassword) GetEffects(ctx context.Context, deps *workflow.Depe
 	return nil, nil
 }
 
-func (*IntentCreatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentCreatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }

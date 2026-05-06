@@ -1,6 +1,7 @@
 package relay_test
 
 import (
+	context0 "context"
 	"errors"
 	"reflect"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/location"
 	"github.com/graphql-go/graphql/testutil"
-	"golang.org/x/net/context"
 
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
@@ -29,8 +29,8 @@ var simpleMutationTest = relay.MutationWithClientMutationID(relay.MutationConfig
 			Type: graphql.Int,
 		},
 	},
-	MutateAndGetPayload: func(inputMap map[string]interface{}, info graphql.ResolveInfo, ctx context.Context) (map[string]interface{}, error) {
-		return map[string]interface{}{
+	MutateAndGetPayload: func(inputMap map[string]any, info graphql.ResolveInfo, ctx context0.Context) (map[string]any, error) {
+		return map[string]any{
 			"result": 1,
 		}, nil
 	},
@@ -46,8 +46,8 @@ var simpleMutationErrorTest = relay.MutationWithClientMutationID(relay.MutationC
 			Type: graphql.Int,
 		},
 	},
-	MutateAndGetPayload: func(inputMap map[string]interface{}, info graphql.ResolveInfo, ctx context.Context) (map[string]interface{}, error) {
-		return map[string]interface{}(nil), NotFoundError
+	MutateAndGetPayload: func(inputMap map[string]any, info graphql.ResolveInfo, ctx context0.Context) (map[string]any, error) {
+		return map[string]any(nil), NotFoundError
 	},
 })
 
@@ -60,11 +60,11 @@ var simplePromiseMutationTest = relay.MutationWithClientMutationID(relay.Mutatio
 			Type: graphql.Int,
 		},
 	},
-	MutateAndGetPayload: func(inputMap map[string]interface{}, info graphql.ResolveInfo, ctx context.Context) (map[string]interface{}, error) {
+	MutateAndGetPayload: func(inputMap map[string]any, info graphql.ResolveInfo, ctx context0.Context) (map[string]any, error) {
 		c := make(chan int)
 		go testAsyncDataMutation(&c)
 		result := <-c
-		return map[string]interface{}{
+		return map[string]any{
 			"result": result,
 		}, nil
 	},
@@ -131,8 +131,8 @@ func TestMutation_WithClientMutationId_BehavesCorrectly_ReturnsTheSameClientMuta
         }
       `
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"simpleMutation": map[string]interface{}{
+		Data: map[string]any{
+			"simpleMutation": map[string]any{
 				"result":           1,
 				"clientMutationId": "abc",
 			},
@@ -159,8 +159,8 @@ func TestMutation_WithClientMutationId_BehavesCorrectly_SupportsPromiseMutations
         }
       `
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"simplePromiseMutation": map[string]interface{}{
+		Data: map[string]any{
+			"simplePromiseMutation": map[string]any{
 				"result":           1,
 				"clientMutationId": "abc",
 			},
@@ -194,17 +194,17 @@ func TestMutation_IntrospectsCorrectly_ContainsCorrectInput(t *testing.T) {
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__type": map[string]interface{}{
+		Data: map[string]any{
+			"__type": map[string]any{
 				"name": "SimpleMutationInput",
 				"kind": "INPUT_OBJECT",
-				"inputFields": []interface{}{
-					map[string]interface{}{
+				"inputFields": []any{
+					map[string]any{
 						"name": "clientMutationId",
-						"type": map[string]interface{}{
+						"type": map[string]any{
 							"name": nil,
 							"kind": "NON_NULL",
-							"ofType": map[string]interface{}{
+							"ofType": map[string]any{
 								"name": "String",
 								"kind": "SCALAR",
 							},
@@ -242,25 +242,25 @@ func TestMutation_IntrospectsCorrectly_ContainsCorrectPayload(t *testing.T) {
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__type": map[string]interface{}{
+		Data: map[string]any{
+			"__type": map[string]any{
 				"name": "SimpleMutationPayload",
 				"kind": "OBJECT",
-				"fields": []interface{}{
-					map[string]interface{}{
+				"fields": []any{
+					map[string]any{
 						"name": "result",
-						"type": map[string]interface{}{
+						"type": map[string]any{
 							"name":   "Int",
 							"kind":   "SCALAR",
 							"ofType": nil,
 						},
 					},
-					map[string]interface{}{
+					map[string]any{
 						"name": "clientMutationId",
-						"type": map[string]interface{}{
+						"type": map[string]any{
 							"name": nil,
 							"kind": "NON_NULL",
-							"ofType": map[string]interface{}{
+							"ofType": map[string]any{
 								"name": "String",
 								"kind": "SCALAR",
 							},
@@ -274,7 +274,7 @@ func TestMutation_IntrospectsCorrectly_ContainsCorrectPayload(t *testing.T) {
 		Schema:        mutationTestSchema,
 		RequestString: query,
 	})
-	if !testutil.ContainSubset(result.Data.(map[string]interface{}), expected.Data.(map[string]interface{})) {
+	if !testutil.ContainSubset(result.Data.(map[string]any), expected.Data.(map[string]any)) {
 		t.Fatalf("unexpected, result does not contain subset of expected data")
 	}
 }
@@ -304,46 +304,46 @@ func TestMutation_IntrospectsCorrectly_ContainsCorrectField(t *testing.T) {
         }
       }`
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"__schema": map[string]interface{}{
-				"mutationType": map[string]interface{}{
-					"fields": []interface{}{
-						map[string]interface{}{
+		Data: map[string]any{
+			"__schema": map[string]any{
+				"mutationType": map[string]any{
+					"fields": []any{
+						map[string]any{
 							"name": "simpleMutation",
-							"args": []interface{}{
-								map[string]interface{}{
+							"args": []any{
+								map[string]any{
 									"name": "input",
-									"type": map[string]interface{}{
+									"type": map[string]any{
 										"name": nil,
 										"kind": "NON_NULL",
-										"ofType": map[string]interface{}{
+										"ofType": map[string]any{
 											"name": "SimpleMutationInput",
 											"kind": "INPUT_OBJECT",
 										},
 									},
 								},
 							},
-							"type": map[string]interface{}{
+							"type": map[string]any{
 								"name": "SimpleMutationPayload",
 								"kind": "OBJECT",
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"name": "simplePromiseMutation",
-							"args": []interface{}{
-								map[string]interface{}{
+							"args": []any{
+								map[string]any{
 									"name": "input",
-									"type": map[string]interface{}{
+									"type": map[string]any{
 										"name": nil,
 										"kind": "NON_NULL",
-										"ofType": map[string]interface{}{
+										"ofType": map[string]any{
 											"name": "SimplePromiseMutationInput",
 											"kind": "INPUT_OBJECT",
 										},
 									},
 								},
 							},
-							"type": map[string]interface{}{
+							"type": map[string]any{
 								"name": "SimplePromiseMutationPayload",
 								"kind": "OBJECT",
 							},
@@ -357,7 +357,7 @@ func TestMutation_IntrospectsCorrectly_ContainsCorrectField(t *testing.T) {
 		Schema:        mutationTestSchema,
 		RequestString: query,
 	})
-	if !testutil.ContainSubset(result.Data.(map[string]interface{}), expected.Data.(map[string]interface{})) {
+	if !testutil.ContainSubset(result.Data.(map[string]any), expected.Data.(map[string]any)) {
 		t.Fatalf("unexpected, result does not contain subset of expected data")
 	}
 }
@@ -373,8 +373,8 @@ func SkipTestMutateAndGetPayload_AddsErrors(t *testing.T) {
         }
       `
 	expected := &graphql.Result{
-		Data: map[string]interface{}{
-			"simpleMutation": interface{}(nil),
+		Data: map[string]any{
+			"simpleMutation": any(nil),
 		},
 		Errors: []gqlerrors.FormattedError{
 			gqlerrors.FormattedError{

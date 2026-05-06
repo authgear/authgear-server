@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-type GraphQLContext interface{}
+type GraphQLContext any
 
 type contextKeyType struct{}
 

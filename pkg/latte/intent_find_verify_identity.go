@@ -80,7 +80,7 @@ func (*IntentFindVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.
 	return nil, nil
 }
 
-func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	return nil, nil
 }
 

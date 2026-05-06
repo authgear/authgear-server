@@ -58,8 +58,8 @@ func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, workf
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
+	return map[string]any{
 		"intent0": i.Intent0,
 	}, nil
 }
@@ -95,8 +95,8 @@ func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, workf
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
+	return map[string]any{
 		"intent1": i.Intent1,
 	}, nil
 }
@@ -134,8 +134,8 @@ func (testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, workflo
 	panic("unreachable")
 }
 
-func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
+	return map[string]any{
 		"node0": i.Node0,
 	}, nil
 }
@@ -173,8 +173,8 @@ func (testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, workflo
 	panic("unreachable")
 }
 
-func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (any, error) {
+	return map[string]any{
 		"node1": i.Node1,
 	}, nil
 }

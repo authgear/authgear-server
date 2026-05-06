@@ -31,7 +31,7 @@ func (*NodeValidatedResetPasswordCode) ReactTo(ctx context.Context, deps *workfl
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeValidatedResetPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeValidatedResetPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (any, error) {
 	type NodeValidatedResetPasswordCodeOutput struct {
 		UserID string `json:"user_id"`
 	}

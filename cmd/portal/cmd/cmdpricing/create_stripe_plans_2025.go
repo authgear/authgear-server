@@ -22,13 +22,13 @@ func createPlanProduct(ctx context.Context, api *client.API, planName string, pl
 
 	params := &stripe.PriceParams{
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
-		UnitAmount:  stripe.Int64(price),
+		UnitAmount:  new(price),
 		TaxBehavior: stripe.String(string(stripe.PriceTaxBehaviorInclusive)),
 		Recurring: &stripe.PriceRecurringParams{
 			Interval: stripe.String(string(stripe.PriceRecurringIntervalMonth)),
 		},
 		ProductData: &stripe.PriceProductDataParams{
-			Name: stripe.String(planDisplayName),
+			Name: new(planDisplayName),
 			Metadata: map[string]string{
 				"plan_name":              planName,
 				"price_type":             "fixed",
@@ -43,7 +43,7 @@ func createPlanProduct(ctx context.Context, api *client.API, planName string, pl
 	}
 
 	updateProductParams := &stripe.ProductParams{
-		DefaultPrice: stripe.String(result.ID),
+		DefaultPrice: new(result.ID),
 	}
 	_, err = api.Products.Update(result.Product.ID, updateProductParams)
 	if err != nil {
@@ -69,12 +69,12 @@ func createSMSProduct(ctx context.Context, api *client.API, displayName, itemTyp
 		TiersMode:     stripe.String(string(stripe.PlanTiersModeGraduated)),
 		Tiers: []*stripe.PriceTierParams{
 			{
-				UnitAmount: stripe.Int64(perUnitPrice),
-				UpToInf:    stripe.Bool(true),
+				UnitAmount: new(perUnitPrice),
+				UpToInf:    new(true),
 			},
 		},
 		ProductData: &stripe.PriceProductDataParams{
-			Name: stripe.String(displayName),
+			Name: new(displayName),
 			Metadata: map[string]string{
 				"price_type":             "usage",
 				"subscription_item_type": itemType,
@@ -90,7 +90,7 @@ func createSMSProduct(ctx context.Context, api *client.API, displayName, itemTyp
 	}
 
 	updateProductParams := &stripe.ProductParams{
-		DefaultPrice: stripe.String(result.ID),
+		DefaultPrice: new(result.ID),
 	}
 	_, err = api.Products.Update(result.Product.ID, updateProductParams)
 	if err != nil {
@@ -116,12 +116,12 @@ func createWhatsappProduct(ctx context.Context, api *client.API, displayName, it
 		TiersMode:     stripe.String(string(stripe.PlanTiersModeGraduated)),
 		Tiers: []*stripe.PriceTierParams{
 			{
-				UnitAmount: stripe.Int64(perUnitPrice),
-				UpToInf:    stripe.Bool(true),
+				UnitAmount: new(perUnitPrice),
+				UpToInf:    new(true),
 			},
 		},
 		ProductData: &stripe.PriceProductDataParams{
-			Name: stripe.String(displayName),
+			Name: new(displayName),
 			Metadata: map[string]string{
 				"price_type":             "usage",
 				"subscription_item_type": itemType,
@@ -137,7 +137,7 @@ func createWhatsappProduct(ctx context.Context, api *client.API, displayName, it
 	}
 
 	updateProductParams := &stripe.ProductParams{
-		DefaultPrice: stripe.String(result.ID),
+		DefaultPrice: new(result.ID),
 	}
 	_, err = api.Products.Update(result.Product.ID, updateProductParams)
 	if err != nil {
@@ -164,13 +164,13 @@ func createMAUProduct(ctx context.Context, api *client.API, displayName, planNam
 			AggregateUsage: stripe.String(string(stripe.PriceRecurringAggregateUsageLastDuringPeriod)),
 		},
 		BillingScheme: stripe.String(string(stripe.PlanBillingSchemePerUnit)),
-		UnitAmount:    stripe.Int64(perGroupPrice),
+		UnitAmount:    new(perGroupPrice),
 		TransformQuantity: &stripe.PriceTransformQuantityParams{
 			DivideBy: &groupUnit,
 			Round:    stripe.String(string(stripe.PriceTransformQuantityRoundUp)),
 		},
 		ProductData: &stripe.PriceProductDataParams{
-			Name: stripe.String(displayName),
+			Name: new(displayName),
 			Metadata: map[string]string{
 				"plan_name":              planName,
 				"price_type":             "usage",
@@ -186,7 +186,7 @@ func createMAUProduct(ctx context.Context, api *client.API, displayName, planNam
 	}
 
 	updateProductParams := &stripe.ProductParams{
-		DefaultPrice: stripe.String(result.ID),
+		DefaultPrice: new(result.ID),
 	}
 	_, err = api.Products.Update(result.Product.ID, updateProductParams)
 	if err != nil {

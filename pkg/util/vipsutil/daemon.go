@@ -1,5 +1,4 @@
 //go:build !authgearlite
-// +build !authgearlite
 
 package vipsutil
 
@@ -11,7 +10,7 @@ import (
 
 type task struct {
 	Input      Input
-	OutputChan chan interface{}
+	OutputChan chan any
 }
 
 type Daemon struct {
@@ -92,7 +91,7 @@ func (v *Daemon) Close() error {
 func (v *Daemon) Process(i Input) (*Output, error) {
 	task := task{
 		Input:      i,
-		OutputChan: make(chan interface{}),
+		OutputChan: make(chan any),
 	}
 
 	v.queue <- task

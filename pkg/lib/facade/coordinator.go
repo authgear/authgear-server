@@ -468,7 +468,7 @@ func (c *Coordinator) IdentityDelete(ctx context.Context, is *identity.Info, byp
 				return NewInvariantViolated(
 					"RemoveLastPrimaryAuthenticator",
 					"cannot remove last primary authenticator for identity",
-					map[string]interface{}{"identity_id": i.ID},
+					map[string]any{"identity_id": i.ID},
 				)
 			}
 		}
@@ -973,7 +973,6 @@ func (c *Coordinator) markOAuthEmailAsVerified(ctx context.Context, info *identi
 
 	var cfg oauthrelyingparty.ProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
-		c := c
 		if c.AsProviderConfig().ProviderID().Equal(providerID) {
 			cfg = c.AsProviderConfig()
 			break

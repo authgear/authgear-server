@@ -134,9 +134,9 @@ type AuthflowV2EnterOOBOTPHandler struct {
 	IdentityConfig                         *config.IdentityConfig
 }
 
-func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]any, error) {
 	now := h.Clock.NowUTC()
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -150,8 +150,8 @@ func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 	return data, nil
 }
 
-func (h *AuthflowV2EnterOOBOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func (h *AuthflowV2EnterOOBOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+	data := make(map[string]any)
 
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -179,7 +179,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"resend": true,
 		}
 
@@ -201,7 +201,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		code := r.Form.Get("x_code")
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"code":                 code,
 			"request_device_token": requestDeviceToken,
 		}
