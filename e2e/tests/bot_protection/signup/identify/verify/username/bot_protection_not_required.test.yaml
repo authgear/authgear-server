@@ -27,7 +27,7 @@ authgear.yaml:
         email:
           enabled: true
           required: true
-        phone:
+        phone_number:
           enabled: true
           required: true
 steps:
