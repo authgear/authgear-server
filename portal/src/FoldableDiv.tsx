@@ -20,7 +20,7 @@ export default function FoldableDiv(
   }, [folded, setFolded]);
 
   return (
-    <div className={className}>
+    <div className={className} style={{ width: "100%" }}>
       <ActionButton
         text={label}
         iconProps={{
