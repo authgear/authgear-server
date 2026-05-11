@@ -114,12 +114,88 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionIndex) {
 			optionIdx := inputTakeAccountRecoveryDestinationOptionIndex.GetAccountRecoveryDestinationOptionIndex()
 			option := i.Options[optionIdx]
+			resolved, err := i.resolveUsernameTarget(ctx, deps, flows, option)
+			if err != nil {
+				return nil, err
+			}
 			return authflow.NewNodeSimple(&NodeUseAccountRecoveryDestination{
-				Destination: option,
+				Destination: resolved,
 			}), nil
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
+}
+
+// resolveUsernameTarget overrides TargetLoginID with the user's first identity
+// matching the picked option's Channel, but only for the
+// "username + enumerate_destinations=false + user found" sub-case.
+// All other cases return the option unchanged.
+func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	option *AccountRecoveryDestinationOptionInternal,
+) (*AccountRecoveryDestinationOptionInternal, error) {
+	current, err := i.currentFlowObject(deps, flows, i)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+	if step.EnumerateDestinations {
+		return option, nil
+	}
+
+	ms := authflow.FindAllMilestones[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
+	if len(ms) == 0 {
+		return option, nil
+	}
+	accIden := ms[0].MilestoneDoUseAccountRecoveryIdentity()
+	if accIden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationUsername {
+		return option, nil
+	}
+	if accIden.MaybeIdentity == nil {
+		return option, nil
+	}
+
+	userIdens, err := deps.Identities.ListByUser(ctx, accIden.MaybeIdentity.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if target := firstMatchingLoginIDForChannel(userIdens, option.Channel); target != "" {
+		// Mutate a copy, not the slice element — i.Options is persisted intent state.
+		copied := *option
+		copied.TargetLoginID = target
+		return &copied, nil
+	}
+	return option, nil
+}
+
+// firstMatchingLoginIDForChannel returns the first login-id value among userIdens
+// whose login-id type maps to the requested account-recovery channel.
+// email → LoginIDKeyTypeEmail. sms/whatsapp → LoginIDKeyTypePhone.
+// Returns "" when no matching identity is present.
+func firstMatchingLoginIDForChannel(
+	userIdens []*identity.Info,
+	channel AccountRecoveryChannel,
+) string {
+	var wantType model.LoginIDKeyType
+	switch channel {
+	case AccountRecoveryChannelEmail:
+		wantType = model.LoginIDKeyTypeEmail
+	case AccountRecoveryChannelSMS, AccountRecoveryChannelWhatsapp:
+		wantType = model.LoginIDKeyTypePhone
+	default:
+		return ""
+	}
+	for _, ui := range userIdens {
+		if ui.Type != model.IdentityTypeLoginID {
+			continue
+		}
+		if ui.LoginID.LoginIDType == wantType {
+			return ui.LoginID.LoginID
+		}
+	}
+	return ""
 }
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
@@ -171,7 +247,10 @@ func deriveAccountRecoveryDestinationOptions(
 
 	options := []*AccountRecoveryDestinationOptionInternal{}
 
-	if iden.MaybeIdentity != nil && step.EnumerateDestinations {
+	isUsername := iden.Identification == config.AuthenticationFlowAccountRecoveryIdentificationUsername
+
+	switch {
+	case iden.MaybeIdentity != nil && step.EnumerateDestinations:
 		userID := iden.MaybeIdentity.UserID
 		userIdens, err := deps.Identities.ListByUser(ctx, userID)
 		if err != nil {
@@ -181,7 +260,22 @@ func deriveAccountRecoveryDestinationOptions(
 			opts := enumerateAllowedAccountRecoveryDestinationOptions(channel, userIdens)
 			options = append(options, opts...)
 		}
-	} else {
+	case isUsername && !step.EnumerateDestinations:
+		// One option per allowed channel. TargetLoginID is the typed username and will be
+		// resolved to the user's actual email/phone at ReactTo time when the user picks one.
+		username := iden.IdentitySpec.LoginID.Value.TrimSpace()
+		for _, channel := range allowedChannels {
+			options = append(options, &AccountRecoveryDestinationOptionInternal{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: username,
+					Channel:           AccountRecoveryChannel(channel.Channel),
+					OTPForm:           AccountRecoveryOTPForm(channel.OTPForm),
+				},
+				TargetLoginID: username,
+			})
+		}
+	default:
+		// Existing email/phone non-enumerate path. Also covers username + enumerate=true + user not found.
 		for _, channel := range allowedChannels {
 			opts := deriveAllowedAccountRecoveryDestinationOptions(channel, iden)
 			options = append(options, opts...)
