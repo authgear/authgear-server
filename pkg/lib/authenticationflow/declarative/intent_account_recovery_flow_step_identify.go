@@ -70,6 +70,8 @@ func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflo
 		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			fallthrough
 		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
+			fallthrough
+		case config.AuthenticationFlowAccountRecoveryIdentificationUsername:
 			c := AccountRecoveryIdentificationOption{Identification: b.Identification, BotProtection: GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection)}
 			options = append(options, c)
 		}
@@ -142,6 +144,8 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 			case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 				fallthrough
 			case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
+				fallthrough
+			case config.AuthenticationFlowAccountRecoveryIdentificationUsername:
 				return authflow.NewSubFlow(&IntentUseAccountRecoveryIdentity{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
