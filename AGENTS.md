@@ -128,6 +128,7 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
 Use existing repo skills instead of one-off instructions when they fit:
 
 - `api-design`
+- `bootstrap-local-dev` — **use this for first-time setup on a fresh machine** (asdf + Homebrew install, env files, DB migrations, MinIO, bootstrap account)
 - `dep-audit`
 - `new-siteadmin-api`
 - `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls)
