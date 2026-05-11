@@ -86,6 +86,35 @@ authgear-server/
 | [portal/docs/FRONTEND.md](portal/docs/FRONTEND.md) | Portal React SPA conventions: routing, GraphQL, styling, i18n, forms |
 | [portal/docs/storybook.md](portal/docs/storybook.md) | Storybook conventions — read before adding or editing component stories |
 
+## Common commands
+
+Day-to-day shortcuts. See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup.
+
+### Start local dev
+
+When the user says **"start local development environment"**, run these in order, each in its own terminal (commands 2–4 are long-running):
+
+1. `docker compose up -d` — bring up Postgres, Redis, MinIO, etc.
+2. `make start` — main auth server.
+3. `make start-portal` — portal backend.
+4. `cd portal && npm start` — portal frontend (Vite dev server).
+
+Add `make authui-dev` as a fifth terminal only when editing AuthUI. Assumes the env is already set up per CONTRIBUTING.md.
+
+### Other commands
+
+| Command | What it does |
+|---|---|
+| `make vendor` | One-time bootstrap after cloning: installs golangci-lint, fetches Go deps, and builds the frontends. |
+| `make test` | Run Go tests under `cmd/...` and `pkg/...`. |
+| `make lint` / `make fmt` | Go lint / format. Frontend equivalents: `make -C portal lint`, `make -C portal fmt` (same for `authui`). |
+| `cd portal && npm run typecheck` | Fast TypeScript-only check for the portal (same for `authui`). |
+| `make generate` | Re-run `go generate` (wire, mocks, etc.). Run after changing generator sources. |
+| `make export-schemas` | Regenerate config JSON schemas, GraphQL schemas, and portal `gentype`. |
+| `make -C e2e run` | Run the e2e suite. |
+
+For more targets, browse the root `Makefile` and `portal/package.json` / `authui/package.json`.
+
 ## Working rules
 
 - Preserve user changes. Do not revert unrelated edits.
