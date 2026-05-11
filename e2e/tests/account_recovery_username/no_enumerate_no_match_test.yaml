@@ -1,0 +1,107 @@
+name: Account Recovery by Username with enumerate_destinations false, no matching identity for selected channel
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: sms
+                otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+- name: create flow
+  action: create
+  input: |
+    {
+      "type": "account_recovery",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "account_recovery_identification_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "identification": "[[string]]"
+              }
+            ]
+          }
+        }
+      }
+
+- name: identify by username
+  action: input
+  input: |
+    {
+      "identification": "username",
+      "login_id": "e2e_recovery_user"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "select_destination",
+          "data": {
+            "type": "account_recovery_select_destination_data",
+            "options": [
+              {
+                "masked_display_name": "e2e_recovery_user",
+                "channel": "sms",
+                "otp_form": "code"
+              }
+            ]
+          }
+        }
+      }
+
+# The user (e2e_recovery_user) has an email identity but no phone identity.
+# Selecting the SMS destination means resolveUsernameTarget finds no matching
+# phone identity, so TargetLoginID stays as the username. SendCode then finds
+# no email/phone identity for "e2e_recovery_user" and silently fails (dummy OTP
+# generated for rate-limiting). The flow still reaches verify without leaking
+# that the user lacks an SMS identity.
+- name: select sms destination (user has no phone identity — silent fail)
+  action: input
+  input: |
+    {
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "verify_account_recovery_code",
+          "data": {
+            "type": "account_recovery_verify_code_data",
+            "masked_display_name": "e2e_recovery_user",
+            "channel": "sms",
+            "otp_form": "code",
+            "code_length": 6,
+            "can_resend_at": "[[string]]"
+          }
+        }
+      }
