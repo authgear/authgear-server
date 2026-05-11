@@ -127,6 +127,8 @@ We've provided detailed instructions on how to set up a self-hosted instance of 
 ## How to contribute
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
 
+If you use an AI coding agent (e.g. Claude Code) for first-time setup, run the `bootstrap-local-dev` skill in this repo (`.claude/skills/bootstrap-local-dev/`) — it walks the agent through the same steps in CONTRIBUTING.md and verifies each one.
+
 ## Contributors
 
 Currently there are 42 contributors for this repository. Feel free to contribute!
