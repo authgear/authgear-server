@@ -80,6 +80,15 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
       );
     }, []);
 
+    const onRenderResourceURIDescription = useCallback(
+      () => (
+        <span>
+          <FormattedMessage id="ResourceForm.resourceURI.description" />
+        </span>
+      ),
+      []
+    );
+
     return (
       <form className={cn(styles.root, className)} onSubmit={onSubmit}>
         <div className={styles.formFields}>
@@ -103,11 +112,7 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
           ) : (
             <FormTextField
               onRenderLabel={onRenderResourceURILabel}
-              description={
-                (
-                  <FormattedMessage id="ResourceForm.resourceURI.description" />
-                ) as unknown as string
-              }
+              onRenderDescription={onRenderResourceURIDescription}
               fieldName="resourceURI"
               parentJSONPointer=""
               type="text"

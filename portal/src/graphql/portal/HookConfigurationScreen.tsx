@@ -1480,10 +1480,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                     id="HookConfigurationScreen.signature.description"
                     values={{
                       // eslint-disable-next-line react/no-unstable-nested-components
-                      code: (chunks: React.ReactNode) => (
-                        <code className="inline-code">{chunks}</code>
-                      ),
-                      // eslint-disable-next-line react/no-unstable-nested-components
                       docLink: (chunks: React.ReactNode) => (
                         <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
                           {chunks}

@@ -2926,11 +2926,6 @@ function onRenderCriteriaLabel() {
   return (
     <LabelWithTooltip
       labelId="VerificationConfigurationScreen.criteria.label"
-      labelValues={{
-        code: (chunks: React.ReactNode) => (
-          <code className="inline-code">{chunks}</code>
-        ),
-      }}
       tooltipMessageId="VerificationConfigurationScreen.criteria.tooltip"
       tooltipValues={{
         docLink: (chunks: React.ReactNode) => (
