@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
