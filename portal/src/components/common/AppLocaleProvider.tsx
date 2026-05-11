@@ -8,7 +8,9 @@ const defaultRichTextElements = {
   br: () => <br />,
   b: (children: React.ReactNode) => <b>{children}</b>,
   strong: (children: React.ReactNode) => <strong>{children}</strong>,
-  code: (children: React.ReactNode) => <code>{children}</code>,
+  code: (children: React.ReactNode) => (
+    <code className="inline-code">{children}</code>
+  ),
   pre: (children: React.ReactNode) => <pre>{children}</pre>,
   small: (children: React.ReactNode) => <small>{children}</small>,
 };

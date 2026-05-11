@@ -445,8 +445,6 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                         {chunks}
                       </ExternalLink>
                     ),
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                   }}
                 />
               </WidgetDescription>
