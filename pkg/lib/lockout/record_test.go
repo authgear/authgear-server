@@ -302,7 +302,7 @@ func TestGetStatus(t *testing.T) {
 			lock2Time := result2.LockedUntil.Unix()
 
 			// Lock 2 should be 3 seconds later than Lock 1
-			So(lock2Time - lock1Time, ShouldEqual, 3)
+			So(lock2Time-lock1Time, ShouldEqual, 3)
 
 			// Check status - should be locked with both IPs
 			status, err := getStatus(ctx, conn, testKey, false)
