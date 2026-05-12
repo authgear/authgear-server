@@ -217,7 +217,7 @@ func TestDeriveAccountRecoveryDestinationOptions(t *testing.T) {
 
 func TestResolveUsernameTarget(t *testing.T) {
 	Convey("resolveUsernameTarget logic", t, func() {
-		Convey("no matching identity for channel → returns original option unchanged", func() {
+		Convey("no matching identity for channel → TargetLoginID is sentinel prefix + username", func() {
 			userIdens := []*identity.Info{
 				makePhoneIdentityInfo("+85291234567"),
 			}
@@ -230,7 +230,12 @@ func TestResolveUsernameTarget(t *testing.T) {
 			}
 			target := firstMatchingLoginIDForChannel(userIdens, option.Channel)
 			So(target, ShouldEqual, "")
-			// TargetLoginID stays as username
+			// No match: prefix+username so SendCode hits generateDummyOTP (per-username
+			// rate limit) and can never dispatch to a real email/phone identity.
+			copied := *option
+			copied.TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID
+			So(copied.TargetLoginID, ShouldEqual, accountRecoveryNoSendPrefix+"alice")
+			So(option.TargetLoginID, ShouldEqual, "alice") // original not mutated
 		})
 
 		Convey("matching email identity → returns option with actual email as TargetLoginID", func() {
@@ -265,10 +270,26 @@ func TestResolveUsernameTarget(t *testing.T) {
 					MaskedDisplayName: "alice",
 					Channel:           AccountRecoveryChannelSMS,
 				},
-				TargetLoginID: "alice",
 			}
 			target := firstMatchingLoginIDForChannel(userIdens, option.Channel)
 			So(target, ShouldEqual, "+85291234567")
+		})
+
+		Convey("user not found (MaybeIdentity nil) → TargetLoginID is sentinel prefix + username", func() {
+			// Even when the username resembles an email (e.g. "alice@example.com"),
+			// the sentinel prefix prevents SendCode from dispatching to a different
+			// user whose email equals the typed username.
+			option := &AccountRecoveryDestinationOptionInternal{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: "alice@example.com",
+					Channel:           AccountRecoveryChannelEmail,
+				},
+				TargetLoginID: "alice@example.com",
+			}
+			copied := *option
+			copied.TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID
+			So(copied.TargetLoginID, ShouldEqual, accountRecoveryNoSendPrefix+"alice@example.com")
+			So(option.TargetLoginID, ShouldEqual, "alice@example.com") // original not mutated
 		})
 	})
 }

@@ -1,0 +1,108 @@
+name: Account Recovery by Username with enumerate_destinations false, username not found
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            on_failure: ignore
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: email
+                otp_form: link
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+- name: create flow
+  action: create
+  input: |
+    {
+      "type": "account_recovery",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "account_recovery_identification_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "identification": "[[string]]"
+              }
+            ]
+          }
+        }
+      }
+
+# "nonexistent_user" is not in users.json — MaybeIdentity will be nil.
+# With on_failure: ignore the flow continues rather than erroring.
+- name: identify by unknown username
+  action: input
+  input: |
+    {
+      "identification": "username",
+      "login_id": "nonexistent_user"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "select_destination",
+          "data": {
+            "type": "account_recovery_select_destination_data",
+            "options": [
+              {
+                "masked_display_name": "nonexistent_user",
+                "channel": "email",
+                "otp_form": "link"
+              }
+            ]
+          }
+        }
+      }
+
+# Selecting the destination when MaybeIdentity is nil: resolveUsernameTarget
+# returns the option unchanged (TargetLoginID stays as the typed username).
+# SendCode finds no identity for "nonexistent_user", generates a dummy OTP for
+# rate-limiting, and returns ErrUserNotFound which is silently swallowed.
+# The flow reaches verify without leaking that no user was found.
+- name: select email destination (user not found — silent fail)
+  action: input
+  input: |
+    {
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "verify_account_recovery_code",
+          "data": {
+            "type": "account_recovery_verify_code_data",
+            "masked_display_name": "nonexistent_user",
+            "channel": "email",
+            "otp_form": "link",
+            "code_length": 32,
+            "can_resend_at": "[[string]]"
+          }
+        }
+      }

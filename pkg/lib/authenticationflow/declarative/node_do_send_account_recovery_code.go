@@ -14,6 +14,15 @@ func init() {
 	authflow.RegisterNode(&NodeDoSendAccountRecoveryCode{})
 }
 
+// accountRecoveryNoSendPrefix ("no-send:") is prepended to the username to form
+// a TargetLoginID when username identification found the user but the user has
+// no identity matching the selected channel. The resulting string is not a valid
+// email address (no local@domain structure) and does not start with "+" so it
+// cannot be an E.164 phone number, meaning SendCode always hits its
+// generateDummyOTP path: no message is dispatched, but rate limits and
+// cooldowns are still charged per username.
+const accountRecoveryNoSendPrefix = "no-send:"
+
 type NodeDoSendAccountRecoveryCode struct {
 	ParentJSONPointer jsonpointer.T              `json:"parent_json_pointer,omitempty"`
 	FlowReference     authflow.FlowReference     `json:"flow_reference,omitempty"`

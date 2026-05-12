@@ -126,10 +126,14 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 	return nil, authflow.ErrIncompatibleInput
 }
 
-// resolveUsernameTarget overrides TargetLoginID with the user's first identity
-// matching the picked option's Channel, but only for the
-// "username + enumerate_destinations=false + user found" sub-case.
-// All other cases return the option unchanged.
+// resolveUsernameTarget is called only for username + enumerate_destinations=false flows.
+// It returns the option unchanged for all other flows.
+// When the user is found and has an identity matching the picked channel, TargetLoginID
+// is replaced with that identity's login ID value so SendCode delivers to the right address.
+// In all other cases (user not found, or no matching identity for the channel) TargetLoginID
+// is prefixed with accountRecoveryNoSendPrefix so SendCode always hits its generateDummyOTP
+// path — no message is dispatched but rate limits are still charged per username, and a
+// username that looks like an email cannot accidentally dispatch to a different user.
 func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
 	ctx context.Context,
 	deps *authflow.Dependencies,
@@ -153,8 +157,15 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
 	if accIden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationUsername {
 		return option, nil
 	}
+
+	noSend := func() *AccountRecoveryDestinationOptionInternal {
+		copied := *option
+		copied.TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID
+		return &copied
+	}
+
 	if accIden.MaybeIdentity == nil {
-		return option, nil
+		return noSend(), nil
 	}
 
 	userIdens, err := deps.Identities.ListByUser(ctx, accIden.MaybeIdentity.UserID)
@@ -162,12 +173,11 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
 		return nil, err
 	}
 	if target := firstMatchingLoginIDForChannel(userIdens, option.Channel); target != "" {
-		// Mutate a copy, not the slice element — i.Options is persisted intent state.
 		copied := *option
 		copied.TargetLoginID = target
 		return &copied, nil
 	}
-	return option, nil
+	return noSend(), nil
 }
 
 // firstMatchingLoginIDForChannel returns the first login-id value among userIdens

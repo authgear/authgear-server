@@ -73,35 +73,56 @@ After this commit, the feature is functional in a degraded "silent fail for ever
 ### Commit 4 — Resolve target login id for username destinations at input time
 
 - Title: `[Authflow] Resolve target login id for username destinations at input time`
-- Implements: §5
+- Implements: §5 (happy path only)
 - Files:
   - `pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination.go`
   - `pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination_test.go`
 - Tests added in this commit:
   - `firstMatchingLoginIDForChannel`: all seven cases listed in §6.
-  - `resolveUsernameTarget` (or the wired-up `ReactTo`): all five cases listed in §6.
+  - `resolveUsernameTarget`: matching email identity and matching phone/SMS identity cases.
 - Verifies: `go test ./pkg/lib/authenticationflow/declarative/...`
 
-After this commit, users with a matching email/phone identity receive a real recovery code via the username flow.
+After this commit, users with a matching email/phone identity receive a real recovery code via the username flow. The no-matching and user-not-found cases are not yet safe (added next).
 
-### Commit 5 — Add e2e tests for account recovery by username
+### Commit 5 — Add no-send prefix to prevent cross-user dispatch
+
+- Title: `[Authflow] Add no-send prefix to prevent cross-user dispatch in username recovery`
+- Implements: §5 (sentinel prefix)
+- Files:
+  - `pkg/lib/authenticationflow/declarative/node_do_send_account_recovery_code.go`
+  - `pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination.go`
+  - `pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination_test.go`
+- Changes:
+  - Define `accountRecoveryNoSendPrefix = "no-send:"` in `node_do_send_account_recovery_code.go`.
+  - In `resolveUsernameTarget`, apply the prefix in both the "user not found" (`MaybeIdentity == nil`) and "no matching identity for channel" cases. Extract a local `noSend()` closure to avoid duplicating the copy-and-prefix logic.
+- Tests added in this commit:
+  - `resolveUsernameTarget`: no matching identity for channel → `TargetLoginID = "no-send:" + username`.
+  - `resolveUsernameTarget`: user not found → `TargetLoginID = "no-send:" + username` (guards against a username like `"alice@example.com"` dispatching to a different user's email identity).
+- Verifies: `go test ./pkg/lib/authenticationflow/declarative/...`
+
+After this commit, the no-match and user-not-found paths are safe: `SendCode` always hits `generateDummyOTP`, rate limits are charged per username, and no cross-user dispatch is possible.
+
+### Commit 6 — Add e2e tests for account recovery by username
 
 - Title: `[Authflow] Add e2e tests for account recovery by username`
 - Implements: §7
 - Files:
-  - `e2e/tests/account_recovery_username/test_enumerate.yaml`
-  - `e2e/tests/account_recovery_username/test_no_enumerate.yaml`
+  - `e2e/tests/account_recovery_username/enumerate_test.yaml`
+  - `e2e/tests/account_recovery_username/no_enumerate_test.yaml`
+  - `e2e/tests/account_recovery_username/no_enumerate_no_match_test.yaml`
+  - `e2e/tests/account_recovery_username/no_enumerate_user_not_found_test.yaml`
   - `e2e/tests/account_recovery_username/users.json`
 - Tests: the e2e specifications themselves. Before writing, read at least one existing `e2e/tests/account_recovery_*/test.yaml` to copy the layout, asserter conventions (`[[arrayof]]`, `[[string]]`, etc.), and `user_import` setup. Follow the repo's `write-e2e-test` skill if invoking it is convenient.
-- Verifies: the relevant `make -C e2e ...` target for the new directory.
+- Verifies: `cd e2e && go test ./pkg/testrunner/ -run "TestAuthflow/account_recovery_username"`
 
 ### What review looks at, per commit
 
 - Commit 1: schema change is small enough to eyeball; the new test exercises both accepted and unchanged shapes.
 - Commit 2: a reviewer can confirm by reading the three small switch additions; no behavior is observable yet.
 - Commit 3: derive logic is local to one function; the new test file shows generated options for every combination.
-- Commit 4: the helper and resolver are pure functions with table-driven tests; reviewer can read the table to confirm every branch is covered.
-- Commit 5: e2e is the integration check.
+- Commit 4: the helper and resolver are pure functions with table-driven tests covering the happy path.
+- Commit 5: the sentinel constant and two new test cases cover both unsafe fallback situations.
+- Commit 6: e2e is the integration check.
 
 If a later commit forces a fix in an earlier one, prefer a follow-up commit over amending — the dependency chain stays valid either way, and history stays linear.
 
@@ -114,9 +135,9 @@ Reference points in the existing code:
 - Login ID input schema: `pkg/lib/authenticationflow/declarative/input_step_account_recovery_identify.go`, switch in `SchemaBuilder` (lines 58–67).
 - Username already supported by `makeLoginIDSpec`: `pkg/lib/authenticationflow/declarative/utils_common.go` lines 927–949 (case `model.AuthenticationFlowIdentificationUsername`). `IntentUseAccountRecoveryIdentity` builds the spec via this helper, so identifying by username already works once the surrounding switches accept it.
 - Select destination derivation: `pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination.go`, function `deriveAccountRecoveryDestinationOptions` (lines 161–191) and helper `deriveAllowedAccountRecoveryDestinationOptions` (lines 193–242).
-- Code sending: `NodeDoSendAccountRecoveryCode.Send` in `pkg/lib/authenticationflow/declarative/node_do_send_account_recovery_code.go`. It calls `deps.ForgotPassword.SendCode(ctx, TargetLoginID, ...)`. `forgotpassword.Service.SendCode` (`pkg/lib/feature/forgotpassword/service.go` lines 103–155) looks up identities by `ClaimEmail` / `ClaimPhoneNumber` matching `loginID`. If no identity is found, it generates a dummy OTP for rate-limiting purposes and returns `ErrUserNotFound`. `Send` already silently swallows `ErrUserNotFound`, so a `TargetLoginID` that does not match any email/phone identity is a no-op without erroring.
+- Code sending: `NodeDoSendAccountRecoveryCode.Send` in `pkg/lib/authenticationflow/declarative/node_do_send_account_recovery_code.go`. It calls `deps.ForgotPassword.SendCode(ctx, TargetLoginID, ...)`. `forgotpassword.Service.SendCode` (`pkg/lib/feature/forgotpassword/service.go` lines 103–155) looks up identities by `ClaimEmail` / `ClaimPhoneNumber` matching `loginID`. If no identity is found, it generates a dummy OTP for rate-limiting purposes and returns `ErrUserNotFound`. `Send` already silently swallows `ErrUserNotFound`.
 
-The "silent fail when target does not resolve to an email/phone" property of `SendCode` is what we rely on for the `enumerate_destinations: false` case to "always return success".
+- Sentinel constant: `accountRecoveryNoSendPrefix = "no-send:"` is defined in `node_do_send_account_recovery_code.go`. When username identification finds the user but the user has no identity matching the selected channel, `TargetLoginID` is set to `accountRecoveryNoSendPrefix + username` (the username is already in `option.TargetLoginID` at that point). `"no-send:<username>"` is not a valid email address (no `local@domain` structure) and does not start with `+` so cannot be an E.164 phone number, so `SendCode` always hits the dummy-OTP path (per-username rate limiting, consistent with how the real email/phone path keys its buckets) without risking dispatch to a different user whose email or phone equals the username string.
 
 ## Design
 
@@ -162,18 +183,26 @@ The resulting list is exactly `len(allowed_channels)` options, regardless of whi
 When `IntentAccountRecoveryFlowStepSelectDestination.ReactTo` receives the index input picking one option:
 
 1. Take the picked option's `Channel`.
-2. If the upstream `MilestoneDoUseAccountRecoveryIdentity` has a `MaybeIdentity` (the username matched a real user) **and** the step has `EnumerateDestinations == false` **and** identification is `username`:
-   - Call `deps.Identities.ListByUser(ctx, MaybeIdentity.UserID)`.
-   - Find the user's first identity matching the picked option's channel:
-     - `email` channel → first `LoginIDKeyTypeEmail` identity.
-     - `sms` / `whatsapp` channel → first `LoginIDKeyTypePhone` identity.
-   - If found, override the picked option's `TargetLoginID` with that identity's `LoginID` value.
-   - If not found, leave `TargetLoginID = username` (silent-fail at `SendCode`).
+2. If the step has `EnumerateDestinations == false` and identification is `username`:
+   - If `MaybeIdentity == nil` (username not found): set `TargetLoginID = accountRecoveryNoSendPrefix + username`.
+   - Otherwise: call `deps.Identities.ListByUser(ctx, MaybeIdentity.UserID)` and find the first identity matching the picked channel (`email` → `LoginIDKeyTypeEmail`, `sms`/`whatsapp` → `LoginIDKeyTypePhone`).
+     - If found: override `TargetLoginID` with that identity's `LoginID` value.
+     - If not found: set `TargetLoginID = accountRecoveryNoSendPrefix + username`.
 3. Pass the (possibly modified) option into `NodeUseAccountRecoveryDestination`.
 
 For all other cases (email/phone identifications, or username with `enumerate=true`), the picked option already has a correct `TargetLoginID` from the existing derive paths, and no override happens.
 
 This per-pick resolution avoids running `ListByUser` for channels the user never selects.
+
+#### Security: cross-user dispatch prevention
+
+The naive fallback of leaving `TargetLoginID = username` is unsafe in two situations: (a) the user is not found but the typed username looks like an email (e.g. `"alice@example.com"`), or (b) the user is found but has no identity for the selected channel while their username resembles an email. In both cases `SendCode(username)` could find a different user whose email equals the typed username via `ListByClaim(ClaimEmail, username)` and dispatch a recovery code to that user's address. To close this, the implementation always sets:
+
+```go
+TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID  // option.TargetLoginID is the typed username
+```
+
+where `accountRecoveryNoSendPrefix = "no-send:"` is defined in `node_do_send_account_recovery_code.go`. `"no-send:<username>"` is not a valid email address (no `local@domain` structure) and does not start with `+` so it cannot be an E.164 phone number, meaning `ListByClaim` always returns empty, `generateDummyOTP` runs for rate-limit accounting (keyed per username — the same identifier the user typed, consistent with the real email/phone path), and `ErrUserNotFound` is silently swallowed — exactly as intended, with no risk of dispatching to an unrelated user's identity.
 
 #### What happens next
 
@@ -182,7 +211,7 @@ After `ReactTo` produces `NodeUseAccountRecoveryDestination` with the resolved o
 1. `IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode.ReactTo` constructs `NodeDoSendAccountRecoveryCode` with the resolved `TargetLoginID`.
 2. `Send` calls `deps.ForgotPassword.SendCode(ctx, TargetLoginID, ...)`:
    - **Real email/phone**: `ListByClaim` finds the identity, code is sent for real.
-   - **Username fallback**: `ListByClaim` finds nothing, `generateDummyOTP` runs for rate-limit accounting, returns `ErrUserNotFound`, silently swallowed by `Send`.
+   - **Sentinel prefix target** (`no-send:<username>`): `ListByClaim` finds nothing (`"no-send:..."` is not a valid email or phone), `generateDummyOTP` runs keyed by `no-send:<username>` for per-username rate-limit accounting, returns `ErrUserNotFound`, silently swallowed by `Send`.
 3. The verify step's data shows `MaskedDisplayName = username`, `Channel = <picked>`, `OTPForm = <picked>` — masked display stays as the username regardless of what TargetLoginID resolved to.
 4. If a real code was sent, the user can submit it and proceed to reset password. Otherwise, the verify step exists but no code can satisfy it — the user sees a generic "invalid code" message.
 
@@ -281,7 +310,24 @@ default:
 
 No changes are needed to `deriveAllowedAccountRecoveryDestinationOptions` or `enumerateAllowedAccountRecoveryDestinationOptions`.
 
-### 5. Select destination — input-time resolution
+### 5. Select destination — input-time resolution and send sentinel
+
+**`pkg/lib/authenticationflow/declarative/node_do_send_account_recovery_code.go`**
+
+Add the sentinel prefix constant:
+
+```go
+// accountRecoveryNoSendPrefix ("no-send:") is prepended to the username to form
+// a TargetLoginID when username identification found the user but the user has
+// no identity matching the selected channel. The resulting string is not a valid
+// email address (no local@domain structure) and does not start with "+" so it
+// cannot be an E.164 phone number, meaning SendCode always hits its
+// generateDummyOTP path: no message is dispatched, but rate limits and
+// cooldowns are still charged per username.
+const accountRecoveryNoSendPrefix = "no-send:"
+```
+
+No changes to `Send` — the sentinel flows through `SendCode` naturally and is handled by the existing `ErrUserNotFound` path.
 
 **`pkg/lib/authenticationflow/declarative/intent_account_recovery_flow_step_select_destination.go`**
 
@@ -308,10 +354,14 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
     return nil, authflow.ErrIncompatibleInput
 }
 
-// resolveUsernameTarget overrides TargetLoginID with the user's first identity
-// matching the picked option's Channel, but only for the
-// "username + enumerate_destinations=false + user found" sub-case.
-// All other flows return the option unchanged.
+// resolveUsernameTarget is called only for username + enumerate_destinations=false flows.
+// It returns the option unchanged for all other flows.
+// When the user is found and has an identity matching the picked channel, TargetLoginID
+// is replaced with that identity's login ID value so SendCode delivers to the right address.
+// In all other cases (user not found, or no matching identity for the channel) TargetLoginID
+// is prefixed with accountRecoveryNoSendPrefix so SendCode always hits its generateDummyOTP
+// path — no message is dispatched but rate limits are still charged per username, and a
+// username that looks like an email cannot accidentally dispatch to a different user.
 func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
     ctx context.Context,
     deps *authflow.Dependencies,
@@ -335,8 +385,15 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
     if accIden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationUsername {
         return option, nil
     }
+
+    noSend := func() *AccountRecoveryDestinationOptionInternal {
+        copied := *option
+        copied.TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID
+        return &copied
+    }
+
     if accIden.MaybeIdentity == nil {
-        return option, nil
+        return noSend(), nil
     }
 
     userIdens, err := deps.Identities.ListByUser(ctx, accIden.MaybeIdentity.UserID)
@@ -344,12 +401,11 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
         return nil, err
     }
     if target := firstMatchingLoginIDForChannel(userIdens, option.Channel); target != "" {
-        // Mutate a copy, not the slice element.
         copied := *option
         copied.TargetLoginID = target
         return &copied, nil
     }
-    return option, nil
+    return noSend(), nil
 }
 ```
 
@@ -412,26 +468,27 @@ Tests for `firstMatchingLoginIDForChannel`:
 - `userIdens` containing two emails, channel = email → returns the *first* email's LoginID (documents "first match wins").
 - `userIdens` containing a non-login-id identity (e.g., oauth) → that one is skipped.
 
-Tests for `IntentAccountRecoveryFlowStepSelectDestination.ReactTo` (or `resolveUsernameTarget` directly if extracted):
+Tests for `resolveUsernameTarget` (via `firstMatchingLoginIDForChannel` — the full method requires live deps):
 
-- Username + `enumerate=false` + user found with email, picks email option → returned option has TargetLoginID = user's email.
-- Username + `enumerate=false` + user found with only phone, picks email option → returned option has TargetLoginID = username (silent-fail fallback).
-- Username + `enumerate=false` + user not found, picks any option → returned option has TargetLoginID = username.
-- Username + `enumerate=true` (any) → returned option is unchanged (no override applied).
-- Email identification + `enumerate=false`, picks the option → returned option is unchanged (no override applied).
+- No matching identity for channel → `TargetLoginID` is set to `"no-send:" + username`; the prefix prevents cross-user dispatch because `"no-send:..."` is not a valid email address or E.164 number.
+- Matching email identity → returned copy has `TargetLoginID = user's email`; original option is not mutated.
+- Matching phone identity (SMS channel) → returned copy has `TargetLoginID = user's phone`.
+- User not found (`MaybeIdentity == nil`) → `TargetLoginID` is set to `"no-send:" + username`; prevents dispatch to a different user whose email equals a username like `"alice@example.com"`.
 
 ### 7. E2E test
 
 **`e2e/tests/account_recovery_username/`** (new directory)
 
-Two test files:
+Four test files:
 
-- `test_enumerate.yaml`: identify by username; the matched user has email + phone; assert select_destination shows enumerated email/phone options.
-- `test_no_enumerate.yaml`: identify by username; allowed channels include email + sms; assert select_destination shows two options both masked as the username, regardless of user's actual identities. Continue past select to verify the next step transition succeeds.
+- `enumerate_test.yaml`: identify by username with `enumerate_destinations: true`; the matched user has email; assert `select_destination` shows the masked email option; complete the full flow (select → verify with real link OTP → reset password).
+- `no_enumerate_test.yaml`: identify by username with `enumerate_destinations: false`; allowed channel is email; assert `select_destination` shows one option with `masked_display_name = username`; complete the full flow (select → verify with real link OTP sent to user's actual email → reset password).
+- `no_enumerate_no_match_test.yaml`: identify by username with `enumerate_destinations: false`; allowed channel is SMS; the user has no phone identity. Assert the flow silently reaches `verify_account_recovery_code` with `masked_display_name = username` and `channel = sms` — no code is dispatched, flow does not error.
+- `no_enumerate_user_not_found_test.yaml`: identify by a username that does not exist; `enumerate_destinations: false`; allowed channel is email. Assert `select_destination` still shows one option masked as the typed username; assert the flow silently reaches `verify_account_recovery_code` — no code is dispatched, flow does not error.
 
-`users.json` defines a user with `username` + `email` login IDs to support both tests.
+`users.json` defines a user with `preferred_username` + `email` (no phone) to support all four tests.
 
-Use the existing E2E format already used in `e2e/tests/account_recovery_*` directories (this codebase already has account recovery e2e tests; copy the conventions).
+Use the `write-e2e-test` skill and copy conventions from existing `e2e/tests/account_recovery_*` tests.
 
 ## Verification
 
@@ -441,8 +498,8 @@ Use the existing E2E format already used in `e2e/tests/account_recovery_*` direc
    - Username does not match any user → select_destination returns an empty options list (existing behavior, kept as-is).
 3. Custom-UI flow with `enumerate_destinations: false`:
    - Username matches a user with email, allowed = [email] → 1 option masked as username; picking it actually sends a code to the user's email; the verify step shows masked_display_name = username; the user can submit the real code and reset password.
-   - Username matches a user with only phone, allowed = [email, sms] → 2 options; picking email is a silent no-op (no code sent), picking sms sends to the user's phone.
-   - Username does not match any user, allowed = [email] → 1 option masked as username; picking it is a silent no-op; the flow still advances to verify_code with no real code in existence.
+   - Username matches a user with only phone, allowed = [email, sms] → 2 options; picking email uses `no-send:<username>` as target (no code dispatched, rate-limit charged per username), picking sms sends to the user's phone.
+   - Username does not match any user, allowed = [email] → 1 option masked as username; picking it sets `TargetLoginID = "no-send:<username>"`; `SendCode` hits `generateDummyOTP`, returns `ErrUserNotFound`, swallowed; flow advances to verify_code with no real code.
 4. Run unit tests: `go test ./pkg/lib/authenticationflow/declarative/...`.
 5. Run E2E: `make -C e2e test` (or whatever the repo's e2e make target is) for the new directory.
 
