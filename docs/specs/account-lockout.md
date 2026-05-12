@@ -9,7 +9,7 @@
   - [Lockout duration](#lockout-duration)
 - [Admin API](#admin-api)
   - [User.accountLockout Query](#useraccountlockout-query)
-  - [unlockUser Mutation](#unlockuser-mutation)
+  - [resetAccountLockout Mutation](#resetaccountlockout-mutation)
 - [Usecases](#usecases)
   - [1. Customer Support – Emergency Account Access](#1-customer-support--emergency-account-access-per_user-lockout)
   - [2. Diagnosing Lockout](#2-diagnosing-lockout-per_user_per_ip-lockout)
@@ -108,6 +108,11 @@ Once the user was locked, the locking period will not be updated. Any attempts, 
 Tenant admins can query the current lockout state of a user via the Admin GraphQL API:
 
 ```graphql
+type LockedIP {
+  ipAddress: String!
+  lockedUntil: DateTime!
+}
+
 query {
   node(id: "<USER_NODE_ID>") {
     ... on User {
@@ -116,7 +121,7 @@ query {
         lockoutType: "per_user" | "per_user_per_ip"
         isLocked: Boolean!
         lockedUntil: DateTime
-        lockedIPs: [String!]
+        lockedIPs: [LockedIP!]!
       }
     }
   }
@@ -133,15 +138,17 @@ query {
 - `lockoutType`: "per_user_per_ip"
 - `isLocked`: true if user is locked from ANY IP, false if no IPs have locks
 - `lockedUntil`: null (not applicable; different IPs have different expiration times)
-- `lockedIPs`: Array of IP addresses currently locked (e.g., ["192.168.1.1", "203.0.113.45"]).
+- `lockedIPs`: Array of currently locked IPs, ordered by `lockedUntil` descending (most recent expiry first). Each entry contains:
+  - `ipAddress`: The locked IP address (e.g., `"192.168.1.1"`)
+  - `lockedUntil`: DateTime in UTC when the lock for this IP expires
 
-### unlockUser Mutation
+### resetAccountLockout Mutation
 
 Tenant admins can unlock a user by clearing all lockout state:
 
 ```graphql
 mutation {
-  unlockUser(input: { userID: "<USER_NODE_ID>" }) {
+  resetAccountLockout(input: { userID: "<USER_NODE_ID>" }) {
     user {
       id
       accountLockout {
@@ -169,7 +176,7 @@ Behavior:
 - Support team queries `User.accountLockout` to check:
   - `isLocked: true` → confirms account is locked
   - `lockedUntil: 2024-05-07T14:30:00Z` → when access restores automatically
-- Calls `unlockUser` to immediately restore access without waiting for the automatic unlock period
+- Calls `resetAccountLockout` to immediately restore access without waiting for the automatic unlock period
 
 ### 2. Diagnosing Lockout (per_user_per_ip lockout)
 
@@ -178,7 +185,7 @@ Behavior:
 **Solution**:
 - Support queries `User.accountLockout` to see:
   - `isLocked: true` → user is locked from some IP(s)
-  - `lockedIPs: ["192.168.1.100", "203.0.113.45"]` → exactly which IPs have locks
+  - `lockedIPs: [{ipAddress: "192.168.1.100", lockedUntil: ...}, ...]` → exactly which IPs have locks and when they expire
 - Now admin can inform user: "Your account is locked from IPs X and Y. Try logging in from a different IP, or we can unlock it immediately."
 
 ### 3. Failed Brute Force Attempt Recovery (both lockout types)
@@ -188,7 +195,7 @@ Behavior:
 **Solution**:
 - Admin queries `User.accountLockout` to confirm lockout state
 - For per_user_per_ip: `lockedIPs` shows which attacker IPs triggered the locks
-- Calls `unlockUser` to clear all lockout state, allowing the legitimate user to log in immediately
+- Calls `resetAccountLockout` to clear all lockout state, allowing the legitimate user to log in immediately
 
 ### 4. Brute Force Attack Investigation (per_user_per_ip lockout)
 
@@ -206,7 +213,7 @@ Behavior:
 
 **Solution**:
 - Admin queries `User.accountLockout` to confirm the account is locked due to previous attempts
-- Calls `unlockUser` to clear the old lockout state
+- Calls `resetAccountLockout` to clear the old lockout state
 - User can now immediately log in with their new password (no waiting required)
 - Improves user experience by allowing immediate access after password reset
 
@@ -214,7 +221,7 @@ Behavior:
 
 **Scenario**: During development or testing, engineers need to simulate lockout scenarios and then reset account state without waiting for natural timeout.
 
-**Solution**: Test automation calls `unlockUser` to reset account state between test runs, enabling faster test cycles (works for both lockout types).
+**Solution**: Test automation calls `resetAccountLockout` to reset account state between test runs, enabling faster test cycles (works for both lockout types).
 
 ## References
 
