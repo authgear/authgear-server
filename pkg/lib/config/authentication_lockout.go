@@ -28,11 +28,11 @@ func AuthenticationLockoutMethodFromAuthenticatorType(t model.AuthenticatorType)
 	}
 }
 
-type AuthenticationLockoutType string
+type AuthenticationLockoutType = model.AccountLockoutType
 
 const (
-	AuthenticationLockoutTypePerUser      AuthenticationLockoutType = "per_user"
-	AuthenticationLockoutTypePerUserPerIP AuthenticationLockoutType = "per_user_per_ip"
+	AuthenticationLockoutTypePerUser      = model.AccountLockoutTypePerUser
+	AuthenticationLockoutTypePerUserPerIP = model.AccountLockoutTypePerUserPerIP
 )
 
 var _ = Schema.Add("AuthenticationLockoutType", `

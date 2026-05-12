@@ -2,7 +2,6 @@ package facade
 
 import (
 	"context"
-	"sort"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -27,9 +26,6 @@ func (f *LockoutFacade) GetAccountLockoutStatus(ctx context.Context, userID stri
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(status.LockedIPs, func(i, j int) bool {
-		return status.LockedIPs[i].LockedUntil.After(status.LockedIPs[j].LockedUntil)
-	})
 	return &apimodel.AccountLockoutStatus{
 		LockoutType: f.LockoutConfig.LockoutType,
 		IsLocked:    status.IsLocked,

@@ -51,6 +51,21 @@ func (s StorageRedis) Clear(ctx context.Context, spec LockoutSpec, contributor s
 	return err
 }
 
+func (s StorageRedis) GetStatus(ctx context.Context, spec LockoutSpec) (status *LockoutStatus, err error) {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		status, err = getStatus(ctx, conn, redisRecordKey(s.AppID, spec), spec.IsGlobal)
+		return err
+	})
+	return status, err
+}
+
+func (s StorageRedis) ClearAll(ctx context.Context, spec LockoutSpec) (err error) {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return clearAll(ctx, conn, redisRecordKey(s.AppID, spec), spec.IsGlobal)
+	})
+	return err
+}
+
 func redisRecordKey(appID config.AppID, spec LockoutSpec) string {
 	return fmt.Sprintf("app:%s:lockout:%s", appID, spec.Key())
 }
