@@ -1,0 +1,62 @@
+name: Reset account lockout mutation
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT "id" FROM "_auth_user"
+      WHERE "app_id" = '{{ .AppID }}'
+      ORDER BY "created_at" DESC
+      LIMIT 1
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: reset_account_lockout
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation resetAccountLockout($userID: ID!) {
+          resetAccountLockout(input: { userID: $userID }) {
+            user {
+              id
+              accountLockout {
+                isLocked
+                lockoutType
+                lockedUntil
+                lockedIPs {
+                  ipAddress
+                  lockedUntil
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resetAccountLockout": {
+              "user": {
+                "id": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}",
+                "accountLockout": {
+                  "isLocked": false,
+                  "lockoutType": "[[string]]",
+                  "lockedUntil": null,
+                  "lockedIPs": []
+                }
+              }
+            }
+          },
+          "errors": null
+        }
