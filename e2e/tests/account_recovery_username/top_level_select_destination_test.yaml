@@ -1,0 +1,144 @@
+name: Account Recovery by Username with top-level select_destination step
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            on_failure: ignore
+        - type: select_destination
+          enumerate_destinations: true
+          allowed_channels:
+          - channel: email
+            otp_form: link
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+- name: create flow
+  action: create
+  input: |
+    {
+      "type": "account_recovery",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "account_recovery_identification_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "identification": "[[string]]"
+              }
+            ]
+          }
+        }
+      }
+
+- name: identify by username
+  action: input
+  input: |
+    {
+      "identification": "username",
+      "login_id": "e2e_recovery_user"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "select_destination",
+          "data": {
+            "type": "account_recovery_select_destination_data",
+            "options": [
+              {
+                "masked_display_name": "[[string]]",
+                "channel": "email",
+                "otp_form": "link"
+              }
+            ]
+          }
+        }
+      }
+
+- name: select email destination
+  action: input
+  input: |
+    {
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "verify_account_recovery_code",
+          "data": {
+            "type": "account_recovery_verify_code_data",
+            "masked_display_name": "[[string]]",
+            "channel": "email",
+            "otp_form": "link",
+            "code_length": 32,
+            "can_resend_at": "[[string]]"
+          }
+        }
+      }
+
+- name: verify with link OTP
+  action: input
+  input: |
+    {
+      "account_recovery_code": "{{ linkOTPCode "email" "e2e_recovery_user@example.com" }}"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "reset_password",
+          "data": {
+            "type": "new_password_data",
+            "password_policy": {
+              "minimum_length": 8,
+              "history": {
+                "enabled": false
+              }
+            }
+          }
+        }
+      }
+
+- name: reset password
+  action: input
+  input: |
+    {
+      "new_password": "Abcd1234Abcd1234!"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
