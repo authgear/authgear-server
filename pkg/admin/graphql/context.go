@@ -191,6 +191,11 @@ type OAuthFacade interface {
 	CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]any) (session.ListableSession, protocol.TokenResponse, error)
 }
 
+type AccountLockoutFacade interface {
+	GetAccountLockoutStatus(ctx context.Context, userID string) (*apimodel.AccountLockoutStatus, error)
+	ResetAccountLockout(ctx context.Context, userID string) error
+}
+
 type SessionListingService interface {
 	FilterForDisplay(ctx context.Context, sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
@@ -255,6 +260,7 @@ type Context struct {
 	ForgotPassword      ForgotPasswordService
 	Events              EventService
 	ResourceScopeFacade ResourceScopeFacade
+	AccountLockoutFacade AccountLockoutFacade
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

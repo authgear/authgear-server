@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	lockoutpkg "github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -79,6 +80,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.OAuthTokenService), new(*oauthhandler.TokenService)),
 	wire.Bind(new(facade.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(facade.OAuthAccessTokenEncoding), new(*oauth.AccessTokenEncoding)),
+	wire.Bind(new(facade.LockoutProvider), new(*lockoutpkg.Service)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -101,6 +103,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.UserProfileFacade), new(*facade.UserProfileFacade)),
 	wire.Bind(new(graphql.AuthorizationFacade), new(*facade.AuthorizationFacade)),
 	wire.Bind(new(graphql.OAuthFacade), new(*facade.OAuthFacade)),
+	wire.Bind(new(graphql.AccountLockoutFacade), new(*facade.LockoutFacade)),
 	wire.Bind(new(graphql.SessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(graphql.OTPCodeService), new(*otp.Service)),
 	wire.Bind(new(graphql.ForgotPasswordService), new(*forgotpassword.Service)),

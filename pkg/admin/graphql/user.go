@@ -91,6 +91,17 @@ func init() {
 			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
 		},
 	})
+
+	nodeUser.AddFieldConfig("accountLockout", &graphql.Field{
+		Type:        graphql.NewNonNull(accountLockoutType),
+		Description: "The account lockout state of this user",
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			source := p.Source.(*model.User)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+			return gqlCtx.AccountLockoutFacade.GetAccountLockoutStatus(ctx, source.ID)
+		},
+	})
 }
 
 var nodeUser = node(

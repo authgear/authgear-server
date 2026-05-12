@@ -1330,6 +1330,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ResourceScopeCommands: resourcescopeCommands,
 		ResourceScopeQueries:  resourcescopeQueries,
 	}
+	lockoutFacade := &facade2.LockoutFacade{
+		LockoutConfig: authenticationLockoutConfig,
+		Lockout:       lockoutService,
+	}
 	graphqlContext := &graphql.Context{
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
@@ -1358,6 +1362,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:        forgotpasswordService,
 		Events:                eventService,
 		ResourceScopeFacade:   resourceScopeFacade,
+		AccountLockoutFacade:  lockoutFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
