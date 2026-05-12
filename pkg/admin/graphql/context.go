@@ -245,21 +245,21 @@ type Context struct {
 	ResourceClients ResourceClientLoader
 	Scopes          ScopeLoader
 
-	UserFacade          UserFacade
-	RolesGroupsFacade   RolesGroupsFacade
-	AuditLogFacade      AuditLogFacade
-	IdentityFacade      IdentityFacade
-	AuthenticatorFacade AuthenticatorFacade
-	VerificationFacade  VerificationFacade
-	SessionFacade       SessionFacade
-	UserProfileFacade   UserProfileFacade
-	AuthorizationFacade AuthorizationFacade
-	OAuthFacade         OAuthFacade
-	SessionListing      SessionListingService
-	OTPCode             OTPCodeService
-	ForgotPassword      ForgotPasswordService
-	Events              EventService
-	ResourceScopeFacade ResourceScopeFacade
+	UserFacade           UserFacade
+	RolesGroupsFacade    RolesGroupsFacade
+	AuditLogFacade       AuditLogFacade
+	IdentityFacade       IdentityFacade
+	AuthenticatorFacade  AuthenticatorFacade
+	VerificationFacade   VerificationFacade
+	SessionFacade        SessionFacade
+	UserProfileFacade    UserProfileFacade
+	AuthorizationFacade  AuthorizationFacade
+	OAuthFacade          OAuthFacade
+	SessionListing       SessionListingService
+	OTPCode              OTPCodeService
+	ForgotPassword       ForgotPasswordService
+	Events               EventService
+	ResourceScopeFacade  ResourceScopeFacade
 	AccountLockoutFacade AccountLockoutFacade
 }
 

@@ -30,6 +30,19 @@ export type Scalars = {
   Web3Claims: { input: GQL_Web3Claims; output: GQL_Web3Claims; }
 };
 
+/** The account lockout state of a user */
+export type AccountLockout = {
+  __typename?: 'AccountLockout';
+  /** Whether the user is currently locked */
+  isLocked: Scalars['Boolean']['output'];
+  /** Locked IPs ordered by lockedUntil descending. Non-empty only for per_user_per_ip lockout type */
+  lockedIPs: Array<LockedIp>;
+  /** When the global lock expires. Non-nil only for per_user lockout type */
+  lockedUntil?: Maybe<Scalars['DateTime']['output']>;
+  /** The configured lockout type: "per_user" or "per_user_per_ip" */
+  lockoutType: Scalars['String']['output'];
+};
+
 export type AddGroupToRolesInput = {
   /** The key of the group. */
   groupKey: Scalars['String']['input'];
@@ -847,6 +860,15 @@ export enum IdentityType {
   Siwe = 'SIWE'
 }
 
+/** A locked IP address and when its lock expires */
+export type LockedIp = {
+  __typename?: 'LockedIP';
+  /** The locked IP address */
+  ipAddress: Scalars['String']['output'];
+  /** The time the lock for this IP expires */
+  lockedUntil: Scalars['DateTime']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Add the group to the roles. */
@@ -921,6 +943,8 @@ export type Mutation = {
   removeUserFromRoles: RemoveUserFromRolesPayload;
   /** Replace the set of scopes associated with a clientID. */
   replaceScopesOfClientID: ReplaceScopesOfClientIdPayload;
+  /** Reset the account lockout state of a user */
+  resetAccountLockout: ResetAccountLockoutPayload;
   /** Reset password of user */
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
@@ -1143,6 +1167,11 @@ export type MutationRemoveUserFromRolesArgs = {
 
 export type MutationReplaceScopesOfClientIdArgs = {
   input: ReplaceScopesOfClientIdInput;
+};
+
+
+export type MutationResetAccountLockoutArgs = {
+  input: ResetAccountLockoutInput;
 };
 
 
@@ -1520,6 +1549,16 @@ export type ReplaceScopesOfClientIdInput = {
 export type ReplaceScopesOfClientIdPayload = {
   __typename?: 'ReplaceScopesOfClientIDPayload';
   scopes: Array<Scope>;
+};
+
+export type ResetAccountLockoutInput = {
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type ResetAccountLockoutPayload = {
+  __typename?: 'ResetAccountLockoutPayload';
+  user: User;
 };
 
 export type ResetPasswordInput = {
@@ -1989,6 +2028,8 @@ export type UpdateUserPayload = {
 /** Authgear user */
 export type User = Entity & Node & {
   __typename?: 'User';
+  /** The account lockout state of this user */
+  accountLockout: AccountLockout;
   /** The start timestamp of the account valid period */
   accountValidFrom?: Maybe<Scalars['DateTime']['output']>;
   /** The end timestamp of the account valid period */

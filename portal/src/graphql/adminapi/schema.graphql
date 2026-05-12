@@ -1,3 +1,22 @@
+"""The account lockout state of a user"""
+type AccountLockout {
+  """Whether the user is currently locked"""
+  isLocked: Boolean!
+
+  """
+  Locked IPs ordered by lockedUntil descending. Non-empty only for per_user_per_ip lockout type
+  """
+  lockedIPs: [LockedIP!]!
+
+  """When the global lock expires. Non-nil only for per_user lockout type"""
+  lockedUntil: DateTime
+
+  """
+  The configured lockout type: "per_user" or "per_user_per_ip"
+  """
+  lockoutType: String!
+}
+
 """"""
 input AddGroupToRolesInput {
   """The key of the group."""
@@ -1320,6 +1339,15 @@ enum IdentityType {
   SIWE
 }
 
+"""A locked IP address and when its lock expires"""
+type LockedIP {
+  """The locked IP address"""
+  ipAddress: String!
+
+  """The time the lock for this IP expires"""
+  lockedUntil: DateTime!
+}
+
 """"""
 type Mutation {
   """Add the group to the roles."""
@@ -1433,6 +1461,9 @@ type Mutation {
 
   """Replace the set of scopes associated with a clientID."""
   replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
+
+  """Reset the account lockout state of a user"""
+  resetAccountLockout(input: ResetAccountLockoutInput!): ResetAccountLockoutPayload!
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
@@ -1716,6 +1747,18 @@ input ReplaceScopesOfClientIDInput {
 type ReplaceScopesOfClientIDPayload {
   """"""
   scopes: [Scope!]!
+}
+
+""""""
+input ResetAccountLockoutInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type ResetAccountLockoutPayload {
+  """"""
+  user: User!
 }
 
 """"""
@@ -2313,6 +2356,9 @@ type UpdateUserPayload {
 
 """Authgear user"""
 type User implements Entity & Node {
+  """The account lockout state of this user"""
+  accountLockout: AccountLockout!
+
   """The start timestamp of the account valid period"""
   accountValidFrom: DateTime
 
