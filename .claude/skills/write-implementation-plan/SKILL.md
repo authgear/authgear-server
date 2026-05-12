@@ -10,13 +10,17 @@ Write implementation plans as concrete engineering plans, not design notes.
 ## Workflow
 
 1. Read the current spec, the existing plan, and the relevant code paths before writing the plan.
-2. Identify the real integration points in code:
+2. **Consult related skills** to understand implementation conventions:
+   - Check the `add-go-test` skill to understand unit testing patterns and whether the package uses Convey BDD-style tests
+   - Check the `write-e2e-test` skill to understand e2e testing requirements and patterns
+   - Check domain-specific skills (e.g., `update-portal-ui`, `new-siteadmin-api`) if the plan touches those areas
+3. Identify the real integration points in code:
    - config types and schema
    - runtime entry points
    - event and delivery paths
    - storage and migration behavior
    - tests
-3. Rewrite the plan around the current spec and the current codebase, not around stale assumptions from an older plan.
+4. Rewrite the plan around the current spec and the current codebase, not around stale assumptions from an older plan.
 
 ## Requirements
 
@@ -127,6 +131,8 @@ If dependency wiring changes, require generated wiring updates in the same commi
 - preserve backward compatibility for legacy config, Redis keys, API payloads, and error fields unless the spec explicitly removes it
 - when the plan references existing Redis key names or legacy values, state exactly where they come from in current code
 - if e2e coverage is needed, include a dedicated e2e commit and list the cases that must be covered
+- **for unit tests**: Identify the test style (Convey BDD vs standard testing.T) by inspecting existing `*_test.go` files in the same package — use the add-go-test skill for guidance and always match the local style
+- **for e2e tests**: Use YAML-driven test format (not Go code) — use the write-e2e-test skill for patterns
 
 ## Output Shape
 
