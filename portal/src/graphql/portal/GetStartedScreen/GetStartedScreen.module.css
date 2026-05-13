@@ -290,11 +290,20 @@
 
 /* Responsive collapse --------------------------------------------------- */
 
-/* Below 1280: collapse hero, features, and bottom row to a single column */
+/* Below 1280: hero + bottom row collapse to 1 column, features become 2 columns */
 @media (max-width: 1280px) {
   .heroRow,
-  .featureGrid,
   .bottomRow {
+    grid-template-columns: 1fr;
+  }
+  .featureGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Below 900: feature grid also collapses to 1 column */
+@media (max-width: 900px) {
+  .featureGrid {
     grid-template-columns: 1fr;
   }
 }
