@@ -32,16 +32,18 @@ export default function FeatureCard(
 
   return (
     <div className={styles.featureCard}>
-      <Icon
-        className={styles.featureIcon}
-        size={28}
-        strokeWidth={1.75}
-        color={theme.palette.themePrimary}
-        aria-hidden={true}
-      />
-      <Text as="h3" block={true} className={styles.featureTitle}>
-        <FormattedMessage id={titleMessageID} />
-      </Text>
+      <div className={styles.featureHeader}>
+        <Icon
+          className={styles.featureIcon}
+          size={24}
+          strokeWidth={1.75}
+          color={theme.palette.themePrimary}
+          aria-hidden={true}
+        />
+        <Text as="h3" block={true} className={styles.featureTitle}>
+          <FormattedMessage id={titleMessageID} />
+        </Text>
+      </div>
       <Text block={true} className={styles.featureDescription}>
         <FormattedMessage id={descriptionMessageID} />
       </Text>
