@@ -48,7 +48,7 @@ export default function HeroIntegrateCard(
           <FormattedMessage id="GetStartedScreen.hero.integrate.subtitle" />
         </Text>
         <div className={styles.heroButtonRow}>
-          <Link to={href} onClick={onClick} className={styles.heroPrimaryButton}>
+          <Link to={href} onClick={onClick} className={styles.heroButtonBlue}>
             <FormattedMessage id={labelMessageID} />
           </Link>
         </div>

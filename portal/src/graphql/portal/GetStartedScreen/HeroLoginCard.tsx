@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { FormattedMessage } from "../../../intl";
 import { Text } from "@fluentui/react";
 import Link from "../../../Link";
-import PrimaryButton from "../../../PrimaryButton";
 import { useTester } from "../../../hook/tester";
 import { useCapture } from "../../../gtm_v2";
 import styles from "./GetStartedScreen.module.css";
@@ -48,17 +47,18 @@ export default function HeroLoginCard(
           <FormattedMessage id="GetStartedScreen.hero.login.subtitle" />
         </Text>
         <div className={styles.heroButtonRow}>
-          <PrimaryButton
+          <button
+            type="button"
+            className={styles.heroButtonWhite}
             onClick={onClickPreview}
             disabled={isLoading}
-            text={
-              <FormattedMessage id="GetStartedScreen.hero.login.preview-button" />
-            }
-          />
+          >
+            <FormattedMessage id="GetStartedScreen.hero.login.preview-button" />
+          </button>
           <Link
             to={`/project/${appID}/branding/design`}
             onClick={onClickCustomize}
-            className={styles.heroSecondaryButton}
+            className={styles.heroButtonOutline}
           >
             <FormattedMessage id="GetStartedScreen.hero.login.customize-button" />
           </Link>

@@ -74,8 +74,9 @@
   gap: 16px;
 }
 
-.heroPrimaryButton,
-.heroSecondaryButton {
+.heroButtonWhite,
+.heroButtonOutline,
+.heroButtonBlue {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -92,31 +93,61 @@
     border-color 0.15s ease;
 }
 
-.heroPrimaryButton {
+.heroButtonWhite {
   background: #ffffff;
   color: #1f2a5e;
   border-color: #ffffff;
 }
 
-.heroPrimaryButton:hover,
-.heroPrimaryButton:focus {
+.heroButtonWhite:hover,
+.heroButtonWhite:focus {
   background: rgba(255, 255, 255, 0.9);
   color: #1f2a5e;
-  text-decoration: none;
 }
 
-.heroSecondaryButton {
+.heroButtonWhite:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.heroButtonOutline {
   background: transparent;
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.heroSecondaryButton:hover,
-.heroSecondaryButton:focus {
-  background: rgba(255, 255, 255, 0.1);
+.heroButtonOutline:link,
+.heroButtonOutline:visited,
+.heroButtonOutline:hover,
+.heroButtonOutline:active {
   color: #ffffff;
-  border-color: #ffffff;
   text-decoration: none;
+}
+
+.heroButtonOutline:hover,
+.heroButtonOutline:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.heroButtonBlue {
+  background: #176df3;
+  color: #ffffff;
+  border-color: #176df3;
+}
+
+.heroButtonBlue:link,
+.heroButtonBlue:visited,
+.heroButtonBlue:hover,
+.heroButtonBlue:active {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.heroButtonBlue:hover,
+.heroButtonBlue:focus {
+  background: #0c4aa8;
+  border-color: #0c4aa8;
 }
 
 /* Feature section ------------------------------------------------------- */
