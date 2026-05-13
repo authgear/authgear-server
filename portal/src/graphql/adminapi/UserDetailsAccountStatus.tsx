@@ -788,7 +788,8 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
                 ) : (
                   <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--locked-per-ip" />
                 )}
-                {lockout.lockedUntil ? <div style={{ marginTop: "8px" }}>
+                {lockout.lockedUntil ? (
+                  <div style={{ marginTop: "8px" }}>
                     <FormattedMessage
                       id="UserDetailsAccountStatus.account-lockout.locked-until"
                       values={{
@@ -799,34 +800,38 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
                           ) ?? "",
                       }}
                     />
-                  </div> : null}
+                  </div>
+                ) : null}
                 {lockout.lockoutType === "per_user_per_ip" &&
-                  lockout.lockedIPs.length > 0 ? <div style={{ marginTop: "8px" }}>
-                      <Text
-                        variant="small"
-                        styles={{
-                          root: { fontWeight: 600, marginBottom: "4px" },
-                        }}
-                      >
-                        <FormattedMessage id="UserDetailsAccountStatus.account-lockout.locked-ips" />
-                      </Text>
-                      <ul style={{ marginTop: "4px", paddingLeft: "20px" }}>
-                        {lockout.lockedIPs.map((ip, index) => (
-                          <li key={index}>
-                            {ip.ipAddress} -{" "}
-                            {formatDatetime(locale, new Date(ip.lockedUntil)) ??
-                              ""}
-                          </li>
-                        ))}
-                      </ul>
-                    </div> : null}
+                lockout.lockedIPs.length > 0 ? (
+                  <div style={{ marginTop: "8px" }}>
+                    <Text
+                      variant="small"
+                      styles={{
+                        root: { fontWeight: 600, marginBottom: "4px" },
+                      }}
+                    >
+                      <FormattedMessage id="UserDetailsAccountStatus.account-lockout.locked-ips" />
+                    </Text>
+                    <ul style={{ marginTop: "4px", paddingLeft: "20px" }}>
+                      {lockout.lockedIPs.map((ip, index) => (
+                        <li key={index}>
+                          {ip.ipAddress} -{" "}
+                          {formatDatetime(locale, new Date(ip.lockedUntil)) ??
+                            ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </>
             ) : (
               <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--unlocked" />
             )}
           </Text>
         </div>
-        {lockout.isLocked ? <OutlinedActionButton
+        {lockout.isLocked ? (
+          <OutlinedActionButton
             disabled={false}
             theme={themes.actionButton}
             className={styles.actionCellActionButton}
@@ -835,7 +840,8 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
               <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
             }
             onClick={onClickResetAccountLockout}
-          /> : null}
+          />
+        ) : null}
       </ListCellLayout>
     );
   };
