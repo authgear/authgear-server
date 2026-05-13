@@ -114,98 +114,30 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionIndex) {
 			optionIdx := inputTakeAccountRecoveryDestinationOptionIndex.GetAccountRecoveryDestinationOptionIndex()
 			option := i.Options[optionIdx]
-			resolved, err := i.resolveUsernameTarget(ctx, deps, flows, option)
-			if err != nil {
-				return nil, err
-			}
 			return authflow.NewNodeSimple(&NodeUseAccountRecoveryDestination{
-				Destination: resolved,
+				Destination: option,
 			}), nil
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
 }
 
-// resolveUsernameTarget is called only for username + enumerate_destinations=false flows.
-// It returns the option unchanged for all other flows.
-// When the user is found and has an identity matching the picked channel, TargetLoginID
-// is replaced with that identity's login ID value so SendCode delivers to the right address.
-// In all other cases (user not found, or no matching identity for the channel) TargetLoginID
-// is prefixed with accountRecoveryNoSendPrefix so SendCode always hits its generateDummyOTP
-// path — no message is dispatched but rate limits are still charged per username, and a
-// username that looks like an email cannot accidentally dispatch to a different user.
-func (i *IntentAccountRecoveryFlowStepSelectDestination) resolveUsernameTarget(
-	ctx context.Context,
-	deps *authflow.Dependencies,
-	flows authflow.Flows,
-	option *AccountRecoveryDestinationOptionInternal,
-) (*AccountRecoveryDestinationOptionInternal, error) {
-	current, err := i.currentFlowObject(deps, flows, i)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	if step.EnumerateDestinations {
-		return option, nil
-	}
-
-	ms := authflow.FindAllMilestones[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
-	if len(ms) == 0 {
-		return option, nil
-	}
-	accIden := ms[0].MilestoneDoUseAccountRecoveryIdentity()
-	if accIden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationUsername {
-		return option, nil
-	}
-
-	noSend := func() *AccountRecoveryDestinationOptionInternal {
-		copied := *option
-		copied.TargetLoginID = accountRecoveryNoSendPrefix + option.TargetLoginID
-		return &copied
-	}
-
-	if accIden.MaybeIdentity == nil {
-		return noSend(), nil
-	}
-
-	userIdens, err := deps.Identities.ListByUser(ctx, accIden.MaybeIdentity.UserID)
-	if err != nil {
-		return nil, err
-	}
-	if target := firstMatchingLoginIDForChannel(userIdens, option.Channel); target != "" {
-		copied := *option
-		copied.TargetLoginID = target
-		return &copied, nil
-	}
-	return noSend(), nil
-}
-
-// firstMatchingLoginIDForChannel returns the first login-id value among userIdens
-// whose login-id type maps to the requested account-recovery channel.
-// email → LoginIDKeyTypeEmail. sms/whatsapp → LoginIDKeyTypePhone.
-// Returns "" when no matching identity is present.
-func firstMatchingLoginIDForChannel(
-	userIdens []*identity.Info,
-	channel AccountRecoveryChannel,
-) string {
-	var wantType model.LoginIDKeyType
+// standardAttributeForChannel returns the user's standard-attribute value that
+// corresponds to the given recovery channel.
+// email → "email" standard attribute. sms/whatsapp → "phone_number" standard attribute.
+// Returns "" when the attribute is absent or empty.
+func standardAttributeForChannel(stdAttrs map[string]any, channel AccountRecoveryChannel) string {
+	var key model.ClaimName
 	switch channel {
 	case AccountRecoveryChannelEmail:
-		wantType = model.LoginIDKeyTypeEmail
+		key = model.ClaimEmail
 	case AccountRecoveryChannelSMS, AccountRecoveryChannelWhatsapp:
-		wantType = model.LoginIDKeyTypePhone
+		key = model.ClaimPhoneNumber
 	default:
 		return ""
 	}
-	for _, ui := range userIdens {
-		if ui.Type != model.IdentityTypeLoginID {
-			continue
-		}
-		if ui.LoginID.LoginIDType == wantType {
-			return ui.LoginID.LoginID
-		}
-	}
-	return ""
+	s, _ := stdAttrs[string(key)].(string)
+	return s
 }
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
@@ -271,17 +203,33 @@ func deriveAccountRecoveryDestinationOptions(
 			options = append(options, opts...)
 		}
 	case isUsername && !step.EnumerateDestinations:
-		// One option per allowed channel. TargetLoginID is the typed username and will be
-		// resolved to the user's actual email/phone at ReactTo time when the user picks one.
+		// One option per allowed channel. TargetLoginID is resolved now to the user's
+		// standard-attribute email or phone for the channel. If the user is not found or
+		// has no matching standard attribute, TargetLoginID is set to
+		// accountRecoveryNoSendPrefix+username so SendCode hits generateDummyOTP — no
+		// message is dispatched but rate limits are still charged per username, and a
+		// username that looks like an email cannot accidentally dispatch to a different user.
 		username := iden.IdentitySpec.LoginID.Value.TrimSpace()
+		var stdAttrs map[string]any
+		if iden.MaybeIdentity != nil {
+			rawUser, err := deps.Users.GetRaw(ctx, iden.MaybeIdentity.UserID)
+			if err != nil {
+				return nil, err
+			}
+			stdAttrs = rawUser.StandardAttributes
+		}
 		for _, channel := range allowedChannels {
+			target := standardAttributeForChannel(stdAttrs, AccountRecoveryChannel(channel.Channel))
+			if target == "" {
+				target = accountRecoveryNoSendPrefix + username
+			}
 			options = append(options, &AccountRecoveryDestinationOptionInternal{
 				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
 					MaskedDisplayName: username,
 					Channel:           AccountRecoveryChannel(channel.Channel),
 					OTPForm:           AccountRecoveryOTPForm(channel.OTPForm),
 				},
-				TargetLoginID: username,
+				TargetLoginID: target,
 			})
 		}
 	default:
