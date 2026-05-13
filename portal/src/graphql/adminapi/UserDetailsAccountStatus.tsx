@@ -944,6 +944,10 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
             onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
             onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
           />
+          <AccountLockoutCell
+            data={data}
+            onClickResetAccountLockout={onClickResetAccountLockout}
+          />
           <AnonymizeUserCell
             data={data}
             onClickAnonymizeImmediately={onClickAnonymizeImmediately}
@@ -955,10 +959,6 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
             onClickCancelDeletion={onClickCancelDeletion}
             onClickDeleteImmediately={onClickDeleteImmediately}
             onClickDeleteOrSchedule={onClickDeleteOrSchedule}
-          />
-          <AccountLockoutCell
-            data={data}
-            onClickResetAccountLockout={onClickResetAccountLockout}
           />
         </div>
         <AccountStatusDialog
