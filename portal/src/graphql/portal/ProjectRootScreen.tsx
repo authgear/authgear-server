@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   ScreenNavQueryQuery,
   ScreenNavQueryDocument,
@@ -11,7 +10,6 @@ import ShowLoading from "../../ShowLoading";
 
 const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const { appID } = useParams() as { appID: string };
-  const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const client = usePortalClient();
@@ -25,12 +23,7 @@ const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
   const { loading } = queryResult;
-  const skippedTutorial = app?.tutorialStatus.data.skipped === true;
-  const path = !skippedTutorial
-    ? `/project/${appID}/getting-started`
-    : analyticEnabled
-    ? `/project/${appID}/analytics`
-    : `/project/${appID}/users/`;
+  const path = `/project/${appID}/getting-started`;
 
   useEffect(() => {
     if (!loading && app != null) {

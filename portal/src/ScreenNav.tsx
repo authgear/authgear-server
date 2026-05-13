@@ -132,7 +132,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const showIntegrations =
     (app?.effectiveFeatureConfig.google_tag_manager?.disabled ?? false) ===
     false;
-  const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
   const { isAuthgearOnce, auditLogEnabled, analyticEnabled } =
     useSystemConfig();
@@ -161,15 +160,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             },
           ]
         : []),
-      ...(skippedTutorial
-        ? []
-        : [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.getting-started",
-              url: `/project/${appID}/getting-started`,
-            },
-          ]),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.getting-started",
+        url: `/project/${appID}/getting-started`,
+      },
       ...(analyticEnabled
         ? [
             {
@@ -434,7 +429,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   }, [
     isAuthgearOnce,
     mobileView,
-    skippedTutorial,
     appID,
     analyticEnabled,
     app2appEnabled,
