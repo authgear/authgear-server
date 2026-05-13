@@ -8,7 +8,7 @@ import styles from "./GetStartedScreen.module.css";
 export interface ResourceRowProps {
   iconSrc: string;
   titleMessageID: string;
-  descriptionMessageID: string;
+  descriptionMessageID?: string;
   internalHref?: string;
   externalHref?: string;
   onClick?: (e: React.MouseEvent<HTMLElement>) => void;
@@ -41,9 +41,11 @@ function ResourceRow(props: ResourceRowProps): React.ReactElement {
         <Text block={true} className={styles.resourceTitle}>
           <FormattedMessage id={titleMessageID} />
         </Text>
-        <Text block={true} className={styles.resourceDescription}>
-          <FormattedMessage id={descriptionMessageID} />
-        </Text>
+        {descriptionMessageID != null ? (
+          <Text block={true} className={styles.resourceDescription}>
+            <FormattedMessage id={descriptionMessageID} />
+          </Text>
+        ) : null}
       </div>
     </>
   );

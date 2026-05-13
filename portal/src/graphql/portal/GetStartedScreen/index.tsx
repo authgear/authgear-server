@@ -33,7 +33,7 @@ const DOCS_HOME = "https://docs.authgear.com/";
 const DOCS_QUICKSTART = "https://docs.authgear.com/get-started";
 const DOCS_API_REFERENCE = "https://docs.authgear.com/reference/apis/admin-api";
 const DOCS_CUSTOM_UI = "https://docs.authgear.com/get-started/native-mobile-app";
-const MAILTO_HELLO = "mailto:hello@authgear.com";
+const MAILTO_SUPPORT = "mailto:support@authgear.com";
 const URL_SALES =
   "https://www.authgear.com/talk-with-us?utm_source=portal&utm_medium=link&utm_campaign=getting_started";
 const URL_DISCORD = "https://discord.gg/authgear";
@@ -121,7 +121,7 @@ function GetStartedScreenContent(
         titleMessageID: "GetStartedScreen.get-in-touch.email.title",
         descriptionMessageID:
           "GetStartedScreen.get-in-touch.email.description",
-        externalHref: MAILTO_HELLO,
+        externalHref: MAILTO_SUPPORT,
         onClick: () => capture("getStarted.clicked-email"),
       },
       {
