@@ -1,12 +1,13 @@
 import React from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, Image, ImageFit } from "@fluentui/react";
+import { Text, useTheme } from "@fluentui/react";
+import { LucideIcon } from "lucide-react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
 
 interface FeatureCardProps {
-  iconSrc: string;
+  Icon: LucideIcon;
   titleMessageID: string;
   descriptionMessageID: string;
   actionMessageID: string;
@@ -19,7 +20,7 @@ export default function FeatureCard(
   props: FeatureCardProps
 ): React.ReactElement {
   const {
-    iconSrc,
+    Icon,
     titleMessageID,
     descriptionMessageID,
     actionMessageID,
@@ -27,14 +28,16 @@ export default function FeatureCard(
     externalHref,
     onClick,
   } = props;
+  const theme = useTheme();
 
   return (
     <div className={styles.featureCard}>
-      <Image
+      <Icon
         className={styles.featureIcon}
-        src={iconSrc}
-        imageFit={ImageFit.contain}
-        alt=""
+        size={28}
+        strokeWidth={1.75}
+        color={theme.palette.themePrimary}
+        aria-hidden={true}
       />
       <Text as="h3" block={true} className={styles.featureTitle}>
         <FormattedMessage id={titleMessageID} />

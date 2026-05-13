@@ -1,12 +1,13 @@
 import React from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, Image, ImageFit } from "@fluentui/react";
+import { Text, useTheme } from "@fluentui/react";
+import { LucideIcon } from "lucide-react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
 
 export interface ResourceRowProps {
-  iconSrc: string;
+  Icon: LucideIcon;
   titleMessageID: string;
   descriptionMessageID?: string;
   internalHref?: string;
@@ -21,21 +22,23 @@ interface ResourceColumnProps {
 
 function ResourceRow(props: ResourceRowProps): React.ReactElement {
   const {
-    iconSrc,
+    Icon,
     titleMessageID,
     descriptionMessageID,
     internalHref,
     externalHref,
     onClick,
   } = props;
+  const theme = useTheme();
 
   const body = (
     <>
-      <Image
+      <Icon
         className={styles.resourceIcon}
-        src={iconSrc}
-        imageFit={ImageFit.contain}
-        alt=""
+        size={28}
+        strokeWidth={1.75}
+        color={theme.palette.themePrimary}
+        aria-hidden={true}
       />
       <div className={styles.resourceTextBlock}>
         <Text block={true} className={styles.resourceTitle}>
