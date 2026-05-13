@@ -38,8 +38,8 @@ var _ = registerMutationField(
 				Type: graphql.NewNonNull(resetAccountLockoutInput),
 			},
 		},
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			input := p.Args["input"].(map[string]interface{})
+		Resolve: func(p graphql.ResolveParams) (any, error) {
+			input := p.Args["input"].(map[string]any)
 			userNodeID := input["userID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
@@ -56,7 +56,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			return graphqlutil.NewLazyValue(map[string]interface{}{
+			return graphqlutil.NewLazyValue(map[string]any{
 				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},

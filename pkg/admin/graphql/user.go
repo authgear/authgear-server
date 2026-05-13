@@ -24,14 +24,14 @@ var lockedIPType = graphql.NewObject(graphql.ObjectConfig{
 		"ipAddress": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "The locked IP address",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				return p.Source.(apimodel.LockedIP).IPAddress, nil
 			},
 		},
 		"lockedUntil": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.DateTime),
 			Description: "The time the lock for this IP expires",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				return p.Source.(apimodel.LockedIP).LockedUntil, nil
 			},
 		},
@@ -45,30 +45,30 @@ var accountLockoutType = graphql.NewObject(graphql.ObjectConfig{
 		"lockoutType": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "The configured lockout type: \"per_user\" or \"per_user_per_ip\"",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				return string(p.Source.(*apimodel.AccountLockoutStatus).LockoutType), nil
 			},
 		},
 		"isLocked": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.Boolean),
 			Description: "Whether the user is currently locked",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				return p.Source.(*apimodel.AccountLockoutStatus).IsLocked, nil
 			},
 		},
 		"lockedUntil": &graphql.Field{
 			Type:        graphql.DateTime,
 			Description: "When the global lock expires. Non-nil only for per_user lockout type",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				return p.Source.(*apimodel.AccountLockoutStatus).LockedUntil, nil
 			},
 		},
 		"lockedIPs": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(lockedIPType))),
 			Description: "Locked IPs ordered by lockedUntil descending. Non-empty only for per_user_per_ip lockout type",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ips := p.Source.(*apimodel.AccountLockoutStatus).LockedIPs
-				out := make([]interface{}, len(ips))
+				out := make([]any, len(ips))
 				for i, ip := range ips {
 					out[i] = ip
 				}
@@ -304,7 +304,7 @@ var nodeUser = node(
 			"accountLockout": &graphql.Field{
 				Type:        graphql.NewNonNull(accountLockoutType),
 				Description: "The account lockout state of this user",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				Resolve: func(p graphql.ResolveParams) (any, error) {
 					source := p.Source.(*model.User)
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
