@@ -18,11 +18,18 @@
   position: relative;
   display: flex;
   align-items: stretch;
-  background: linear-gradient(135deg, #1f2a5e 0%, #2741a6 100%);
   border-radius: 12px;
   padding: 24px;
   color: #ffffff;
   overflow: hidden;
+}
+
+.heroCardLogin {
+  background: linear-gradient(263.9deg, #176df3 0%, #0c4aa8 100%);
+}
+
+.heroCardIntegrate {
+  background: linear-gradient(83.17deg, #1e1f24 0%, #0d2f68 100%);
 }
 
 .heroCardBody {

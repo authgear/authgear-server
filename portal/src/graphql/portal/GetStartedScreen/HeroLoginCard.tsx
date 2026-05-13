@@ -36,7 +36,7 @@ export default function HeroLoginCard(
   }, [capture]);
 
   return (
-    <div className={styles.heroCard}>
+    <div className={`${styles.heroCard} ${styles.heroCardLogin}`}>
       <div className={styles.heroCardBody}>
         <Text block={true} className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.login.badge" />

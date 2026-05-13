@@ -36,7 +36,7 @@ export default function HeroIntegrateCard(
   }, [capture]);
 
   return (
-    <div className={styles.heroCard}>
+    <div className={`${styles.heroCard} ${styles.heroCardIntegrate}`}>
       <div className={styles.heroCardBody}>
         <Text block={true} className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.badge" />
