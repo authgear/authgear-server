@@ -11,7 +11,7 @@
 .heroRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 24px;
+  gap: 24px;
 }
 
 .heroCard {
@@ -206,7 +206,7 @@
 .bottomRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 24px;
+  gap: 24px;
   padding: 24px;
   border-radius: 12px;
   background: rgb(247 247 247);
