@@ -54,12 +54,7 @@ export default function HeroLoginCard(
             onClick={onClickPreview}
             disabled={isLoading}
           >
-            <Play
-              size={14}
-              strokeWidth={2}
-              fill="currentColor"
-              aria-hidden={true}
-            />
+            <Play size={14} strokeWidth={2} aria-hidden={true} />
             <FormattedMessage id="GetStartedScreen.hero.login.preview-button" />
           </button>
           <Link
