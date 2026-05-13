@@ -33,13 +33,15 @@ function ResourceRow(props: ResourceRowProps): React.ReactElement {
 
   const body = (
     <>
-      <Icon
-        className={styles.resourceIcon}
-        size={28}
-        strokeWidth={1.75}
-        color={theme.palette.themePrimary}
-        aria-hidden={true}
-      />
+      <div className={styles.resourceIconWrapper}>
+        <Icon
+          className={styles.resourceIcon}
+          size={20}
+          strokeWidth={1.75}
+          color={theme.palette.themePrimary}
+          aria-hidden={true}
+        />
+      </div>
       <div className={styles.resourceTextBlock}>
         <Text block={true} className={styles.resourceTitle}>
           <FormattedMessage id={titleMessageID} />

@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
 import { Text } from "@fluentui/react";
-import ScreenTitle from "../../../ScreenTitle";
 import ShowLoading from "../../../ShowLoading";
 import ShowError from "../../../ShowError";
 import ScreenLayoutScrollView from "../../../ScreenLayoutScrollView";
@@ -171,10 +170,6 @@ function GetStartedScreenContent(
   return (
     <ScreenLayoutScrollView>
       <div className={styles.root}>
-        <ScreenTitle>
-          <FormattedMessage id="GetStartedScreen.title" />
-        </ScreenTitle>
-
         <div className={styles.heroRow}>
           <HeroLoginCard appID={appID} publicOrigin={publicOrigin} />
           <HeroIntegrateCard appID={appID} numberOfClients={numberOfClients} />
