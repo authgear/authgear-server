@@ -10,12 +10,13 @@ import styles from "./GetStartedScreen.module.css";
 interface HeroLoginCardProps {
   appID: string;
   publicOrigin: string;
+  hasApp: boolean;
 }
 
 export default function HeroLoginCard(
   props: HeroLoginCardProps
 ): React.ReactElement {
-  const { appID, publicOrigin } = props;
+  const { appID, publicOrigin, hasApp } = props;
   const capture = useCapture();
   const { triggerTester, isLoading } = useTester(appID, publicOrigin);
 
@@ -23,17 +24,17 @@ export default function HeroLoginCard(
     (e: React.MouseEvent<HTMLElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      capture("getStarted.clicked-preview_login_page");
+      capture("getStarted.clicked-preview_login_page", { has_app: hasApp });
       triggerTester().catch((err) => {
         console.error(err);
       });
     },
-    [capture, triggerTester]
+    [capture, hasApp, triggerTester]
   );
 
   const onClickCustomize = useCallback(() => {
-    capture("getStarted.clicked-customize_branding");
-  }, [capture]);
+    capture("getStarted.clicked-customize_branding", { has_app: hasApp });
+  }, [capture, hasApp]);
 
   return (
     <div className={`${styles.heroCard} ${styles.heroCardLogin}`}>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
 import { Text } from "@fluentui/react";
@@ -33,7 +33,7 @@ import styles from "./GetStartedScreen.module.css";
 const DOCS_HOME = "https://docs.authgear.com/";
 const DOCS_QUICKSTART = "https://docs.authgear.com/get-started/start-building";
 const DOCS_API_REFERENCE = "https://docs.authgear.com/reference/apis";
-const DOCS_CUSTOM_UI = "https://docs.authgear.com/get-started/native-mobile-app";
+const DOCS_CUSTOM_UI = "https://docs.authgear.com/customization/custom-ui";
 const MAILTO_SUPPORT = "mailto:support@authgear.com";
 const URL_SALES = "https://www.authgear.com/schedule-demo";
 const URL_DISCORD = "https://discord.gg/Kdn5vcYwAS";
@@ -49,6 +49,12 @@ function GetStartedScreenContent(
   const { publicOrigin, numberOfClients } = props;
   const { appID } = useParams() as { appID: string };
   const capture = useCapture();
+  const hasApp = numberOfClients > 0;
+  const captureData = useMemo(() => ({ has_app: hasApp }), [hasApp]);
+
+  useEffect(() => {
+    capture("getStarted.viewed", captureData);
+  }, [capture, captureData]);
 
   const featureCards = useMemo(
     () => [
@@ -58,7 +64,7 @@ function GetStartedScreenContent(
         descriptionMessageID: "GetStartedScreen.feature.2fa.description",
         actionMessageID: "GetStartedScreen.feature.2fa.action",
         internalHref: `/project/${appID}/configuration/authentication/2fa`,
-        onClick: () => capture("getStarted.clicked-feature_2fa"),
+        onClick: () => capture("getStarted.clicked-feature_2fa", captureData),
       },
       {
         Icon: BotMessageSquare,
@@ -67,7 +73,8 @@ function GetStartedScreenContent(
           "GetStartedScreen.feature.bot-protection.description",
         actionMessageID: "GetStartedScreen.feature.bot-protection.action",
         internalHref: `/project/${appID}/attack-protection/bot-protection`,
-        onClick: () => capture("getStarted.clicked-feature_bot_protection"),
+        onClick: () =>
+          capture("getStarted.clicked-feature_bot_protection", captureData),
       },
       {
         Icon: UserCog,
@@ -76,7 +83,8 @@ function GetStartedScreenContent(
           "GetStartedScreen.feature.user-management.description",
         actionMessageID: "GetStartedScreen.feature.user-management.action",
         internalHref: `/project/${appID}/users`,
-        onClick: () => capture("getStarted.clicked-feature_user_management"),
+        onClick: () =>
+          capture("getStarted.clicked-feature_user_management", captureData),
       },
       {
         Icon: Settings,
@@ -84,7 +92,8 @@ function GetStartedScreenContent(
         descriptionMessageID: "GetStartedScreen.feature.admin-api.description",
         actionMessageID: "GetStartedScreen.feature.admin-api.action",
         internalHref: `/project/${appID}/advanced/admin-api`,
-        onClick: () => capture("getStarted.clicked-feature_admin_api"),
+        onClick: () =>
+          capture("getStarted.clicked-feature_admin_api", captureData),
       },
       {
         Icon: FileJson2,
@@ -92,7 +101,8 @@ function GetStartedScreenContent(
         descriptionMessageID: "GetStartedScreen.feature.custom-ui.description",
         actionMessageID: "GetStartedScreen.feature.custom-ui.action",
         externalHref: DOCS_CUSTOM_UI,
-        onClick: () => capture("getStarted.clicked-feature_custom_ui"),
+        onClick: () =>
+          capture("getStarted.clicked-feature_custom_ui", captureData),
       },
       {
         Icon: Webhook,
@@ -100,10 +110,10 @@ function GetStartedScreenContent(
         descriptionMessageID: "GetStartedScreen.feature.hooks.description",
         actionMessageID: "GetStartedScreen.feature.hooks.action",
         internalHref: `/project/${appID}/advanced/hooks`,
-        onClick: () => capture("getStarted.clicked-feature_hooks"),
+        onClick: () => capture("getStarted.clicked-feature_hooks", captureData),
       },
     ],
-    [appID, capture]
+    [appID, capture, captureData]
   );
 
   const contactRows: ResourceRowProps[] = useMemo(
@@ -114,7 +124,7 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.get-in-touch.discord.description",
         externalHref: URL_DISCORD,
-        onClick: () => capture("getStarted.clicked-discord"),
+        onClick: () => capture("getStarted.clicked-discord", captureData),
       },
       {
         Icon: Mail,
@@ -122,7 +132,7 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.get-in-touch.email.description",
         externalHref: MAILTO_SUPPORT,
-        onClick: () => capture("getStarted.clicked-email"),
+        onClick: () => capture("getStarted.clicked-email", captureData),
       },
       {
         Icon: Headphones,
@@ -130,10 +140,10 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.get-in-touch.sales.description",
         externalHref: URL_SALES,
-        onClick: () => capture("getStarted.clicked-sales"),
+        onClick: () => capture("getStarted.clicked-sales", captureData),
       },
     ],
-    [capture]
+    [capture, captureData]
   );
 
   const resourceRows: ResourceRowProps[] = useMemo(
@@ -144,7 +154,7 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.resource.documentation.description",
         externalHref: DOCS_HOME,
-        onClick: () => capture("getStarted.clicked-docs"),
+        onClick: () => capture("getStarted.clicked-docs", captureData),
       },
       {
         Icon: Code,
@@ -152,7 +162,7 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.resource.api-reference.description",
         externalHref: DOCS_API_REFERENCE,
-        onClick: () => capture("getStarted.clicked-api_reference"),
+        onClick: () => capture("getStarted.clicked-api_reference", captureData),
       },
       {
         Icon: Rocket,
@@ -160,18 +170,22 @@ function GetStartedScreenContent(
         descriptionMessageID:
           "GetStartedScreen.resource.quickstart.description",
         externalHref: DOCS_QUICKSTART,
-        onClick: () => capture("getStarted.clicked-quickstart"),
+        onClick: () => capture("getStarted.clicked-quickstart", captureData),
       },
     ],
-    [capture]
+    [capture, captureData]
   );
 
   return (
     <ScreenLayoutScrollView>
       <div className={styles.root}>
         <div className={styles.heroRow}>
-          <HeroLoginCard appID={appID} publicOrigin={publicOrigin} />
-          <HeroIntegrateCard appID={appID} numberOfClients={numberOfClients} />
+          <HeroLoginCard
+            appID={appID}
+            publicOrigin={publicOrigin}
+            hasApp={hasApp}
+          />
+          <HeroIntegrateCard appID={appID} hasApp={hasApp} />
         </div>
 
         <section className={styles.featureSection}>

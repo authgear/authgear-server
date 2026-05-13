@@ -32,6 +32,7 @@ export type AuthgearGTMEventTypeV2 =
   | "getStarted.clicked-done"
   | "getStarted.clicked-forum"
   | "getStarted.clicked-contact_us"
+  | "getStarted.viewed"
   | "getStarted.clicked-preview_login_page"
   | "getStarted.clicked-customize_branding"
   | "getStarted.clicked-feature_2fa"

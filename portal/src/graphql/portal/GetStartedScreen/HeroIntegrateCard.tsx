@@ -7,16 +7,14 @@ import styles from "./GetStartedScreen.module.css";
 
 interface HeroIntegrateCardProps {
   appID: string;
-  numberOfClients: number;
+  hasApp: boolean;
 }
 
 export default function HeroIntegrateCard(
   props: HeroIntegrateCardProps
 ): React.ReactElement {
-  const { appID, numberOfClients } = props;
+  const { appID, hasApp } = props;
   const capture = useCapture();
-
-  const hasApp = numberOfClients > 0;
 
   const { href, labelMessageID } = useMemo(() => {
     if (hasApp) {
@@ -32,8 +30,8 @@ export default function HeroIntegrateCard(
   }, [appID, hasApp]);
 
   const onClick = useCallback(() => {
-    capture("getStarted.clicked-create_app");
-  }, [capture]);
+    capture("getStarted.clicked-create_app", { has_app: hasApp });
+  }, [capture, hasApp]);
 
   return (
     <div className={`${styles.heroCard} ${styles.heroCardIntegrate}`}>
