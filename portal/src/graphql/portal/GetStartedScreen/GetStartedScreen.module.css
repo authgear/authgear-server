@@ -87,23 +87,37 @@
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  text-decoration: none;
+  text-decoration: none !important;
   cursor: pointer;
   border: 1px solid transparent;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color 0.15s ease, color 0.15s ease,
     border-color 0.15s ease;
 }
 
+.heroButtonWhite:focus-visible,
+.heroButtonOutline:focus-visible,
+.heroButtonBlue:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
 .heroButtonWhite {
   background: #ffffff;
-  color: #1f2a5e;
+  color: #1f2a5e !important;
   border-color: #ffffff;
 }
 
 .heroButtonWhite:hover,
 .heroButtonWhite:focus {
   background: rgba(255, 255, 255, 0.9);
-  color: #1f2a5e;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.heroButtonWhite:active {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .heroButtonWhite:disabled {
@@ -113,42 +127,36 @@
 
 .heroButtonOutline {
   background: transparent;
-  color: #ffffff;
+  color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.6);
-}
-
-.heroButtonOutline:link,
-.heroButtonOutline:visited,
-.heroButtonOutline:hover,
-.heroButtonOutline:active {
-  color: #ffffff;
-  text-decoration: none;
 }
 
 .heroButtonOutline:hover,
 .heroButtonOutline:focus {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #ffffff;
+}
+
+.heroButtonOutline:active {
+  background: rgba(255, 255, 255, 0.2);
   border-color: #ffffff;
 }
 
 .heroButtonBlue {
   background: #176df3;
-  color: #ffffff;
+  color: #ffffff !important;
   border-color: #176df3;
-}
-
-.heroButtonBlue:link,
-.heroButtonBlue:visited,
-.heroButtonBlue:hover,
-.heroButtonBlue:active {
-  color: #ffffff;
-  text-decoration: none;
 }
 
 .heroButtonBlue:hover,
 .heroButtonBlue:focus {
   background: #0c4aa8;
   border-color: #0c4aa8;
+}
+
+.heroButtonBlue:active {
+  background: #083682;
+  border-color: #083682;
 }
 
 /* Feature section ------------------------------------------------------- */
@@ -218,19 +226,33 @@
   font-size: 14px;
   font-weight: 500;
   background: #ffffff;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .featureAction:link,
 .featureAction:visited,
 .featureAction:hover,
-.featureAction:active {
-  color: rgb(50 49 48);
-  text-decoration: none;
+.featureAction:active,
+.featureAction:focus {
+  color: rgb(50 49 48) !important;
+  text-decoration: none !important;
 }
 
 .featureAction:hover {
   background: rgb(248 249 250);
   border-color: rgb(180 180 180);
+}
+
+.featureAction:active {
+  background: rgb(236 238 240);
+  border-color: rgb(150 150 150);
+}
+
+.featureAction:focus-visible {
+  outline: 2px solid rgb(0 120 212);
+  outline-offset: 2px;
 }
 
 /* Bottom row ------------------------------------------------------------ */
@@ -271,10 +293,31 @@
   border-radius: 8px;
   background: #ffffff;
   text-decoration: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.resourceRow:link,
+.resourceRow:visited,
+.resourceRow:hover,
+.resourceRow:active,
+.resourceRow:focus {
+  text-decoration: none !important;
 }
 
 .resourceRow:hover {
   background: rgb(243 242 241);
+}
+
+.resourceRow:active {
+  background: rgb(232 232 232);
+  border-color: rgb(180 180 180);
+}
+
+.resourceRow:focus-visible {
+  outline: 2px solid rgb(0 120 212);
+  outline-offset: 2px;
 }
 
 .resourceRow::after {
