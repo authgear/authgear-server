@@ -1,0 +1,16 @@
+mutation resetAccountLockoutMutation($userID: ID!) {
+  resetAccountLockout(input: { userID: $userID }) {
+    user {
+      id
+      accountLockout {
+        isLocked
+        lockoutType
+        lockedUntil
+        lockedIPs {
+          ipAddress
+          lockedUntil
+        }
+      }
+    }
+  }
+}

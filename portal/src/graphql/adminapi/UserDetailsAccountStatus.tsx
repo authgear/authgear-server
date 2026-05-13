@@ -31,6 +31,7 @@ import { useUnscheduleAccountAnonymizationMutation } from "./mutations/unschedul
 import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
 import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
+import { useResetAccountLockoutMutation } from "./mutations/resetAccountLockoutMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import styles from "./UserDetailsAccountStatus.module.css";
@@ -78,6 +79,12 @@ export interface AccountStatus {
   deleteAt?: string | null;
   anonymizeAt?: string | null;
   endUserAccountID?: string | null;
+  accountLockout?: {
+    isLocked: boolean;
+    lockoutType: string;
+    lockedUntil?: string | null;
+    lockedIPs: Array<{ ipAddress: string; lockedUntil: string }>;
+  } | null;
 }
 
 interface DisableUserCellProps {
@@ -104,6 +111,11 @@ interface RemoveUserCellProps {
   onClickDeleteOrSchedule: () => void;
   onClickCancelDeletion: () => void;
   onClickDeleteImmediately: () => void;
+}
+
+interface AccountLockoutCellProps {
+  data: AccountStatus;
+  onClickResetAccountLockout: () => void;
 }
 
 interface ButtonStates {
@@ -741,6 +753,93 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   );
 };
 
+const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
+  function AccountLockoutCell(props) {
+    const { themes } = useSystemConfig();
+    const { locale } = useContext(Context);
+    const { data, onClickResetAccountLockout } = props;
+    const lockout = data.accountLockout;
+
+    if (!lockout) {
+      return null;
+    }
+
+    return (
+      <ListCellLayout className={styles.actionCell}>
+        <div className={styles.actionCellLabel}>
+          <Text
+            styles={{
+              root: labelTextStyle,
+            }}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.account-lockout.title" />
+          </Text>
+        </div>
+        <div className={styles.actionCellBody}>
+          <Text
+            styles={{
+              root: bodyTextStyle,
+            }}
+          >
+            {lockout.isLocked ? (
+              <>
+                {lockout.lockoutType === "per_user" ? (
+                  <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--locked-per-user" />
+                ) : (
+                  <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--locked-per-ip" />
+                )}
+                {lockout.lockedUntil ? <div style={{ marginTop: "8px" }}>
+                    <FormattedMessage
+                      id="UserDetailsAccountStatus.account-lockout.locked-until"
+                      values={{
+                        until:
+                          formatDatetime(
+                            locale,
+                            new Date(lockout.lockedUntil)
+                          ) ?? "",
+                      }}
+                    />
+                  </div> : null}
+                {lockout.lockoutType === "per_user_per_ip" &&
+                  lockout.lockedIPs.length > 0 ? <div style={{ marginTop: "8px" }}>
+                      <Text
+                        variant="small"
+                        styles={{
+                          root: { fontWeight: 600, marginBottom: "4px" },
+                        }}
+                      >
+                        <FormattedMessage id="UserDetailsAccountStatus.account-lockout.locked-ips" />
+                      </Text>
+                      <ul style={{ marginTop: "4px", paddingLeft: "20px" }}>
+                        {lockout.lockedIPs.map((ip, index) => (
+                          <li key={index}>
+                            {ip.ipAddress} -{" "}
+                            {formatDatetime(locale, new Date(ip.lockedUntil)) ??
+                              ""}
+                          </li>
+                        ))}
+                      </ul>
+                    </div> : null}
+              </>
+            ) : (
+              <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--unlocked" />
+            )}
+          </Text>
+        </div>
+        {lockout.isLocked ? <OutlinedActionButton
+            disabled={false}
+            theme={themes.actionButton}
+            className={styles.actionCellActionButton}
+            iconProps={{ iconName: "Blocked" }}
+            text={
+              <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
+            }
+            onClick={onClickResetAccountLockout}
+          /> : null}
+      </ListCellLayout>
+    );
+  };
+
 interface UserDetailsAccountStatusProps {
   data: AccountStatus;
 }
@@ -805,6 +904,11 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
       setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
+    const onClickResetAccountLockout = useCallback(() => {
+      setMode("reset-account-lockout");
+      setDialogKey((prev) => prev + 1);
+      setDialogHidden(false);
+    }, []);
 
     const onDismiss: AccountStatusDialogProps["onDismiss"] = useCallback(
       async (info) => {
@@ -846,6 +950,10 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
             onClickDeleteImmediately={onClickDeleteImmediately}
             onClickDeleteOrSchedule={onClickDeleteOrSchedule}
           />
+          <AccountLockoutCell
+            data={data}
+            onClickResetAccountLockout={onClickResetAccountLockout}
+          />
         </div>
         <AccountStatusDialog
           key={String(dialogKey)}
@@ -872,6 +980,7 @@ export interface AccountStatusDialogProps {
     | "delete-or-schedule"
     | "cancel-deletion"
     | "delete-immediately"
+    | "reset-account-lockout"
     | "auto";
   accountStatus: AccountStatus;
 }
@@ -1138,6 +1247,11 @@ export function AccountStatusDialog(
     loading: unscheduleAccountDeletionLoading,
     error: unscheduleAccountDeletionError,
   } = useUnscheduleAccountDeletionMutation();
+  const {
+    resetAccountLockout,
+    loading: resetAccountLockoutLoading,
+    error: resetAccountLockoutError,
+  } = useResetAccountLockoutMutation();
 
   const loading =
     setDisabledStatusLoading ||
@@ -1147,7 +1261,8 @@ export function AccountStatusDialog(
     unscheduleAccountAnonymizationLoading ||
     deleteUserLoading ||
     scheduleAccountDeletionLoading ||
-    unscheduleAccountDeletionLoading;
+    unscheduleAccountDeletionLoading ||
+    resetAccountLockoutLoading;
   const error =
     setDisabledStatusError ||
     setAccountValidPeriodError ||
@@ -1156,7 +1271,8 @@ export function AccountStatusDialog(
     unscheduleAccountAnonymizationError ||
     deleteUserError ||
     scheduleAccountDeletionError ||
-    unscheduleAccountDeletionError;
+    unscheduleAccountDeletionError ||
+    resetAccountLockoutError;
 
   const onDialogDismiss = useCallback(() => {
     if (loading || isHidden) {
@@ -1295,6 +1411,14 @@ export function AccountStatusDialog(
     onDismiss,
     unscheduleAccountDeletion,
   ]);
+
+  const onClickResetAccountLockout = useCallback(async () => {
+    if (loading || isHidden) {
+      return;
+    }
+    await resetAccountLockout(accountStatus.id);
+    await onDismiss({ deletedUser: false });
+  }, [accountStatus.id, isHidden, loading, onDismiss, resetAccountLockout]);
 
   const dialogContentPropsAndDialogSlots: {
     dialogContentProps: {
@@ -1568,6 +1692,27 @@ export function AccountStatusDialog(
           />
         );
         break;
+      case "reset-account-lockout":
+        title = (
+          <FormattedMessage id="UserDetailsAccountStatus.account-lockout.confirm-dialog.title" />
+        );
+        subText = (
+          <FormattedMessage
+            id="UserDetailsAccountStatus.account-lockout.confirm-dialog.description"
+            values={args}
+          />
+        );
+        button1 = (
+          <PrimaryButton
+            theme={themes.main}
+            disabled={loading}
+            onClick={onClickResetAccountLockout}
+            text={
+              <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
+            }
+          />
+        );
+        break;
       case "auto": {
         const action = getMostAppropriateAction(accountStatus);
         switch (action) {
@@ -1603,6 +1748,7 @@ export function AccountStatusDialog(
     onClickDelete,
     onClickDisable,
     onClickReenable,
+    onClickResetAccountLockout,
     onClickScheduleAnonymization,
     onClickScheduleDeletion,
     onClickSetAccountValidPeriod,
