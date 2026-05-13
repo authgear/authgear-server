@@ -44,7 +44,7 @@
   align-self: flex-start;
   padding: 2px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgb(0 0 0 / 25%);
   font-size: 12px;
   font-weight: 600;
   text-transform: none;
@@ -63,7 +63,7 @@
 .heroSubtitle {
   margin-top: 4px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgb(255 255 255 / 85%);
 }
 
 .heroButtonRow {
@@ -74,6 +74,9 @@
   gap: 16px;
 }
 
+/* Shared shape of the three hero button variants. The .heroCard:host …
+   doubled selectors below bump specificity past FluentUI's .ms-Link rules
+   so we don't need !important. */
 .heroButtonWhite,
 .heroButtonOutline,
 .heroButtonBlue {
@@ -87,7 +90,7 @@
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  text-decoration: none !important;
+  text-decoration: none;
   cursor: pointer;
   border: 1px solid transparent;
   outline: none;
@@ -96,67 +99,75 @@
     border-color 0.15s ease;
 }
 
-.heroButtonWhite:focus-visible,
-.heroButtonOutline:focus-visible,
-.heroButtonBlue:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.7);
-  outline-offset: 2px;
-}
+/* heroButtonWhite ------------------------------------------------------- */
 
-.heroButtonWhite {
+.heroButtonWhite.heroButtonWhite {
   background: #ffffff;
-  color: #1f2a5e !important;
+  color: #1f2a5e;
   border-color: #ffffff;
+  text-decoration: none;
 }
 
-.heroButtonWhite:hover,
-.heroButtonWhite:focus {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.9);
+.heroButtonWhite.heroButtonWhite:hover,
+.heroButtonWhite.heroButtonWhite:focus {
+  background: rgb(255 255 255 / 90%);
+  border-color: rgb(255 255 255 / 90%);
+  color: #1f2a5e;
 }
 
-.heroButtonWhite:active {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.8);
+.heroButtonWhite.heroButtonWhite:active {
+  background: rgb(255 255 255 / 80%);
+  border-color: rgb(255 255 255 / 80%);
+  color: #1f2a5e;
 }
 
-.heroButtonWhite:disabled {
+.heroButtonWhite.heroButtonWhite:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.heroButtonOutline {
+/* heroButtonOutline ----------------------------------------------------- */
+
+.heroButtonOutline.heroButtonOutline {
   background: transparent;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+  border-color: rgb(255 255 255 / 60%);
+  text-decoration: none;
 }
 
-.heroButtonOutline:hover,
-.heroButtonOutline:focus {
-  background: rgba(255, 255, 255, 0.12);
+.heroButtonOutline.heroButtonOutline:hover,
+.heroButtonOutline.heroButtonOutline:focus {
+  background: rgb(255 255 255 / 12%);
   border-color: #ffffff;
+  color: #ffffff;
 }
 
-.heroButtonOutline:active {
-  background: rgba(255, 255, 255, 0.2);
+.heroButtonOutline.heroButtonOutline:active {
+  background: rgb(255 255 255 / 20%);
   border-color: #ffffff;
+  color: #ffffff;
 }
 
-.heroButtonBlue {
+/* heroButtonBlue -------------------------------------------------------- */
+
+.heroButtonBlue.heroButtonBlue {
   background: #176df3;
-  color: #ffffff !important;
+  color: #ffffff;
   border-color: #176df3;
+  text-decoration: none;
 }
 
-.heroButtonBlue:hover,
-.heroButtonBlue:focus {
+.heroButtonBlue.heroButtonBlue:hover,
+.heroButtonBlue.heroButtonBlue:focus {
   background: #0c4aa8;
   border-color: #0c4aa8;
+  color: #ffffff;
 }
 
-.heroButtonBlue:active {
+.heroButtonBlue.heroButtonBlue:active {
   background: #083682;
   border-color: #083682;
+  color: #ffffff;
 }
 
 /* Feature section ------------------------------------------------------- */
@@ -183,7 +194,7 @@
   display: flex;
   flex-direction: column;
   padding: 24px;
-  border: 1px solid rgb(204 204 204 / 0.8);
+  border: 1px solid rgb(204 204 204 / 80%);
   border-radius: 8px;
   background: #ffffff;
 }
@@ -214,45 +225,37 @@
   flex: 1;
 }
 
-.featureAction {
+.featureAction.featureAction {
   margin-top: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 36px;
   padding: 0 16px;
-  border: 1px solid rgb(204 204 204 / 0.8);
+  border: 1px solid rgb(204 204 204 / 80%);
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   background: #ffffff;
+  color: rgb(50 49 48);
+  text-decoration: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.featureAction:link,
-.featureAction:visited,
-.featureAction:hover,
-.featureAction:active,
-.featureAction:focus {
-  color: rgb(50 49 48) !important;
-  text-decoration: none !important;
-}
-
-.featureAction:hover {
+.featureAction.featureAction:hover,
+.featureAction.featureAction:focus {
   background: rgb(248 249 250);
   border-color: rgb(180 180 180);
+  color: rgb(50 49 48);
+  text-decoration: none;
 }
 
-.featureAction:active {
+.featureAction.featureAction:active {
   background: rgb(236 238 240);
   border-color: rgb(150 150 150);
-}
-
-.featureAction:focus-visible {
-  outline: 2px solid rgb(0 120 212);
-  outline-offset: 2px;
+  color: rgb(50 49 48);
 }
 
 /* Bottom row ------------------------------------------------------------ */
@@ -283,13 +286,13 @@
   row-gap: 16px;
 }
 
-.resourceRow {
+.resourceRow.resourceRow {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border: 1px solid rgb(204 204 204 / 0.8);
+  border: 1px solid rgb(204 204 204 / 80%);
   border-radius: 8px;
   background: #ffffff;
   text-decoration: none;
@@ -298,26 +301,16 @@
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.resourceRow:link,
-.resourceRow:visited,
-.resourceRow:hover,
-.resourceRow:active,
-.resourceRow:focus {
-  text-decoration: none !important;
-}
-
-.resourceRow:hover {
+.resourceRow.resourceRow:hover,
+.resourceRow.resourceRow:focus {
   background: rgb(243 242 241);
+  text-decoration: none;
 }
 
-.resourceRow:active {
+.resourceRow.resourceRow:active {
   background: rgb(232 232 232);
   border-color: rgb(180 180 180);
-}
-
-.resourceRow:focus-visible {
-  outline: 2px solid rgb(0 120 212);
-  outline-offset: 2px;
+  text-decoration: none;
 }
 
 .resourceRow::after {

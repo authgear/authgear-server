@@ -129,16 +129,14 @@ function GetStartedScreenContent(
       {
         Icon: Mail,
         titleMessageID: "GetStartedScreen.get-in-touch.email.title",
-        descriptionMessageID:
-          "GetStartedScreen.get-in-touch.email.description",
+        descriptionMessageID: "GetStartedScreen.get-in-touch.email.description",
         externalHref: MAILTO_SUPPORT,
         onClick: () => capture("getStarted.clicked-email", captureData),
       },
       {
         Icon: Headphones,
         titleMessageID: "GetStartedScreen.get-in-touch.sales.title",
-        descriptionMessageID:
-          "GetStartedScreen.get-in-touch.sales.description",
+        descriptionMessageID: "GetStartedScreen.get-in-touch.sales.description",
         externalHref: URL_SALES,
         onClick: () => capture("getStarted.clicked-sales", captureData),
       },
@@ -217,12 +215,8 @@ function GetStartedScreenContent(
 export default function GetStartedScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
 
-  const {
-    effectiveAppConfig,
-    isLoading,
-    loadError,
-    refetch,
-  } = useAppAndSecretConfigQuery(appID);
+  const { effectiveAppConfig, isLoading, loadError, refetch } =
+    useAppAndSecretConfigQuery(appID);
 
   if (isLoading || !effectiveAppConfig) {
     return <ShowLoading />;
