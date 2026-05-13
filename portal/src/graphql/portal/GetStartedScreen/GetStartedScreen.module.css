@@ -57,6 +57,7 @@
   font-weight: 700;
   line-height: 1.3;
   color: #ffffff;
+  overflow-wrap: break-word;
 }
 
 .heroSubtitle {
@@ -69,6 +70,7 @@
   margin-top: 20px;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -160,12 +162,15 @@
 .featureTitle {
   font-weight: 600;
   font-size: 16px;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .featureDescription {
   margin-top: 16px;
   font-size: 14px;
   color: rgb(96 94 92);
+  overflow-wrap: break-word;
   flex: 1;
 }
 
@@ -274,19 +279,43 @@
 .resourceTitle {
   font-weight: 600;
   font-size: 14px;
+  overflow-wrap: break-word;
 }
 
 .resourceDescription {
   font-size: 13px;
   color: rgb(96 94 92);
+  overflow-wrap: break-word;
 }
 
 /* Responsive collapse --------------------------------------------------- */
 
-@media (max-width: 960px) {
+/* Below 1280: 2-column feature grid */
+@media (max-width: 1280px) {
+  .featureGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Below 900: collapse hero, features, bottom row to 1 column */
+@media (max-width: 900px) {
   .heroRow,
   .featureGrid,
   .bottomRow {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Below 600: tighter page padding and hero padding */
+@media (max-width: 600px) {
+  .root {
+    padding: 16px 20px;
+    row-gap: 24px;
+  }
+  .heroCard {
+    padding: 20px;
+  }
+  .bottomRow {
+    padding: 20px;
   }
 }
