@@ -1,6 +1,6 @@
 module github.com/authgear/authgear-server/e2e
 
-go 1.26.2
+go 1.26.3
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
 
@@ -22,8 +22,8 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/vjeantet/ldapserver v1.0.1
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.49.0
-	golang.org/x/net v0.52.0
+	golang.org/x/crypto v0.51.0
+	golang.org/x/net v0.54.0
 	gopkg.in/h2non/gock.v1 v1.1.2
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -141,7 +141,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.95 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/nyaruka/phonenumbers v1.7.2 // indirect
+	github.com/nyaruka/phonenumbers v1.7.4 // indirect
 	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/oschwald/geoip2-golang v1.13.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
@@ -202,14 +202,14 @@ require (
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260311193753-579e4da9a98c // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/api v0.246.0 // indirect
