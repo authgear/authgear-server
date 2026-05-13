@@ -75,7 +75,7 @@ export default function ResourceColumn(
   const { headingMessageID, rows } = props;
   return (
     <div className={styles.resourceColumn}>
-      <Text as="h2" block={true} className={styles.resourceHeading}>
+      <Text as="h3" block={true} className={styles.resourceHeading}>
         <FormattedMessage id={headingMessageID} />
       </Text>
       <div className={styles.resourceRows}>

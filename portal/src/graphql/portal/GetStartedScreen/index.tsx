@@ -174,8 +174,8 @@ function GetStartedScreenContent(
         </ScreenTitle>
 
         <div className={styles.heroRow}>
-          <HeroLoginCard publicOrigin={publicOrigin} />
-          <HeroIntegrateCard numberOfClients={numberOfClients} />
+          <HeroLoginCard appID={appID} publicOrigin={publicOrigin} />
+          <HeroIntegrateCard appID={appID} numberOfClients={numberOfClients} />
         </div>
 
         <section className={styles.featureSection}>

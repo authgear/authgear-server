@@ -1,22 +1,20 @@
 import React, { useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
 import { Text, Image, ImageFit } from "@fluentui/react";
 import Link from "../../../Link";
-import PrimaryButton from "../../../PrimaryButton";
 import { useCapture } from "../../../gtm_v2";
 import heroIntegrateImage from "../../../images/getting-started/hero-integrate.svg";
 import styles from "./GetStartedScreen.module.css";
 
 interface HeroIntegrateCardProps {
+  appID: string;
   numberOfClients: number;
 }
 
 export default function HeroIntegrateCard(
   props: HeroIntegrateCardProps
 ): React.ReactElement {
-  const { numberOfClients } = props;
-  const { appID } = useParams() as { appID: string };
+  const { appID, numberOfClients } = props;
   const capture = useCapture();
 
   const hasApp = numberOfClients > 0;
@@ -51,10 +49,8 @@ export default function HeroIntegrateCard(
           <FormattedMessage id="GetStartedScreen.hero.integrate.subtitle" />
         </Text>
         <div className={styles.heroButtonRow}>
-          <Link to={href} onClick={onClick} className={styles.heroPrimaryLink}>
-            <PrimaryButton
-              text={<FormattedMessage id={labelMessageID} />}
-            />
+          <Link to={href} onClick={onClick} className={styles.heroPrimaryButton}>
+            <FormattedMessage id={labelMessageID} />
           </Link>
         </div>
       </div>

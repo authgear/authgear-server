@@ -60,8 +60,47 @@
   gap: 8px;
 }
 
-.heroPrimaryLink,
-.heroSecondaryLink {
+.heroPrimaryButton,
+.heroSecondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.heroPrimaryButton {
+  background: #ffffff;
+  color: #1f2a5e;
+  border-color: #ffffff;
+}
+
+.heroPrimaryButton:hover,
+.heroPrimaryButton:focus {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f2a5e;
+  text-decoration: none;
+}
+
+.heroSecondaryButton {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.heroSecondaryButton:hover,
+.heroSecondaryButton:focus {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: #ffffff;
   text-decoration: none;
 }
 
@@ -133,6 +172,11 @@
   margin-top: 4px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.featureAction::after {
+  content: " \203A"; /* single right-pointing angle */
+  margin-left: 4px;
 }
 
 /* Bottom row ------------------------------------------------------------ */

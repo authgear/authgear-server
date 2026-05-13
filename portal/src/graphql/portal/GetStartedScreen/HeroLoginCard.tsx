@@ -1,24 +1,22 @@
 import React, { useCallback } from "react";
-import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
 import { Text, Image, ImageFit } from "@fluentui/react";
 import Link from "../../../Link";
 import PrimaryButton from "../../../PrimaryButton";
-import DefaultButton from "../../../DefaultButton";
 import { useTester } from "../../../hook/tester";
 import { useCapture } from "../../../gtm_v2";
 import heroLoginImage from "../../../images/getting-started/hero-login.svg";
 import styles from "./GetStartedScreen.module.css";
 
 interface HeroLoginCardProps {
+  appID: string;
   publicOrigin: string;
 }
 
 export default function HeroLoginCard(
   props: HeroLoginCardProps
 ): React.ReactElement {
-  const { publicOrigin } = props;
-  const { appID } = useParams() as { appID: string };
+  const { appID, publicOrigin } = props;
   const capture = useCapture();
   const { triggerTester, isLoading } = useTester(appID, publicOrigin);
 
@@ -62,13 +60,9 @@ export default function HeroLoginCard(
           <Link
             to={`/project/${appID}/branding/design`}
             onClick={onClickCustomize}
-            className={styles.heroSecondaryLink}
+            className={styles.heroSecondaryButton}
           >
-            <DefaultButton
-              text={
-                <FormattedMessage id="GetStartedScreen.hero.login.customize-button" />
-              }
-            />
+            <FormattedMessage id="GetStartedScreen.hero.login.customize-button" />
           </Link>
         </div>
       </div>

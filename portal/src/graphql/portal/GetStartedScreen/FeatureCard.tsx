@@ -49,7 +49,6 @@ export default function FeatureCard(
           className={styles.featureAction}
         >
           <FormattedMessage id={actionMessageID} />
-          {" >"}
         </Link>
       ) : externalHref != null ? (
         <ExternalLink
@@ -58,7 +57,6 @@ export default function FeatureCard(
           className={styles.featureAction}
         >
           <FormattedMessage id={actionMessageID} />
-          {" >"}
         </ExternalLink>
       ) : null}
     </div>
