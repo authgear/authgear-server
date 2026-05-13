@@ -1,0 +1,212 @@
+.root {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 32px;
+  min-width: 0;
+}
+
+/* Hero row -------------------------------------------------------------- */
+
+.heroRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+}
+
+.heroCard {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(135deg, #1f2a5e 0%, #2741a6 100%);
+  border-radius: 12px;
+  padding: 24px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.heroCardBody {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  z-index: 1;
+}
+
+.heroBadge {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.heroTitle {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.heroSubtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.heroButtonRow {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.heroPrimaryLink,
+.heroSecondaryLink {
+  text-decoration: none;
+}
+
+.heroIllustration {
+  align-self: center;
+  flex: 0 0 auto;
+  width: 140px;
+  height: 100px;
+  margin-left: 16px;
+  opacity: 0.9;
+}
+
+/* Feature section ------------------------------------------------------- */
+
+.featureSection {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+}
+
+.sectionHeading {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.featureCard {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 12px;
+  row-gap: 6px;
+  padding: 16px;
+  border: 1px solid rgb(204 204 204 / 0.8);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.featureIcon {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 1;
+  width: 28px;
+  height: 28px;
+}
+
+.featureTitle {
+  grid-column: 2 / span 1;
+  grid-row: 1 / span 1;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.featureDescription {
+  grid-column: 1 / span 2;
+  grid-row: 2 / span 1;
+  font-size: 13px;
+  color: rgb(96 94 92);
+}
+
+.featureAction {
+  grid-column: 1 / span 2;
+  grid-row: 3 / span 1;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Bottom row ------------------------------------------------------------ */
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+}
+
+.resourceColumn {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgb(247 247 247);
+}
+
+.resourceHeading {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.resourceRows {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+}
+
+.resourceRow {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  column-gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  background: #ffffff;
+  text-decoration: none;
+}
+
+.resourceRow:hover {
+  background: rgb(243 242 241);
+}
+
+.resourceIcon {
+  width: 28px;
+  height: 28px;
+}
+
+.resourceTextBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.resourceTitle {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.resourceDescription {
+  font-size: 13px;
+  color: rgb(96 94 92);
+}
+
+/* Responsive collapse --------------------------------------------------- */
+
+@media (max-width: 960px) {
+  .heroRow,
+  .featureGrid,
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
+  .heroIllustration {
+    display: none;
+  }
+}
