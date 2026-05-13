@@ -30,7 +30,12 @@ export default function HeroIntegrateCard(
   }, [appID, hasApp]);
 
   const onClick = useCallback(() => {
-    capture("getStarted.clicked-create_app", { has_app: hasApp });
+    capture(
+      hasApp
+        ? "getStarted.clicked-view_applications"
+        : "getStarted.clicked-start_integration",
+      { has_app: hasApp }
+    );
   }, [capture, hasApp]);
 
   return (
