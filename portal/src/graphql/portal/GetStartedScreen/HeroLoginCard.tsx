@@ -26,7 +26,6 @@ export default function HeroLoginCard(
       e.stopPropagation();
       capture("getStarted.clicked-preview_login_page");
       triggerTester().catch((err) => {
-        // eslint-disable-next-line no-console
         console.error(err);
       });
     },
