@@ -1,11 +1,10 @@
 import React, { useCallback } from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, Image, ImageFit } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import Link from "../../../Link";
 import PrimaryButton from "../../../PrimaryButton";
 import { useTester } from "../../../hook/tester";
 import { useCapture } from "../../../gtm_v2";
-import heroLoginImage from "../../../images/getting-started/hero-login.svg";
 import styles from "./GetStartedScreen.module.css";
 
 interface HeroLoginCardProps {
@@ -65,12 +64,6 @@ export default function HeroLoginCard(
           </Link>
         </div>
       </div>
-      <Image
-        className={styles.heroIllustration}
-        src={heroLoginImage}
-        imageFit={ImageFit.contain}
-        alt=""
-      />
     </div>
   );
 }

@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, Image, ImageFit } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import Link from "../../../Link";
 import { useCapture } from "../../../gtm_v2";
-import heroIntegrateImage from "../../../images/getting-started/hero-integrate.svg";
 import styles from "./GetStartedScreen.module.css";
 
 interface HeroIntegrateCardProps {
@@ -54,12 +53,6 @@ export default function HeroIntegrateCard(
           </Link>
         </div>
       </div>
-      <Image
-        className={styles.heroIllustration}
-        src={heroIntegrateImage}
-        imageFit={ImageFit.contain}
-        alt=""
-      />
     </div>
   );
 }

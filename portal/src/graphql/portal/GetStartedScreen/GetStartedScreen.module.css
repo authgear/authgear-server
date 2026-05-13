@@ -110,15 +110,6 @@
   text-decoration: none;
 }
 
-.heroIllustration {
-  align-self: center;
-  flex: 0 0 auto;
-  width: 140px;
-  height: 100px;
-  margin-left: 16px;
-  opacity: 0.9;
-}
-
 /* Feature section ------------------------------------------------------- */
 
 .featureSection {
@@ -255,8 +246,5 @@
   .featureGrid,
   .bottomRow {
     grid-template-columns: 1fr;
-  }
-  .heroIllustration {
-    display: none;
   }
 }
