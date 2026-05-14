@@ -647,7 +647,8 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryIdentification", `
 	"type": "string",
 	"enum": [
 		"email",
-		"phone"
+		"phone",
+		"username"
 	]
 }
 `)
@@ -1389,8 +1390,9 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBotProtectionConfig() *A
 type AuthenticationFlowAccountRecoveryIdentification model.AuthenticationFlowIdentification
 
 const (
-	AuthenticationFlowAccountRecoveryIdentificationEmail = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationEmail)
-	AuthenticationFlowAccountRecoveryIdentificationPhone = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationPhone)
+	AuthenticationFlowAccountRecoveryIdentificationEmail    = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationEmail)
+	AuthenticationFlowAccountRecoveryIdentificationPhone    = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationPhone)
+	AuthenticationFlowAccountRecoveryIdentificationUsername = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationUsername)
 )
 
 func (i AuthenticationFlowAccountRecoveryIdentification) AuthenticationFlowIdentification() model.AuthenticationFlowIdentification {

@@ -264,5 +264,78 @@ account_recovery_flows:
     - type: verify_account_recovery_code
     - type: reset_password
 `)
+
+		// username identification with enumerate_destinations: true
+		test(`
+account_recovery_flows:
+- name: username_enumerate
+  steps:
+    - type: identify
+      one_of:
+      - identification: username
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
+          allowed_channels:
+            - channel: email
+              otp_form: link
+            - channel: sms
+              otp_form: code
+    - type: verify_account_recovery_code
+    - type: reset_password
+`)
+
+		// username identification with enumerate_destinations: false (default, omitted)
+		test(`
+account_recovery_flows:
+- name: username_no_enumerate
+  steps:
+    - type: identify
+      one_of:
+      - identification: username
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          allowed_channels:
+            - channel: email
+              otp_form: link
+    - type: verify_account_recovery_code
+    - type: reset_password
+`)
+
+		// all three identification types together
+		test(`
+account_recovery_flows:
+- name: all_types
+  steps:
+    - type: identify
+      one_of:
+      - identification: email
+        on_failure: error
+        steps:
+        - type: select_destination
+          allowed_channels:
+            - channel: email
+              otp_form: link
+      - identification: phone
+        on_failure: error
+        steps:
+        - type: select_destination
+          allowed_channels:
+            - channel: sms
+              otp_form: code
+      - identification: username
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          allowed_channels:
+            - channel: email
+              otp_form: link
+            - channel: sms
+              otp_form: code
+    - type: verify_account_recovery_code
+    - type: reset_password
+`)
 	})
 }

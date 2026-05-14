@@ -122,6 +122,24 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 	return nil, authflow.ErrIncompatibleInput
 }
 
+// standardAttributeForChannel returns the user's standard-attribute value that
+// corresponds to the given recovery channel.
+// email → "email" standard attribute. sms/whatsapp → "phone_number" standard attribute.
+// Returns "" when the attribute is absent or empty.
+func standardAttributeForChannel(stdAttrs map[string]any, channel AccountRecoveryChannel) string {
+	var key model.ClaimName
+	switch channel {
+	case AccountRecoveryChannelEmail:
+		key = model.ClaimEmail
+	case AccountRecoveryChannelSMS, AccountRecoveryChannelWhatsapp:
+		key = model.ClaimPhoneNumber
+	default:
+		return ""
+	}
+	s, _ := stdAttrs[string(key)].(string)
+	return s
+}
+
 func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NewIntentAccountRecoveryFlowStepSelectDestinationData(IntentAccountRecoveryFlowStepSelectDestinationData{
 		Options: i.getOptions(),
@@ -171,7 +189,10 @@ func deriveAccountRecoveryDestinationOptions(
 
 	options := []*AccountRecoveryDestinationOptionInternal{}
 
-	if iden.MaybeIdentity != nil && step.EnumerateDestinations {
+	isUsername := iden.Identification == config.AuthenticationFlowAccountRecoveryIdentificationUsername
+
+	switch {
+	case iden.MaybeIdentity != nil && step.EnumerateDestinations:
 		userID := iden.MaybeIdentity.UserID
 		userIdens, err := deps.Identities.ListByUser(ctx, userID)
 		if err != nil {
@@ -181,7 +202,38 @@ func deriveAccountRecoveryDestinationOptions(
 			opts := enumerateAllowedAccountRecoveryDestinationOptions(channel, userIdens)
 			options = append(options, opts...)
 		}
-	} else {
+	case isUsername && !step.EnumerateDestinations:
+		// One option per allowed channel. TargetLoginID is resolved now to the user's
+		// standard-attribute email or phone for the channel. If the user is not found or
+		// has no matching standard attribute, TargetLoginID is set to
+		// accountRecoveryNoSendPrefix+username so SendCode hits generateDummyOTP — no
+		// message is dispatched but rate limits are still charged per username, and a
+		// username that looks like an email cannot accidentally dispatch to a different user.
+		username := iden.IdentitySpec.LoginID.Value.TrimSpace()
+		var stdAttrs map[string]any
+		if iden.MaybeIdentity != nil {
+			rawUser, err := deps.Users.GetRaw(ctx, iden.MaybeIdentity.UserID)
+			if err != nil {
+				return nil, err
+			}
+			stdAttrs = rawUser.StandardAttributes
+		}
+		for _, channel := range allowedChannels {
+			target := standardAttributeForChannel(stdAttrs, AccountRecoveryChannel(channel.Channel))
+			if target == "" {
+				target = accountRecoveryNoSendPrefix + username
+			}
+			options = append(options, &AccountRecoveryDestinationOptionInternal{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: username,
+					Channel:           AccountRecoveryChannel(channel.Channel),
+					OTPForm:           AccountRecoveryOTPForm(channel.OTPForm),
+				},
+				TargetLoginID: target,
+			})
+		}
+	default:
+		// Existing email/phone non-enumerate path. Also covers username + enumerate=true + user not found.
 		for _, channel := range allowedChannels {
 			opts := deriveAllowedAccountRecoveryDestinationOptions(channel, iden)
 			options = append(options, opts...)

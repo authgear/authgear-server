@@ -62,6 +62,9 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
+		case config.AuthenticationFlowAccountRecoveryIdentificationUsername:
+			requireString("login_id")
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}
