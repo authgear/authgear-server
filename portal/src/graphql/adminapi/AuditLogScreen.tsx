@@ -53,8 +53,14 @@ const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
   (activityType) =>
     activityType.startsWith("ADMIN_API") || activityType.startsWith("PROJECT")
 );
+// Activity types to hide from the audit log (shown elsewhere in the portal)
+const HIDDEN_ACTIVITY_TYPES = [
+  AuditLogActivityType.FraudProtectionDecisionRecorded,
+];
 const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
-  (activityType) => !ADMIN_ACTIVITY_TYPES.includes(activityType)
+  (activityType) =>
+    !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
+    !HIDDEN_ACTIVITY_TYPES.includes(activityType)
 );
 
 enum AuditLogKind {
