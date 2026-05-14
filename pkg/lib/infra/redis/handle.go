@@ -60,3 +60,15 @@ func (h *Handle) NewMutex(name string) *redsync.Mutex {
 	)
 	return mutex
 }
+
+func (h *Handle) WithMutex(ctx context.Context, name string, do func() error) error {
+	mutex := h.NewMutex(name)
+	if err := mutex.LockContext(ctx); err != nil {
+		return err
+	}
+	unlockCtx := context.WithoutCancel(ctx)
+	defer func() {
+		_, _ = mutex.UnlockContext(unlockCtx)
+	}()
+	return do()
+}
