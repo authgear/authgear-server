@@ -114,7 +114,6 @@
     "ip-address": "^10.1.1",
     "js-yaml": "^4.1.1",
     "libphonenumber-js": "^1.12.27",
-    "lucide-react": "^1.14.0",
     "luxon": "^3.7.2",
     "monaco-editor": "0.44.0",
     "postcss": "^8.5.6",

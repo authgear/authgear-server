@@ -14,19 +14,19 @@ import FeatureCard from "./FeatureCard";
 import ResourceColumn, { ResourceRowProps } from "./ResourceColumn";
 
 import {
-  BotMessageSquare,
-  Code,
-  FileJson2,
-  LockOpen,
-  Mail,
-  MessageCircle,
-  BookOpen,
-  Rocket,
-  Headphones,
-  Settings,
-  UserCog,
-  Webhook,
-} from "lucide-react";
+  ChatBubbleIcon,
+  CodeIcon,
+  DiscordLogoIcon,
+  EnvelopeClosedIcon,
+  EyeOpenIcon,
+  GearIcon,
+  LightningBoltIcon,
+  LockClosedIcon,
+  PersonIcon,
+  ReaderIcon,
+  RocketIcon,
+  RulerSquareIcon,
+} from "@radix-ui/react-icons";
 
 import styles from "./GetStartedScreen.module.css";
 
@@ -59,7 +59,7 @@ function GetStartedScreenContent(
   const featureCards = useMemo(
     () => [
       {
-        Icon: LockOpen,
+        Icon: LockClosedIcon,
         titleMessageID: "GetStartedScreen.feature.2fa.title",
         descriptionMessageID: "GetStartedScreen.feature.2fa.description",
         actionMessageID: "GetStartedScreen.feature.2fa.action",
@@ -67,7 +67,7 @@ function GetStartedScreenContent(
         onClick: () => capture("getStarted.clicked-feature_2fa", captureData),
       },
       {
-        Icon: BotMessageSquare,
+        Icon: EyeOpenIcon,
         titleMessageID: "GetStartedScreen.feature.bot-protection.title",
         descriptionMessageID:
           "GetStartedScreen.feature.bot-protection.description",
@@ -77,7 +77,7 @@ function GetStartedScreenContent(
           capture("getStarted.clicked-feature_bot_protection", captureData),
       },
       {
-        Icon: UserCog,
+        Icon: PersonIcon,
         titleMessageID: "GetStartedScreen.feature.user-management.title",
         descriptionMessageID:
           "GetStartedScreen.feature.user-management.description",
@@ -87,7 +87,7 @@ function GetStartedScreenContent(
           capture("getStarted.clicked-feature_user_management", captureData),
       },
       {
-        Icon: Settings,
+        Icon: GearIcon,
         titleMessageID: "GetStartedScreen.feature.admin-api.title",
         descriptionMessageID: "GetStartedScreen.feature.admin-api.description",
         actionMessageID: "GetStartedScreen.feature.admin-api.action",
@@ -96,7 +96,7 @@ function GetStartedScreenContent(
           capture("getStarted.clicked-feature_admin_api", captureData),
       },
       {
-        Icon: FileJson2,
+        Icon: RulerSquareIcon,
         titleMessageID: "GetStartedScreen.feature.custom-ui.title",
         descriptionMessageID: "GetStartedScreen.feature.custom-ui.description",
         actionMessageID: "GetStartedScreen.feature.custom-ui.action",
@@ -105,7 +105,7 @@ function GetStartedScreenContent(
           capture("getStarted.clicked-feature_custom_ui", captureData),
       },
       {
-        Icon: Webhook,
+        Icon: LightningBoltIcon,
         titleMessageID: "GetStartedScreen.feature.hooks.title",
         descriptionMessageID: "GetStartedScreen.feature.hooks.description",
         actionMessageID: "GetStartedScreen.feature.hooks.action",
@@ -119,7 +119,7 @@ function GetStartedScreenContent(
   const contactRows: ResourceRowProps[] = useMemo(
     () => [
       {
-        Icon: MessageCircle,
+        Icon: DiscordLogoIcon,
         titleMessageID: "GetStartedScreen.get-in-touch.discord.title",
         descriptionMessageID:
           "GetStartedScreen.get-in-touch.discord.description",
@@ -127,14 +127,14 @@ function GetStartedScreenContent(
         onClick: () => capture("getStarted.clicked-discord", captureData),
       },
       {
-        Icon: Mail,
+        Icon: EnvelopeClosedIcon,
         titleMessageID: "GetStartedScreen.get-in-touch.email.title",
         descriptionMessageID: "GetStartedScreen.get-in-touch.email.description",
         externalHref: MAILTO_SUPPORT,
         onClick: () => capture("getStarted.clicked-email", captureData),
       },
       {
-        Icon: Headphones,
+        Icon: ChatBubbleIcon,
         titleMessageID: "GetStartedScreen.get-in-touch.sales.title",
         descriptionMessageID: "GetStartedScreen.get-in-touch.sales.description",
         externalHref: URL_SALES,
@@ -147,7 +147,7 @@ function GetStartedScreenContent(
   const resourceRows: ResourceRowProps[] = useMemo(
     () => [
       {
-        Icon: BookOpen,
+        Icon: ReaderIcon,
         titleMessageID: "GetStartedScreen.resource.documentation.title",
         descriptionMessageID:
           "GetStartedScreen.resource.documentation.description",
@@ -155,7 +155,7 @@ function GetStartedScreenContent(
         onClick: () => capture("getStarted.clicked-docs", captureData),
       },
       {
-        Icon: Code,
+        Icon: CodeIcon,
         titleMessageID: "GetStartedScreen.resource.api-reference.title",
         descriptionMessageID:
           "GetStartedScreen.resource.api-reference.description",
@@ -163,7 +163,7 @@ function GetStartedScreenContent(
         onClick: () => capture("getStarted.clicked-api_reference", captureData),
       },
       {
-        Icon: Rocket,
+        Icon: RocketIcon,
         titleMessageID: "GetStartedScreen.resource.quickstart.title",
         descriptionMessageID:
           "GetStartedScreen.resource.quickstart.description",

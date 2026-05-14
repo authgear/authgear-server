@@ -1,13 +1,18 @@
 import React from "react";
 import { FormattedMessage } from "../../../intl";
 import { Text, useTheme } from "@fluentui/react";
-import { LucideIcon } from "lucide-react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
 
+// IconProps is not exported from @radix-ui/react-icons, so we duplicate it.
+interface IconProps extends React.SVGAttributes<SVGElement> {
+  children?: never;
+  color?: string;
+}
+
 export interface ResourceRowProps {
-  Icon: LucideIcon;
+  Icon: React.ComponentType<IconProps>;
   titleMessageID: string;
   descriptionMessageID?: string;
   internalHref?: string;
@@ -36,8 +41,8 @@ function ResourceRow(props: ResourceRowProps): React.ReactElement {
       <div className={styles.resourceIconWrapper}>
         <Icon
           className={styles.resourceIcon}
-          size={20}
-          strokeWidth={1.75}
+          width={20}
+          height={20}
           color={theme.palette.themePrimary}
           aria-hidden={true}
         />

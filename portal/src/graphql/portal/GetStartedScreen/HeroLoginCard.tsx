@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { FormattedMessage } from "../../../intl";
 import { Text } from "@fluentui/react";
-import { Play } from "lucide-react";
+import { PlayIcon } from "@radix-ui/react-icons";
 import Link from "../../../Link";
 import { useTester } from "../../../hook/tester";
 import { useCapture } from "../../../gtm_v2";
@@ -55,7 +55,7 @@ export default function HeroLoginCard(
             onClick={onClickPreview}
             disabled={isLoading}
           >
-            <Play size={14} strokeWidth={2} aria-hidden={true} />
+            <PlayIcon width={14} height={14} aria-hidden={true} />
             <FormattedMessage id="GetStartedScreen.hero.login.preview-button" />
           </button>
           <Link

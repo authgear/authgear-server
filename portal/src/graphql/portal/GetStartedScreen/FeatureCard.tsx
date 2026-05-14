@@ -1,13 +1,18 @@
 import React from "react";
 import { FormattedMessage } from "../../../intl";
 import { Text, useTheme } from "@fluentui/react";
-import { LucideIcon } from "lucide-react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
 
+// IconProps is not exported from @radix-ui/react-icons, so we duplicate it.
+interface IconProps extends React.SVGAttributes<SVGElement> {
+  children?: never;
+  color?: string;
+}
+
 interface FeatureCardProps {
-  Icon: LucideIcon;
+  Icon: React.ComponentType<IconProps>;
   titleMessageID: string;
   descriptionMessageID: string;
   actionMessageID: string;
@@ -35,8 +40,8 @@ export default function FeatureCard(
       <div className={styles.featureHeader}>
         <Icon
           className={styles.featureIcon}
-          size={24}
-          strokeWidth={1.75}
+          width={18}
+          height={18}
           color={theme.palette.themePrimary}
           aria-hidden={true}
         />
