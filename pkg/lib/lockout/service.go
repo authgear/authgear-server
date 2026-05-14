@@ -60,3 +60,17 @@ func (s *Service) ClearAttempts(ctx context.Context, spec LockoutSpec, contribut
 
 	return s.Storage.Clear(ctx, spec, contributor)
 }
+
+func (s *Service) GetStatus(ctx context.Context, spec LockoutSpec) (*LockoutStatus, error) {
+	if !spec.Enabled {
+		return &LockoutStatus{IsLocked: false}, nil
+	}
+	return s.Storage.GetStatus(ctx, spec)
+}
+
+func (s *Service) ClearAll(ctx context.Context, spec LockoutSpec) error {
+	if !spec.Enabled {
+		return nil
+	}
+	return s.Storage.ClearAll(ctx, spec)
+}

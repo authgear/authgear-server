@@ -9,6 +9,7 @@
     "test": "jest",
     "start": "vite --debug",
     "build": "vite build",
+    "postbuild": "touch ./dist/.gitkeep",
     "clean": "rm -rf ./dist/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
     "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",

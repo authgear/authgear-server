@@ -191,6 +191,11 @@ type OAuthFacade interface {
 	CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]any) (session.ListableSession, protocol.TokenResponse, error)
 }
 
+type AccountLockoutFacade interface {
+	GetAccountLockoutStatus(ctx context.Context, userID string) (*apimodel.AccountLockoutStatus, error)
+	ResetAccountLockout(ctx context.Context, userID string) error
+}
+
 type SessionListingService interface {
 	FilterForDisplay(ctx context.Context, sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
@@ -240,21 +245,22 @@ type Context struct {
 	ResourceClients ResourceClientLoader
 	Scopes          ScopeLoader
 
-	UserFacade          UserFacade
-	RolesGroupsFacade   RolesGroupsFacade
-	AuditLogFacade      AuditLogFacade
-	IdentityFacade      IdentityFacade
-	AuthenticatorFacade AuthenticatorFacade
-	VerificationFacade  VerificationFacade
-	SessionFacade       SessionFacade
-	UserProfileFacade   UserProfileFacade
-	AuthorizationFacade AuthorizationFacade
-	OAuthFacade         OAuthFacade
-	SessionListing      SessionListingService
-	OTPCode             OTPCodeService
-	ForgotPassword      ForgotPasswordService
-	Events              EventService
-	ResourceScopeFacade ResourceScopeFacade
+	UserFacade           UserFacade
+	RolesGroupsFacade    RolesGroupsFacade
+	AuditLogFacade       AuditLogFacade
+	IdentityFacade       IdentityFacade
+	AuthenticatorFacade  AuthenticatorFacade
+	VerificationFacade   VerificationFacade
+	SessionFacade        SessionFacade
+	UserProfileFacade    UserProfileFacade
+	AuthorizationFacade  AuthorizationFacade
+	OAuthFacade          OAuthFacade
+	SessionListing       SessionListingService
+	OTPCode              OTPCodeService
+	ForgotPassword       ForgotPasswordService
+	Events               EventService
+	ResourceScopeFacade  ResourceScopeFacade
+	AccountLockoutFacade AccountLockoutFacade
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

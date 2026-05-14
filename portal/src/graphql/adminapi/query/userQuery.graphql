@@ -118,6 +118,15 @@ fragment UserQueryNode on User {
   createdAt
   updatedAt
   mfaGracePeriodEndAt
+  accountLockout {
+    isLocked
+    lockoutType
+    lockedUntil
+    lockedIPs {
+      ipAddress
+      lockedUntil
+    }
+  }
 }
 
 fragment AuthenticatorFragment on Authenticator {

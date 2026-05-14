@@ -240,3 +240,186 @@ func makeUnixTime(s int64) *time.Time {
 	t := time.Unix(s, 0).UTC()
 	return &t
 }
+
+func TestGetStatus(t *testing.T) {
+	s := miniredis.RunT(t)
+
+	Convey("getStatus", t, func() {
+		ctx := context.Background()
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn()
+
+		historyDuration := 300 * time.Second
+		maxAttempts := 3
+		minDuration := 10 * time.Second
+		maxDuration := 50 * time.Second
+		backoffFactor := 2.0
+
+		Convey("getStatus for per_user (global) lockout", func() {
+			s.FlushAll()
+
+			// Trigger a lock at epoch
+			s.SetTime(time.Unix(epoch, 0).UTC())
+			result, err := makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, true, "127.0.0.1", 3)
+			So(err, ShouldBeNil)
+			So(result.IsSuccess, ShouldEqual, true)
+			So(result.LockedUntil, ShouldNotBeNil)
+			lockTime := result.LockedUntil.Unix()
+
+			// Check status - should be locked
+			status, err := getStatus(ctx, conn, testKey, true)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, true)
+			So(status.LockedUntil, ShouldNotBeNil)
+			So(status.LockedUntil.Unix(), ShouldEqual, lockTime)
+			So(status.LockedIPs, ShouldHaveLength, 0)
+
+			// Set time to after lock expires (lock expired at epoch + 10)
+			s.SetTime(time.Unix(epoch+11, 0).UTC())
+			status, err = getStatus(ctx, conn, testKey, true)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, false)
+			So(status.LockedUntil, ShouldBeNil)
+		})
+
+		Convey("getStatus for per_user_per_ip (contributor) lockout", func() {
+			s.FlushAll()
+
+			// Trigger lock 1 at epoch
+			s.SetTime(time.Unix(epoch, 0).UTC())
+			result1, err := makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, false, "192.168.1.1", 3)
+			So(err, ShouldBeNil)
+			So(result1.IsSuccess, ShouldEqual, true)
+			So(result1.LockedUntil, ShouldNotBeNil)
+			lock1Time := result1.LockedUntil.Unix()
+
+			// Trigger lock 2 at epoch + 3 seconds
+			s.SetTime(time.Unix(epoch+3, 0).UTC())
+			result2, err := makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, false, "192.168.1.2", 3)
+			So(err, ShouldBeNil)
+			So(result2.IsSuccess, ShouldEqual, true)
+			So(result2.LockedUntil, ShouldNotBeNil)
+			lock2Time := result2.LockedUntil.Unix()
+
+			// Lock 2 should be 3 seconds later than Lock 1
+			So(lock2Time-lock1Time, ShouldEqual, 3)
+
+			// Check status - should be locked with both IPs
+			status, err := getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, true)
+			So(status.LockedUntil, ShouldBeNil) // Per_user_per_ip doesn't have global LockedUntil
+			So(status.LockedIPs, ShouldHaveLength, 2)
+
+			// Verify both IPs are present with correct lock times
+			ips := make(map[string]time.Time)
+			for _, ip := range status.LockedIPs {
+				ips[ip.IPAddress] = ip.LockedUntil
+			}
+			So(len(ips), ShouldEqual, 2)
+			So(ips, ShouldContainKey, "192.168.1.1")
+			So(ips, ShouldContainKey, "192.168.1.2")
+			// Verify exact lock times match what makeAttempts returned
+			So(ips["192.168.1.1"].Unix(), ShouldEqual, lock1Time)
+			So(ips["192.168.1.2"].Unix(), ShouldEqual, lock2Time)
+
+			// Advance time to unlock the older IP (Lock 1 expires at epoch + 10)
+			// Set time to epoch + 11 (after Lock 1 expires but before Lock 2 expires)
+			s.SetTime(time.Unix(epoch+11, 0).UTC())
+			status, err = getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, true)
+			So(status.LockedIPs, ShouldHaveLength, 1)
+			So(status.LockedIPs[0].IPAddress, ShouldEqual, "192.168.1.2")
+
+			// Advance time to unlock the last IP
+			// Set time to epoch + 14 (after Lock 2 expires)
+			s.SetTime(time.Unix(epoch+14, 0).UTC())
+			status, err = getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, false)
+			So(status.LockedIPs, ShouldHaveLength, 0)
+		})
+
+		Convey("getStatus returns empty LockedIPs when no locks exist", func() {
+			s.FlushAll()
+			now := time.Unix(epoch, 0).UTC()
+			s.SetTime(now)
+
+			status, err := getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, false)
+			So(status.LockedIPs, ShouldHaveLength, 0)
+		})
+	})
+}
+
+func TestClearAll(t *testing.T) {
+	s := miniredis.RunT(t)
+
+	Convey("clearAll", t, func() {
+		ctx := context.Background()
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn()
+
+		historyDuration := 300 * time.Second
+		maxAttempts := 3
+		minDuration := 10 * time.Second
+		maxDuration := 50 * time.Second
+		backoffFactor := 2.0
+
+		now := time.Unix(epoch, 0).UTC()
+		s.SetTime(now)
+
+		Convey("clearAll for per_user (global) lockout", func() {
+			// Trigger a lock
+			result, err := makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, true, "127.0.0.1", 3)
+			So(err, ShouldBeNil)
+			So(result.IsSuccess, ShouldEqual, true)
+
+			// Verify locked
+			status, err := getStatus(ctx, conn, testKey, true)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, true)
+
+			// Clear all locks
+			err = clearAll(ctx, conn, testKey, true)
+			So(err, ShouldBeNil)
+
+			// Verify unlocked
+			status, err = getStatus(ctx, conn, testKey, true)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, false)
+		})
+
+		Convey("clearAll for per_user_per_ip (contributor) lockout", func() {
+			s.FlushAll()
+
+			// Trigger locks for two different IPs
+			_, err := makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, false, "192.168.1.1", 3)
+			So(err, ShouldBeNil)
+
+			now = now.Add(2 * time.Second)
+			s.FastForward(2 * time.Second)
+
+			_, err = makeAttempts(ctx, conn, testKey, historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, false, "192.168.1.2", 3)
+			So(err, ShouldBeNil)
+
+			// Verify locked
+			status, err := getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, true)
+			So(status.LockedIPs, ShouldHaveLength, 2)
+
+			// Clear all locks
+			err = clearAll(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+
+			// Verify unlocked
+			status, err = getStatus(ctx, conn, testKey, false)
+			So(err, ShouldBeNil)
+			So(status.IsLocked, ShouldEqual, false)
+			So(status.LockedIPs, ShouldHaveLength, 0)
+		})
+	})
+}

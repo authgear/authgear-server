@@ -2,10 +2,12 @@ package lockout
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
@@ -199,5 +201,140 @@ func clearAttempts(
 		int(historyDuration.Seconds()),
 		contributor,
 	).Bool()
+	return err
+}
+
+var getStatusLuaScript = goredis.NewScript(constants + `
+-- KEYS[1]: record_key
+-- ARGV[1]: is_global ("1" for per_user, "0" for per_user_per_ip)
+--
+-- Returns for per_user (is_global=1):
+--   {0}                    -- not locked
+--   {1, locked_until_epoch} -- locked
+--
+-- Returns for per_user_per_ip (is_global=0):
+--   First element: is_any_locked (0 or 1)
+--   Followed by pairs: ip_string, locked_until_epoch
+--   Example: {1, "1.2.3.4", 1234567890, "5.6.7.8", 1234567999}
+redis.replicate_commands()
+local record_key = KEYS[1]
+local is_global = ARGV[1] == "1"
+local now_raw = redis.call("TIME")
+local now = tonumber(now_raw[1])
+
+if is_global then
+    local lock_key = record_key .. ":lock:global"
+    local v = redis.pcall("GET", lock_key)
+    if v and not v["err"] and type(v) == "string" then
+        local epoch = tonumber(v)
+        if epoch and epoch > now then
+            return {1, epoch}
+        end
+    end
+    return {0}
+else
+    local result = {}
+    local is_any_locked = 0
+    local hash_data = redis.pcall("HGETALL", record_key)
+    if hash_data and not hash_data["err"] then
+        for i = 1, #hash_data, 2 do
+            local field = hash_data[i]
+            if field ~= GLOBAL_TOTAL_KEY then
+                local lock_key = record_key .. ":lock:" .. field
+                local v = redis.pcall("GET", lock_key)
+                if v and not v["err"] and type(v) == "string" then
+                    local epoch = tonumber(v)
+                    if epoch and epoch > now then
+                        is_any_locked = 1
+                        table.insert(result, field)
+                        table.insert(result, epoch)
+                    end
+                end
+            end
+        end
+    end
+    table.insert(result, 1, is_any_locked)
+    return result
+end
+`)
+
+var clearAllLuaScript = goredis.NewScript(constants + `
+-- KEYS[1]: record_key
+-- ARGV[1]: is_global ("1" or "0")
+-- Returns: 1
+redis.replicate_commands()
+local record_key = KEYS[1]
+local is_global = ARGV[1] == "1"
+
+if is_global then
+    redis.call("DEL", record_key, record_key .. ":lock:global")
+else
+    local hash_data = redis.pcall("HGETALL", record_key)
+    if hash_data and not hash_data["err"] then
+        local keys_to_del = {record_key}
+        for i = 1, #hash_data, 2 do
+            local field = hash_data[i]
+            if field ~= GLOBAL_TOTAL_KEY then
+                table.insert(keys_to_del, record_key .. ":lock:" .. field)
+            end
+        end
+        redis.call("DEL", unpack(keys_to_del))
+    else
+        redis.call("DEL", record_key)
+    end
+end
+return 1
+`)
+
+func getStatus(
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
+	key string,
+	isGlobal bool,
+) (*LockoutStatus, error) {
+	isGlobalStr := "0"
+	if isGlobal {
+		isGlobalStr = "1"
+	}
+	result, err := getStatusLuaScript.Run(ctx, conn, []string{key}, isGlobalStr).Slice()
+	if err != nil {
+		return nil, err
+	}
+
+	if isGlobal {
+		// {0} or {1, epoch}
+		isLocked := result[0].(int64) == 1
+		status := &LockoutStatus{IsLocked: isLocked}
+		if isLocked && len(result) > 1 {
+			t := time.Unix(result[1].(int64), 0).UTC()
+			status.LockedUntil = &t
+		}
+		return status, nil
+	}
+
+	// {is_any_locked, ip1, epoch1, ip2, epoch2, ...}
+	isLocked := result[0].(int64) == 1
+	var lockedIPs []apimodel.LockedIP
+	for i := 1; i+1 < len(result); i += 2 {
+		ip := result[i].(string)
+		t := time.Unix(result[i+1].(int64), 0).UTC()
+		lockedIPs = append(lockedIPs, apimodel.LockedIP{IPAddress: ip, LockedUntil: t})
+	}
+	// Sort by LockedUntil in descending order (most recent first)
+	sort.Slice(lockedIPs, func(i, j int) bool {
+		return lockedIPs[i].LockedUntil.After(lockedIPs[j].LockedUntil)
+	})
+	return &LockoutStatus{IsLocked: isLocked, LockedIPs: lockedIPs}, nil
+}
+
+func clearAll(
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
+	key string,
+	isGlobal bool,
+) error {
+	isGlobalStr := "0"
+	if isGlobal {
+		isGlobalStr = "1"
+	}
+	_, err := clearAllLuaScript.Run(ctx, conn, []string{key}, isGlobalStr).Bool()
 	return err
 }
