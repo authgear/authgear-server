@@ -29,10 +29,10 @@ authgearonce-start-portal:
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.11.3
 	go mod download
-	$(MAKE) build-frondend
+	$(MAKE) build-frontend
 
-.PHONY: build-frondend
-build-frondend:
+.PHONY: build-frontend
+build-frontend:
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
