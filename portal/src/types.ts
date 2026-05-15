@@ -564,6 +564,26 @@ export const applicationTypes = [
 ] as const;
 export type ApplicationType = (typeof applicationTypes)[number];
 
+export const applicationFrameworks = [
+  "react",
+  "vue",
+  "angular",
+  "nextjs",
+  "express",
+  "other-spa",
+  "django",
+  "laravel",
+  "java",
+  "aspnet",
+  "other-oidc",
+  "react-native",
+  "ios",
+  "android",
+  "flutter",
+  "ionic",
+] as const;
+export type Framework = (typeof applicationFrameworks)[number];
+
 // OAuthConfig
 export interface OAuthClientConfig {
   name?: string;
@@ -571,6 +591,7 @@ export interface OAuthClientConfig {
   client_uri?: string;
   client_name?: string;
   x_application_type?: ApplicationType;
+  x_framework?: Framework;
   x_max_concurrent_session?: number;
   x_dpop_disabled?: boolean;
   redirect_uris?: string[];
