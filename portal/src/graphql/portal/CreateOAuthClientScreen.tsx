@@ -73,7 +73,12 @@ function constructConfig(
     ? findFramework(currentState.frameworkId)
     : undefined;
   if (framework == null) {
-    throw new Error("unexpected null framework when constructing config");
+    // Before the user picks a framework, the form is not yet dirty.
+    // Return the input config unchanged.
+    return [config, secretConfig];
+  }
+  if (framework.stage2 === "token-or-cookie" && currentState.stage2 == null) {
+    return [config, secretConfig];
   }
   const xType = framework.resolveType(currentState.stage2 ?? undefined);
 
