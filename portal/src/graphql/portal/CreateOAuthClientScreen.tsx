@@ -136,6 +136,9 @@ function constructSecretUpdateInstruction(
   if (framework == null) {
     return undefined;
   }
+  if (framework.stage2 === "token-or-cookie" && currentState.stage2 == null) {
+    return undefined;
+  }
   const xType = framework.resolveType(currentState.stage2 ?? undefined);
   const clientTypesWithSecret: OAuthClientConfig["x_application_type"][] = [
     "confidential",
