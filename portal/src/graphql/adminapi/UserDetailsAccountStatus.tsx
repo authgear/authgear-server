@@ -1948,10 +1948,7 @@ export function AccountStatusMessageBar(
   // intermittently renders an empty bar when the parent form updates state
   // during mount (e.g. when navigating back to a disabled user's detail page).
   return (
-    <MessageBar
-      messageBarType={MessageBarType.warning}
-      delayedRender={false}
-    >
+    <MessageBar messageBarType={MessageBarType.warning} delayedRender={false}>
       {message}
     </MessageBar>
   );
