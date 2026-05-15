@@ -68,7 +68,7 @@ const ProjectRootScreen = lazy(
   async () => import("./graphql/portal/ProjectRootScreen")
 );
 const GetStartedScreen = lazy(
-  async () => import("./graphql/portal/GetStartedScreen")
+  async () => import("./graphql/portal/GetStartedScreen/GetStartedScreen")
 );
 const AnonymousUsersConfigurationScreen = lazy(
   async () => import("./graphql/portal/AnonymousUsersConfigurationScreen")
