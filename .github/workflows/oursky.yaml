@@ -97,3 +97,45 @@ jobs:
         ssh-agent -k
         echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
+
+  deploy-staging:
+    runs-on: [self-hosted, linux, x64, v1]
+    needs: [authgear-image-custom, portal-image-custom]
+    if: ${{ github.repository == 'oursky/authgear-server' && github.ref == 'refs/heads/main' }}
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: true
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up staging deploy key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        AUTHGEAR_STAGING_DEPLOY_KEY: ${{ secrets.AUTHGEAR_STAGING_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
+        printf "$AUTHGEAR_STAGING_DEPLOY_KEY" | base64 --decode | ssh-add -
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+
+    - name: Clone staging repo and update image
+      env:
+        AUTHGEAR_STAGING_REPO: ${{ secrets.AUTHGEAR_STAGING_REPO }}
+      run: |
+        IMAGE_TAG=$(make -C custombuild --no-print-directory --eval='print-%: ; @echo $($*)' print-GIT_HASH)
+        git clone "$AUTHGEAR_STAGING_REPO" staging-repo
+        cd staging-repo
+        git checkout master
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        ./scripts/update-authgear-image.sh "$IMAGE_TAG"
+        git push origin master
+
+    - name: Clean up staging deploy key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
