@@ -1,6 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
-import { Label, Text, useTheme } from "@fluentui/react";
+import {
+  Dropdown,
+  IDropdownOption,
+  Label,
+  Text,
+  useTheme,
+} from "@fluentui/react";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -17,9 +23,11 @@ import FormTextFieldList from "../../FormTextFieldList";
 import { useTextField } from "../../hook/useInput";
 import {
   ApplicationType,
+  Framework,
   OAuthClientConfig,
   OAuthClientSecretKey,
 } from "../../types";
+import { frameworksForType } from "./CreateOAuthClientScreen/frameworks";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
@@ -358,6 +366,37 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       return renderToString(messageID);
     }, [clientConfig.x_application_type, renderToString]);
 
+    const showFramework =
+      clientConfig.x_application_type !== "m2m" &&
+      clientConfig.x_application_type !== "third_party_app";
+
+    const frameworkOptions: IDropdownOption[] = useMemo(() => {
+      const opts: IDropdownOption[] = [
+        {
+          key: "",
+          text: renderToString("EditOAuthClientForm.framework.not-specified"),
+        },
+      ];
+      if (clientConfig.x_application_type != null) {
+        frameworksForType(clientConfig.x_application_type).forEach((f) => {
+          opts.push({ key: f.id, text: f.displayName });
+        });
+      }
+      return opts;
+    }, [clientConfig.x_application_type, renderToString]);
+
+    const onFrameworkChange = useCallback(
+      (_: unknown, option?: IDropdownOption) => {
+        if (!option) return;
+        const value =
+          option.key === "" ? undefined : (option.key as Framework);
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_framework", value)
+        );
+      },
+      [clientConfig, onClientConfigChange]
+    );
+
     const redirectURIsDescription = useMemo(() => {
       const messageIdMap: Record<ApplicationType, string | undefined> = {
         spa: "EditOAuthClientForm.redirect-uris.description.spa",
@@ -600,6 +639,14 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={applicationTypeLabel}
             readOnly={true}
           />
+          {showFramework ? (
+            <Dropdown
+              label={renderToString("EditOAuthClientForm.framework.label")}
+              selectedKey={clientConfig.x_framework ?? ""}
+              options={frameworkOptions}
+              onChange={onFrameworkChange}
+            />
+          ) : null}
         </Widget>
 
         {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
