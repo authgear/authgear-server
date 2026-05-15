@@ -4,18 +4,18 @@
   @apply tablet:col-span-full;
 }
 
-.optionLabel {
-  padding-left: 26px;
+.wizardWidget {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.optionLabelText {
-  line-height: 20px;
-  margin-bottom: 4px;
-}
-
-.optionLabelDescription {
-  line-height: 20px;
-  margin-bottom: 12px;
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .buttons {
