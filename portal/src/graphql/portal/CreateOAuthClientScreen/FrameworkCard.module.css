@@ -1,50 +1,10 @@
 .card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 2px solid var(--neutral-stroke, #d0d7de);
-  border-radius: 8px;
-  background: #ffffff;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-}
-
-.card:hover {
-  border-color: var(--theme-primary, #0078d4);
-}
-
-.card:focus-visible {
-  outline: 2px solid var(--theme-primary, #0078d4);
-  outline-offset: 2px;
-}
-
-.card.selected {
-  border-color: var(--theme-primary, #0078d4);
-  background: var(--theme-lighter-alt, #eef4ff);
+  flex: 1 1 0;
+  min-width: 13.75rem;
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
-.labels {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.name {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.helper {
-  font-size: 12px;
-  color: var(--neutral-secondary, #57606a);
+  width: 28px;
+  height: 28px;
+  display: block;
 }
