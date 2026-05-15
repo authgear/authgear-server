@@ -1,4 +1,20 @@
 import type { Framework, ApplicationType } from "../../../types";
+import reactLogo from "./logos/react.svg";
+import vueLogo from "./logos/vue.svg";
+import angularLogo from "./logos/angular.svg";
+import nextjsLogo from "./logos/nextjs.svg";
+import expressLogo from "./logos/express.svg";
+import otherSpaLogo from "./logos/other-spa.svg";
+import djangoLogo from "./logos/django.svg";
+import laravelLogo from "./logos/laravel.svg";
+import javaLogo from "./logos/java.svg";
+import aspnetLogo from "./logos/aspnet.svg";
+import otherOidcLogo from "./logos/other-oidc.svg";
+import reactNativeLogo from "./logos/react-native.svg";
+import iosLogo from "./logos/ios.svg";
+import androidLogo from "./logos/android.svg";
+import flutterLogo from "./logos/flutter.svg";
+import ionicLogo from "./logos/ionic.svg";
 
 export type FrameworkSection = "website" | "mobile";
 export type Stage2Need = "none" | "token-or-cookie";
@@ -55,31 +71,31 @@ const mobileNative = (id: Framework, displayName: string, helperText: string, lo
 });
 
 export const frameworks: FrameworkEntry[] = [
-  websiteSPA("react", "React", "SPA, uses authgear-sdk-js", "/logos/frameworks/react.svg"),
-  websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "/logos/frameworks/vue.svg"),
-  websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "/logos/frameworks/angular.svg"),
-  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "/logos/frameworks/nextjs.svg"),
-  websiteServer("express", "Express.js", "Server-side, Node backend", "/logos/frameworks/express.svg"),
-  websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "/logos/frameworks/other-spa.svg"),
-  websiteServer("django", "Python (Django)", "Server-side, Python backend", "/logos/frameworks/django.svg"),
-  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "/logos/frameworks/laravel.svg"),
-  websiteServer("java", "Java", "Server-side, JVM backend", "/logos/frameworks/java.svg"),
-  websiteServer("aspnet", "ASP.NET", "Server-side, .NET backend", "/logos/frameworks/aspnet.svg"),
+  websiteSPA("react", "React", "SPA, uses authgear-sdk-js", reactLogo),
+  websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", vueLogo),
+  websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", angularLogo),
+  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", nextjsLogo),
+  websiteServer("express", "Express.js", "Server-side, Node backend", expressLogo),
+  websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", otherSpaLogo),
+  websiteServer("django", "Python (Django)", "Server-side, Python backend", djangoLogo),
+  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", laravelLogo),
+  websiteServer("java", "Java", "Server-side, JVM backend", javaLogo),
+  websiteServer("aspnet", "ASP.NET", "Server-side, .NET backend", aspnetLogo),
   {
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
     helperText: "Any OIDC/SAML compatible app",
     section: "website",
-    logo: "/logos/frameworks/other-oidc.svg",
+    logo: otherOidcLogo,
     stage2: "none",
     resolveType: () => "confidential",
     compatibleTypes: ["confidential"],
   },
-  mobileNative("react-native", "React Native", "Cross-platform mobile SDK", "/logos/frameworks/react-native.svg"),
-  mobileNative("ios", "iOS", "Native iOS (Swift)", "/logos/frameworks/ios.svg"),
-  mobileNative("android", "Android", "Native Android (Kotlin)", "/logos/frameworks/android.svg"),
-  mobileNative("flutter", "Flutter", "Cross-platform mobile SDK", "/logos/frameworks/flutter.svg"),
-  mobileNative("ionic", "Ionic", "Cross-platform hybrid SDK", "/logos/frameworks/ionic.svg"),
+  mobileNative("react-native", "React Native", "Cross-platform mobile SDK", reactNativeLogo),
+  mobileNative("ios", "iOS", "Native iOS (Swift)", iosLogo),
+  mobileNative("android", "Android", "Native Android (Kotlin)", androidLogo),
+  mobileNative("flutter", "Flutter", "Cross-platform mobile SDK", flutterLogo),
+  mobileNative("ionic", "Ionic", "Cross-platform hybrid SDK", ionicLogo),
 ];
 
 export function findFramework(id: Framework | string | undefined): FrameworkEntry | undefined {
