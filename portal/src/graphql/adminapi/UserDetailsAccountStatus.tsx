@@ -1944,8 +1944,16 @@ export function AccountStatusMessageBar(
     return null;
   }
 
+  // delayedRender={false} avoids FluentUI's DelayedRender wrapper, which
+  // intermittently renders an empty bar when the parent form updates state
+  // during mount (e.g. when navigating back to a disabled user's detail page).
   return (
-    <MessageBar messageBarType={MessageBarType.warning}>{message}</MessageBar>
+    <MessageBar
+      messageBarType={MessageBarType.warning}
+      delayedRender={false}
+    >
+      {message}
+    </MessageBar>
   );
 }
 
