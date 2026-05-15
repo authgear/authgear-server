@@ -1,0 +1,19 @@
+.root {
+  padding: 16px;
+  border: 1px solid var(--theme-tertiary, #8ab8ff);
+  border-radius: 8px;
+  background: var(--theme-lighter-alt, #eef4ff);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.question {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cookieHelp {
+  margin-left: 30px;
+  font-size: 12px;
+}
