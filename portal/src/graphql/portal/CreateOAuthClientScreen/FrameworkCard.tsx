@@ -1,5 +1,5 @@
-import React from "react";
-import cn from "classnames";
+import React, { useCallback, useMemo } from "react";
+import ChoiceButton from "../../../ChoiceButton";
 import type { FrameworkEntry } from "./frameworks";
 import styles from "./FrameworkCard.module.css";
 
@@ -14,19 +14,35 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
   selected,
   onSelect,
 }) => {
+  const IconComponent = useMemo(() => {
+    return function FrameworkLogo() {
+      return (
+        <img
+          className={styles.logo}
+          src={framework.logo}
+          alt=""
+        />
+      );
+    };
+  }, [framework.logo]);
+
+  const onClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelect();
+    },
+    [onSelect]
+  );
+
   return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      className={cn(styles.card, { [styles.selected]: selected })}
-      onClick={onSelect}
-    >
-      <img className={styles.logo} src={framework.logo} alt="" />
-      <span className={styles.labels}>
-        <span className={styles.name}>{framework.displayName}</span>
-        <span className={styles.helper}>{framework.helperText}</span>
-      </span>
-    </button>
+    <ChoiceButton
+      className={styles.card}
+      checked={selected}
+      text={framework.displayName}
+      secondaryText={framework.helperText}
+      IconComponent={IconComponent}
+      onClick={onClick}
+    />
   );
 };
