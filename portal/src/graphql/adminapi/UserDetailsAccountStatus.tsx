@@ -22,6 +22,7 @@ import OutlinedActionButton from "../../components/common/OutlinedActionButton";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import TextField from "../../TextField";
+import ExternalLink from "../../ExternalLink";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
 import { useSetAccountValidPeriodMutation } from "./mutations/setAccountValidPeriodMutation";
@@ -828,6 +829,19 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
             ) : (
               <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--unlocked" />
             )}
+          </Text>
+          <Text variant="small" style={{ marginTop: "8px", display: "block" }}>
+            <FormattedMessage
+              id="UserDetailsAccountStatus.account-lockout.learn-more"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                docLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/reference/rate-limits/account-lockout">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </Text>
         </div>
         {lockout.isLocked ? (
