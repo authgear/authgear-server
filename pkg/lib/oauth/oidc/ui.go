@@ -244,6 +244,7 @@ type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
 	SettingsChangePasswordURL() *url.URL
 	SettingsDeleteAccountURL() *url.URL
+	SettingsIdentityOAuthURL() *url.URL
 	SettingsAddLoginIDEmail(loginIDKey string) *url.URL
 	SettingsAddLoginIDPhone(loginIDKey string) *url.URL
 	SettingsAddLoginIDUsername(loginIDKey string) *url.URL
@@ -341,6 +342,15 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		}
 		endpoint = b.Endpoints.SettingsEditLoginIDUsername(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case settingsaction.SettingsActionLinkOAuth:
+		endpoint = b.Endpoints.SettingsIdentityOAuthURL()
+		b.addToEndpoint(endpoint, r, e)
+		if alias := r.OAuthProviderAlias(); alias != "" {
+			q := endpoint.Query()
+			q.Set("x_provider_alias", alias)
+			endpoint.RawQuery = q.Encode()
+		}
 		return endpoint, nil
 	default:
 		return nil, NewErrInvalidSettingsAction("invalid settings action")
