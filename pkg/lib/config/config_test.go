@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -212,6 +213,66 @@ identity:
 			So(cfg, ShouldResemble, cfg2)
 			So(*cfg2.FraudProtection.SMS.UnverifiedOTPBudget.DailyRatio, ShouldEqual, 0.3)
 			So(*cfg2.FraudProtection.SMS.UnverifiedOTPBudget.HourlyRatio, ShouldEqual, 0.2)
+		})
+
+		// Regression test: empty arrays in required fields must survive JSON→YAML round-trip.
+		// Previously, omitempty caused empty slices to be dropped, turning e.g.
+		// source:{cidrs:[],geo_location_codes:[]} into source:{}, which then
+		// disappeared in YAML serialization and broke the "required" schema check
+		// on all subsequent saves from unrelated pages.
+		Convey("IP filter rule with empty source arrays is valid after JSON-YAML round-trip", func() {
+			// Simulate portal saving an enabled IP blocklist with no entries filled in.
+			inputJSON := `{
+				"id": "test",
+				"http": {"public_origin": "http://test"},
+				"network_protection": {
+					"ip_filter": {
+						"default_action": "allow",
+						"rules": [{"name": "__portal", "action": "deny", "source": {"cidrs": [], "geo_location_codes": []}}]
+					}
+				}
+			}`
+
+			inputYAML, err := yaml.JSONToYAML([]byte(inputJSON))
+			So(err, ShouldBeNil)
+			cfg, err := config.Parse(ctx, inputYAML)
+			So(err, ShouldBeNil)
+
+			// Simulate the server serialising the stored config back to JSON
+			// (as it does when responding to a portal query), then the portal
+			// re-saving from an unrelated page — which sends that JSON verbatim.
+			roundTrippedJSON, err := json.Marshal(cfg)
+			So(err, ShouldBeNil)
+			roundTrippedYAML, err := yaml.JSONToYAML(roundTrippedJSON)
+			So(err, ShouldBeNil)
+			_, err = config.Parse(ctx, roundTrippedYAML)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("fraud protection by-phone-country with empty geo_location_codes is valid after JSON-YAML round-trip", func() {
+			inputJSON := `{
+				"id": "test",
+				"http": {"public_origin": "http://test"},
+				"fraud_protection": {
+					"sms": {
+						"unverified_otp_budget": {
+							"by_phone_country": [{"geo_location_codes": []}]
+						}
+					}
+				}
+			}`
+
+			inputYAML, err := yaml.JSONToYAML([]byte(inputJSON))
+			So(err, ShouldBeNil)
+			cfg, err := config.Parse(ctx, inputYAML)
+			So(err, ShouldBeNil)
+
+			roundTrippedJSON, err := json.Marshal(cfg)
+			So(err, ShouldBeNil)
+			roundTrippedYAML, err := yaml.JSONToYAML(roundTrippedJSON)
+			So(err, ShouldBeNil)
+			_, err = config.Parse(ctx, roundTrippedYAML)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("parse validation", func() {

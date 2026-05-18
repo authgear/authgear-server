@@ -210,7 +210,8 @@ func (c *FraudProtectionSMSUnverifiedOTPBudgetConfig) SetDefaults() {
 }
 
 type FraudProtectionSMSUnverifiedOTPBudgetByPhoneCountryConfig struct {
-	GeoLocationCodes []string `json:"geo_location_codes,omitempty"`
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	GeoLocationCodes []string `json:"geo_location_codes,omitzero"`
 	DailyRatio       *float64 `json:"daily_ratio,omitempty" nullable:"true"`
 	HourlyRatio      *float64 `json:"hourly_ratio,omitempty" nullable:"true"`
 }

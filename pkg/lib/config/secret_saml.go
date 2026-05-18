@@ -93,6 +93,7 @@ var _ = SecretConfigSchema.Add("SAMLSpSigningCertificate", `
 `)
 
 type SAMLSpSigningCertificate struct {
-	ServiceProviderID string            `json:"service_provider_id,omitempty"`
-	Certificates      []X509Certificate `json:"certificates,omitempty"`
+	ServiceProviderID string `json:"service_provider_id,omitempty"`
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	Certificates []X509Certificate `json:"certificates,omitzero"`
 }
