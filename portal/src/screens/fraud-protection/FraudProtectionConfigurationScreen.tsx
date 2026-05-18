@@ -1,6 +1,14 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import { IChoiceGroupOption, ITag, PivotItem } from "@fluentui/react";
+import {
+  Dialog,
+  DialogFooter,
+  IChoiceGroupOption,
+  ITag,
+  PivotItem,
+} from "@fluentui/react";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
 import { default as parseLibPhoneNumber } from "libphonenumber-js";
@@ -206,6 +214,7 @@ interface FraudProtectionConfigurationContentProps {
   selectedKey: FraudProtectionTab;
   onLinkClick: (item?: PivotItem) => void;
   onChangeKey: (key: FraudProtectionTab) => void;
+  onToggleEnabledAndSave: (enabled: boolean) => void;
 }
 
 const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfigurationContentProps> =
@@ -216,6 +225,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
       selectedKey,
       onLinkClick,
       onChangeKey,
+      onToggleEnabledAndSave,
     } = props;
     const { renderToString } = useContext(Context);
     const { state, setState } = form;
@@ -226,12 +236,9 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
         _event: React.FormEvent<HTMLElement | HTMLInputElement>,
         checked?: boolean
       ) => {
-        setState((current) => ({
-          ...current,
-          enabled: checked ?? false,
-        }));
+        onToggleEnabledAndSave(checked ?? false);
       },
-      [setState]
+      [onToggleEnabledAndSave]
     );
 
     const onEnforcementModeChange = useCallback(
@@ -384,6 +391,9 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
 const FraudProtectionConfigurationScreen: React.VFC =
   function FraudProtectionConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
+    const { renderToString } = useContext(Context);
+    const [showDisableConfirmation, setShowDisableConfirmation] =
+      useState(false);
     const form = useAppConfigForm({
       appID,
       constructFormState,
@@ -393,6 +403,29 @@ const FraudProtectionConfigurationScreen: React.VFC =
     const featureConfig = useAppFeatureConfigQuery(appID);
     const { selectedKey, onLinkClick, onChangeKey } =
       usePivotNavigation<FraudProtectionTab>(["overview", "logs", "settings"]);
+
+    const handleToggleEnabledAndSave = useCallback(
+      (enabled: boolean) => {
+        if (!enabled && form.state.enabled) {
+          setShowDisableConfirmation(true);
+        } else if (enabled && !form.state.enabled) {
+          form.saveWith((_current) => ({
+            ...form.initialState,
+            enabled: true,
+          }));
+        }
+      },
+      [form]
+    );
+
+    const handleConfirmDisable = useCallback(() => {
+      setShowDisableConfirmation(false);
+      form.saveWith((_current) => ({ ...form.initialState, enabled: false }));
+    }, [form]);
+
+    const handleCancelDisable = useCallback(() => {
+      setShowDisableConfirmation(false);
+    }, []);
 
     if (form.isLoading || featureConfig.isLoading) {
       return <ShowLoading />;
@@ -435,7 +468,35 @@ const FraudProtectionConfigurationScreen: React.VFC =
           selectedKey={selectedKey}
           onLinkClick={onLinkClick}
           onChangeKey={onChangeKey}
+          onToggleEnabledAndSave={handleToggleEnabledAndSave}
         />
+        <Dialog
+          hidden={!showDisableConfirmation}
+          onDismiss={handleCancelDisable}
+          dialogContentProps={{
+            title: renderToString(
+              "FraudProtectionConfigurationScreen.disable.confirmation.title"
+            ),
+            subText: renderToString(
+              "FraudProtectionConfigurationScreen.disable.confirmation.description"
+            ),
+          }}
+        >
+          <DialogFooter>
+            <DefaultButton
+              onClick={handleCancelDisable}
+              text={renderToString(
+                "FraudProtectionConfigurationScreen.disable.confirmation.cancel"
+              )}
+            />
+            <PrimaryButton
+              onClick={handleConfirmDisable}
+              text={renderToString(
+                "FraudProtectionConfigurationScreen.disable.confirmation.confirm"
+              )}
+            />
+          </DialogFooter>
+        </Dialog>
       </FormContainer>
     );
   };

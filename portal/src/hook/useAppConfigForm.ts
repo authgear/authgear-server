@@ -19,6 +19,10 @@ export interface AppConfigFormModel<State> {
   reload: () => void;
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
+  saveWith: (
+    fn: (state: State) => State,
+    ignoreConflict?: boolean
+  ) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
 }
@@ -104,25 +108,18 @@ export function useAppConfigForm<State>(
     setIsSubmitted(false);
   }, [isUpdating]);
 
-  const save = useCallback(
-    async (ignoreConflict: boolean = false) => {
-      const allowSave = canSave !== undefined ? canSave : isDirty;
-      if (!rawConfig || !initialState || secretConfig == null) {
-        return;
-      } else if (!allowSave || isUpdating) {
-        return;
-      }
-
-      const err = validate?.(currentState ?? initialState);
+  const performSave = useCallback(
+    async (stateToSave: State, ignoreConflict: boolean) => {
+      const err = validate?.(stateToSave);
       if (err) {
         setUpdateError(err);
         return;
       }
 
       const newConfig = constructConfig(
-        rawConfig,
+        rawConfig!,
         initialState,
-        currentState ?? initialState,
+        stateToSave,
         effectiveConfig
       );
 
@@ -132,7 +129,7 @@ export function useAppConfigForm<State>(
         await updateConfig({
           appConfig: newConfig,
           appConfigChecksum: rawAppConfigChecksum,
-          ignoreConflict: ignoreConflict,
+          ignoreConflict,
         });
         await reload();
         setCurrentState(null);
@@ -145,19 +142,55 @@ export function useAppConfigForm<State>(
       }
     },
     [
+      validate,
+      constructConfig,
+      rawConfig,
+      initialState,
+      effectiveConfig,
+      updateConfig,
+      rawAppConfigChecksum,
+      reload,
+    ]
+  );
+
+  const save = useCallback(
+    async (ignoreConflict: boolean = false) => {
+      const allowSave = canSave !== undefined ? canSave : isDirty;
+      if (!rawConfig || !initialState || secretConfig == null) {
+        return;
+      } else if (!allowSave || isUpdating) {
+        return;
+      }
+      await performSave(currentState ?? initialState, ignoreConflict);
+    },
+    [
       canSave,
       isDirty,
       rawConfig,
       initialState,
       secretConfig,
       isUpdating,
-      validate,
       currentState,
-      constructConfig,
-      effectiveConfig,
-      updateConfig,
-      rawAppConfigChecksum,
-      reload,
+      performSave,
+    ]
+  );
+
+  const saveWith = useCallback(
+    async (fn: (state: State) => State, ignoreConflict: boolean = false) => {
+      if (!rawConfig || !initialState || secretConfig == null || isUpdating) {
+        return;
+      }
+      const newState = fn(currentState ?? initialState);
+      setCurrentState(newState);
+      await performSave(newState, ignoreConflict);
+    },
+    [
+      rawConfig,
+      initialState,
+      secretConfig,
+      isUpdating,
+      currentState,
+      performSave,
     ]
   );
 
@@ -185,6 +218,8 @@ export function useAppConfigForm<State>(
     reload,
     reset,
     save,
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    saveWith,
     effectiveConfig,
   };
 }
