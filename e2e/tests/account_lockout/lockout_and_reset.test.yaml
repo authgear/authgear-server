@@ -5,7 +5,7 @@ authgear.yaml:
       lockout:
         max_attempts: 2
         history_duration: "1h"
-        minimum_duration: "1s"
+        minimum_duration: "1m"
         maximum_duration: "5m"
         backoff_factor: 2
         lockout_type: "per_user"
