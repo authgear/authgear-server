@@ -149,6 +149,10 @@ func (e *Endpoints) SettingsDeleteAccountURL() *url.URL {
 	return e.urlOf("settings/delete_account")
 }
 
+func (e *Endpoints) SettingsIdentityOAuthURL() *url.URL {
+	return e.urlOf("settings/identity/oauth")
+}
+
 func (e *Endpoints) SettingsAddLoginIDEmail(loginIDKey string) *url.URL {
 	u := e.urlOf("settings/identity/add_email")
 	q := u.Query()
