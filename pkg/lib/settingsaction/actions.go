@@ -11,4 +11,5 @@ const (
 	SettingsActionChangeEmail    SettingsAction = "change_email"
 	SettingsActionChangePhone    SettingsAction = "change_phone"
 	SettingsActionChangeUsername SettingsAction = "change_username"
+	SettingsActionLinkOAuth      SettingsAction = "link_oauth"
 )
