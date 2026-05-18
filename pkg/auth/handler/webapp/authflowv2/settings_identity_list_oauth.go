@@ -147,11 +147,85 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, webappSession *webapp.Session) error {
+		s := session.GetSession(ctx)
+		providerAlias := r.URL.Query().Get("x_provider_alias")
+		oauthConnected := r.URL.Query().Get("x_oauth_linked")
+
+		// Branch A: in settings action, auto-trigger link
+		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" {
+			var vm *AuthflowV2SettingsIdentityListOAuthViewModel
+			err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+				var e error
+				vm, e = h.getViewModel(ctx)
+				return e
+			})
+			if err != nil {
+				return err
+			}
+
+			var candidate identity.Candidate
+			for _, c := range vm.OAuthCandidates {
+				if c[identity.CandidateKeyProviderAlias] == providerAlias {
+					candidate = c
+					break
+				}
+			}
+			if candidate == nil {
+				return fmt.Errorf("unknown provider alias: %s", providerAlias)
+			}
+
+			var redirectURI string
+			status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
+			if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
+				redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
+			} else {
+				redirectURI = h.Endpoints.SSOCallbackURL(providerAlias).String()
+			}
+
+			output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
+				Alias:       providerAlias,
+				RedirectURI: redirectURI,
+			})
+			if err != nil {
+				return err
+			}
+
+			state := &webappoauth.WebappOAuthState{
+				AppID:                  string(h.AppID),
+				AccountManagementToken: output.Token,
+				ProviderAlias:          providerAlias,
+			}
+			stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
+			if err != nil {
+				return err
+			}
+
+			authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
+			if err != nil {
+				return err
+			}
+
+			http.Redirect(w, r, authorizationURLString, http.StatusFound)
+			return nil
+		}
+
+		// Branch B: in settings action, finish after link
+		if ctrl.IsInSettingsAction(s, webappSession) && oauthConnected == "1" {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
+		}
+
+		// Branch C: normal render
 		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			data, err = h.GetData(ctx, r, w)
-			return err
+			var e error
+			data, e = h.GetData(ctx, r, w)
+			return e
 		})
 		if err != nil {
 			return err
