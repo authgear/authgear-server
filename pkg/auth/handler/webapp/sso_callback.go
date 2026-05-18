@@ -61,6 +61,10 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		q := redirectURL.Query()
+		q.Set("x_oauth_linked", "1")
+		redirectURL.RawQuery = q.Encode()
+
 		http.Redirect(w, r, redirectURL.String(), http.StatusFound)
 		return
 	}
