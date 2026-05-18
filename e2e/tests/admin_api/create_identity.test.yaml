@@ -1,0 +1,325 @@
+name: Create identity creates OOB OTP email authenticator when oob_otp_email is enabled
+before:
+  - type: custom_sql
+    custom_sql:
+      path: create_identity_user.sql
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT id FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: create_identity
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createIdentityMutation(
+          $userID: ID!
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+        ) {
+          createIdentity(
+            input: {
+              userID: $userID
+              definition: { loginID: $identityDefinition }
+              password: $password
+            }
+          ) {
+            user {
+              standardAttributes
+              identities {
+                edges {
+                  node {
+                    type
+                    claims
+                  }
+                }
+              }
+              authenticators {
+                edges {
+                  node {
+                    kind
+                    type
+                    claims
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}",
+          "identityDefinition": { "key": "email", "value": "user@example.com" }
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createIdentity": {
+              "user": {
+                "authenticators": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {
+                          "https://authgear.com/claims/oob_otp/email": "user@example.com"
+                        },
+                        "kind": "PRIMARY",
+                        "type": "OOB_OTP_EMAIL"
+                      }
+                    }
+                  ]
+                },
+                "identities": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {
+                          "email": "user@example.com",
+                          "https://authgear.com/claims/login_id/key": "email",
+                          "https://authgear.com/claims/login_id/original_value": "user@example.com",
+                          "https://authgear.com/claims/login_id/type": "email",
+                          "https://authgear.com/claims/login_id/value": "user@example.com"
+                        },
+                        "type": "LOGIN_ID"
+                      }
+                    }
+                  ]
+                },
+                "standardAttributes": {
+                  "email": "user@example.com",
+                  "email_verified": false
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Create identity creates OOB OTP SMS authenticator when oob_otp_sms is enabled
+before:
+  - type: custom_sql
+    custom_sql:
+      path: create_identity_user.sql
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT id FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: create_identity
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createIdentityMutation(
+          $userID: ID!
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+        ) {
+          createIdentity(
+            input: {
+              userID: $userID
+              definition: { loginID: $identityDefinition }
+              password: $password
+            }
+          ) {
+            user {
+              standardAttributes
+              identities {
+                edges {
+                  node {
+                    type
+                    claims
+                  }
+                }
+              }
+              authenticators {
+                edges {
+                  node {
+                    kind
+                    type
+                    claims
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}",
+          "identityDefinition": { "key": "phone", "value": "+85298765432" }
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createIdentity": {
+              "user": {
+                "authenticators": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {
+                          "https://authgear.com/claims/oob_otp/phone": "+85298765432"
+                        },
+                        "kind": "PRIMARY",
+                        "type": "OOB_OTP_SMS"
+                      }
+                    }
+                  ]
+                },
+                "identities": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {
+                          "https://authgear.com/claims/login_id/key": "phone",
+                          "https://authgear.com/claims/login_id/original_value": "+85298765432",
+                          "https://authgear.com/claims/login_id/type": "phone",
+                          "https://authgear.com/claims/login_id/value": "+85298765432",
+                          "phone_number": "+85298765432"
+                        },
+                        "type": "LOGIN_ID"
+                      }
+                    }
+                  ]
+                },
+                "standardAttributes": {
+                  "phone_number": "+85298765432",
+                  "phone_number_verified": false
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Create identity creates password authenticator when password is given and password auth is enabled
+authgear.yaml:
+  override: |
+    authentication:
+      primary_authenticators:
+      - password
+before:
+  - type: custom_sql
+    custom_sql:
+      path: create_identity_user.sql
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT id FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: create_identity
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createIdentityMutation(
+          $userID: ID!
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+        ) {
+          createIdentity(
+            input: {
+              userID: $userID
+              definition: { loginID: $identityDefinition }
+              password: $password
+            }
+          ) {
+            user {
+              standardAttributes
+              identities {
+                edges {
+                  node {
+                    type
+                    claims
+                  }
+                }
+              }
+              authenticators {
+                edges {
+                  node {
+                    kind
+                    type
+                    claims
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}",
+          "identityDefinition": { "key": "email", "value": "user@example.com" },
+          "password": "password"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createIdentity": {
+              "user": {
+                "authenticators": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {},
+                        "kind": "PRIMARY",
+                        "type": "PASSWORD"
+                      }
+                    }
+                  ]
+                },
+                "identities": {
+                  "edges": [
+                    {
+                      "node": {
+                        "claims": {
+                          "email": "user@example.com",
+                          "https://authgear.com/claims/login_id/key": "email",
+                          "https://authgear.com/claims/login_id/original_value": "user@example.com",
+                          "https://authgear.com/claims/login_id/type": "email",
+                          "https://authgear.com/claims/login_id/value": "user@example.com"
+                        },
+                        "type": "LOGIN_ID"
+                      }
+                    }
+                  ]
+                },
+                "standardAttributes": {
+                  "email": "user@example.com",
+                  "email_verified": false
+                }
+              }
+            }
+          },
+          "errors": null
+        }

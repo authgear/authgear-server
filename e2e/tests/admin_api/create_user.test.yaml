@@ -1,0 +1,218 @@
+name: Create user with password sends password email and sets password expired
+steps:
+  - name: create_user
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createUserMutation(
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+          $sendPassword: Boolean
+          $setPasswordExpired: Boolean
+        ) {
+          createUser(
+            input: {
+              definition: { loginID: $identityDefinition }
+              password: $password
+              sendPassword: $sendPassword
+              setPasswordExpired: $setPasswordExpired
+            }
+          ) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
+          "password": "password",
+          "sendPassword": true,
+          "setPasswordExpired": true
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createUser": {
+              "user": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_password_created_with_expire_after
+    action: query
+    query: |
+      SELECT _auth_authenticator_password.expire_after
+      FROM _auth_authenticator
+      JOIN _auth_authenticator_password ON _auth_authenticator_password.id = _auth_authenticator.id
+      JOIN _auth_user ON _auth_authenticator.user_id = _auth_user.id
+      WHERE _auth_authenticator.app_id = '{{ .AppID }}'
+        AND _auth_user.standard_attributes ->> 'email' = '{{ .AppID }}@example.com'
+    query_output:
+      rows: |
+        [
+          {
+            "expire_after": "[[string]]"
+          }
+        ]
+  - name: verify_email_sent
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'email.sent'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "recipient": "[[string]]"
+          }
+        ]
+
+---
+
+name: Create user with null password does not create password authenticator
+steps:
+  - name: create_user
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createUserMutation(
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+          $sendPassword: Boolean
+          $setPasswordExpired: Boolean
+        ) {
+          createUser(
+            input: {
+              definition: { loginID: $identityDefinition }
+              password: $password
+              sendPassword: $sendPassword
+              setPasswordExpired: $setPasswordExpired
+            }
+          ) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
+          "password": null,
+          "sendPassword": false,
+          "setPasswordExpired": false
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createUser": {
+              "user": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_no_password_created
+    action: query
+    query: |
+      SELECT _auth_authenticator_password.expire_after
+      FROM _auth_authenticator
+      JOIN _auth_authenticator_password ON _auth_authenticator_password.id = _auth_authenticator.id
+      JOIN _auth_user ON _auth_authenticator.user_id = _auth_user.id
+      WHERE _auth_authenticator.app_id = '{{ .AppID }}'
+        AND _auth_user.standard_attributes ->> 'email' = '{{ .AppID }}@example.com'
+    query_output:
+      rows: |
+        []
+
+---
+
+name: Create user with empty password sends password email and sets password expired
+steps:
+  - name: create_user
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createUserMutation(
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+          $sendPassword: Boolean
+          $setPasswordExpired: Boolean
+        ) {
+          createUser(
+            input: {
+              definition: { loginID: $identityDefinition }
+              password: $password
+              sendPassword: $sendPassword
+              setPasswordExpired: $setPasswordExpired
+            }
+          ) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
+          "password": "",
+          "sendPassword": true,
+          "setPasswordExpired": true
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createUser": {
+              "user": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_password_created_with_expire_after
+    action: query
+    query: |
+      SELECT _auth_authenticator_password.expire_after
+      FROM _auth_authenticator
+      JOIN _auth_authenticator_password ON _auth_authenticator_password.id = _auth_authenticator.id
+      JOIN _auth_user ON _auth_authenticator.user_id = _auth_user.id
+      WHERE _auth_authenticator.app_id = '{{ .AppID }}'
+        AND _auth_user.standard_attributes ->> 'email' = '{{ .AppID }}@example.com'
+    query_output:
+      rows: |
+        [
+          {
+            "expire_after": "[[string]]"
+          }
+        ]
+  - name: verify_email_sent
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'email.sent'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "recipient": "[[string]]"
+          }
+        ]

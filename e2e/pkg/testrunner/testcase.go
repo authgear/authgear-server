@@ -228,10 +228,15 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionQuery:
-		jsonArrString, err := cmd.QuerySQLSelectRaw(step.Query)
+		renderedQuery, queryOK := renderTemplateString(t, cmd, prevSteps, step.Query)
+		if !queryOK {
+			t.Errorf("failed to render query")
+			return nil, state, false
+		}
+		jsonArrString, err := cmd.QuerySQLSelectRaw(renderedQuery)
 		if err != nil {
 			t.Errorf("failed to execute SQL Select query: %v", err)
-			return
+			return nil, state, false
 		}
 
 		rowsResult := map[string]interface{}{}
@@ -239,7 +244,7 @@ func (tc *TestCase) executeStep(
 		err = json.Unmarshal([]byte(jsonArrString), &rows)
 		if err != nil {
 			t.Errorf("failed to unmarshal json rows: %v", err)
-			return
+			return nil, state, false
 		}
 		rowsResult["rows"] = rows
 		result = &StepResult{
@@ -248,17 +253,31 @@ func (tc *TestCase) executeStep(
 		}
 
 		if step.QueryOutput != nil {
-			ok := validateQueryResult(t, step, rows)
+			renderedOutputRows, ok := renderTemplateString(t, cmd, prevSteps, step.QueryOutput.Rows)
+			if !ok {
+				t.Errorf("failed to render query_output.rows")
+				return nil, state, false
+			}
+			renderedStep := step
+			renderedQueryOutput := *step.QueryOutput
+			renderedQueryOutput.Rows = renderedOutputRows
+			renderedStep.QueryOutput = &renderedQueryOutput
+			ok = validateQueryResult(t, renderedStep, rows)
 			if !ok {
 				return nil, state, false
 			}
 		}
 
 	case StepActionAuditQuery:
-		jsonArrString, err := cmd.QuerySQLSelectAuditRaw(step.AuditQuery)
+		renderedQuery, auditQueryOK := renderTemplateString(t, cmd, prevSteps, step.AuditQuery)
+		if !auditQueryOK {
+			t.Errorf("failed to render audit_query")
+			return nil, state, false
+		}
+		jsonArrString, err := cmd.QuerySQLSelectAuditRaw(renderedQuery)
 		if err != nil {
 			t.Errorf("failed to execute audit SQL Select query: %v", err)
-			return
+			return nil, state, false
 		}
 
 		rowsResult := map[string]interface{}{}
@@ -266,7 +285,7 @@ func (tc *TestCase) executeStep(
 		err = json.Unmarshal([]byte(jsonArrString), &rows)
 		if err != nil {
 			t.Errorf("failed to unmarshal json rows: %v", err)
-			return
+			return nil, state, false
 		}
 		rowsResult["rows"] = rows
 		result = &StepResult{
@@ -275,7 +294,16 @@ func (tc *TestCase) executeStep(
 		}
 
 		if step.AuditQueryOutput != nil {
-			ok := validateAuditQueryResult(t, step, rows)
+			renderedOutputRows, ok := renderTemplateString(t, cmd, prevSteps, step.AuditQueryOutput.Rows)
+			if !ok {
+				t.Errorf("failed to render audit_query_output.rows")
+				return nil, state, false
+			}
+			renderedStep := step
+			renderedAuditQueryOutput := *step.AuditQueryOutput
+			renderedAuditQueryOutput.Rows = renderedOutputRows
+			renderedStep.AuditQueryOutput = &renderedAuditQueryOutput
+			ok = validateAuditQueryResult(t, renderedStep, rows)
 			if !ok {
 				return nil, state, false
 			}
@@ -380,10 +408,9 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 		if step.HookServerOutput != nil {
-			ok := validateQueryResult(t, Step{
-				Name:        step.Name,
-				QueryOutput: step.HookServerOutput,
-			}, rows)
+			renderedStep := step
+			renderedStep.QueryOutput = step.HookServerOutput
+			ok := validateQueryResult(t, renderedStep, rows)
 			if !ok {
 				return nil, state, false
 			}
@@ -412,10 +439,10 @@ func (tc *TestCase) executeStep(
 			if !ok {
 				return nil, state, false
 			}
-			ok = validateQueryResult(t, Step{
-				Name:        step.Name,
-				QueryOutput: &QueryOutput{Rows: renderedRows},
-			}, rows)
+			renderedStep := step
+			smtpQueryOutput := QueryOutput{Rows: renderedRows}
+			renderedStep.QueryOutput = &smtpQueryOutput
+			ok = validateQueryResult(t, renderedStep, rows)
 			if !ok {
 				return nil, state, false
 			}

@@ -1,0 +1,218 @@
+name: Get users by standard attribute - email
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_by_email
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"email", attributeValue: "e2e_admin_api_get_users@example.com") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUsersByStandardAttribute": [
+              {
+                "createdAt": "2024-08-27T07:51:42.040683Z",
+                "lastLoginAt": null,
+                "standardAttributes": {
+                  "email": "e2e_admin_api_get_users@example.com",
+                  "email_verified": false,
+                  "updated_at": 1724745102
+                }
+              }
+            ]
+          },
+          "errors": null
+        }
+
+---
+
+name: Get users by standard attribute - phone
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_by_phone
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"phone_number", attributeValue: "+85261236544") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUsersByStandardAttribute": [
+              {
+                "createdAt": "2024-08-27T07:51:42.040683Z",
+                "lastLoginAt": null,
+                "standardAttributes": {
+                  "phone_number": "+85261236544",
+                  "phone_number_verified": false,
+                  "updated_at": 1724745102
+                }
+              }
+            ]
+          },
+          "errors": null
+        }
+
+---
+
+name: Get users by standard attribute - username
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_by_username
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"preferred_username", attributeValue: "e2e_admin_api_get_users_username") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUsersByStandardAttribute": [
+              {
+                "createdAt": "2024-08-27T07:51:42.040683Z",
+                "lastLoginAt": null,
+                "standardAttributes": {
+                  "preferred_username": "e2e_admin_api_get_users_username",
+                  "updated_at": 1724745102
+                }
+              }
+            ]
+          },
+          "errors": null
+        }
+
+---
+
+name: Get users by standard attribute - not found returns empty array
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_not_found
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"email", attributeValue: "e2e_admin_api_get_users_not_found@example.com") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUsersByStandardAttribute": []
+          },
+          "errors": null
+        }
+
+---
+
+name: Get users by standard attribute - invalid attribute value returns error
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_invalid_value
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"phone_number", attributeValue: "e2e_admin_api_get_users@example.com") {
+            id
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "GetUsersInvalidArgument"
+              }
+            }
+          ]
+        }
+
+---
+
+name: Get users by standard attribute - invalid attribute name returns error
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_users_invalid_name
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUsersByStandardAttribute(attributeName:"custom_name", attributeValue: "e2e_admin_api_get_users@example.com") {
+            id
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "GetUsersInvalidArgument"
+              }
+            }
+          ]
+        }
