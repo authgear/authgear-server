@@ -16,4 +16,5 @@ type WebappOAuthState struct {
 
 	// account management specific fields
 	AccountManagementToken string `json:"account_management_token,omitempty"`
+	SettingsActionID       string `json:"settings_action_id,omitempty"`
 }

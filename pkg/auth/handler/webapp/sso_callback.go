@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -50,6 +51,12 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		redirectURL, err := url.Parse("/settings/identity/oauth")
 		if err != nil {
 			panic(err)
+		}
+
+		if state.SettingsActionID != "" {
+			q := redirectURL.Query()
+			q.Set(settingsaction.QUERY_SETTINGS_ACTION_ID, state.SettingsActionID)
+			redirectURL.RawQuery = q.Encode()
 		}
 
 		_, err = h.AccountManagement.FinishAddingIdentityOAuth(r.Context(), s, &accountmanagement.FinishAddingIdentityOAuthInput{

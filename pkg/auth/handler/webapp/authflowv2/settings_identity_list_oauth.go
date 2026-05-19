@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -195,6 +196,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 				AppID:                  string(h.AppID),
 				AccountManagementToken: output.Token,
 				ProviderAlias:          providerAlias,
+				SettingsActionID:       settingsaction.GetSettingsActionID(r),
 			}
 			stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {
@@ -279,6 +281,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 			AppID:                  string(h.AppID),
 			AccountManagementToken: output.Token,
 			ProviderAlias:          alias,
+			SettingsActionID:       settingsaction.GetSettingsActionID(r),
 		}
 		stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 		if err != nil {
