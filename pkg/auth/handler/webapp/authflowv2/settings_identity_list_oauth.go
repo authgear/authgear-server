@@ -176,6 +176,15 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 				return fmt.Errorf("unknown provider alias: %s", providerAlias)
 			}
 
+			// If already linked, show the list instead of re-triggering the OAuth flow.
+			if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID != "" {
+				data := map[string]any{}
+				viewmodels.Embed(data, h.BaseViewModel.ViewModel(r, w))
+				viewmodels.Embed(data, vm)
+				h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityListOAuthHTML, data)
+				return nil
+			}
+
 			var redirectURI string
 			status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
 			if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
