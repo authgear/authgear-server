@@ -35,6 +35,16 @@
     }}
   {{ end }}
 
+  {{ if $.IsUnknownProvider }}
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Message" (translate "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error" nil)
+        "Classname" "widget-content__alert--settings"
+      )
+    }}
+  {{ end }}
+
   <ol>
     {{ $ctx := .}}
     {{ range .OAuthCandidates }}

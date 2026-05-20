@@ -44,6 +44,7 @@ type AuthflowV2SettingsIdentityListOAuthViewModel struct {
 	CreateDisabled     bool
 	IsInSettingsAction bool
 	IsAlreadyLinked    bool
+	IsUnknownProvider  bool
 }
 
 type AuthflowV2SettingsIdentityListOAuthHandler struct {
@@ -201,7 +202,8 @@ func findCandidate(candidates []identity.Candidate, alias string) identity.Candi
 
 // autoTriggerOAuth looks up the candidate for providerAlias and, if not yet
 // linked, starts the OAuth flow and returns handled=true. If the provider is
-// already linked it returns handled=false so Branch C can show the error banner.
+// already linked or the alias is unknown, it returns handled=false so Branch C
+// can render the appropriate error banner.
 func (h *AuthflowV2SettingsIdentityListOAuthHandler) autoTriggerOAuth(
 	ctx context.Context,
 	w http.ResponseWriter,
@@ -221,7 +223,8 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) autoTriggerOAuth(
 
 	candidate := findCandidate(vm.OAuthCandidates, providerAlias)
 	if candidate == nil {
-		return false, fmt.Errorf("unknown provider alias: %s", providerAlias)
+		// Unknown alias: fall through to Branch C to show the error banner.
+		return false, nil
 	}
 
 	if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID == "" {
@@ -282,6 +285,8 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 				filtered = append(filtered, c)
 				identityID, _ := c[identity.CandidateKeyIdentityID].(string)
 				vm.IsAlreadyLinked = identityID != ""
+			} else {
+				vm.IsUnknownProvider = true
 			}
 			vm.OAuthCandidates = filtered
 			vm.IsInSettingsAction = true
