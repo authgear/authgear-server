@@ -139,3 +139,15 @@
   overflow-x: auto;
   white-space: pre;
 }
+
+.oidcSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oidcDescription {
+  color: #57606a;
+  line-height: 1.5;
+  margin-top: -8px;
+}
