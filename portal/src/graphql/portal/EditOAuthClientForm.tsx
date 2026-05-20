@@ -427,9 +427,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const showCookieSettings = useMemo(
       () =>
-        !clientConfig.x_application_type ||
         clientConfig.x_application_type === "traditional_webapp" ||
-        clientConfig.x_application_type === "confidential" ||
         clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
