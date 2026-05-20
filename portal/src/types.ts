@@ -571,7 +571,7 @@ export const applicationFrameworks = [
   "nextjs",
   "express",
   "other-spa",
-  "django",
+  "flask",
   "laravel",
   "java",
   "aspnet",

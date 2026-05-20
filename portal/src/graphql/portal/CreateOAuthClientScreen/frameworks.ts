@@ -67,12 +67,12 @@ export const frameworks: FrameworkEntry[] = [
   websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "brand-vue", `${DOCS}/single-page-app/vue`),
   websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "brand-angular", `${DOCS}/single-page-app/angular`),
   websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs", `${DOCS}/regular-web-app/nextjs`),
-  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app`),
+  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app/express`),
   websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "world-www", `${DOCS}/single-page-app/website`),
-  websiteServer("django", "Python (Django)", "Server-side, Python backend", "brand-django", `${DOCS}/regular-web-app`),
-  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel", `${DOCS}/regular-web-app`),
-  websiteServer("java", "Java", "Server-side, JVM backend", "coffee", `${DOCS}/regular-web-app`),
-  websiteServer("aspnet", "ASP.NET", "Server-side, .NET backend", "brand-windows", `${DOCS}/regular-web-app`),
+  websiteServer("flask", "Python (Flask)", "Server-side, Python backend", "brand-python", `${DOCS}/regular-web-app/python-flask-app`),
+  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel", `${DOCS}/regular-web-app/laravel`),
+  websiteServer("java", "Java (Spring Boot)", "Server-side, JVM backend", "coffee", `${DOCS}/regular-web-app/java-spring-boot`),
+  websiteServer("aspnet", "ASP.NET Core MVC", "Server-side, .NET backend", "brand-windows", `${DOCS}/regular-web-app/asp.net-core-mvc`),
   {
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
@@ -130,6 +130,20 @@ export function getQuickStartGuide(client: {
     };
   }
   const framework = findFramework(client.x_framework ?? undefined);
+  if (client.x_framework === "other-oidc") {
+    return {
+      docLink: framework?.docLink ?? "https://docs.authgear.com/get-started/oidc-provider",
+      bodyMessageId:
+        "EditOAuthClientFormFrameworkQuickStart.tutorial.body.other-oidc",
+    };
+  }
+  if (client.x_application_type === "confidential") {
+    return {
+      docLink: framework?.docLink ?? "https://docs.authgear.com/get-started/regular-web-app",
+      bodyMessageId:
+        "EditOAuthClientFormFrameworkQuickStart.tutorial.body.confidential",
+    };
+  }
   return {
     docLink: framework?.docLink ?? "https://docs.authgear.com/",
     bodyMessageId:

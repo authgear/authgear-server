@@ -23,9 +23,9 @@ export const Selected: Story = {
   },
 };
 
-export const Django: Story = {
+export const Flask: Story = {
   args: {
-    framework: findFramework("django")!,
+    framework: findFramework("flask")!,
   },
 };
 

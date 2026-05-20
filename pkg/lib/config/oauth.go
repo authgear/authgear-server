@@ -151,7 +151,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_name": { "type": "string", "minLength": 1 },
 		"name": { "type": "string" },
 		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "confidential", "third_party_app", "m2m"] },
-		"x_framework": { "type": "string", "enum": ["react", "vue", "angular", "nextjs", "express", "other-spa", "django", "laravel", "java", "aspnet", "other-oidc", "react-native", "ios", "android", "flutter", "ionic"] },
+		"x_framework": { "type": "string", "enum": ["react", "vue", "angular", "nextjs", "express", "other-spa", "flask", "laravel", "java", "aspnet", "other-oidc", "react-native", "ios", "android", "flutter", "ionic"] },
 		"x_max_concurrent_session": { "type": "integer", "enum": [0, 1] },
 		"redirect_uris": {
 			"type": "array",

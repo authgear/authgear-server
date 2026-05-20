@@ -21,9 +21,9 @@ export const ReactSelected: Story = {
   },
 };
 
-export const DjangoSelected: Story = {
+export const FlaskSelected: Story = {
   args: {
-    selectedId: "django",
+    selectedId: "flask",
   },
 };
 
