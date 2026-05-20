@@ -45,6 +45,16 @@
     }}
   {{ end }}
 
+  {{ if $.IsNotLinked }}
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Message" (translate "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error" nil)
+        "Classname" "widget-content__alert--settings"
+      )
+    }}
+  {{ end }}
+
   <ol>
     {{ $ctx := .}}
     {{ range .OAuthCandidates }}
@@ -100,9 +110,16 @@
 {{ end }}
 
 {{ define "__settings_action_item_connect.html" }}
+
 {{ if .Ctx.IsAlreadyLinked }}
-  {{/* Provider already linked in this linkOAuth settings action — hide all buttons */}}
+  {{/* Case 1: link_oauth error — provider already linked. No action. */}}
+
+{{ else if .Ctx.IsNotLinked }}
+  {{/* Case 2: unlink_oauth error — provider not linked. No action. */}}
+
 {{ else if not .Verified }}
+  {{/* Case 3: provider not yet linked. Show connect button, except in unlink_oauth mode. */}}
+  {{ if not .Ctx.IsUnlinkSettingsAction }}
   <form method="post" novalidate>
     <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
     <button
@@ -114,8 +131,13 @@
       {{ translate "v2.page.settings-identity-oauth.default.create-oauth-button-label" nil }}
     </button>
   </form>
-{{ else if (and (not .Ctx.IsInSettingsAction) (gt .Ctx.IdentityCount 1)) }}
-{{ if not .DeleteDisabled }}
+  {{ end }}
+
+{{ else }}
+  {{/* Case 4: provider is linked. Show disconnect button in normal mode or unlink_oauth mode.
+       Hidden in link_oauth settings action mode. Always guarded by IdentityCount > 1. */}}
+  {{ if and (or (not .Ctx.IsInSettingsAction) .Ctx.IsUnlinkSettingsAction) (gt .Ctx.IdentityCount 1) }}
+  {{ if not .DeleteDisabled }}
   <button
     class="settings-link-btn--destructive"
     data-controller="dialog"
@@ -131,8 +153,8 @@
     (dict
       "Ctx" .Ctx
       "DialogID" .ProviderAlias
-      "Title" (include "v2.page.settings-oauth.default.remove-oauth-dialog-title" (dict "ProviderName" $provider_name ))
-      "Description" (include "v2.page.settings-oauth.default.remove-oauth-dialog-description"  (dict "ProviderName" $provider_name ))
+      "Title" (include "v2.page.settings-oauth.default.remove-oauth-dialog-title" (dict "ProviderName" $provider_name))
+      "Description" (include "v2.page.settings-oauth.default.remove-oauth-dialog-description" (dict "ProviderName" $provider_name))
       "FormContent" (include "__settings_oauth_dialog_remove_input.html" (dict "ProviderAlias" .ProviderAlias "IdentityID" .IdentityID))
       "Buttons"
         (list
@@ -148,7 +170,8 @@
           )
         )
   )}}
-{{ end }}
+  {{ end }}
+  {{ end }}
 
 {{ end }}
 {{ end }}
