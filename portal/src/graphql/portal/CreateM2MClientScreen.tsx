@@ -224,13 +224,15 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
             setOffset(0);
           }}
         />
-        <ApplicationResourcesList
-          className="flex-1"
-          resources={resourceListData}
-          loading={loading}
-          pagination={pagination}
-          onToggleAuthorization={handleToggleAuthorization}
-        />
+        <div style={{ minHeight: 500, display: "flex", flexDirection: "column" }}>
+          <ApplicationResourcesList
+            className="flex-1"
+            resources={resourceListData}
+            loading={loading}
+            pagination={pagination}
+            onToggleAuthorization={handleToggleAuthorization}
+          />
+        </div>
         <div className={styles.buttons}>
           <ButtonWithLoading
             onClick={onClickSave}
