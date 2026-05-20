@@ -157,7 +157,10 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 
 		// Branch A: in settings action, auto-trigger link when not yet linked.
 		// Falls through to Branch C when the provider is already linked.
-		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" {
+		// q_sso_error is set by the SSO callback on error to prevent an infinite
+		// redirect loop: without it, every page load would trigger a new OAuth redirect.
+		ssoError := r.URL.Query().Get("q_sso_error")
+		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" && ssoError == "" {
 			var vm *AuthflowV2SettingsIdentityListOAuthViewModel
 			err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 				var e error

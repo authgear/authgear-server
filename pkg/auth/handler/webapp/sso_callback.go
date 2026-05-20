@@ -67,7 +67,14 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Query: r.URL.Query().Encode(),
 		})
 		if err != nil {
-			h.ErrorRenderer.MakeAuthflowErrorResult(r.Context(), w, r, *redirectURL, err).WriteResponse(w, r)
+			// Add q_sso_error to prevent Branch A from auto-triggering the OAuth
+			// redirect again on the settings page, which would create an infinite loop.
+			// q_ params are stripped by PreserveQuery so they won't be inherited by links.
+			errRedirectURL := *redirectURL
+			eq := errRedirectURL.Query()
+			eq.Set("q_sso_error", "1")
+			errRedirectURL.RawQuery = eq.Encode()
+			h.ErrorRenderer.MakeAuthflowErrorResult(r.Context(), w, r, errRedirectURL, err).WriteResponse(w, r)
 			return
 		}
 
