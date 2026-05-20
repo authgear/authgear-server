@@ -344,13 +344,15 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	case settingsaction.SettingsActionLinkOAuth:
+		alias := r.OAuthProviderAlias()
+		if alias == "" {
+			return nil, NewErrInvalidSettingsAction("oauthProviderAlias is required for link_oauth")
+		}
 		endpoint = b.Endpoints.SettingsIdentityOAuthURL()
 		b.addToEndpoint(endpoint, r, e)
-		if alias := r.OAuthProviderAlias(); alias != "" {
-			q := endpoint.Query()
-			q.Set("x_provider_alias", alias)
-			endpoint.RawQuery = q.Encode()
-		}
+		q := endpoint.Query()
+		q.Set("x_provider_alias", alias)
+		endpoint.RawQuery = q.Encode()
 		return endpoint, nil
 	default:
 		return nil, NewErrInvalidSettingsAction("invalid settings action")
