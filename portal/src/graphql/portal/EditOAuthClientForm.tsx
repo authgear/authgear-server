@@ -47,6 +47,7 @@ import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import { formatSeconds } from "../../util/formatDuration";
+import styles from "./EditOAuthClientForm.module.css";
 
 const MASKED_SECRET = "***************";
 
@@ -651,7 +652,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
         {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
           <>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.client-secrets.title" />
             </WidgetTitle>
             {clientSecrets.map((keyItem) => (
@@ -727,7 +728,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           <Widget className={className}>
             {redirectURIsDescription != null ? (
               <>
-                <WidgetTitle id="uris">
+                <WidgetTitle id="uris" className={styles.sectionTitle}>
                   <FormattedMessage id="EditOAuthClientForm.uris.title" />
                 </WidgetTitle>
                 <FormTextFieldList
@@ -779,7 +780,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
         {showConsentScreenSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.consent-screen.title" />
             </WidgetTitle>
             <FormTextField
@@ -818,7 +819,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
         {showCustomUISettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.custom-ui.title" />
             </WidgetTitle>
             <FormTextField
@@ -836,7 +837,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
         {showEndpointsSection ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.endpoints.title" />
             </WidgetTitle>
             {endpointsWithLabelIDs.map((e) => {
@@ -854,7 +855,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
         {showRefreshTokenSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
             </WidgetTitle>
             <FormTextField
@@ -922,7 +923,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         {showAccessTokenSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.access-token.title" />
             </WidgetTitle>
             <FormTextField
@@ -973,7 +974,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         {showDPoPSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.sender-constraining.title" />
             </WidgetTitle>
             <Toggle
@@ -1000,7 +1001,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         {showCookieSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
             </WidgetTitle>
             <WidgetDescription>
@@ -1021,7 +1022,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         {showApp2AppSettings ? (
           <Widget className={className}>
-            <WidgetTitle id="app2app">
+            <WidgetTitle id="app2app" className={styles.sectionTitle}>
               <FormattedMessage id="EditOAuthClientForm.app2app.title" />
             </WidgetTitle>
             <Toggle
