@@ -783,7 +783,6 @@
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
   "ApplicationsConfigurationScreen.client-list.application-type": "Type",
-  "ApplicationsConfigurationScreen.client-list.framework": "Framework",
   "ApplicationsConfigurationScreen.client-list.action": "Action",
   "ApplicationsConfigurationScreen.delete-client.label": "Delete",
   "ApplicationsConfigurationScreen.delete-client-dialog.title": "Delete Application",
