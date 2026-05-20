@@ -758,6 +758,7 @@
   "v2.page.settings-identity-oauth.default.provider.wechat": "WeChat",
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "Ngắt kết nối",
   "v2.page.settings-identity-oauth.default.title": "Tài khoản mạng xã hội",
+  "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "Tài khoản mạng xã hội này đã được kết nối.",
   "v2.page.settings-identity-phone.default.title": "Điện thoại",
   "v2.page.settings-identity-verify-email.default.title": "Xác minh",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Thiết lập điện thoại",

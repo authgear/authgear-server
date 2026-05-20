@@ -758,6 +758,7 @@
   "v2.page.settings-identity-oauth.default.provider.wechat": "WeChat",
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "切断する",
   "v2.page.settings-identity-oauth.default.title": "ソーシャルアカウント",
+  "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "このソーシャルアカウントはすでに連携されています。",
   "v2.page.settings-identity-phone.default.title": "電話番号",
   "v2.page.settings-identity-verify-email.default.title": "確認",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "電話番号を設定する",

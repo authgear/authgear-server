@@ -758,6 +758,7 @@
   "v2.page.settings-identity-oauth.default.provider.wechat": "微信",
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "斷開連線",
   "v2.page.settings-identity-oauth.default.title": "社交帳戶",
+  "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "此社交帳戶已連接。",
   "v2.page.settings-identity-phone.default.title": "電話",
   "v2.page.settings-identity-verify-email.default.title": "驗證",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "設置手機",
