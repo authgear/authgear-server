@@ -1,0 +1,99 @@
+name: Get user by OAuth - found
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_oauth_found
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByOAuth(oauthProviderAlias:"azureadv2", oauthProviderUserID: "e2e_admin_api_get_user_oauth_id") {
+            createdAt
+            formattedName
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByOAuth": {
+              "createdAt": "2024-08-27T07:51:42.040683Z",
+              "formattedName": "e2e OAuth user",
+              "lastLoginAt": null
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by OAuth - not found returns null
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_oauth_not_found
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByOAuth(oauthProviderAlias:"azureadv2", oauthProviderUserID: "e2e_admin_api_get_user_oauth_not_found") {
+            createdAt
+            formattedName
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByOAuth": null
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by OAuth - invalid OAuth alias returns error
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_oauth_invalid_alias
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByOAuth(oauthProviderAlias:"unknown_alias", oauthProviderUserID: "e2e_admin_api_get_user_oauth_id") {
+            id
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByOAuth": null
+          },
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "GetUsersInvalidArgument"
+              }
+            }
+          ]
+        }

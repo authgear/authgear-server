@@ -552,7 +552,8 @@ type GraphQLResponse struct {
 	Data   json.RawMessage `json:"data"`
 	Errors []struct {
 		Extensions struct {
-			Reason string `json:"reason"`
+			ErrorName string `json:"errorName"`
+			Reason    string `json:"reason"`
 		} `json:"extensions"`
 	} `json:"errors"`
 }

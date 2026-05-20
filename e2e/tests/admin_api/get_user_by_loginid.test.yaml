@@ -1,0 +1,216 @@
+name: Get user by login ID - email
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_email
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users@example.com") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "createdAt": "2024-08-27T07:51:42.040683Z",
+              "lastLoginAt": null,
+              "standardAttributes": {
+                "email": "e2e_admin_api_get_users@example.com",
+                "email_verified": false,
+                "updated_at": 1724745102
+              }
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by login ID - phone
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_phone
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"phone", loginIDValue: "+85261236544") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "createdAt": "2024-08-27T07:51:42.040683Z",
+              "lastLoginAt": null,
+              "standardAttributes": {
+                "phone_number": "+85261236544",
+                "phone_number_verified": false,
+                "updated_at": 1724745102
+              }
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by login ID - username
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_username
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"username", loginIDValue: "e2e_admin_api_get_users_username") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "createdAt": "2024-08-27T07:51:42.040683Z",
+              "lastLoginAt": null,
+              "standardAttributes": {
+                "preferred_username": "e2e_admin_api_get_users_username",
+                "updated_at": 1724745102
+              }
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by login ID - not found returns null
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_not_found
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": null
+          },
+          "errors": null
+        }
+
+---
+
+name: Get user by login ID - invalid login ID value returns error
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_invalid_value
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"email", loginIDValue: "bad_email_address") {
+            id
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": null
+          },
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "GetUsersInvalidArgument"
+              }
+            }
+          ]
+        }
+
+---
+
+name: Get user by login ID - invalid login ID key returns error
+before:
+  - type: custom_sql
+    custom_sql:
+      path: get_users_admin_api_user.sql
+steps:
+  - name: get_user_by_loginid_invalid_key
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey:"email_invalid", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
+            id
+            createdAt
+            standardAttributes
+            lastLoginAt
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": null
+          },
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "GetUsersInvalidArgument"
+              }
+            }
+          ]
+        }
