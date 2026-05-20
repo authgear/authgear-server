@@ -136,8 +136,8 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 			// provider even when the user just wants to log in normally.
 			ctx := context.Background()
 			settingsActionSession := &webapp.Session{
-				ID:               "settings-action-session",
-				SettingsActionID: "settings-action-id-123",
+				ID:                 "settings-action-session",
+				SettingsActionID:   "settings-action-id-123",
 				OAuthProviderAlias: "google",
 			}
 			ctx = webapp.WithSession(ctx, settingsActionSession)

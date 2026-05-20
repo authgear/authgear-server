@@ -142,6 +142,94 @@ func generateAuthorizationURLWithState(authorizationURLString string, stateToken
 	return authorizationURL.String(), nil
 }
 
+// startOAuthFlow resolves the SSO callback URL for the given candidate,
+// starts the account-management OAuth flow, and issues a redirect to the
+// external provider. It is shared by the auto-trigger (Branch A) and the
+// user-initiated POST "add" action so that both paths stay in sync.
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) startOAuthFlow(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	s session.ResolvedSession,
+	alias string,
+	candidate identity.Candidate,
+) error {
+	var redirectURI string
+	if status, ok := candidate[identity.CandidateKeyProviderStatus].(string); ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
+		redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
+	} else {
+		redirectURI = h.Endpoints.SSOCallbackURL(alias).String()
+	}
+
+	output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
+		Alias:       alias,
+		RedirectURI: redirectURI,
+	})
+	if err != nil {
+		return err
+	}
+
+	state := &webappoauth.WebappOAuthState{
+		AppID:                  string(h.AppID),
+		AccountManagementToken: output.Token,
+		ProviderAlias:          alias,
+		SettingsActionID:       settingsaction.GetSettingsActionID(r),
+	}
+	stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
+	if err != nil {
+		return err
+	}
+
+	authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
+	if err != nil {
+		return err
+	}
+
+	http.Redirect(w, r, authorizationURLString, http.StatusFound)
+	return nil
+}
+
+// findCandidate returns the OAuth candidate matching alias, or nil.
+func findCandidate(candidates []identity.Candidate, alias string) identity.Candidate {
+	for _, c := range candidates {
+		if c[identity.CandidateKeyProviderAlias] == alias {
+			return c
+		}
+	}
+	return nil
+}
+
+// autoTriggerOAuth looks up the candidate for providerAlias and, if not yet
+// linked, starts the OAuth flow and returns handled=true. If the provider is
+// already linked it returns handled=false so Branch C can show the error banner.
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) autoTriggerOAuth(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	s session.ResolvedSession,
+	providerAlias string,
+) (handled bool, err error) {
+	var vm *AuthflowV2SettingsIdentityListOAuthViewModel
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		vm, e = h.getViewModel(ctx)
+		return e
+	})
+	if err != nil {
+		return false, err
+	}
+
+	candidate := findCandidate(vm.OAuthCandidates, providerAlias)
+	if candidate == nil {
+		return false, fmt.Errorf("unknown provider alias: %s", providerAlias)
+	}
+
+	if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID == "" {
+		return true, h.startOAuthFlow(ctx, w, r, s, providerAlias, candidate)
+	}
+	return false, nil
+}
+
 func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -161,63 +249,8 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		// redirect loop: without it, every page load would trigger a new OAuth redirect.
 		ssoError := r.URL.Query().Get("q_sso_error")
 		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" && ssoError == "" {
-			var vm *AuthflowV2SettingsIdentityListOAuthViewModel
-			err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-				var e error
-				vm, e = h.getViewModel(ctx)
-				return e
-			})
-			if err != nil {
+			if handled, err := h.autoTriggerOAuth(ctx, w, r, s, providerAlias); err != nil || handled {
 				return err
-			}
-
-			var candidate identity.Candidate
-			for _, c := range vm.OAuthCandidates {
-				if c[identity.CandidateKeyProviderAlias] == providerAlias {
-					candidate = c
-					break
-				}
-			}
-			if candidate == nil {
-				return fmt.Errorf("unknown provider alias: %s", providerAlias)
-			}
-
-			if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID == "" {
-				// Not yet linked: start the OAuth flow.
-				var redirectURI string
-				status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
-				if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
-					redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
-				} else {
-					redirectURI = h.Endpoints.SSOCallbackURL(providerAlias).String()
-				}
-
-				output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
-					Alias:       providerAlias,
-					RedirectURI: redirectURI,
-				})
-				if err != nil {
-					return err
-				}
-
-				state := &webappoauth.WebappOAuthState{
-					AppID:                  string(h.AppID),
-					AccountManagementToken: output.Token,
-					ProviderAlias:          providerAlias,
-					SettingsActionID:       settingsaction.GetSettingsActionID(r),
-				}
-				stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
-				if err != nil {
-					return err
-				}
-
-				authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
-				if err != nil {
-					return err
-				}
-
-				http.Redirect(w, r, authorizationURLString, http.StatusFound)
-				return nil
 			}
 			// Already linked: fall through to Branch C to show filtered list with error.
 		}
@@ -244,19 +277,14 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" {
-			var filtered []identity.Candidate
-			for _, c := range vm.OAuthCandidates {
-				if c[identity.CandidateKeyProviderAlias] == providerAlias {
-					filtered = append(filtered, c)
-					break
-				}
+			filtered := []identity.Candidate{}
+			if c := findCandidate(vm.OAuthCandidates, providerAlias); c != nil {
+				filtered = append(filtered, c)
+				identityID, _ := c[identity.CandidateKeyIdentityID].(string)
+				vm.IsAlreadyLinked = identityID != ""
 			}
 			vm.OAuthCandidates = filtered
 			vm.IsInSettingsAction = true
-			if len(filtered) > 0 {
-				identityID, _ := filtered[0][identity.CandidateKeyIdentityID].(string)
-				vm.IsAlreadyLinked = identityID != ""
-			}
 		}
 
 		data := map[string]any{}
@@ -271,60 +299,21 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 
 		var vm *AuthflowV2SettingsIdentityListOAuthViewModel
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			vm, err = h.getViewModel(ctx)
-			return err
+			var e error
+			vm, e = h.getViewModel(ctx)
+			return e
 		})
 		if err != nil {
 			return err
 		}
 
 		alias := r.Form.Get("x_provider_alias")
-		var candidate identity.Candidate
-		for _, c := range vm.OAuthCandidates {
-			if c[identity.CandidateKeyProviderAlias] == alias {
-				candidate = c
-				break
-			}
-		}
+		candidate := findCandidate(vm.OAuthCandidates, alias)
 		if candidate == nil {
 			return fmt.Errorf("unknown provider alias: %s", alias)
 		}
 
-		var redirectURI string
-		status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
-		if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
-			redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
-		} else {
-			redirectURI = h.Endpoints.SSOCallbackURL(alias).String()
-		}
-
-		output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
-			Alias:       alias,
-			RedirectURI: redirectURI,
-		})
-		if err != nil {
-			return err
-		}
-
-		state := &webappoauth.WebappOAuthState{
-			AppID:                  string(h.AppID),
-			AccountManagementToken: output.Token,
-			ProviderAlias:          alias,
-			SettingsActionID:       settingsaction.GetSettingsActionID(r),
-		}
-		stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
-		if err != nil {
-			return err
-		}
-
-		authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
-		if err != nil {
-			return err
-		}
-
-		http.Redirect(w, r, authorizationURLString, http.StatusFound)
-
-		return nil
+		return h.startOAuthFlow(ctx, w, r, s, alias, candidate)
 	})
 
 	ctrl.PostAction("remove", func(ctx context.Context) error {
