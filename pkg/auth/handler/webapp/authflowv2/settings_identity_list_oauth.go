@@ -241,7 +241,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, webappSession *webapp.Session) error {
 		s := session.GetSession(ctx)
 		providerAlias := r.URL.Query().Get("x_provider_alias")
-		oauthConnected := r.URL.Query().Get("x_oauth_linked")
+		oauthConnected := r.URL.Query().Get("q_oauth_linked")
 
 		// Branch A: in settings action, auto-trigger link when not yet linked.
 		// Falls through to Branch C when the provider is already linked.
