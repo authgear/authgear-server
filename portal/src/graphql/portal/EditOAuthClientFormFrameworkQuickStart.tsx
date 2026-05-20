@@ -4,8 +4,10 @@ import {
   Dialog,
   DialogFooter,
   IDialogContentProps,
+  IconButton,
   Text,
 } from "@fluentui/react";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
@@ -178,6 +180,10 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
         </Text>
       </div>
 
+      {applicationType === "traditional_webapp" && framework.cookieSnippet ? (
+        <CookieSnippetSection snippet={framework.cookieSnippet} />
+      ) : null}
+
       <ChangeFrameworkDialog
         visible={dialogVisible}
         applicationType={applicationType}
@@ -271,5 +277,37 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
         />
       </DialogFooter>
     </Dialog>
+  );
+}
+
+interface CookieSnippetSectionProps {
+  snippet: { language: string; code: string };
+}
+
+function CookieSnippetSection({ snippet }: CookieSnippetSectionProps) {
+  const { copyButtonProps, Feedback } = useCopyFeedback({
+    textToCopy: snippet.code,
+  });
+  return (
+    <>
+      <Text variant="xLarge" block={true} className={styles.sectionHeading}>
+        <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.snippet.title" />
+      </Text>
+      <Text block={true} className={styles.snippetDescription}>
+        <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.snippet.description" />
+      </Text>
+      <div className={styles.snippetCard}>
+        <div className={styles.snippetHeader}>
+          <span className={styles.snippetLanguage}>{snippet.language}</span>
+          <div className={styles.snippetCopyWrap}>
+            <IconButton {...copyButtonProps} />
+            <Feedback />
+          </div>
+        </div>
+        <pre className={styles.snippetCode}>
+          <code>{snippet.code}</code>
+        </pre>
+      </div>
+    </>
   );
 }

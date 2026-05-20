@@ -94,3 +94,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+.snippetDescription {
+  color: #57606a;
+  margin-top: -16px;
+}
+
+.snippetCard {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f6f8fa;
+}
+
+.snippetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #eaeef2;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.snippetLanguage {
+  font-size: 12px;
+  font-weight: 600;
+  color: #57606a;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.snippetCopyWrap {
+  display: flex;
+  align-items: center;
+}
+
+.snippetCode {
+  margin: 0;
+  padding: 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #24292f;
+  overflow-x: auto;
+  white-space: pre;
+}

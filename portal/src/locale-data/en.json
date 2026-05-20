@@ -948,6 +948,8 @@
   "EditOAuthClientFormFrameworkQuickStart.tutorial.body.other-oidc": "See the <docLink>OIDC provider docs</docLink> for the endpoints and configuration needed to connect any OIDC- or SAML-compatible app to Authgear.",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.title": "Change framework",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.apply": "Apply",
+  "EditOAuthClientFormFrameworkQuickStart.snippet.title": "Read user session in your code",
+  "EditOAuthClientFormFrameworkQuickStart.snippet.description": "After nginx forwards the request, your backend can read the user session from the x-authgear-* headers.",
   "CreateM2MClientScreen.no-resources-dialog.title": "API Resource Required",
   "CreateM2MClientScreen.no-resources-dialog.body": "Machine-to-Machine applications need an API resource to authorize. Create an API resource first, then create the Machine-to-Machine application.",
   "CreateM2MClientScreen.no-resources-dialog.cta": "Create API Resource",
