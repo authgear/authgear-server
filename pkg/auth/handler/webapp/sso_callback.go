@@ -56,6 +56,9 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if state.SettingsActionID != "" {
 			q := redirectURL.Query()
 			q.Set(settingsaction.QUERY_SETTINGS_ACTION_ID, state.SettingsActionID)
+			if state.ProviderAlias != "" {
+				q.Set("x_provider_alias", state.ProviderAlias)
+			}
 			redirectURL.RawQuery = q.Encode()
 		}
 
