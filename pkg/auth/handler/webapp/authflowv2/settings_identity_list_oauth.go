@@ -37,11 +37,13 @@ func ConfigureAuthflowV2SettingsIdentityListOAuthRoute(route httproute.Route) ht
 }
 
 type AuthflowV2SettingsIdentityListOAuthViewModel struct {
-	OAuthCandidates []identity.Candidate
-	OAuthIdentities []*identity.OAuth
-	Verifications   map[string][]verification.ClaimStatus
-	IdentityCount   int
-	CreateDisabled  bool
+	OAuthCandidates    []identity.Candidate
+	OAuthIdentities    []*identity.OAuth
+	Verifications      map[string][]verification.ClaimStatus
+	IdentityCount      int
+	CreateDisabled     bool
+	IsInSettingsAction bool
+	IsAlreadyLinked    bool
 }
 
 type AuthflowV2SettingsIdentityListOAuthHandler struct {
