@@ -30,6 +30,7 @@ import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
+import { findFramework } from "./CreateOAuthClientScreen/frameworks";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -149,15 +150,33 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
 
 interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
+  framework?: string;
   showOpenTutorialLabelWhenHover: boolean;
 }
 
 const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
   function QuickStartFrameworkList(props) {
-    const { applicationType, showOpenTutorialLabelWhenHover } = props;
+    const { applicationType, framework, showOpenTutorialLabelWhenHover } =
+      props;
     const { renderToString } = useContext(Context);
 
     const items: FrameworkItem[] = useMemo(() => {
+      // If we know which framework the user chose, link to that one only.
+      const selectedFramework = findFramework(framework);
+      if (selectedFramework != null) {
+        return [
+          {
+            icon: (
+              <i
+                className={cn("ti", `ti-${selectedFramework.iconName}`)}
+                aria-hidden={true}
+              />
+            ),
+            name: selectedFramework.displayName,
+            docLink: selectedFramework.docLink,
+          },
+        ];
+      }
       switch (applicationType) {
         case "spa":
           return [
@@ -293,7 +312,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
         default:
           return [];
       }
-    }, [applicationType, renderToString]);
+    }, [applicationType, framework, renderToString]);
 
     if (applicationType == null) {
       return null;
@@ -521,61 +540,23 @@ function OAuthClientSettingsForm({
   onClientConfigChange,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
-  const theme = useTheme();
-  const hideQuickStart = useMemo(
-    () =>
-      (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
-        client.x_application_type
-      ),
-    [client.x_application_type]
-  );
   return (
-    <>
-      <div
-        className={cn(
-          styles.widget,
-          styles.widgetColumn,
-          hideQuickStart ? styles["widget--wide"] : null
-        )}
-      >
-        <EditOAuthClientForm
-          publicOrigin={state.publicOrigin}
-          clientConfig={client}
-          customUIEnabled={customUIEnabled}
-          app2appEnabled={app2appEnabled}
-          onClientConfigChange={onClientConfigChange}
-          clientSecretHook={clientSecretHook}
-        />
-      </div>
-      {!hideQuickStart ? (
-        <div className={styles.quickStartColumn}>
-          <Widget>
-            <div className={styles.quickStartWidget}>
-              <Text className={styles.quickStartWidgetTitle}>
-                <Icon
-                  className={styles.quickStartWidgetTitleIcon}
-                  styles={{ root: { color: theme.palette.themePrimary } }}
-                  iconName="Lightbulb"
-                />
-                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
-              </Text>
-              <Text>
-                <FormattedMessage
-                  id="EditOAuthClientScreen.quick-start-widget.question"
-                  values={{
-                    applicationType: client.x_application_type ?? "",
-                  }}
-                />
-              </Text>
-              <QuickStartFrameworkList
-                applicationType={client.x_application_type}
-                showOpenTutorialLabelWhenHover={false}
-              />
-            </div>
-          </Widget>
-        </div>
-      ) : null}
-    </>
+    <div
+      className={cn(
+        styles.widget,
+        styles.widgetColumn,
+        styles["widget--wide"]
+      )}
+    >
+      <EditOAuthClientForm
+        publicOrigin={state.publicOrigin}
+        clientConfig={client}
+        customUIEnabled={customUIEnabled}
+        app2appEnabled={app2appEnabled}
+        onClientConfigChange={onClientConfigChange}
+        clientSecretHook={clientSecretHook}
+      />
+    </div>
   );
 }
 
@@ -745,6 +726,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             </Text>
             <QuickStartFrameworkList
               applicationType={client?.x_application_type}
+              framework={client?.x_framework}
               showOpenTutorialLabelWhenHover={true}
             />
             <div className={styles.quickStartScreenButtons}>
