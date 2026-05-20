@@ -25,7 +25,7 @@ import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
-import { EditOAuthClientFormSPAQuickStart } from "./EditOAuthClientFormSPAQuickStart";
+import { EditOAuthClientFormFrameworkQuickStart } from "./EditOAuthClientFormFrameworkQuickStart";
 import {
   findFramework,
   getDisplayIconName,
@@ -497,7 +497,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             onLinkClick={onFormTabChange}
           >
             {client.x_application_type === "m2m" ||
-            client.x_application_type === "spa" ? (
+            client.x_application_type === "spa" ||
+            client.x_application_type === "traditional_webapp" ? (
               <PivotItem
                 itemKey={FormTab.QUICK_START}
                 headerText={renderToString(
@@ -526,15 +527,18 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
           </AGPivot>
         </header>
         {formTab === FormTab.QUICK_START &&
-        client.x_application_type === "spa" ? (
-          <EditOAuthClientFormSPAQuickStart
+        (client.x_application_type === "spa" ||
+          client.x_application_type === "traditional_webapp") ? (
+          <EditOAuthClientFormFrameworkQuickStart
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
+            applicationType={client.x_application_type}
             form={props.form}
           />
         ) : null}
         {formTab === FormTab.QUICK_START &&
-        client.x_application_type !== "spa" ? (
+        client.x_application_type !== "spa" &&
+        client.x_application_type !== "traditional_webapp" ? (
           <EditOAuthClientFormQuickStartContent
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
@@ -907,6 +911,7 @@ function FormContainerContent({
         case "m2m":
           return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
         case "spa":
+        case "traditional_webapp":
           return [FormTab.SETTINGS, FormTab.QUICK_START];
         case "confidential":
           return [FormTab.SETTINGS, FormTab.SAML2];

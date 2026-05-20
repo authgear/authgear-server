@@ -111,3 +111,28 @@ export function getDisplayIconName(client: {
   if (fw != null) return fw.iconName;
   return client.x_application_type === "m2m" ? "server" : "app-window";
 }
+
+/**
+ * Quick Start tutorial guide for the framework-based Quick Start tab.
+ * For Cookie SSO clients (traditional_webapp) the guide is the nginx
+ * reverse-proxy setup, which is the same regardless of backend framework;
+ * for everything else we fall through to the framework's own doc page.
+ */
+export function getQuickStartGuide(client: {
+  x_application_type?: ApplicationType;
+  x_framework?: string | null;
+}): { docLink: string; bodyMessageId: string } {
+  if (client.x_application_type === "traditional_webapp") {
+    return {
+      docLink: "https://docs.authgear.com/get-started/backend-api/nginx",
+      bodyMessageId:
+        "EditOAuthClientFormFrameworkQuickStart.tutorial.body.cookie-sso",
+    };
+  }
+  const framework = findFramework(client.x_framework ?? undefined);
+  return {
+    docLink: framework?.docLink ?? "https://docs.authgear.com/",
+    bodyMessageId:
+      "EditOAuthClientFormFrameworkQuickStart.tutorial.body.default",
+  };
+}

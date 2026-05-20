@@ -15,28 +15,33 @@ import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import {
   findFramework,
   frameworksForType,
+  getQuickStartGuide,
   type FrameworkEntry,
 } from "./CreateOAuthClientScreen/frameworks";
 import { FrameworkCard } from "./CreateOAuthClientScreen/FrameworkCard";
-import type { Framework, OAuthClientConfig } from "../../types";
-import styles from "./EditOAuthClientFormSPAQuickStart.module.css";
+import type { ApplicationType, Framework, OAuthClientConfig } from "../../types";
+import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
 
 interface FormStateShape {
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
 }
 
-export interface EditOAuthClientFormSPAQuickStartProps<S extends FormStateShape> {
+export interface EditOAuthClientFormFrameworkQuickStartProps<
+  S extends FormStateShape
+> {
   className?: string;
   client: OAuthClientConfig;
+  applicationType: ApplicationType;
   form: AppSecretConfigFormModel<S>;
 }
 
-export function EditOAuthClientFormSPAQuickStart<S extends FormStateShape>({
+export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>({
   className,
   client,
+  applicationType,
   form,
-}: EditOAuthClientFormSPAQuickStartProps<S>): React.ReactElement {
+}: EditOAuthClientFormFrameworkQuickStartProps<S>): React.ReactElement {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -80,23 +85,23 @@ export function EditOAuthClientFormSPAQuickStart<S extends FormStateShape>({
           </div>
           <div className={styles.frameworkText}>
             <Text variant="large" block={true} styles={titleStyles}>
-              <FormattedMessage id="EditOAuthClientFormSPAQuickStart.no-framework.title" />
+              <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.title" />
             </Text>
             <Text block={true} className={styles.helperText}>
-              <FormattedMessage id="EditOAuthClientFormSPAQuickStart.no-framework.body" />
+              <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.body" />
             </Text>
             <PrimaryButton
               className={styles.changeButton}
               onClick={openDialog}
               text={
-                <FormattedMessage id="EditOAuthClientFormSPAQuickStart.choose-framework" />
+                <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.choose-framework" />
               }
             />
           </div>
         </div>
         <ChangeFrameworkDialog
           visible={dialogVisible}
-          applicationType="spa"
+          applicationType={applicationType}
           currentFrameworkId={null}
           applying={applying}
           onApply={applyFramework}
@@ -127,13 +132,13 @@ export function EditOAuthClientFormSPAQuickStart<S extends FormStateShape>({
           className={styles.changeButtonInline}
           onClick={openDialog}
           text={
-            <FormattedMessage id="EditOAuthClientFormSPAQuickStart.change-button" />
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.change-button" />
           }
         />
       </div>
 
       <Text variant="xLarge" block={true} className={styles.sectionHeading}>
-        <FormattedMessage id="EditOAuthClientFormSPAQuickStart.step-by-step.title" />
+        <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.step-by-step.title" />
       </Text>
       <div className={styles.tutorialCard}>
         <div className={styles.tutorialHeader}>
@@ -142,17 +147,31 @@ export function EditOAuthClientFormSPAQuickStart<S extends FormStateShape>({
             aria-hidden={true}
           />
           <Text styles={tutorialDurationStyles}>
-            <FormattedMessage id="EditOAuthClientFormSPAQuickStart.tutorial.duration" />
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.tutorial.duration" />
           </Text>
         </div>
         <Text block={true} className={styles.tutorialBody}>
           <FormattedMessage
-            id="EditOAuthClientFormSPAQuickStart.tutorial.body"
+            id={
+              getQuickStartGuide({
+                x_application_type: applicationType,
+                x_framework: framework.id,
+              }).bodyMessageId
+            }
             values={{
               displayName: framework.displayName,
               // eslint-disable-next-line react/no-unstable-nested-components
               docLink: (chunks: React.ReactNode) => (
-                <ExternalLink href={framework.docLink}>{chunks}</ExternalLink>
+                <ExternalLink
+                  href={
+                    getQuickStartGuide({
+                      x_application_type: applicationType,
+                      x_framework: framework.id,
+                    }).docLink
+                  }
+                >
+                  {chunks}
+                </ExternalLink>
               ),
             }}
           />
@@ -161,7 +180,7 @@ export function EditOAuthClientFormSPAQuickStart<S extends FormStateShape>({
 
       <ChangeFrameworkDialog
         visible={dialogVisible}
-        applicationType="spa"
+        applicationType={applicationType}
         currentFrameworkId={framework.id}
         applying={applying}
         onApply={applyFramework}
@@ -176,7 +195,7 @@ const tutorialDurationStyles = { root: { fontWeight: 600 as const } };
 
 interface ChangeFrameworkDialogProps {
   visible: boolean;
-  applicationType: "spa" | "native" | "confidential" | "traditional_webapp";
+  applicationType: ApplicationType;
   currentFrameworkId: Framework | null;
   applying: boolean;
   onApply: (frameworkId: Framework) => Promise<void>;
@@ -207,7 +226,7 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
 
   const dialogContent: IDialogContentProps = useMemo(
     () => ({
-      title: renderToString("EditOAuthClientFormSPAQuickStart.change-dialog.title"),
+      title: renderToString("EditOAuthClientFormFrameworkQuickStart.change-dialog.title"),
     }),
     [renderToString]
   );
@@ -242,7 +261,7 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
           onClick={onApplyClick}
           disabled={!canApply}
           text={
-            <FormattedMessage id="EditOAuthClientFormSPAQuickStart.change-dialog.apply" />
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.change-dialog.apply" />
           }
         />
         <DefaultButton
