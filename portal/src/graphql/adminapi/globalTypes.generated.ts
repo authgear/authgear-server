@@ -201,6 +201,7 @@ export enum AuditLogActivityType {
   AdminApiMutationRemoveUserFromGroupsExecuted = 'ADMIN_API_MUTATION_REMOVE_USER_FROM_GROUPS_EXECUTED',
   AdminApiMutationRemoveUserFromRolesExecuted = 'ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED',
   AdminApiMutationReplaceScopesOfClientidExecuted = 'ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED',
+  AdminApiMutationResetAccountLockoutExecuted = 'ADMIN_API_MUTATION_RESET_ACCOUNT_LOCKOUT_EXECUTED',
   AdminApiMutationResetPasswordExecuted = 'ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED',
   AdminApiMutationRevokeAllSessionsExecuted = 'ADMIN_API_MUTATION_REVOKE_ALL_SESSIONS_EXECUTED',
   AdminApiMutationRevokeSessionExecuted = 'ADMIN_API_MUTATION_REVOKE_SESSION_EXECUTED',

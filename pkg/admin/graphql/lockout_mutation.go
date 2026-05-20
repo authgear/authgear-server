@@ -6,6 +6,8 @@ import (
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -51,7 +53,24 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.AccountLockoutFacade.ResetAccountLockout(ctx, userID)
+			previousStatus, err := gqlCtx.AccountLockoutFacade.GetAccountLockoutStatus(ctx, userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AccountLockoutFacade.ResetAccountLockout(ctx, userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationResetAccountLockoutExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				PreviousLockoutStatus: previousStatus,
+			})
 			if err != nil {
 				return nil, err
 			}

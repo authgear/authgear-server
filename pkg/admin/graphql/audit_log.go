@@ -260,6 +260,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.generate_oob_otp_code.executed",
 		},
+		"ADMIN_API_MUTATION_RESET_ACCOUNT_LOCKOUT_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.reset_account_lockout.executed",
+		},
 		"ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.reset_password.executed",
 		},
