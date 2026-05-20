@@ -760,6 +760,7 @@
   "v2.page.settings-identity-oauth.default.title": "Κοινωνικός Λογαριασμός",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "Αυτός ο λογαριασμός κοινωνικής δικτύωσης είναι ήδη συνδεδεμένος.",
   "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[To Developer] Ο καθορισμένος πάροχος OAuth δεν έχει ρυθμιστεί.",
+  "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error": "Αυτός ο λογαριασμός κοινωνικής δικτύωσης δεν είναι συνδεδεμένος.",
   "v2.page.settings-identity-phone.default.title": "Τηλέφωνο",
   "v2.page.settings-identity-verify-email.default.title": "Επαλήθευση",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Ρύθμιση τηλεφώνου",

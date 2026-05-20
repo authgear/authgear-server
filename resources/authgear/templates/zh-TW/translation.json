@@ -760,6 +760,7 @@
   "v2.page.settings-identity-oauth.default.title": "社交帳戶",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "此社交帳戶已連接。",
   "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[致開發者] 指定的 OAuth 提供者未設定。",
+  "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error": "此社交帳號尚未連結。",
   "v2.page.settings-identity-phone.default.title": "電話",
   "v2.page.settings-identity-verify-email.default.title": "驗證",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "設置手機",
