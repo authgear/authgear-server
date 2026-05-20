@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import {
   Icon,
+  IconButton,
   Text,
   useTheme,
   Image,
@@ -24,7 +25,12 @@ import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
-import { findFramework } from "./CreateOAuthClientScreen/frameworks";
+import {
+  findFramework,
+  getDisplayIconName,
+} from "./CreateOAuthClientScreen/frameworks";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -325,12 +331,8 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
     );
   };
 
-interface EditOAuthClientNavBreadcrumbProps {
-  clientName: string;
-}
-
-const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps> =
-  function EditOAuthClientNavBreadcrumb(props) {
+const EditOAuthClientNavBreadcrumb: React.VFC =
+  function EditOAuthClientNavBreadcrumb() {
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
@@ -341,13 +343,59 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
         },
         {
           to: ".",
-          label: props.clientName,
+          label: (
+            <FormattedMessage id="EditOAuthClientScreen.breadcrumb.details" />
+          ),
         },
       ];
-    }, [props.clientName]);
+    }, []);
 
     return (
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+    );
+  };
+
+interface OAuthClientHeaderProps {
+  client: OAuthClientConfig;
+}
+
+const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
+  function OAuthClientHeader({ client }) {
+    const iconName = getDisplayIconName(client);
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: client.client_id,
+    });
+    return (
+      <div className={styles.clientHeader}>
+        <div className={styles.clientHeaderIconWrap}>
+          <i
+            className={cn("ti", `ti-${iconName}`, styles.clientHeaderIcon)}
+            aria-hidden={true}
+          />
+        </div>
+        <div className={styles.clientHeaderText}>
+          <Text variant="xLarge" block={true} className={styles.clientHeaderName}>
+            {client.name ?? ""}
+          </Text>
+          <div className={styles.clientHeaderMeta}>
+            <FormattedMessage
+              id={getApplicationTypeMessageID(client.x_application_type)}
+            />
+            <span className={styles.clientHeaderMetaSep}>|</span>
+            <span className={styles.clientHeaderClientIdLabel}>
+              <FormattedMessage id="EditOAuthClientScreen.header.client-id.label" />
+            </span>
+            <code className={styles.clientHeaderClientId}>
+              {client.client_id}
+            </code>
+            <IconButton
+              {...copyButtonProps}
+              className={styles.clientHeaderCopy}
+            />
+            <Feedback />
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -440,7 +488,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         <header
           className={cn(styles.widget, styles["widget--wide"], "space-y-5")}
         >
-          <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
+          <EditOAuthClientNavBreadcrumb />
+          <OAuthClientHeader client={client} />
           <AGPivot
             className={styles.widget}
             selectedKey={formTab}
@@ -698,7 +747,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     return (
       <ScreenLayoutScrollView>
         <ScreenContent>
-          <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
+          <EditOAuthClientNavBreadcrumb />
           <Widget className={styles.widget}>
             <Text variant="xLarge" block={true}>
               <Icon
