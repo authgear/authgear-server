@@ -25,6 +25,16 @@
 
 <div class="flex flex-col gap-y-6">
 
+  {{ if $.IsAlreadyLinked }}
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Message" (translate "v2.page.settings-identity-oauth.link-oauth.already-linked-error" nil)
+        "Classname" "widget-content__alert--settings"
+      )
+    }}
+  {{ end }}
+
   <ol>
     {{ $ctx := .}}
     {{ range .OAuthCandidates }}
@@ -80,7 +90,9 @@
 {{ end }}
 
 {{ define "__settings_action_item_connect.html" }}
-{{ if not .Verified }}
+{{ if .Ctx.IsAlreadyLinked }}
+  {{/* Provider already linked in this linkOAuth settings action — hide all buttons */}}
+{{ else if not .Verified }}
   <form method="post" novalidate>
     <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
     <button
@@ -92,7 +104,7 @@
       {{ translate "v2.page.settings-identity-oauth.default.create-oauth-button-label" nil }}
     </button>
   </form>
-{{ else if (gt .Ctx.IdentityCount 1) }}
+{{ else if (and (not .Ctx.IsInSettingsAction) (gt .Ctx.IdentityCount 1)) }}
 {{ if not .DeleteDisabled }}
   <button
     class="settings-link-btn--destructive"
