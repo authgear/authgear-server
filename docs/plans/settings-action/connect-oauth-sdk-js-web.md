@@ -9,11 +9,13 @@ Expose `startLinkOAuth(options)` / `finishLinkOAuth()` on the public `WebContain
 
 ## Public API (target)
 
+`oauthProviderAlias` is **required**. The server rejects requests without it.
+
 ```ts
 // Start — redirects the browser to Authgear, which redirects to the OAuth provider
 await authgear.startLinkOAuth({
   redirectURI: "https://myapp.com/oauth-callback",
-  oauthProviderAlias: "google",
+  oauthProviderAlias: "google",   // required
 });
 
 // Finish — called on the redirectURI page after the round-trip
@@ -65,8 +67,9 @@ xSettingsAction?:
  */
 export interface LinkOAuthOptions extends SettingsActionOptions {
   /**
-   * The alias of the OAuth provider to connect,
+   * The alias of the OAuth provider to link,
    * as configured in Authgear Portal under Social / Enterprise Login.
+   * This field is required.
    */
   oauthProviderAlias: string;
 }
