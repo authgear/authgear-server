@@ -4,6 +4,13 @@ export type FrameworkSection = "website" | "mobile";
 export type Stage2Need = "none" | "token-or-cookie";
 export type AuthMethodChoice = "token" | "cookie";
 
+export interface CookieSnippet {
+  /** Human-readable language label, e.g. "JavaScript", "Python". */
+  language: string;
+  /** Source code that reads x-authgear-* headers forwarded by nginx. */
+  code: string;
+}
+
 export interface FrameworkEntry {
   id: Framework;
   displayName: string;
@@ -13,6 +20,12 @@ export interface FrameworkEntry {
   iconName: string;
   /** Authgear docs URL for this framework's quick-start guide. */
   docLink: string;
+  /**
+   * Code snippet shown on the Quick Start tab of a Cookie SSO client to
+   * demonstrate how this framework reads the x-authgear-* headers nginx
+   * sets from the Authgear resolver response.
+   */
+  cookieSnippet?: CookieSnippet;
   stage2: Stage2Need;
   resolveType: (stage2?: AuthMethodChoice) => ApplicationType;
   compatibleTypes: ApplicationType[];
@@ -36,17 +49,82 @@ const websiteSPA = (id: Framework, displayName: string, helperText: string, icon
   compatibleTypes: ["spa"],
 });
 
-const websiteServer = (id: Framework, displayName: string, helperText: string, iconName: string, docLink: string): FrameworkEntry => ({
+const websiteServer = (
+  id: Framework,
+  displayName: string,
+  helperText: string,
+  iconName: string,
+  docLink: string,
+  cookieSnippet?: CookieSnippet
+): FrameworkEntry => ({
   id,
   displayName,
   helperText,
   section: "website",
   iconName,
   docLink,
+  cookieSnippet,
   stage2: "token-or-cookie",
   resolveType: (stage2) => requireStage2(id, stage2),
   compatibleTypes: ["confidential", "traditional_webapp"],
 });
+
+const EXPRESS_SNIPPET: CookieSnippet = {
+  language: "JavaScript",
+  code: `app.get("/protected", (req, res) => {
+  const sessionValid = req.headers["x-authgear-session-valid"];
+  const userId = req.headers["x-authgear-user-id"];
+  if (sessionValid !== "true") return res.sendStatus(401);
+  res.send(\`Hello, \${userId}\`);
+});`,
+};
+
+const FLASK_SNIPPET: CookieSnippet = {
+  language: "Python",
+  code: `from flask import request, abort
+
+@app.route("/protected")
+def protected():
+    if request.headers.get("X-Authgear-Session-Valid") != "true":
+        abort(401)
+    return f"Hello, {request.headers.get('X-Authgear-User-Id')}"`,
+};
+
+const LARAVEL_SNIPPET: CookieSnippet = {
+  language: "PHP",
+  code: `Route::get('/protected', function (Request $request) {
+    if ($request->header('X-Authgear-Session-Valid') !== 'true') {
+        abort(401);
+    }
+    return 'Hello, ' . $request->header('X-Authgear-User-Id');
+});`,
+};
+
+const JAVA_SNIPPET: CookieSnippet = {
+  language: "Java",
+  code: `@GetMapping("/protected")
+public ResponseEntity<String> protectedRoute(
+    @RequestHeader(value = "X-Authgear-Session-Valid", required = false) String sessionValid,
+    @RequestHeader(value = "X-Authgear-User-Id", required = false) String userId
+) {
+    if (!"true".equals(sessionValid)) {
+        return ResponseEntity.status(401).build();
+    }
+    return ResponseEntity.ok("Hello, " + userId);
+}`,
+};
+
+const ASPNET_SNIPPET: CookieSnippet = {
+  language: "C#",
+  code: `[HttpGet("protected")]
+public IActionResult Protected()
+{
+    var sessionValid = Request.Headers["X-Authgear-Session-Valid"].ToString();
+    var userId = Request.Headers["X-Authgear-User-Id"].ToString();
+    if (sessionValid != "true") return Unauthorized();
+    return Ok($"Hello, {userId}");
+}`,
+};
 
 const mobileNative = (id: Framework, displayName: string, helperText: string, iconName: string, docLink: string): FrameworkEntry => ({
   id,
@@ -67,12 +145,12 @@ export const frameworks: FrameworkEntry[] = [
   websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "brand-vue", `${DOCS}/single-page-app/vue`),
   websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "brand-angular", `${DOCS}/single-page-app/angular`),
   websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs", `${DOCS}/regular-web-app/nextjs`),
-  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app/express`),
+  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app/express`, EXPRESS_SNIPPET),
   websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "world-www", `${DOCS}/single-page-app/website`),
-  websiteServer("flask", "Python (Flask)", "Server-side, Python backend", "brand-python", `${DOCS}/regular-web-app/python-flask-app`),
-  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel", `${DOCS}/regular-web-app/laravel`),
-  websiteServer("java", "Java (Spring Boot)", "Server-side, JVM backend", "coffee", `${DOCS}/regular-web-app/java-spring-boot`),
-  websiteServer("aspnet", "ASP.NET Core MVC", "Server-side, .NET backend", "brand-windows", `${DOCS}/regular-web-app/asp.net-core-mvc`),
+  websiteServer("flask", "Python (Flask)", "Server-side, Python backend", "brand-python", `${DOCS}/regular-web-app/python-flask-app`, FLASK_SNIPPET),
+  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel", `${DOCS}/regular-web-app/laravel`, LARAVEL_SNIPPET),
+  websiteServer("java", "Java (Spring Boot)", "Server-side, JVM backend", "coffee", `${DOCS}/regular-web-app/java-spring-boot`, JAVA_SNIPPET),
+  websiteServer("aspnet", "ASP.NET Core MVC", "Server-side, .NET backend", "brand-windows", `${DOCS}/regular-web-app/asp.net-core-mvc`, ASPNET_SNIPPET),
   {
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
