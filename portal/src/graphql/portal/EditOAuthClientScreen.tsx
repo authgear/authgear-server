@@ -546,6 +546,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             client={client}
             applicationType={client.x_application_type}
             form={props.form}
+            clientSecrets={clientSecret?.keys ?? undefined}
           />
         ) : null}
         {formTab === FormTab.QUICK_START &&

@@ -21,12 +21,28 @@ import {
   type FrameworkEntry,
 } from "./CreateOAuthClientScreen/frameworks";
 import { FrameworkCard } from "./CreateOAuthClientScreen/FrameworkCard";
-import type { ApplicationType, Framework, OAuthClientConfig } from "../../types";
+import type {
+  ApplicationType,
+  Framework,
+  OAuthClientConfig,
+  OAuthClientSecretKey,
+} from "../../types";
+import { useEndpoints } from "../../hook/useEndpoints";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { useStartReauthentication } from "../../graphql/portal/Authenticated";
+import { useNavigate } from "react-router-dom";
+import type { LocationState } from "./EditOAuthClientScreen";
 import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
+
+const MASKED_SECRET = "***************";
+const OIDC_RECOMMENDED_SCOPE =
+  "openid offline_access https://authgear.com/scopes/full-userinfo";
+const OIDC_DOCS_URL = "https://docs.authgear.com/get-started/oidc-provider";
 
 interface FormStateShape {
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
+  publicOrigin: string;
 }
 
 export interface EditOAuthClientFormFrameworkQuickStartProps<
@@ -36,6 +52,7 @@ export interface EditOAuthClientFormFrameworkQuickStartProps<
   client: OAuthClientConfig;
   applicationType: ApplicationType;
   form: AppSecretConfigFormModel<S>;
+  clientSecrets?: OAuthClientSecretKey[];
 }
 
 export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>({
@@ -43,6 +60,7 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
   client,
   applicationType,
   form,
+  clientSecrets,
 }: EditOAuthClientFormFrameworkQuickStartProps<S>): React.ReactElement {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -139,46 +157,56 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
         />
       </div>
 
-      <Text variant="xLarge" block={true} className={styles.sectionHeading}>
-        <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.step-by-step.title" />
-      </Text>
-      <div className={styles.tutorialCard}>
-        <div className={styles.tutorialHeader}>
-          <i
-            className={cn("ti", "ti-clock", styles.tutorialIcon)}
-            aria-hidden={true}
-          />
-          <Text styles={tutorialDurationStyles}>
-            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.tutorial.duration" />
+      {framework.id === "other-oidc" ? (
+        <OIDCProviderSection
+          client={client}
+          publicOrigin={form.state.publicOrigin}
+          clientSecrets={clientSecrets}
+        />
+      ) : (
+        <>
+          <Text variant="xLarge" block={true} className={styles.sectionHeading}>
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.step-by-step.title" />
           </Text>
-        </div>
-        <Text block={true} className={styles.tutorialBody}>
-          <FormattedMessage
-            id={
-              getQuickStartGuide({
-                x_application_type: applicationType,
-                x_framework: framework.id,
-              }).bodyMessageId
-            }
-            values={{
-              displayName: framework.displayName,
-              // eslint-disable-next-line react/no-unstable-nested-components
-              docLink: (chunks: React.ReactNode) => (
-                <ExternalLink
-                  href={
-                    getQuickStartGuide({
-                      x_application_type: applicationType,
-                      x_framework: framework.id,
-                    }).docLink
-                  }
-                >
-                  {chunks}
-                </ExternalLink>
-              ),
-            }}
-          />
-        </Text>
-      </div>
+          <div className={styles.tutorialCard}>
+            <div className={styles.tutorialHeader}>
+              <i
+                className={cn("ti", "ti-clock", styles.tutorialIcon)}
+                aria-hidden={true}
+              />
+              <Text styles={tutorialDurationStyles}>
+                <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.tutorial.duration" />
+              </Text>
+            </div>
+            <Text block={true} className={styles.tutorialBody}>
+              <FormattedMessage
+                id={
+                  getQuickStartGuide({
+                    x_application_type: applicationType,
+                    x_framework: framework.id,
+                  }).bodyMessageId
+                }
+                values={{
+                  displayName: framework.displayName,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  docLink: (chunks: React.ReactNode) => (
+                    <ExternalLink
+                      href={
+                        getQuickStartGuide({
+                          x_application_type: applicationType,
+                          x_framework: framework.id,
+                        }).docLink
+                      }
+                    >
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                }}
+              />
+            </Text>
+          </div>
+        </>
+      )}
 
       {applicationType === "traditional_webapp" && framework.cookieSnippet ? (
         <CookieSnippetSection snippet={framework.cookieSnippet} />
@@ -309,5 +337,132 @@ function CookieSnippetSection({ snippet }: CookieSnippetSectionProps) {
         </pre>
       </div>
     </>
+  );
+}
+
+interface OIDCProviderSectionProps {
+  client: OAuthClientConfig;
+  publicOrigin: string;
+  clientSecrets?: OAuthClientSecretKey[];
+}
+
+function OIDCProviderSection({
+  client,
+  publicOrigin,
+  clientSecrets,
+}: OIDCProviderSectionProps) {
+  const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
+  const { startReauthentication, isRevealing } =
+    useStartReauthentication<LocationState>();
+  const endpoints = useEndpoints(publicOrigin, client.x_application_type);
+  const firstSecret = clientSecrets?.[0];
+  const showSecret = firstSecret != null;
+  const isRevealed = !!firstSecret?.key;
+  const secretValue = isRevealed ? firstSecret.key : MASKED_SECRET;
+
+  const onRevealClick = useCallback(() => {
+    startReauthentication(navigate, { isClientSecretRevealed: true });
+  }, [startReauthentication, navigate]);
+
+  const secretAdditionalButtons = useMemo(
+    () =>
+      isRevealed
+        ? undefined
+        : [
+            {
+              iconProps: { iconName: "RedEye" },
+              title: renderToString("reveal"),
+              ariaLabel: renderToString("reveal"),
+              onClick: onRevealClick,
+              disabled: isRevealing,
+            },
+          ],
+    [isRevealed, onRevealClick, isRevealing, renderToString]
+  );
+
+  return (
+    <div className={styles.oidcSection}>
+      <Text variant="xLarge" block={true} className={styles.sectionHeading}>
+        <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.oidc.title" />
+      </Text>
+      <Text block={true} className={styles.oidcDescription}>
+        <FormattedMessage
+          id="EditOAuthClientFormFrameworkQuickStart.oidc.description"
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            docLink: (chunks: React.ReactNode) => (
+              <ExternalLink href={OIDC_DOCS_URL}>{chunks}</ExternalLink>
+            ),
+          }}
+        />
+      </Text>
+      <TextFieldWithCopyButton
+        label={renderToString(
+          "EditOAuthClientFormFrameworkQuickStart.oidc.client-id"
+        )}
+        value={client.client_id}
+        readOnly={true}
+      />
+      {showSecret ? (
+        <TextFieldWithCopyButton
+          label={renderToString(
+            "EditOAuthClientFormFrameworkQuickStart.oidc.client-secret"
+          )}
+          value={secretValue}
+          readOnly={true}
+          hideCopyButton={!isRevealed}
+          additionalIconButtons={secretAdditionalButtons}
+        />
+      ) : null}
+      <TextFieldWithCopyButton
+        label={renderToString(
+          "EditOAuthClientFormFrameworkQuickStart.oidc.scope"
+        )}
+        value={OIDC_RECOMMENDED_SCOPE}
+        readOnly={true}
+      />
+      {endpoints.authorize != null ? (
+        <TextFieldWithCopyButton
+          label={renderToString(
+            "EditOAuthClientFormFrameworkQuickStart.oidc.login-endpoint"
+          )}
+          value={endpoints.authorize}
+          readOnly={true}
+        />
+      ) : null}
+      {endpoints.userinfo != null ? (
+        <TextFieldWithCopyButton
+          label={renderToString(
+            "EditOAuthClientFormFrameworkQuickStart.oidc.userinfo-endpoint"
+          )}
+          value={endpoints.userinfo}
+          readOnly={true}
+        />
+      ) : null}
+      <TextFieldWithCopyButton
+        label={renderToString(
+          "EditOAuthClientFormFrameworkQuickStart.oidc.token-endpoint"
+        )}
+        value={endpoints.token}
+        readOnly={true}
+      />
+      {endpoints.endSession != null ? (
+        <TextFieldWithCopyButton
+          label={renderToString(
+            "EditOAuthClientFormFrameworkQuickStart.oidc.end-session-endpoint"
+          )}
+          value={endpoints.endSession}
+          readOnly={true}
+        />
+      ) : null}
+      <TextFieldWithCopyButton
+        label={renderToString(
+          "EditOAuthClientFormFrameworkQuickStart.oidc.jwks-uri"
+        )}
+        value={endpoints.jwksUri}
+        readOnly={true}
+      />
+    </div>
   );
 }
