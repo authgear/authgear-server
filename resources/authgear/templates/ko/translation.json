@@ -759,6 +759,7 @@
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "연결 해제",
   "v2.page.settings-identity-oauth.default.title": "소셜 계정",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "이 소셜 계정은 이미 연결되어 있습니다.",
+  "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[개발자에게] 지정된 OAuth 제공자가 구성되어 있지 않습니다.",
   "v2.page.settings-identity-phone.default.title": "전화번호",
   "v2.page.settings-identity-verify-email.default.title": "인증",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "전화번호 설정",
