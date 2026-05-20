@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
-import { useIntl } from "react-intl";
+import { FormattedMessage } from "react-intl";
 import { FrameworkCard } from "./FrameworkCard";
+import WidgetSubtitle from "../../../WidgetSubtitle";
 import {
   frameworks,
   type FrameworkEntry,
@@ -24,7 +25,6 @@ export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
   selectedId,
   onSelect,
 }) => {
-  const { formatMessage } = useIntl();
   const grouped = useMemo(() => {
     const acc: Record<FrameworkSection, FrameworkEntry[]> = {
       website: [],
@@ -37,9 +37,9 @@ export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
     <div className={styles.root} role="radiogroup">
       {sectionsOrder.map((section) => (
         <div key={section} className={styles.section}>
-          <div className={styles.sectionLabel}>
-            {formatMessage({ id: sectionLabelKey[section] })}
-          </div>
+          <WidgetSubtitle>
+            <FormattedMessage id={sectionLabelKey[section]} />
+          </WidgetSubtitle>
           <div className={styles.grid}>
             {grouped[section].map((f) => (
               <FrameworkCard
