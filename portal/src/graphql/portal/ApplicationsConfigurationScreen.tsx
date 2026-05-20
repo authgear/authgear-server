@@ -42,6 +42,7 @@ import ScreenTitle from "../../ScreenTitle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenDescription from "../../ScreenDescription";
 import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
+import { findFramework } from "./CreateOAuthClientScreen/frameworks";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import Widget from "../../Widget";
@@ -98,7 +99,7 @@ function makeOAuthClientListColumns(
       key: "name",
       fieldName: "name",
       name: renderToString("ApplicationsConfigurationScreen.client-list.name"),
-      minWidth: 100,
+      minWidth: 280,
       className: styles.columnHeader,
     },
     {
@@ -106,15 +107,6 @@ function makeOAuthClientListColumns(
       fieldName: "clientId",
       name: renderToString(
         "ApplicationsConfigurationScreen.client-list.client-id"
-      ),
-      minWidth: 250,
-      className: styles.columnHeader,
-    },
-    {
-      key: "applicationType",
-      fieldName: "applicationType",
-      name: renderToString(
-        "ApplicationsConfigurationScreen.client-list.application-type"
       ),
       minWidth: 250,
       className: styles.columnHeader,
@@ -394,20 +386,39 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           return null;
         }
         switch (column.key) {
-          case "name":
+          case "name": {
+            const framework = findFramework(item.x_framework);
+            const fallbackIcon =
+              item.x_application_type === "m2m" ? "server" : "app-window";
+            const iconName = framework?.iconName ?? fallbackIcon;
             return (
-              <span className={styles.cellContent}>{item.name ?? ""}</span>
+              <div className={styles.nameCell}>
+                <i
+                  className={cn(
+                    "ti",
+                    `ti-${iconName}`,
+                    styles.nameCellIcon
+                  )}
+                  aria-hidden={true}
+                />
+                <div className={styles.nameCellText}>
+                  <div className={styles.nameCellTitle}>
+                    {item.name ?? ""}
+                  </div>
+                  <div className={styles.nameCellSubtitle}>
+                    <FormattedMessage
+                      id={getApplicationTypeMessageID(
+                        item.x_application_type
+                      )}
+                    />
+                    {framework != null ? ` · ${framework.displayName}` : null}
+                  </div>
+                </div>
+              </div>
             );
+          }
           case "clientId":
             return <OAuthClientIdCell clientId={item.client_id} />;
-          case "applicationType":
-            return (
-              <span className={styles.cellContent}>
-                <FormattedMessage
-                  id={getApplicationTypeMessageID(item.x_application_type)}
-                />
-              </span>
-            );
           case "action":
             return (
               <span className={styles.cellContent}>
