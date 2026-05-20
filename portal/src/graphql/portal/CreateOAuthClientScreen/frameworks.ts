@@ -66,7 +66,7 @@ export const frameworks: FrameworkEntry[] = [
   websiteSPA("react", "React", "SPA, uses authgear-sdk-js", "brand-react", `${DOCS}/single-page-app/react`),
   websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "brand-vue", `${DOCS}/single-page-app/vue`),
   websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "brand-angular", `${DOCS}/single-page-app/angular`),
-  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs", `${DOCS}/single-page-app/website`),
+  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs", `${DOCS}/regular-web-app/nextjs`),
   websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app`),
   websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "world-www", `${DOCS}/single-page-app/website`),
   websiteServer("django", "Python (Django)", "Server-side, Python backend", "brand-django", `${DOCS}/regular-web-app`),

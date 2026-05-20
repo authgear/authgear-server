@@ -31,6 +31,7 @@ import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
+import { EditOAuthClientFormSPAQuickStart } from "./EditOAuthClientFormSPAQuickStart";
 import {
   findFramework,
   getDisplayIconName,
@@ -503,7 +504,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             selectedKey={formTab}
             onLinkClick={onFormTabChange}
           >
-            {client.x_application_type === "m2m" ? (
+            {client.x_application_type === "m2m" ||
+            client.x_application_type === "spa" ? (
               <PivotItem
                 itemKey={FormTab.QUICK_START}
                 headerText={renderToString(
@@ -531,7 +533,16 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             ) : null}
           </AGPivot>
         </header>
-        {formTab === FormTab.QUICK_START ? (
+        {formTab === FormTab.QUICK_START &&
+        client.x_application_type === "spa" ? (
+          <EditOAuthClientFormSPAQuickStart
+            className={cn(styles.widget, styles["widget--wide"])}
+            client={client}
+            form={props.form}
+          />
+        ) : null}
+        {formTab === FormTab.QUICK_START &&
+        client.x_application_type !== "spa" ? (
           <EditOAuthClientFormQuickStartContent
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
@@ -904,6 +915,8 @@ function FormContainerContent({
       switch (client?.x_application_type) {
         case "m2m":
           return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
+        case "spa":
+          return [FormTab.SETTINGS, FormTab.QUICK_START];
         case "confidential":
           return [FormTab.SETTINGS, FormTab.SAML2];
         default:
