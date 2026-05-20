@@ -42,6 +42,7 @@ import ScreenTitle from "../../ScreenTitle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenDescription from "../../ScreenDescription";
 import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
+import { findFramework } from "./CreateOAuthClientScreen/frameworks";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import Widget from "../../Widget";
@@ -111,10 +112,10 @@ function makeOAuthClientListColumns(
       className: styles.columnHeader,
     },
     {
-      key: "applicationType",
-      fieldName: "applicationType",
+      key: "framework",
+      fieldName: "framework",
       name: renderToString(
-        "ApplicationsConfigurationScreen.client-list.application-type"
+        "ApplicationsConfigurationScreen.client-list.framework"
       ),
       minWidth: 250,
       className: styles.columnHeader,
@@ -169,10 +170,12 @@ interface ClientCardProps {
   name?: string;
   clientId: string;
   applicationType?: string;
+  framework?: string;
 }
 
 const ClientCard: React.VFC<ClientCardProps> = (props) => {
-  const { name, clientId, applicationType } = props;
+  const { name, clientId, applicationType, framework } = props;
+  const frameworkEntry = findFramework(framework);
   const { appID } = useParams() as { appID: string };
   const targetPath = `/project/${appID}/configuration/apps/${clientId}/edit`;
 
@@ -201,7 +204,13 @@ const ClientCard: React.VFC<ClientCardProps> = (props) => {
           className={styles.clientCardContent}
           style={{ color: neutralSecondary }}
         >
-          <FormattedMessage id={getApplicationTypeMessageID(applicationType)} />
+          {frameworkEntry != null ? (
+            frameworkEntry.displayName
+          ) : (
+            <FormattedMessage
+              id={getApplicationTypeMessageID(applicationType)}
+            />
+          )}
         </Text>
       </Widget>
     </Link>
@@ -225,6 +234,7 @@ const ClientCardList: React.VFC<ClientCardListProps> = (props) => {
             name={card.name}
             clientId={card.client_id}
             applicationType={card.x_application_type}
+            framework={card.x_framework}
           />
         );
       })}
@@ -400,14 +410,20 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
             );
           case "clientId":
             return <OAuthClientIdCell clientId={item.client_id} />;
-          case "applicationType":
+          case "framework": {
+            const framework = findFramework(item.x_framework);
             return (
               <span className={styles.cellContent}>
-                <FormattedMessage
-                  id={getApplicationTypeMessageID(item.x_application_type)}
-                />
+                {framework != null ? (
+                  framework.displayName
+                ) : (
+                  <FormattedMessage
+                    id={getApplicationTypeMessageID(item.x_application_type)}
+                  />
+                )}
               </span>
             );
+          }
           case "action":
             return (
               <span className={styles.cellContent}>
