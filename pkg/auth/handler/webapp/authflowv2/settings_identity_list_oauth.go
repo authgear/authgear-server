@@ -155,7 +155,8 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		providerAlias := r.URL.Query().Get("x_provider_alias")
 		oauthConnected := r.URL.Query().Get("x_oauth_linked")
 
-		// Branch A: in settings action, auto-trigger link
+		// Branch A: in settings action, auto-trigger link when not yet linked.
+		// Falls through to Branch C when the provider is already linked.
 		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" {
 			var vm *AuthflowV2SettingsIdentityListOAuthViewModel
 			err := h.Database.WithTx(ctx, func(ctx context.Context) error {
@@ -178,49 +179,44 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 				return fmt.Errorf("unknown provider alias: %s", providerAlias)
 			}
 
-			// If already linked, show the list instead of re-triggering the OAuth flow.
-			if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID != "" {
-				data := map[string]any{}
-				viewmodels.Embed(data, h.BaseViewModel.ViewModel(r, w))
-				viewmodels.Embed(data, vm)
-				h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityListOAuthHTML, data)
+			if identityID, _ := candidate[identity.CandidateKeyIdentityID].(string); identityID == "" {
+				// Not yet linked: start the OAuth flow.
+				var redirectURI string
+				status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
+				if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
+					redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
+				} else {
+					redirectURI = h.Endpoints.SSOCallbackURL(providerAlias).String()
+				}
+
+				output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
+					Alias:       providerAlias,
+					RedirectURI: redirectURI,
+				})
+				if err != nil {
+					return err
+				}
+
+				state := &webappoauth.WebappOAuthState{
+					AppID:                  string(h.AppID),
+					AccountManagementToken: output.Token,
+					ProviderAlias:          providerAlias,
+					SettingsActionID:       settingsaction.GetSettingsActionID(r),
+				}
+				stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
+				if err != nil {
+					return err
+				}
+
+				authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
+				if err != nil {
+					return err
+				}
+
+				http.Redirect(w, r, authorizationURLString, http.StatusFound)
 				return nil
 			}
-
-			var redirectURI string
-			status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
-			if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
-				redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
-			} else {
-				redirectURI = h.Endpoints.SSOCallbackURL(providerAlias).String()
-			}
-
-			output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
-				Alias:       providerAlias,
-				RedirectURI: redirectURI,
-			})
-			if err != nil {
-				return err
-			}
-
-			state := &webappoauth.WebappOAuthState{
-				AppID:                  string(h.AppID),
-				AccountManagementToken: output.Token,
-				ProviderAlias:          providerAlias,
-				SettingsActionID:       settingsaction.GetSettingsActionID(r),
-			}
-			stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
-			if err != nil {
-				return err
-			}
-
-			authorizationURLString, err := generateAuthorizationURLWithState(output.AuthorizationURL, stateToken)
-			if err != nil {
-				return err
-			}
-
-			http.Redirect(w, r, authorizationURLString, http.StatusFound)
-			return nil
+			// Already linked: fall through to Branch C to show filtered list with error.
 		}
 
 		// Branch B: in settings action, finish after link
@@ -233,17 +229,36 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 			return nil
 		}
 
-		// Branch C: normal render
-		var data map[string]any
+		// Branch C: render list (filtered to single provider in settings-action mode)
+		var vm *AuthflowV2SettingsIdentityListOAuthViewModel
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			var e error
-			data, e = h.GetData(ctx, r, w)
+			vm, e = h.getViewModel(ctx)
 			return e
 		})
 		if err != nil {
 			return err
 		}
 
+		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" {
+			var filtered []identity.Candidate
+			for _, c := range vm.OAuthCandidates {
+				if c[identity.CandidateKeyProviderAlias] == providerAlias {
+					filtered = append(filtered, c)
+					break
+				}
+			}
+			vm.OAuthCandidates = filtered
+			vm.IsInSettingsAction = true
+			if len(filtered) > 0 {
+				identityID, _ := filtered[0][identity.CandidateKeyIdentityID].(string)
+				vm.IsAlreadyLinked = identityID != ""
+			}
+		}
+
+		data := map[string]any{}
+		viewmodels.Embed(data, h.BaseViewModel.ViewModel(r, w))
+		viewmodels.Embed(data, vm)
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityListOAuthHTML, data)
 		return nil
 	})
