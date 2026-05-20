@@ -1,6 +1,13 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { Text } from "@fluentui/react";
+import {
+  Dialog,
+  DialogFooter,
+  IDialogContentProps,
+  Text,
+} from "@fluentui/react";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
@@ -301,7 +308,38 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
 
 const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
   const { appID } = useParams() as { appID: string };
+  const navigate = useNavigate();
+  const { renderToString } = useContext(Context);
   const [addResource] = useAddResourceToClientIdMutation();
+
+  const resourcesCountQuery = useResourcesQueryQuery({
+    variables: { first: 1 },
+    fetchPolicy: "cache-and-network",
+  });
+  const noAPIResources =
+    !resourcesCountQuery.loading &&
+    resourcesCountQuery.error == null &&
+    (resourcesCountQuery.data?.resources?.totalCount ?? 0) === 0;
+
+  const goToAPIResources = useCallback(() => {
+    navigate(`/project/${appID}/api-resources/create`);
+  }, [appID, navigate]);
+
+  const goToAppsList = useCallback(() => {
+    navigate(`/project/${appID}/configuration/apps`);
+  }, [appID, navigate]);
+
+  const noResourcesDialogContent: IDialogContentProps = useMemo(
+    () => ({
+      title: renderToString(
+        "CreateM2MClientScreen.no-resources-dialog.title"
+      ),
+      subText: renderToString(
+        "CreateM2MClientScreen.no-resources-dialog.body"
+      ),
+    }),
+    [renderToString]
+  );
 
   const form = useAppSecretConfigForm({
     appID,
@@ -353,6 +391,25 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
         <div className="flex-1 overflow-y-auto flex flex-col">
           <CreateM2MClientContent form={form} />
         </div>
+        <Dialog
+          hidden={!noAPIResources}
+          dialogContentProps={noResourcesDialogContent}
+          modalProps={{ isBlocking: true }}
+          onDismiss={goToAppsList}
+        >
+          <DialogFooter>
+            <PrimaryButton
+              onClick={goToAPIResources}
+              text={
+                <FormattedMessage id="CreateM2MClientScreen.no-resources-dialog.cta" />
+              }
+            />
+            <DefaultButton
+              onClick={goToAppsList}
+              text={<FormattedMessage id="cancel" />}
+            />
+          </DialogFooter>
+        </Dialog>
       </FormProvider>
     ),
   });
