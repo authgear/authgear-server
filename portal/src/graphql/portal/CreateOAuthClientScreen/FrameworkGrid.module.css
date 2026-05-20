@@ -10,11 +10,6 @@
   gap: 8px;
 }
 
-.sectionLabel {
-  font-weight: 600;
-  font-size: 15px;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

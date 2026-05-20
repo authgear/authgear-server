@@ -2,6 +2,7 @@ import React from "react";
 import { ChoiceGroup, type IChoiceGroupOption } from "@fluentui/react";
 import { useIntl, FormattedMessage } from "react-intl";
 import ExternalLink from "../../../ExternalLink";
+import WidgetSubtitle from "../../../WidgetSubtitle";
 import type { AuthMethodChoice as Stage2Choice } from "./frameworks";
 import styles from "./AuthMethodChoice.module.css";
 
@@ -40,9 +41,9 @@ export const AuthMethodChoiceComponent: React.FC<AuthMethodChoiceProps> = ({
   ];
   return (
     <div className={styles.root}>
-      <div className={styles.question}>
+      <WidgetSubtitle>
         <FormattedMessage id="CreateOAuthClientScreen.stage2.question" />
-      </div>
+      </WidgetSubtitle>
       <ChoiceGroup
         selectedKey={value ?? undefined}
         options={options}
