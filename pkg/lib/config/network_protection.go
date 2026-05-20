@@ -90,6 +90,7 @@ type IPFilterRule struct {
 }
 
 type IPFilterSource struct {
-	CIDRs            []string `json:"cidrs,omitempty"`
-	GeoLocationCodes []string `json:"geo_location_codes,omitempty"`
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	CIDRs            []string `json:"cidrs,omitzero"`
+	GeoLocationCodes []string `json:"geo_location_codes,omitzero"`
 }

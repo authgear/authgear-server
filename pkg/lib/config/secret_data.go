@@ -172,7 +172,8 @@ var _ = SecretConfigSchema.Add("OAuthSSOProviderCredentials", `
 `)
 
 type OAuthSSOProviderCredentials struct {
-	Items []OAuthSSOProviderCredentialsItem `json:"items,omitempty"`
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	Items []OAuthSSOProviderCredentialsItem `json:"items,omitzero"`
 }
 
 func (c *OAuthSSOProviderCredentials) Lookup(alias string) (*OAuthSSOProviderCredentialsItem, bool) {
@@ -539,7 +540,8 @@ var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 `)
 
 type OAuthClientCredentials struct {
-	Items []OAuthClientCredentialsItem `json:"items,omitempty"`
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	Items []OAuthClientCredentialsItem `json:"items,omitzero"`
 }
 
 func (c *OAuthClientCredentials) Lookup(clientID string) (*OAuthClientCredentialsItem, bool) {
