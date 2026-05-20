@@ -19,6 +19,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  /* ChoiceButton renders a 1px outline outside its border-box when checked;
+     add a small padding so the outermost cards' outlines don't clip against
+     a parent's overflow boundary. */
+  padding: 2px;
 }
 
 @media (max-width: 720px) {
