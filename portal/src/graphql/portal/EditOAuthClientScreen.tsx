@@ -498,7 +498,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
           >
             {client.x_application_type === "m2m" ||
             client.x_application_type === "spa" ||
-            client.x_application_type === "traditional_webapp" ? (
+            client.x_application_type === "traditional_webapp" ||
+            client.x_application_type === "native" ||
+            client.x_application_type === "confidential" ? (
               <PivotItem
                 itemKey={FormTab.QUICK_START}
                 headerText={renderToString(
@@ -528,7 +530,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         </header>
         {formTab === FormTab.QUICK_START &&
         (client.x_application_type === "spa" ||
-          client.x_application_type === "traditional_webapp") ? (
+          client.x_application_type === "traditional_webapp" ||
+          client.x_application_type === "native" ||
+          client.x_application_type === "confidential") ? (
           <EditOAuthClientFormFrameworkQuickStart
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
@@ -538,7 +542,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         ) : null}
         {formTab === FormTab.QUICK_START &&
         client.x_application_type !== "spa" &&
-        client.x_application_type !== "traditional_webapp" ? (
+        client.x_application_type !== "traditional_webapp" &&
+        client.x_application_type !== "native" &&
+        client.x_application_type !== "confidential" ? (
           <EditOAuthClientFormQuickStartContent
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
@@ -912,9 +918,10 @@ function FormContainerContent({
           return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
         case "spa":
         case "traditional_webapp":
+        case "native":
           return [FormTab.SETTINGS, FormTab.QUICK_START];
         case "confidential":
-          return [FormTab.SETTINGS, FormTab.SAML2];
+          return [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2];
         default:
           return [FormTab.SETTINGS];
       }
