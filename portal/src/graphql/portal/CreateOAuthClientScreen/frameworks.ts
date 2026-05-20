@@ -98,3 +98,16 @@ export function findFramework(id: Framework | string | undefined): FrameworkEntr
 export function frameworksForType(applicationType: ApplicationType): FrameworkEntry[] {
   return frameworks.filter((f) => f.compatibleTypes.includes(applicationType));
 }
+
+/**
+ * Tabler icon name (without "ti-" prefix) to display for an OAuth client.
+ * Falls back to a generic glyph when the framework is unknown.
+ */
+export function getDisplayIconName(client: {
+  x_framework?: string | null;
+  x_application_type?: ApplicationType;
+}): string {
+  const fw = findFramework(client.x_framework ?? undefined);
+  if (fw != null) return fw.iconName;
+  return client.x_application_type === "m2m" ? "server" : "app-window";
+}
