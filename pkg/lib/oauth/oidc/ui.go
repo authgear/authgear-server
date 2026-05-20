@@ -354,6 +354,18 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		q.Set("x_provider_alias", alias)
 		endpoint.RawQuery = q.Encode()
 		return endpoint, nil
+	case settingsaction.SettingsActionUnlinkOAuth:
+		alias := r.OAuthProviderAlias()
+		if alias == "" {
+			return nil, NewErrInvalidSettingsAction("oauthProviderAlias is required for unlink_oauth")
+		}
+		endpoint = b.Endpoints.SettingsIdentityOAuthURL()
+		b.addToEndpoint(endpoint, r, e)
+		q := endpoint.Query()
+		q.Set("x_provider_alias", alias)
+		q.Set("x_settings_action", string(settingsaction.SettingsActionUnlinkOAuth))
+		endpoint.RawQuery = q.Encode()
+		return endpoint, nil
 	default:
 		return nil, NewErrInvalidSettingsAction("invalid settings action")
 	}
