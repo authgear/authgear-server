@@ -9,10 +9,48 @@ import (
 	url "net/url"
 	reflect "reflect"
 
+	event "github.com/authgear/authgear-server/pkg/api/event"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	gomock "github.com/golang/mock/gomock"
 )
+
+// MockEventService is a mock of EventService interface.
+type MockEventService struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventServiceMockRecorder
+}
+
+// MockEventServiceMockRecorder is the mock recorder for MockEventService.
+type MockEventServiceMockRecorder struct {
+	mock *MockEventService
+}
+
+// NewMockEventService creates a new mock instance.
+func NewMockEventService(ctrl *gomock.Controller) *MockEventService {
+	mock := &MockEventService{ctrl: ctrl}
+	mock.recorder = &MockEventServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEventService) EXPECT() *MockEventServiceMockRecorder {
+	return m.recorder
+}
+
+// DispatchEventOnCommit mocks base method.
+func (m *MockEventService) DispatchEventOnCommit(ctx context.Context, payload event.Payload) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DispatchEventOnCommit", ctx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DispatchEventOnCommit indicates an expected call of DispatchEventOnCommit.
+func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), ctx, payload)
+}
 
 // MockSAMLEndpoints is a mock of SAMLEndpoints interface.
 type MockSAMLEndpoints struct {

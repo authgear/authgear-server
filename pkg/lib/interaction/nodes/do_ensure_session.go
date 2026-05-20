@@ -206,7 +206,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 					// They are handled in their own node.
 					err = ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.UserAuthenticatedEventPayload{
 						UserRef:  userRef,
-						Session:  *n.SessionToCreate.ToAPIModel(),
+						Session:  n.SessionToCreate.ToAPIModel(),
 						AdminAPI: n.IsAdminAPI,
 					})
 					if err != nil {

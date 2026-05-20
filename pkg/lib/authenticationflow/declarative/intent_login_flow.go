@@ -151,7 +151,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 						ID: userID,
 					},
 				},
-				Session:  *idpSession.ToAPIModel(),
+				Session:  idpSession.ToAPIModel(),
 				AdminAPI: isAdminAPI,
 			})
 			if err != nil {

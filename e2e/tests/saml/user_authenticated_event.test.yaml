@@ -1,0 +1,272 @@
+---
+name: SAML SSO - user.authenticated event is fired on fresh login
+authgear.yaml:
+  override: |
+    saml:
+      signing:
+        key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+      service_providers:
+        - client_id: e2e
+          nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+          nameid_attribute_pointer: /preferred_username
+          acs_urls:
+            - https://samlsp.localhost/acs
+          destination: http://samlsp.localhost/destination
+          recipient: http://samlsp.localhost/recipient
+          audience: https://samlsp.localhost
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: username
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Send SAML request to the login endpoint
+  - name: saml_login_request
+    action: "saml_request"
+    saml_element_name: SAMLRequest
+    saml_element: |
+      <samlp:AuthnRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ForceAuthn="false"
+        ID="a506045340df4e2290640daf189f4b5177f691823"
+        IssueInstant="3000-10-02T08:25:59Z"
+        AssertionConsumerServiceURL="https://samlsp.localhost/acs"
+        ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Version="2.0"
+        ><saml:Issuer>urn:e2e.localhost</saml:Issuer></samlp:AuthnRequest
+      >
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 302
+      redirect_path: /_internals/oauth_entrypoint
+  # Follow the redirect to login page
+  - name: follow_redirect_to_login
+    action: "http_request"
+    http_request_method: GET
+    http_request_url: "{{ .steps.saml_login_request.result.http_response_headers.location }}"
+    http_output:
+      http_status: 200
+  # Login with username
+  - name: login_with_username
+    action: "http_request"
+    http_request_method: POST
+    http_request_url: "http://127.0.0.1:4000/login"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: text
+      x_login_id: samltest01
+      x_action: login_id
+    http_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLResponse
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:Response>
+            <any/>
+            <any/>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </samlp:Status>
+            <saml:Assertion>
+              <any/>
+              <any/>
+              <saml:Subject>
+                <saml:NameID>samltest01</saml:NameID>
+                <any/>
+              </saml:Subject>
+              <any/>
+              <any/>
+              <any/>
+            </saml:Assertion>
+          </samlp:Response>
+  # Verify user.authenticated was fired once
+  - name: verify_event
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+      ORDER BY created_at
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]
+---
+name: SAML SSO - user.authenticated event is fired when continuing with current account
+authgear.yaml:
+  override: |
+    saml:
+      signing:
+        key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+      service_providers:
+        - client_id: e2e
+          nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+          nameid_attribute_pointer: /preferred_username
+          acs_urls:
+            - https://samlsp.localhost/acs
+          destination: http://samlsp.localhost/destination
+          recipient: http://samlsp.localhost/recipient
+          audience: https://samlsp.localhost
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: username
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # First SAML login - establishes a session
+  - name: first_saml_request
+    action: "saml_request"
+    saml_element_name: SAMLRequest
+    saml_element: |
+      <samlp:AuthnRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ForceAuthn="false"
+        ID="a506045340df4e2290640daf189f4b5177f691823"
+        IssueInstant="3000-10-02T08:25:59Z"
+        AssertionConsumerServiceURL="https://samlsp.localhost/acs"
+        ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Version="2.0"
+        ><saml:Issuer>urn:e2e.localhost</saml:Issuer></samlp:AuthnRequest
+      >
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 302
+      redirect_path: /_internals/oauth_entrypoint
+  # Follow redirect to login page
+  - name: first_follow_redirect
+    action: "http_request"
+    http_request_method: GET
+    http_request_url: "{{ .steps.first_saml_request.result.http_response_headers.location }}"
+    http_output:
+      http_status: 200
+  # Login with username (first time)
+  - name: first_login
+    action: "http_request"
+    http_request_method: POST
+    http_request_url: "http://127.0.0.1:4000/login"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: text
+      x_login_id: samltest01
+      x_action: login_id
+    http_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLResponse
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:Response>
+            <any/>
+            <any/>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </samlp:Status>
+            <saml:Assertion>
+              <any/>
+              <any/>
+              <saml:Subject>
+                <saml:NameID>samltest01</saml:NameID>
+                <any/>
+              </saml:Subject>
+              <any/>
+              <any/>
+              <any/>
+            </saml:Assertion>
+          </samlp:Response>
+  # Second SAML request - user already has a session, goes to select_account page
+  - name: second_saml_request
+    action: "saml_request"
+    saml_element_name: SAMLRequest
+    saml_element: |
+      <samlp:AuthnRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ForceAuthn="false"
+        ID="b506045340df4e2290640daf189f4b5177f691823"
+        IssueInstant="3000-10-02T08:25:59Z"
+        AssertionConsumerServiceURL="https://samlsp.localhost/acs"
+        ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Version="2.0"
+        ><saml:Issuer>urn:e2e.localhost</saml:Issuer></samlp:AuthnRequest
+      >
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 302
+      redirect_path: /_internals/oauth_entrypoint
+  # Follow redirect to select_account page (user already logged in)
+  - name: second_follow_redirect
+    action: "http_request"
+    http_request_method: GET
+    http_request_url: "{{ .steps.second_saml_request.result.http_response_headers.location }}"
+    http_output:
+      http_status: 200
+  # POST to select_account with x_action=continue to continue with current account
+  - name: select_account_continue
+    action: "http_request"
+    http_request_method: POST
+    http_request_url: "http://127.0.0.1:4000/authflow/v2/select_account"
+    http_request_form_urlencoded_body:
+      x_action: continue
+    http_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLResponse
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:Response>
+            <any/>
+            <any/>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </samlp:Status>
+            <saml:Assertion>
+              <any/>
+              <any/>
+              <saml:Subject>
+                <saml:NameID>samltest01</saml:NameID>
+                <any/>
+              </saml:Subject>
+              <any/>
+              <any/>
+              <any/>
+            </saml:Assertion>
+          </samlp:Response>
+  # Verify user.authenticated was fired twice (once per SAML login)
+  - name: verify_events
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+      ORDER BY created_at
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.authenticated"
+          },
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]

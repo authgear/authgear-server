@@ -1432,7 +1432,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 	err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 		UserRef:  userRef,
-		Session:  *offlineGrant.ToAPIModel(),
+		Session:  offlineGrant.ToAPIModel(),
 		AdminAPI: false,
 	})
 	if err != nil {
@@ -1847,7 +1847,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			}
 			err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
-				Session:  *offlineGrant.ToAPIModel(),
+				Session:  offlineGrant.ToAPIModel(),
 				AdminAPI: false,
 			})
 			if err != nil {
