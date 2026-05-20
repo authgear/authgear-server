@@ -427,12 +427,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             selectedKey={formTab}
             onLinkClick={onFormTabChange}
           >
-            <PivotItem
-              itemKey={FormTab.QUICK_START}
-              headerText={renderToString(
-                "EditOAuthClientScreen.tabs.quick-start"
-              )}
-            />
+            {client.x_application_type === "m2m" ? (
+              <PivotItem
+                itemKey={FormTab.QUICK_START}
+                headerText={renderToString(
+                  "EditOAuthClientScreen.tabs.quick-start"
+                )}
+              />
+            ) : null}
             <PivotItem
               itemKey={FormTab.SETTINGS}
               headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
@@ -863,9 +865,9 @@ function FormContainerContent({
         case "m2m":
           return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
         case "confidential":
-          return [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2];
+          return [FormTab.SETTINGS, FormTab.SAML2];
         default:
-          return [FormTab.SETTINGS, FormTab.QUICK_START];
+          return [FormTab.SETTINGS];
       }
     }, [clientID, state.clients, state.editedClient]),
     undefined,
