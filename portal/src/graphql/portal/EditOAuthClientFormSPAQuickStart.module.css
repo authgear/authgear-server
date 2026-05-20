@@ -1,0 +1,96 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.frameworkRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #eef4ff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frameworkIcon {
+  font-size: 26px;
+  line-height: 1;
+  color: #0969da;
+}
+
+.frameworkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.helperText {
+  color: #57606a;
+  font-size: 13px;
+}
+
+.changeButtonInline {
+  flex-shrink: 0;
+}
+
+.sectionHeading {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.tutorialCard {
+  padding: 20px;
+  border-radius: 8px;
+  background: #eef4ff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tutorialHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tutorialIcon {
+  font-size: 20px;
+  color: #0969da;
+}
+
+.tutorialBody {
+  color: #24292f;
+  line-height: 1.5;
+}
+
+.changeButton {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.dialogGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+  /* Give the ChoiceButton outline room. */
+  padding: 2px;
+}
+
+@media (max-width: 600px) {
+  .dialogGrid {
+    grid-template-columns: 1fr;
+  }
+}
