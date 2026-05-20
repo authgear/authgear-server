@@ -27,17 +27,17 @@ describe("frameworks catalog", () => {
   });
 
   it("server framework with stage2='token' returns 'confidential'", () => {
-    expect(findFramework("django")!.resolveType("token")).toBe("confidential");
+    expect(findFramework("flask")!.resolveType("token")).toBe("confidential");
     expect(findFramework("aspnet")!.resolveType("token")).toBe("confidential");
   });
 
   it("server framework with stage2='cookie' returns 'traditional_webapp'", () => {
-    expect(findFramework("django")!.resolveType("cookie")).toBe("traditional_webapp");
+    expect(findFramework("flask")!.resolveType("cookie")).toBe("traditional_webapp");
     expect(findFramework("aspnet")!.resolveType("cookie")).toBe("traditional_webapp");
   });
 
   it("server framework with no stage2 throws", () => {
-    expect(() => findFramework("django")!.resolveType()).toThrow();
+    expect(() => findFramework("flask")!.resolveType()).toThrow();
   });
 
   it("findFramework returns undefined for unknown id", () => {
@@ -51,12 +51,12 @@ describe("frameworks catalog", () => {
 
   it("frameworksForType('traditional_webapp') excludes other-oidc", () => {
     const ids = frameworksForType("traditional_webapp").map((f) => f.id);
-    expect(ids).toEqual(["express", "django", "laravel", "java", "aspnet"]);
+    expect(ids).toEqual(["express", "flask", "laravel", "java", "aspnet"]);
   });
 
   it("frameworksForType('confidential') includes other-oidc and server frameworks", () => {
     const ids = frameworksForType("confidential").map((f) => f.id);
-    expect(ids).toEqual(["express", "django", "laravel", "java", "aspnet", "other-oidc"]);
+    expect(ids).toEqual(["express", "flask", "laravel", "java", "aspnet", "other-oidc"]);
   });
 
   it("frameworksForType('native') returns native frameworks", () => {

@@ -954,6 +954,8 @@
   "EditOAuthClientFormFrameworkQuickStart.tutorial.duration": "15 minutes tutorial",
   "EditOAuthClientFormFrameworkQuickStart.tutorial.body.default": "Follow the <docLink>step-by-step guide</docLink> to create a simple app using {displayName} with the Authgear SDK.",
   "EditOAuthClientFormFrameworkQuickStart.tutorial.body.cookie-sso": "Follow the <docLink>step-by-step guide</docLink> to set up nginx as a reverse proxy with Authgear in front of your {displayName} app.",
+  "EditOAuthClientFormFrameworkQuickStart.tutorial.body.confidential": "Follow the <docLink>step-by-step guide</docLink> to add OIDC authentication to your {displayName} app using a standard OIDC library.",
+  "EditOAuthClientFormFrameworkQuickStart.tutorial.body.other-oidc": "See the <docLink>OIDC provider docs</docLink> for the endpoints and configuration needed to connect any OIDC- or SAML-compatible app to Authgear.",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.title": "Change framework",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.apply": "Apply",
   "CreateM2MClientScreen.no-resources-dialog.title": "API Resource Required",

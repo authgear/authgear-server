@@ -23,7 +23,7 @@ func TestOAuthClientConfigXFramework(t *testing.T) {
 		{"valid nextjs", "nextjs", false},
 		{"valid express", "express", false},
 		{"valid other-spa", "other-spa", false},
-		{"valid django", "django", false},
+		{"valid flask", "flask", false},
 		{"valid laravel", "laravel", false},
 		{"valid java", "java", false},
 		{"valid aspnet", "aspnet", false},
