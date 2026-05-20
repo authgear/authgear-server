@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
 import ChoiceButton from "../../../ChoiceButton";
 import type { FrameworkEntry } from "./frameworks";
 import styles from "./FrameworkCard.module.css";
@@ -15,16 +16,15 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
   onSelect,
 }) => {
   const IconComponent = useMemo(() => {
-    return function FrameworkLogo() {
+    return function FrameworkIcon() {
       return (
-        <img
-          className={styles.logo}
-          src={framework.logo}
-          alt=""
+        <i
+          className={cn("ti", `ti-${framework.iconName}`, styles.icon)}
+          aria-hidden={true}
         />
       );
     };
-  }, [framework.logo]);
+  }, [framework.iconName]);
 
   const onClick = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {

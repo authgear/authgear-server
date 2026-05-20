@@ -1,20 +1,4 @@
 import type { Framework, ApplicationType } from "../../../types";
-import reactLogo from "./logos/react.svg";
-import vueLogo from "./logos/vue.svg";
-import angularLogo from "./logos/angular.svg";
-import nextjsLogo from "./logos/nextjs.svg";
-import expressLogo from "./logos/express.svg";
-import otherSpaLogo from "./logos/other-spa.svg";
-import djangoLogo from "./logos/django.svg";
-import laravelLogo from "./logos/laravel.svg";
-import javaLogo from "./logos/java.svg";
-import aspnetLogo from "./logos/aspnet.svg";
-import otherOidcLogo from "./logos/other-oidc.svg";
-import reactNativeLogo from "./logos/react-native.svg";
-import iosLogo from "./logos/ios.svg";
-import androidLogo from "./logos/android.svg";
-import flutterLogo from "./logos/flutter.svg";
-import ionicLogo from "./logos/ionic.svg";
 
 export type FrameworkSection = "website" | "mobile";
 export type Stage2Need = "none" | "token-or-cookie";
@@ -25,7 +9,8 @@ export interface FrameworkEntry {
   displayName: string;
   helperText: string;
   section: FrameworkSection;
-  logo: string;
+  /** Tabler icon name without the "ti-" prefix, e.g. "brand-react". */
+  iconName: string;
   stage2: Stage2Need;
   resolveType: (stage2?: AuthMethodChoice) => ApplicationType;
   compatibleTypes: ApplicationType[];
@@ -37,65 +22,65 @@ const requireStage2 = (id: Framework, stage2?: AuthMethodChoice): ApplicationTyp
   throw new Error(`resolveType called without stage2 on ${id}`);
 };
 
-const websiteSPA = (id: Framework, displayName: string, helperText: string, logo: string): FrameworkEntry => ({
+const websiteSPA = (id: Framework, displayName: string, helperText: string, iconName: string): FrameworkEntry => ({
   id,
   displayName,
   helperText,
   section: "website",
-  logo,
+  iconName,
   stage2: "none",
   resolveType: () => "spa",
   compatibleTypes: ["spa"],
 });
 
-const websiteServer = (id: Framework, displayName: string, helperText: string, logo: string): FrameworkEntry => ({
+const websiteServer = (id: Framework, displayName: string, helperText: string, iconName: string): FrameworkEntry => ({
   id,
   displayName,
   helperText,
   section: "website",
-  logo,
+  iconName,
   stage2: "token-or-cookie",
   resolveType: (stage2) => requireStage2(id, stage2),
   compatibleTypes: ["confidential", "traditional_webapp"],
 });
 
-const mobileNative = (id: Framework, displayName: string, helperText: string, logo: string): FrameworkEntry => ({
+const mobileNative = (id: Framework, displayName: string, helperText: string, iconName: string): FrameworkEntry => ({
   id,
   displayName,
   helperText,
   section: "mobile",
-  logo,
+  iconName,
   stage2: "none",
   resolveType: () => "native",
   compatibleTypes: ["native"],
 });
 
 export const frameworks: FrameworkEntry[] = [
-  websiteSPA("react", "React", "SPA, uses authgear-sdk-js", reactLogo),
-  websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", vueLogo),
-  websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", angularLogo),
-  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", nextjsLogo),
-  websiteServer("express", "Express.js", "Server-side, Node backend", expressLogo),
-  websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", otherSpaLogo),
-  websiteServer("django", "Python (Django)", "Server-side, Python backend", djangoLogo),
-  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", laravelLogo),
-  websiteServer("java", "Java", "Server-side, JVM backend", javaLogo),
-  websiteServer("aspnet", "ASP.NET", "Server-side, .NET backend", aspnetLogo),
+  websiteSPA("react", "React", "SPA, uses authgear-sdk-js", "brand-react"),
+  websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "brand-vue"),
+  websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "brand-angular"),
+  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs"),
+  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript"),
+  websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "world-www"),
+  websiteServer("django", "Python (Django)", "Server-side, Python backend", "brand-django"),
+  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel"),
+  websiteServer("java", "Java", "Server-side, JVM backend", "coffee"),
+  websiteServer("aspnet", "ASP.NET", "Server-side, .NET backend", "brand-windows"),
   {
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
     helperText: "Any OIDC/SAML compatible app",
     section: "website",
-    logo: otherOidcLogo,
+    iconName: "shield-check",
     stage2: "none",
     resolveType: () => "confidential",
     compatibleTypes: ["confidential"],
   },
-  mobileNative("react-native", "React Native", "Cross-platform mobile SDK", reactNativeLogo),
-  mobileNative("ios", "iOS", "Native iOS (Swift)", iosLogo),
-  mobileNative("android", "Android", "Native Android (Kotlin)", androidLogo),
-  mobileNative("flutter", "Flutter", "Cross-platform mobile SDK", flutterLogo),
-  mobileNative("ionic", "Ionic", "Cross-platform hybrid SDK", ionicLogo),
+  mobileNative("react-native", "React Native", "Cross-platform mobile SDK", "brand-react-native"),
+  mobileNative("ios", "iOS", "Native iOS (Swift)", "brand-apple"),
+  mobileNative("android", "Android", "Native Android (Kotlin)", "brand-android"),
+  mobileNative("flutter", "Flutter", "Cross-platform mobile SDK", "brand-flutter"),
+  mobileNative("ionic", "Ionic", "Cross-platform hybrid SDK", "device-mobile"),
 ];
 
 export function findFramework(id: Framework | string | undefined): FrameworkEntry | undefined {
