@@ -252,7 +252,8 @@ steps:
             </saml:Assertion>
           </samlp:Response>
   # Verify user.authenticated was fired twice (once per SAML login)
-  - name: verify_events
+  # The second event must have continue_from_session set (the "continue" path)
+  - name: verify_event_count
     action: audit_query
     audit_query: |
       SELECT activity_type
@@ -268,5 +269,21 @@ steps:
           },
           {
             "activity_type": "user.authenticated"
+          }
+        ]
+  - name: verify_continue_from_session
+    action: audit_query
+    audit_query: |
+      SELECT data->'payload'->'continue_from_session' AS continue_from_session
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+        AND data->'payload'->'continue_from_session' IS NOT NULL
+      LIMIT 1
+    audit_query_output:
+      rows: |
+        [
+          {
+            "continue_from_session": "[[object]]"
           }
         ]

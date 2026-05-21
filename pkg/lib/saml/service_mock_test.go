@@ -179,6 +179,21 @@ func (mr *MockIDPSessionProviderMockRecorder) AddSAMLServiceProviderParticipant(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockIDPSessionProvider)(nil).AddSAMLServiceProviderParticipant), ctx, session, serviceProviderID)
 }
 
+// Get mocks base method.
+func (m *MockIDPSessionProvider) Get(ctx context.Context, id string) (*idpsession.IDPSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, id)
+	ret0, _ := ret[0].(*idpsession.IDPSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockIDPSessionProviderMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIDPSessionProvider)(nil).Get), ctx, id)
+}
+
 // MockOfflineGrantService is a mock of OfflineGrantService interface.
 type MockOfflineGrantService struct {
 	ctrl     *gomock.Controller
@@ -215,6 +230,21 @@ func (m *MockOfflineGrantService) AddSAMLServiceProviderParticipant(ctx context.
 func (mr *MockOfflineGrantServiceMockRecorder) AddSAMLServiceProviderParticipant(ctx, grant, serviceProviderID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockOfflineGrantService)(nil).AddSAMLServiceProviderParticipant), ctx, grant, serviceProviderID)
+}
+
+// GetOfflineGrant mocks base method.
+func (m *MockOfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOfflineGrant", ctx, id)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOfflineGrant indicates an expected call of GetOfflineGrant.
+func (mr *MockOfflineGrantServiceMockRecorder) GetOfflineGrant(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockOfflineGrantService)(nil).GetOfflineGrant), ctx, id)
 }
 
 // MockTemplateEngine is a mock of TemplateEngine interface.

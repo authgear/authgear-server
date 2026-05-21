@@ -187,6 +187,8 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		if session != nil {
 			info := session.CreateNewAuthenticationInfoByThisSession()
 			info.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = true
+			info.ContinueFromSessionType = string(session.SessionType())
+			info.ContinueFromSessionID = session.SessionID()
 			entry := authenticationinfo.NewEntry(info, oauthSessionID, samlSessionID)
 			err := h.AuthenticationInfoService.Save(ctx, entry)
 			if err != nil {

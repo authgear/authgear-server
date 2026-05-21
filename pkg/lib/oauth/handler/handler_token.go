@@ -1845,10 +1845,22 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					ID: authz.UserID,
 				},
 			}
+			var continueFromSession *model.Session
+			switch session.Type(info.ContinueFromSessionType) {
+			case session.TypeIdentityProvider:
+				if idpSession, e := h.IDPSessions.Get(ctx, info.ContinueFromSessionID); e == nil {
+					continueFromSession = idpSession.ToAPIModel()
+				}
+			case session.TypeOfflineGrant:
+				if og, e := h.OfflineGrantService.GetOfflineGrant(ctx, info.ContinueFromSessionID); e == nil {
+					continueFromSession = og.ToAPIModel()
+				}
+			}
 			err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
-				UserRef:  userRef,
-				Session:  offlineGrant.ToAPIModel(),
-				AdminAPI: false,
+				UserRef:             userRef,
+				Session:             offlineGrant.ToAPIModel(),
+				AdminAPI:            false,
+				ContinueFromSession: continueFromSession,
 			})
 			if err != nil {
 				return nil, err

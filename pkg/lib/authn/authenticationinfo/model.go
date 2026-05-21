@@ -21,6 +21,11 @@ type T struct {
 	// ShouldFireAuthenticatedEventWhenIssueOfflineGrant indicates we should fire authenticated event during code exchange
 	// This value will be filled in during interaction / workflow / authentication flow
 	ShouldFireAuthenticatedEventWhenIssueOfflineGrant bool `json:"should_fire_authenticated_event_when_issue_offline_grant,omitempty"`
+	// ContinueFromSessionType and ContinueFromSessionID identify the session that
+	// the user was continuing with when they authenticated via the select_account page.
+	// They are only set when ShouldFireAuthenticatedEventWhenIssueOfflineGrant is true.
+	ContinueFromSessionType string `json:"continue_from_session_type,omitempty"`
+	ContinueFromSessionID   string `json:"continue_from_session_id,omitempty"`
 
 	// AuthenticatedBySessionType and AuthenticatedBySessionID
 	// means this authentication is done by an existing session.

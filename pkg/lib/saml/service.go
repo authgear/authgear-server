@@ -61,6 +61,7 @@ type SAMLUserInfoProvider interface {
 }
 
 type IDPSessionProvider interface {
+	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 	AddSAMLServiceProviderParticipant(
 		ctx context.Context,
 		session *idpsession.IDPSession,
@@ -69,6 +70,7 @@ type IDPSessionProvider interface {
 }
 
 type OfflineGrantService interface {
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 	AddSAMLServiceProviderParticipant(
 		ctx context.Context,
 		grant *oauth.OfflineGrant,
@@ -483,7 +485,7 @@ func (s *Service) IssueLoginSuccessResponse(
 	// continued with the current account from the select_account page).
 	// For a fresh login the event is dispatched earlier by IntentLoginFlow.
 	if authInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant {
-		err = s.dispatchUserAuthenticatedEvent(ctx, authenticatedUserId)
+		err = s.dispatchUserAuthenticatedEvent(ctx, authenticatedUserId, authInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -492,7 +494,7 @@ func (s *Service) IssueLoginSuccessResponse(
 	return response, nil
 }
 
-func (s *Service) dispatchUserAuthenticatedEvent(ctx context.Context, userID string) error {
+func (s *Service) dispatchUserAuthenticatedEvent(ctx context.Context, userID string, authInfo authenticationinfo.T) error {
 	var sessionModel *model.Session
 	resolvedSession := session.GetSession(ctx)
 	if resolvedSession != nil {
@@ -505,14 +507,30 @@ func (s *Service) dispatchUserAuthenticatedEvent(ctx context.Context, userID str
 			panic(fmt.Errorf("unexpected session type: %T", resolvedSession))
 		}
 	}
+
+	var continueFromSession *model.Session
+	switch session.Type(authInfo.ContinueFromSessionType) {
+	case session.TypeIdentityProvider:
+		idpSession, err := s.IDPSessionProvider.Get(ctx, authInfo.ContinueFromSessionID)
+		if err == nil {
+			continueFromSession = idpSession.ToAPIModel()
+		}
+	case session.TypeOfflineGrant:
+		offlineGrant, err := s.OfflineGrantSessionProvider.GetOfflineGrant(ctx, authInfo.ContinueFromSessionID)
+		if err == nil {
+			continueFromSession = offlineGrant.ToAPIModel()
+		}
+	}
+
 	return s.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: userID,
 			},
 		},
-		Session:  sessionModel,
-		AdminAPI: false,
+		Session:             sessionModel,
+		AdminAPI:            false,
+		ContinueFromSession: continueFromSession,
 	})
 }
 
