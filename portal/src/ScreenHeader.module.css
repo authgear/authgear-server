@@ -25,15 +25,13 @@
   height: var(--screen-header-height);
 }
 
-.headerArrow {
-  padding-right: 10px;
-  font-size: 14px;
-}
-
-.headerAppID {
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+.headerDivider {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1px;
+  height: 16px;
+  margin: 0 10px;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .logoLink {
