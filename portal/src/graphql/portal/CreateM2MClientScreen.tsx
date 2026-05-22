@@ -197,6 +197,7 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
     };
 
     if (error != null) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
 
@@ -224,7 +225,9 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
             setOffset(0);
           }}
         />
-        <div style={{ minHeight: 500, display: "flex", flexDirection: "column" }}>
+        <div
+          style={{ minHeight: 500, display: "flex", flexDirection: "column" }}
+        >
           <ApplicationResourcesList
             className="flex-1"
             resources={resourceListData}
@@ -333,12 +336,8 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
 
   const noResourcesDialogContent: IDialogContentProps = useMemo(
     () => ({
-      title: renderToString(
-        "CreateM2MClientScreen.no-resources-dialog.title"
-      ),
-      subText: renderToString(
-        "CreateM2MClientScreen.no-resources-dialog.body"
-      ),
+      title: renderToString("CreateM2MClientScreen.no-resources-dialog.title"),
+      subText: renderToString("CreateM2MClientScreen.no-resources-dialog.body"),
     }),
     [renderToString]
   );

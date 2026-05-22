@@ -30,7 +30,9 @@ export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
       website: [],
       mobile: [],
     };
-    frameworks.forEach((f) => acc[f.section].push(f));
+    frameworks.forEach((f) => {
+      acc[f.section].push(f);
+    });
     return acc;
   }, []);
   return (

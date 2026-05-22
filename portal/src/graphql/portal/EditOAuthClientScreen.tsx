@@ -28,7 +28,9 @@ import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import EditOAuthClientForm from "./EditOAuthClientForm";
+import EditOAuthClientForm, {
+  getApplicationTypeMessageID,
+} from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
 import { EditOAuthClientFormFrameworkQuickStart } from "./EditOAuthClientFormFrameworkQuickStart";
@@ -37,7 +39,6 @@ import {
   getDisplayIconName,
 } from "./CreateOAuthClientScreen/frameworks";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -381,7 +382,11 @@ const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
           />
         </div>
         <div className={styles.clientHeaderText}>
-          <Text variant="xLarge" block={true} className={styles.clientHeaderName}>
+          <Text
+            variant="xLarge"
+            block={true}
+            className={styles.clientHeaderName}
+          >
             {client.name ?? ""}
           </Text>
           <div className={styles.clientHeaderMeta}>
@@ -433,7 +438,9 @@ const FRAMEWORKS_WITHOUT_SAML: ReadonlySet<string> = new Set([
 ]);
 
 function shouldShowSamlTab(
-  client: { x_application_type?: string; x_framework?: string | null } | undefined
+  client:
+    | { x_application_type?: string; x_framework?: string | null }
+    | undefined
 ): boolean {
   if (client?.x_application_type !== "confidential") return false;
   return !FRAMEWORKS_WITHOUT_SAML.has(client.x_framework ?? "");
@@ -634,11 +641,7 @@ function OAuthClientSettingsForm({
 }: OAuthClientSettingsFormProps): React.ReactElement {
   return (
     <div
-      className={cn(
-        styles.widget,
-        styles.widgetColumn,
-        styles["widget--wide"]
-      )}
+      className={cn(styles.widget, styles.widgetColumn, styles["widget--wide"])}
     >
       <EditOAuthClientForm
         publicOrigin={state.publicOrigin}

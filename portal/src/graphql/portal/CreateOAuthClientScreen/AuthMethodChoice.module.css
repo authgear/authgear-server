@@ -19,7 +19,7 @@
 
 .radio {
   flex-shrink: 0;
-  margin: 3px 0 0 0;
+  margin: 3px 0 0;
   width: 16px;
   height: 16px;
   accent-color: #0969da;

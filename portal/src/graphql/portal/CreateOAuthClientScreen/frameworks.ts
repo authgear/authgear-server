@@ -31,13 +31,22 @@ export interface FrameworkEntry {
   compatibleTypes: ApplicationType[];
 }
 
-const requireStage2 = (id: Framework, stage2?: AuthMethodChoice): ApplicationType => {
+const requireStage2 = (
+  id: Framework,
+  stage2?: AuthMethodChoice
+): ApplicationType => {
   if (stage2 === "token") return "confidential";
   if (stage2 === "cookie") return "traditional_webapp";
   throw new Error(`resolveType called without stage2 on ${id}`);
 };
 
-const websiteSPA = (id: Framework, displayName: string, helperText: string, iconName: string, docLink: string): FrameworkEntry => ({
+const websiteSPA = (
+  id: Framework,
+  displayName: string,
+  helperText: string,
+  iconName: string,
+  docLink: string
+): FrameworkEntry => ({
   id,
   displayName,
   helperText,
@@ -126,7 +135,13 @@ public IActionResult Protected()
 }`,
 };
 
-const mobileNative = (id: Framework, displayName: string, helperText: string, iconName: string, docLink: string): FrameworkEntry => ({
+const mobileNative = (
+  id: Framework,
+  displayName: string,
+  helperText: string,
+  iconName: string,
+  docLink: string
+): FrameworkEntry => ({
   id,
   displayName,
   helperText,
@@ -141,16 +156,81 @@ const mobileNative = (id: Framework, displayName: string, helperText: string, ic
 const DOCS = "https://docs.authgear.com/get-started";
 
 export const frameworks: FrameworkEntry[] = [
-  websiteSPA("react", "React", "SPA, uses authgear-sdk-js", "brand-react", `${DOCS}/single-page-app/react`),
-  websiteSPA("vue", "Vue", "SPA, uses authgear-sdk-js", "brand-vue", `${DOCS}/single-page-app/vue`),
-  websiteSPA("angular", "Angular", "SPA, uses authgear-sdk-js", "brand-angular", `${DOCS}/single-page-app/angular`),
-  websiteSPA("nextjs", "Next.js", "SPA/SSR, uses authgear-sdk-nextjs", "brand-nextjs", `${DOCS}/regular-web-app/nextjs`),
-  websiteSPA("other-spa", "Other SPAs", "Any JavaScript SPA framework", "world-www", `${DOCS}/single-page-app/website`),
-  websiteServer("express", "Express.js", "Server-side, Node backend", "brand-javascript", `${DOCS}/regular-web-app/express`, EXPRESS_SNIPPET),
-  websiteServer("flask", "Python (Flask)", "Server-side, Python backend", "brand-python", `${DOCS}/regular-web-app/python-flask-app`, FLASK_SNIPPET),
-  websiteServer("laravel", "PHP (Laravel)", "Server-side, PHP backend", "brand-laravel", `${DOCS}/regular-web-app/laravel`, LARAVEL_SNIPPET),
-  websiteServer("java", "Java (Spring Boot)", "Server-side, JVM backend", "coffee", `${DOCS}/regular-web-app/java-spring-boot`, JAVA_SNIPPET),
-  websiteServer("aspnet", "ASP.NET Core MVC", "Server-side, .NET backend", "brand-windows", `${DOCS}/regular-web-app/asp.net-core-mvc`, ASPNET_SNIPPET),
+  websiteSPA(
+    "react",
+    "React",
+    "SPA, uses authgear-sdk-js",
+    "brand-react",
+    `${DOCS}/single-page-app/react`
+  ),
+  websiteSPA(
+    "vue",
+    "Vue",
+    "SPA, uses authgear-sdk-js",
+    "brand-vue",
+    `${DOCS}/single-page-app/vue`
+  ),
+  websiteSPA(
+    "angular",
+    "Angular",
+    "SPA, uses authgear-sdk-js",
+    "brand-angular",
+    `${DOCS}/single-page-app/angular`
+  ),
+  websiteSPA(
+    "nextjs",
+    "Next.js",
+    "SPA/SSR, uses authgear-sdk-nextjs",
+    "brand-nextjs",
+    `${DOCS}/regular-web-app/nextjs`
+  ),
+  websiteSPA(
+    "other-spa",
+    "Other SPAs",
+    "Any JavaScript SPA framework",
+    "world-www",
+    `${DOCS}/single-page-app/website`
+  ),
+  websiteServer(
+    "express",
+    "Express.js",
+    "Server-side, Node backend",
+    "brand-javascript",
+    `${DOCS}/regular-web-app/express`,
+    EXPRESS_SNIPPET
+  ),
+  websiteServer(
+    "flask",
+    "Python (Flask)",
+    "Server-side, Python backend",
+    "brand-python",
+    `${DOCS}/regular-web-app/python-flask-app`,
+    FLASK_SNIPPET
+  ),
+  websiteServer(
+    "laravel",
+    "PHP (Laravel)",
+    "Server-side, PHP backend",
+    "brand-laravel",
+    `${DOCS}/regular-web-app/laravel`,
+    LARAVEL_SNIPPET
+  ),
+  websiteServer(
+    "java",
+    "Java (Spring Boot)",
+    "Server-side, JVM backend",
+    "coffee",
+    `${DOCS}/regular-web-app/java-spring-boot`,
+    JAVA_SNIPPET
+  ),
+  websiteServer(
+    "aspnet",
+    "ASP.NET Core MVC",
+    "Server-side, .NET backend",
+    "brand-windows",
+    `${DOCS}/regular-web-app/asp.net-core-mvc`,
+    ASPNET_SNIPPET
+  ),
   {
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
@@ -162,18 +242,52 @@ export const frameworks: FrameworkEntry[] = [
     resolveType: () => "confidential",
     compatibleTypes: ["confidential"],
   },
-  mobileNative("react-native", "React Native", "Cross-platform mobile SDK", "brand-react-native", `${DOCS}/native-mobile-app/react-native`),
-  mobileNative("ios", "iOS", "Native iOS (Swift)", "brand-apple", `${DOCS}/native-mobile-app/ios`),
-  mobileNative("android", "Android", "Native Android (Kotlin)", "brand-android", `${DOCS}/native-mobile-app/android`),
-  mobileNative("flutter", "Flutter", "Cross-platform mobile SDK", "brand-flutter", `${DOCS}/native-mobile-app/flutter`),
-  mobileNative("ionic", "Ionic", "Cross-platform hybrid SDK", "device-mobile", `${DOCS}/native-mobile-app/ionic`),
+  mobileNative(
+    "react-native",
+    "React Native",
+    "Cross-platform mobile SDK",
+    "brand-react-native",
+    `${DOCS}/native-mobile-app/react-native`
+  ),
+  mobileNative(
+    "ios",
+    "iOS",
+    "Native iOS (Swift)",
+    "brand-apple",
+    `${DOCS}/native-mobile-app/ios`
+  ),
+  mobileNative(
+    "android",
+    "Android",
+    "Native Android (Kotlin)",
+    "brand-android",
+    `${DOCS}/native-mobile-app/android`
+  ),
+  mobileNative(
+    "flutter",
+    "Flutter",
+    "Cross-platform mobile SDK",
+    "brand-flutter",
+    `${DOCS}/native-mobile-app/flutter`
+  ),
+  mobileNative(
+    "ionic",
+    "Ionic",
+    "Cross-platform hybrid SDK",
+    "device-mobile",
+    `${DOCS}/native-mobile-app/ionic`
+  ),
 ];
 
-export function findFramework(id: Framework | string | undefined): FrameworkEntry | undefined {
+export function findFramework(
+  id: string | undefined
+): FrameworkEntry | undefined {
   return frameworks.find((f) => f.id === id);
 }
 
-export function frameworksForType(applicationType: ApplicationType): FrameworkEntry[] {
+export function frameworksForType(
+  applicationType: ApplicationType
+): FrameworkEntry[] {
   return frameworks.filter((f) => f.compatibleTypes.includes(applicationType));
 }
 
@@ -210,14 +324,18 @@ export function getQuickStartGuide(client: {
   const framework = findFramework(client.x_framework ?? undefined);
   if (client.x_framework === "other-oidc") {
     return {
-      docLink: framework?.docLink ?? "https://docs.authgear.com/get-started/oidc-provider",
+      docLink:
+        framework?.docLink ??
+        "https://docs.authgear.com/get-started/oidc-provider",
       bodyMessageId:
         "EditOAuthClientFormFrameworkQuickStart.tutorial.body.other-oidc",
     };
   }
   if (client.x_application_type === "confidential") {
     return {
-      docLink: framework?.docLink ?? "https://docs.authgear.com/get-started/regular-web-app",
+      docLink:
+        framework?.docLink ??
+        "https://docs.authgear.com/get-started/regular-web-app",
       bodyMessageId:
         "EditOAuthClientFormFrameworkQuickStart.tutorial.body.confidential",
     };

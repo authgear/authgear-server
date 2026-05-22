@@ -1,9 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-  frameworks,
-  findFramework,
-  frameworksForType,
-} from "./frameworks";
+import { frameworks, findFramework, frameworksForType } from "./frameworks";
 import { applicationFrameworks } from "../../../types";
 
 describe("frameworks catalog", () => {
@@ -32,8 +28,12 @@ describe("frameworks catalog", () => {
   });
 
   it("server framework with stage2='cookie' returns 'traditional_webapp'", () => {
-    expect(findFramework("flask")!.resolveType("cookie")).toBe("traditional_webapp");
-    expect(findFramework("aspnet")!.resolveType("cookie")).toBe("traditional_webapp");
+    expect(findFramework("flask")!.resolveType("cookie")).toBe(
+      "traditional_webapp"
+    );
+    expect(findFramework("aspnet")!.resolveType("cookie")).toBe(
+      "traditional_webapp"
+    );
   });
 
   it("server framework with no stage2 throws", () => {
@@ -56,7 +56,14 @@ describe("frameworks catalog", () => {
 
   it("frameworksForType('confidential') includes other-oidc and server frameworks", () => {
     const ids = frameworksForType("confidential").map((f) => f.id);
-    expect(ids).toEqual(["express", "flask", "laravel", "java", "aspnet", "other-oidc"]);
+    expect(ids).toEqual([
+      "express",
+      "flask",
+      "laravel",
+      "java",
+      "aspnet",
+      "other-oidc",
+    ]);
   });
 
   it("frameworksForType('native') returns native frameworks", () => {
