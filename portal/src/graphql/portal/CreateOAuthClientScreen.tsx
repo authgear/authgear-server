@@ -211,7 +211,10 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
 
     const onSelectFramework = useCallback(
       (id: Framework) => {
-        setState((s) => ({ ...s, frameworkId: id, stage2: null }));
+        const picked = findFramework(id);
+        const defaultStage2: Stage2Choice | null =
+          picked?.stage2 === "token-or-cookie" ? "token" : null;
+        setState((s) => ({ ...s, frameworkId: id, stage2: defaultStage2 }));
       },
       [setState]
     );

@@ -80,6 +80,48 @@
   align-self: flex-start;
 }
 
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border: 1px dashed #d0d7de;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.emptyIconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: #eef4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyIcon {
+  font-size: 36px;
+  color: #0969da;
+  line-height: 1;
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.emptyBody {
+  color: #57606a;
+  max-width: 420px;
+}
+
+.emptyButton {
+  margin-top: 12px;
+}
+
 .dialogGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
