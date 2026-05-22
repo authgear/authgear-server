@@ -412,6 +412,27 @@ interface EditOAuthClientContentProps {
   clientSecretHook: ClientSecretsHook;
 }
 
+/**
+ * The SAML tab is meaningful only for confidential clients that may be
+ * doing SAML integration. Per-framework OIDC integrations (Express, Flask,
+ * Laravel, Java, ASP.NET) are OIDC-only, so we hide the SAML tab there.
+ * Legacy confidential clients with no framework set keep the tab.
+ */
+const FRAMEWORKS_WITHOUT_SAML: ReadonlySet<string> = new Set([
+  "express",
+  "flask",
+  "laravel",
+  "java",
+  "aspnet",
+]);
+
+function shouldShowSamlTab(
+  client: { x_application_type?: string; x_framework?: string | null } | undefined
+): boolean {
+  if (client?.x_application_type !== "confidential") return false;
+  return !FRAMEWORKS_WITHOUT_SAML.has(client.x_framework ?? "");
+}
+
 enum FormTab {
   SETTINGS = "settings",
   SAML2 = "saml2",
@@ -512,7 +533,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
               itemKey={FormTab.SETTINGS}
               headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
             />
-            {client.x_application_type === "confidential" ? (
+            {shouldShowSamlTab(client) ? (
               <PivotItem
                 itemKey={FormTab.SAML2}
                 headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
@@ -922,7 +943,9 @@ function FormContainerContent({
         case "native":
           return [FormTab.SETTINGS, FormTab.QUICK_START];
         case "confidential":
-          return [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2];
+          return shouldShowSamlTab(client)
+            ? [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2]
+            : [FormTab.SETTINGS, FormTab.QUICK_START];
         default:
           return [FormTab.SETTINGS];
       }
