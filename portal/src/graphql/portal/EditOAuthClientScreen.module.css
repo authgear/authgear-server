@@ -163,7 +163,7 @@
 }
 
 .clientHeaderClientId {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "SFMono-Regular", "Menlo", monospace;
   font-size: 12px;
   background: #f6f8fa;
   padding: 2px 6px;

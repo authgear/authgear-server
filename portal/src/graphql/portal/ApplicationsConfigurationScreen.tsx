@@ -394,22 +394,14 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
             return (
               <div className={styles.nameCell}>
                 <i
-                  className={cn(
-                    "ti",
-                    `ti-${iconName}`,
-                    styles.nameCellIcon
-                  )}
+                  className={cn("ti", `ti-${iconName}`, styles.nameCellIcon)}
                   aria-hidden={true}
                 />
                 <div className={styles.nameCellText}>
-                  <div className={styles.nameCellTitle}>
-                    {item.name ?? ""}
-                  </div>
+                  <div className={styles.nameCellTitle}>{item.name ?? ""}</div>
                   <div className={styles.nameCellSubtitle}>
                     <FormattedMessage
-                      id={getApplicationTypeMessageID(
-                        item.x_application_type
-                      )}
+                      id={getApplicationTypeMessageID(item.x_application_type)}
                     />
                     {framework != null ? ` · ${framework.displayName}` : null}
                   </div>

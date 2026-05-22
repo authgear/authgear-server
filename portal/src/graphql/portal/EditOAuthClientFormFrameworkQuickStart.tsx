@@ -39,6 +39,9 @@ const OIDC_RECOMMENDED_SCOPE =
   "openid offline_access https://authgear.com/scopes/full-userinfo";
 const OIDC_DOCS_URL = "https://docs.authgear.com/get-started/oidc-provider";
 
+const titleStyles = { root: { fontWeight: 600 as const } };
+const tutorialDurationStyles = { root: { fontWeight: 600 as const } };
+
 interface FormStateShape {
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
@@ -55,7 +58,9 @@ export interface EditOAuthClientFormFrameworkQuickStartProps<
   clientSecrets?: OAuthClientSecretKey[];
 }
 
-export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>({
+export function EditOAuthClientFormFrameworkQuickStart<
+  S extends FormStateShape
+>({
   className,
   client,
   applicationType,
@@ -137,7 +142,11 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
       <div className={styles.frameworkRow}>
         <div className={styles.iconWrap}>
           <i
-            className={cn("ti", `ti-${framework.iconName}`, styles.frameworkIcon)}
+            className={cn(
+              "ti",
+              `ti-${framework.iconName}`,
+              styles.frameworkIcon
+            )}
             aria-hidden={true}
           />
         </div>
@@ -225,9 +234,6 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
   );
 }
 
-const titleStyles = { root: { fontWeight: 600 as const } };
-const tutorialDurationStyles = { root: { fontWeight: 600 as const } };
-
 interface ChangeFrameworkDialogProps {
   visible: boolean;
   applicationType: ApplicationType;
@@ -247,7 +253,9 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
     onDismiss,
   } = props;
   const { renderToString } = useContext(Context);
-  const [selected, setSelected] = useState<Framework | null>(currentFrameworkId);
+  const [selected, setSelected] = useState<Framework | null>(
+    currentFrameworkId
+  );
 
   // Reset selection when dialog opens with a different current framework.
   React.useEffect(() => {
@@ -261,7 +269,9 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
 
   const dialogContent: IDialogContentProps = useMemo(
     () => ({
-      title: renderToString("EditOAuthClientFormFrameworkQuickStart.change-dialog.title"),
+      title: renderToString(
+        "EditOAuthClientFormFrameworkQuickStart.change-dialog.title"
+      ),
     }),
     [renderToString]
   );
@@ -271,7 +281,8 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
     void onApply(selected);
   }, [onApply, selected]);
 
-  const canApply = selected != null && selected !== currentFrameworkId && !applying;
+  const canApply =
+    selected != null && selected !== currentFrameworkId && !applying;
 
   return (
     <Dialog

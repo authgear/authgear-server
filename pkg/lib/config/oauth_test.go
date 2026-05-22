@@ -39,7 +39,6 @@ func TestOAuthClientConfigXFramework(t *testing.T) {
 
 	Convey("TestOAuthClientConfigXFramework", t, func() {
 		for _, tc := range cases {
-			tc := tc
 			Convey(tc.name, func() {
 				doc := map[string]any{
 					"client_id":          "test",

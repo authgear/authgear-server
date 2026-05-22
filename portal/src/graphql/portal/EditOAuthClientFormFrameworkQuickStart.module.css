@@ -174,7 +174,7 @@
 .snippetCode {
   margin: 0;
   padding: 16px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
   font-size: 12.5px;
   line-height: 1.6;
   color: #24292f;

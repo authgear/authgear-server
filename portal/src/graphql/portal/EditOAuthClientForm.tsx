@@ -359,7 +359,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       return renderToString(messageID);
     }, [clientConfig.x_application_type, renderToString]);
 
-
     const redirectURIsDescription = useMemo(() => {
       const messageIdMap: Record<ApplicationType, string | undefined> = {
         spa: "EditOAuthClientForm.redirect-uris.description.spa",
