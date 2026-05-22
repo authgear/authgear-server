@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -66,6 +67,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			err = jwt.Validate(token,
 				jwt.WithClock(&jwtClock{m.Clock}),
 				jwt.WithAudience(string(m.AppID)),
+				jwt.WithAcceptableSkew(duration.ClockSkew),
 			)
 			if err != nil {
 				logger.WithError(err).Debug(ctx, "invalid token")
