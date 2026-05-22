@@ -12,16 +12,12 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Let CSS decide how many columns fit. Each card needs ~240px to comfortably
+     fit the icon + name + one-line helper text. */
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 10px;
   /* ChoiceButton renders a 1px outline outside its border-box when checked;
      add a small padding so the outermost cards' outlines don't clip against
      a parent's overflow boundary. */
   padding: 2px;
-}
-
-@media (max-width: 720px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
