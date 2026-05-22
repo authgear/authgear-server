@@ -26,20 +26,6 @@ export const AuthMethodChoiceComponent: React.FC<AuthMethodChoiceProps> = ({
     {
       key: "cookie",
       text: formatMessage({ id: "CreateOAuthClientScreen.stage2.option.cookie" }),
-      // eslint-disable-next-line react/no-unstable-nested-components
-      onRenderField: (props, render) => (
-        <div>
-          {render!(props)}
-          <div
-            className={styles.cookieHelp}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink href={nginxDocsHref}>
-              <FormattedMessage id="CreateOAuthClientScreen.stage2.option.cookie.docs-link" />
-            </ExternalLink>
-          </div>
-        </div>
-      ),
     },
   ];
   return (
@@ -54,6 +40,11 @@ export const AuthMethodChoiceComponent: React.FC<AuthMethodChoiceProps> = ({
           option && onChange(option.key as Stage2Choice)
         }
       />
+      <div className={styles.cookieHelp}>
+        <ExternalLink href={nginxDocsHref}>
+          <FormattedMessage id="CreateOAuthClientScreen.stage2.option.cookie.docs-link" />
+        </ExternalLink>
+      </div>
     </div>
   );
 };
