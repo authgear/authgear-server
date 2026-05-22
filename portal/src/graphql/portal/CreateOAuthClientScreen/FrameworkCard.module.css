@@ -1,6 +1,7 @@
 .card {
   flex: 1 1 0;
-  min-width: 13.75rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .icon {
