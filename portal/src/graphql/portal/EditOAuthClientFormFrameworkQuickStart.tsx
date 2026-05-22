@@ -99,25 +99,26 @@ export function EditOAuthClientFormFrameworkQuickStart<S extends FormStateShape>
   if (framework == null) {
     return (
       <div className={cn(styles.root, className)}>
-        <div className={styles.frameworkCard}>
-          <div className={styles.iconWrap}>
-            <i className={cn("ti", "ti-app-window", styles.frameworkIcon)} />
-          </div>
-          <div className={styles.frameworkText}>
-            <Text variant="large" block={true} styles={titleStyles}>
-              <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.title" />
-            </Text>
-            <Text block={true} className={styles.helperText}>
-              <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.body" />
-            </Text>
-            <PrimaryButton
-              className={styles.changeButton}
-              onClick={openDialog}
-              text={
-                <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.choose-framework" />
-              }
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIconWrap}>
+            <i
+              className={cn("ti", "ti-app-window", styles.emptyIcon)}
+              aria-hidden={true}
             />
           </div>
+          <Text variant="xLarge" block={true} className={styles.emptyTitle}>
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.title" />
+          </Text>
+          <Text block={true} className={styles.emptyBody}>
+            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.no-framework.body" />
+          </Text>
+          <PrimaryButton
+            className={styles.emptyButton}
+            onClick={openDialog}
+            text={
+              <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.choose-framework" />
+            }
+          />
         </div>
         <ChangeFrameworkDialog
           visible={dialogVisible}
