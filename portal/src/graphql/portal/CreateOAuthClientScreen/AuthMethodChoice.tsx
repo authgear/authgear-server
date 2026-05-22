@@ -30,7 +30,10 @@ export const AuthMethodChoiceComponent: React.FC<AuthMethodChoiceProps> = ({
       onRenderField: (props, render) => (
         <div>
           {render!(props)}
-          <div className={styles.cookieHelp}>
+          <div
+            className={styles.cookieHelp}
+            onClick={(e) => e.stopPropagation()}
+          >
             <ExternalLink href={nginxDocsHref}>
               <FormattedMessage id="CreateOAuthClientScreen.stage2.option.cookie.docs-link" />
             </ExternalLink>

@@ -276,6 +276,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             value={client.name ?? ""}
             onChange={onClientNameChange}
             required={true}
+            autoFocus={true}
           />
           <FrameworkGrid
             selectedId={state.frameworkId}
