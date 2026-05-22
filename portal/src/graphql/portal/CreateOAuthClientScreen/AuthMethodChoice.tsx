@@ -1,5 +1,4 @@
-import React from "react";
-import { ChoiceGroup, type IChoiceGroupOption } from "@fluentui/react";
+import React, { useId } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
 import ExternalLink from "../../../ExternalLink";
 import WidgetSubtitle from "../../../WidgetSubtitle";
@@ -17,29 +16,55 @@ export const AuthMethodChoiceComponent: React.FC<AuthMethodChoiceProps> = ({
   onChange,
   nginxDocsHref,
 }) => {
+  const groupId = useId();
   const { formatMessage } = useIntl();
-  const options: IChoiceGroupOption[] = [
-    {
-      key: "token",
-      text: formatMessage({ id: "CreateOAuthClientScreen.stage2.option.token" }),
-    },
-    {
-      key: "cookie",
-      text: formatMessage({ id: "CreateOAuthClientScreen.stage2.option.cookie" }),
-    },
-  ];
   return (
     <div className={styles.root}>
       <WidgetSubtitle>
         <FormattedMessage id="CreateOAuthClientScreen.stage2.question" />
       </WidgetSubtitle>
-      <ChoiceGroup
-        selectedKey={value ?? undefined}
-        options={options}
-        onChange={(_, option) =>
-          option && onChange(option.key as Stage2Choice)
-        }
-      />
+      <div className={styles.options}>
+        <label className={styles.option}>
+          <input
+            type="radio"
+            name={groupId}
+            value="token"
+            checked={value === "token"}
+            onChange={() => onChange("token")}
+            className={styles.radio}
+          />
+          <div className={styles.content}>
+            <div className={styles.title}>
+              {formatMessage({
+                id: "CreateOAuthClientScreen.stage2.option.token",
+              })}
+            </div>
+            <div className={styles.description}>
+              <FormattedMessage id="CreateOAuthClientScreen.stage2.option.token.description" />
+            </div>
+          </div>
+        </label>
+        <label className={styles.option}>
+          <input
+            type="radio"
+            name={groupId}
+            value="cookie"
+            checked={value === "cookie"}
+            onChange={() => onChange("cookie")}
+            className={styles.radio}
+          />
+          <div className={styles.content}>
+            <div className={styles.title}>
+              {formatMessage({
+                id: "CreateOAuthClientScreen.stage2.option.cookie",
+              })}
+            </div>
+            <div className={styles.description}>
+              <FormattedMessage id="CreateOAuthClientScreen.stage2.option.cookie.description" />
+            </div>
+          </div>
+        </label>
+      </div>
       <div className={styles.cookieHelp}>
         <ExternalLink href={nginxDocsHref}>
           <FormattedMessage id="CreateOAuthClientScreen.stage2.option.cookie.docs-link" />
