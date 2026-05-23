@@ -268,7 +268,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_exchange_code",
 			"admin_api_graphql",
 			"admin_api_user_import_create",
-			"admin_api_user_import_get"
+			"admin_api_user_import_get",
+			"generate_app_session_token"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -311,7 +312,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
 		"admin_api_user_import_output": { "$ref": "#/$defs/AdminAPIUserImportOutput" },
-		"admin_api_user_import_id": { "type": "string" }
+		"admin_api_user_import_id": { "type": "string" },
+		"generate_app_session_token_refresh_token": { "type": "string" }
 	},
 	"allOf": [
 		{
@@ -488,6 +490,18 @@ var _ = TestCaseSchema.Add("Step", `
 							"admin_api_user_import_output"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "generate_app_session_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"generate_app_session_token_refresh_token"
+						]
+					}
 				}
     ]
 }
@@ -565,6 +579,9 @@ type Step struct {
 	AdminAPIUserImportID string `json:"admin_api_user_import_id"`
 	// `action` == "admin_api_user_import_create" or "admin_api_user_import_get"
 	AdminAPIUserImportOutput *AdminAPIUserImportOutput `json:"admin_api_user_import_output"`
+
+	// `action` == "generate_app_session_token"
+	GenerateAppSessionTokenRefreshToken string `json:"generate_app_session_token_refresh_token"`
 }
 
 func (s Step) ResolveHTTPRequestFollowRedirects() bool {
@@ -593,6 +610,7 @@ const (
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
+	StepActionGenerateAppSessionToken  StepAction = "generate_app_session_token"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `

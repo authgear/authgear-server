@@ -105,3 +105,8 @@ var ArgPurpose = &cobraviper.StringArgument{
 	ArgumentName: "purpose",
 	Usage:        "The purpose of challenge.",
 }
+
+var ArgRefreshToken = &cobraviper.StringArgument{
+	ArgumentName: "refresh-token",
+	Usage:        "A refresh token.",
+}
