@@ -269,7 +269,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"admin_api_graphql",
 			"admin_api_user_import_create",
 			"admin_api_user_import_get",
-			"generate_app_session_token"
+			"generate_app_session_token",
+			"generate_refresh_token"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -313,7 +314,9 @@ var _ = TestCaseSchema.Add("Step", `
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
 		"admin_api_user_import_output": { "$ref": "#/$defs/AdminAPIUserImportOutput" },
 		"admin_api_user_import_id": { "type": "string" },
-		"generate_app_session_token_refresh_token": { "type": "string" }
+		"generate_app_session_token_refresh_token": { "type": "string" },
+		"generate_refresh_token_user_id": { "type": "string" },
+		"generate_refresh_token_client_id": { "type": "string" }
 	},
 	"allOf": [
 		{
@@ -502,6 +505,19 @@ var _ = TestCaseSchema.Add("Step", `
 							"generate_app_session_token_refresh_token"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "generate_refresh_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"generate_refresh_token_user_id",
+							"generate_refresh_token_client_id"
+						]
+					}
 				}
     ]
 }
@@ -582,6 +598,10 @@ type Step struct {
 
 	// `action` == "generate_app_session_token"
 	GenerateAppSessionTokenRefreshToken string `json:"generate_app_session_token_refresh_token"`
+
+	// `action` == "generate_refresh_token"
+	GenerateRefreshTokenUserID   string `json:"generate_refresh_token_user_id"`
+	GenerateRefreshTokenClientID string `json:"generate_refresh_token_client_id"`
 }
 
 func (s Step) ResolveHTTPRequestFollowRedirects() bool {
@@ -611,6 +631,7 @@ const (
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
 	StepActionGenerateAppSessionToken  StepAction = "generate_app_session_token"
+	StepActionGenerateRefreshToken     StepAction = "generate_refresh_token"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `

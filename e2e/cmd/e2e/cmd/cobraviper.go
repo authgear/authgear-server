@@ -110,3 +110,13 @@ var ArgRefreshToken = &cobraviper.StringArgument{
 	ArgumentName: "refresh-token",
 	Usage:        "A refresh token.",
 }
+
+var ArgUserID = &cobraviper.StringArgument{
+	ArgumentName: "user-id",
+	Usage:        "A user ID.",
+}
+
+var ArgClientID = &cobraviper.StringArgument{
+	ArgumentName: "client-id",
+	Usage:        "An OAuth client ID.",
+}

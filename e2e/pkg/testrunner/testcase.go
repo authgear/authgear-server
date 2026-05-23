@@ -685,6 +685,32 @@ func (tc *TestCase) executeStep(
 			Error: nil,
 		}
 
+	case StepActionGenerateRefreshToken:
+		userID, ok := renderTemplateString(t, cmd, prevSteps, step.GenerateRefreshTokenUserID)
+		if !ok {
+			return nil, state, false
+		}
+		userID = strings.TrimSpace(userID)
+
+		clientID, ok := renderTemplateString(t, cmd, prevSteps, step.GenerateRefreshTokenClientID)
+		if !ok {
+			return nil, state, false
+		}
+		clientID = strings.TrimSpace(clientID)
+
+		token, err := cmd.GenerateRefreshToken(userID, clientID)
+		if err != nil {
+			t.Errorf("failed to generate refresh token in '%s': %v\n", step.Name, err)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: map[string]any{
+				"refresh_token": strings.TrimSpace(token),
+			},
+			Error: nil,
+		}
+
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
 		return nil, state, false
