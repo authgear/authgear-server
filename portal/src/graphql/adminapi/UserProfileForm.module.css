@@ -6,8 +6,11 @@
   margin: 20px 8px;
 }
 
-.standardAttributesTitle {
-  margin-bottom: -20px;
+.sectionTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .nameGroup {

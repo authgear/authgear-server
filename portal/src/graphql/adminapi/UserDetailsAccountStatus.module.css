@@ -6,7 +6,11 @@
     / auto min-content min-content;
   @apply grid;
   @apply gap-x-2 gap-y-1;
-  @apply py-6;
+  @apply pb-6;
+}
+
+.actionCell + .actionCell {
+  @apply pt-6;
 }
 
 .actionCell:last-child {
