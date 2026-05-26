@@ -49,15 +49,20 @@ steps:
     action: generate_app_session_token
     generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_1.result.refresh_token }}'
 
+  - name: pkce_1
+    action: generate_pkce
+
   - name: settings_action_authorize_1
     action: http_request
     http_request_method: GET
     http_request_url: http://127.0.0.1:4000/oauth2/authorize
     http_request_query:
       response_type: "urn:authgear:params:oauth:response-type:settings-action"
-      client_id: e2econfidential
-      redirect_uri: http://localhost
+      client_id: e2e
+      redirect_uri: http://localhost:4000
       scope: openid
+      code_challenge: "{{ .steps.pkce_1.result.code_challenge }}"
+      code_challenge_method: S256
       x_settings_action: link_oauth
       x_oauth_provider_alias: google
       login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_1.result.app_session_token }}'
@@ -105,15 +110,20 @@ steps:
     action: generate_app_session_token
     generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_2.result.refresh_token }}'
 
+  - name: pkce_2
+    action: generate_pkce
+
   - name: settings_action_authorize_2
     action: http_request
     http_request_method: GET
     http_request_url: http://127.0.0.1:4000/oauth2/authorize
     http_request_query:
       response_type: "urn:authgear:params:oauth:response-type:settings-action"
-      client_id: e2econfidential
-      redirect_uri: http://localhost
+      client_id: e2e
+      redirect_uri: http://localhost:4000
       scope: openid
+      code_challenge: "{{ .steps.pkce_2.result.code_challenge }}"
+      code_challenge_method: S256
       x_settings_action: link_oauth
       x_oauth_provider_alias: google
       login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_2.result.app_session_token }}'

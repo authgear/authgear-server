@@ -270,7 +270,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"admin_api_user_import_create",
 			"admin_api_user_import_get",
 			"generate_app_session_token",
-			"generate_refresh_token"
+			"generate_refresh_token",
+			"generate_pkce"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -632,6 +633,7 @@ const (
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
 	StepActionGenerateAppSessionToken  StepAction = "generate_app_session_token"
 	StepActionGenerateRefreshToken     StepAction = "generate_refresh_token"
+	StepActionGeneratePKCE             StepAction = "generate_pkce"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `

@@ -20,6 +20,7 @@ import (
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -707,6 +708,16 @@ func (tc *TestCase) executeStep(
 		result = &StepResult{
 			Result: map[string]any{
 				"refresh_token": strings.TrimSpace(token),
+			},
+			Error: nil,
+		}
+
+	case StepActionGeneratePKCE:
+		verifier := pkce.GenerateS256Verifier()
+		result = &StepResult{
+			Result: map[string]any{
+				"code_verifier":  verifier.CodeVerifier,
+				"code_challenge": verifier.Challenge(),
 			},
 			Error: nil,
 		}
