@@ -28,6 +28,12 @@ import {
   AuditLogListQueryDocument,
 } from "./query/auditLogListQuery.generated";
 import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
+import {
+  ADMIN_ACTIVITY_TYPES,
+  AuditLogKind,
+  isAuditLogKind,
+  USER_ACTIVITY_TYPES,
+} from "./auditLogActivityTypes";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
@@ -47,29 +53,6 @@ import {
 } from "../../components/audit-log/ActivityTypeFilterDropdown";
 
 const pageSize = 100;
-
-const ALL_ACTIVITY_TYPES = Object.values(AuditLogActivityType);
-const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
-  (activityType) =>
-    activityType.startsWith("ADMIN_API") || activityType.startsWith("PROJECT")
-);
-// Activity types to hide from the audit log (shown elsewhere in the portal)
-const HIDDEN_ACTIVITY_TYPES = [
-  AuditLogActivityType.FraudProtectionDecisionRecorded,
-];
-const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
-  (activityType) =>
-    !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
-    !HIDDEN_ACTIVITY_TYPES.includes(activityType)
-);
-
-enum AuditLogKind {
-  User = "user",
-  Admin = "admin",
-}
-function isAuditLogKind(s: string): s is AuditLogKind {
-  return Object.values(AuditLogKind).includes(s as AuditLogKind);
-}
 
 const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const [searchParams, setSearchParams] = useSearchParams();

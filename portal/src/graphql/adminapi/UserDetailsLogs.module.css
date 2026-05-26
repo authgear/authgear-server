@@ -1,0 +1,38 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  max-width: calc(80px * 8 + 20px * 8);
+  row-gap: 40px;
+  margin: 20px 8px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tableArea {
+  display: block;
+}
+
+.viewAllLink {
+  align-self: flex-start;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.cell {
+  line-height: 18px;
+}
+
+.emptyMessageBar {
+  margin-top: 16px;
+}

@@ -45,6 +45,8 @@ import UserDetailsScreenRoleListContainer from "../../components/roles-and-group
 import UserDetailsAccountStatus, {
   AccountStatusMessageBar,
 } from "./UserDetailsAccountStatus";
+import UserDetailsLogs from "./UserDetailsLogs";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -59,11 +61,20 @@ const SESSION_PIVOT_KEY = "session";
 const ROLES_KEY = "roles";
 const GROUPS_KEY = "groups";
 const ACCOUNT_STATUS_KEY = "account-status";
+const LOGS_KEY = "logs";
 
 const pivotItemContainerStyle: IStyle = {
   flex: "1 0 auto",
   display: "flex",
   flexDirection: "column",
+};
+
+/** 8 grid columns (8×80px + 7×16px gaps = 752px) — same as the original .widget width. */
+const CONTENT_MAX_WIDTH = 752;
+
+const pivotItemContainerStyleConstrained: IStyle = {
+  ...pivotItemContainerStyle,
+  maxWidth: CONTENT_MAX_WIDTH,
 };
 interface FormState {
   userID: string;
@@ -215,6 +226,7 @@ function makeCustomAttributesFromState(
 const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
+  const { auditLogEnabled } = useSystemConfig();
   const { selectedKey, onLinkClick } = usePivotNavigation([
     USER_PROFILE_KEY,
     ACCOUNT_SECURITY_PIVOT_KEY,
@@ -223,6 +235,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     ROLES_KEY,
     GROUPS_KEY,
     ACCOUNT_STATUS_KEY,
+    ...(auditLogEnabled ? [LOGS_KEY] : []),
   ]);
   const { form, data, appConfig } = props;
   const { state, setState } = form;
@@ -313,24 +326,26 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
   if (data.isAnonymized) {
     return (
-      <div className={styles.widget}>
-        <UserDetailSummary
-          isAnonymous={data.isAnonymous}
-          isAnonymized={data.isAnonymized}
-          profileImageURL={data.standardAttributes.picture}
-          profileImageEditable={profileImageEditable}
-          rawUserID={extractRawID(data.id)}
-          formattedName={data.formattedName ?? undefined}
-          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-          createdAtISO={data.createdAt ?? null}
-          lastLoginAtISO={data.lastLoginAt ?? null}
-          accountStatus={data}
-        />
-        <MessageBar messageBarType={MessageBarType.info}>
-          <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
-        </MessageBar>
+      <div className={styles.detailsRoot}>
+        <div className={styles.summarySection}>
+          <UserDetailSummary
+            isAnonymous={data.isAnonymous}
+            isAnonymized={data.isAnonymized}
+            profileImageURL={data.standardAttributes.picture}
+            profileImageEditable={profileImageEditable}
+            rawUserID={extractRawID(data.id)}
+            formattedName={data.formattedName ?? undefined}
+            endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+            createdAtISO={data.createdAt ?? null}
+            lastLoginAtISO={data.lastLoginAt ?? null}
+            accountStatus={data}
+          />
+          <MessageBar messageBarType={MessageBarType.info}>
+            <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
+          </MessageBar>
+        </div>
         <AGPivot
-          styles={{ itemContainer: pivotItemContainerStyle }}
+          styles={{ itemContainer: pivotItemContainerStyleConstrained }}
           className={styles.pivot}
           overflowBehavior="menu"
           selectedKey={selectedKey}
@@ -343,33 +358,37 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           >
             <UserDetailsAccountStatus data={data} />
           </PivotItem>
+          {auditLogEnabled ? (
+            <PivotItem
+              itemKey={LOGS_KEY}
+              headerText={renderToString("UserDetails.logs.header")}
+            >
+              <UserDetailsLogs userID={data.id} />
+            </PivotItem>
+          ) : null}
         </AGPivot>
       </div>
     );
   }
 
   return (
-    <div className={styles.widget}>
-      <UserDetailSummary
-        isAnonymous={data.isAnonymous}
-        isAnonymized={data.isAnonymized}
-        profileImageURL={data.standardAttributes.picture}
-        profileImageEditable={profileImageEditable}
-        rawUserID={extractRawID(data.id)}
-        formattedName={data.formattedName ?? undefined}
-        endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-        createdAtISO={data.createdAt ?? null}
-        lastLoginAtISO={data.lastLoginAt ?? null}
-        accountStatus={data}
-      />
+    <div className={styles.detailsRoot}>
+      <div className={styles.summarySection}>
+        <UserDetailSummary
+          isAnonymous={data.isAnonymous}
+          isAnonymized={data.isAnonymized}
+          profileImageURL={data.standardAttributes.picture}
+          profileImageEditable={profileImageEditable}
+          rawUserID={extractRawID(data.id)}
+          formattedName={data.formattedName ?? undefined}
+          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+          createdAtISO={data.createdAt ?? null}
+          lastLoginAtISO={data.lastLoginAt ?? null}
+          accountStatus={data}
+        />
+      </div>
       <AGPivot
-        styles={{
-          itemContainer: {
-            flex: "1 0 auto",
-            display: "flex",
-            flexDirection: "column",
-          },
-        }}
+        styles={{ itemContainer: pivotItemContainerStyleConstrained }}
         className={styles.pivot}
         overflowBehavior="menu"
         selectedKey={selectedKey}
@@ -445,6 +464,11 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         >
           <UserDetailsAccountStatus data={data} />
         </PivotItem>
+        {auditLogEnabled ? (
+          <PivotItem itemKey={LOGS_KEY} headerText={renderToString("UserDetails.logs.header")}>
+            <UserDetailsLogs userID={data.id} />
+          </PivotItem>
+        ) : null}
       </AGPivot>
     </div>
   );
