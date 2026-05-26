@@ -466,14 +466,16 @@ Scripts are located at `scripts/python/generate_translations.py`.
 +++  "v2-error-new-error": "Translate me"
 ```
 
-2. Obtain your Anthropic api key. The translation is performed via `claude-3-sonnet-20240229` model
+2. Log in to Claude (uses your Claude.ai subscription quota, no API key required)
 
-   If you are located in regions blocked by Anthropic, please make use of a VPN to access the holy Anthropic API.
+```bash
+claude login
+```
 
 3. Generate translations
 
 ```bash
-make -C scripts/python generate-translations ANTHROPIC_API_KEY=<REPLACE_ME>
+make -C scripts/python generate-translations
 ```
 
 4. You should see

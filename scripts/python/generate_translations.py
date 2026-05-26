@@ -2,18 +2,15 @@ import collections
 import concurrent.futures
 import os
 import re
-import anthropic
+import subprocess
 import json
 import json_repair
 import regex
 import logging
-from dotenv import load_dotenv
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-load_dotenv()
 
 LOCALE_DICT = {
     "zh-HK": {"name": "Traditional Chinese", "cldr": "zh-Hant-HK"},
@@ -88,21 +85,15 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
     - Escape astrophes (') with double astrophes ('')
     """
 
-        client = anthropic.Anthropic()
-        # Replace model claude-3-haiku-20240307 as it failed to return special characters: electrónico -> electr??nico
-        message = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=4000,
-            temperature=0,
-            system=prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [{"type": "text", "text": json.dumps(chunk, indent=2)}],
-                }
-            ],
+        full_prompt = f"{prompt}\n\n{json.dumps(chunk, indent=2)}"
+        # Use claude CLI so calls run against the user's Claude.ai subscription quota
+        proc = subprocess.run(
+            ["claude", "-p", full_prompt],
+            capture_output=True,
+            text=True,
+            check=True,
         )
-        result = message.content[0].text
+        result = proc.stdout
 
         logging.info(f"{locale} | Translation result: {result}")
 

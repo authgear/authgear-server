@@ -17,10 +17,8 @@ generate-material-icons: venv
 generate-twemoji-icons: venv
 	$(PYTHON) ./subset_fonts/subset_twemoji_icons.py
 
-# `make generate-translations` expects the environment variable ANTHROPIC_API_KEY to be set.
-# You can set it at the CLI with
-# ANTHROPIC_API_KEY=your_key make generate-translations
-# Or create a .env file next to the Makefile. The .env file will be loaded dotenv in the script.
+# `make generate-translations` uses the claude CLI with your Claude.ai subscription quota.
+# Make sure you are logged in first: claude login
 .PHONY: generate-translations
 generate-translations: venv
 	$(PYTHON) ./generate_translations.py

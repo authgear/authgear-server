@@ -40,8 +40,8 @@ Follow this workflow whenever updating email templates.
    - Run once per changed top-level key.
 5. In a separate commit, generate non-English translations:
    - `make -C scripts/python generate-translations`
-   - `ANTHROPIC_API_KEY` must be set.
-   - If `ANTHROPIC_API_KEY` is not set, stop and ask the user to run this step.
+   - Requires being logged in to Claude: `claude login`
+   - If not logged in, stop and ask the user to run `claude login` first.
 6. Finally, generate HTML emails:
    - `make html-email`
 
