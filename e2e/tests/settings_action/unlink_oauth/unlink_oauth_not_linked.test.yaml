@@ -1,0 +1,90 @@
+name: unlink_oauth settings action - not linked error
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+      primary_authenticators:
+        - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
+        phone_number:
+          enabled: true
+          required: false
+
+before:
+  - type: user_import
+    user_import: users.json
+
+steps:
+  # ── Look up the imported user's ID ──
+
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'unlink-oauth@example.com'
+
+  # ── Start unlink_oauth settings action (user has no Google linked) ──
+
+  - name: generate_refresh_token
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token.result.refresh_token }}'
+
+  - name: pkce
+    action: generate_pkce
+
+  - name: settings_action_authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      scope: openid
+      code_challenge: "{{ .steps.pkce.result.code_challenge }}"
+      code_challenge_method: S256
+      x_settings_action: unlink_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_with_xref
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Google is not linked → renders the error page with "not connected" banner.
+  - name: settings_page_not_linked
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "This social account is not connected."

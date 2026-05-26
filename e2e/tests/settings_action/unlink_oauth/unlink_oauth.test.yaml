@@ -1,0 +1,187 @@
+name: unlink_oauth settings action - happy path
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+      primary_authenticators:
+        - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
+        phone_number:
+          enabled: true
+          required: false
+
+before:
+  - type: user_import
+    user_import: users.json
+
+steps:
+  # ── Look up the imported user's ID ──
+
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'unlink-oauth@example.com'
+
+  # ── Phase 1: Link Google via link_oauth settings action ──
+
+  - name: generate_refresh_token_1
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token_1
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_1.result.refresh_token }}'
+
+  - name: pkce_1
+    action: generate_pkce
+
+  - name: settings_action_authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      scope: openid
+      code_challenge: "{{ .steps.pkce_1.result.code_challenge }}"
+      code_challenge_method: S256
+      x_settings_action: link_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_1.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_with_xref_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize_1.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_branch_a_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref_1.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: oauth_mock_1
+    action: oauth_redirect
+    to: "{{ .steps.settings_page_branch_a_1.result.http_response_headers.location }}"
+    redirect_uri: "http://"
+
+  - name: sso_callback_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/sso/oauth2/callback/google?{{ .steps.oauth_mock_1.result.query }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # ── Get the Google identity ID for use in the remove POST ──
+
+  - name: get_google_identity_id
+    action: query
+    query: |
+      SELECT o.id
+      FROM _auth_identity_oauth o
+      JOIN _auth_identity i ON o.id = i.id AND o.app_id = i.app_id
+      WHERE o.app_id = '{{ .AppID }}'
+      AND o.provider_type = 'google'
+      AND i.user_id = '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+
+  # ── Phase 2: Unlink Google via unlink_oauth settings action ──
+
+  - name: generate_refresh_token_2
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token_2
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_2.result.refresh_token }}'
+
+  - name: pkce_2
+    action: generate_pkce
+
+  - name: settings_action_authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      scope: openid
+      code_challenge: "{{ .steps.pkce_2.result.code_challenge }}"
+      code_challenge_method: S256
+      x_settings_action: unlink_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_2.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_with_xref_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize_2.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # In unlink_oauth mode the page renders directly (no OAuth auto-trigger).
+  - name: settings_page_unlink
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref_2.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+
+  # POST remove — completes the settings action and redirects to redirect_uri.
+  - name: post_remove
+    action: http_request
+    http_request_method: POST
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref_2.result.http_response_headers.location }}"
+    http_request_form_urlencoded_body:
+      x_action: remove
+      x_provider_alias: google
+      q_identity_id: '{{ index (index .steps.get_google_identity_id.result.rows 0) "id" }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # ── Verify the Google OAuth identity was removed ──
+
+  - action: query
+    query: |
+      SELECT o.id
+      FROM _auth_identity_oauth o
+      JOIN _auth_identity i ON o.id = i.id AND o.app_id = i.app_id
+      WHERE o.app_id = '{{ .AppID }}'
+      AND o.provider_type = 'google'
+      AND i.user_id = '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    query_output:
+      rows: "[]"
