@@ -1,0 +1,208 @@
+name: link_oauth settings action - provider account owned by another user
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+      primary_authenticators:
+        - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
+        phone_number:
+          enabled: true
+          required: false
+
+before:
+  - type: user_import
+    user_import: users_conflict.json
+
+steps:
+  # ── Look up both users' IDs ──
+
+  - name: get_user_a_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'link-oauth-a@example.com'
+
+  - name: get_user_b_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'link-oauth-b@example.com'
+
+  # ── User A: link Google (happy path) ──
+
+  - name: generate_refresh_token_a
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_a_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token_a
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_a.result.refresh_token }}'
+
+  - name: settings_action_authorize_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2econfidential
+      redirect_uri: http://localhost
+      scope: openid
+      x_settings_action: link_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_a.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_with_xref_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize_a.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_branch_a_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref_a.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: oauth_mock_a
+    action: oauth_redirect
+    to: "{{ .steps.settings_page_branch_a_a.result.http_response_headers.location }}"
+    redirect_uri: "http://"
+
+  - name: sso_callback_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/sso/oauth2/callback/google?{{ .steps.oauth_mock_a.result.query }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # ── User B: tries to link the same Google account (mock always returns sub="mock") ──
+
+  - name: generate_refresh_token_b
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_b_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token_b
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token_b.result.refresh_token }}'
+
+  - name: settings_action_authorize_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2econfidential
+      redirect_uri: http://localhost
+      scope: openid
+      x_settings_action: link_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token_b.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: settings_page_with_xref_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize_b.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Branch A: user B does not have Google linked yet → auto-triggers OAuth
+  - name: settings_page_branch_a_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref_b.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: oauth_mock_b
+    action: oauth_redirect
+    to: "{{ .steps.settings_page_branch_a_b.result.http_response_headers.location }}"
+    redirect_uri: "http://"
+
+  # SSO callback: mock returns sub="mock" which is already owned by user A →
+  # server returns AccountManagementDuplicatedIdentity, redirects back to
+  # settings page with q_sso_error=1 instead of completing the settings action.
+  - name: sso_callback_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/sso/oauth2/callback/google?{{ .steps.oauth_mock_b.result.query }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Follow the redirect to verify the error banner is shown on the settings page.
+  - name: settings_page_error_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.sso_callback_b.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "This Google account is already registered. Please use another one."
+
+  # ── Verify Google identity is linked to user A only ──
+
+  - action: query
+    query: |
+      SELECT id
+      FROM _auth_identity_oauth
+      WHERE app_id = '{{ .AppID }}'
+      AND provider_type = 'google'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+
+  # Verify user B has no Google identity
+  - action: query
+    query: |
+      SELECT o.id
+      FROM _auth_identity_oauth o
+      JOIN _auth_identity i ON o.id = i.id AND o.app_id = i.app_id
+      WHERE o.app_id = '{{ .AppID }}'
+      AND o.provider_type = 'google'
+      AND i.user_id = (
+        SELECT i2.user_id FROM _auth_identity i2
+        JOIN _auth_identity_login_id l ON i2.id = l.id AND i2.app_id = l.app_id
+        WHERE i2.app_id = '{{ .AppID }}'
+        AND l.login_id = 'link-oauth-b@example.com'
+      )
+    query_output:
+      rows: "[]"
