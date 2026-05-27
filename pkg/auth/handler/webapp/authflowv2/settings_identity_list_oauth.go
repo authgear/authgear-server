@@ -37,14 +37,18 @@ func ConfigureAuthflowV2SettingsIdentityListOAuthRoute(route httproute.Route) ht
 }
 
 type AuthflowV2SettingsIdentityListOAuthViewModel struct {
-	OAuthCandidates    []identity.Candidate
-	OAuthIdentities    []*identity.OAuth
-	Verifications      map[string][]verification.ClaimStatus
-	IdentityCount      int
-	CreateDisabled     bool
-	IsInSettingsAction bool
-	IsAlreadyLinked    bool
-	IsUnknownProvider  bool
+	OAuthCandidates []identity.Candidate
+	OAuthIdentities []*identity.OAuth
+	Verifications   map[string][]verification.ClaimStatus
+	IdentityCount   int
+	CreateDisabled  bool
+
+	// Settings action state
+	IsInSettingsAction     bool
+	IsAlreadyLinked        bool // link_oauth: provider is already linked (error)
+	IsUnknownProvider      bool // any mode: alias not in app config (error)
+	IsUnlinkSettingsAction bool // true when inside unlink_oauth settings action
+	IsNotLinked            bool // unlink_oauth: provider is not linked (error)
 }
 
 type AuthflowV2SettingsIdentityListOAuthHandler struct {
@@ -233,6 +237,137 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) autoTriggerOAuth(
 	return false, nil
 }
 
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) handleGet(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	ctrl *handlerwebapp.Controller,
+	webappSession *webapp.Session,
+) error {
+	s := session.GetSession(ctx)
+	providerAlias := r.URL.Query().Get("x_provider_alias")
+	oauthConnected := r.URL.Query().Get("q_oauth_linked")
+
+	settingsActionParam := r.URL.Query().Get("x_settings_action")
+	isUnlinkMode := ctrl.IsInSettingsAction(s, webappSession) &&
+		settingsActionParam == string(settingsaction.SettingsActionUnlinkOAuth)
+
+	// Branch A: link_oauth auto-trigger (skipped in unlink_oauth mode).
+	// Falls through to Branch C when the provider is already linked or alias is unknown.
+	// q_sso_error is set by the SSO callback on error to prevent an infinite
+	// redirect loop: without it, every page load would trigger a new OAuth redirect.
+	ssoError := r.URL.Query().Get("q_sso_error")
+	if ctrl.IsInSettingsAction(s, webappSession) && !isUnlinkMode && providerAlias != "" && oauthConnected == "" && ssoError == "" {
+		if handled, err := h.autoTriggerOAuth(ctx, w, r, s, providerAlias); err != nil || handled {
+			return err
+		}
+	}
+
+	// Branch B: finish after link (skipped in unlink_oauth mode)
+	if ctrl.IsInSettingsAction(s, webappSession) && !isUnlinkMode && oauthConnected == "1" {
+		settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+		if err != nil {
+			return err
+		}
+		settingsActionResult.WriteResponse(w, r)
+		return nil
+	}
+
+	// Branch C: render list (filtered to single provider in settings-action mode)
+	var vm *AuthflowV2SettingsIdentityListOAuthViewModel
+	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		vm, e = h.getViewModel(ctx)
+		return e
+	})
+	if err != nil {
+		return err
+	}
+
+	if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" {
+		filtered := []identity.Candidate{}
+		if c := findCandidate(vm.OAuthCandidates, providerAlias); c != nil {
+			filtered = append(filtered, c)
+			identityID, _ := c[identity.CandidateKeyIdentityID].(string)
+			if isUnlinkMode {
+				vm.IsUnlinkSettingsAction = true
+				vm.IsNotLinked = identityID == ""
+			} else {
+				vm.IsAlreadyLinked = identityID != ""
+			}
+		} else {
+			vm.IsUnknownProvider = true
+		}
+		vm.OAuthCandidates = filtered
+		vm.IsInSettingsAction = true
+	}
+
+	data := map[string]any{}
+	viewmodels.Embed(data, h.BaseViewModel.ViewModel(r, w))
+	viewmodels.Embed(data, vm)
+	h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityListOAuthHTML, data)
+	return nil
+}
+
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) handlePostAdd(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	s := session.GetSession(ctx)
+
+	var vm *AuthflowV2SettingsIdentityListOAuthViewModel
+	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+		var e error
+		vm, e = h.getViewModel(ctx)
+		return e
+	})
+	if err != nil {
+		return err
+	}
+
+	alias := r.Form.Get("x_provider_alias")
+	candidate := findCandidate(vm.OAuthCandidates, alias)
+	if candidate == nil {
+		return fmt.Errorf("unknown provider alias: %s", alias)
+	}
+
+	return h.startOAuthFlow(ctx, w, r, s, alias, candidate)
+}
+
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) handlePostRemove(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	ctrl *handlerwebapp.Controller,
+	webappSession *webapp.Session,
+) error {
+	s := session.GetSession(ctx)
+
+	identityID := r.Form.Get("q_identity_id")
+
+	_, err := h.AccountManagement.DeleteIdentityOAuth(ctx, s, &accountmanagement.DeleteIdentityOAuthInput{
+		IdentityID: identityID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if ctrl.IsInSettingsAction(s, webappSession) {
+		settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+		if err != nil {
+			return err
+		}
+		settingsActionResult.WriteResponse(w, r)
+		return nil
+	}
+
+	redirectURI := httputil.HostRelative(r.URL).String()
+	result := webapp.Result{RedirectURI: redirectURI}
+	result.WriteResponse(w, r)
+	return nil
+}
+
 func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -242,101 +377,14 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, webappSession *webapp.Session) error {
-		s := session.GetSession(ctx)
-		providerAlias := r.URL.Query().Get("x_provider_alias")
-		oauthConnected := r.URL.Query().Get("q_oauth_linked")
-
-		// Branch A: in settings action, auto-trigger link when not yet linked.
-		// Falls through to Branch C when the provider is already linked.
-		// q_sso_error is set by the SSO callback on error to prevent an infinite
-		// redirect loop: without it, every page load would trigger a new OAuth redirect.
-		ssoError := r.URL.Query().Get("q_sso_error")
-		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" && oauthConnected == "" && ssoError == "" {
-			if handled, err := h.autoTriggerOAuth(ctx, w, r, s, providerAlias); err != nil || handled {
-				return err
-			}
-			// Already linked: fall through to Branch C to show filtered list with error.
-		}
-
-		// Branch B: in settings action, finish after link
-		if ctrl.IsInSettingsAction(s, webappSession) && oauthConnected == "1" {
-			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
-			if err != nil {
-				return err
-			}
-			settingsActionResult.WriteResponse(w, r)
-			return nil
-		}
-
-		// Branch C: render list (filtered to single provider in settings-action mode)
-		var vm *AuthflowV2SettingsIdentityListOAuthViewModel
-		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			var e error
-			vm, e = h.getViewModel(ctx)
-			return e
-		})
-		if err != nil {
-			return err
-		}
-
-		if ctrl.IsInSettingsAction(s, webappSession) && providerAlias != "" {
-			filtered := []identity.Candidate{}
-			if c := findCandidate(vm.OAuthCandidates, providerAlias); c != nil {
-				filtered = append(filtered, c)
-				identityID, _ := c[identity.CandidateKeyIdentityID].(string)
-				vm.IsAlreadyLinked = identityID != ""
-			} else {
-				vm.IsUnknownProvider = true
-			}
-			vm.OAuthCandidates = filtered
-			vm.IsInSettingsAction = true
-		}
-
-		data := map[string]any{}
-		viewmodels.Embed(data, h.BaseViewModel.ViewModel(r, w))
-		viewmodels.Embed(data, vm)
-		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityListOAuthHTML, data)
-		return nil
+		return h.handleGet(ctx, w, r, ctrl, webappSession)
 	})
 
 	ctrl.PostAction("add", func(ctx context.Context) error {
-		s := session.GetSession(ctx)
-
-		var vm *AuthflowV2SettingsIdentityListOAuthViewModel
-		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			var e error
-			vm, e = h.getViewModel(ctx)
-			return e
-		})
-		if err != nil {
-			return err
-		}
-
-		alias := r.Form.Get("x_provider_alias")
-		candidate := findCandidate(vm.OAuthCandidates, alias)
-		if candidate == nil {
-			return fmt.Errorf("unknown provider alias: %s", alias)
-		}
-
-		return h.startOAuthFlow(ctx, w, r, s, alias, candidate)
+		return h.handlePostAdd(ctx, w, r)
 	})
 
-	ctrl.PostAction("remove", func(ctx context.Context) error {
-		s := session.GetSession(ctx)
-
-		identityID := r.Form.Get("q_identity_id")
-
-		_, err := h.AccountManagement.DeleteIdentityOAuth(ctx, s, &accountmanagement.DeleteIdentityOAuthInput{
-			IdentityID: identityID,
-		})
-		if err != nil {
-			return err
-		}
-
-		redirectURI := httputil.HostRelative(r.URL).String()
-		result := webapp.Result{RedirectURI: redirectURI}
-		result.WriteResponse(w, r)
-
-		return nil
+	ctrl.PostActionWithSettingsActionWebSession("remove", r, func(ctx context.Context, webappSession *webapp.Session) error {
+		return h.handlePostRemove(ctx, w, r, ctrl, webappSession)
 	})
 }

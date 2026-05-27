@@ -760,6 +760,7 @@
   "v2.page.settings-identity-oauth.default.title": "Social Account",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "This social account is already connected.",
   "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[To Developer] The specified OAuth provider is not configured.",
+  "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error": "This social account is not connected.",
   "v2.page.settings-identity-phone.default.title": "Phone",
   "v2.page.settings-identity-verify-email.default.title": "Verification",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Set up phone",

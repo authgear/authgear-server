@@ -760,6 +760,7 @@
   "v2.page.settings-identity-oauth.default.title": "Akun Sosial",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "Akun sosial ini sudah terhubung.",
   "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[To Developer] Penyedia OAuth yang ditentukan tidak dikonfigurasi.",
+  "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error": "Akun sosial ini tidak terhubung.",
   "v2.page.settings-identity-phone.default.title": "Telepon",
   "v2.page.settings-identity-verify-email.default.title": "Verifikasi",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Atur ponsel",

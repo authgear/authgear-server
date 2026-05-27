@@ -760,6 +760,7 @@
   "v2.page.settings-identity-oauth.default.title": "Konto społecznościowe",
   "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "To konto społecznościowe jest już połączone.",
   "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[Do Dewelopera] Określony dostawca OAuth nie jest skonfigurowany.",
+  "v2.page.settings-identity-oauth.unlink-oauth.not-linked-error": "To konto społecznościowe nie jest połączone.",
   "v2.page.settings-identity-phone.default.title": "Telefon",
   "v2.page.settings-identity-verify-email.default.title": "Weryfikacja",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Skonfiguruj telefon",

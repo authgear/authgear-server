@@ -128,7 +128,7 @@
 /pkg/auth/handler/webapp/authflowv2/settings_identity_edit_phone.go:134:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_edit_username.go:121:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_list_email.go:153:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_identity_list_oauth.go:242:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_identity_list_oauth.go:377:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_list_phone.go:158:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_list_username.go:87:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_new_username.go:74:30: requestcontext
