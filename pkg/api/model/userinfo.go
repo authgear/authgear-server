@@ -8,3 +8,8 @@ type UserInfoAuthenticator struct {
 	Type      AuthenticatorType `json:"type"`
 	Kind      AuthenticatorKind `json:"kind"`
 }
+
+type UserInfoIdentity struct {
+	Type          IdentityType `json:"type"`
+	ProviderAlias string       `json:"provider_alias,omitempty"`
+}
