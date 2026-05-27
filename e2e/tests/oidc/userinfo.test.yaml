@@ -1,0 +1,105 @@
+name: Userinfo endpoint returns identities and authenticators claims
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - type: username
+        - type: email
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+
+  # Log in with username + password
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # Exchange the authorization code for tokens
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  # Call the userinfo endpoint with the access token
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]",
+          "https://authgear.com/claims/user/identities": [
+            {
+              "type": "login_id"
+            },
+            {
+              "type": "login_id"
+            }
+          ],
+          "https://authgear.com/claims/user/authenticators": [
+            {
+              "type": "password",
+              "kind": "primary",
+              "created_at": "[[string]]",
+              "updated_at": "[[string]]"
+            }
+          ]
+        }
