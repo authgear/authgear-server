@@ -183,6 +183,25 @@ func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, 
 	)
 }
 
+func (e *End2EndCmd) GenerateAppSessionToken(refreshToken string) (string, error) {
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"generate-app-session-token",
+		"--app-id", e.AppID,
+		"--refresh-token", refreshToken,
+	)
+}
+
+func (e *End2EndCmd) GenerateRefreshToken(userID, clientID string) (string, error) {
+	return e.execCmdArgs(
+		"./dist/e2e",
+		"generate-refresh-token",
+		"--app-id", e.AppID,
+		"--user-id", userID,
+		"--client-id", clientID,
+	)
+}
+
 func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 	return e.execCmdArgs(
 		"./dist/e2e",

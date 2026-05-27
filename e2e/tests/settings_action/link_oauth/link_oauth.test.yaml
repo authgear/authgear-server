@@ -1,0 +1,133 @@
+name: link_oauth settings action - happy path
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+      primary_authenticators:
+        - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
+        phone_number:
+          enabled: true
+          required: false
+
+before:
+  - type: user_import
+    user_import: users.json
+
+steps:
+  # ── Look up the imported user's ID ──
+
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'link-oauth@example.com'
+
+  # ── Generate a refresh token directly for the imported user ──
+
+  - name: generate_refresh_token
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  # ── Get app_session_token from refresh_token ──
+
+  - name: generate_app_session_token
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token.result.refresh_token }}'
+
+  # ── Generate PKCE pair for the SPA client ──
+
+  - name: pkce
+    action: generate_pkce
+
+  # ── Start link_oauth settings action ──
+  # Server sets app_session_token cookie and redirects to settings page with x_ref
+
+  - name: settings_action_authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: "urn:authgear:params:oauth:response-type:settings-action"
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      scope: openid
+      code_challenge: "{{ .steps.pkce.result.code_challenge }}"
+      code_challenge_method: S256
+      x_settings_action: link_oauth
+      x_oauth_provider_alias: google
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Session middleware sees x_ref, creates webapp session cookie, redirects to same URL without x_ref
+
+  - name: settings_page_with_xref
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.settings_action_authorize.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Branch A: user not yet linked → auto-trigger Google OAuth redirect
+
+  - name: settings_page_branch_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.settings_page_with_xref.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Mock OIDC proxy intercepts Google OAuth and returns SSO callback URL immediately.
+  # redirect_uri "http://" matches any http:// URL so oauth_redirect stops at the SSO callback.
+
+  - name: oauth_mock
+    action: oauth_redirect
+    to: "{{ .steps.settings_page_branch_a.result.http_response_headers.location }}"
+    redirect_uri: "http://"
+
+  # SSO callback links the Google OAuth identity.
+  # The noRedirectClient carries app_session_token and webapp session cookies.
+
+  - name: sso_callback
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/sso/oauth2/callback/google?{{ .steps.oauth_mock.result.query }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # ── Verify the Google OAuth identity was created ──
+
+  - action: query
+    query: |
+      SELECT id
+      FROM _auth_identity_oauth
+      WHERE app_id = '{{ .AppID }}'
+      AND provider_type = 'google'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]

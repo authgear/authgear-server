@@ -758,6 +758,8 @@
   "v2.page.settings-identity-oauth.default.provider.wechat": "WeChat",
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "Trennen",
   "v2.page.settings-identity-oauth.default.title": "Soziales Konto",
+  "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "Dieses Social-Konto ist bereits verbunden.",
+  "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[To Developer] Der angegebene OAuth-Anbieter ist nicht konfiguriert.",
   "v2.page.settings-identity-phone.default.title": "Telefon",
   "v2.page.settings-identity-verify-email.default.title": "Verifizierung",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Telefon einrichten",

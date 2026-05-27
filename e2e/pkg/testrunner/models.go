@@ -268,7 +268,10 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_exchange_code",
 			"admin_api_graphql",
 			"admin_api_user_import_create",
-			"admin_api_user_import_get"
+			"admin_api_user_import_get",
+			"generate_app_session_token",
+			"generate_refresh_token",
+			"generate_pkce"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -311,7 +314,10 @@ var _ = TestCaseSchema.Add("Step", `
 		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
 		"admin_api_user_import_output": { "$ref": "#/$defs/AdminAPIUserImportOutput" },
-		"admin_api_user_import_id": { "type": "string" }
+		"admin_api_user_import_id": { "type": "string" },
+		"generate_app_session_token_refresh_token": { "type": "string" },
+		"generate_refresh_token_user_id": { "type": "string" },
+		"generate_refresh_token_client_id": { "type": "string" }
 	},
 	"allOf": [
 		{
@@ -488,6 +494,31 @@ var _ = TestCaseSchema.Add("Step", `
 							"admin_api_user_import_output"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "generate_app_session_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"generate_app_session_token_refresh_token"
+						]
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "generate_refresh_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"generate_refresh_token_user_id",
+							"generate_refresh_token_client_id"
+						]
+					}
 				}
     ]
 }
@@ -565,6 +596,13 @@ type Step struct {
 	AdminAPIUserImportID string `json:"admin_api_user_import_id"`
 	// `action` == "admin_api_user_import_create" or "admin_api_user_import_get"
 	AdminAPIUserImportOutput *AdminAPIUserImportOutput `json:"admin_api_user_import_output"`
+
+	// `action` == "generate_app_session_token"
+	GenerateAppSessionTokenRefreshToken string `json:"generate_app_session_token_refresh_token"`
+
+	// `action` == "generate_refresh_token"
+	GenerateRefreshTokenUserID   string `json:"generate_refresh_token_user_id"`
+	GenerateRefreshTokenClientID string `json:"generate_refresh_token_client_id"`
 }
 
 func (s Step) ResolveHTTPRequestFollowRedirects() bool {
@@ -593,6 +631,9 @@ const (
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
+	StepActionGenerateAppSessionToken  StepAction = "generate_app_session_token"
+	StepActionGenerateRefreshToken     StepAction = "generate_refresh_token"
+	StepActionGeneratePKCE             StepAction = "generate_pkce"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `

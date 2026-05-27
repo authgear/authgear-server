@@ -397,7 +397,15 @@ func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.R
 	now := c.Clock.NowUTC()
 	s, err := c.getWebSession(ctx, false)
 	if err == nil && s != nil {
-		return s, nil
+		// Do not reuse a settings action session for a regular authflow.
+		// Settings action sessions can have OAuthProviderAlias set, which would
+		// cause the login page to auto-redirect to the OAuth provider even when
+		// the user is just trying to log in normally.
+		if s.SettingsActionID != "" {
+			err = webapp.ErrSessionNotFound
+		} else {
+			return s, nil
+		}
 	}
 
 	// If any other error, error out.

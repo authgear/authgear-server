@@ -129,6 +129,34 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ss, ShouldEqual, s)
 		})
+
+		Convey("create new session if existing session is a settings action session", func() {
+			// A settings action session has OAuthProviderAlias set. If reused
+			// by the authflow login handler, it would auto-redirect to the OAuth
+			// provider even when the user just wants to log in normally.
+			ctx := context.Background()
+			settingsActionSession := &webapp.Session{
+				ID:                 "settings-action-session",
+				SettingsActionID:   "settings-action-id-123",
+				OAuthProviderAlias: "google",
+			}
+			ctx = webapp.WithSession(ctx, settingsActionSession)
+
+			r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
+			w := httptest.NewRecorder()
+
+			opts := webapp.SessionOptions{}
+
+			mockSessionStore.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			mockCookieManager.EXPECT().ValueCookie(c.SessionCookie.Def, gomock.Any()).Times(1).Return(&http.Cookie{})
+			mockUIInfoResolver.EXPECT().LooksLikeOriginallyTriggeredByOIDCOrSaml(gomock.Any()).AnyTimes().Return(false)
+
+			newSession, err := c.getOrCreateWebSession(ctx, w, r, opts)
+			So(err, ShouldBeNil)
+			So(newSession, ShouldNotBeNil)
+			So(newSession.ID, ShouldNotEqual, settingsActionSession.ID)
+			So(newSession.SettingsActionID, ShouldBeEmpty)
+		})
 	})
 }
 

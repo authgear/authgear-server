@@ -20,6 +20,7 @@ import (
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -665,6 +666,62 @@ func (tc *TestCase) executeStep(
 			Result: resp,
 			Error:  err,
 		}
+	case StepActionGenerateAppSessionToken:
+		refreshToken, ok := renderTemplateString(t, cmd, prevSteps, step.GenerateAppSessionTokenRefreshToken)
+		if !ok {
+			return nil, state, false
+		}
+		refreshToken = strings.TrimSpace(refreshToken)
+
+		token, err := cmd.GenerateAppSessionToken(refreshToken)
+		if err != nil {
+			t.Errorf("failed to generate app session token in '%s': %v\n", step.Name, err)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: map[string]any{
+				"app_session_token": strings.TrimSpace(token),
+			},
+			Error: nil,
+		}
+
+	case StepActionGenerateRefreshToken:
+		userID, ok := renderTemplateString(t, cmd, prevSteps, step.GenerateRefreshTokenUserID)
+		if !ok {
+			return nil, state, false
+		}
+		userID = strings.TrimSpace(userID)
+
+		clientID, ok := renderTemplateString(t, cmd, prevSteps, step.GenerateRefreshTokenClientID)
+		if !ok {
+			return nil, state, false
+		}
+		clientID = strings.TrimSpace(clientID)
+
+		token, err := cmd.GenerateRefreshToken(userID, clientID)
+		if err != nil {
+			t.Errorf("failed to generate refresh token in '%s': %v\n", step.Name, err)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: map[string]any{
+				"refresh_token": strings.TrimSpace(token),
+			},
+			Error: nil,
+		}
+
+	case StepActionGeneratePKCE:
+		verifier := pkce.GenerateS256Verifier()
+		result = &StepResult{
+			Result: map[string]any{
+				"code_verifier":  verifier.CodeVerifier,
+				"code_challenge": verifier.Challenge(),
+			},
+			Error: nil,
+		}
+
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
 		return nil, state, false
@@ -1052,9 +1109,10 @@ func validateSAMLElement(t *testing.T, expected *OuputSAMLElement, httpResponse 
 	return ok
 }
 
-func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http.Response) (ok bool) {
+func validateHTTPResponseStatus(t *testing.T, stepName string, expectedStatus int, response *http.Response) (ok bool) {
 	if response.StatusCode != expectedStatus {
-		t.Errorf("http response status code unmatch. expected: %d, actual: %d",
+		t.Errorf("http response status code unmatch in '%s'. expected: %d, actual: %d",
+			stepName,
 			expectedStatus,
 			response.StatusCode,
 		)
@@ -1071,7 +1129,7 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		return
 	}
 	if httpOutput.HTTPStatus != nil {
-		if !validateHTTPResponseStatus(t, int(*httpOutput.HTTPStatus), response) {
+		if !validateHTTPResponseStatus(t, step.Name, int(*httpOutput.HTTPStatus), response) {
 			ok = false
 		}
 	}
@@ -1139,7 +1197,7 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 		return
 	}
 	if samlOutput.HTTPStatus != nil {
-		if !validateHTTPResponseStatus(t, int(*samlOutput.HTTPStatus), response) {
+		if !validateHTTPResponseStatus(t, "saml_request", int(*samlOutput.HTTPStatus), response) {
 			ok = false
 		}
 	}

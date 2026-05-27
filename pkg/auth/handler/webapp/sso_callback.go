@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -52,14 +53,34 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
+		if state.SettingsActionID != "" {
+			q := redirectURL.Query()
+			q.Set(settingsaction.QUERY_SETTINGS_ACTION_ID, state.SettingsActionID)
+			if state.ProviderAlias != "" {
+				q.Set("x_provider_alias", state.ProviderAlias)
+			}
+			redirectURL.RawQuery = q.Encode()
+		}
+
 		_, err = h.AccountManagement.FinishAddingIdentityOAuth(r.Context(), s, &accountmanagement.FinishAddingIdentityOAuthInput{
 			Token: state.AccountManagementToken,
 			Query: r.URL.Query().Encode(),
 		})
 		if err != nil {
-			h.ErrorRenderer.MakeAuthflowErrorResult(r.Context(), w, r, *redirectURL, err).WriteResponse(w, r)
+			// Add q_sso_error to prevent Branch A from auto-triggering the OAuth
+			// redirect again on the settings page, which would create an infinite loop.
+			// q_ params are stripped by PreserveQuery so they won't be inherited by links.
+			errRedirectURL := *redirectURL
+			eq := errRedirectURL.Query()
+			eq.Set("q_sso_error", "1")
+			errRedirectURL.RawQuery = eq.Encode()
+			h.ErrorRenderer.MakeAuthflowErrorResult(r.Context(), w, r, errRedirectURL, err).WriteResponse(w, r)
 			return
 		}
+
+		q := redirectURL.Query()
+		q.Set("q_oauth_linked", "1")
+		redirectURL.RawQuery = q.Encode()
 
 		http.Redirect(w, r, redirectURL.String(), http.StatusFound)
 		return

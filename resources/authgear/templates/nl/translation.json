@@ -758,6 +758,8 @@
   "v2.page.settings-identity-oauth.default.provider.wechat": "WeChat",
   "v2.page.settings-identity-oauth.default.remove-oauth-button-label": "Ontkoppelen",
   "v2.page.settings-identity-oauth.default.title": "Sociaal account",
+  "v2.page.settings-identity-oauth.link-oauth.already-linked-error": "Dit sociale account is al verbonden.",
+  "v2.page.settings-identity-oauth.link-oauth.unknown-provider-error": "[To Developer] De opgegeven OAuth-provider is niet geconfigureerd.",
   "v2.page.settings-identity-phone.default.title": "Telefoon",
   "v2.page.settings-identity-verify-email.default.title": "Verificatie",
   "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Stel telefoon in",
