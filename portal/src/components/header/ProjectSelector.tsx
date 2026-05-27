@@ -190,6 +190,10 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelecto
     return [...filteredApps].sort((a, b) => a.appID.localeCompare(b.appID));
   }, [filteredApps]);
 
+  const otherApps = useMemo(() => {
+    return sortedApps.filter((app) => app.appID !== displayAppID);
+  }, [sortedApps, displayAppID]);
+
   const createButtonDisabled =
     isProjectQuotaReached(viewer ?? null) || isAuthgearOnce;
 
@@ -353,35 +357,18 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelecto
               <FormattedMessage id="ScreenHeader.projectSelector.your-projects" />
             </div>
             <div className={styles.projectList}>
-              {sortedApps.map((app) => {
-                const isSelected = app.appID === displayAppID;
-                return (
-                  <button
-                    key={app.appID}
-                    type="button"
-                    className={
-                      isSelected
-                        ? `${styles.projectListItem} ${styles.projectListItemSelected}`
-                        : styles.projectListItem
-                    }
-                    onClick={() => onSelectProject(app.appID)}
-                  >
-                    <span className={styles.projectListItemCheck}>
-                      {isSelected ? (
-                        <Icon
-                          iconName="CheckMark"
-                          styles={{
-                            root: { color: accentColor, fontSize: 16 },
-                          }}
-                        />
-                      ) : null}
-                    </span>
-                    <span className={styles.projectListItemLabel}>
-                      {app.appID}
-                    </span>
-                  </button>
-                );
-              })}
+              {otherApps.map((app) => (
+                <button
+                  key={app.appID}
+                  type="button"
+                  className={styles.projectListItem}
+                  onClick={() => onSelectProject(app.appID)}
+                >
+                  <span className={styles.projectListItemLabel}>
+                    {app.appID}
+                  </span>
+                </button>
+              ))}
             </div>
           </section>
           {!isAuthgearOnce ? (

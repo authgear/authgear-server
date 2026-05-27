@@ -94,16 +94,8 @@
   background-color: #f3f2f1;
 }
 
-.projectListItemCheck {
-  width: 16px;
-  flex-shrink: 0;
-  margin-left: 8px;
-  font-size: 16px;
-  color: var(--project-selector-accent);
-}
-
 .projectListItemLabel {
-  padding-right: 8px;
+  padding: 0 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
