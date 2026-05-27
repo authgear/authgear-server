@@ -485,6 +485,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,

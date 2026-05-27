@@ -516,6 +516,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -1344,6 +1345,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,
