@@ -18,6 +18,9 @@ import (
 
 	dsig "github.com/russellhaering/goxmldsig"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -44,6 +47,10 @@ var errCannotFormatMap error = errors.New("cannot format a map to saml attribute
 
 //go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package saml_test
 
+type EventService interface {
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+}
+
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
 	SAMLLogoutURL(serviceProviderId string) *url.URL
@@ -54,6 +61,7 @@ type SAMLUserInfoProvider interface {
 }
 
 type IDPSessionProvider interface {
+	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 	AddSAMLServiceProviderParticipant(
 		ctx context.Context,
 		session *idpsession.IDPSession,
@@ -62,6 +70,7 @@ type IDPSessionProvider interface {
 }
 
 type OfflineGrantService interface {
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 	AddSAMLServiceProviderParticipant(
 		ctx context.Context,
 		grant *oauth.OfflineGrant,
@@ -86,6 +95,7 @@ type Service struct {
 	IDPSessionProvider          IDPSessionProvider
 	OfflineGrantSessionProvider OfflineGrantService
 	TemplateEngine              TemplateEngine
+	Events                      EventService
 }
 
 func (s *Service) IdpEntityID() string {
@@ -471,7 +481,57 @@ func (s *Service) IssueLoginSuccessResponse(
 		return nil, err
 	}
 
+	// Dispatch user.authenticated when the session already existed (e.g. user
+	// continued with the current account from the select_account page).
+	// For a fresh login the event is dispatched earlier by IntentLoginFlow.
+	if authInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant {
+		err = s.dispatchUserAuthenticatedEvent(ctx, authenticatedUserId, authInfo)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return response, nil
+}
+
+func (s *Service) dispatchUserAuthenticatedEvent(ctx context.Context, userID string, authInfo authenticationinfo.T) error {
+	var sessionModel *model.Session
+	resolvedSession := session.GetSession(ctx)
+	if resolvedSession != nil {
+		switch rs := resolvedSession.(type) {
+		case *idpsession.IDPSession:
+			sessionModel = rs.ToAPIModel()
+		case *oauth.OfflineGrantSession:
+			sessionModel = rs.OfflineGrant.ToAPIModel()
+		default:
+			panic(fmt.Errorf("unexpected session type: %T", resolvedSession))
+		}
+	}
+
+	var continueFromSession *model.Session
+	switch session.Type(authInfo.ContinueFromSessionType) {
+	case session.TypeIdentityProvider:
+		idpSession, err := s.IDPSessionProvider.Get(ctx, authInfo.ContinueFromSessionID)
+		if err == nil {
+			continueFromSession = idpSession.ToAPIModel()
+		}
+	case session.TypeOfflineGrant:
+		offlineGrant, err := s.OfflineGrantSessionProvider.GetOfflineGrant(ctx, authInfo.ContinueFromSessionID)
+		if err == nil {
+			continueFromSession = offlineGrant.ToAPIModel()
+		}
+	}
+
+	return s.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		Session:             sessionModel,
+		AdminAPI:            false,
+		ContinueFromSession: continueFromSession,
+	})
 }
 
 func (s *Service) IssueLogoutRequest(

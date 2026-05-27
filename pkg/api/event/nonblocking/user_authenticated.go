@@ -10,10 +10,11 @@ const (
 )
 
 type UserAuthenticatedEventPayload struct {
-	UserRef   model.UserRef `json:"-" resolve:"user"`
-	UserModel model.User    `json:"user"`
-	Session   model.Session `json:"session"`
-	AdminAPI  bool          `json:"-"`
+	UserRef             model.UserRef  `json:"-" resolve:"user"`
+	UserModel           model.User     `json:"user"`
+	Session             *model.Session `json:"session"`
+	AdminAPI            bool           `json:"-"`
+	ContinueFromSession *model.Session `json:"continue_from_session,omitempty"`
 }
 
 func (e *UserAuthenticatedEventPayload) NonBlockingEventType() event.Type {

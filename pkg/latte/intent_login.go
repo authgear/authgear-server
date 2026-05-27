@@ -150,7 +150,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			}
 			err := deps.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
-				Session:  *session.ToAPIModel(),
+				Session:  session.ToAPIModel(),
 				AdminAPI: false,
 			})
 			if err != nil {
