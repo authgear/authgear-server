@@ -13,6 +13,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 
@@ -89,6 +90,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 		rolesAndGroupsQueries := NewMockRolesAndGroupsQueries(ctrl)
 		authenticatorService := NewMockUserInfoAuthenticatorService(ctrl)
 		mfaService := NewMockUserInfoMFAService(ctrl)
+		identityService := NewMockUserInfoIdentityService(ctrl)
 
 		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 		createdAt := now.Add(-1 * time.Hour)
@@ -133,9 +135,22 @@ func TestGetUserInfoBearer(t *testing.T) {
 			},
 		}
 
+		idens := []*identity.Info{
+			{
+				Type: model.IdentityTypeLoginID,
+			},
+			{
+				Type: model.IdentityTypeOAuth,
+				OAuth: &identity.OAuth{
+					ProviderAlias: "google",
+				},
+			},
+		}
+
 		userQueries.EXPECT().Get(gomock.Any(), "user-id", config.RoleBearer).Return(user, nil)
 		rolesAndGroupsQueries.EXPECT().ListEffectiveRolesByUserID(gomock.Any(), "user-id").Return(roles, nil)
 		authenticatorService.EXPECT().List(gomock.Any(), "user-id", gomock.Any()).Return(authns, nil)
+		identityService.EXPECT().ListByUser(gomock.Any(), "user-id").Return(idens, nil)
 		mfaService.EXPECT().ListRecoveryCodes(gomock.Any(), "user-id").Return([]*mfa.RecoveryCode{
 			{
 				Code: "some-code",
@@ -150,6 +165,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 			RolesAndGroupsQueries: rolesAndGroupsQueries,
 			AuthenticatorService:  authenticatorService,
 			MFAService:            mfaService,
+			IdentityService:       identityService,
 			AuthenticationConfig: &config.AuthenticationConfig{
 				PrimaryAuthenticators: &[]model.AuthenticatorType{
 					model.AuthenticatorTypePassword,
@@ -192,6 +208,10 @@ func TestGetUserInfoBearer(t *testing.T) {
 					Type:      model.AuthenticatorTypeTOTP,
 					Kind:      model.AuthenticatorKindSecondary,
 				},
+			},
+			Identities: []model.UserInfoIdentity{
+				{Type: model.IdentityTypeLoginID},
+				{Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
 			},
 			RecoveryCodeEnabled: true,
 		})
