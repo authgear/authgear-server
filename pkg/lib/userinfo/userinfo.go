@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -35,6 +36,7 @@ type UserInfo struct {
 	AccountAccountStaleFrom *time.Time                    `json:"account_status_stale_from,omitempty"`
 	EffectiveRoleKeys       []string                      `json:"effective_role_keys"`
 	Authenticators          []model.UserInfoAuthenticator `json:"authenticators"`
+	Identities              []model.UserInfoIdentity      `json:"identities"`
 	RecoveryCodeEnabled     bool                          `json:"recovery_code_enabled"`
 }
 
@@ -50,6 +52,10 @@ type UserInfoMFAService interface {
 	ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error)
 }
 
+type UserInfoIdentityService interface {
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
+}
+
 type UserQueries interface {
 	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
 }
@@ -63,6 +69,7 @@ type UserInfoService struct {
 	RolesAndGroupsQueries RolesAndGroupsQueries
 	AuthenticatorService  UserInfoAuthenticatorService
 	MFAService            UserInfoMFAService
+	IdentityService       UserInfoIdentityService
 }
 
 func (s *UserInfoService) GetUserInfoGreatest(ctx context.Context, userID string) (*UserInfo, error) {
@@ -138,6 +145,22 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 		userinfoAuthens = append(userinfoAuthens, userinfoAuthen)
 	}
 
+	identityInfos, err := s.IdentityService.ListByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	userinfoIdentities := []model.UserInfoIdentity{}
+	for _, info := range identityInfos {
+		uiIdentity := model.UserInfoIdentity{
+			Type: info.Type,
+		}
+		if info.Type == model.IdentityTypeOAuth && info.OAuth != nil {
+			uiIdentity.ProviderAlias = info.OAuth.ProviderAlias
+		}
+		userinfoIdentities = append(userinfoIdentities, uiIdentity)
+	}
+
 	recoveryCodes, err := s.MFAService.ListRecoveryCodes(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -148,6 +171,7 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 		AccountAccountStaleFrom: u.AccountStatusStaleFrom,
 		EffectiveRoleKeys:       roleKeys,
 		Authenticators:          userinfoAuthens,
+		Identities:              userinfoIdentities,
 		RecoveryCodeEnabled:     len(recoveryCodes) > 0,
 	}, nil
 }
