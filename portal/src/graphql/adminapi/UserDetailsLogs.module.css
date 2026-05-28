@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   max-width: calc(80px * 8 + 20px * 8);
-  row-gap: 40px;
-  margin: 20px 8px;
+  row-gap: 16px;
+  margin-left: 10px;
+  padding-top: 16px;
 }
 
 .section {
@@ -22,11 +23,18 @@
   display: block;
 }
 
+.viewAllRow {
+  /* Align with DetailsList cell padding. */
+  padding-left: 12px;
+  margin-top: 6px;
+}
+
 .viewAllLink {
-  align-self: flex-start;
-  margin-top: 12px;
-  font-size: 14px;
+  /* Match DetailsList row text size. */
+  font-size: 12px;
+  line-height: 18px;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .cell {

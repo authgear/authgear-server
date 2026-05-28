@@ -34,12 +34,11 @@ interface UserDetailsLogsProps {
   userID: string;
 }
 
-function buildAuditLogListHref(
-  appID: string,
+function buildAuditLogListSearchParams(
   kind: AuditLogKind,
   rawUserID: string
 ): string {
-  const params = new URLSearchParams({
+  return new URLSearchParams({
     kind,
     q: rawUserID,
     page: "1",
@@ -48,8 +47,18 @@ function buildAuditLogListHref(
     last_updated_at: Date.now().toString(),
     from: "",
     to: "",
-  });
-  return `/project/${appID}/audit-log?${params.toString()}`;
+  }).toString();
+}
+
+function buildAuditLogListHref(
+  appID: string,
+  kind: AuditLogKind,
+  rawUserID: string
+): string {
+  return `/project/${appID}/audit-log?${buildAuditLogListSearchParams(
+    kind,
+    rawUserID
+  )}`;
 }
 
 interface LogTableItem {
@@ -96,6 +105,11 @@ const UserDetailsLogsActivitySection: React.VFC<
     [appID, auditLogKind, rawUserID]
   );
 
+  const auditLogListSearchParams = useMemo(
+    () => buildAuditLogListSearchParams(auditLogKind, rawUserID),
+    [auditLogKind, rawUserID]
+  );
+
   const columns: IColumn[] = useMemo(
     () => [
       {
@@ -118,6 +132,13 @@ const UserDetailsLogsActivitySection: React.VFC<
     [renderToString]
   );
 
+  const totalCount = data?.auditLogs?.totalCount;
+  const showViewAllLink =
+    !loading &&
+    error == null &&
+    totalCount != null &&
+    totalCount > LOG_PREVIEW_PAGE_SIZE;
+
   const items: LogTableItem[] = useMemo(() => {
     const edges = data?.auditLogs?.edges;
     const result: LogTableItem[] = [];
@@ -138,21 +159,28 @@ const UserDetailsLogsActivitySection: React.VFC<
       });
     }
     return result;
-  }, [data?.auditLogs?.edges, locale, renderToString]);
+  }, [
+    data?.auditLogs?.edges,
+    locale,
+    renderToString,
+  ]);
 
   const onRenderItemColumn = useCallback(
     (item: LogTableItem, _index?: number, column?: IColumn) => {
       const text = item[column?.key as keyof LogTableItem] ?? "-";
       if (column?.key === "activityType") {
         return (
-          <Link to={`/project/${appID}/audit-log/${item.id}/details`}>
+          <Link
+            to={`/project/${appID}/audit-log/${item.id}/details`}
+            state={{ searchParams: auditLogListSearchParams }}
+          >
             {text}
           </Link>
         );
       }
       return <span>{text}</span>;
     },
-    [appID]
+    [appID, auditLogListSearchParams]
   );
 
   const isEmpty = !loading && items.length === 0;
@@ -179,11 +207,18 @@ const UserDetailsLogsActivitySection: React.VFC<
               <FormattedMessage id="UserDetails.logs.empty" />
             </MessageBar>
           ) : null}
+          {showViewAllLink ? (
+            <div className={styles.viewAllRow}>
+              <Link
+                className={styles.viewAllLink}
+                to={auditLogListHref}
+              >
+                <FormattedMessage id={viewAllMessageID} />
+              </Link>
+            </div>
+          ) : null}
         </div>
       )}
-      <Link className={styles.viewAllLink} to={auditLogListHref}>
-        <FormattedMessage id={viewAllMessageID} />
-      </Link>
     </section>
   );
 };
