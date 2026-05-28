@@ -168,6 +168,14 @@ func (m *SessionInfoMiddleware) getJWKs(ctx context.Context) (jwk.Set, error) {
 	}
 	// This is the most important line.
 	req.Host = httpHostHeader
+	// When EndpointInternal is an HTTP URL but the public Endpoint is HTTPS,
+	// PublicOriginMiddleware on the auth server would issue a 307 redirect because
+	// the request scheme doesn't match the configured public_origin scheme.
+	// Setting X-Forwarded-Proto to the public endpoint's scheme tells the middleware
+	// that the request is already on the correct scheme, suppressing the redirect.
+	// This mirrors what a TLS-terminating load balancer does when forwarding to an
+	// internal HTTP backend.
+	req.Header.Set("X-Forwarded-Proto", parsedEndpoint.Scheme)
 
 	resp, err := m.HTTPClient.Do(req)
 	if err != nil {
