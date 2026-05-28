@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Callout,
   DirectionalHint,
@@ -141,6 +141,7 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelecto
   const { appID, theme } = props;
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
+  const location = useLocation();
   const capture = useCapture();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const calloutPanelRef = useRef<HTMLDivElement>(null);
@@ -278,10 +279,90 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelecto
         { project_id: selectedAppID }
       );
       const typedID = toTypedID("App", selectedAppID);
-      navigate(`/project/${encodeURIComponent(typedID)}/getting-started`);
+      const newProjectBasePath = `/project/${encodeURIComponent(typedID)}`;
+      const currentPathname = location.pathname;
+      const projectPathnamePattern = /^\/project\/[^/]+/;
+      const isInApplications =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/configuration/apps");
+      const isInAPIResources =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/api-resources");
+      const isInExternalOAuth =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes(
+          "/configuration/authentication/external-oauth"
+        );
+      const customAttributesBasePath =
+        "/configuration/user-profile/custom-attributes";
+      const isInCustomAttributesSubpage = (() => {
+        const projectMatch = currentPathname.match(projectPathnamePattern);
+        if (projectMatch == null) {
+          return false;
+        }
+        const pathAfterProject = currentPathname.slice(projectMatch[0].length);
+        if (!pathAfterProject.startsWith(customAttributesBasePath)) {
+          return false;
+        }
+        const remainder = pathAfterProject.slice(
+          customAttributesBasePath.length
+        );
+        return remainder !== "" && remainder !== "/";
+      })();
+      const isInAddUser =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/user-management/users/add-user");
+      const isInAddRole =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/user-management/roles/add-role");
+      const isInAddGroup =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/user-management/groups/add-group");
+      const isInPortalAdminsInvite =
+        projectPathnamePattern.test(currentPathname) &&
+        currentPathname.includes("/portal-admins/invite");
+
+      const nextPathname = (() => {
+        if (isInApplications) {
+          return `${newProjectBasePath}/configuration/apps`;
+        }
+        if (isInAPIResources) {
+          return `${newProjectBasePath}/api-resources`;
+        }
+        if (isInExternalOAuth) {
+          return `${newProjectBasePath}/configuration/authentication/external-oauth`;
+        }
+        if (isInCustomAttributesSubpage) {
+          return `${newProjectBasePath}${customAttributesBasePath}`;
+        }
+        if (isInAddUser) {
+          return `${newProjectBasePath}/user-management/users`;
+        }
+        if (isInAddRole) {
+          return `${newProjectBasePath}/user-management/roles`;
+        }
+        if (isInAddGroup) {
+          return `${newProjectBasePath}/user-management/groups`;
+        }
+        if (isInPortalAdminsInvite) {
+          return `${newProjectBasePath}/portal-admins`;
+        }
+        return projectPathnamePattern.test(currentPathname)
+          ? currentPathname.replace(projectPathnamePattern, newProjectBasePath)
+          : `${newProjectBasePath}/getting-started`;
+      })();
+
+      navigate(`${nextPathname}${location.search}${location.hash}`);
       setIsCalloutOpen(false);
     },
-    [capture, displayAppID, navigate]
+    [
+      capture,
+      displayAppID,
+      location.hash,
+      location.pathname,
+      location.search,
+      navigate,
+    ]
   );
 
   const onCreateProject = useCallback(
