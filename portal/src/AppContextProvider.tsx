@@ -49,7 +49,7 @@ export default function AppContextProvider(
   }
 
   return (
-    <AppContext.Provider value={appContextValue}>
+    <AppContext.Provider key={appNodeID} value={appContextValue}>
       {children}
     </AppContext.Provider>
   );
