@@ -25,12 +25,16 @@
   @apply flex-1-0-auto;
 
   grid-template-rows: min-content minmax(min-content, 1fr);
-  /* Override the fixed 80px columns so the 12-col detailsRoot fills the
-     full container width on large screens (making the pivot tab bar full-bleed).
-     Content width is constrained via summarySection / itemContainer maxWidth. */
-  /* Use minmax(0, 1fr) to avoid forcing a minimum width that causes
-     horizontal scrolling on narrower viewports. */
-  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+}
+
+/* Override ScreenContent's default fixed 80px columns so the 12-col detailsRoot
+   fills the full container width on large screens (making the pivot tab bar
+   full-bleed). Content width is constrained via summarySection / itemContainer
+   maxWidth. minmax(0, 1fr) avoids forcing a minimum width that would cause
+   horizontal scrolling on narrower viewports. The doubled selector raises
+   specificity above ScreenContent.module.css's .autoRows. */
+.screenContent.screenContent {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .pivot {

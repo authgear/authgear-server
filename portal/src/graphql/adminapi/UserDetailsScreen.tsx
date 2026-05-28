@@ -465,7 +465,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           <UserDetailsAccountStatus data={data} />
         </PivotItem>
         {auditLogEnabled ? (
-          <PivotItem itemKey={LOGS_KEY} headerText={renderToString("UserDetails.logs.header")}>
+          <PivotItem
+            itemKey={LOGS_KEY}
+            headerText={renderToString("UserDetails.logs.header")}
+          >
             <UserDetailsLogs userID={data.id} />
           </PivotItem>
         ) : null}
