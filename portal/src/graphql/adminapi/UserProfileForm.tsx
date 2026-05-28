@@ -826,7 +826,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     );
 
     return (
-      <>
+      <div className={styles.section}>
         <Text as="h2" block={true} className={styles.sectionTitle}>
           <FormattedMessage id="UserProfileForm.standard-attributes.title" />
         </Text>
@@ -1028,7 +1028,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
             />
           </Div>
         ) : null}
-      </>
+      </div>
     );
   };
 
@@ -1047,7 +1047,7 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
     } = props;
 
     return (
-      <>
+      <div className={styles.section}>
         <Text as="h2" block={true} className={styles.sectionTitle}>
           <FormattedMessage id="UserProfileForm.custom-attributes.title" />
         </Text>
@@ -1063,7 +1063,7 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
             );
           })}
         </div>
-      </>
+      </div>
     );
   };
 
@@ -1098,7 +1098,9 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
           onChangeStandardAttributes={onChangeStandardAttributes}
           standardAttributeAccessControl={standardAttributeAccessControl}
         />
-        <HorizontalDivider />
+        <div className={styles.sectionDivider}>
+          <HorizontalDivider />
+        </div>
         <CustomAttributesForm
           customAttributes={customAttributes}
           onChangeCustomAttributes={onChangeCustomAttributes}

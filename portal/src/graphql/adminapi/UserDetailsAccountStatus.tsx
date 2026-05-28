@@ -941,7 +941,7 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     );
 
     return (
-      <div>
+      <div className={styles.root}>
         <DisableUserCell
           data={data}
           onClickDisable={onClickDisable}
