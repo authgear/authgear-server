@@ -2,7 +2,7 @@
 
 ## 1. Goal / Scope
 
-Add the `identities` field to the `UserInfo` type in the JS SDK so that callers of `fetchUserInfo()` can read which identities are linked to the user and, for OAuth identities, which provider alias they used.
+Add the `identities` field to the `UserInfo` type in the JS SDK so that callers of `fetchUserInfo()` can read which identities are linked to the user, for login ID identities which key was used, and for OAuth identities which provider alias they used.
 
 This mirrors how `authenticators` was added. All changes are in `packages/authgear-core/src/types.ts` and its test file. The three other packages (`authgear-web`, `authgear-react-native`, `authgear-capacitor`) import `UserInfo` from core and require no changes.
 
@@ -46,9 +46,16 @@ Place after the `IdentityType` enum:
  */
 export interface Identity {
   type: IdentityType;
+  createdAt: Date;
+  updatedAt: Date;
+  loginIDKey?: string;
   providerAlias?: string;
 }
 ```
+
+`createdAt` and `updatedAt` are always present, decoded from the `"created_at"` and `"updated_at"` RFC 3339 strings in the JSON response — matching the pattern used by `Authenticator`.
+
+`loginIDKey` is present only when `type` is `IdentityType.LoginID` (e.g. `"email"`, `"phone"`, `"username"`).
 
 `providerAlias` is present only when `type` is `IdentityType.OAuth`.
 
@@ -106,7 +113,12 @@ export function _decodeIdentities(r: any): Identity[] | undefined {
   return r.map((i) => {
     const identity: Identity = {
       type: parseIdentityType(i["type"]),
+      createdAt: new Date(i["created_at"]),
+      updatedAt: new Date(i["updated_at"]),
     };
+    if (identity.type === IdentityType.LoginID) {
+      identity.loginIDKey = i["login_id_key"];
+    }
     if (identity.type === IdentityType.OAuth) {
       identity.providerAlias = i["provider_alias"];
     }
@@ -155,13 +167,20 @@ Add `"https://authgear.com/claims/user/identities"` after the authenticators arr
 "https://authgear.com/claims/user/identities": [
   {
     "type": "oauth",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z",
     "provider_alias": "google"
   },
   {
-    "type": "login_id"
+    "type": "login_id",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z",
+    "login_id_key": "email"
   },
   {
-    "type": "unknown_future_type"
+    "type": "unknown_future_type",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
   }
 ],
 ```
@@ -174,13 +193,20 @@ Add `identities` after `authenticators`:
       identities: [
         {
           type: IdentityType.OAuth,
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+          updatedAt: new Date("2024-01-01T00:00:00Z"),
           providerAlias: "google",
         },
         {
           type: IdentityType.LoginID,
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+          updatedAt: new Date("2024-01-01T00:00:00Z"),
+          loginIDKey: "email",
         },
         {
           type: IdentityType.Unknown,
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+          updatedAt: new Date("2024-01-01T00:00:00Z"),
         },
       ],
 ```
@@ -194,7 +220,7 @@ Add the raw key to match the fixture (the `raw` field in `UserInfo` is the unmod
 ```typescript
         "https://authgear.com/claims/user/identities": [
           { type: "oauth", provider_alias: "google" },
-          { type: "login_id" },
+          { type: "login_id", login_id_key: "email" },
           { type: "unknown_future_type" },
         ],
 ```

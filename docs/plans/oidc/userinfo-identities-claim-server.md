@@ -3,7 +3,7 @@
 ## 1. Goal / Scope
 
 Add `https://authgear.com/claims/user/identities` to the OIDC userinfo endpoint.
-Each element exposes `type` (string) and, for OAuth identities, `provider_alias` (string).
+Each element exposes `type` (string), for login ID identities `login_id_key` (string), and for OAuth identities `provider_alias` (string).
 
 This follows the same pattern as `https://authgear.com/claims/user/authenticators`:
 - Returned from the userinfo endpoint only (not embedded in the ID token).
@@ -30,12 +30,15 @@ Add a new struct after `UserInfoAuthenticator`:
 
 ```go
 type UserInfoIdentity struct {
+    CreatedAt     time.Time          `json:"created_at"`
+    UpdatedAt     time.Time          `json:"updated_at"`
     Type          model.IdentityType `json:"type"`
+    LoginIDKey    string             `json:"login_id_key,omitempty"`
     ProviderAlias string             `json:"provider_alias,omitempty"`
 }
 ```
 
-No `created_at`/`updated_at` — the spec keeps identities minimal.
+Mirrors `UserInfoAuthenticator` which also carries `created_at`/`updated_at`.
 
 ---
 
@@ -80,7 +83,12 @@ if err != nil {
 userinfoIdentities := []model.UserInfoIdentity{}
 for _, info := range identityInfos {
     uiIdentity := model.UserInfoIdentity{
-        Type: info.Type,
+        CreatedAt: info.CreatedAt,
+        UpdatedAt: info.UpdatedAt,
+        Type:      info.Type,
+    }
+    if info.Type == model.IdentityTypeLoginID && info.LoginID != nil {
+        uiIdentity.LoginIDKey = info.LoginID.LoginIDKey
     }
     if info.Type == model.IdentityTypeOAuth && info.OAuth != nil {
         uiIdentity.ProviderAlias = info.OAuth.ProviderAlias
@@ -89,7 +97,11 @@ for _, info := range identityInfos {
 }
 ```
 
-`info.OAuth.ProviderAlias` is the `ProviderAlias string` field defined at line 26 of `pkg/lib/authn/identity/oauth_identity.go`.
+`info.CreatedAt` and `info.UpdatedAt` are on `identity.Info` (line 9–10 of `pkg/lib/authn/identity/info.go`).
+
+`info.LoginID.LoginIDKey` is the `LoginIDKey string` field on `pkg/lib/authn/identity/loginid_identity.go` (the configured key name, e.g. `"email"`, `"phone"`, `"username"`).
+
+`info.OAuth.ProviderAlias` is the `ProviderAlias string` field defined at `pkg/lib/authn/identity/oauth_identity.go`.
 
 **Update the return value:**
 
@@ -176,9 +188,9 @@ Concrete cases to cover:
 
 | Scenario | `Identities` in mock | Expected JSON key |
 |---|---|---|
-| OAuth identity | `[{Type: "oauth", ProviderAlias: "google"}]` | `[{"type":"oauth","provider_alias":"google"}]` |
-| Login ID identity | `[{Type: "login_id"}]` | `[{"type":"login_id"}]` |
-| Mixed | `[{Type: "oauth", ProviderAlias: "google"}, {Type: "login_id"}]` | both elements |
+| OAuth identity | `[{CreatedAt: t, UpdatedAt: t, Type: "oauth", ProviderAlias: "google"}]` | `[{"created_at":"...","updated_at":"...","type":"oauth","provider_alias":"google"}]` |
+| Login ID identity | `[{CreatedAt: t, UpdatedAt: t, Type: "login_id", LoginIDKey: "email"}]` | `[{"created_at":"...","updated_at":"...","type":"login_id","login_id_key":"email"}]` |
+| Mixed | both of the above | both elements |
 | Empty | `[]` | `[]` |
 
 **Extend `TestGetUserInfo`** (the `TestGetUserInfo` Convey block, which uses map assertions):

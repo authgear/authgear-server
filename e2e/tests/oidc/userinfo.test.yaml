@@ -88,10 +88,16 @@ steps:
           "sub": "[[string]]",
           "https://authgear.com/claims/user/identities": [
             {
-              "type": "login_id"
+              "type": "login_id",
+              "created_at": "[[string]]",
+              "updated_at": "[[string]]",
+              "login_id_key": "email"
             },
             {
-              "type": "login_id"
+              "type": "login_id",
+              "created_at": "[[string]]",
+              "updated_at": "[[string]]",
+              "login_id_key": "username"
             }
           ],
           "https://authgear.com/claims/user/authenticators": [

@@ -137,10 +137,17 @@ func TestGetUserInfoBearer(t *testing.T) {
 
 		idens := []*identity.Info{
 			{
-				Type: model.IdentityTypeLoginID,
+				CreatedAt: createdAt,
+				UpdatedAt: updatedAt,
+				Type:      model.IdentityTypeLoginID,
+				LoginID: &identity.LoginID{
+					LoginIDKey: "email",
+				},
 			},
 			{
-				Type: model.IdentityTypeOAuth,
+				CreatedAt: createdAt,
+				UpdatedAt: updatedAt,
+				Type:      model.IdentityTypeOAuth,
 				OAuth: &identity.OAuth{
 					ProviderAlias: "google",
 				},
@@ -210,8 +217,8 @@ func TestGetUserInfoBearer(t *testing.T) {
 				},
 			},
 			Identities: []model.UserInfoIdentity{
-				{Type: model.IdentityTypeLoginID},
-				{Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
+				{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email"},
+				{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
 			},
 			RecoveryCodeEnabled: true,
 		})

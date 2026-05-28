@@ -254,8 +254,8 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 					},
 				},
 				Identities: []model.UserInfoIdentity{
-					{Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
-					{Type: model.IdentityTypeLoginID},
+					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
+					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email"},
 				},
 			},
 			nil,
@@ -304,11 +304,16 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
   "https://authgear.com/claims/user/can_reauthenticate": true,
   "https://authgear.com/claims/user/identities": [
     {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
       "type": "oauth",
       "provider_alias": "google"
     },
     {
-      "type": "login_id"
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "login_id",
+      "login_id_key": "email"
     }
   ],
   "https://authgear.com/claims/user/is_anonymous": false,
@@ -354,7 +359,7 @@ func TestGetUserInfo(t *testing.T) {
 					},
 				},
 				Identities: []model.UserInfoIdentity{
-					{Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
+					{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
 				},
 				RecoveryCodeEnabled: true,
 			},
@@ -391,7 +396,7 @@ func TestGetUserInfo(t *testing.T) {
 			},
 		})
 		So(userInfo[string(model.ClaimIdentities)], ShouldResemble, []model.UserInfoIdentity{
-			{Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
+			{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
 		})
 	})
 }

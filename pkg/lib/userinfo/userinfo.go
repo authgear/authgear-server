@@ -153,7 +153,12 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 	userinfoIdentities := []model.UserInfoIdentity{}
 	for _, info := range identityInfos {
 		uiIdentity := model.UserInfoIdentity{
-			Type: info.Type,
+			CreatedAt: info.CreatedAt,
+			UpdatedAt: info.UpdatedAt,
+			Type:      info.Type,
+		}
+		if info.Type == model.IdentityTypeLoginID && info.LoginID != nil {
+			uiIdentity.LoginIDKey = info.LoginID.LoginIDKey
 		}
 		if info.Type == model.IdentityTypeOAuth && info.OAuth != nil {
 			uiIdentity.ProviderAlias = info.OAuth.ProviderAlias
