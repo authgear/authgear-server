@@ -352,7 +352,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           onLinkClick={onLinkClick}
         >
           <PivotItem
-            className={"flex-1 pt-8"}
+            className={"flex-1"}
             itemKey={ACCOUNT_STATUS_KEY}
             headerText={renderToString("UserDetails.account-status.header")}
           >
@@ -444,21 +444,21 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           />
         </PivotItem>
         <PivotItem
-          className={"flex-1 pt-8"}
+          className={"flex-1"}
           itemKey={ROLES_KEY}
           headerText={renderToString("UserDetails.roles.header")}
         >
           <UserDetailsScreenRoleListContainer user={data} />
         </PivotItem>
         <PivotItem
-          className={"flex-1 pt-8"}
+          className={"flex-1"}
           itemKey={GROUPS_KEY}
           headerText={renderToString("UserDetails.groups.header")}
         >
           <UserDetailsScreenGroupListContainer user={data} />
         </PivotItem>
         <PivotItem
-          className={"flex-1 pt-8"}
+          className={"flex-1"}
           itemKey={ACCOUNT_STATUS_KEY}
           headerText={renderToString("UserDetails.account-status.header")}
         >

@@ -28,7 +28,9 @@
   /* Override the fixed 80px columns so the 12-col detailsRoot fills the
      full container width on large screens (making the pivot tab bar full-bleed).
      Content width is constrained via summarySection / itemContainer maxWidth. */
-  grid-template-columns: repeat(12, minmax(80px, 1fr)) !important;
+  /* Use minmax(0, 1fr) to avoid forcing a minimum width that causes
+     horizontal scrolling on narrower viewports. */
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
 }
 
 .pivot {
