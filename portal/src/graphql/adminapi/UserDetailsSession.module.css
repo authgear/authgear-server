@@ -1,11 +1,12 @@
 .root {
-  margin: 25px 0;
+  margin-left: 10px;
+  padding-top: 16px;
+  margin-bottom: 16px;
 }
 
 .header {
   font-size: 14px;
   font-weight: 600;
-  padding-left: 10px;
   margin: 0;
 }
 

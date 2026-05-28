@@ -1,5 +1,6 @@
 .root {
   margin-left: 10px;
+  padding-top: 16px;
 }
 
 .headerSection {
@@ -12,8 +13,6 @@
 
 .header {
   font-weight: 600;
-  padding-top: 6px;
-  padding-bottom: 6px;
 }
 
 .identityLists {
