@@ -397,6 +397,7 @@ interface Identity {
   createdAt: Date;
   updatedAt: Date;
   loginIDKey?: string; // Present when type is "login_id", e.g. "email", "phone", "username"
+  loginIDType?: "email" | "phone" | "username"; // Present when type is "login_id"
   providerAlias?: string; // Present when type is "oauth"
 }
 
@@ -450,7 +451,8 @@ interface UserInfo {
       "type": "login_id",
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z",
-      "login_id_key": "email"
+      "login_id_key": "email",
+      "login_id_type": "email"
     }
   ],
   "https://authgear.com/claims/user/recovery_code_enabled": true
