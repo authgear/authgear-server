@@ -388,6 +388,8 @@ const isGoogleLinked = userInfo.identities.some(
 interface Authenticator {
   kind: "primary" | "secondary";
   type: "password" | "passkey" | "totp" | "oob_otp_email" | "oob_otp_sms";
+  createdAt: Date;
+  updatedAt: Date;
   email?: string;
   phoneNumber?: string;
 }
@@ -423,21 +425,29 @@ interface UserInfo {
   "https://authgear.com/claims/user/authenticators": [
     {
       "kind": "primary",
-      "type": "password"
+      "type": "password",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
     },
     {
       "kind": "secondary",
       "type": "oob_otp_email",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
       "email": "oob_otp_email@example.com"
     },
     {
       "kind": "secondary",
       "type": "oob_otp_sms",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
       "phone_number": "+85212345678"
     },
     {
       "kind": "secondary",
-      "type": "totp"
+      "type": "totp",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
     }
   ],
   "https://authgear.com/claims/user/identities": [
