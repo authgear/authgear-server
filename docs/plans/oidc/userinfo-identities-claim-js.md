@@ -36,9 +36,27 @@ export enum IdentityType {
 
 `Unknown` follows the same defensive pattern used by `AuthenticatorType` — unknown values from the server decode gracefully.
 
+#### Add `LoginIDType` enum
+
+Place after `IdentityType`:
+
+```typescript
+/**
+ * @public
+ */
+export enum LoginIDType {
+  Email = "email",
+  Phone = "phone",
+  Username = "username",
+  Unknown = "unknown",
+}
+```
+
+`Unknown` follows the same pattern — if the server introduces a new login ID type, the SDK decodes it gracefully rather than silently dropping or corrupting the value.
+
 #### Add `Identity` interface
 
-Place after the `IdentityType` enum:
+Place after the `LoginIDType` enum:
 
 ```typescript
 /**
@@ -49,6 +67,7 @@ export interface Identity {
   createdAt: Date;
   updatedAt: Date;
   loginIDKey?: string;
+  loginIDType?: LoginIDType;
   providerAlias?: string;
 }
 ```
@@ -56,6 +75,8 @@ export interface Identity {
 `createdAt` and `updatedAt` are always present, decoded from the `"created_at"` and `"updated_at"` RFC 3339 strings in the JSON response — matching the pattern used by `Authenticator`.
 
 `loginIDKey` is present only when `type` is `IdentityType.LoginID` (e.g. `"email"`, `"phone"`, `"username"`).
+
+`loginIDType` is present only when `type` is `IdentityType.LoginID`. It is one of `LoginIDType.Email`, `LoginIDType.Phone`, `LoginIDType.Username`, or `LoginIDType.Unknown`.
 
 `providerAlias` is present only when `type` is `IdentityType.OAuth`.
 
@@ -68,7 +89,7 @@ Add `identities` after `authenticators`:
   identities?: Identity[];
 ```
 
-#### Add `parseIdentityType` function
+#### Add `parseIdentityType` and `parseLoginIDType` functions
 
 Place after the existing `parseAuthenticatorKind` function:
 
@@ -96,6 +117,22 @@ export function parseIdentityType(value: string): IdentityType {
       return IdentityType.Unknown;
   }
 }
+
+/**
+ * @internal
+ */
+export function parseLoginIDType(value: string): LoginIDType {
+  switch (value) {
+    case "email":
+      return LoginIDType.Email;
+    case "phone":
+      return LoginIDType.Phone;
+    case "username":
+      return LoginIDType.Username;
+    default:
+      return LoginIDType.Unknown;
+  }
+}
 ```
 
 #### Add `_decodeIdentities` function
@@ -118,6 +155,10 @@ export function _decodeIdentities(r: any): Identity[] | undefined {
     };
     if (identity.type === IdentityType.LoginID) {
       identity.loginIDKey = i["login_id_key"];
+      identity.loginIDType =
+        i["login_id_type"] != null
+          ? parseLoginIDType(i["login_id_type"])
+          : undefined;
     }
     if (identity.type === IdentityType.OAuth) {
       identity.providerAlias = i["provider_alias"];
@@ -156,6 +197,7 @@ import {
   AuthenticatorType,
   AuthenticatorKind,
   IdentityType,
+  LoginIDType,
 } from "./types";
 ```
 
@@ -175,7 +217,8 @@ Add `"https://authgear.com/claims/user/identities"` after the authenticators arr
     "type": "login_id",
     "created_at": "2024-01-01T00:00:00Z",
     "updated_at": "2024-01-01T00:00:00Z",
-    "login_id_key": "email"
+    "login_id_key": "email",
+    "login_id_type": "email"
   },
   {
     "type": "unknown_future_type",
@@ -202,6 +245,7 @@ Add `identities` after `authenticators`:
           createdAt: new Date("2024-01-01T00:00:00Z"),
           updatedAt: new Date("2024-01-01T00:00:00Z"),
           loginIDKey: "email",
+          loginIDType: LoginIDType.Email,
         },
         {
           type: IdentityType.Unknown,
@@ -220,7 +264,7 @@ Add the raw key to match the fixture (the `raw` field in `UserInfo` is the unmod
 ```typescript
         "https://authgear.com/claims/user/identities": [
           { type: "oauth", provider_alias: "google" },
-          { type: "login_id", login_id_key: "email" },
+          { type: "login_id", login_id_key: "email", login_id_type: "email" },
           { type: "unknown_future_type" },
         ],
 ```
@@ -231,7 +275,7 @@ Add the raw key to match the fixture (the `raw` field in `UserInfo` is the unmod
 
 | File | Change |
 |---|---|
-| `packages/authgear-core/src/types.ts` | Add `IdentityType` enum, `Identity` interface, `parseIdentityType`, `_decodeIdentities`; extend `UserInfo` and `_decodeUserInfo` |
+| `packages/authgear-core/src/types.ts` | Add `IdentityType` enum, `LoginIDType` enum, `Identity` interface, `parseIdentityType`, `parseLoginIDType`, `_decodeIdentities`; extend `UserInfo` and `_decodeUserInfo` |
 | `packages/authgear-core/src/types.test.ts` | Extend import, fixture JSON, and expected object |
 
 No changes to `authgear-web`, `authgear-react-native`, or `authgear-capacitor` — they re-export `UserInfo` from core unchanged.

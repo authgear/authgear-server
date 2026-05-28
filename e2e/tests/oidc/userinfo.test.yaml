@@ -91,13 +91,15 @@ steps:
               "type": "login_id",
               "created_at": "[[string]]",
               "updated_at": "[[string]]",
-              "login_id_key": "email"
+              "login_id_key": "email",
+              "login_id_type": "email"
             },
             {
               "type": "login_id",
               "created_at": "[[string]]",
               "updated_at": "[[string]]",
-              "login_id_key": "username"
+              "login_id_key": "username",
+              "login_id_type": "username"
             }
           ],
           "https://authgear.com/claims/user/authenticators": [

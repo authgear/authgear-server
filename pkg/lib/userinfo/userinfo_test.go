@@ -141,7 +141,8 @@ func TestGetUserInfoBearer(t *testing.T) {
 				UpdatedAt: updatedAt,
 				Type:      model.IdentityTypeLoginID,
 				LoginID: &identity.LoginID{
-					LoginIDKey: "email",
+					LoginIDKey:  "email",
+					LoginIDType: model.LoginIDKeyTypeEmail,
 				},
 			},
 			{
@@ -217,7 +218,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 				},
 			},
 			Identities: []model.UserInfoIdentity{
-				{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email"},
+				{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email", LoginIDType: model.LoginIDKeyTypeEmail},
 				{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
 			},
 			RecoveryCodeEnabled: true,
