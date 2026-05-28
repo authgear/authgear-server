@@ -435,7 +435,7 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelecto
           <hr className={styles.divider} />
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <FormattedMessage id="ScreenHeader.projectSelector.your-projects" />
+              <FormattedMessage id="ScreenHeader.projectSelector.switch-project" />
             </div>
             <div className={styles.projectList}>
               {otherApps.map((app) => (
