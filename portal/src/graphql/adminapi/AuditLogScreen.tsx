@@ -54,6 +54,20 @@ import {
 
 const pageSize = 100;
 
+function isBareAuditLogListURL(
+  queryAuditLogKind: string,
+  queryString: string,
+  queryLastUpdatedAt: string | null,
+  queryPage: string | null
+): boolean {
+  return (
+    queryAuditLogKind === "" &&
+    queryString === "" &&
+    (queryLastUpdatedAt == null || queryLastUpdatedAt === "") &&
+    (queryPage == null || queryPage === "")
+  );
+}
+
 const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -88,12 +102,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : new Date()
   );
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const [auditLogKind, setAuditLogKind] = useState<AuditLogKind>(() => {
-    if (isAuditLogKind(queryAuditLogKind)) {
-      return queryAuditLogKind;
-    }
-    return AuditLogKind.User;
-  });
+  const auditLogKind: AuditLogKind = isAuditLogKind(queryAuditLogKind)
+    ? queryAuditLogKind
+    : AuditLogKind.User;
 
   const availableActivityTypes = useMemo(() => {
     return auditLogKind === "admin"
@@ -114,7 +125,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }, [availableActivityTypes, queryActivityType]);
 
   const [filters, setFilters] = useState<AuditLogFilter>({
-    searchKeyword: "",
+    searchKeyword: queryString,
     activityType: defaultActivityType,
   });
 
@@ -213,6 +224,42 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
+  // Keep local state in sync when the URL changes (e.g. browser back/forward).
+  useEffect(() => {
+    setFilters((prev) => {
+      const next = {
+        searchKeyword: queryString,
+        activityType: defaultActivityType,
+      };
+      if (
+        prev.searchKeyword === next.searchKeyword &&
+        prev.activityType === next.activityType
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [queryString, defaultActivityType]);
+
+  useEffect(() => {
+    setOffset(initialOffset);
+  }, [initialOffset]);
+
+  useEffect(() => {
+    setSortDirection(queryOrderBy);
+  }, [queryOrderBy]);
+
+  useEffect(() => {
+    if (queryLastUpdatedAt == null || queryLastUpdatedAt === "") {
+      return;
+    }
+    const next = new Date(Number(queryLastUpdatedAt));
+    if (next.getTime() === lastUpdatedAt.getTime()) {
+      return;
+    }
+    setLastUpdatedAt(next);
+  }, [queryLastUpdatedAt, lastUpdatedAt]);
+
   // Reset page to zero on search
   useEffect(() => {
     setOffset(0);
@@ -220,16 +267,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const { renderToString } = useContext(Context);
 
-  // When the page is refreshed, and it is on the first page,
-  // update last_updated_at.
-  // Note that if the page is navigated from another page,
-  // this effect is NOT run.
-  // This is the intended behavior because we do not
-  // want to change last_updated_at.
+  // On first page load without a timestamp in the URL (e.g. sidebar nav),
+  // set last_updated_at. When arriving via a link that already includes
+  // last_updated_at (e.g. User Details "View all"), keep the URL value so we
+  // do not rewrite search params and break the browser back button.
   useEffect(() => {
-    if (queryPage === "1") {
-      setLastUpdatedAt(new Date());
+    if (queryPage !== "1") {
+      return;
     }
+    if (queryLastUpdatedAt != null && queryLastUpdatedAt !== "") {
+      return;
+    }
+    setLastUpdatedAt(new Date());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -287,7 +336,13 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
 
     if (callSet) {
-      setSearchParams(params);
+      const replace = isBareAuditLogListURL(
+        queryAuditLogKind,
+        queryString,
+        queryLastUpdatedAt,
+        queryPage
+      );
+      setSearchParams(params, { replace });
     }
   }, [
     queryFrom,
@@ -525,18 +580,33 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
   }, [sortDirection]);
 
-  const onTabChange = useCallback((item?: PivotItem) => {
-    if (item == null) {
-      return;
-    }
-    const { itemKey } = item.props;
-    if (!itemKey || !isAuditLogKind(itemKey)) {
-      return;
-    }
-    setAuditLogKind(itemKey);
-    // Reset pagination on tab change
-    setOffset(0);
-  }, []);
+  const onTabChange = useCallback(
+    (item?: PivotItem) => {
+      if (item == null) {
+        return;
+      }
+      const { itemKey } = item.props;
+      if (!itemKey || !isAuditLogKind(itemKey)) {
+        return;
+      }
+      setOffset(0);
+      setFilters((prev) => ({
+        ...prev,
+        activityType: ACTIVITY_TYPE_ALL,
+      }));
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          params.set("kind", itemKey);
+          params.set("page", "1");
+          params.set("activity_type", ACTIVITY_TYPE_ALL);
+          return params;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams]
+  );
   return (
     <>
       <div className={styles.root}>
