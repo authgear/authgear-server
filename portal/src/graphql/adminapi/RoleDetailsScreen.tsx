@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useRef,
@@ -414,10 +415,24 @@ const RoleDetailsScreenLoaded: React.VFC<{
 };
 
 const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
-  const { roleID } = useParams() as { roleID: string };
+  const { appID, roleID } = useParams() as { appID: string; roleID: string };
+  const navigate = useNavigate();
   const { role, loading, error, refetch } = useRoleQuery(roleID, {
     fetchPolicy: "network-only",
   });
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    if (error != null) {
+      return;
+    }
+    if (role != null) {
+      return;
+    }
+    navigate(`/project/${appID}/user-management/roles`, { replace: true });
+  }, [appID, error, loading, navigate, role]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;

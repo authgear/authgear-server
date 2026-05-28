@@ -1,5 +1,5 @@
-import React, { useMemo, useContext } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import React, { useMemo, useContext, useEffect } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Text, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
@@ -54,6 +54,7 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const { logID, appID } = useParams() as { logID: string; appID: string };
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state as { searchParams?: string } | undefined;
 
   const { renderToString, locale } = useContext(Context);
@@ -76,6 +77,21 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
       logID,
     },
   });
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    if (error != null) {
+      return;
+    }
+    if (data?.node?.__typename === "AuditLog") {
+      return;
+    }
+    navigate(`/project/${appID}/audit-log?${state?.searchParams ?? ""}`, {
+      replace: true,
+    });
+  }, [appID, data?.node?.__typename, error, loading, navigate, state?.searchParams]);
 
   const messageBar = useMemo(() => {
     if (error != null) {

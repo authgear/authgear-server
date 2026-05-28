@@ -4,6 +4,7 @@ import {
   useNavigate,
   useLocation,
   createPath,
+  Navigate,
 } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import {
@@ -111,7 +112,7 @@ function EditScopeScreenContent({
 }
 
 const EditScopeScreen: React.VFC = function EditScopeScreen() {
-  const { resourceID, scopeID } = useParams<{
+  const { appID, resourceID, scopeID } = useParams<{
     appID: string;
     resourceID: string;
     scopeID: string;
@@ -158,7 +159,16 @@ const EditScopeScreen: React.VFC = function EditScopeScreen() {
       const scope =
         scopeData?.node?.__typename === "Scope" ? scopeData.node : null;
 
-      return <EditScopeScreenContent resource={resource!} scope={scope!} />;
+      if (resource == null || scope == null) {
+        return (
+          <Navigate
+            to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
+            replace={true}
+          />
+        );
+      }
+
+      return <EditScopeScreenContent resource={resource} scope={scope} />;
     },
   });
 };

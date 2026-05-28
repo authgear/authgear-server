@@ -1,5 +1,5 @@
-import React, { useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGroupQuery } from "./query/groupQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -62,10 +62,24 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
 }
 
 const GroupDetailsScreen: React.VFC = function GroupDetailsScreen() {
-  const { groupID } = useParams() as { groupID: string };
+  const { appID, groupID } = useParams() as { appID: string; groupID: string };
+  const navigate = useNavigate();
   const { group, loading, error, refetch } = useGroupQuery(groupID, {
     fetchPolicy: "network-only",
   });
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    if (error != null) {
+      return;
+    }
+    if (group != null) {
+      return;
+    }
+    navigate(`/project/${appID}/user-management/groups`, { replace: true });
+  }, [appID, error, group, loading, navigate]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;

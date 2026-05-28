@@ -11,7 +11,7 @@ import {
   ResourceScopesQueryQuery,
 } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
 import { useReplaceScopesOfClientIdMutation } from "../../graphql/adminapi/mutations/replaceScopesOfClientID.generated";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import {
   EditApplicationScopesList,
   EditApplicationScopesListItem,
@@ -204,7 +204,12 @@ const EditApplicationScopesScreen: React.VFC =
           scopesQueryData == null ||
           clientScopesQueryData == null
         ) {
-          return null;
+          return (
+            <Navigate
+              to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
+              replace={true}
+            />
+          );
         }
 
         return (
