@@ -36,7 +36,11 @@ const HeaderAppSection: React.VFC<HeaderAppSectionProps> = (props) => {
 
   return (
     <>
-      <span className={styles.headerDivider} role="separator" aria-hidden={true} />
+      <span
+        className={styles.headerDivider}
+        role="separator"
+        aria-hidden={true}
+      />
       <ProjectSelector appID={appID} theme={themes.inverted} />
     </>
   );

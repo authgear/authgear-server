@@ -119,13 +119,13 @@
   border-radius: 0;
 }
 
-.createProjectButton:hover:not(:disabled) {
-  background-color: #f3f2f1;
-}
-
 .createProjectButton:disabled {
   cursor: not-allowed;
   color: #a19f9d;
+}
+
+.createProjectButton:hover:not(:disabled) {
+  background-color: #f3f2f1;
 }
 
 .createProjectIcon {

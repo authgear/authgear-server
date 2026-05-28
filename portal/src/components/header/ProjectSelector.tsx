@@ -135,352 +135,358 @@ interface ProjectSelectorProps {
   theme?: Theme;
 }
 
-const ProjectSelector: React.VFC<ProjectSelectorProps> = function ProjectSelector(
-  props
-) {
-  const { appID, theme } = props;
-  const { renderToString } = useContext(Context);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const capture = useCapture();
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const calloutPanelRef = useRef<HTMLDivElement>(null);
-  const [isCalloutOpen, setIsCalloutOpen] = useState(false);
+const ProjectSelector: React.VFC<ProjectSelectorProps> =
+  function ProjectSelector(props) {
+    const { appID, theme } = props;
+    const { renderToString } = useContext(Context);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const capture = useCapture();
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const calloutPanelRef = useRef<HTMLDivElement>(null);
+    const [isCalloutOpen, setIsCalloutOpen] = useState(false);
 
-  const { effectiveAppConfig, isLoading: loadingAppConfig } =
-    useAppAndSecretConfigQuery(appID);
-  const { apps, loading: loadingAppList } = useAppListQuery();
-  const { viewer } = useViewerQuery();
-  const { themes, authgearAppID, isAuthgearOnce } = useSystemConfig();
+    const { effectiveAppConfig, isLoading: loadingAppConfig } =
+      useAppAndSecretConfigQuery(appID);
+    const { apps, loading: loadingAppList } = useAppListQuery();
+    const { viewer } = useViewerQuery();
+    const { themes, authgearAppID, isAuthgearOnce } = useSystemConfig();
 
-  const accentColor = themes.main.palette.themePrimary;
-  const accentHoverColor =
-    themes.main.palette.themeDark ?? themes.main.palette.themePrimary;
+    const accentColor = themes.main.palette.themePrimary;
+    const accentHoverColor = themes.main.palette.themeDark;
 
-  const copyIconButtonStyles = useMemo(
-    () => ({
-      root: { color: accentColor },
-      rootHovered: { color: accentHoverColor },
-    }),
-    [accentColor, accentHoverColor]
-  );
+    const copyIconButtonStyles = useMemo(
+      () => ({
+        root: { color: accentColor },
+        rootHovered: { color: accentHoverColor },
+      }),
+      [accentColor, accentHoverColor]
+    );
 
-  const calloutStyle = useMemo(
-    () =>
-      ({
-        "--project-selector-accent": accentColor,
-      }) as React.CSSProperties,
-    [accentColor]
-  );
+    const calloutStyle = useMemo(
+      () =>
+        ({
+          "--project-selector-accent": accentColor,
+        } as React.CSSProperties),
+      [accentColor]
+    );
 
-  const displayAppID = useMemo(() => {
-    const rawAppID = effectiveAppConfig?.id;
-    return rawAppID != null ? rawAppID : appID;
-  }, [effectiveAppConfig?.id, appID]);
+    const displayAppID = useMemo(() => {
+      const rawAppID = effectiveAppConfig?.id;
+      return rawAppID != null ? rawAppID : appID;
+    }, [effectiveAppConfig?.id, appID]);
 
-  const filteredApps = useMemo(() => {
-    return (apps ?? []).filter((a) => {
-      if (isAuthgearOnce && a.appID === authgearAppID) {
-        return false;
-      }
-      return true;
-    });
-  }, [apps, isAuthgearOnce, authgearAppID]);
+    const filteredApps = useMemo(() => {
+      return (apps ?? []).filter((a) => {
+        if (isAuthgearOnce && a.appID === authgearAppID) {
+          return false;
+        }
+        return true;
+      });
+    }, [apps, isAuthgearOnce, authgearAppID]);
 
-  const sortedApps = useMemo(() => {
-    return [...filteredApps].sort((a, b) => a.appID.localeCompare(b.appID));
-  }, [filteredApps]);
+    const sortedApps = useMemo(() => {
+      return [...filteredApps].sort((a, b) => a.appID.localeCompare(b.appID));
+    }, [filteredApps]);
 
-  const otherApps = useMemo(() => {
-    return sortedApps.filter((app) => app.appID !== displayAppID);
-  }, [sortedApps, displayAppID]);
+    const otherApps = useMemo(() => {
+      return sortedApps.filter((app) => app.appID !== displayAppID);
+    }, [sortedApps, displayAppID]);
 
-  const createButtonDisabled =
-    isProjectQuotaReached(viewer ?? null) || isAuthgearOnce;
+    const createButtonDisabled =
+      isProjectQuotaReached(viewer ?? null) || isAuthgearOnce;
 
-  const onToggleCallout = useCallback(
-    (e: React.MouseEvent) => {
+    const onToggleCallout = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsCalloutOpen((open) => !open);
-    },
-    []
-  );
+    }, []);
 
-  const isInsideProjectSelector = useCallback((target: EventTarget | null) => {
-    if (!(target instanceof Node)) {
-      return false;
-    }
-    if (triggerRef.current?.contains(target)) {
-      return true;
-    }
-    if (calloutPanelRef.current?.contains(target)) {
-      return true;
-    }
-    if (
-      target instanceof HTMLElement &&
-      target.closest("[data-project-selector-panel]") != null
-    ) {
-      return true;
-    }
-    if (target instanceof HTMLElement) {
-      const copyButton = document.querySelector<HTMLButtonElement>(
-        "[data-project-selector-copy] button"
-      );
-      const describedBy = copyButton?.getAttribute("aria-describedby");
-      if (describedBy != null) {
-        const tooltipEl = document.getElementById(describedBy);
+    const isInsideProjectSelector = useCallback(
+      (target: EventTarget | null) => {
+        if (!(target instanceof Node)) {
+          return false;
+        }
+        if (triggerRef.current?.contains(target)) {
+          return true;
+        }
+        if (calloutPanelRef.current?.contains(target)) {
+          return true;
+        }
         if (
-          tooltipEl != null &&
-          (tooltipEl.contains(target) || target.closest(`#${describedBy}`) != null)
+          target instanceof HTMLElement &&
+          target.closest("[data-project-selector-panel]") != null
         ) {
           return true;
         }
+        if (target instanceof HTMLElement) {
+          const copyButton = document.querySelector<HTMLButtonElement>(
+            "[data-project-selector-copy] button"
+          );
+          const describedBy = copyButton?.getAttribute("aria-describedby");
+          if (describedBy != null) {
+            const tooltipEl = document.getElementById(describedBy);
+            if (
+              tooltipEl != null &&
+              (tooltipEl.contains(target) ||
+                target.closest(`#${describedBy}`) != null)
+            ) {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      []
+    );
+
+    useEffect(() => {
+      if (!isCalloutOpen) {
+        return undefined;
       }
-    }
-    return false;
-  }, []);
 
-  useEffect(() => {
-    if (!isCalloutOpen) {
-      return undefined;
-    }
-
-    const onPointerDown = (event: PointerEvent) => {
-      if (isInsideProjectSelector(event.target)) {
-        return;
-      }
-      setIsCalloutOpen(false);
-    };
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      const onPointerDown = (event: PointerEvent) => {
+        if (isInsideProjectSelector(event.target)) {
+          return;
+        }
         setIsCalloutOpen(false);
-      }
-    };
+      };
 
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isCalloutOpen, isInsideProjectSelector]);
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Escape") {
+          setIsCalloutOpen(false);
+        }
+      };
 
-  const onSelectProject = useCallback(
-    (selectedAppID: string) => {
-      if (selectedAppID === displayAppID) {
+      document.addEventListener("pointerdown", onPointerDown, true);
+      document.addEventListener("keydown", onKeyDown);
+      return () => {
+        document.removeEventListener("pointerdown", onPointerDown, true);
+        document.removeEventListener("keydown", onKeyDown);
+      };
+    }, [isCalloutOpen, isInsideProjectSelector]);
+
+    const onSelectProject = useCallback(
+      (selectedAppID: string) => {
+        if (selectedAppID === displayAppID) {
+          setIsCalloutOpen(false);
+          return;
+        }
+        capture(
+          "enteredProject",
+          { projectID: selectedAppID },
+          { project_id: selectedAppID }
+        );
+        const typedID = toTypedID("App", selectedAppID);
+        const newProjectBasePath = `/project/${encodeURIComponent(typedID)}`;
+        const currentPathname = location.pathname;
+        const projectPathnamePattern = /^\/project\/[^/]+/;
+        const isInApplications =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/configuration/apps");
+        const isInAPIResources =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/api-resources");
+        const isInExternalOAuth =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes(
+            "/configuration/authentication/external-oauth"
+          );
+        const customAttributesBasePath =
+          "/configuration/user-profile/custom-attributes";
+        const isInCustomAttributesSubpage = (() => {
+          const projectMatch = projectPathnamePattern.exec(currentPathname);
+          if (projectMatch == null) {
+            return false;
+          }
+          const pathAfterProject = currentPathname.slice(
+            projectMatch[0].length
+          );
+          if (!pathAfterProject.startsWith(customAttributesBasePath)) {
+            return false;
+          }
+          const remainder = pathAfterProject.slice(
+            customAttributesBasePath.length
+          );
+          return remainder !== "" && remainder !== "/";
+        })();
+        const isInAddUser =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/user-management/users/add-user");
+        const isInAddRole =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/user-management/roles/add-role");
+        const isInAddGroup =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/user-management/groups/add-group");
+        const isInPortalAdminsInvite =
+          projectPathnamePattern.test(currentPathname) &&
+          currentPathname.includes("/portal-admins/invite");
+
+        const nextPathname = (() => {
+          if (isInApplications) {
+            return `${newProjectBasePath}/configuration/apps`;
+          }
+          if (isInAPIResources) {
+            return `${newProjectBasePath}/api-resources`;
+          }
+          if (isInExternalOAuth) {
+            return `${newProjectBasePath}/configuration/authentication/external-oauth`;
+          }
+          if (isInCustomAttributesSubpage) {
+            return `${newProjectBasePath}${customAttributesBasePath}`;
+          }
+          if (isInAddUser) {
+            return `${newProjectBasePath}/user-management/users`;
+          }
+          if (isInAddRole) {
+            return `${newProjectBasePath}/user-management/roles`;
+          }
+          if (isInAddGroup) {
+            return `${newProjectBasePath}/user-management/groups`;
+          }
+          if (isInPortalAdminsInvite) {
+            return `${newProjectBasePath}/portal-admins`;
+          }
+          return projectPathnamePattern.test(currentPathname)
+            ? currentPathname.replace(
+                projectPathnamePattern,
+                newProjectBasePath
+              )
+            : `${newProjectBasePath}/getting-started`;
+        })();
+
+        navigate(`${nextPathname}${location.search}${location.hash}`);
         setIsCalloutOpen(false);
-        return;
-      }
-      capture(
-        "enteredProject",
-        { projectID: selectedAppID },
-        { project_id: selectedAppID }
-      );
-      const typedID = toTypedID("App", selectedAppID);
-      const newProjectBasePath = `/project/${encodeURIComponent(typedID)}`;
-      const currentPathname = location.pathname;
-      const projectPathnamePattern = /^\/project\/[^/]+/;
-      const isInApplications =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/configuration/apps");
-      const isInAPIResources =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/api-resources");
-      const isInExternalOAuth =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes(
-          "/configuration/authentication/external-oauth"
-        );
-      const customAttributesBasePath =
-        "/configuration/user-profile/custom-attributes";
-      const isInCustomAttributesSubpage = (() => {
-        const projectMatch = currentPathname.match(projectPathnamePattern);
-        if (projectMatch == null) {
-          return false;
-        }
-        const pathAfterProject = currentPathname.slice(projectMatch[0].length);
-        if (!pathAfterProject.startsWith(customAttributesBasePath)) {
-          return false;
-        }
-        const remainder = pathAfterProject.slice(
-          customAttributesBasePath.length
-        );
-        return remainder !== "" && remainder !== "/";
-      })();
-      const isInAddUser =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/user-management/users/add-user");
-      const isInAddRole =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/user-management/roles/add-role");
-      const isInAddGroup =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/user-management/groups/add-group");
-      const isInPortalAdminsInvite =
-        projectPathnamePattern.test(currentPathname) &&
-        currentPathname.includes("/portal-admins/invite");
+      },
+      [
+        capture,
+        displayAppID,
+        location.hash,
+        location.pathname,
+        location.search,
+        navigate,
+      ]
+    );
 
-      const nextPathname = (() => {
-        if (isInApplications) {
-          return `${newProjectBasePath}/configuration/apps`;
+    const onCreateProject = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (createButtonDisabled) {
+          return;
         }
-        if (isInAPIResources) {
-          return `${newProjectBasePath}/api-resources`;
-        }
-        if (isInExternalOAuth) {
-          return `${newProjectBasePath}/configuration/authentication/external-oauth`;
-        }
-        if (isInCustomAttributesSubpage) {
-          return `${newProjectBasePath}${customAttributesBasePath}`;
-        }
-        if (isInAddUser) {
-          return `${newProjectBasePath}/user-management/users`;
-        }
-        if (isInAddRole) {
-          return `${newProjectBasePath}/user-management/roles`;
-        }
-        if (isInAddGroup) {
-          return `${newProjectBasePath}/user-management/groups`;
-        }
-        if (isInPortalAdminsInvite) {
-          return `${newProjectBasePath}/portal-admins`;
-        }
-        return projectPathnamePattern.test(currentPathname)
-          ? currentPathname.replace(projectPathnamePattern, newProjectBasePath)
-          : `${newProjectBasePath}/getting-started`;
-      })();
+        navigate("/projects/create");
+        setIsCalloutOpen(false);
+      },
+      [createButtonDisabled, navigate]
+    );
 
-      navigate(`${nextPathname}${location.search}${location.hash}`);
-      setIsCalloutOpen(false);
-    },
-    [
-      capture,
-      displayAppID,
-      location.hash,
-      location.pathname,
-      location.search,
-      navigate,
-    ]
-  );
+    if (loadingAppConfig || loadingAppList) {
+      return null;
+    }
 
-  const onCreateProject = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (createButtonDisabled) {
-        return;
-      }
-      navigate("/projects/create");
-      setIsCalloutOpen(false);
-    },
-    [createButtonDisabled, navigate]
-  );
+    const openMenuLabel = renderToString(
+      "ScreenHeader.projectSelector.open-menu"
+    );
 
-  if (loadingAppConfig || loadingAppList) {
-    return null;
-  }
-
-  const openMenuLabel = renderToString(
-    "ScreenHeader.projectSelector.open-menu"
-  );
-
-  return (
-    <>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={styles.trigger}
-        onClick={onToggleCallout}
-        aria-expanded={isCalloutOpen}
-        aria-haspopup="true"
-        aria-label={openMenuLabel}
-      >
-        <Text className={styles.triggerLabel} theme={theme}>
-          {displayAppID}
-        </Text>
-        <Icon
-          className={styles.triggerChevron}
-          iconName="ChevronDown"
-          theme={theme}
-        />
-      </button>
-      {isCalloutOpen ? (
-        <Callout
-          target={triggerRef.current}
-          gapSpace={4}
-          isBeakVisible={false}
-          className={styles.callout}
-          style={calloutStyle}
+    return (
+      <>
+        <button
+          ref={triggerRef}
+          type="button"
+          className={styles.trigger}
+          onClick={onToggleCallout}
+          aria-expanded={isCalloutOpen}
+          aria-haspopup="true"
+          aria-label={openMenuLabel}
         >
-          <div
-            ref={calloutPanelRef}
-            data-project-selector-panel={true}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
+          <Text className={styles.triggerLabel} theme={theme}>
+            {displayAppID}
+          </Text>
+          <Icon
+            className={styles.triggerChevron}
+            iconName="ChevronDown"
+            theme={theme}
+          />
+        </button>
+        {isCalloutOpen ? (
+          <Callout
+            target={triggerRef.current}
+            gapSpace={4}
+            isBeakVisible={false}
+            className={styles.callout}
+            style={calloutStyle}
           >
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <FormattedMessage id="ScreenHeader.projectSelector.current-project" />
-            </div>
-            <div className={styles.currentProjectRow}>
-              <span className={styles.currentProjectID}>{displayAppID}</span>
-              <ProjectSelectorCopyButton
-                projectID={displayAppID}
-                buttonStyles={copyIconButtonStyles}
-              />
-            </div>
-          </section>
-          <hr className={styles.divider} />
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <FormattedMessage id="ScreenHeader.projectSelector.switch-project" />
-            </div>
-            <div className={styles.projectList}>
-              {otherApps.map((app) => (
-                <button
-                  key={app.appID}
-                  type="button"
-                  className={styles.projectListItem}
-                  onClick={() => onSelectProject(app.appID)}
-                >
-                  <span className={styles.projectListItemLabel}>
-                    {app.appID}
+            <div
+              ref={calloutPanelRef}
+              data-project-selector-panel={true}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <FormattedMessage id="ScreenHeader.projectSelector.current-project" />
+                </div>
+                <div className={styles.currentProjectRow}>
+                  <span className={styles.currentProjectID}>
+                    {displayAppID}
                   </span>
-                </button>
-              ))}
-            </div>
-          </section>
-          {!isAuthgearOnce ? (
-            <>
-              <hr className={styles.divider} />
-              <section
-                className={`${styles.section} ${styles.sectionCreateProject}`}
-              >
-                <button
-                  type="button"
-                  className={styles.createProjectButton}
-                  onClick={onCreateProject}
-                  disabled={createButtonDisabled}
-                >
-                  <Icon
-                    className={styles.createProjectIcon}
-                    iconName="Add"
-                    styles={{
-                      root: { color: accentColor, fontSize: 16 },
-                    }}
+                  <ProjectSelectorCopyButton
+                    projectID={displayAppID}
+                    buttonStyles={copyIconButtonStyles}
                   />
-                  <FormattedMessage id="ScreenHeader.projectSelector.create-project" />
-                </button>
+                </div>
               </section>
-            </>
-          ) : null}
-          </div>
-        </Callout>
-      ) : null}
-    </>
-  );
-};
+              <hr className={styles.divider} />
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <FormattedMessage id="ScreenHeader.projectSelector.switch-project" />
+                </div>
+                <div className={styles.projectList}>
+                  {otherApps.map((app) => (
+                    <button
+                      key={app.appID}
+                      type="button"
+                      className={styles.projectListItem}
+                      onClick={() => onSelectProject(app.appID)}
+                    >
+                      <span className={styles.projectListItemLabel}>
+                        {app.appID}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+              {!isAuthgearOnce ? (
+                <>
+                  <hr className={styles.divider} />
+                  <section
+                    className={`${styles.section} ${styles.sectionCreateProject}`}
+                  >
+                    <button
+                      type="button"
+                      className={styles.createProjectButton}
+                      onClick={onCreateProject}
+                      disabled={createButtonDisabled}
+                    >
+                      <Icon
+                        className={styles.createProjectIcon}
+                        iconName="Add"
+                        styles={{
+                          root: { color: accentColor, fontSize: 16 },
+                        }}
+                      />
+                      <FormattedMessage id="ScreenHeader.projectSelector.create-project" />
+                    </button>
+                  </section>
+                </>
+              ) : null}
+            </div>
+          </Callout>
+        ) : null}
+      </>
+    );
+  };
 
 export default ProjectSelector;

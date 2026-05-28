@@ -91,7 +91,14 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
     navigate(`/project/${appID}/audit-log?${state?.searchParams ?? ""}`, {
       replace: true,
     });
-  }, [appID, data?.node?.__typename, error, loading, navigate, state?.searchParams]);
+  }, [
+    appID,
+    data?.node?.__typename,
+    error,
+    loading,
+    navigate,
+    state?.searchParams,
+  ]);
 
   const messageBar = useMemo(() => {
     if (error != null) {

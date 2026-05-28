@@ -76,7 +76,9 @@ const EditOAuthClientResourceScopeScreen: React.VFC =
         ) {
           return (
             <Navigate
-              to={`/project/${encodeURIComponent(appID ?? "")}/configuration/apps`}
+              to={`/project/${encodeURIComponent(
+                appID ?? ""
+              )}/configuration/apps`}
               replace={true}
             />
           );
