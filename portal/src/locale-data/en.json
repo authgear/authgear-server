@@ -386,6 +386,7 @@
   "UserDetails.logs.admin-api-portal.view-all": "View all Admin API & Portal Activities",
   "UserDetails.logs.column.activity": "Activity",
   "UserDetails.logs.column.timestamp": "Timestamp",
+  "UserDetails.logs.showing-count": "Showing {shown} of {total}",
   "UserDetails.logs.empty": "No activity yet.",
   "UserDetailsAccountStatus.title": "Account Status",
   "UserDetailsAccountStatus.disable-user.title": "Disable User",
