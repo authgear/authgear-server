@@ -4,6 +4,7 @@ authgear.yaml:
     authentication:
       identities:
       - login_id
+      - oauth
       primary_authenticators:
       - password
     identity:
@@ -11,9 +12,22 @@ authgear.yaml:
         keys:
         - type: username
         - type: email
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
 before:
   - type: user_import
     user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: oauth_identity.sql
 steps:
   - name: oauth_setup
     action: oauth_setup
@@ -100,6 +114,13 @@ steps:
               "updated_at": "[[string]]",
               "login_id_key": "username",
               "login_id_type": "username"
+            },
+            {
+              "type": "oauth",
+              "created_at": "[[string]]",
+              "updated_at": "[[string]]",
+              "provider_type": "google",
+              "provider_alias": "google"
             }
           ],
           "https://authgear.com/claims/user/authenticators": [

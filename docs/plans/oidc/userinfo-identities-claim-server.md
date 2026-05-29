@@ -3,7 +3,7 @@
 ## 1. Goal / Scope
 
 Add `https://authgear.com/claims/user/identities` to the OIDC userinfo endpoint.
-Each element exposes `type` (string), for login ID identities `login_id_key` (string) and `login_id_type` (string), and for OAuth identities `provider_alias` (string).
+Each element exposes `type` (string), for login ID identities `login_id_key` (string) and `login_id_type` (string), and for OAuth identities `provider_type` (string) and `provider_alias` (string).
 
 This follows the same pattern as `https://authgear.com/claims/user/authenticators`:
 - Returned from the userinfo endpoint only (not embedded in the ID token).
@@ -30,12 +30,13 @@ Add a new struct after `UserInfoAuthenticator`:
 
 ```go
 type UserInfoIdentity struct {
-    CreatedAt     time.Time          `json:"created_at"`
-    UpdatedAt     time.Time          `json:"updated_at"`
-    Type          model.IdentityType `json:"type"`
-    LoginIDKey    string             `json:"login_id_key,omitempty"`
+    CreatedAt     time.Time            `json:"created_at"`
+    UpdatedAt     time.Time            `json:"updated_at"`
+    Type          model.IdentityType   `json:"type"`
+    LoginIDKey    string               `json:"login_id_key,omitempty"`
     LoginIDType   model.LoginIDKeyType `json:"login_id_type,omitempty"`
-    ProviderAlias string             `json:"provider_alias,omitempty"`
+    ProviderType  string               `json:"provider_type,omitempty"`
+    ProviderAlias string               `json:"provider_alias,omitempty"`
 }
 ```
 
@@ -93,6 +94,7 @@ for _, info := range identityInfos {
         uiIdentity.LoginIDType = info.LoginID.LoginIDType
     }
     if info.Type == model.IdentityTypeOAuth && info.OAuth != nil {
+        uiIdentity.ProviderType = info.OAuth.ProviderID.Type
         uiIdentity.ProviderAlias = info.OAuth.ProviderAlias
     }
     userinfoIdentities = append(userinfoIdentities, uiIdentity)
@@ -192,7 +194,7 @@ Concrete cases to cover:
 
 | Scenario | `Identities` in mock | Expected JSON key |
 |---|---|---|
-| OAuth identity | `[{CreatedAt: t, UpdatedAt: t, Type: "oauth", ProviderAlias: "google"}]` | `[{"created_at":"...","updated_at":"...","type":"oauth","provider_alias":"google"}]` |
+| OAuth identity | `[{CreatedAt: t, UpdatedAt: t, Type: "oauth", ProviderType: "google", ProviderAlias: "google"}]` | `[{"created_at":"...","updated_at":"...","type":"oauth","provider_type":"google","provider_alias":"google"}]` |
 | Login ID identity | `[{CreatedAt: t, UpdatedAt: t, Type: "login_id", LoginIDKey: "email", LoginIDType: "email"}]` | `[{"created_at":"...","updated_at":"...","type":"login_id","login_id_key":"email","login_id_type":"email"}]` |
 | Mixed | both of the above | both elements |
 | Empty | `[]` | `[]` |
@@ -202,7 +204,7 @@ Concrete cases to cover:
 Add:
 ```go
 So(userInfo[string(model.ClaimIdentities)], ShouldResemble, []model.UserInfoIdentity{
-    {Type: model.IdentityTypeOAuth, ProviderAlias: "google"},
+    {Type: model.IdentityTypeOAuth, ProviderType: "google", ProviderAlias: "google"},
 })
 ```
 

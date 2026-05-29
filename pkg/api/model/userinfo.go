@@ -15,5 +15,6 @@ type UserInfoIdentity struct {
 	Type          IdentityType   `json:"type"`
 	LoginIDKey    string         `json:"login_id_key,omitempty"`
 	LoginIDType   LoginIDKeyType `json:"login_id_type,omitempty"`
+	ProviderType  string         `json:"provider_type,omitempty"`
 	ProviderAlias string         `json:"provider_alias,omitempty"`
 }

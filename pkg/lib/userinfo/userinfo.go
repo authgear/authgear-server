@@ -162,6 +162,7 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 			uiIdentity.LoginIDType = info.LoginID.LoginIDType
 		}
 		if info.Type == model.IdentityTypeOAuth && info.OAuth != nil {
+			uiIdentity.ProviderType = info.OAuth.ProviderID.Type
 			uiIdentity.ProviderAlias = info.OAuth.ProviderAlias
 		}
 		userinfoIdentities = append(userinfoIdentities, uiIdentity)
