@@ -400,6 +400,7 @@ interface Identity {
   updatedAt: Date;
   loginIDKey?: string; // Present when type is "login_id", e.g. "email", "phone", "username"
   loginIDType?: "email" | "phone" | "username"; // Present when type is "login_id"
+  providerType?: string; // Present when type is "oauth", e.g. "google", "facebook"
   providerAlias?: string; // Present when type is "oauth"
 }
 
@@ -455,6 +456,7 @@ interface UserInfo {
       "type": "oauth",
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z",
+      "provider_type": "google",
       "provider_alias": "google"
     },
     {
