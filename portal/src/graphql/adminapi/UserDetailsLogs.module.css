@@ -2,39 +2,41 @@
   display: flex;
   flex-direction: column;
   max-width: calc(80px * 8 + 20px * 8);
-  row-gap: 32px;
   margin-left: 10px;
   padding-top: 16px;
+  row-gap: 12px;
 }
 
-.section {
+.filterBar {
+  /* The bar already provides its own left padding; align it with the table. */
+  padding-left: 0;
+}
+
+/* Mirror the RefreshButton wrapper so the View button stretches to the bar
+   height and its hover background matches Refresh exactly. */
+.viewAllWrap {
+  display: flex;
+  height: 100%;
+}
+
+.tableArea {
   display: flex;
   flex-direction: column;
 }
 
-.sectionTitle {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0;
+.listWrapper {
+  overflow-y: auto;
+  /* Bound the list so the pagination stays visible without scrolling the whole
+     page (like the Audit Log screen). The offset leaves room for the header,
+     breadcrumb, user summary, pivot tabs, filter bar above the table, and the
+     pagination row below it. */
+  max-height: calc(100vh - 30rem);
+  min-height: 8rem;
 }
 
-.tableArea {
-  display: block;
-}
-
-.viewAllRow {
-  /* Align with DetailsList cell padding. */
-  padding-left: 12px;
-  margin-top: 6px;
-}
-
-.viewAllLink {
-  /* Match DetailsList row text size. */
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 400;
-  white-space: nowrap;
+.pagination {
+  align-self: flex-end;
+  margin: 8px 16px 0 16px;
 }
 
 .cell {
