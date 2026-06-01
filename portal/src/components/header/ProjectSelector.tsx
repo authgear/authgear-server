@@ -105,7 +105,6 @@ const ProjectSelectorCopyButton: React.VFC<ProjectSelectorCopyButtonProps> =
     return (
       <span
         className={styles.copyButtonWrap}
-        data-project-selector-copy={true}
         onMouseDown={stopPropagation}
         onClick={stopPropagation}
         onMouseLeave={onCopyMouseLeave}
@@ -143,7 +142,6 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
     const location = useLocation();
     const capture = useCapture();
     const triggerRef = useRef<HTMLButtonElement>(null);
-    const calloutPanelRef = useRef<HTMLDivElement>(null);
     const [isCalloutOpen, setIsCalloutOpen] = useState(false);
 
     const { effectiveAppConfig, isLoading: loadingAppConfig } =
@@ -202,69 +200,11 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
       setIsCalloutOpen((open) => !open);
     }, []);
 
-    const isInsideProjectSelector = useCallback(
-      (target: EventTarget | null) => {
-        if (!(target instanceof Node)) {
-          return false;
-        }
-        if (triggerRef.current?.contains(target)) {
-          return true;
-        }
-        if (calloutPanelRef.current?.contains(target)) {
-          return true;
-        }
-        if (
-          target instanceof HTMLElement &&
-          target.closest("[data-project-selector-panel]") != null
-        ) {
-          return true;
-        }
-        if (target instanceof HTMLElement) {
-          const copyButton = document.querySelector<HTMLButtonElement>(
-            "[data-project-selector-copy] button"
-          );
-          const describedBy = copyButton?.getAttribute("aria-describedby");
-          if (describedBy != null) {
-            const tooltipEl = document.getElementById(describedBy);
-            if (
-              tooltipEl != null &&
-              (tooltipEl.contains(target) ||
-                target.closest(`#${describedBy}`) != null)
-            ) {
-              return true;
-            }
-          }
-        }
-        return false;
-      },
-      []
-    );
-
-    useEffect(() => {
-      if (!isCalloutOpen) {
-        return undefined;
-      }
-
-      const onPointerDown = (event: PointerEvent) => {
-        if (isInsideProjectSelector(event.target)) {
-          return;
-        }
-        setIsCalloutOpen(false);
-      };
-
-      const onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-          setIsCalloutOpen(false);
-        }
-      };
-
-      document.addEventListener("pointerdown", onPointerDown, true);
-      document.addEventListener("keydown", onKeyDown);
-      return () => {
-        document.removeEventListener("pointerdown", onPointerDown, true);
-        document.removeEventListener("keydown", onKeyDown);
-      };
-    }, [isCalloutOpen, isInsideProjectSelector]);
+    // Callout's onDismiss handles dismissing on outside clicks and on the
+    // Escape key (via its inner Popup), so no manual listeners are needed.
+    const onDismissCallout = useCallback(() => {
+      setIsCalloutOpen(false);
+    }, []);
 
     const onSelectProject = useCallback(
       (selectedAppID: string) => {
@@ -417,13 +357,9 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
             isBeakVisible={false}
             className={styles.callout}
             style={calloutStyle}
+            onDismiss={onDismissCallout}
           >
-            <div
-              ref={calloutPanelRef}
-              data-project-selector-panel={true}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div>
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <FormattedMessage id="ScreenHeader.projectSelector.current-project" />
