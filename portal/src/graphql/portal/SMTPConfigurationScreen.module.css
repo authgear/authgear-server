@@ -26,3 +26,42 @@
 
   @apply tablet:col-span-full;
 }
+
+.providerSelector {
+  @apply flex flex-col gap-1;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription,
+.providerDescription {
+  color: var(--gray-a11);
+}
+
+.providerDescription {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.contentWidthAnchor {
+  grid-column: 1 / span 8;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  @apply tablet:col-span-full;
+}
