@@ -25,6 +25,7 @@ import { useViewerQuery } from "../../graphql/portal/query/viewerQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
+import { resolveProjectSwitchPath } from "../../util/projectPath";
 import { isProjectQuotaReached } from "../../util/projectQuota";
 import { copyToClipboard } from "../../util/clipboard";
 import styles from "./ProjectSelector.module.css";
@@ -219,94 +220,19 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
         );
         const typedID = toTypedID("App", selectedAppID);
         const newProjectBasePath = `/project/${encodeURIComponent(typedID)}`;
-        const currentPathname = location.pathname;
-        const projectPathnamePattern = /^\/project\/[^/]+/;
-        const isInApplications =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/configuration/apps");
-        const isInAPIResources =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/api-resources");
-        const isInExternalOAuth =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes(
-            "/configuration/authentication/external-oauth"
-          );
-        const customAttributesBasePath =
-          "/configuration/user-profile/custom-attributes";
-        const isInCustomAttributesSubpage = (() => {
-          const projectMatch = projectPathnamePattern.exec(currentPathname);
-          if (projectMatch == null) {
-            return false;
-          }
-          const pathAfterProject = currentPathname.slice(
-            projectMatch[0].length
-          );
-          if (!pathAfterProject.startsWith(customAttributesBasePath)) {
-            return false;
-          }
-          const remainder = pathAfterProject.slice(
-            customAttributesBasePath.length
-          );
-          return remainder !== "" && remainder !== "/";
-        })();
-        const isInAddUser =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/user-management/users/add-user");
-        const isInAddRole =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/user-management/roles/add-role");
-        const isInAddGroup =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/user-management/groups/add-group");
-        const isInPortalAdminsInvite =
-          projectPathnamePattern.test(currentPathname) &&
-          currentPathname.includes("/portal-admins/invite");
+        // Keep the user on the same section of the new project, but drop any
+        // project-specific suffix (entity IDs, create/edit forms) that would
+        // not exist in the target project. Search and hash are intentionally
+        // dropped as they typically reference data from the previous project.
+        const nextPathname = resolveProjectSwitchPath(
+          location.pathname,
+          newProjectBasePath
+        );
 
-        const nextPathname = (() => {
-          if (isInApplications) {
-            return `${newProjectBasePath}/configuration/apps`;
-          }
-          if (isInAPIResources) {
-            return `${newProjectBasePath}/api-resources`;
-          }
-          if (isInExternalOAuth) {
-            return `${newProjectBasePath}/configuration/authentication/external-oauth`;
-          }
-          if (isInCustomAttributesSubpage) {
-            return `${newProjectBasePath}${customAttributesBasePath}`;
-          }
-          if (isInAddUser) {
-            return `${newProjectBasePath}/user-management/users`;
-          }
-          if (isInAddRole) {
-            return `${newProjectBasePath}/user-management/roles`;
-          }
-          if (isInAddGroup) {
-            return `${newProjectBasePath}/user-management/groups`;
-          }
-          if (isInPortalAdminsInvite) {
-            return `${newProjectBasePath}/portal-admins`;
-          }
-          return projectPathnamePattern.test(currentPathname)
-            ? currentPathname.replace(
-                projectPathnamePattern,
-                newProjectBasePath
-              )
-            : `${newProjectBasePath}/getting-started`;
-        })();
-
-        navigate(`${nextPathname}${location.search}${location.hash}`);
+        navigate(nextPathname);
         setIsCalloutOpen(false);
       },
-      [
-        capture,
-        displayAppID,
-        location.hash,
-        location.pathname,
-        location.search,
-        navigate,
-      ]
+      [capture, displayAppID, location.pathname, navigate]
     );
 
     const onCreateProject = useCallback(
