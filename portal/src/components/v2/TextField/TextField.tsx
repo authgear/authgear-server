@@ -25,6 +25,7 @@ export enum TextFieldIcon {
 
 export interface TextInputProps {
   size: TextFieldSize;
+  type?: "text" | "password" | "email" | "number" | "search" | "tel" | "url" | "hidden" | "date" | "time" | "datetime-local" | "month" | "week";
   disabled?: boolean;
   readOnly?: boolean;
   placeholder?: string;
@@ -39,8 +40,12 @@ export interface TextInputProps {
 export interface TextFieldProps extends TextInputProps {
   darkMode?: boolean;
   label?: React.ReactNode;
+  /** Label typography size; defaults to `size` when omitted. */
+  labelSize?: TextFieldSize;
   optional?: boolean;
   suffix?: React.ReactNode;
+  /** Icon-only suffix (e.g. password visibility) without chip background/border. */
+  suffixPlain?: boolean;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
   hint?: React.ReactNode;
@@ -58,12 +63,14 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     darkMode,
     size,
     label,
+    labelSize,
     optional,
     error,
     hint,
     iconStart,
     iconEnd,
     suffix,
+    suffixPlain,
 
     parentJSONPointer = "",
     fieldName,
@@ -87,6 +94,7 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     <FormField
       darkMode={darkMode}
       size={size}
+      labelSize={labelSize}
       label={label}
       optional={optional}
       error={error}
@@ -108,7 +116,10 @@ function TextField_(props: TextFieldProps): React.ReactElement {
         ) : null}
         {suffix != null ? (
           <RadixTextField.Slot
-            className={styles.textField__suffix}
+            className={cn(
+              styles.textField__suffix,
+              suffixPlain && styles["textField__suffix--plain"]
+            )}
             side="right"
           >
             {suffix}
@@ -125,6 +136,7 @@ function TextField_(props: TextFieldProps): React.ReactElement {
 
 function Input({
   size,
+  type,
   disabled,
   readOnly,
   placeholder,
@@ -140,6 +152,7 @@ function Input({
       className={cn(error != null ? styles["textField--error"] : null)}
       variant="surface"
       size={size}
+      type={type}
       placeholder={placeholder}
       disabled={disabled}
       readOnly={readOnly}

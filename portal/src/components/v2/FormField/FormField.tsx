@@ -13,6 +13,8 @@ type FormFieldLabelSpace = "1" | "2";
 export interface FormFieldProps {
   darkMode?: boolean;
   size: FormFieldSize;
+  /** Label typography size; defaults to `size` when omitted. */
+  labelSize?: FormFieldSize;
   label?: React.ReactNode;
   optional?: boolean;
   error?: React.ReactNode;
@@ -29,6 +31,7 @@ export interface FormFieldProps {
 export function FormField({
   darkMode,
   size,
+  labelSize,
   label,
   optional,
   error: propsError,
@@ -68,7 +71,7 @@ export function FormField({
       {label ? (
         <Text
           as="p"
-          size={size}
+          size={labelSize ?? size}
           weight={"medium"}
           className={styles.formField__label}
         >

@@ -26,3 +26,10 @@ export const Default: Story = {
     disabled: false,
   },
 };
+
+export const Disabled: Story = {
+  args: {
+    size: "2",
+    disabled: true,
+  },
+};
