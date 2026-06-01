@@ -101,6 +101,7 @@ export function resolveProjectSwitchPath(
     match != null
       ? currentPathname.slice(match[0].length).replace(/^\//, "")
       : "";
-  const section = findLongestSectionPrefix(relativePath) ?? DEFAULT_SECTION_PATH;
+  const section =
+    findLongestSectionPrefix(relativePath) ?? DEFAULT_SECTION_PATH;
   return `${newProjectBasePath}/${section}`;
 }
