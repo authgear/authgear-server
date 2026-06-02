@@ -19,6 +19,8 @@ import {
 } from "../../types";
 import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
+import DefaultButton from "../../DefaultButton";
+import TextField from "../../TextField";
 
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
@@ -27,7 +29,6 @@ import styles from "./SingleSignOnConfigurationWidget.module.css";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import WidgetDescription from "../../WidgetDescription";
-import FoldableDiv from "../../FoldableDiv";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import {
   OAuthProviderFormModel,
@@ -531,7 +532,6 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       docUrl,
       redirectUrlLabelId,
     } = oauthProviders[providerItemKey];
-    const [advancedFolded, setAdvancedFolded] = useState(true);
     const redirectURL = useMemo(() => {
       if (!publicOrigin || !config.alias) {
         return "";
@@ -544,6 +544,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const messageID = "OAuthBranding." + providerItemKey;
 
+    const [isEditingAlias, setIsEditingAlias] = useState(false);
+    const [aliasBeforeEdit, setAliasBeforeEdit] = useState<string | null>(null);
+
     const onAliasChange = useCallback(
       (_, value?: string) =>
         onChange(
@@ -552,6 +555,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         ),
       [onChange, config, secret]
     );
+
+    const onStartEditingAlias = useCallback(() => {
+      setAliasBeforeEdit(config.alias);
+      setIsEditingAlias(true);
+    }, [config.alias]);
+
+    const onCancelEditingAlias = useCallback(() => {
+      if (aliasBeforeEdit != null) {
+        onChange(
+          { ...config, alias: aliasBeforeEdit },
+          { ...secret, newAlias: aliasBeforeEdit }
+        );
+      }
+      setIsEditingAlias(false);
+    }, [aliasBeforeEdit, onChange, config, secret]);
 
     const onClientIDChange = useCallback(
       (_, value?: string) =>
@@ -971,30 +989,48 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               />
             ) : null}
             {visibleFields.has("alias") ? (
-              <FoldableDiv
-                className={styles.advancedSection}
-                label={
-                  <FormattedMessage id="SingleSignOnConfigurationWidget.advancedOptions" />
-                }
-                folded={advancedFolded}
-                setFolded={setAdvancedFolded}
-              >
-                <FormTextField
-                  parentJSONPointer={jsonPointer}
-                  fieldName="alias"
-                  label={renderToString(
+              <div className={styles.aliasField}>
+                <Label>
+                  {renderToString(
                     "SingleSignOnConfigurationScreen.widget.alias"
                   )}
-                  description={renderToString(
-                    "SingleSignOnConfigurationScreen.widget.alias.description"
+                </Label>
+                <div className={styles.aliasRow}>
+                  {isEditingAlias ? (
+                    <FormTextField
+                      parentJSONPointer={jsonPointer}
+                      fieldName="alias"
+                      className={styles.aliasInput}
+                      styles={TEXT_FIELD_STYLE}
+                      value={config.alias}
+                      onChange={onAliasChange}
+                      disabled={noneditable}
+                    />
+                  ) : (
+                    <TextField
+                      className={styles.aliasInput}
+                      value={config.alias}
+                      readOnly={true}
+                    />
                   )}
-                  className={styles.textField}
-                  styles={TEXT_FIELD_STYLE}
-                  value={config.alias}
-                  onChange={onAliasChange}
-                  disabled={noneditable}
-                />
-              </FoldableDiv>
+                  {isEditingAlias ? (
+                    <DefaultButton
+                      text={renderToString("cancel")}
+                      onClick={onCancelEditingAlias}
+                    />
+                  ) : !noneditable ? (
+                    <DefaultButton
+                      text={renderToString(
+                        "SingleSignOnConfigurationScreen.edit"
+                      )}
+                      onClick={onStartEditingAlias}
+                    />
+                  ) : null}
+                </div>
+                <Text variant="small" className={styles.aliasDescription}>
+                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.alias.description" />
+                </Text>
+              </div>
             ) : null}
           </>
         ) : null}
