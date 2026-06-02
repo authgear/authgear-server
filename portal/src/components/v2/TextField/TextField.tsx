@@ -56,6 +56,7 @@ export interface TextFieldProps extends TextInputProps {
   parentJSONPointer?: string | RegExp;
   fieldName?: string;
   errorRules?: ErrorParseRule[];
+  inputClassName?: string;
 }
 
 function TextField_(props: TextFieldProps): React.ReactElement {
@@ -145,11 +146,18 @@ function Input({
   onChange,
   onBlur,
   onFocus,
+  inputClassName,
   children,
-}: TextInputProps & { children: React.ReactNode }): React.ReactElement {
+}: TextInputProps & {
+  children: React.ReactNode;
+  inputClassName?: string;
+}): React.ReactElement {
   return (
     <RadixTextField.Root
-      className={cn(error != null ? styles["textField--error"] : null)}
+      className={cn(
+        error != null ? styles["textField--error"] : null,
+        inputClassName
+      )}
       variant="surface"
       size={size}
       type={type}

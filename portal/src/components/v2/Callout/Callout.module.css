@@ -7,6 +7,10 @@
   grid-template-columns: auto 1fr auto;
 
   align-items: center;
+
+  /* Prevent the grid from overflowing its flex parent on small screens */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .calloutRoot--toast {
@@ -19,6 +23,8 @@
 
 .calloutText {
   grid-area: text;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .calloutAction {

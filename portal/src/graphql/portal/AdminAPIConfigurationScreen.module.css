@@ -1,16 +1,176 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
-.separator {
-  grid-column: 1 / span 8;
+.sections {
+  grid-column: 1 / span 9;
   @apply tablet:col-span-full;
-  @apply my-2;
+  @apply flex min-w-0 flex-col;
+  gap: 20px;
 }
 
-.actionButton {
-  font-weight: 600;
-  height: auto;
+.section {
+  @apply min-w-0 rounded-xl border border-solid p-6;
+  border-color: var(--gray-a6);
+}
+
+.sectionInner {
+  @apply flex min-w-0 flex-row items-start gap-8;
+
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-4;
+}
+
+.sectionHeading {
+  flex-shrink: 0;
+  width: 8.75rem;
+  color: var(--gray-12);
+}
+
+.sectionContent {
+  @apply flex w-full min-w-0 flex-1 flex-col gap-4;
+}
+
+.sectionDescription {
+  color: var(--gray-a11);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.keysTableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide horizontal scrollbar on desktop (large screens). */
+@media (min-width: 1081px) {
+  .keysTableWrapper {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge Legacy */
+  }
+
+  .keysTableWrapper::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+}
+
+.keysTable {
+  min-width: 36rem;
+}
+
+.keysTableHeader {
+  @apply flex w-full items-center;
+  min-width: 36rem;
+  min-height: 2.75rem;
+}
+
+.keysTableHeaderCellKeyId,
+.keysTableHeaderCellCreatedAt,
+.keysTableHeaderCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.keysTableHeaderCellKeyId {
+  @apply flex-1 min-w-0;
+}
+
+.keysTableHeaderCellCreatedAt {
+  width: 14rem;
+  min-width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.keysTableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.keysTableRow {
+  @apply flex w-full items-center;
+  min-width: 36rem;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.keysTableCellKeyId,
+.keysTableCellCreatedAt,
+.keysTableCellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.keysTableCellKeyId {
+  @apply flex min-w-0 flex-1 items-center overflow-hidden;
+}
+
+.keysTableCellKeyIdInner {
+  @apply flex max-w-full min-w-0 items-center;
+  gap: 0.375rem;
+}
+
+.keysTableCellKeyIdText {
+  @apply min-w-0 truncate;
+}
+
+.copyIconButton {
+  @apply shrink-0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--gray-11);
+}
+
+.keysTableCellCreatedAt {
+  width: 14rem;
+  min-width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.keysTableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.generateKeyButton {
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+}
+
+.generateKeyButton:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.tokenRow {
+  @apply flex w-full min-w-0 flex-col gap-4;
+}
+
+.tokenFieldGroup {
+  @apply flex flex-col;
+  gap: var(--space-1);
+}
+
+.tokenInputRow {
+  @apply flex flex-row flex-wrap items-end gap-2;
+}
+
+.tokenInputRowField {
+  @apply min-w-0 flex-1;
+}
+
+.readOnlyCopyFieldTruncate {
+  @apply min-w-0 overflow-hidden;
+}
+
+.readOnlyCopyFieldTruncate input {
+  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
 }

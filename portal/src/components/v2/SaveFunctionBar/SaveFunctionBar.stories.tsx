@@ -1,10 +1,15 @@
 import React, { useCallback, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import {
   FormContainerBase,
   FormContainerBaseProps,
 } from "../../../FormContainerBase";
+import { SystemConfigContext } from "../../../context/SystemConfigContext";
+import { defaultSystemConfig, instantiateSystemConfig } from "../../../system-config";
 import { SaveFunctionBar } from "./SaveFunctionBar";
+
+const systemConfig = instantiateSystemConfig(defaultSystemConfig);
 
 function SaveFunctionBarStoryHarness({
   startClean = false,
@@ -16,16 +21,20 @@ function SaveFunctionBarStoryHarness({
   const [savedValue, setSavedValue] = useState("hello");
   const isDirty = value !== savedValue;
 
+  const reset = useCallback(() => {
+    setValue(savedValue);
+  }, [savedValue]);
+
+  const save = useCallback(async () => {
+    setSavedValue(value);
+  }, [value]);
+
   const form: FormContainerBaseProps["form"] = {
     isDirty,
     isUpdating: false,
     updateError: null,
-    reset: useCallback(() => {
-      setValue(savedValue);
-    }, [savedValue]),
-    save: useCallback(async () => {
-      setSavedValue(value);
-    }, [value]),
+    reset,
+    save,
   };
 
   return (
@@ -50,11 +59,25 @@ const meta = {
   component: SaveFunctionBar,
   tags: ["autodocs"],
   decorators: [
-    (Story) => (
-      <div style={{ minHeight: 240 }}>
-        <Story />
-      </div>
-    ),
+    (Story) => {
+      const router = createMemoryRouter(
+        [
+          {
+            path: "/",
+            element: (
+              <SystemConfigContext.Provider value={systemConfig}>
+                <div style={{ minHeight: 320, position: "relative" }}>
+                  <Story />
+                </div>
+              </SystemConfigContext.Provider>
+            ),
+          },
+        ],
+        { initialEntries: ["/"] }
+      );
+
+      return <RouterProvider router={router} />;
+    },
   ],
 } satisfies Meta<typeof SaveFunctionBar>;
 
