@@ -1143,6 +1143,11 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           </div>
         </div>
         <div className={styles.rowColumn}>
+          <Text variant="medium" className={styles.rowAlias} block={true}>
+            {providerConfig.alias}
+          </Text>
+        </div>
+        <div className={styles.rowColumn}>
           <ProviderStatus
             providerConfig={providerConfig}
             providersWithDemoCredentials={providersWithDemoCredentials}
@@ -1174,6 +1179,11 @@ export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
       <div className={styles.rowColumn}>
         <Text variant="medium" className={styles.rowHeader} block={true}>
           <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
+        </Text>
+      </div>
+      <div className={styles.rowColumn}>
+        <Text variant="medium" className={styles.rowHeader} block={true}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.header.alias" />
         </Text>
       </div>
       <div className={styles.rowColumn}>
