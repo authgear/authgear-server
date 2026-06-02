@@ -344,11 +344,13 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 
 | Condition | Example |
 |---|---|
+| `redirect_uris` is missing | omitted from request body |
+| `redirect_uris` contains a URI with a fragment component | `https://example.com/callback#section` |
 | `token_endpoint_auth_method` conflicts with `application_type` | `application_type=spa` + `token_endpoint_auth_method=client_secret_post` |
 | `token_endpoint_auth_method` is an unsupported value | `token_endpoint_auth_method=client_secret_basic` |
 | `grant_types` contains an unsupported value | `grant_types=["implicit"]` |
 | `response_types` contains an unsupported value | `response_types=["token"]` |
-| `response_types` is inconsistent with `grant_types` | `grant_types=["client_credentials"]` + `response_types=["code"]` |
+| `response_types` is inconsistent with `grant_types` | `grant_types=["refresh_token"]` + `response_types=["code"]` without `authorization_code` |
 | `logo_uri`, `client_uri`, `tos_uri`, or `policy_uri` is not `https://` | `logo_uri=http://example.com/logo.png` |
 
 ## Accepted Client Metadata
@@ -368,6 +370,10 @@ Array of redirect URIs the client will use in authorization code flows. Each URI
 
 Plain `http://` URIs are rejected except for `http://localhost` (loopback), which is allowed for native app development.
 
+Each URI must be an absolute URI (per RFC 3986 §4.3) and must not contain a fragment component (`#`).
+
+If `redirect_uris` is omitted, the server returns `invalid_client_metadata`.
+
 ### `grant_types` (optional)
 
 Array of grant types the client is allowed to use. Accepted values:
@@ -381,11 +387,7 @@ Default: `["authorization_code", "refresh_token"]`.
 
 ### `response_types` (optional)
 
-Array of response types. Must be consistent with `grant_types`. Accepted values:
-
-| Value | Meaning |
-|---|---|
-| `code` | Authorization code response (used with `authorization_code` grant) |
+Array of response types. Must be consistent with `grant_types`. The only accepted value is `code`, which must be paired with the `authorization_code` grant type. Requesting `response_types=["code"]` without `authorization_code` in `grant_types`, or vice versa, returns `invalid_client_metadata`.
 
 Default: `["code"]`.
 
@@ -419,6 +421,8 @@ Declares how the client authenticates at the token endpoint.
 For most `application_type` values this field is fixed (see table above). Only `third_party_app` allows a choice. Passing a value that conflicts with the `application_type` returns `invalid_client_metadata`.
 
 When omitted, the default for the given `application_type` applies.
+
+`client_secret_basic` (the RFC 7591 default) is intentionally not supported. Modern OAuth 2.0 encourages PKCE with `token_endpoint_auth_method: none`, making `client_secret_basic` unnecessary for the DCR use cases Authgear targets.
 
 ### `logo_uri` (optional)
 
