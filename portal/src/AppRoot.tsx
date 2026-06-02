@@ -22,8 +22,9 @@ import { PortalAPIFeatureConfig } from "./types";
 // their identity is stable across renders.
 const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
   fc?.oauth?.client?.app2app_enabled ?? false;
-const isFraudProtectionAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
-  fc?.fraud_protection?.is_modifiable ?? false;
+const isFraudProtectionAvailable = (
+  fc: PortalAPIFeatureConfig | null
+): boolean => fc?.fraud_protection?.is_modifiable ?? false;
 const isIntegrationsAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
   (fc?.google_tag_manager?.disabled ?? false) === false;
 
