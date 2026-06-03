@@ -5,6 +5,7 @@ This document specifies the API design of settings actions.
 - [Add / Change / Remove Email](#add--change--remove-email)
 - [Add / Change / Remove Phone](#add--change--remove-phone)
 - [Add / Change / Remove Username](#add--change--remove-username)
+- [Link / Unlink OAuth](#link--unlink-oauth)
 - [Setup / Change Password](#setup--change-password)
 - [Manage MFA](#manage-mfa)
 - [Setup / Change / Remove MFA Phone](#setup--change--remove-MFA-phone)
@@ -105,6 +106,34 @@ await authgear.changeUsername("example", {
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
 const username = userInfo.preferredUsername;
+```
+
+## Link / Unlink OAuth
+
+### Intention
+
+App developers might want to offer custom buttons to trigger the UI in native App which manages the user's OAuth connections (e.g., Sign in with Google).
+
+`oauthProviderAlias` is the alias of the OAuth provider as configured in Authgear Portal under Social / Enterprise Login. It is **required** for both link and unlink.
+
+### SDK Design
+
+- Link OAuth
+
+```typescript
+await authgear.linkOAuth({
+  oauthProviderAlias: "google",
+  redirectURI: "com.example://complete",
+});
+```
+
+- Unlink OAuth
+
+```typescript
+await authgear.unlinkOAuth({
+  oauthProviderAlias: "google",
+  redirectURI: "com.example://complete",
+});
 ```
 
 ## Setup / Change Password
