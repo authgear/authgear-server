@@ -21,7 +21,6 @@ import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
 import ExternalLink from "./ExternalLink";
 import { useSettingsAnchor } from "./hook/authgear";
-import { projectPath, ProjectSectionPath } from "./util/projectPath";
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -164,14 +163,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       {
         type: "link" as const,
         textKey: "ScreenNav.getting-started",
-        url: projectPath(appID, ProjectSectionPath.gettingStarted),
+        url: `/project/${appID}/getting-started`,
       },
       ...(analyticEnabled
         ? [
             {
               type: "link" as const,
               textKey: "ScreenNav.analytics",
-              url: projectPath(appID, ProjectSectionPath.analytics),
+              url: `/project/${appID}/analytics`,
             },
           ]
         : []),
@@ -183,17 +182,17 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.users",
-            url: projectPath(appID, ProjectSectionPath.users),
+            url: `/project/${appID}/user-management/users`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.roles",
-            url: projectPath(appID, ProjectSectionPath.roles),
+            url: `/project/${appID}/user-management/roles`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.groups",
-            url: projectPath(appID, ProjectSectionPath.groups),
+            url: `/project/${appID}/user-management/groups`,
           },
         ],
       },
@@ -205,34 +204,34 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.login-methods",
-            url: projectPath(appID, ProjectSectionPath.loginMethods),
+            url: `/project/${appID}/configuration/authentication/login-methods`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.external-oauth",
-            url: projectPath(appID, ProjectSectionPath.externalOAuth),
+            url: `/project/${appID}/configuration/authentication/external-oauth`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.biometric",
-            url: projectPath(appID, ProjectSectionPath.biometric),
+            url: `/project/${appID}/configuration/authentication/biometric`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.mfa",
-            url: projectPath(appID, ProjectSectionPath.mfa),
+            url: `/project/${appID}/configuration/authentication/2fa`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.anonymous-users",
-            url: projectPath(appID, ProjectSectionPath.anonymousUsers),
+            url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
           ...(app2appEnabled
             ? [
                 {
                   type: "link" as const,
                   textKey: "ScreenNav.app2app",
-                  url: projectPath(appID, ProjectSectionPath.app2app),
+                  url: `/project/${appID}/configuration/authentication/app2app`,
                 },
               ]
             : []),
@@ -241,12 +240,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       {
         type: "link" as const,
         textKey: "ScreenNav.client-applications",
-        url: projectPath(appID, ProjectSectionPath.clientApplications),
+        url: `/project/${appID}/configuration/apps`,
       },
       {
         type: "link" as const,
         textKey: "ScreenNav.api-resources",
-        url: projectPath(appID, ProjectSectionPath.apiResources),
+        url: `/project/${appID}/api-resources`,
       },
       {
         type: "group" as const,
@@ -256,29 +255,29 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.design",
-            url: projectPath(appID, ProjectSectionPath.design),
+            url: `/project/${appID}/branding/design`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.localization",
-            url: projectPath(appID, ProjectSectionPath.localization),
+            url: `/project/${appID}/branding/localization`,
           },
           {
             type: "link" as const,
             textKey: "CustomDomainListScreen.title",
-            url: projectPath(appID, ProjectSectionPath.customDomains),
+            url: `/project/${appID}/branding/custom-domains`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.customText",
-            url: projectPath(appID, ProjectSectionPath.customText),
+            url: `/project/${appID}/branding/custom-text`,
           },
         ],
       },
       {
         type: "link" as const,
         textKey: "ScreenNav.languages",
-        url: projectPath(appID, ProjectSectionPath.languages),
+        url: `/project/${appID}/configuration/languages`,
       },
       {
         type: "group" as const,
@@ -288,12 +287,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.standard-attributes",
-            url: projectPath(appID, ProjectSectionPath.standardAttributes),
+            url: `/project/${appID}/configuration/user-profile/standard-attributes`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.custom-attributes",
-            url: projectPath(appID, ProjectSectionPath.customAttributes),
+            url: `/project/${appID}/configuration/user-profile/custom-attributes`,
           },
         ],
       },
@@ -305,21 +304,21 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.bot-protection",
-            url: projectPath(appID, ProjectSectionPath.botProtection),
+            url: `/project/${appID}/attack-protection/bot-protection`,
           },
           ...(fraudProtectionModifiable
             ? [
                 {
                   type: "link" as const,
                   textKey: "ScreenNav.fraud-protection",
-                  url: projectPath(appID, ProjectSectionPath.fraudProtection),
+                  url: `/project/${appID}/attack-protection/fraud-protection`,
                 },
               ]
             : []),
           {
             type: "link" as const,
             textKey: "ScreenNav.ip-blocklist",
-            url: projectPath(appID, ProjectSectionPath.ipBlocklist),
+            url: `/project/${appID}/attack-protection/ip-blocklist`,
           },
         ],
       },
@@ -328,7 +327,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             {
               type: "link" as const,
               textKey: "ScreenNav.integrations",
-              url: projectPath(appID, ProjectSectionPath.integrations),
+              url: `/project/${appID}/integrations`,
             },
           ]
         : []),
@@ -338,14 +337,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             {
               type: "link" as const,
               textKey: "ScreenNav.license",
-              url: projectPath(appID, ProjectSectionPath.license),
+              url: `/project/${appID}/license`,
             },
           ]
         : [
             {
               type: "link" as const,
               textKey: "ScreenNav.billing",
-              url: projectPath(appID, ProjectSectionPath.billing),
+              url: `/project/${appID}/billing`,
             },
           ]),
 
@@ -357,56 +356,56 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           {
             type: "link" as const,
             textKey: "ScreenNav.hooks",
-            url: projectPath(appID, ProjectSectionPath.hooks),
+            url: `/project/${appID}/advanced/hooks`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.admin-api",
-            url: projectPath(appID, ProjectSectionPath.adminAPI),
+            url: `/project/${appID}/advanced/admin-api`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.account-deletion",
-            url: projectPath(appID, ProjectSectionPath.accountDeletion),
+            url: `/project/${appID}/advanced/account-deletion`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.account-anonymization",
-            url: projectPath(appID, ProjectSectionPath.accountAnonymization),
+            url: `/project/${appID}/advanced/account-anonymization`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.session",
-            url: projectPath(appID, ProjectSectionPath.session),
+            url: `/project/${appID}/advanced/session`,
           },
           {
             type: "link" as const,
             textKey: isAuthgearOnce
               ? "ScreenNav.smtp--authgearonce"
               : "ScreenNav.smtp",
-            url: projectPath(appID, ProjectSectionPath.smtp),
+            url: `/project/${appID}/advanced/smtp`,
           },
           {
             type: "link" as const,
             textKey: isAuthgearOnce
               ? "ScreenNav.sms-gateway--authgearonce"
               : "ScreenNav.sms-gateway",
-            url: projectPath(appID, ProjectSectionPath.smsGateway),
+            url: `/project/${appID}/advanced/sms-gateway`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.endpoint-direct-access",
-            url: projectPath(appID, ProjectSectionPath.endpointDirectAccess),
+            url: `/project/${appID}/advanced/endpoint-direct-access`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.saml-certificate",
-            url: projectPath(appID, ProjectSectionPath.samlCertificate),
+            url: `/project/${appID}/advanced/saml-certificate`,
           },
           {
             type: "link" as const,
             textKey: "ScreenNav.edit-config",
-            url: projectPath(appID, ProjectSectionPath.editConfig),
+            url: `/project/${appID}/edit-config`,
           },
         ],
       },
@@ -415,14 +414,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             {
               type: "link" as const,
               textKey: "ScreenNav.audit-log",
-              url: projectPath(appID, ProjectSectionPath.auditLog),
+              url: `/project/${appID}/audit-log`,
             },
           ]
         : []),
       {
         type: "link" as const,
         textKey: "PortalAdminSettings.title",
-        url: projectPath(appID, ProjectSectionPath.portalAdmins),
+        url: `/project/${appID}/portal-admins`,
       },
     ];
 

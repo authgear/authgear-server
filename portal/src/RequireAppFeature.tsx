@@ -2,7 +2,6 @@ import React from "react";
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { PortalAPIFeatureConfig } from "./types";
-import { projectPath, ProjectSectionPath } from "./util/projectPath";
 import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
 
@@ -41,10 +40,7 @@ const RequireAppFeature: React.VFC<RequireAppFeatureProps> =
 
     if (!isAvailable(featureConfig.effectiveFeatureConfig)) {
       return (
-        <Navigate
-          to={projectPath(appID, ProjectSectionPath.gettingStarted)}
-          replace={true}
-        />
+        <Navigate to={`/project/${appID}/getting-started`} replace={true} />
       );
     }
 

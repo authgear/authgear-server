@@ -25,7 +25,6 @@ import { useViewerQuery } from "../../graphql/portal/query/viewerQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
-import { resolveProjectSwitchPath } from "../../util/projectPath";
 import { isProjectQuotaReached } from "../../util/projectQuota";
 import { copyToClipboard } from "../../util/clipboard";
 import styles from "./ProjectSelector.module.css";
@@ -220,12 +219,13 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
         );
         const typedID = toTypedID("App", selectedAppID);
         const newProjectBasePath = `/project/${encodeURIComponent(typedID)}`;
-        // Keep the user on the same section of the new project, but drop any
-        // project-specific suffix (entity IDs, create/edit forms) that would
-        // not exist in the target project. Search and hash are intentionally
+        // Keep the user on the same page under the new project by swapping the
+        // /project/:id prefix. Screens that load project-scoped entities are
+        // responsible for redirecting to their list page when the entity does
+        // not exist in the new project. Search and hash are intentionally
         // dropped as they typically reference data from the previous project.
-        const nextPathname = resolveProjectSwitchPath(
-          location.pathname,
+        const nextPathname = location.pathname.replace(
+          /^\/project\/[^/]+/,
           newProjectBasePath
         );
 
