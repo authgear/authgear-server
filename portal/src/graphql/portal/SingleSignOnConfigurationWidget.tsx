@@ -322,8 +322,17 @@ interface OAuthClientIconProps {
 const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
   function OAuthClientIcon(props) {
     const { providerItemKey } = props;
-    const { iconClassName } = oauthProviders[providerItemKey];
-    return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
+    const providerInfo = oauthProviders[providerItemKey] as
+      | OAuthProviderInfo
+      | undefined;
+    if (providerInfo == null) {
+      return <i className={cn("fas", "fa-link", styles.widgetLabelIcon)} />;
+    }
+    return (
+      <i
+        className={cn("fab", providerInfo.iconClassName, styles.widgetLabelIcon)}
+      />
+    );
   };
 
 function ProviderStatus({
@@ -1141,8 +1150,9 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
       [providerConfig]
     );
 
-    const { titleId, subtitleId, descriptionId } =
-      oauthProviders[providerItemKey];
+    const knownProviderInfo = oauthProviders[providerItemKey] as
+      | OAuthProviderInfo
+      | undefined;
 
     const handleEditClick = useCallback(() => {
       onEditClick?.(providerConfig);
@@ -1161,9 +1171,13 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           <div className={styles.rowContent}>
             <div className={styles.rowName}>
               <Text variant="medium" className={styles.rowTitle} block={true}>
-                {`${renderToString(titleId)}${
-                  subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
-                }`}
+                {knownProviderInfo != null
+                  ? `${renderToString(knownProviderInfo.titleId)}${
+                      knownProviderInfo.subtitleId != null
+                        ? ` (${renderToString(knownProviderInfo.subtitleId)})`
+                        : ""
+                    }`
+                  : providerConfig.type}
                 {showAlias ? ` - ${providerConfig.alias}` : null}
               </Text>
             </div>
@@ -1173,7 +1187,9 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
                 className={styles.rowDescription}
                 block={true}
               >
-                <FormattedMessage id={descriptionId} />
+                {knownProviderInfo != null ? (
+                  <FormattedMessage id={knownProviderInfo.descriptionId} />
+                ) : null}
               </Text>
             </div>
           </div>
@@ -1190,12 +1206,14 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           />
         </div>
         <div className={styles.rowActions}>
-          <ActionButton
-            text={renderToString("SingleSignOnConfigurationScreen.edit")}
-            styles={{ label: { fontWeight: 600 } }}
-            theme={themes.actionButton}
-            onClick={handleEditClick}
-          />
+          {knownProviderInfo != null ? (
+            <ActionButton
+              text={renderToString("SingleSignOnConfigurationScreen.edit")}
+              styles={{ label: { fontWeight: 600 } }}
+              theme={themes.actionButton}
+              onClick={handleEditClick}
+            />
+          ) : null}
           <ActionButton
             text={renderToString("SingleSignOnConfigurationScreen.delete")}
             styles={{ label: { fontWeight: 600 } }}
