@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useMemo, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "../../intl";
@@ -535,7 +535,8 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
 const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
-  const navigate = useNavigate();
+  // The route-level RequireUser guard redirects to the user list when the
+  // user does not exist, so this screen only renders for an existing user.
   const {
     user,
     loading: loadingUser,
@@ -551,27 +552,6 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
   const loading = loadingUser || loadingAppConfig;
-
-  useEffect(() => {
-    if (loadingUser || loadingAppConfig) {
-      return;
-    }
-    if (error != null || appConfigError != null) {
-      return;
-    }
-    if (user != null) {
-      return;
-    }
-    navigate(`/project/${appID}/user-management/users`, { replace: true });
-  }, [
-    appID,
-    appConfigError,
-    error,
-    loadingAppConfig,
-    loadingUser,
-    navigate,
-    user,
-  ]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;

@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Navigate, useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import ScreenContent from "../../ScreenContent";
@@ -155,16 +155,28 @@ const EditCustomAttributeScreen: React.VFC =
       navigate("./../..");
     }, [navigate]);
 
-    if (isNaN(index)) {
-      return null;
-    }
-
     if (form.isLoading) {
       return <ShowLoading />;
     }
 
     if (form.loadError) {
       return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    if (
+      isNaN(index) ||
+      form.effectiveConfig.user_profile?.custom_attributes?.attributes?.[
+        index
+      ] == null
+    ) {
+      // The attribute does not exist in this project (e.g. after switching
+      // projects); fall back to the custom attribute list.
+      return (
+        <Navigate
+          to={`/project/${appID}/configuration/user-profile/custom-attributes`}
+          replace={true}
+        />
+      );
     }
 
     return (

@@ -15,6 +15,7 @@ import {
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
 import RequireAppFeature from "./RequireAppFeature";
+import RequireUser from "./RequireUser";
 import { PortalAPIFeatureConfig } from "./types";
 
 // Feature-config predicates for the route-level RequireAppFeature guards. Each
@@ -449,7 +450,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":userID">
+              <Route path=":userID" element={<RequireUser />}>
                 <Route
                   index={true}
                   element={<Navigate to="details" replace={true} />}
