@@ -368,7 +368,7 @@ App developers might want to know which OAuth providers the user has linked to t
 const userInfo = await authgear.fetchUserInfo();
 const linkedOAuthProviders = userInfo.identities
   .filter((i) => i.type === "oauth")
-  .map((i) => i.providerAlias);
+  .map((i) => i.oauthProviderAlias);
 ```
 
 - Check whether a specific provider is linked
@@ -376,7 +376,7 @@ const linkedOAuthProviders = userInfo.identities
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
 const isGoogleLinked = userInfo.identities.some(
-  (i) => i.type === "oauth" && i.providerAlias === "google"
+  (i) => i.type === "oauth" && i.oauthProviderAlias === "google"
 );
 ```
 
@@ -400,8 +400,8 @@ interface Identity {
   updatedAt: Date;
   loginIDKey?: string; // Present when type is "login_id", e.g. "email", "phone", "username"
   loginIDType?: "email" | "phone" | "username"; // Present when type is "login_id"
-  providerType?: string; // Present when type is "oauth", e.g. "google", "facebook"
-  providerAlias?: string; // Present when type is "oauth"
+  oauthProviderType?: string; // Present when type is "oauth", e.g. "google", "facebook"
+  oauthProviderAlias?: string; // Present when type is "oauth"
 }
 
 interface UserInfo {
@@ -456,8 +456,8 @@ interface UserInfo {
       "type": "oauth",
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z",
-      "provider_type": "google",
-      "provider_alias": "google"
+      "oauth_provider_type": "google",
+      "oauth_provider_alias": "google"
     },
     {
       "type": "login_id",
