@@ -360,6 +360,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           </PivotItem>
           {auditLogEnabled ? (
             <PivotItem
+              className={"flex-1"}
               itemKey={LOGS_KEY}
               headerText={renderToString("UserDetails.logs.header")}
             >
@@ -466,6 +467,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         </PivotItem>
         {auditLogEnabled ? (
           <PivotItem
+            className={"flex-1"}
             itemKey={LOGS_KEY}
             headerText={renderToString("UserDetails.logs.header")}
           >
