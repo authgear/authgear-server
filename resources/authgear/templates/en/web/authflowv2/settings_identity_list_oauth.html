@@ -117,7 +117,7 @@
 {{ else if .Ctx.IsNotLinked }}
   {{/* Case 2: unlink_oauth error — provider not linked. No action. */}}
 
-{{ else if not .Verified }}
+{{ else if eq .IdentityID "" }}
   {{/* Case 3: provider not yet linked. Show connect button, except in unlink_oauth mode. */}}
   {{ if not .Ctx.IsUnlinkSettingsAction }}
   <form method="post" novalidate>
