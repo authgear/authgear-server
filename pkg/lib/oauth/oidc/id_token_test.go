@@ -254,7 +254,7 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 					},
 				},
 				Identities: []model.UserInfoIdentity{
-					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, ProviderType: "google", ProviderAlias: "google"},
+					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
 					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email", LoginIDType: model.LoginIDKeyTypeEmail},
 				},
 			},
@@ -307,8 +307,8 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
       "created_at": "2019-12-31T23:00:00Z",
       "updated_at": "2019-12-31T23:30:00Z",
       "type": "oauth",
-      "provider_type": "google",
-      "provider_alias": "google"
+      "oauth_provider_type": "google",
+      "oauth_provider_alias": "google"
     },
     {
       "created_at": "2019-12-31T23:00:00Z",
@@ -361,7 +361,7 @@ func TestGetUserInfo(t *testing.T) {
 					},
 				},
 				Identities: []model.UserInfoIdentity{
-					{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, ProviderType: "google", ProviderAlias: "google"},
+					{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
 				},
 				RecoveryCodeEnabled: true,
 			},
@@ -398,7 +398,7 @@ func TestGetUserInfo(t *testing.T) {
 			},
 		})
 		So(userInfo[string(model.ClaimIdentities)], ShouldResemble, []model.UserInfoIdentity{
-			{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, ProviderType: "google", ProviderAlias: "google"},
+			{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
 		})
 	})
 }

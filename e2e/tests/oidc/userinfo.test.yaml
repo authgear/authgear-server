@@ -119,8 +119,8 @@ steps:
               "type": "oauth",
               "created_at": "[[string]]",
               "updated_at": "[[string]]",
-              "provider_type": "google",
-              "provider_alias": "google"
+              "oauth_provider_type": "google",
+              "oauth_provider_alias": "google"
             }
           ],
           "https://authgear.com/claims/user/authenticators": [

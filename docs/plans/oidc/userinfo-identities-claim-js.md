@@ -68,8 +68,8 @@ export interface Identity {
   updatedAt: Date;
   loginIDKey?: string;
   loginIDType?: LoginIDType;
-  providerType?: string;
-  providerAlias?: string;
+  oauthProviderType?: string;
+  oauthProviderAlias?: string;
 }
 ```
 
@@ -79,9 +79,9 @@ export interface Identity {
 
 `loginIDType` is present only when `type` is `IdentityType.LoginID`. It is one of `LoginIDType.Email`, `LoginIDType.Phone`, `LoginIDType.Username`, or `LoginIDType.Unknown`.
 
-`providerType` is present only when `type` is `IdentityType.OAuth` (e.g. `"google"`, `"facebook"`).
+`oauthProviderType` is present only when `type` is `IdentityType.OAuth` (e.g. `"google"`, `"facebook"`).
 
-`providerAlias` is present only when `type` is `IdentityType.OAuth`.
+`oauthProviderAlias` is present only when `type` is `IdentityType.OAuth`.
 
 #### Extend `UserInfo` interface
 
@@ -164,8 +164,8 @@ export function _decodeIdentities(r: any): Identity[] | undefined {
           : undefined;
     }
     if (identity.type === IdentityType.OAuth) {
-      identity.providerType = i["provider_type"];
-      identity.providerAlias = i["provider_alias"];
+      identity.oauthProviderType = i["oauth_provider_type"];
+      identity.oauthProviderAlias = i["oauth_provider_alias"];
     }
     return identity;
   });
@@ -215,8 +215,8 @@ Add `"https://authgear.com/claims/user/identities"` after the authenticators arr
     "type": "oauth",
     "created_at": "2024-01-01T00:00:00Z",
     "updated_at": "2024-01-01T00:00:00Z",
-    "provider_type": "google",
-    "provider_alias": "google"
+    "oauth_provider_type": "google",
+    "oauth_provider_alias": "google"
   },
   {
     "type": "login_id",
@@ -243,8 +243,8 @@ Add `identities` after `authenticators`:
           type: IdentityType.OAuth,
           createdAt: new Date("2024-01-01T00:00:00Z"),
           updatedAt: new Date("2024-01-01T00:00:00Z"),
-          providerType: "google",
-          providerAlias: "google",
+          oauthProviderType: "google",
+          oauthProviderAlias: "google",
         },
         {
           type: IdentityType.LoginID,
@@ -269,7 +269,7 @@ Add the raw key to match the fixture (the `raw` field in `UserInfo` is the unmod
 
 ```typescript
         "https://authgear.com/claims/user/identities": [
-          { type: "oauth", provider_type: "google", provider_alias: "google" },
+          { type: "oauth", oauth_provider_type: "google", oauth_provider_alias: "google" },
           { type: "login_id", login_id_key: "email", login_id_type: "email" },
           { type: "unknown_future_type" },
         ],
