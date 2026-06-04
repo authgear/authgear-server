@@ -2,12 +2,27 @@
   display: flex;
   flex-direction: column;
   max-width: calc(80px * 8 + 20px * 8);
-  row-gap: 30px;
-  margin: 20px 8px;
+  row-gap: 12px;
+  margin-left: 10px;
+  padding-top: 16px;
 }
 
-.standardAttributesTitle {
-  margin-bottom: -20px;
+.section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+}
+
+.sectionDivider {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.sectionTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .nameGroup {
@@ -69,7 +84,7 @@
 
 .customAttributesForm {
   display: grid;
-  row-gap: 30px;
+  row-gap: 12px;
   column-gap: 16px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: auto;

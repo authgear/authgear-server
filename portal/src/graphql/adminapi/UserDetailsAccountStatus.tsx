@@ -941,40 +941,33 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     );
 
     return (
-      <div>
-        <Label>
-          <Text variant="xLarge">
-            <FormattedMessage id="UserDetailsAccountStatus.title" />
-          </Text>
-        </Label>
-        <div className="-mt-3">
-          <DisableUserCell
-            data={data}
-            onClickDisable={onClickDisable}
-            onClickReenable={onClickReenable}
-          />
-          <AccountValidPeriodCell
-            data={data}
-            onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
-            onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
-          />
-          <AccountLockoutCell
-            data={data}
-            onClickResetAccountLockout={onClickResetAccountLockout}
-          />
-          <AnonymizeUserCell
-            data={data}
-            onClickAnonymizeImmediately={onClickAnonymizeImmediately}
-            onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
-            onClickCancelAnonymization={onClickCancelAnonymization}
-          />
-          <RemoveUserCell
-            data={data}
-            onClickCancelDeletion={onClickCancelDeletion}
-            onClickDeleteImmediately={onClickDeleteImmediately}
-            onClickDeleteOrSchedule={onClickDeleteOrSchedule}
-          />
-        </div>
+      <div className={styles.root}>
+        <DisableUserCell
+          data={data}
+          onClickDisable={onClickDisable}
+          onClickReenable={onClickReenable}
+        />
+        <AccountValidPeriodCell
+          data={data}
+          onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
+          onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
+        />
+        <AccountLockoutCell
+          data={data}
+          onClickResetAccountLockout={onClickResetAccountLockout}
+        />
+        <AnonymizeUserCell
+          data={data}
+          onClickAnonymizeImmediately={onClickAnonymizeImmediately}
+          onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
+          onClickCancelAnonymization={onClickCancelAnonymization}
+        />
+        <RemoveUserCell
+          data={data}
+          onClickCancelDeletion={onClickCancelDeletion}
+          onClickDeleteImmediately={onClickDeleteImmediately}
+          onClickDeleteOrSchedule={onClickDeleteOrSchedule}
+        />
         <AccountStatusDialog
           key={String(dialogKey)}
           accountStatus={data}

@@ -16,6 +16,7 @@ import { UserRolesListItem, UserRolesList } from "./UserRolesList";
 import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
 import { AddUserRolesDialog } from "../dialog/AddUserRolesDialog";
+import styles from "./UserDetailsRolesAndGroupsTab.module.css";
 
 const pageSize = 10;
 
@@ -138,13 +139,17 @@ function UserDetailsScreenRoleListContainer({
   const totalCount = rolesQueryData?.roles?.totalCount ?? 0;
 
   if (totalCount === 0) {
-    return <RolesEmptyView />;
+    return (
+      <div className={styles.root}>
+        <RolesEmptyView />
+      </div>
+    );
   }
 
   return (
     <>
-      <section className={cn("flex flex-col h-full", className)}>
-        <header className="flex flex-row items-center justify-between mb-8">
+      <section className={cn(styles.root, "flex flex-col h-full", className)}>
+        <header className="flex flex-row items-center justify-between">
           <SearchBox
             className="max-w-[300px] min-w-0 flex-1 mr-2"
             placeholder={renderToString("search")}

@@ -1240,12 +1240,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         {primaryAuthenticatorLists.hasVisibleList ||
         primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
           <div className={styles.authenticatorContainer}>
-            <div
-              className={cn(
-                "flex justify-between",
-                styles.authenticatorKindHeader
-              )}
-            >
+            <div className={styles.authenticatorKindHeader}>
               <Text as="h2" variant="medium" className={cn(styles.header)}>
                 <FormattedMessage id="UserDetails.account-security.primary" />
               </Text>
@@ -1327,12 +1322,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         {secondaryAuthenticatorLists.hasVisibleList ||
         secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
           <div className={styles.authenticatorContainer}>
-            <div
-              className={cn(
-                "flex justify-between",
-                styles.authenticatorKindHeader
-              )}
-            >
+            <div className={styles.authenticatorKindHeader}>
               <Text as="h2" className={cn(styles.header)}>
                 <FormattedMessage id="UserDetails.account-security.secondary" />
               </Text>

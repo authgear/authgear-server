@@ -1,5 +1,6 @@
 .root {
   margin-left: 10px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   row-gap: 16px;
@@ -17,7 +18,10 @@
 }
 
 .authenticatorKindHeader {
-  margin-top: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .authenticatorTypeSection + .authenticatorTypeSection {
@@ -43,11 +47,11 @@
 }
 
 .cellLabel {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .cellDesc {
-  font-size: 13px;
+  font-size: 14px;
   color: #888888;
 }
 

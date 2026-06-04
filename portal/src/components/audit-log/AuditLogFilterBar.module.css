@@ -43,7 +43,11 @@
   @apply flex items-center;
   @apply flex-1-0-auto;
 
-  @apply tablet:h-auto;
+  /* Keep a definite height in the stacked (tablet) layout so command bar
+     buttons using height:100% (Refresh, and consumer-provided trailing
+     actions) resolve to the full bar height instead of collapsing to text
+     height when the screen wrapper has no definite height. */
+  @apply tablet:h-11;
   @apply tablet:w-full;
 }
 
