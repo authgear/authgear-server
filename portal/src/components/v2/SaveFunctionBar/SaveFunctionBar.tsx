@@ -1,15 +1,12 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { Dialog, DialogFooter } from "@fluentui/react";
-import { Context, FormattedMessage } from "../../../intl";
+import { FormattedMessage } from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
 import { PrimaryButton } from "../Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../Button/SecondaryButton/SecondaryButton";
-import FluentPrimaryButton from "../../../PrimaryButton";
-import DefaultButton from "../../../DefaultButton";
+import { ConfirmationDialog } from "../ConfirmationDialog/ConfirmationDialog";
 import styles from "./SaveFunctionBar.module.css";
 import { useSaveFunctionBarAlignment } from "./useSaveFunctionBarAlignment";
 
@@ -25,27 +22,18 @@ export function SaveFunctionBar({
   const { canReset, canSave, isDirty, isUpdating, onReset, onSave } =
     useFormContainerBaseContext();
   const alignStyle = useSaveFunctionBarAlignment(anchorRef);
-  const { themes } = useSystemConfig();
-  const { renderToString } = useContext(Context);
 
-  const [isDiscardDialogVisible, setIsDiscardDialogVisible] = useState(false);
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
   const onOpenDiscardDialog = useCallback(() => {
-    setIsDiscardDialogVisible(true);
+    setIsDiscardDialogOpen(true);
   }, []);
   const onDismissDiscardDialog = useCallback(() => {
-    setIsDiscardDialogVisible(false);
+    setIsDiscardDialogOpen(false);
   }, []);
   const onConfirmDiscard = useCallback(() => {
     onReset();
-    setTimeout(() => setIsDiscardDialogVisible(false), 0);
+    setTimeout(() => setIsDiscardDialogOpen(false), 0);
   }, [onReset]);
-
-  const discardDialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id="FormContainer.reset-dialog.title" />,
-      subText: renderToString("FormContainer.reset-dialog.message"),
-    };
-  }, [renderToString]);
 
   if (!isDirty) {
     return null;
@@ -84,23 +72,21 @@ export function SaveFunctionBar({
           />
         </div>
       </div>
-      <Dialog
-        hidden={!isDiscardDialogVisible}
-        dialogContentProps={discardDialogContentProps}
-        onDismiss={onDismissDiscardDialog}
-      >
-        <DialogFooter>
-          <FluentPrimaryButton
-            onClick={onConfirmDiscard}
-            theme={themes.destructive}
-            text={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
-          />
-          <DefaultButton
-            onClick={onDismissDiscardDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={isDiscardDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDiscardDialogOpen(false);
+          }
+        }}
+        title={<FormattedMessage id="FormContainer.reset-dialog.title" />}
+        description={<FormattedMessage id="FormContainer.reset-dialog.message" />}
+        confirmText={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        confirmColor="red"
+        onConfirm={onConfirmDiscard}
+        onCancel={onDismissDiscardDialog}
+      />
     </>
   );
 }

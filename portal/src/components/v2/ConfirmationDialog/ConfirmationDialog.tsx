@@ -14,6 +14,7 @@ export interface ConfirmationDialogProps {
   onCancel: () => void;
   loading?: boolean;
   confirmColor?: "red" | "indigo";
+  maxWidth?: string;
 }
 
 export function ConfirmationDialog({
@@ -27,19 +28,14 @@ export function ConfirmationDialog({
   onCancel,
   loading = false,
   confirmColor = "red",
+  maxWidth = "400px",
 }: ConfirmationDialogProps): React.ReactElement {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content maxWidth="480px" size="3">
+      <Dialog.Content maxWidth={maxWidth} size="3">
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Description size="2">{description}</Dialog.Description>
         <div className={styles.actions}>
-          <SecondaryButton
-            size="2"
-            disabled={loading}
-            text={cancelText}
-            onClick={onCancel}
-          />
           <Button
             size="2"
             variant="solid"
@@ -50,6 +46,12 @@ export function ConfirmationDialog({
           >
             {confirmText}
           </Button>
+          <SecondaryButton
+            size="2"
+            disabled={loading}
+            text={cancelText}
+            onClick={onCancel}
+          />
         </div>
       </Dialog.Content>
     </Dialog.Root>
