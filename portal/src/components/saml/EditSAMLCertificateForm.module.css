@@ -1,3 +1,121 @@
-.addButtonIcon {
-  margin: 0 10px 0 0;
+.keysTableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1081px) {
+  .keysTableWrapper {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .keysTableWrapper::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.keysTable {
+  min-width: 100%;
+}
+
+.keysTableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.keysTableHeaderCellFingerprint,
+.keysTableHeaderCellStatus,
+.keysTableHeaderCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.keysTableHeaderCellFingerprint {
+  @apply flex-1 min-w-0;
+}
+
+.keysTableHeaderCellStatus {
+  width: 6.5rem;
+  min-width: 6.5rem;
+  flex-shrink: 0;
+}
+
+.keysTableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.keysTableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.keysTableCellFingerprint,
+.keysTableCellStatus,
+.keysTableCellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.keysTableCellFingerprint {
+  @apply flex min-w-0 flex-1 items-center overflow-hidden;
+}
+
+.keysTableCellFingerprintText {
+  @apply min-w-0 truncate;
+}
+
+.keysTableCellStatus {
+  width: 6.5rem;
+  min-width: 6.5rem;
+  flex-shrink: 0;
+}
+
+.keysTableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.activeStatus {
+  position: relative;
+  width: fit-content;
+}
+
+.activeStatusText {
+  color: var(--green-11);
+}
+
+.activeStatusSpinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activateButton {
+  @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold whitespace-nowrap;
+  color: var(--accent-9);
+}
+
+.activateButton:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.generateKeyButton {
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+}
+
+.generateKeyButton:disabled {
+  @apply cursor-not-allowed opacity-50;
 }

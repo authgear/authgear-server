@@ -662,7 +662,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {state.providerType === ProviderType.Sendgrid ? (
                 <>
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     type="password"
                     label={
@@ -682,7 +682,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="password"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
@@ -694,7 +694,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
@@ -710,7 +710,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {state.providerType === ProviderType.Custom ? (
                 <>
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.host.label" />
@@ -725,7 +725,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="host"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.port.label" />
@@ -740,7 +740,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="port"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.username.label" />
@@ -752,7 +752,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="username"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     type={showPassword ? "text" : "password"}
                     label={
@@ -781,7 +781,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     }
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
@@ -793,7 +793,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
                   />
                   <TextField
-                    size="3"
+                    size="2"
                     labelSize="2"
                     label={
                       <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />

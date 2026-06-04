@@ -1,4 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useRef } from "react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import {
   useSAMLCertificateForm,
@@ -7,18 +9,17 @@ import {
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { FormContainerBase } from "../../FormContainerBase";
+import FormContainer from "../../FormContainer";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
-import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import ScreenDescription from "../../ScreenDescription";
 import { FormattedMessage } from "../../intl";
 import styles from "./SAMLCertificateScreen.module.css";
 import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertificateForm";
 import { AutoGenerateFirstCertificate } from "../../components/saml/AutoGenerateFirstCertificate";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 function EditSAMLCertificateContent({
   configAppID,
@@ -31,23 +32,36 @@ function EditSAMLCertificateContent({
   certificates: SAMLIdpSigningCertificate[];
   generateNewCertificate: () => Promise<void>;
 }) {
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="SAMLCertificateScreen.title" />,
-      },
-    ];
-  }, []);
+  const { isDirty } = useFormContainerBaseContext();
+  const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   return (
-    <ScreenLayoutScrollView>
-      <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <ScreenDescription className={styles.widget}>
+    <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+      <div
+        ref={contentWidthAnchorRef}
+        className={styles.contentWidthAnchor}
+        aria-hidden
+      />
+      <div className={cn(styles.widget, styles.pageHeader)}>
+        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <FormattedMessage id="SAMLCertificateScreen.title" />
+        </Text>
+        <Text as="p" size="2" color="gray" className={styles.pageDescription}>
           <FormattedMessage id="SAMLCertificateScreen.desc" />
-        </ScreenDescription>
-        <div className={styles.widget}>
+        </Text>
+      </div>
+
+      <div
+        className={cn(
+          styles.widget,
+          "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
+          isDirty && styles.settingsCardSaveBarClearance
+        )}
+      >
+        <Text as="p" size="3" weight="medium" className={styles.sectionHeading}>
+          <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
+        </Text>
+        <div className="flex-1 min-w-0">
           <EditSAMLCertificateForm
             configAppID={configAppID}
             form={form}
@@ -55,8 +69,10 @@ function EditSAMLCertificateContent({
             onGenerateNewCertitificate={generateNewCertificate}
           />
         </div>
-      </ScreenContent>
-    </ScreenLayoutScrollView>
+      </div>
+
+      <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+    </ScreenContent>
   );
 }
 
@@ -93,14 +109,14 @@ function EditSAMLCertificateFormContainer({
   }
 
   return (
-    <FormContainerBase form={form} canSave={true}>
+    <FormContainer form={form} hideFooterComponent={true}>
       <EditSAMLCertificateContent
         configAppID={configAppID}
         certificates={certificates}
         form={form}
         generateNewCertificate={generateNewCertificate}
       />
-    </FormContainerBase>
+    </FormContainer>
   );
 }
 

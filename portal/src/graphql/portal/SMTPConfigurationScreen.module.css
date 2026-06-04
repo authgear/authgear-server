@@ -1,11 +1,11 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
 .columnFull {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
@@ -54,11 +54,11 @@
 }
 
 .contentWithSaveBar {
-  padding-bottom: 5.5rem;
+  padding-bottom: 8rem;
 }
 
 .contentWidthAnchor {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
   height: 0;
   overflow: hidden;
   pointer-events: none;

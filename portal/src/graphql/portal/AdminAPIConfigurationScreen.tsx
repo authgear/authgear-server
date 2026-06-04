@@ -1,4 +1,5 @@
 import React, { useContext, useMemo, useCallback, useState, useRef } from "react";
+import cn from "classnames";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   CopyIcon,
@@ -16,8 +17,6 @@ import {
 } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import {
@@ -479,18 +478,25 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       <>
         <ScreenLayoutScrollView>
           <ScreenContent>
-            <ScreenTitle className={styles.widget}>
-              <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-            </ScreenTitle>
-            <ScreenDescription className={styles.widget}>
-              <FormattedMessage
-                id="AdminAPIConfigurationScreen.description"
-                values={{
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                }}
-              />
-            </ScreenDescription>
+            <div className={cn(styles.widget, styles.pageHeader)}>
+              <h1 className={styles.pageTitle}>
+                <FormattedMessage id="AdminAPIConfigurationScreen.title" />
+              </h1>
+              <Text
+                as="p"
+                size="2"
+                color="gray"
+                className={styles.pageDescription}
+              >
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.description"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  }}
+                />
+              </Text>
+            </div>
 
             <div className={styles.sections}>
               <SettingsSection
