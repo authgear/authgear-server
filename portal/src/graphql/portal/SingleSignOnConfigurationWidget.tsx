@@ -330,7 +330,11 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
     }
     return (
       <i
-        className={cn("fab", providerInfo.iconClassName, styles.widgetLabelIcon)}
+        className={cn(
+          "fab",
+          providerInfo.iconClassName,
+          styles.widgetLabelIcon
+        )}
       />
     );
   };
