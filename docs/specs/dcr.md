@@ -22,13 +22,14 @@ Authgear supports Dynamic Client Registration as defined by:
 - [Security Considerations](#security-considerations)
   - [Access Token Audience Binding](#access-token-audience-binding)
 - [Admin API](#admin-api)
+  - [IAT management](#iat-management)
 - [Future Works](#future-works)
 
 ## Glossary
 
 **Dynamic Client Registration (DCR)** — the process by which an OAuth client registers itself programmatically with an Authorization Server at runtime, rather than being statically configured in `authgear.yaml`.
 
-**Initial Access Token (IAT)** — a short-lived token presented to the registration endpoint that authorizes the caller to register a new client. Required when `initial_access_token_required: true` (the default). An IAT is a JWT signed with the Admin API auth key.
+**Initial Access Token (IAT)** — an opaque token issued by the Admin API and presented to the registration endpoint. Required when `initial_access_token_required: true` (the default). A valid IAT allows registration of any `application_type`; without an IAT only `web` and `native` (third-party client types) may be registered. An IAT is valid until it expires.
 
 ## Use Cases
 
@@ -36,7 +37,7 @@ Authgear supports Dynamic Client Registration as defined by:
 
 A CI system holds the Admin API private key for a project. For each pull request, the CI registers a new first-party client scoped to that PR's redirect URI.
 
-An IAT is required because `spa`, `native`, and `traditional_webapp` are first-party client types — they bypass the consent screen and must only be registered by an authorized administrator.
+An IAT is required because `first_party_spa`, `first_party_native`, `first_party_traditional_webapp`, and `first_party_confidential` are first-party client types — they bypass the consent screen and must only be registered by an authorized administrator.
 
 **Required configuration:**
 
@@ -47,21 +48,22 @@ oauth:
     initial_access_token_required: true   # default; explicitly set for clarity
 ```
 
-No `allowed_resources` or `default_client_config` override is needed — CI clients use the project-level token lifetimes and do not require resource indicator support.
+No `default_client_config` override is needed — CI clients use the project-level token lifetimes and do not require resource indicator support.
 
-**Step 1 — Mint an IAT**
+**Step 1 — Create an IAT via the Admin API**
 
-Sign a JWT with the Admin API private key:
+Call the `createInitialAccessToken` Admin API mutation (see [Admin API](#admin-api)):
 
-```json
-{
-  "iss": "my-ci-pipeline",
-  "aud": "https://myapp.authgear.cloud/oauth2/register",
-  "iat": 1700000000,
-  "exp": 1700003600,
-  "scope": "dcr"
+```graphql
+mutation {
+  createInitialAccessToken(input: { expiresIn: 3600 }) {
+    token
+    expiresAt
+  }
 }
 ```
+
+Store the returned `token` value securely — it is returned once only.
 
 **Step 2 — Register the client**
 
@@ -74,7 +76,7 @@ Authorization: Bearer <iat>
 {
   "client_name": "PR #123 preview",
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
-  "application_type": "spa"
+  "application_type": "first_party_spa"
 }
 ```
 
@@ -88,14 +90,35 @@ Response:
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "spa",
-  "token_endpoint_auth_method": "none"
+  "application_type": "first_party_spa"
 }
 ```
 
 **Step 3 — Use the client in the authorization code flow**
 
 The PR preview app uses `client_id=dcrc_Xf2kLmNpQrStUvWx` as a normal SPA client for the lifetime of the PR.
+
+**Step 4 — Backend validates the access token**
+
+Because no `resource` parameter is used, the issued access token is a JWT with the default audience:
+
+```json
+{
+  "iss": "https://myapp.authgear.cloud",
+  "sub": "<user-id>",
+  "aud": ["https://myapp.authgear.cloud"],
+  "client_id": "dcrc_Xf2kLmNpQrStUvWx",
+  "scope": "openid"
+}
+```
+
+The PR preview backend validates the token as follows:
+
+1. Confirm the token is a JWT.
+2. Fetch `jwks_uri` from `https://myapp.authgear.cloud/.well-known/openid-configuration` and verify the JWT signature.
+3. Check `iss` equals `https://myapp.authgear.cloud`.
+4. Check `aud` includes `https://myapp.authgear.cloud`.
+5. Check `exp` has not elapsed.
 
 > Client deletion is not supported in this version. See [Future Works](#future-works).
 
@@ -112,16 +135,15 @@ oauth:
   dynamic_client_registration:
     enabled: true
     initial_access_token_required: false   # open registration — no IAT needed
-    allowed_resources:
-      - uri: "https://mcp-server.example.com"
-        scopes:
-          - "read:tools"
-          - "execute:tools"
 ```
 
 **Admin setup (once)**
 
-Apply the configuration above. No further per-client admin action is required — any MCP client can self-register and immediately use the declared resources.
+1. Enable open registration as shown above.
+2. In the portal, create an API Resource for `https://mcp-server.example.com` with scopes `read:tools` and `execute:tools`.
+3. Set `allow_any_client_access: true` on the Resource and on each scope that MCP clients should be able to request.
+
+No further per-client admin action is required — any MCP client can self-register and immediately use the declared resources.
 
 **Step 1 — Discover the authorization server**
 
@@ -141,8 +163,7 @@ Host: myapp.authgear.cloud
 Content-Type: application/json
 
 {
-  "redirect_uris": ["https://mcp-client.example.com/callback"],
-  "token_endpoint_auth_method": "none"
+  "redirect_uris": ["https://mcp-client.example.com/callback"]
 }
 ```
 
@@ -156,8 +177,7 @@ Response:
   "redirect_uris": ["https://mcp-client.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "third_party_app",
-  "token_endpoint_auth_method": "none"
+  "application_type": "web"
 }
 ```
 
@@ -192,7 +212,7 @@ grant_type=authorization_code
 &resource=https://mcp-server.example.com
 ```
 
-The issued access token has `aud: ["https://myapp.authgear.cloud", "https://mcp-server.example.com"]`. The MCP server validates `aud` contains its own URI.
+The issued access token has `aud: ["https://mcp-server.example.com"]` (the resource URI only; the project endpoint is not included). The MCP server validates `aud` contains its own URI. If `openid` or other OIDC scopes were also requested and granted, the userinfo endpoint remains accessible via that token.
 
 ## Configuration
 
@@ -201,11 +221,6 @@ oauth:
   dynamic_client_registration:
     enabled: true
     initial_access_token_required: true
-    allowed_resources:
-      - uri: "https://api.example.com"
-        scopes:
-          - "read:data"
-          - "write:data"
     default_client_config:
       access_token_lifetime_seconds: 1800
       refresh_token_lifetime_seconds: 2592000
@@ -214,13 +229,11 @@ oauth:
 ```
 
 - `oauth.dynamic_client_registration.enabled`: Optional. Boolean. Default `false`. Enables `POST /oauth2/register`.
-- `oauth.dynamic_client_registration.initial_access_token_required`: Optional. Boolean. Default `true`. When `true`, registration requires a valid IAT in the `Authorization: Bearer` header; all `application_type` values are accepted. When `false`, open registration is permitted but only `application_type: third_party_app` is accepted.
-
-- `oauth.dynamic_client_registration.allowed_resources`: Optional. List of objects. Default empty. Allow-list of resource server URIs that DCR clients may request via the `resource` parameter (RFC 8707). When empty, DCR clients cannot use resource indicators.
-- `oauth.dynamic_client_registration.allowed_resources[].uri`: Required. String. Absolute `https://` URI of the resource server. Must not be prefixed by the Authgear project endpoint.
-- `oauth.dynamic_client_registration.allowed_resources[].scopes`: Optional. List of strings. Default empty. Scopes DCR clients may request for this resource. Requesting an unlisted scope returns `invalid_scope`.
+- `oauth.dynamic_client_registration.initial_access_token_required`: Optional. Boolean. Default `true`. When `true`, registration requires a valid IAT in the `Authorization: Bearer` header; all `application_type` values are accepted. When `false`, open registration is permitted but only `application_type: web` and `application_type: native` are accepted.
 
 - `oauth.dynamic_client_registration.default_client_config`: Optional. Object. The default client config applied to all DCR-registered clients. Useful when stricter settings are needed for the DCR cohort. Per-client overrides are not yet supported; see [Future Works](#future-works). Supports a subset of the fields defined in [Custom Client Metadata](./oidc.md#custom-client-metadata): `access_token_lifetime_seconds`, `refresh_token_lifetime_seconds`, `refresh_token_idle_timeout_enabled`, `refresh_token_idle_timeout_seconds`.
+
+> **Note:** Resource access for DCR clients is configured via the portal, not `authgear.yaml`. Resources registered in the portal with `allow_any_client_access: true` are accessible to all third-party DCR clients. See [API Resources and Scopes](./api-resource.md#access-without-per-client-association).
 
 ## OIDC Discovery Metadata
 
@@ -247,40 +260,31 @@ Full example of `/.well-known/openid-configuration` with DCR enabled (fields tak
 
 ## Initial Access Token
 
-An IAT is a JWT signed with the private key material corresponding to the `admin-api.auth` JWK set in `authgear.secrets.yaml` (same mechanism already used for Admin API JWT authentication). RS256 and ES256 are both accepted.
+An IAT is an **opaque** token issued by the Admin API (see [Admin API — IAT mutation](#new-mutation-createinitialaccesstoken)). It is passed as `Authorization: Bearer <iat>` to the registration endpoint.
 
-### Required JWT claims
+An IAT authorizes the bearer to register a new OAuth client. The key behavioral rule is:
 
-| Claim | Value |
-|---|---|
-| `iss` | Any non-empty string identifying the issuer |
-| `aud` | Exact registration endpoint URL: `<authgear_endpoint>/oauth2/register` |
-| `iat` | Unix timestamp of issuance |
-| `exp` | Unix timestamp of expiry (must be in the future; recommended ≤ 1 hour from `iat`) |
-| `scope` | Must contain the value `dcr` (space-separated if multiple scopes) |
+- **With an IAT** — any `application_type` (first-party or third-party) may be registered.
+- **Without an IAT** (open registration, `initial_access_token_required: false`) — only `application_type: web` and `application_type: native` may be registered.
 
-Authgear validates:
+### Per-IAT configuration
 
-1. Signature against the `admin-api.auth` public key set.
-2. `aud` equals `<authgear_endpoint>/oauth2/register` exactly.
-3. `exp` has not elapsed.
-4. `scope` contains `dcr`.
+The Admin API may attach per-token configuration when creating an IAT. The exact set of supported config options is not yet defined and will be extended over time. The current behavior (IAT presence grants first-party registration) requires no additional config.
 
-An IAT is single-use. Authgear rejects a replayed IAT whose `jti` (if present) has already been seen, or one that was issued before a key rotation.
+### IAT storage
 
-### Minting an IAT (example)
+IATs are stored hashed in the database. The plaintext value is returned exactly once at creation time and is not recoverable afterwards.
 
-```json
-{
-  "iss": "my-ci-pipeline",
-  "aud": "https://myapp.authgear.cloud/oauth2/register",
-  "iat": 1700000000,
-  "exp": 1700003600,
-  "scope": "dcr"
-}
+```sql
+CREATE TABLE _auth_oauth_initial_access_token (
+  id text PRIMARY KEY,
+  app_id text NOT NULL,
+  created_at timestamp without time zone NOT NULL,
+  expires_at timestamp without time zone NOT NULL,
+  token_hash text NOT NULL
+);
+CREATE UNIQUE INDEX _auth_oauth_initial_access_token_hash_unique ON _auth_oauth_initial_access_token USING btree (app_id, token_hash);
 ```
-
-Sign this JWT with the Admin API private key (RS256 or ES256) and pass it as `Authorization: Bearer <iat>` to the registration endpoint.
 
 ## Registration Endpoint
 
@@ -306,19 +310,16 @@ See [Accepted Client Metadata](#accepted-client-metadata) for the full list of r
 ```json
 {
   "client_id": "dcrc_Xf2kLmNpQrStUvWx",
-  "client_secret": "s3cr3t...",
   "client_id_issued_at": 1700000000,
-  "client_secret_expires_at": 0,
   "client_name": "PR #123 preview",
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "third_party_app",
-  "token_endpoint_auth_method": "client_secret_post"
+  "application_type": "web"
 }
 ```
 
-- `client_secret` is present only when the effective auth method is `client_secret_post`. It is absent when `token_endpoint_auth_method` is `none` or the type is inherently public (`spa`, `native`).
+- `client_secret` is only present in the response when `application_type` is `first_party_confidential`.
 - `client_secret_expires_at: 0` means non-expiring (per RFC 7591 §3.2.1).
 - `client_secret` is returned **once only** and is not recoverable afterwards. The caller must store it securely.
 
@@ -337,8 +338,8 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 |---|---|---|
 | `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for non-localhost) |
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
-| `invalid_initial_access_token` | 401 | IAT is missing, expired, has wrong `aud`, or has wrong `scope` |
-| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, or open registration attempted with a non-`third_party_app` type) |
+| `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
+| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, or open registration attempted with a first-party `application_type`) |
 
 **`invalid_client_metadata` causes:**
 
@@ -346,8 +347,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 |---|---|
 | `redirect_uris` is missing | omitted from request body |
 | `redirect_uris` contains a URI with a fragment component | `https://example.com/callback#section` |
-| `token_endpoint_auth_method` conflicts with `application_type` | `application_type=spa` + `token_endpoint_auth_method=client_secret_post` |
-| `token_endpoint_auth_method` is an unsupported value | `token_endpoint_auth_method=client_secret_basic` |
+| `token_endpoint_auth_method` is provided (field not accepted) | `token_endpoint_auth_method=client_secret_post` |
 | `grant_types` contains an unsupported value | `grant_types=["implicit"]` |
 | `response_types` contains an unsupported value | `response_types=["token"]` |
 | `response_types` is inconsistent with `grant_types` | `grant_types=["refresh_token"]` + `response_types=["code"]` without `authorization_code` |
@@ -393,36 +393,22 @@ Default: `["code"]`.
 
 ### `application_type` (optional)
 
-Controls the security profile applied to the client. The OIDC Dynamic Registration spec defines `web` and `native`; Authgear extends this with additional values:
+Controls the client type and security profile. Authgear supports the two standard OIDC DCR values plus three first-party extension values:
 
-| Value | First/Third party | Consent screen | Default `token_endpoint_auth_method` | `token_endpoint_auth_method` overridable |
-|---|---|---|---|---|
-| `spa` | First-party | No | `none` | No |
-| `native` | First-party | No | `none` | No |
-| `traditional_webapp` | First-party | No | `client_secret_post` | No |
-| `confidential` | First-party | No | `client_secret_post` | No |
-| `third_party_app` | Third-party | Yes | `client_secret_post` | Yes (`none` or `client_secret_post`) |
+| Value | First/Third party | Consent screen | Redirect URI validation | `token_endpoint_auth_method` | Requires IAT |
+|---|---|---|---|---|---|
+| `web` | Third-party | Yes | Must use `https://`; `localhost` not allowed | `none` | No |
+| `native` | Third-party | Yes | Custom URI scheme or `http://localhost` | `none` | No |
+| `first_party_spa` | First-party | No | Same as static `spa` | `none` | Yes |
+| `first_party_native` | First-party | No | Same as static `native` | `none` | Yes |
+| `first_party_traditional_webapp` | First-party | No | Same as static `traditional_webapp` | `none` | Yes |
+| `first_party_confidential` | First-party | No | Same as static `confidential` | `client_secret_post` | Yes |
 
-Default: `third_party_app`.
+Default: `web`.
 
-**IAT requirement by type:** `spa`, `native`, `traditional_webapp`, and `confidential` are first-party types — they bypass the consent screen and may only be registered with a valid IAT. When `initial_access_token_required: false` (open registration), only `third_party_app` is accepted.
+The first-party values (`first_party_spa`, `first_party_native`, `first_party_traditional_webapp`, `first_party_confidential`) are Authgear extensions. They bypass the consent screen and may only be registered with a valid IAT. When `initial_access_token_required: false` (open registration), only `web` and `native` are accepted.
 
-Stored internally as `x_application_type` in the client configuration.
-
-### `token_endpoint_auth_method` (optional)
-
-Declares how the client authenticates at the token endpoint.
-
-| Value | Meaning |
-|---|---|
-| `none` | Public client — no `client_secret` issued; PKCE is required |
-| `client_secret_post` | Confidential client — `client_secret` issued, sent as a POST body parameter |
-
-For most `application_type` values this field is fixed (see table above). Only `third_party_app` allows a choice. Passing a value that conflicts with the `application_type` returns `invalid_client_metadata`.
-
-When omitted, the default for the given `application_type` applies.
-
-`client_secret_basic` (the RFC 7591 default) is intentionally not supported. Modern OAuth 2.0 encourages PKCE with `token_endpoint_auth_method: none`, making `client_secret_basic` unnecessary for the DCR use cases Authgear targets.
+Stored internally as `x_application_type` in the client configuration (`web` → `third_party_app`, `native` → `third_party_app`, `first_party_spa` → `spa`, `first_party_native` → `native`, `first_party_traditional_webapp` → `traditional_webapp`, `first_party_confidential` → `confidential`).
 
 ### `logo_uri` (optional)
 
@@ -466,13 +452,60 @@ By default, all Authgear access tokens share `aud = [<project_endpoint>]`. A res
 
 Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-register their API as a Resource in the portal and associate it with allowed clients. When a client requests a token with `resource=<uri>`, the issued access token includes that URI in `aud`, and the resource server can enforce `aud` contains its own URI.
 
-DCR-registered clients support resource indicators via the `allowed_resources` list in `authgear.yaml`. Only resources explicitly listed there — with their permitted scopes — are accessible to DCR clients. All other project resources remain inaccessible, preventing audience confusion against first-party APIs.
+DCR-registered clients support resource indicators via API Resources registered in the portal. Only Resources marked with `allow_any_client_access: true` are accessible to third-party DCR clients, and only Scopes marked with `allow_any_client_access: true` may be requested. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
 
-The admin configures `allowed_resources` once (e.g. for the MCP server). Individual DCR clients then autonomously use `resource=<uri>` in their authorization requests without any further admin action. See [Access Token Audience Binding](./access-token-audience-binding.md) for the full design.
+The admin configures `allow_any_client_access` once per Resource/Scope in the portal. Individual DCR clients then autonomously use `resource=<uri>` in their authorization requests without any further admin action per client. See [API Resources and Scopes](./api-resource.md#access-without-per-client-association) and [Access Token Audience Binding](./access-token-audience-binding.md) for the full design.
 
 ## Admin API
 
-The portal displays registered clients by querying the Admin GraphQL API. Client creation is done by calling `POST /oauth2/register` directly with an IAT; client management (read, update, delete) is deferred to RFC 7592.
+The portal displays registered clients by querying the Admin GraphQL API. Client creation is done by calling `POST /oauth2/register` directly with an IAT (when required); client management (read, update, delete) is deferred to RFC 7592.
+
+### IAT management
+
+```graphql
+type Query {
+  """Returns all active (non-expired) Initial Access Tokens for the project."""
+  initialAccessTokens: [InitialAccessToken!]!
+}
+
+type Mutation {
+  """Creates an opaque Initial Access Token for use with POST /oauth2/register."""
+  createInitialAccessToken(input: CreateInitialAccessTokenInput!): CreateInitialAccessTokenPayload!
+
+  """Revokes an Initial Access Token so it can no longer be used for registration."""
+  revokeInitialAccessToken(input: RevokeInitialAccessTokenInput!): RevokeInitialAccessTokenPayload!
+}
+
+type InitialAccessToken implements Node {
+  id: ID!
+  createdAt: DateTime!
+  expiresAt: DateTime!
+}
+
+input CreateInitialAccessTokenInput {
+  """
+  Token lifetime in seconds. If omitted, a server default is used (e.g. 3600).
+  """
+  expiresIn: Int
+}
+
+type CreateInitialAccessTokenPayload {
+  """
+  The opaque IAT value. Returned ONCE only — not recoverable after this response.
+  Store it securely and pass it as Authorization: Bearer <token> to POST /oauth2/register.
+  """
+  token: String!
+  initialAccessToken: InitialAccessToken!
+}
+
+input RevokeInitialAccessTokenInput {
+  id: ID!
+}
+
+type RevokeInitialAccessTokenPayload {
+  ok: Boolean
+}
+```
 
 ### New GraphQL type
 

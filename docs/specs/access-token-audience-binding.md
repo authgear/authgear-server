@@ -10,8 +10,8 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 - [Background](#background)
 - [Default Audience and Audience Confusion Risk](#default-audience-and-audience-confusion-risk)
 - [How It Works](#how-it-works)
-  - [Statically configured clients](#statically-configured-clients)
-  - [DCR-registered clients](#dcr-registered-clients)
+  - [Without Resource Indicator](#without-resource-indicator)
+  - [With Resource Indicator](#with-resource-indicator)
 - [Authorization Endpoint](#authorization-endpoint)
 - [Token Endpoint](#token-endpoint)
   - [authorization_code grant](#authorization_code-grant)
@@ -23,7 +23,7 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 
 ## Glossary
 
-**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). For statically configured clients, Resources are pre-registered in the portal. For DCR clients, Resources are declared in the `allowed_resources` list in `authgear.yaml`.
+**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal and optionally marked with `allow_any_client_access` to permit DCR client access. See [API Resources and Scopes](./api-resource.md).
 
 **Resource-specific Scope** — a scope value (e.g. `read:orders`) that is defined on a Resource and only meaningful when the corresponding Resource is included in the `resource` parameter.
 
@@ -33,7 +33,7 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 
 ## Background
 
-Without access token audience binding, all Authgear access tokens share `aud = [<project_endpoint>]`. A resource server that only validates `aud` cannot distinguish tokens intended for different services — a token issued to a third-party app would be structurally accepted by a first-party API on the same project. This is the **audience confusion** risk.
+Without access token audience binding, all Authgear access tokens share `aud = [<project_endpoint>]`. A resource server that only validates `aud` cannot distinguish tokens intended for different services — a token issued to a third-party client would be structurally accepted by a first-party client on the same project. This is the **audience confusion** risk.
 
 The standard solution is RFC 8707 resource indicators: clients declare their target resource at request time, and Authgear binds the `aud` of the issued token to that resource URI. Resource servers can then enforce `aud` contains their own URI.
 
@@ -43,9 +43,7 @@ Authgear previously supported resource indicators only for `m2m` clients using t
 
 ### The problem with `aud = [<project_endpoint>]`
 
-Without any resource binding, all JWT access tokens issued by a project share `aud = [<project_endpoint>]`. This means a token issued to client A is structurally accepted by any resource server that validates against the same project endpoint — including APIs that were never intended to accept tokens from client A. This is the **audience confusion** risk.
-
-Leaving the default as `aud = [<project_endpoint>]` is therefore not acceptable: every deployment is silently vulnerable unless developers explicitly use the `resource` parameter.
+Without any resource binding, all JWT access tokens issued by a project share `aud = [<project_endpoint>]`. This means a token issued to client A is structurally accepted by any resource server that validates against the same project endpoint — including APIs that were never intended to accept tokens from client A. The audience confusion risk is especially acute for third-party clients, which are operated by external developers.
 
 ### Competitor analysis
 
@@ -57,65 +55,59 @@ We reviewed how other providers handle this:
 | Keycloak | No meaningful resource server audience | **None by default.** Keycloak provides "Audience Mapper" configuration: admins create a Client Scope, attach an Audience Mapper with the resource server URI, and assign that scope to specific clients. This works when configured, but requires deliberate per-resource setup. Deployments that skip this configuration remain fully exposed. |
 | Okta | Fixed audience set at the authorization server level (e.g. `api://default`) | **Partial, coarse-grained.** All tokens from one authorization server share a fixed `aud`. Isolation between different resource servers requires deploying separate authorization servers — impractical for most projects. |
 
-RFC 9068 §3 requires that when no `resource` parameter is present, the authorization server MUST use a default resource indicator in the `aud` claim. It does not prescribe what that default should be.
+### Authgear's decision
 
-Auth0's approach (opaque token by default) is the most principled but is a breaking change. Keycloak and Okta require explicit admin configuration with no safe default.
+Authgear takes a different approach for first-party and third-party clients:
 
-### Authgear's decision: per-client default audience
+**First-party clients:**
 
-Authgear uses the client's own URI as the default audience, providing per-client token isolation without requiring any resource indicator configuration.
-
-**When no `resource` parameter is specified**, the issued JWT access token includes:
+The JWT access token retains the existing default:
 
 ```
-aud = ["<project_endpoint>", "<project_endpoint>/clients/<client_id>"]
+aud = ["<project_endpoint>"]
 ```
 
-For example, for client `my-spa` on project `https://myapp.authgear.cloud`:
+This preserves backward compatibility for existing first-party deployments.
+
+**Third-party clients:**
+
+An **opaque** access token is issued instead of a JWT. The opaque token:
+
+- Can be presented to the userinfo endpoint (`/oauth2/userinfo`) to retrieve user information.
+- Cannot be used with the `/resolve` endpoint.
+- Has no `aud` claim and cannot be validated by a resource server independently.
+
+This solves the audience confusion problem for third-party clients by design: without specifying a `resource`, a third-party client can only access userinfo and nothing else.
+
+**Both client types (with `resource` parameter):**
+
+A JWT access token is issued with:
 
 ```
-aud = ["https://myapp.authgear.cloud", "https://myapp.authgear.cloud/clients/my-spa"]
+aud = ["<resource_uri>"]
 ```
 
-**Rationale:**
-- Tokens from different clients are no longer interchangeable. A resource server can restrict access to tokens from specific clients by validating `aud` contains `<project_endpoint>/clients/<expected-client-id>`.
-- Adding `<project_endpoint>/clients/<client_id>` to `aud` is additive. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without changes.
-- The `<project_endpoint>` entry is retained for backward compatibility so existing deployments are not broken.
-- This is consistent with RFC 9068's requirement to use a meaningful default, and mirrors how OIDC ID tokens use the requesting client's `client_id` as `aud`.
-
-**Resource servers that want per-client isolation** should validate that `aud` includes `<project_endpoint>/clients/<their-expected-client-id>`, not just `<project_endpoint>`.
+The project endpoint is **not** included. See [How It Works](#how-it-works) for the access precondition.
 
 ## How It Works
 
-If a client never specifies `resource`, tokens are issued with `aud = [<project_endpoint>, <project_endpoint>/clients/<client_id>]` (see [Default Audience and Audience Confusion Risk](#default-audience-and-audience-confusion-risk) above).
+### Without Resource Indicator
 
-### Statically configured clients
+| Client type | Token type | `aud` |
+|---|---|---|
+| First-party | JWT | `[<project_endpoint>]` |
+| Third-party | Opaque | N/A |
 
-> **Not yet supported.** Resource association for statically configured clients is planned but not implemented. This section describes the intended design.
+### With Resource Indicator
 
-1. An administrator pre-registers Resources in the portal, each with a URI and a set of scopes.
-2. The administrator associates a client with one or more Resources (and which scopes on each resource the client may request).
-3. At authorization time, the client includes `resource=<uri>` in its request. Multiple resources may be requested by repeating the parameter.
-4. Authgear validates the requested resources against the client's allowed list, binds them to the authorization code, and issues an access token with those URIs added to `aud`.
+When `resource` is specified, Authgear checks whether the client is permitted to access that resource using the following logic:
 
-### DCR-registered clients
+1. If the Resource has `allow_any_client_access: true` **and** the requested Scope(s) have `allow_any_client_access: true` — any client (first-party or third-party) is allowed.
+2. Otherwise, an explicit Client-Resource Association is required. Currently only M2M clients support explicit associations (see [API Resources and Scopes](./api-resource.md#client-resource-association)). Third-party clients without `allow_any_client_access` on the resource cannot use it.
 
-DCR clients use a separate allow-list defined in `authgear.yaml` rather than the per-client portal associations. This prevents DCR clients from accessing resources not explicitly approved for DCR use.
+When access is permitted, a JWT access token is issued with `aud = [<resource_uri>]`. The project endpoint is **not** included in `aud`.
 
-```yaml
-oauth:
-  dynamic_client_registration:
-    allowed_resources:
-      - uri: "https://mcp-server.example.com"
-        scopes:
-          - "read:tools"
-          - "execute:tools"
-```
-
-- Only URIs listed in `allowed_resources` are valid `resource` values for DCR clients. Requesting any other URI returns `invalid_target`.
-- Only scopes listed under that URI are valid. Requesting an unlisted scope returns `invalid_scope`.
-- The `allowed_resources` list is a project-wide policy shared by all DCR clients. It is configured once by the admin; individual DCR clients need no further admin action to use it.
-- Resources in `allowed_resources` do not need to be separately registered in the portal. The URI and scopes are fully defined inline.
+See [API Resources and Scopes](./api-resource.md) for how to register Resources and configure access.
 
 ## Authorization Endpoint
 
@@ -133,8 +125,10 @@ GET /oauth2/authorize
 
 **Rules:**
 
-- `resource` is optional. Omitting it produces a token with `aud = [<project_endpoint>, <project_endpoint>/clients/<client_id>]`.
-- Each `resource` value must be a pre-registered Resource URI associated with the requesting client. Unrecognized or unassociated resources return `invalid_target`.
+- `resource` is optional.
+  - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]`.
+  - Third-party client, omitted: issues an opaque access token.
+- Each `resource` value must refer to a Resource the client is permitted to access: either the Resource and requested Scopes have `allow_any_client_access: true`, or the client is an M2M client with an explicit Client-Resource Association for that Resource. Otherwise `invalid_target` is returned.
 - Resource URIs must not be prefixed by the Authgear project endpoint.
 - The granted resources are bound to the authorization code and stored server-side.
 
@@ -158,7 +152,10 @@ grant_type=authorization_code
 
 - `resource` is optional at this step.
 - If provided, it must be a subset of the resources bound to the authorization code. Requesting a resource outside the bound set returns `invalid_target`.
-- If omitted, the token is issued with `aud` containing all resources bound to the authorization code plus the per-client default entries (`<project_endpoint>` and `<project_endpoint>/clients/<client_id>`).
+- If omitted:
+  - If resources were bound to the authorization code, the token is issued as a JWT with `aud` containing those resource URIs.
+  - If no resources were bound (first-party client only): JWT with `aud = [<project_endpoint>]`.
+  - If no resources were bound (third-party client): opaque access token.
 
 ### `refresh_token` grant
 
@@ -181,22 +178,18 @@ grant_type=refresh_token
 
 ## Access Token Claims
 
-### With `resource`
+### With Resource Indicator
 
-The `aud` claim expands to include each requested resource URI alongside the project endpoint. The `scope_by_aud` claim maps which scopes apply to which audience:
+When `resource` is specified, `aud` contains **only** the requested resource URI(s). The Authgear project endpoint is not included. The `scope_by_aud` claim maps which scopes apply to which resource. OIDC scopes (e.g. `openid`, `offline_access`) that were granted appear in the top-level `scope` field even though there is no corresponding `aud` entry for the project endpoint.
 
 ```json
 {
   "iss": "https://myapp.authgear.cloud",
   "sub": "user-id",
-  "aud": ["https://myapp.authgear.cloud", "https://api.example.com/orders"],
+  "aud": ["https://api.example.com/orders"],
   "client_id": "dcrc_Xf2kLmNpQrStUvWx",
   "scope": "openid offline_access read:orders",
   "https://authgear.com/claims/scope_by_aud": [
-    {
-      "aud": "https://myapp.authgear.cloud",
-      "scope": "openid offline_access"
-    },
     {
       "aud": "https://api.example.com/orders",
       "scope": "read:orders"
@@ -205,19 +198,25 @@ The `aud` claim expands to include each requested resource URI alongside the pro
 }
 ```
 
-### Without `resource`
+The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of the `aud` claim. Resource servers should validate `aud` contains their own URI and `scope` contains the required resource-specific scopes.
 
-The `aud` claim includes the project endpoint and the per-client URI:
+### Default — first-party client
+
+A JWT is issued with `aud` set to the project endpoint:
 
 ```json
 {
   "iss": "https://myapp.authgear.cloud",
   "sub": "user-id",
-  "aud": ["https://myapp.authgear.cloud", "https://myapp.authgear.cloud/clients/spa-client-id"],
+  "aud": ["https://myapp.authgear.cloud"],
   "client_id": "spa-client-id",
   "scope": "openid offline_access"
 }
 ```
+
+### Default — third-party client
+
+An opaque access token is issued. It has no `aud` claim and cannot be decoded by the caller. It is only accepted by the userinfo endpoint.
 
 ### Resource server validation
 
@@ -239,25 +238,33 @@ Error response format differs by endpoint:
 
 | Condition | `error` |
 |---|---|
-| `resource` URI is not a pre-registered Resource (static client) | `invalid_target` |
-| `resource` URI is not associated with this client (static client) | `invalid_target` |
-| `resource` URI is not in `allowed_resources` (DCR client) | `invalid_target` |
+| `resource` URI is not a pre-registered Resource | `invalid_target` |
 | `resource` URI is prefixed by the Authgear project endpoint | `invalid_target` |
+| Client is third-party and the Resource does not have `allow_any_client_access: true` | `invalid_target` |
+| Client is an M2M client, Resource does not have `allow_any_client_access: true`, and no explicit Client-Resource Association exists | `invalid_target` |
 | `scope` includes a resource-specific scope but no matching `resource` was requested | `invalid_scope` |
+| Requested scope is not permitted for the client on that resource | `invalid_scope` |
 
 ### Token endpoint errors
 
 | Condition | `error` | HTTP status |
 |---|---|---|
-| `scope` is not in the allowed scopes for that resource (DCR client) | `invalid_scope` | 400 |
 | `resource` URI at token exchange (`authorization_code` grant) is not a subset of what was authorized | `invalid_target` | 400 |
 | `resource` URI at refresh (`refresh_token` grant) is not a subset of the original grant | `invalid_target` | 400 |
 
 ## Backward Compatibility
 
-The default `aud` now includes `<project_endpoint>/clients/<client_id>` in addition to `<project_endpoint>`. This is an additive change: existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
+### First-party clients
 
-Resource-specific audience binding via the `resource` parameter is opt-in. Clients that do not specify `resource` receive the per-client default `aud` described above.
+Unchanged. JWT with `aud = [<project_endpoint>]`. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
+
+### Third-party clients
+
+Third-party clients (dynamically registered via DCR) are new. No existing behavior is affected.
+
+### `aud` when `resource` is specified
+
+When `resource` is specified, `aud` contains **only** the resource URI(s). This is new behavior — `resource` support for `authorization_code` and `refresh_token` grants did not previously exist.
 
 ## Relationship to M2M
 

@@ -461,7 +461,7 @@ The content of this table is explained in [Rationale of limitations](#rationale-
 |`confidential`|First-party|confidential|Yes|No|
 |`third_party_app`|Third-party|public or confidential|Yes|No|
 
-See [Third-Party App spec](./third-party-app.md) for full details on `third_party_app`.
+See [Third-Party Client spec](./third-party-client.md) for full details on `third_party_app`.
 
 ### Rationale of limitations
 
@@ -498,7 +498,7 @@ First-party confidential clients have NO access to privileged user operations, a
 
 ### Third-Party clients
 
-See [Third-Party App spec](./third-party-app.md).
+See [Third-Party Client spec](./third-party-client.md).
 
 ### Confidential clients
 
@@ -522,11 +522,11 @@ The client secrets of confidential clients are stored in `authgear.secrets.yaml`
 
 First-party clients are trusted so consent screen is skipped.
 
-Third-party clients are NOT trusted so the end-user must give explicit consent in the consent screen. See [Third-Party App spec — Consent Screen](./third-party-app.md#consent-screen) for details.
+Third-party clients are NOT trusted so the end-user must give explicit consent in the consent screen. See [Third-Party Client spec — Consent Screen](./third-party-client.md#consent-screen) for details.
 
 ### Sessions and Authorized Apps
 
-See [Third-Party App spec — Sessions and Authorization Management](./third-party-app.md#sessions-and-authorization-management).
+See [Third-Party Client spec — Sessions and Authorization Management](./third-party-client.md#sessions-and-authorization-management).
 
 ### App Session Token
 
