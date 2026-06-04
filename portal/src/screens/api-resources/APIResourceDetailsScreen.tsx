@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
 import { FormattedMessage, Context as MessageContext } from "../../intl";
@@ -143,7 +143,12 @@ const APIResourceDetailsScreen: React.VFC =
         const resource =
           data?.node?.__typename === "Resource" ? data.node : null;
         if (!resource) {
-          return null;
+          return (
+            <Navigate
+              to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
+              replace={true}
+            />
+          );
         }
         return (
           <APIResourceScreenLayout

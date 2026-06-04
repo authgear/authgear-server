@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useGetClientResourceScopesQuery } from "../../graphql/adminapi/query/getClientResourceScopes.generated";
 import { useResourceScopesQueryQuery } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
@@ -74,7 +74,14 @@ const EditOAuthClientResourceScopeScreen: React.VFC =
           scopesQueryData == null ||
           clientScopesQueryData == null
         ) {
-          return null;
+          return (
+            <Navigate
+              to={`/project/${encodeURIComponent(
+                appID ?? ""
+              )}/configuration/apps`}
+              replace={true}
+            />
+          );
         }
 
         return (

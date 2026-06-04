@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { Context, FormattedMessage } from "../../intl";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -118,6 +118,17 @@ const FraudProtectionLogEntryScreen: React.VFC =
       }
       return JSON.stringify(node.data, null, 2);
     }, [node?.data]);
+
+    if (!loading && error == null && node == null) {
+      // The log entry does not exist in this project (e.g. after switching
+      // projects); fall back to the fraud protection logs.
+      return (
+        <Navigate
+          to={`/project/${appID}/attack-protection/fraud-protection#logs`}
+          replace={true}
+        />
+      );
+    }
 
     return (
       <CommandBarContainer

@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Context } from "./intl";
 import {
-  Icon,
   Text,
   CommandButton,
   IconButton,
@@ -11,9 +10,7 @@ import {
   IRenderFunction,
   IPanelProps,
   IContextualMenuProps,
-  TooltipHost,
 } from "@fluentui/react";
-import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import ScreenNav from "./ScreenNav";
 import Link from "./Link";
@@ -26,76 +23,25 @@ import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
 import { useSettingsAnchor } from "./hook/authgear";
 import { Logo } from "./components/common/Logo";
-import { useCopyFeedback } from "./hook/useCopyFeedback";
+import logoStyles from "./components/common/Logo.module.css";
+import ProjectSelector from "./components/header/ProjectSelector";
 
-interface MobileViewHeaderAppSectionProps {
+interface HeaderAppSectionProps {
   appID: string;
 }
 
-const MobileViewHeaderAppSection: React.VFC<MobileViewHeaderAppSectionProps> = (
-  props
-) => {
+const HeaderAppSection: React.VFC<HeaderAppSectionProps> = (props) => {
   const { appID } = props;
-  const { effectiveAppConfig, isLoading: loading } =
-    useAppAndSecretConfigQuery(appID);
   const { themes } = useSystemConfig();
-
-  if (loading) {
-    return null;
-  }
-
-  const rawAppID = effectiveAppConfig?.id;
-
-  return (
-    <Text className={styles.headerAppID} theme={themes.inverted}>
-      {rawAppID != null ? rawAppID : appID}
-    </Text>
-  );
-};
-
-interface DesktopViewHeaderAppSectionProps {
-  appID: string;
-}
-
-const DesktopViewHeaderAppSection: React.VFC<
-  DesktopViewHeaderAppSectionProps
-> = (props) => {
-  const { appID } = props;
-  const { effectiveAppConfig, isLoading: loading } =
-    useAppAndSecretConfigQuery(appID);
-  const { themes } = useSystemConfig();
-  const { renderToString } = useContext(Context);
-
-  const rawAppID = effectiveAppConfig?.id;
-
-  const displayAppID = useMemo(
-    () => (rawAppID != null ? rawAppID : appID),
-    [rawAppID, appID]
-  );
-
-  const { copyButtonProps, Feedback } = useCopyFeedback({
-    textToCopy: displayAppID,
-  });
-
-  if (loading) {
-    return null;
-  }
 
   return (
     <>
-      <Icon className={styles.headerArrow} iconName="ChevronRight" />
-      <TooltipHost content={renderToString("ScreenHeader.copy")}>
-        <Text
-          id={copyButtonProps.id}
-          className={styles.headerAppID}
-          theme={themes.inverted}
-          onClick={copyButtonProps.onClick}
-          onMouseLeave={copyButtonProps.onMouseLeave}
-        >
-          {displayAppID}
-        </Text>
-      </TooltipHost>
-      <Feedback />
+      <span
+        className={styles.headerDivider}
+        role="separator"
+        aria-hidden={true}
+      />
+      <ProjectSelector appID={appID} theme={themes.inverted} />
     </>
   );
 };
@@ -133,7 +79,7 @@ const MobileViewHeaderIconSection: React.VFC<
         />
       ) : (
         <Link to="/" className={styles.logoLink}>
-          <Logo />
+          <Logo containerClassName={logoStyles.logo__containerHeader} />
         </Link>
       )}
     </>
@@ -143,7 +89,7 @@ const MobileViewHeaderIconSection: React.VFC<
 const DesktopViewHeaderIconSection: React.VFC = () => {
   return (
     <Link to="/" className={styles.logoLink}>
-      <Logo />
+      <Logo containerClassName={logoStyles.logo__containerHeader} />
     </Link>
   );
 };
@@ -276,7 +222,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
           showHamburger={showHamburger}
           onClick={openNavbar}
         />
-        {appID ? <MobileViewHeaderAppSection appID={appID} /> : null}
+        {appID ? <HeaderAppSection appID={appID} /> : null}
         <Panel
           isLightDismiss={true}
           hasCloseButton={false}
@@ -289,7 +235,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       </div>
       <div className={styles.desktopView}>
         <DesktopViewHeaderIconSection />
-        {appID ? <DesktopViewHeaderAppSection appID={appID} /> : null}
+        {appID ? <HeaderAppSection appID={appID} /> : null}
       </div>
       <div className={styles.links}>
         <ExternalLink

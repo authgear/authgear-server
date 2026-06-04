@@ -14,6 +14,20 @@ import {
   ScreenNavQueryQuery,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
+import RequireAppFeature from "./RequireAppFeature";
+import RequireUser from "./RequireUser";
+import { PortalAPIFeatureConfig } from "./types";
+
+// Feature-config predicates for the route-level RequireAppFeature guards. Each
+// returns whether the project may access the gated section. Kept module-level so
+// their identity is stable across renders.
+const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
+  fc?.oauth?.client?.app2app_enabled ?? false;
+const isFraudProtectionAvailable = (
+  fc: PortalAPIFeatureConfig | null
+): boolean => fc?.fraud_protection?.is_modifiable ?? false;
+const isIntegrationsAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
+  (fc?.google_tag_manager?.disabled ?? false) === false;
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -436,7 +450,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":userID">
+              <Route path=":userID" element={<RequireUser />}>
                 <Route
                   index={true}
                   element={<Navigate to="details" replace={true} />}
@@ -718,13 +732,17 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
               <Route
-                path="app2app"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <App2AppConfigurationScreen />
-                  </Suspense>
-                }
-              />
+                element={<RequireAppFeature isAvailable={isApp2AppAvailable} />}
+              >
+                <Route
+                  path="app2app"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <App2AppConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
             </Route>
             <Route path="apps">
               <Route
@@ -833,23 +851,29 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
             </Route>
-            <Route path="fraud-protection">
-              <Route
-                index={true}
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <FraudProtectionConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="logs/:logID"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <FraudProtectionLogEntryScreen />
-                  </Suspense>
-                }
-              />
+            <Route
+              element={
+                <RequireAppFeature isAvailable={isFraudProtectionAvailable} />
+              }
+            >
+              <Route path="fraud-protection">
+                <Route
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <FraudProtectionConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="logs/:logID"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <FraudProtectionLogEntryScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
             </Route>
             <Route path="ip-blocklist">
               <Route
@@ -863,23 +887,29 @@ const AppRoot: React.VFC = function AppRoot() {
             </Route>
           </Route>
 
-          <Route path="integrations">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <IntegrationsConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="google-tag-manager"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <GoogleTagManagerConfigurationScreen />
-                </Suspense>
-              }
-            />
+          <Route
+            element={
+              <RequireAppFeature isAvailable={isIntegrationsAvailable} />
+            }
+          >
+            <Route path="integrations">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <IntegrationsConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="google-tag-manager"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <GoogleTagManagerConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
 
           <Route path="billing">

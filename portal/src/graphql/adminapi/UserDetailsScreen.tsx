@@ -564,6 +564,8 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
 const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
+  // The route-level RequireUser guard redirects to the user list when the
+  // user does not exist, so this screen only renders for an existing user.
   const {
     user,
     loading: loadingUser,

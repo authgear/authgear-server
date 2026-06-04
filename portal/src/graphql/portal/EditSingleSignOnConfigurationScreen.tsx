@@ -11,9 +11,11 @@ import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
+  isOAuthSSOProvider,
   OAuthSSOFeatureConfig,
   OAuthSSOProviderItemKey,
   oauthSSOProviderItemKeys,
+  parseOAuthSSOProviderItemKey,
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -176,6 +178,32 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
 
   const navigate = useNavigate();
 
+  // After switching projects, the alias in the URL may not exist in the new
+  // project. Redirect to the provider list instead of showing an edit form
+  // that would silently add a new provider.
+  const providerMissing = useMemo(() => {
+    if (form.isLoading || form.loadError != null) {
+      return false;
+    }
+    const [providerType, appType] =
+      parseOAuthSSOProviderItemKey(providerItemKey);
+    return !form.state.providers.some((p) =>
+      isOAuthSSOProvider(p.config, providerType, alias, appType)
+    );
+  }, [
+    form.isLoading,
+    form.loadError,
+    form.state.providers,
+    providerItemKey,
+    alias,
+  ]);
+
+  useEffect(() => {
+    if (providerMissing) {
+      navigate("../", { replace: true });
+    }
+  }, [providerMissing, navigate]);
+
   const onSaveSuccess = useCallback(() => {
     navigate("../");
   }, [navigate]);
@@ -192,10 +220,13 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
   }, [navigate]);
 
   useEffect(() => {
+    if (providerMissing) {
+      return;
+    }
     if (!isReadyToEdit) {
       onRevealSecrets();
     }
-  }, [isReadyToEdit, onRevealSecrets]);
+  }, [providerMissing, isReadyToEdit, onRevealSecrets]);
 
   return useLoadableView({
     loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
@@ -264,7 +295,7 @@ const EditSingleSignOnConfigurationScreen: React.VFC = () => {
 
   useEffect(() => {
     if (providerItemKey == null) {
-      navigate("../");
+      navigate("../", { replace: true });
     }
   }, [providerItemKey, navigate]);
 
