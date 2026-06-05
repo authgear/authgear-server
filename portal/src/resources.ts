@@ -395,10 +395,10 @@ export const TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT =
   "email.setup-secondary-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT =
   "email.setup-primary-login-link.subject";
-export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT =
-  "email.authenticate-primary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_LOGIN_LINK_SUBJECT =
   "email.setup-secondary-login-link.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT =
+  "email.authenticate-primary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_LOGIN_LINK_SUBJECT =
   "email.authenticate-secondary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
