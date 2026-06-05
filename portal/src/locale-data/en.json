@@ -1269,7 +1269,7 @@
   "HookConfigurationScreen.non-blocking-events-endpoints.label": "Non-blocking Hooks",
   "HookConfigurationScreen.signature.title": "Webhook Signature",
   "HookConfigurationScreen.signature.description": "Each webhook event request is signed with a secret key. You must validate the signature to ensure the request originates from Authgear. The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body and is set as the HTTP header <code>x-authgear-body-signature</code>. <br></br> <docLink>Learn more about validating the signature</docLink>",
-  "HookConfigurationScreen.signature.secret-key": "Secret Key",
+  "HookConfigurationScreen.signature.secret-key": "Webhook Signature Secret Key",
   "AdminAPIConfigurationScreen.title": "Admin API",
   "AdminAPIConfigurationScreen.description": "The Admin API allows your server to manage your project and users via a GraphQL endpoint.",
   "AdminAPIConfigurationScreen.keys.title": "API Keys",

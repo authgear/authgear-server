@@ -4,6 +4,98 @@
   @apply tablet:col-span-full;
 }
 
+.pageHeader {
+  grid-column: 1 / span 9;
+  @apply tablet:col-span-full;
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.tabsRoot {
+  grid-column: 1 / span 9;
+  @apply tablet:col-span-full;
+  @apply flex min-w-0 flex-col;
+}
+
+.tabsList {
+  width: 100%;
+  box-shadow: none;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--gray-a6);
+  margin-bottom: 20px;
+}
+
+.tabContent {
+  @apply flex min-w-0 flex-col;
+}
+
+.section {
+  @apply min-w-0 rounded-xl border border-solid bg-white p-6;
+  border-color: var(--gray-a6);
+}
+
+.sectionInner {
+  @apply flex min-w-0 flex-row items-start gap-8;
+
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-4;
+}
+
+.sectionHeading {
+  flex-shrink: 0;
+  width: 12.5rem;
+  color: var(--gray-12);
+}
+
+.sectionContent {
+  @apply flex w-full min-w-0 flex-1 flex-col gap-4;
+}
+
+.sectionDescription {
+  color: var(--gray-a11);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hookListLabel {
+  color: var(--gray-12);
+}
+
+.hookTableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1081px) {
+  .hookTableWrapper {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hookTableWrapper::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.hookListHeaderLabel {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
 .separator {
   grid-column: 1 / span 8;
   @apply tablet:col-span-full;
@@ -18,36 +110,30 @@
   @apply gap-y-5;
 }
 
-.columnFull {
-  grid-column: 1 / span 8;
-
-  @apply tablet:col-span-full;
-}
-
-.secretInput {
-  grid-column: 1 / span 7;
-}
-
-.secretButton {
-  grid-column: span 1 / span 1;
-  justify-self: center;
-  align-self: end;
+.copyIconButton {
+  @apply shrink-0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--gray-11);
 }
 
 .hookContainer {
   display: flex;
   flex-direction: row;
-  column-gap: 12px;
   flex: 1 0 0;
+}
+
+.hookCellContent {
+  @apply flex items-center px-3 py-2;
 }
 
 .hookHeader {
   display: flex;
   flex-direction: row;
-  column-gap: 12px;
-  padding: 8px 32px 8px 0;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
+  align-items: center;
+  min-height: 2.75rem;
+  min-width: 40rem;
 }
 
 .blockingHookKind {
@@ -103,13 +189,15 @@
 .hookList {
   /* stylelint-disable-next-line */
   row-gap: 0 !important;
+  min-width: 40rem;
 }
 
 .hookListItem {
-  column-gap: 4px;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+  min-height: 2.75rem;
+  min-width: 40rem;
+  align-items: center;
   overflow-y: hidden;
-  overflow-x: auto;
-  padding: 10px 0;
+  overflow-x: visible;
 }
