@@ -24,15 +24,6 @@
   padding-bottom: 5.5rem;
 }
 
-.contentWidthAnchor {
-  grid-column: 1 / span 9;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-
-  @apply tablet:col-span-full;
-}
-
 .settingsCardSaveBarClearance {
   margin-bottom: 5.5rem;
 }

@@ -24,15 +24,6 @@
   margin-bottom: 5.5rem;
 }
 
-.contentWidthAnchor {
-  grid-column: 1 / span 9;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-
-  @apply tablet:col-span-full;
-}
-
 .editorCard {
   @apply min-w-0 overflow-hidden rounded-xl border border-solid;
   border-color: var(--gray-a6);

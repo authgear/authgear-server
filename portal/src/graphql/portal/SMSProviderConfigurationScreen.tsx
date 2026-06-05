@@ -1114,10 +1114,8 @@ function SMSProviderConfigurationContent(props: {
       <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
         <div
           ref={contentWidthAnchorRef}
-          className={styles.contentWidthAnchor}
-          aria-hidden
-        />
-        <div className={cn(styles.widget, styles.pageHeader)}>
+          className={cn(styles.widget, styles.pageHeader)}
+        >
           <h1 className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMSProviderConfigurationScreen.title--authgearonce" />

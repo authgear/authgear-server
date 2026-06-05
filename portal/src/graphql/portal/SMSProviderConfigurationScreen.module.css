@@ -34,15 +34,6 @@
   padding-bottom: 8rem;
 }
 
-.contentWidthAnchor {
-  grid-column: 1 / span 9;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-
-  @apply tablet:col-span-full;
-}
-
 .senderInfoIcon {
   cursor: default;
   color: var(--accent-9);
