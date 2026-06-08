@@ -80,6 +80,7 @@ interface OurHTMLElementFontPreload {
 interface OurHTMLElementModulePreload {
   type: "fontpreload";
   name: string;
+  integrity?: string;
 }
 
 function elementsToHTMLString(elements: OurHTMLElement[]): string {
@@ -101,7 +102,10 @@ function elementsToHTMLString(elements: OurHTMLElement[]): string {
       }
     }
     if (element.type === "fontpreload") {
-      const htmlLine = `<link rel="preload" as="font" crossorigin="anonymous" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      const integrityAttr = element.integrity
+        ? ` integrity="${element.integrity}"`
+        : "";
+      const htmlLine = `<link rel="preload" as="font" crossorigin="anonymous" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"${integrityAttr}>`;
       textArray.push(htmlLine);
     }
     if (element.type === "modulepreload") {
@@ -303,6 +307,7 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
           fontPreloadElements.push({
             type: "fontpreload",
             name: assetBaseName,
+            integrity: sriMap[assetBaseName],
           });
         }
       }
