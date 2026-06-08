@@ -33,6 +33,30 @@ const plugin: Plugin = {
       }
 
       const html = parse(htmlString);
+      const head = html.querySelector("head")!;
+
+      // Build import map with integrity hashes for all JS chunks.
+      // This covers dynamically imported chunks (lazy-loaded routes/components)
+      // that are not listed as <script> or <link rel="modulepreload"> in the HTML.
+      // The browser verifies each chunk's hash when it is dynamically imported.
+      // Browser support: Chrome 126+, Firefox 127+, Safari 17.4+.
+      if (ctx.bundle != null) {
+        const integrity: Record<string, string> = {};
+        for (const [name, chunk] of Object.entries(ctx.bundle)) {
+          if (chunk.type === "chunk") {
+            const key = "/" + name;
+            if (sriMap[key] != null) {
+              integrity[key] = sriMap[key];
+            }
+          }
+        }
+        // Import map must appear before any <script type="module">.
+        // Insert as first child of <head>; nonce will be added below.
+        head.insertAdjacentHTML(
+          "afterbegin",
+          `<script type="importmap">${JSON.stringify({ integrity })}</script>`
+        );
+      }
 
       const scripts = html.querySelectorAll("script");
       const styles = html.querySelectorAll("style");
@@ -43,7 +67,6 @@ const plugin: Plugin = {
         e.setAttribute("nonce", "{{ $.CSPNonce }}");
       }
 
-      const head = html.querySelector("head")!;
       for (const e of elements) {
         if (e.getAttribute("data-order") === "last") {
           head.removeChild(e);
