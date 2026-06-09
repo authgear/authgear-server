@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin, type ResolvedConfig } from "vite";
 
 import htmlParser, { HTMLElement } from "node-html-parser";
+import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
 
@@ -60,22 +61,26 @@ type OurHTMLElement =
 interface OurHTMLElementCSS {
   type: "css";
   name: string;
+  integrity?: string;
 }
 
 interface OurHTMLElementJS {
   type: "js";
   name: string;
   attributes: Record<string, string>;
+  integrity?: string;
 }
 
 interface OurHTMLElementFontPreload {
   type: "modulepreload";
   name: string;
+  integrity?: string;
 }
 
 interface OurHTMLElementModulePreload {
   type: "fontpreload";
   name: string;
+  integrity?: string;
 }
 
 function elementsToHTMLString(elements: OurHTMLElement[]): string {
@@ -84,7 +89,10 @@ function elementsToHTMLString(elements: OurHTMLElement[]): string {
   const textArray = [];
   for (const element of elements) {
     if (element.type === "css") {
-      const htmlLine = `<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
+      const integrityAttr = element.integrity
+        ? ` integrity="${element.integrity}" crossorigin="anonymous"`
+        : "";
+      const htmlLine = `<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"${integrityAttr} data-turbo-track="reload">`;
       if (element.name === "tailwind-dark-theme.css") {
         textArray.push(`{{ if $.DarkThemeEnabled }}`);
         textArray.push(htmlLine);
@@ -94,11 +102,17 @@ function elementsToHTMLString(elements: OurHTMLElement[]): string {
       }
     }
     if (element.type === "fontpreload") {
-      const htmlLine = `<link rel="preload" as="font" crossorigin="anonymous" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      const integrityAttr = element.integrity
+        ? ` integrity="${element.integrity}"`
+        : "";
+      const htmlLine = `<link rel="preload" as="font" crossorigin="anonymous" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"${integrityAttr}>`;
       textArray.push(htmlLine);
     }
     if (element.type === "modulepreload") {
-      const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
+      const integrityAttr = element.integrity
+        ? ` integrity="${element.integrity}" crossorigin="anonymous"`
+        : "";
+      const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"${integrityAttr} data-turbo-track="reload">`;
       textArray.push(htmlLine);
     }
     if (element.type === "js") {
@@ -108,7 +122,10 @@ function elementsToHTMLString(elements: OurHTMLElement[]): string {
         )
       );
       const attributesString = stringifyHTMLAttributes(attributes);
-      const htmlLine = `<script ${attributesString} nonce="{{ $.CSPNonce }}" src="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload"></script>`;
+      const integrityAttr = element.integrity
+        ? ` integrity="${element.integrity}" crossorigin="anonymous"`
+        : "";
+      const htmlLine = `<script ${attributesString} nonce="{{ $.CSPNonce }}" src="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"${integrityAttr} data-turbo-track="reload"></script>`;
       textArray.push(htmlLine);
     }
   }
@@ -259,6 +276,27 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
     },
 
     async writeBundle(_options, bundles) {
+      // Build SRI hash map: asset basename (without hash) -> "sha384-<base64>"
+      const sriMap: Record<string, string> = {};
+      for (const [bundleName, bundleInfo] of Object.entries(bundles)) {
+        let content: string | Uint8Array | undefined;
+        if (bundleInfo.type === "asset") {
+          content = bundleInfo.source as string | Uint8Array;
+        } else if (bundleInfo.type === "chunk") {
+          content = bundleInfo.code;
+        }
+        if (content != null) {
+          const bytes =
+            typeof content === "string" ? Buffer.from(content) : content;
+          const hash = crypto
+            .createHash("sha384")
+            .update(bytes)
+            .digest("base64");
+          const key = path.basename(nameWithoutHash(bundleName));
+          sriMap[key] = `sha384-${hash}`;
+        }
+      }
+
       // Handle font preload
       const fontPreloadElements: OurHTMLElement[] = [];
       for (const [bundleName, _bundleInfo] of Object.entries(bundles)) {
@@ -269,6 +307,7 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
           fontPreloadElements.push({
             type: "fontpreload",
             name: assetBaseName,
+            integrity: sriMap[assetBaseName],
           });
         }
       }
@@ -300,12 +339,14 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
                     elements.push({
                       type: "css",
                       name: key,
+                      integrity: sriMap[key],
                     });
                   }
                   if (node.getAttribute("rel") === "modulepreload") {
                     elements.push({
                       type: "modulepreload",
                       name: key,
+                      integrity: sriMap[key],
                     });
                   }
                 }
@@ -324,6 +365,7 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
                     type: "js",
                     attributes: attributes,
                     name: key,
+                    integrity: sriMap[key],
                   });
                 }
               }
