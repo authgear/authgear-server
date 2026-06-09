@@ -617,6 +617,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
@@ -1819,6 +1820,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
@@ -2276,6 +2278,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
@@ -2734,6 +2737,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,

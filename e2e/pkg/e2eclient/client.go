@@ -279,7 +279,8 @@ type OAuthExchangeCodeOptions struct {
 }
 
 type OAuthExchangeCodeResult struct {
-	IDToken map[string]any `json:"id_token"`
+	IDToken     map[string]any `json:"id_token"`
+	AccessToken string         `json:"access_token"`
 }
 
 func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
@@ -363,8 +364,11 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 		return
 	}
 
+	accessToken, _ := tokenRespBody["access_token"].(string)
+
 	result = &OAuthExchangeCodeResult{
-		IDToken: idTokenMap,
+		IDToken:     idTokenMap,
+		AccessToken: accessToken,
 	}
 	return
 }

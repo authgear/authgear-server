@@ -523,6 +523,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
