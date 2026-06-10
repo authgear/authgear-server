@@ -8,7 +8,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -48,8 +50,8 @@ type ListAppsStoreParams struct {
 	PageSize       uint64
 	AppID          string                        // optional; if set, WHERE cs.app_id LIKE 'prefix%'
 	PlanName       string                        // optional; if set, WHERE cs.plan_name = ?
-	OwnerUserID    string                        // optional; if set, WHERE ac.user_id = ?
-	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau"
+	OwnerUserIDs   []string                      // optional; if set, WHERE ac.user_id = ANY(?)
+	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau" | "relevance"
 	Order          siteadmin.ListAppsParamsOrder // "asc" | "desc"
 	LastMonthStart time.Time                     // exact start_time value for the usage record JOIN
 }
@@ -109,8 +111,8 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 		if params.PlanName != "" {
 			q = q.Where("cs.plan_name = ?", params.PlanName)
 		}
-		if params.OwnerUserID != "" {
-			q = q.Where("ac.user_id = ?", params.OwnerUserID)
+		if len(params.OwnerUserIDs) > 0 {
+			q = q.Where("ac.user_id = ANY(?)", pq.Array(params.OwnerUserIDs))
 		}
 		if params.AppID != "" {
 			q = q.Where("cs.app_id LIKE ?", escapeLikePattern(params.AppID)+"%")
@@ -149,6 +151,16 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 		primaryExpr = "cs.created_at"
 	}
 	orderExpr := primaryExpr + " " + dirSQL + ", cs.app_id ASC"
+	if params.Sort == siteadmin.Relevance && len(params.OwnerUserIDs) > 0 {
+		// Prepend array_position so apps from the best-matching owner appear first.
+		// UUIDs contain only [0-9a-f-] so quoting with single quotes is safe.
+		quotedIDs := make([]string, len(params.OwnerUserIDs))
+		for i, id := range params.OwnerUserIDs {
+			quotedIDs[i] = "'" + id + "'"
+		}
+		rankExpr := "array_position(ARRAY[" + strings.Join(quotedIDs, ",") + "]::text[], ac.user_id)"
+		orderExpr = rankExpr + " ASC, " + orderExpr
+	}
 
 	offset := (params.Page - 1) * params.PageSize
 	pageQ := withFilters(
@@ -190,18 +202,19 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 // ---- AppService ----------------------------------------------------------------
 
 type ListAppsParams struct {
-	Page       uint64
-	PageSize   uint64
-	AppID      string
-	OwnerEmail string
-	Plan       string                        // exact plan name filter
-	Sort       siteadmin.ListAppsParamsSort  // "created_at" (default) | "mau"
-	Order      siteadmin.ListAppsParamsOrder // "desc" (default) | "asc"
+	Page        uint64
+	PageSize    uint64
+	AppID       string
+	OwnerSearch string
+	Plan        string                        // exact plan name filter
+	Sort        siteadmin.ListAppsParamsSort  // "created_at" (default) | "mau" | "relevance"
+	Order       siteadmin.ListAppsParamsOrder // "desc" (default) | "asc"
 }
 
 type ListAppsResult struct {
-	Apps       []siteadmin.App
-	TotalCount int
+	Apps                 []siteadmin.App
+	TotalCount           int
+	OwnerSearchTruncated bool
 }
 
 type AppService struct {
@@ -221,33 +234,43 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 	if params.PageSize == 0 || params.PageSize > MaxPageSize {
 		params.PageSize = MaxPageSize
 	}
+
+	// 1. Normalise sort.
+	// If owner_search is set and sort is absent, default to relevance.
+	if params.OwnerSearch != "" && !params.Sort.Valid() {
+		params.Sort = siteadmin.Relevance
+	}
 	if !params.Sort.Valid() {
 		params.Sort = siteadmin.CreatedAt
 	}
 	if !params.Order.Valid() {
 		params.Order = siteadmin.Desc
 	}
+	if params.Sort == siteadmin.Relevance && params.OwnerSearch == "" {
+		return nil, apierrors.NewBadRequest("sort=relevance requires owner_search to be set")
+	}
 
-	// 1. Resolve owner_email → owner_user_id via Admin API (outside DB transaction).
-	var ownerUserID string
-	if params.OwnerEmail != "" {
-		userIDs, err := s.AdminAPI.FindUserIDsByEmail(ctx, params.OwnerEmail)
+	// 2. Resolve owner_search → []ownerUserIDs via Admin API (outside DB transaction).
+	var ownerUserIDs []string
+	var ownerSearchTruncated bool
+	if params.OwnerSearch != "" {
+		var err error
+		ownerUserIDs, ownerSearchTruncated, err = s.AdminAPI.SearchUsersByKeyword(ctx, params.OwnerSearch)
 		if err != nil {
 			return nil, err
 		}
-		if len(userIDs) == 0 {
+		if len(ownerUserIDs) == 0 {
 			return &ListAppsResult{Apps: []siteadmin.App{}, TotalCount: 0}, nil
 		}
-		ownerUserID = userIDs[0]
 	}
 
-	// 2. Compute last-month start.
+	// 3. Compute last-month start.
 	// Go normalises time.Date(y, 0, ...) → time.Date(y-1, 12, ...) when m = January.
 	now := s.Clock.NowUTC()
 	y, m, _ := now.Date()
 	lastMonthStart := time.Date(y, m-1, 1, 0, 0, 0, 0, time.UTC)
 
-	// 3. Unified DB query.
+	// 4. Unified DB query.
 	var rows []AppStoreRow
 	var totalCount int
 	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
@@ -257,7 +280,7 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 			PageSize:       params.PageSize,
 			AppID:          params.AppID,
 			PlanName:       params.Plan,
-			OwnerUserID:    ownerUserID,
+			OwnerUserIDs:   ownerUserIDs,
 			Sort:           params.Sort,
 			Order:          params.Order,
 			LastMonthStart: lastMonthStart,
@@ -268,30 +291,23 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 		return nil, err
 	}
 
-	// 4. Resolve owner emails for the current page via Admin API.
-	// Optimisation: when owner_email was the filter, every row shares the same
-	// owner_user_id — reuse the known email without an extra API call.
-	var emailMap map[string]string
-	if params.OwnerEmail != "" && ownerUserID != "" {
-		emailMap = map[string]string{ownerUserID: params.OwnerEmail}
-	} else {
-		seen := make(map[string]struct{}, len(rows))
-		uniqueIDs := make([]string, 0, len(rows))
-		for _, row := range rows {
-			if row.OwnerUserID != "" {
-				if _, ok := seen[row.OwnerUserID]; !ok {
-					seen[row.OwnerUserID] = struct{}{}
-					uniqueIDs = append(uniqueIDs, row.OwnerUserID)
-				}
+	// 5. Resolve owner emails for the current page via Admin API.
+	seen := make(map[string]struct{}, len(rows))
+	uniqueIDs := make([]string, 0, len(rows))
+	for _, row := range rows {
+		if row.OwnerUserID != "" {
+			if _, ok := seen[row.OwnerUserID]; !ok {
+				seen[row.OwnerUserID] = struct{}{}
+				uniqueIDs = append(uniqueIDs, row.OwnerUserID)
 			}
 		}
-		emailMap, err = s.AdminAPI.ResolveUserEmails(ctx, uniqueIDs)
-		if err != nil {
-			return nil, err
-		}
+	}
+	emailMap, err := s.AdminAPI.ResolveUserEmails(ctx, uniqueIDs)
+	if err != nil {
+		return nil, err
 	}
 
-	// 5. Build response.
+	// 6. Build response.
 	apps := make([]siteadmin.App, len(rows))
 	for i, row := range rows {
 		apps[i] = siteadmin.App{
@@ -302,7 +318,11 @@ func (s *AppService) ListApps(ctx context.Context, params ListAppsParams) (*List
 			LastMonthMau: row.LastMonthMAU,
 		}
 	}
-	return &ListAppsResult{Apps: apps, TotalCount: totalCount}, nil
+	return &ListAppsResult{
+		Apps:                 apps,
+		TotalCount:           totalCount,
+		OwnerSearchTruncated: ownerSearchTruncated,
+	}, nil
 }
 
 func (s *AppService) GetApp(ctx context.Context, appID string) (*siteadmin.AppDetail, error) {

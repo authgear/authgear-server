@@ -51,14 +51,7 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 	}
 
 	sortVal := siteadmin.ListAppsParamsSort(q.Get("sort"))
-	if !sortVal.Valid() {
-		sortVal = siteadmin.CreatedAt
-	}
-
 	orderVal := siteadmin.ListAppsParamsOrder(q.Get("order"))
-	if !orderVal.Valid() {
-		orderVal = siteadmin.Desc
-	}
 
 	return AppsListParams{
 		Page:       page,
