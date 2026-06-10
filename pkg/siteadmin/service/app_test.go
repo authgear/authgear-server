@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,7 +85,7 @@ func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsSto
 	// Filter
 	var filtered []AppStoreRow
 	for _, r := range f.rows {
-		if params.AppID != "" && r.AppID != params.AppID {
+		if params.AppID != "" && !strings.HasPrefix(r.AppID, params.AppID) {
 			continue
 		}
 		if params.PlanName != "" && r.PlanName != params.PlanName {
@@ -460,6 +461,53 @@ func TestAppService(t *testing.T) {
 			So(result.TotalCount, ShouldEqual, 1)
 			So(result.Apps[0].Id, ShouldEqual, "app-1")
 			So(result.Apps[0].OwnerEmail, ShouldEqual, "alice@example.com")
+		})
+
+		Convey("ListApps: app_id prefix filter returns matching apps only", func() {
+			t1 := time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)
+			t2 := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+			t3 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "myapp-prod", PlanName: "free", CreatedAt: t1},
+					{AppID: "myapp-staging", PlanName: "free", CreatedAt: t2},
+					{AppID: "other-app", PlanName: "free", CreatedAt: t3},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 10, AppID: "myapp"})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 2)
+			So(result.Apps, ShouldHaveLength, 2)
+			So(result.Apps[0].Id, ShouldEqual, "myapp-prod")
+			So(result.Apps[1].Id, ShouldEqual, "myapp-staging")
+		})
+
+		Convey("ListApps: app_id prefix filter with exact ID still matches", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "myapp", PlanName: "free", CreatedAt: t1},
+					{AppID: "other-app", PlanName: "free", CreatedAt: t1},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{Page: 1, PageSize: 10, AppID: "myapp"})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 1)
+			So(result.Apps[0].Id, ShouldEqual, "myapp")
 		})
 
 		Convey("GetApp: nil audit DB yields UserCount 0", func() {

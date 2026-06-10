@@ -232,7 +232,7 @@ type ListAppsParams struct {
 	// PageSize Number of apps per page. Defaults to 20, maximum 20.
 	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
 
-	// AppId Filter by app ID.
+	// AppId Filter by app ID prefix. Returns all apps whose ID starts with the given value.
 	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
 	// OwnerEmail Filter by owner email address.
