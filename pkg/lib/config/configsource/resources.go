@@ -495,21 +495,12 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 		return nil, resource.ErrResourceNotFound
 	}
 
-	var cfg config.SecretConfig
-	if err := yaml.Unmarshal(target.Data, &cfg); err != nil {
-		return nil, fmt.Errorf("malformed secret config: %w", err)
-	}
-
-	for idx, _ := range cfg.Secrets {
-		cfg.Secrets[idx].FsLevel = resource.FsLevelApp
-	}
-
-	bytes, err := yaml.Marshal(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal secret config: %w", err)
-	}
-
-	return bytes, nil
+	// Return the raw bytes so that the checksum computed from this result
+	// matches the checksum computed in applyUpdates (which reads raw bytes
+	// directly from the filesystem). Re-marshaling would normalize the YAML
+	// and produce a different checksum when the file was manually edited with
+	// non-standard formatting.
+	return target.Data, nil
 }
 
 func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (any, error) {

@@ -418,7 +418,7 @@ var nodeApp = node(
 				},
 			},
 			"rawAppConfigChecksum": &graphql.Field{
-				Type: graphql.NewNonNull(AppConfig),
+				Type: graphql.NewNonNull(graphql.String),
 				Resolve: func(p graphql.ResolveParams) (any, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
