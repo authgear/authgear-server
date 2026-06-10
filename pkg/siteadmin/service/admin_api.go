@@ -69,6 +69,56 @@ func (s *AdminAPIService) FindUserIDsByEmail(ctx context.Context, email string) 
 	return ids, nil
 }
 
+// SearchUsersByKeyword searches portal users by keyword via the Admin GraphQL API.
+// Returns up to 100 user IDs in search-rank order and whether the result was truncated
+// (i.e. the search matched more users than the 100-user page cap allows).
+func (s *AdminAPIService) SearchUsersByKeyword(ctx context.Context, keyword string) (ids []string, truncated bool, err error) {
+	params := graphqlutil.DoParams{
+		OperationName: "searchOwnersByKeyword",
+		Query: `
+		query searchOwnersByKeyword($keyword: String!, $pageSize: Int!) {
+			users(first: $pageSize, searchKeyword: $keyword) {
+				edges {
+					node { id }
+				}
+				pageInfo { hasNextPage }
+			}
+		}
+		`,
+		Variables: map[string]any{
+			"keyword":  keyword,
+			"pageSize": 100,
+		},
+	}
+
+	result, err := s.do(ctx, params)
+	if err != nil {
+		return nil, false, err
+	}
+	if result.HasErrors() {
+		return nil, false, fmt.Errorf("failed to search users by keyword: %v", result.Errors)
+	}
+
+	data := result.Data.(map[string]any)
+	usersConn := data["users"].(map[string]any)
+	edges := usersConn["edges"].([]any)
+	pageInfo := usersConn["pageInfo"].(map[string]any)
+	hasNextPage, _ := pageInfo["hasNextPage"].(bool)
+
+	ids = make([]string, 0, len(edges))
+	for _, e := range edges {
+		edge := e.(map[string]any)
+		node := edge["node"].(map[string]any)
+		globalID, _ := node["id"].(string)
+		resolved := relay.FromGlobalID(globalID)
+		if resolved == nil || resolved.ID == "" {
+			continue
+		}
+		ids = append(ids, resolved.ID)
+	}
+	return ids, hasNextPage, nil
+}
+
 func (s *AdminAPIService) ResolveUserEmails(ctx context.Context, userIDs []string) (map[string]string, error) {
 	if len(userIDs) == 0 {
 		return map[string]string{}, nil
