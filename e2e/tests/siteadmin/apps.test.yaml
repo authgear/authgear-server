@@ -121,6 +121,68 @@ steps:
         "page_size": "[[number]]"
       }
 
+# ── Filter: app_id prefix search ─────────────────────────────────────────────
+- name: app_id prefix returns only matching apps
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "e2e-siteadmin-app-a"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 1,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha"}
+        ]
+      }
+
+- name: app_id prefix matches all seeded apps with shared prefix
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "e2e-siteadmin-app-"
+    sort: "created_at"
+    order: "asc"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 3,
+        "apps": [
+          {"id": "e2e-siteadmin-app-alpha"},
+          {"id": "e2e-siteadmin-app-beta"},
+          {"id": "e2e-siteadmin-app-gamma"}
+        ]
+      }
+
+- name: app_id prefix underscore is escaped and not treated as wildcard
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    app_id: "e2e_siteadmin"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "apps": [],
+        "total_count": 0,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
 # ── Filter: plan ──────────────────────────────────────────────────────────────
 # alpha and gamma are both on "startups"; total is always exactly 2.
 - name: filter by plan startups returns alpha and gamma
