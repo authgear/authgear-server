@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -95,13 +96,7 @@ func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsSto
 			continue
 		}
 		if len(params.OwnerUserIDs) > 0 {
-			matched := false
-			for _, id := range params.OwnerUserIDs {
-				if r.OwnerUserID == id {
-					matched = true
-					break
-				}
-			}
+			matched := slices.Contains(params.OwnerUserIDs, r.OwnerUserID)
 			if !matched {
 				continue
 			}
