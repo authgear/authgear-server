@@ -122,7 +122,7 @@ type AppDetail struct {
 type AppsListResponse struct {
 	Apps []App `json:"apps"`
 
-	// OwnerSearchTruncated True when the `owner_search` keyword matched more than 100 portal users and results are limited to the top 100 matches. `total_count` is a lower bound in this case. Always `false` when `owner_search` is not provided.
+	// OwnerSearchTruncated True when the `owner_search` keyword matched more than 20 portal users and results are limited to the top 20 matches. `total_count` is a lower bound in this case. Always `false` when `owner_search` is not provided.
 	OwnerSearchTruncated bool `json:"owner_search_truncated"`
 
 	// Page Current page number.
@@ -241,7 +241,7 @@ type ListAppsParams struct {
 	// AppId Filter by app ID prefix. Returns all apps whose ID starts with the given value.
 	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
-	// OwnerSearch Filter by owner keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps whose owner matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 100 matching owners are considered; if more than 100 owners match, `owner_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
+	// OwnerSearch Filter by owner keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps whose owner matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 20 matching owners are considered; if more than 20 owners match, `owner_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
 	OwnerSearch *string `form:"owner_search,omitempty" json:"owner_search,omitempty"`
 
 	// Plan Filter by plan name.
