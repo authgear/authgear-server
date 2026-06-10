@@ -24,13 +24,13 @@ type AppsListHandler struct {
 }
 
 type AppsListParams struct {
-	Page       uint64
-	PageSize   uint64
-	AppID      string
-	OwnerEmail string
-	Plan       string
-	Sort       siteadmin.ListAppsParamsSort
-	Order      siteadmin.ListAppsParamsOrder
+	Page        uint64
+	PageSize    uint64
+	AppID       string
+	OwnerSearch string
+	Plan        string
+	Sort        siteadmin.ListAppsParamsSort
+	Order       siteadmin.ListAppsParamsOrder
 }
 
 func parseAppsListParams(r *http.Request) AppsListParams {
@@ -54,13 +54,13 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 	orderVal := siteadmin.ListAppsParamsOrder(q.Get("order"))
 
 	return AppsListParams{
-		Page:       page,
-		PageSize:   pageSize,
-		AppID:      q.Get("app_id"),
-		OwnerEmail: q.Get("owner_email"),
-		Plan:       q.Get("plan"),
-		Sort:       sortVal,
-		Order:      orderVal,
+		Page:        page,
+		PageSize:    pageSize,
+		AppID:       q.Get("app_id"),
+		OwnerSearch: q.Get("owner_search"),
+		Plan:        q.Get("plan"),
+		Sort:        sortVal,
+		Order:       orderVal,
 	}
 }
 
@@ -68,13 +68,13 @@ func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := parseAppsListParams(r)
 
 	result, err := h.AppsList.ListApps(r.Context(), service.ListAppsParams{
-		Page:       params.Page,
-		PageSize:   params.PageSize,
-		AppID:      params.AppID,
-		OwnerEmail: params.OwnerEmail,
-		Plan:       params.Plan,
-		Sort:       params.Sort,
-		Order:      params.Order,
+		Page:        params.Page,
+		PageSize:    params.PageSize,
+		AppID:       params.AppID,
+		OwnerSearch: params.OwnerSearch,
+		Plan:        params.Plan,
+		Sort:        params.Sort,
+		Order:       params.Order,
 	})
 	if err != nil {
 		writeError(w, r, err)
@@ -82,10 +82,11 @@ func (h *AppsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := siteadmin.AppsListResponse{
-		Apps:       result.Apps,
-		TotalCount: result.TotalCount,
-		Page:       params.Page,
-		PageSize:   params.PageSize,
+		Apps:                 result.Apps,
+		TotalCount:           result.TotalCount,
+		Page:                 params.Page,
+		PageSize:             params.PageSize,
+		OwnerSearchTruncated: result.OwnerSearchTruncated,
 	}
 	SiteAdminAPISuccessResponse{Body: response}.WriteTo(w)
 }
