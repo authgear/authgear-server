@@ -71,7 +71,7 @@ export type App = Node & {
   lastStripeError?: Maybe<Scalars['StripeError']['output']>;
   planName: Scalars['String']['output'];
   rawAppConfig: Scalars['AppConfig']['output'];
-  rawAppConfigChecksum: Scalars['AppConfig']['output'];
+  rawAppConfigChecksum: Scalars['String']['output'];
   resources: Array<AppResource>;
   samlIdpEntityID: Scalars['String']['output'];
   secretConfig: SecretConfig;
