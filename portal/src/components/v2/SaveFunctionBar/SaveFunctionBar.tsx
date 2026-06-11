@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
@@ -9,6 +9,9 @@ import { SecondaryButton } from "../Button/SecondaryButton/SecondaryButton";
 import { ConfirmationDialog } from "../ConfirmationDialog/ConfirmationDialog";
 import styles from "./SaveFunctionBar.module.css";
 import { useSaveFunctionBarAlignment } from "./useSaveFunctionBarAlignment";
+
+// Keep in sync with the transition duration in SaveFunctionBar.module.css.
+const TRANSITION_MS = 200;
 
 export interface SaveFunctionBarProps {
   className?: string;
@@ -40,7 +43,19 @@ export function SaveFunctionBar({
     setTimeout(() => setIsDiscardDialogOpen(false), 0);
   }, [onReset]);
 
-  if (!isDirty) {
+  // Keep the bar mounted across the exit animation: `rendered` controls
+  // mounting; the in/out keyframes play via the rootIn/rootOut classes.
+  const [rendered, setRendered] = useState(isDirty);
+  useEffect(() => {
+    if (isDirty) {
+      setRendered(true);
+      return;
+    }
+    const timer = setTimeout(() => setRendered(false), TRANSITION_MS);
+    return () => clearTimeout(timer);
+  }, [isDirty]);
+
+  if (!rendered) {
     return null;
   }
 
@@ -50,7 +65,11 @@ export function SaveFunctionBar({
   return (
     <>
       <div
-        className={cn(styles.root, className)}
+        className={cn(
+          styles.root,
+          isDirty ? styles.rootIn : styles.rootOut,
+          className
+        )}
         style={fixedStyle}
         role="region"
         aria-live="polite"
