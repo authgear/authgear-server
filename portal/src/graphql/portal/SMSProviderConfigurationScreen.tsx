@@ -1114,16 +1114,16 @@ function SMSProviderConfigurationContent(props: {
         <div
           ref={contentWidthAnchorRef}
           className={styles.contentWidthAnchor}
-          aria-hidden
+          aria-hidden={true}
         />
         <div className={cn(styles.widget, styles.pageHeader)}>
-          <h1 className={styles.pageTitle}>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMSProviderConfigurationScreen.title--authgearonce" />
             ) : (
               <FormattedMessage id="SMSProviderConfigurationScreen.title" />
             )}
-          </h1>
+          </Text>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="SMSProviderConfigurationScreen.description" />
           </Text>

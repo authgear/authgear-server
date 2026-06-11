@@ -78,7 +78,7 @@ const AccountAnonymizationConfigurationContent: React.VFC<AccountAnonymizationCo
         <div
           ref={contentWidthAnchorRef}
           className={styles.contentWidthAnchor}
-          aria-hidden
+          aria-hidden={true}
         />
         <div className={cn(styles.widget, styles.pageHeader)}>
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>

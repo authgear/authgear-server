@@ -586,16 +586,16 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         <div
           ref={contentWidthAnchorRef}
           className={styles.contentWidthAnchor}
-          aria-hidden
+          aria-hidden={true}
         />
         <div className={cn(styles.widget, styles.pageHeader)}>
-          <h1 className={styles.pageTitle}>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />
             ) : (
               <FormattedMessage id="SMTPConfigurationScreen.title" />
             )}
-          </h1>
+          </Text>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="SMTPConfigurationScreen.description" />
           </Text>
@@ -760,7 +760,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     onChange={fieldCallbacks.customPassword}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
-                    suffixPlain
+                    suffixPlain={true}
                     suffix={
                       !state.isPasswordMasked ? (
                         <button
@@ -967,7 +967,7 @@ const SMTPConfigurationScreen1: React.VFC<{
   return (
     <FormContainer
       form={form}
-      hideFooterComponent
+      hideFooterComponent={true}
       errorRules={ERROR_RULES}
       localError={sendTestEmailHandle.error}
     >

@@ -98,12 +98,12 @@ const EditConfigurationContent: React.VFC<EditConfigurationContentProps> =
           <div
             ref={contentWidthAnchorRef}
             className={styles.contentWidthAnchor}
-            aria-hidden
+            aria-hidden={true}
           />
           <div className={cn(styles.widget, styles.pageHeader)}>
-            <h1 className={styles.pageTitle}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
               <FormattedMessage id="EditConfigurationScreen.title" />
-            </h1>
+            </Text>
           </div>
           <div
             className={cn(

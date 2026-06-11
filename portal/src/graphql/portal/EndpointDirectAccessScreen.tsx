@@ -241,7 +241,6 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                     <FormattedMessage
                       id="EndpointDirectAccessScreen.section1.option.requires-custom-domain.hint"
                       values={{
-                        // eslint-disable-next-line react/no-unstable-nested-components
                         reactRouterLink: customDomainsLink,
                       }}
                     />
@@ -271,7 +270,6 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                     <FormattedMessage
                       id="EndpointDirectAccessScreen.section1.option.requires-custom-domain.hint"
                       values={{
-                        // eslint-disable-next-line react/no-unstable-nested-components
                         reactRouterLink: customDomainsLink,
                       }}
                     />
@@ -340,9 +338,10 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
 
     const onChangePostLogoutURL = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         form.setState((prev) =>
           produce(prev, (draft) => {
-            draft.default_post_logout_redirect_uri = e.target.value;
+            draft.default_post_logout_redirect_uri = value;
           })
         );
       },
@@ -365,7 +364,7 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
         <div
           ref={contentWidthAnchorRef}
           className={styles.contentWidthAnchor}
-          aria-hidden
+          aria-hidden={true}
         />
         <div className={cn(styles.widget, styles.pageHeader)}>
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
