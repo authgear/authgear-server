@@ -157,7 +157,13 @@ function OptionItem<T extends string>({
           checked={checked}
           onClick={onToggle}
         >
-          <div className={styles.iconRadioCards__itemContainer}>
+          <div
+            className={cn(
+              styles.iconRadioCards__itemContainer,
+              option.subtitle == null &&
+                styles["iconRadioCards__itemContainer--center"]
+            )}
+          >
             <div className={styles.iconRadioCards__iconContainer}>
               {option.icon}
             </div>

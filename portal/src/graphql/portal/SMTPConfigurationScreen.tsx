@@ -620,7 +620,6 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             value={state.providerType}
             onValueChange={onChangeProviderType}
             options={providerOptions}
-            numberOfColumns={3}
             itemFillSpaces={true}
           />
           {providerDescription != null ? (

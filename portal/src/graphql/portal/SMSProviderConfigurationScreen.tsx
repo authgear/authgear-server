@@ -1148,7 +1148,6 @@ function SMSProviderConfigurationContent(props: {
             value={state.providerType}
             onValueChange={onChangeProviderType}
             options={providerOptions}
-            numberOfColumns={4}
             itemFillSpaces={true}
           />
           {providerDescription != null ? (
