@@ -22,7 +22,7 @@ The identity and authenticator payload shapes differ across Authgear's API surfa
 
 Source: `pkg/api/model/userinfo.go`, `pkg/lib/userinfo/userinfo.go`
 
-```json
+```jsonc
 // Identity element (https://authgear.com/claims/user/identities)
 {
   "type": "login_id",          // snake_case enum
@@ -100,7 +100,7 @@ Source: `pkg/lib/authenticationflow/declarative/data_identification.go`
 
 This surface exposes *available identification options* during the login/signup step, not the identities already linked to a user.
 
-```json
+```jsonc
 {
   "identification": "email",    // login ID type, NOT identity type ("email"|"phone"|"username"|"oauth"|"passkey"|"ldap")
   "provider_type": "google",    // oauth: provider kind — should be oauth_provider_type
@@ -121,7 +121,7 @@ Source: `pkg/lib/hook/`, `pkg/api/event/`, `docs/specs/event.md`
 
 Identity data in webhook payloads (e.g. `identity.oauth.connected`, `identity.oauth.disconnected`) uses the same raw claims map as Admin GraphQL:
 
-```json
+```jsonc
 {
   "identity": {
     "id": "...",
@@ -148,7 +148,7 @@ Source: `pkg/lib/userimport/model.go`, docs: `POST /_api/admin/users/import`
 
 Login IDs are represented as flat top-level standard attribute fields — there is no structured identity array:
 
-```json
+```jsonc
 {
   "email": "user@example.com",
   "phone_number": "+85200000000",
@@ -314,7 +314,7 @@ Authenticator {
 **Add `oauth_provider_type` and `oauth_provider_alias` to Auth Flow API identification options alongside the existing fields.**
 Keep `provider_type` and `alias` unchanged so existing clients are unaffected:
 
-```json
+```jsonc
 {
   "identification": "oauth",
   "provider_type": "google",         // kept for backwards compatibility
@@ -354,7 +354,7 @@ type Authenticator {
 
 For webhook events, the equivalent would be promoting `oauth_provider_type` and `oauth_provider_alias` to top-level fields alongside `claims`:
 
-```json
+```jsonc
 {
   "identity": {
     "type": "oauth",
