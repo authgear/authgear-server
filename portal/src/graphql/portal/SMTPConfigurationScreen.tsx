@@ -585,10 +585,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       >
         <div
           ref={contentWidthAnchorRef}
-          className={styles.contentWidthAnchor}
-          aria-hidden={true}
-        />
-        <div className={cn(styles.widget, styles.pageHeader)}>
+          className={cn(styles.widget, styles.pageHeader)}
+        >
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />

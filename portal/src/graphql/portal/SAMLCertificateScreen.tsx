@@ -39,10 +39,8 @@ function EditSAMLCertificateContent({
     <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
       <div
         ref={contentWidthAnchorRef}
-        className={styles.contentWidthAnchor}
-        aria-hidden={true}
-      />
-      <div className={cn(styles.widget, styles.pageHeader)}>
+        className={cn(styles.widget, styles.pageHeader)}
+      >
         <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="SAMLCertificateScreen.title" />
         </Text>
