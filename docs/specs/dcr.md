@@ -141,7 +141,7 @@ oauth:
 
 1. Enable open registration as shown above.
 2. In the portal, create an API Resource for `https://mcp-server.example.com` with scopes `read:tools` and `execute:tools`.
-3. Set `allow_any_client_access: true` on the Resource and on each scope that MCP clients should be able to request.
+3. On the Resource and on each scope that MCP clients should be able to request, set `access_policy.allow_third_party_client_access: true`.
 
 No further per-client admin action is required — any MCP client can self-register and immediately use the declared resources.
 
@@ -233,7 +233,7 @@ oauth:
 
 - `oauth.dynamic_client_registration.default_client_config`: Optional. Object. The default client config applied to all DCR-registered clients. Useful when stricter settings are needed for the DCR cohort. Per-client overrides are not yet supported; see [Future Works](#future-works). Supports a subset of the fields defined in [Custom Client Metadata](./oidc.md#custom-client-metadata): `access_token_lifetime_seconds`, `refresh_token_lifetime_seconds`, `refresh_token_idle_timeout_enabled`, `refresh_token_idle_timeout_seconds`.
 
-> **Note:** Resource access for DCR clients is configured via the portal, not `authgear.yaml`. Resources registered in the portal with `allow_any_client_access: true` are accessible to all third-party DCR clients. See [API Resources and Scopes](./api-resource.md#access-without-per-client-association).
+> **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_third_party_client_access: true` are accessible to all third-party clients, including DCR-registered ones. See [API Resources and Scopes](./api-resource.md#access-policy).
 
 ## OIDC Discovery Metadata
 
@@ -452,9 +452,9 @@ By default, all Authgear access tokens share `aud = [<project_endpoint>]`. A res
 
 Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-register their API as a Resource in the portal and associate it with allowed clients. When a client requests a token with `resource=<uri>`, the issued access token includes that URI in `aud`, and the resource server can enforce `aud` contains its own URI.
 
-DCR-registered clients support resource indicators via API Resources registered in the portal. Only Resources marked with `allow_any_client_access: true` are accessible to third-party DCR clients, and only Scopes marked with `allow_any_client_access: true` may be requested. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
+DCR-registered clients, being third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_third_party_client_access: true` are accessible to third-party clients, and only Scopes with `access_policy.allow_third_party_client_access: true` may be requested. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
 
-The admin configures `allow_any_client_access` once per Resource/Scope in the portal. Individual DCR clients then autonomously use `resource=<uri>` in their authorization requests without any further admin action per client. See [API Resources and Scopes](./api-resource.md#access-without-per-client-association) and [Access Token Audience Binding](./access-token-audience-binding.md) for the full design.
+The admin configures the access policy once per Resource/Scope in the portal. Individual DCR clients then autonomously use `resource=<uri>` in their authorization requests without any further admin action per client. See [API Resources and Scopes](./api-resource.md#access-policy) and [Access Token Audience Binding](./access-token-audience-binding.md) for the full design.
 
 ## Admin API
 
