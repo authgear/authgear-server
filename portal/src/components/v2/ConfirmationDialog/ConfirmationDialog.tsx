@@ -36,6 +36,12 @@ export function ConfirmationDialog({
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Description size="2">{description}</Dialog.Description>
         <div className={styles.actions}>
+          <SecondaryButton
+            size="2"
+            disabled={loading}
+            text={cancelText}
+            onClick={onCancel}
+          />
           <Button
             size="2"
             variant="solid"
@@ -46,12 +52,6 @@ export function ConfirmationDialog({
           >
             {confirmText}
           </Button>
-          <SecondaryButton
-            size="2"
-            disabled={loading}
-            text={cancelText}
-            onClick={onCancel}
-          />
         </div>
       </Dialog.Content>
     </Dialog.Root>
