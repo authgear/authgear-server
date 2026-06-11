@@ -222,11 +222,6 @@ function AdminAPIKeysTable({
                     <TrashIcon />
                     <FormattedMessage id="delete" />
                   </DropdownMenu.Item>
-                  {!canDelete ? (
-                    <DropdownMenu.Label className={styles.deleteDisabledHint}>
-                      <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete.tooltip" />
-                    </DropdownMenu.Label>
-                  ) : null}
                 </DropdownMenu.Content>
               </DropdownMenu.Root>
             </div>

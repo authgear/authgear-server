@@ -149,11 +149,6 @@
   @apply justify-end;
 }
 
-.deleteDisabledHint {
-  max-width: 16rem;
-  white-space: normal;
-}
-
 .generateKeyButton {
   @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
   color: var(--accent-9);
