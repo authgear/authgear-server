@@ -29,7 +29,12 @@ Authgear supports Dynamic Client Registration as defined by:
 
 **Dynamic Client Registration (DCR)** — the process by which an OAuth client registers itself programmatically with an Authorization Server at runtime, rather than being statically configured in `authgear.yaml`.
 
-**Initial Access Token (IAT)** — an opaque token issued by the Admin API and presented to the registration endpoint. Required when `initial_access_token_required: true` (the default). A valid IAT allows registration of any `application_type`; without an IAT only `web` and `native` (third-party client types) may be registered. An IAT is valid until it expires.
+**Initial Access Token (IAT)** — an opaque token issued by the Admin API and presented to the registration endpoint. Two types exist, with distinct token prefixes that make their privilege level immediately visible:
+
+- **Third-party IAT** (prefix `iat_tp_`) — allows registration of `web` and `native` clients as third-party clients (consent screen shown). Lower privilege; safe to distribute to developers building integrations.
+- **First-party IAT** (prefix `iat_fp_`) — allows registration of `web` and `native` clients as first-party clients (consent screen bypassed). High privilege — treat with the same care as the Admin API private key.
+
+When `initial_access_token_required: false` (open registration), no IAT is required and only third-party clients may be registered.
 
 ## Use Cases
 
@@ -37,7 +42,7 @@ Authgear supports Dynamic Client Registration as defined by:
 
 A CI system holds the Admin API private key for a project. For each pull request, the CI registers a new first-party client scoped to that PR's redirect URI.
 
-An IAT is required because `first_party_spa`, `first_party_native`, `first_party_traditional_webapp`, and `first_party_confidential` are first-party client types — they bypass the consent screen and must only be registered by an authorized administrator.
+A first-party IAT (`iat_fp_`) is required because first-party clients bypass the consent screen and must only be created by an authorized administrator.
 
 **Required configuration:**
 
@@ -50,14 +55,14 @@ oauth:
 
 No `default_client_config` override is needed — CI clients use the project-level token lifetimes and do not require resource indicator support.
 
-**Step 1 — Create an IAT via the Admin API**
+**Step 1 — Create a first-party IAT via the Admin API**
 
 Call the `createInitialAccessToken` Admin API mutation (see [Admin API](#admin-api)):
 
 ```graphql
 mutation {
-  createInitialAccessToken(input: { expiresIn: 3600 }) {
-    token
+  createInitialAccessToken(input: { type: FIRST_PARTY, expiresIn: 3600 }) {
+    token      # iat_fp_Xf2kLmNpQrStUvWx
     expiresAt
   }
 }
@@ -76,7 +81,7 @@ Authorization: Bearer <iat>
 {
   "client_name": "PR #123 preview",
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
-  "application_type": "first_party_spa"
+  "application_type": "web"
 }
 ```
 
@@ -90,7 +95,7 @@ Response:
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "first_party_spa"
+  "application_type": "web"
 }
 ```
 
@@ -262,10 +267,11 @@ Full example of `/.well-known/openid-configuration` with DCR enabled (fields tak
 
 An IAT is an **opaque** token issued by the Admin API (see [Admin API — IAT mutation](#new-mutation-createinitialaccesstoken)). It is passed as `Authorization: Bearer <iat>` to the registration endpoint.
 
-An IAT authorizes the bearer to register a new OAuth client. The key behavioral rule is:
+An IAT authorizes the bearer to register a new OAuth client. The key behavioral rules are:
 
-- **With an IAT** — any `application_type` (first-party or third-party) may be registered.
-- **Without an IAT** (open registration, `initial_access_token_required: false`) — only `application_type: web` and `application_type: native` may be registered.
+- **With a first-party IAT** (`iat_fp_`) — `web` and `native` clients are registered as first-party (consent screen bypassed).
+- **With a third-party IAT** (`iat_tp_`) — `web` and `native` clients are registered as third-party (consent screen shown).
+- **Without an IAT** (open registration, `initial_access_token_required: false`) — `web` and `native` clients are registered as third-party.
 
 ### Per-IAT configuration
 
@@ -319,7 +325,7 @@ See [Accepted Client Metadata](#accepted-client-metadata) for the full list of r
 }
 ```
 
-- `client_secret` is only present in the response when `application_type` is `first_party_confidential`.
+- `client_secret` is not issued in this version. Confidential clients are not supported via DCR.
 - `client_secret_expires_at: 0` means non-expiring (per RFC 7591 §3.2.1).
 - `client_secret` is returned **once only** and is not recoverable afterwards. The caller must store it securely.
 
@@ -339,7 +345,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 | `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for non-localhost) |
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
 | `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
-| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, or open registration attempted with a first-party `application_type`) |
+| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, or a first-party IAT is required but a third-party IAT or no IAT was presented) |
 
 **`invalid_client_metadata` causes:**
 
@@ -393,22 +399,18 @@ Default: `["code"]`.
 
 ### `application_type` (optional)
 
-Controls the client type and security profile. Authgear supports the two standard OIDC DCR values plus three first-party extension values:
+Controls the client's technical profile (redirect URI rules, PKCE requirements). Authgear accepts the two standard OIDC DCR values:
 
-| Value | First/Third party | Consent screen | Redirect URI validation | `token_endpoint_auth_method` | Requires IAT |
-|---|---|---|---|---|---|
-| `web` | Third-party | Yes | Must use `https://`; `localhost` not allowed | `none` | No |
-| `native` | Third-party | Yes | Custom URI scheme or `http://localhost` | `none` | No |
-| `first_party_spa` | First-party | No | Same as static `spa` | `none` | Yes |
-| `first_party_native` | First-party | No | Same as static `native` | `none` | Yes |
-| `first_party_traditional_webapp` | First-party | No | Same as static `traditional_webapp` | `none` | Yes |
-| `first_party_confidential` | First-party | No | Same as static `confidential` | `client_secret_post` | Yes |
+| Value | IAT type required | Consent screen | `kind` | Redirect URI validation |
+|---|---|---|---|---|
+| `web` (default) | none or `iat_tp_` | Yes | `THIRD_PARTY` | Must use `https://`; `localhost` not allowed |
+| `native` | none or `iat_tp_` | Yes | `THIRD_PARTY` | Custom URI scheme or `http://localhost` |
+| `web` | `iat_fp_` | No | `FIRST_PARTY` | Must use `https://`; `localhost` not allowed |
+| `native` | `iat_fp_` | No | `FIRST_PARTY` | Custom URI scheme or `http://localhost` |
 
 Default: `web`.
 
-The first-party values (`first_party_spa`, `first_party_native`, `first_party_traditional_webapp`, `first_party_confidential`) are Authgear extensions. They bypass the consent screen and may only be registered with a valid IAT. When `initial_access_token_required: false` (open registration), only `web` and `native` are accepted.
-
-Stored internally as `x_application_type` in the client configuration (`web` → `third_party_app`, `native` → `third_party_app`, `first_party_spa` → `spa`, `first_party_native` → `native`, `first_party_traditional_webapp` → `traditional_webapp`, `first_party_confidential` → `confidential`).
+The IAT type — not `application_type` — determines whether the registered client is first-party or third-party. `application_type` describes only the technical profile (redirect URI rules, etc.).
 
 ### `logo_uri` (optional)
 
@@ -428,19 +430,21 @@ URL of the client's Privacy Policy page, shown on the consent screen. Must be an
 
 ## Client ID Format
 
-DCR-registered clients use the prefixed ID format:
+DCR-registered clients and IATs use the following prefixed formats:
 
-| Field | Prefix | Entropy | Example |
+| Token | Prefix | Entropy | Example |
 |---|---|---|---|
 | `client_id` | `dcrc_` | 22 chars URL-safe base64 (16 bytes) | `dcrc_Xf2kLmNpQrStUvWx` |
+| Third-party IAT | `iat_tp_` | 22 chars URL-safe base64 (16 bytes) | `iat_tp_Xf2kLmNpQrStUvWx` |
+| First-party IAT | `iat_fp_` | 22 chars URL-safe base64 (16 bytes) | `iat_fp_Xf2kLmNpQrStUvWx` |
 
-`dcrc` = **D**ynamic **C**lient **R**egistration **C**lient. The prefix distinguishes DCR clients from statically configured clients in `authgear.yaml`.
+`dcrc` = **D**ynamic **C**lient **R**egistration **C**lient. The prefix distinguishes DCR clients from statically configured clients in `authgear.yaml`. The `iat_tp_` / `iat_fp_` prefixes make the privilege level of an IAT immediately visible — a leaked `iat_fp_` token has significantly higher blast radius than a leaked `iat_tp_` token.
 
 ## Storage Architecture
 
 DCR-registered clients are stored in the **database**, not in `authgear.yaml`. Authgear loads both static clients (from `authgear.yaml`) and DCR clients (from the database) at request time, merging them into a unified client list.
 
-The runtime behavior of a DCR client (authorization code flow, token endpoint, consent screen, etc.) is identical to that of a static client with the same `application_type` and metadata.
+The runtime behavior of a DCR client (authorization code flow, token endpoint, consent screen, etc.) is identical to that of a static client with the same `kind` and `application_type`.
 
 DCR client secrets are stored hashed in the database.
 
@@ -476,10 +480,26 @@ type Mutation {
   revokeInitialAccessToken(input: RevokeInitialAccessTokenInput!): RevokeInitialAccessTokenPayload!
 }
 
+enum InitialAccessTokenType {
+  """
+  Can register web and native clients as third-party (consent screen shown).
+  Token prefix: iat_tp_
+  """
+  THIRD_PARTY
+
+  """
+  Can register web and native clients as first-party (consent screen bypassed).
+  Token prefix: iat_fp_
+  High privilege — protect this token like the Admin API private key.
+  """
+  FIRST_PARTY
+}
+
 type InitialAccessToken implements Node {
   id: ID!
   createdAt: DateTime!
   expiresAt: DateTime!
+  type: InitialAccessTokenType!
 }
 
 input CreateInitialAccessTokenInput {
@@ -487,6 +507,12 @@ input CreateInitialAccessTokenInput {
   Token lifetime in seconds. If omitted, a server default is used (e.g. 3600).
   """
   expiresIn: Int
+  """
+  Defaults to THIRD_PARTY. Specify FIRST_PARTY only when registering
+  first-party clients is required (e.g. CI/CD pipelines). The issued token
+  will carry the iat_fp_ prefix as a visible indicator of its elevated privilege.
+  """
+  type: InitialAccessTokenType
 }
 
 type CreateInitialAccessTokenPayload {
@@ -510,11 +536,19 @@ type RevokeInitialAccessTokenPayload {
 ### New GraphQL type
 
 ```graphql
+enum OAuthClientKind {
+  FIRST_PARTY
+  THIRD_PARTY
+}
+
 type OAuthClient implements Node {
   id: ID!
   clientID: String!
   clientName: String!
+  """The OIDC application_type value: "web" or "native"."""
   applicationType: String!
+  """Whether this client is first-party or third-party."""
+  kind: OAuthClientKind!
 
   # ISO 8601 timestamp of when the client was registered via DCR.
   # Null for statically configured clients.
