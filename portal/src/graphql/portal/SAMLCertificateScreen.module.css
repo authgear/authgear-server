@@ -27,9 +27,3 @@
 .settingsCardSaveBarClearance {
   margin-bottom: 5.5rem;
 }
-
-.sectionHeading {
-  flex-shrink: 0;
-  width: 8.75rem;
-  color: var(--gray-12);
-}

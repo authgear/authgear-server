@@ -40,7 +40,7 @@
 
 .sectionHeading {
   flex-shrink: 0;
-  width: 8.75rem;
+  width: 200px;
   color: var(--gray-12);
 }
 

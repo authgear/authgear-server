@@ -19,6 +19,7 @@ import { Domain } from "./globalTypes.generated";
 import { getHostFromOrigin } from "../../util/domain";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import Link from "../../Link";
 
@@ -373,17 +374,16 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
           </Text>
         </div>
 
-        <div
+        <SettingsSectionCard
           className={cn(
             styles.widget,
-            "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
             isDirty && styles.settingsCardSaveBarClearance
           )}
-        >
-          <Text as="p" size="3" weight="medium" className="shrink-0 w-[200px]">
+          contentClassName="gap-6"
+          title={
             <FormattedMessage id="EndpointDirectAccessScreen.settings.label" />
-          </Text>
-          <div className="flex-1 flex flex-col gap-6 min-w-0">
+          }
+        >
             <div className="flex flex-col gap-4">
               <Text as="p" size="2" color="gray">
                 <FormattedMessage
@@ -430,8 +430,7 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
                 fieldName="default_post_logout_redirect_uri"
               />
             </div>
-          </div>
-        </div>
+        </SettingsSectionCard>
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>

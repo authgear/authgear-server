@@ -19,6 +19,7 @@ import styles from "./SAMLCertificateScreen.module.css";
 import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertificateForm";
 import { AutoGenerateFirstCertificate } from "../../components/saml/AutoGenerateFirstCertificate";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 function EditSAMLCertificateContent({
@@ -49,25 +50,22 @@ function EditSAMLCertificateContent({
         </Text>
       </div>
 
-      <div
+      <SettingsSectionCard
         className={cn(
           styles.widget,
-          "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
           isDirty && styles.settingsCardSaveBarClearance
         )}
-      >
-        <Text as="p" size="3" weight="medium" className={styles.sectionHeading}>
+        title={
           <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
-        </Text>
-        <div className="flex-1 min-w-0">
+        }
+      >
           <EditSAMLCertificateForm
             configAppID={configAppID}
             form={form}
             certificates={certificates}
             onGenerateNewCertitificate={generateNewCertificate}
           />
-        </div>
-      </div>
+      </SettingsSectionCard>
 
       <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
     </ScreenContent>

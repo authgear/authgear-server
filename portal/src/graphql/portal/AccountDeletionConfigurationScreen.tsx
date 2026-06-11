@@ -18,6 +18,7 @@ import styles from "./AccountDeletionConfigurationScreen.module.css";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { checkIntegerInput } from "../../util/input";
 import ExternalLink from "../../ExternalLink";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -107,17 +108,16 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
           </Text>
         </div>
 
-        <div
+        <SettingsSectionCard
           className={cn(
             styles.widget,
-            "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
             isDirty && styles.settingsCardSaveBarClearance
           )}
-        >
-          <Text as="p" size="3" weight="medium" className="shrink-0 w-[200px]">
+          contentClassName="gap-4"
+          title={
             <FormattedMessage id="AccountDeletionConfigurationScreen.deletion-schedule.title" />
-          </Text>
-          <div className="flex-1 flex flex-col gap-4 min-w-0">
+          }
+        >
             <TextField
               size="2"
               labelSize="2"
@@ -158,8 +158,7 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
                 />
               </Callout.Text>
             </Callout.Root>
-          </div>
-        </div>
+        </SettingsSectionCard>
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>

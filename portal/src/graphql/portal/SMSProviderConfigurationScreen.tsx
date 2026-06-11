@@ -87,6 +87,7 @@ import { FormField } from "../../components/v2/FormField/FormField";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
@@ -1161,21 +1162,13 @@ function SMSProviderConfigurationContent(props: {
         </div>
 
         {showSettings ? (
-          <div
-            className={cn(
-              styles.widget,
-              "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white"
-            )}
-          >
-            <Text
-              as="p"
-              size="3"
-              weight="medium"
-              className="shrink-0 w-[200px]"
-            >
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
               <FormattedMessage id="SMSProviderConfigurationScreen.settings.label" />
-            </Text>
-            <div className="flex-1 flex flex-col gap-4 min-w-0">
+            }
+          >
               <FormSection form={form} onRevealSecrets={onRevealSecrets} />
               {isSecretMasked ? (
                 <div>
@@ -1198,8 +1191,7 @@ function SMSProviderConfigurationContent(props: {
                   />
                 </div>
               )}
-            </div>
-          </div>
+          </SettingsSectionCard>
         ) : null}
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

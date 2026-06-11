@@ -49,6 +49,7 @@ import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/Seco
 import { Dialog as RadixDialog, Flex, Text } from "@radix-ui/themes";
 import { EnvelopeClosedIcon, EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface LocationState {
@@ -628,21 +629,13 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         </div>
 
         {showSettings ? (
-          <div
-            className={cn(
-              styles.widget,
-              "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white"
-            )}
-          >
-            <Text
-              as="p"
-              size="3"
-              weight="medium"
-              className="shrink-0 w-[200px]"
-            >
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
               <FormattedMessage id="SMTPConfigurationScreen.settings.label" />
-            </Text>
-            <div className="flex-1 flex flex-col gap-4 min-w-0">
+            }
+          >
               {state.providerType === ProviderType.Sendgrid ? (
                 <>
                   <TextField
@@ -818,8 +811,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                   />
                 </div>
               )}
-            </div>
-          </div>
+          </SettingsSectionCard>
         ) : null}
 
         <RadixDialog.Root
