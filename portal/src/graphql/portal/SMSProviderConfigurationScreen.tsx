@@ -1326,6 +1326,7 @@ function TwilioForm({ form }: { form: FormModel }) {
           <FormattedMessage id="SMSProviderConfigurationScreen.form.twilio.twilioSID" />
         }
         value={form.state.twilioSID}
+        required={true}
         onChange={onStringChangeCallbacks.twilioSID}
         disabled={isTwilioSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
@@ -1338,6 +1339,7 @@ function TwilioForm({ form }: { form: FormModel }) {
           label={
             <FormattedMessage id="SMSProviderConfigurationScreen.form.twilio.sender" />
           }
+          required={true}
           labelSpace="1"
         >
           <RadioGroup.Root
@@ -1430,6 +1432,7 @@ function TwilioForm({ form }: { form: FormModel }) {
           label={
             <FormattedMessage id="SMSProviderConfigurationScreen.form.twilio.credentialType" />
           }
+          required={true}
           labelSpace="1"
         >
           <RadioGroup.Root
@@ -1622,6 +1625,7 @@ function WebhookForm({
           <FormattedMessage id="SMSProviderConfigurationScreen.form.webhook.url" />
         }
         value={form.state.webhookURL}
+        required={true}
         onChange={onURLChange}
         disabled={isWebhookSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}

@@ -677,6 +677,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                         : state.sendgridAPIKey
                     }
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.sendgridAPIKey}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
@@ -701,6 +702,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     }
                     value={state.sendgridSenderAddress}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.sendgridSenderAddress}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="sender"
@@ -720,6 +722,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     )}
                     value={state.customHost}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.customHost}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="host"
@@ -735,6 +738,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     )}
                     value={state.customPortString}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={onCustomPortChange}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="port"
@@ -747,6 +751,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     }
                     value={state.customUsername}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.customUsername}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="username"
@@ -764,6 +769,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                         : state.customPassword
                     }
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.customPassword}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
@@ -800,6 +806,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     }
                     value={state.customSenderAddress}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={fieldCallbacks.customSenderAddress}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="sender"
@@ -841,6 +848,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             type="email"
             placeholder="user@example.com"
             value={toAddress}
+            required={true}
             onChange={onChangeToAddress}
           />
           <DialogFooter>
