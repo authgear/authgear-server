@@ -20,13 +20,14 @@ steps:
         "apps": "[[array]]",
         "total_count": "[[number]]",
         "page": 1,
-        "page_size": "[[number]]"
+        "page_size": "[[number]]",
+        "owner_search_truncated": false
       }
 
-# ── Owner email ───────────────────────────────────────────────────────────────
-# alpha has a known owner inserted by seed_siteadmin_apps.sql; owner_email is resolved
-# via the Admin API for e2e-portal (SITEADMIN_AUTHGEAR_APP_ID).
-- name: filter by owner_email returns alpha
+# ── Owner search ──────────────────────────────────────────────────────────────
+# owner_search requires Elasticsearch to be indexed; only the validation error
+# case (sort=relevance without owner_search → 400) is tested in e2e.
+- name: sort=relevance without owner_search returns 400
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
@@ -34,35 +35,9 @@ steps:
     X-Authgear-Session-Valid: "true"
     X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
   http_request_query:
-    owner_email: "owner@example.com"
+    sort: "relevance"
   http_output:
-    http_status: 200
-    json_body: |
-      {
-        "total_count": 1,
-        "apps": [
-          {"id": "e2e-siteadmin-app-alpha", "owner_email": "owner@example.com"}
-        ]
-      }
-
-- name: filter by non-existent owner_email returns empty
-  action: http_request
-  http_request_method: GET
-  http_request_url: http://127.0.0.1:4003/api/v1/apps
-  http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
-  http_request_query:
-    owner_email: "nobody@example.com"
-  http_output:
-    http_status: 200
-    json_body: |
-      {
-        "apps": [],
-        "total_count": 0,
-        "page": 1,
-        "page_size": "[[number]]"
-      }
+    http_status: 400
 
 - name: filter by alpha app_id returns owner email
   action: http_request

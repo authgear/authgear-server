@@ -6,13 +6,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
@@ -81,6 +84,7 @@ func (f *fakeOwnerStore) GetOwnerByAppID(_ context.Context, appID string) (strin
 	return "", ErrOwnerNotFound
 }
 
+//nolint:gocognit
 func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsStoreParams) ([]AppStoreRow, int, error) {
 	// Filter
 	var filtered []AppStoreRow
@@ -91,15 +95,31 @@ func (f *fakeOwnerStore) ListAppsWithStats(_ context.Context, params ListAppsSto
 		if params.PlanName != "" && r.PlanName != params.PlanName {
 			continue
 		}
-		if params.OwnerUserID != "" && r.OwnerUserID != params.OwnerUserID {
-			continue
+		if len(params.OwnerUserIDs) > 0 {
+			matched := slices.Contains(params.OwnerUserIDs, r.OwnerUserID)
+			if !matched {
+				continue
+			}
 		}
 		filtered = append(filtered, r)
 	}
 
+	// ownerRank maps user ID to its position in OwnerUserIDs (0-based).
+	ownerRank := make(map[string]int, len(params.OwnerUserIDs))
+	for i, id := range params.OwnerUserIDs {
+		ownerRank[id] = i
+	}
+
 	// Sort — mirrors SQL: primary field with configurable direction, app_id ASC secondary.
-	sort.Slice(filtered, func(i, j int) bool {
+	// When sort=Relevance, owner rank is prepended as the primary key.
+	sort.SliceStable(filtered, func(i, j int) bool {
 		a, b := filtered[i], filtered[j]
+		if params.Sort == siteadmin.Relevance {
+			ra, rb := ownerRank[a.OwnerUserID], ownerRank[b.OwnerUserID]
+			if ra != rb {
+				return ra < rb
+			}
+		}
 		if params.Sort == siteadmin.Mau {
 			if a.LastMonthMAU != b.LastMonthMAU {
 				if params.Order == siteadmin.Asc {
@@ -165,6 +185,27 @@ func adminAPIServer(response any) *httptest.Server {
 	}))
 }
 
+// multiResponseAdminAPIServer starts a test HTTP server that serves each response
+// in order. After the slice is exhausted, the last response is repeated.
+func multiResponseAdminAPIServer(responses ...any) *httptest.Server {
+	var mu sync.Mutex
+	idx := 0
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		var resp any
+		if idx < len(responses) {
+			resp = responses[idx]
+			idx++
+		} else {
+			resp = responses[len(responses)-1]
+		}
+		mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+}
+
 // getUsersByEmailResponse builds a GraphQL data envelope for the
 // getUsersByStandardAttribute query.
 func getUsersByEmailResponse(globalIDs ...string) map[string]any {
@@ -179,8 +220,28 @@ func getUsersByEmailResponse(globalIDs ...string) map[string]any {
 
 // getNodesResponse builds a GraphQL data envelope for the getUserNodes query.
 func getNodesResponse(nodes ...any) map[string]any {
+	if nodes == nil {
+		nodes = []any{}
+	}
 	return map[string]any{
 		"data": map[string]any{"nodes": nodes},
+	}
+}
+
+// searchUsersByKeywordResponse builds a GraphQL data envelope for the searchOwnersByKeyword query.
+// hasNextPage controls the truncated flag.
+func searchUsersByKeywordResponse(hasNextPage bool, globalIDs ...string) map[string]any {
+	edges := make([]any, len(globalIDs))
+	for i, id := range globalIDs {
+		edges[i] = map[string]any{"node": map[string]any{"id": id}}
+	}
+	return map[string]any{
+		"data": map[string]any{
+			"users": map[string]any{
+				"edges":    edges,
+				"pageInfo": map[string]any{"hasNextPage": hasNextPage},
+			},
+		},
 	}
 }
 
@@ -214,13 +275,29 @@ func TestAppService(t *testing.T) {
 
 	Convey("AppService", t, func() {
 
-		Convey("ListApps with owner_email: user not found returns empty", func() {
-			svr := adminAPIServer(getUsersByEmailResponse())
+		Convey("ListApps with owner_search: no matching users returns empty", func() {
+			svr := adminAPIServer(searchUsersByKeywordResponse(false))
 			defer svr.Close()
 
 			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{})
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
-				Page: 1, PageSize: 10, OwnerEmail: "nobody@example.com",
+				Page: 1, PageSize: 10, OwnerSearch: "nobody@example.com",
+			})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 0)
+			So(result.Apps, ShouldResemble, []siteadmin.App{})
+			So(result.OwnerSearchTruncated, ShouldBeFalse)
+		})
+
+		Convey("ListApps with owner_search: found user but no apps returns empty", func() {
+			globalID := relay.ToGlobalID("User", "user-1")
+			svr := adminAPIServer(searchUsersByKeywordResponse(false, globalID))
+			defer svr.Close()
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{rows: []AppStoreRow{}})
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, OwnerSearch: "alice@example.com",
 			})
 
 			So(err, ShouldBeNil)
@@ -228,19 +305,26 @@ func TestAppService(t *testing.T) {
 			So(result.Apps, ShouldResemble, []siteadmin.App{})
 		})
 
-		Convey("ListApps with owner_email: found user but no apps returns empty", func() {
+		Convey("ListApps with owner_search: truncated flag propagated when hasNextPage=true", func() {
 			globalID := relay.ToGlobalID("User", "user-1")
-			svr := adminAPIServer(getUsersByEmailResponse(globalID))
+			svr := multiResponseAdminAPIServer(
+				searchUsersByKeywordResponse(true, globalID),
+				getNodesResponse(),
+			)
 			defer svr.Close()
 
-			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{rows: []AppStoreRow{}})
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-1", PlanName: "free", CreatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), OwnerUserID: "user-1"},
+				},
+			}
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
-				Page: 1, PageSize: 10, OwnerEmail: "alice@example.com",
+				Page: 1, PageSize: 10, OwnerSearch: "alice",
 			})
 
 			So(err, ShouldBeNil)
-			So(result.TotalCount, ShouldEqual, 0)
-			So(result.Apps, ShouldResemble, []siteadmin.App{})
+			So(result.OwnerSearchTruncated, ShouldBeTrue)
 		})
 
 		Convey("ListApps paged: returns apps with resolved emails and last_month_mau", func() {
@@ -435,9 +519,12 @@ func TestAppService(t *testing.T) {
 			So(result.Apps[0].LastMonthMau, ShouldEqual, 0)
 		})
 
-		Convey("ListApps: plan + owner_email combined filter", func() {
+		Convey("ListApps: plan + owner_search combined filter", func() {
 			globalID := relay.ToGlobalID("User", "user-1")
-			svr := adminAPIServer(getUsersByEmailResponse(globalID))
+			svr := multiResponseAdminAPIServer(
+				searchUsersByKeywordResponse(false, globalID),
+				getNodesResponse(),
+			)
 			defer svr.Close()
 
 			t1 := time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)
@@ -454,13 +541,86 @@ func TestAppService(t *testing.T) {
 
 			svc := makeService(svr, &fakeConfigSourceStore{}, os)
 			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
-				Page: 1, PageSize: 10, Plan: "starter", OwnerEmail: "alice@example.com",
+				Page: 1, PageSize: 10, Plan: "starter", OwnerSearch: "alice@example.com",
 			})
 
 			So(err, ShouldBeNil)
 			So(result.TotalCount, ShouldEqual, 1)
 			So(result.Apps[0].Id, ShouldEqual, "app-1")
-			So(result.Apps[0].OwnerEmail, ShouldEqual, "alice@example.com")
+		})
+
+		Convey("ListApps: sort=relevance without owner_search returns error", func() {
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, &fakeOwnerStore{})
+			_, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, Sort: siteadmin.Relevance,
+			})
+
+			So(err, ShouldNotBeNil)
+			So(apierrors.IsAPIError(err), ShouldBeTrue)
+		})
+
+		Convey("ListApps: owner_search with sort=relevance orders by owner rank", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			// user-2 ranks higher (first in search result) than user-1.
+			globalID1 := relay.ToGlobalID("User", "user-1")
+			globalID2 := relay.ToGlobalID("User", "user-2")
+			svr := multiResponseAdminAPIServer(
+				searchUsersByKeywordResponse(false, globalID2, globalID1),
+				getNodesResponse(),
+			)
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-a", PlanName: "free", CreatedAt: t1, OwnerUserID: "user-1"},
+					{AppID: "app-b", PlanName: "free", CreatedAt: t1, OwnerUserID: "user-2"},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, OwnerSearch: "alice", Sort: siteadmin.Relevance,
+			})
+
+			So(err, ShouldBeNil)
+			So(result.TotalCount, ShouldEqual, 2)
+			// app-b (user-2, rank 0) must come before app-a (user-1, rank 1)
+			So(result.Apps[0].Id, ShouldEqual, "app-b")
+			So(result.Apps[1].Id, ShouldEqual, "app-a")
+		})
+
+		Convey("ListApps: owner_search with sort=mau sorts by MAU not owner rank", func() {
+			t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+			// user-2 ranks higher in search but app-a (user-1) has higher MAU.
+			globalID1 := relay.ToGlobalID("User", "user-1")
+			globalID2 := relay.ToGlobalID("User", "user-2")
+			svr := multiResponseAdminAPIServer(
+				searchUsersByKeywordResponse(false, globalID2, globalID1),
+				getNodesResponse(),
+			)
+			defer svr.Close()
+
+			os := &fakeOwnerStore{
+				rows: []AppStoreRow{
+					{AppID: "app-a", PlanName: "free", CreatedAt: t1, OwnerUserID: "user-1", LastMonthMAU: 200},
+					{AppID: "app-b", PlanName: "free", CreatedAt: t1, OwnerUserID: "user-2", LastMonthMAU: 50},
+				},
+			}
+
+			svc := makeService(svr, &fakeConfigSourceStore{}, os)
+			result, err := svc.ListApps(ctxWithSession(), ListAppsParams{
+				Page: 1, PageSize: 10, OwnerSearch: "alice", Sort: siteadmin.Mau, Order: siteadmin.Desc,
+			})
+
+			So(err, ShouldBeNil)
+			// MAU sort: app-a (200) before app-b (50), regardless of owner rank
+			So(result.Apps[0].Id, ShouldEqual, "app-a")
+			So(result.Apps[1].Id, ShouldEqual, "app-b")
 		})
 
 		Convey("ListApps: app_id prefix filter returns matching apps only", func() {

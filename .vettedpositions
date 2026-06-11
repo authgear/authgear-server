@@ -327,7 +327,7 @@
 /pkg/siteadmin/transport/handler_app_get.go:40:33: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:47:65: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:63:38: requestcontext
-/pkg/siteadmin/transport/handler_apps_list.go:77:37: requestcontext
+/pkg/siteadmin/transport/handler_apps_list.go:70:37: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:47:67: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_add.go:64:49: requestcontext
 /pkg/siteadmin/transport/handler_collaborator_promote.go:39:53: requestcontext

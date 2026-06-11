@@ -35,6 +35,7 @@ func (e CollaboratorRole) Valid() bool {
 const (
 	CreatedAt ListAppsParamsSort = "created_at"
 	Mau       ListAppsParamsSort = "mau"
+	Relevance ListAppsParamsSort = "relevance"
 )
 
 // Valid indicates whether the value is a known member of the ListAppsParamsSort enum.
@@ -43,6 +44,8 @@ func (e ListAppsParamsSort) Valid() bool {
 	case CreatedAt:
 		return true
 	case Mau:
+		return true
+	case Relevance:
 		return true
 	default:
 		return false
@@ -119,13 +122,16 @@ type AppDetail struct {
 type AppsListResponse struct {
 	Apps []App `json:"apps"`
 
+	// OwnerSearchTruncated True when the `owner_search` keyword matched more than 20 portal users and results are limited to the top 20 matches. `total_count` is a lower bound in this case. Always `false` when `owner_search` is not provided.
+	OwnerSearchTruncated bool `json:"owner_search_truncated"`
+
 	// Page Current page number.
 	Page uint64 `json:"page"`
 
 	// PageSize Number of apps per page.
 	PageSize uint64 `json:"page_size"`
 
-	// TotalCount Total number of apps matching the query.
+	// TotalCount Total number of apps matching the query. When `owner_search_truncated` is `true`, this is a lower bound — apps owned by owners beyond the 100-match cap are not counted.
 	TotalCount int `json:"total_count"`
 }
 
@@ -235,16 +241,16 @@ type ListAppsParams struct {
 	// AppId Filter by app ID prefix. Returns all apps whose ID starts with the given value.
 	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
-	// OwnerEmail Filter by owner email address.
-	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
+	// OwnerSearch Filter by owner keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps whose owner matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 20 matching owners are considered; if more than 20 owners match, `owner_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
+	OwnerSearch *string `form:"owner_search,omitempty" json:"owner_search,omitempty"`
 
 	// Plan Filter by plan name.
 	Plan *string `form:"plan,omitempty" json:"plan,omitempty"`
 
-	// Sort Field to sort by. Defaults to `created_at`.
+	// Sort Field to sort by. Defaults to `created_at`, or `relevance` when `owner_search` is provided. `relevance` sorts by how well the app's owner matches the `owner_search` keyword and requires `owner_search` to be set; using `relevance` without `owner_search` returns 400.
 	Sort *ListAppsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
-	// Order Sort direction. Defaults to `desc`.
+	// Order Sort direction. Defaults to `desc`. Ignored when `sort=relevance` (relevance is always highest-match first).
 	Order *ListAppsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
 }
 
