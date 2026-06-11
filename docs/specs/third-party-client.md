@@ -36,7 +36,7 @@ A third-party client is an OAuth client operated by an external developer — so
 
 ## Registration
 
-Third-party clients can only be created via Dynamic Client Registration (DCR). When DCR is enabled with `initial_access_token_required: false`, any caller may register a `third_party_app` client without presenting an Initial Access Token.
+Third-party clients can only be created via Dynamic Client Registration (DCR) at the moment. When DCR is enabled with `initial_access_token_required: false`, any caller may register a third-party client without presenting an Initial Access Token.
 
 See [DCR spec](./dcr.md) for the full registration flow.
 
