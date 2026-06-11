@@ -3,7 +3,7 @@ import cn from "classnames";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   DotsVerticalIcon,
-  Pencil1Icon,
+  DownloadIcon,
   PlusIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -207,7 +207,7 @@ function AdminAPIKeysTable({
                       onDownload(item.keyID);
                     }}
                   >
-                    <Pencil1Icon />
+                    <DownloadIcon />
                     <FormattedMessage id="download" />
                   </DropdownMenu.Item>
                   <DropdownMenu.Item
@@ -222,6 +222,11 @@ function AdminAPIKeysTable({
                     <TrashIcon />
                     <FormattedMessage id="delete" />
                   </DropdownMenu.Item>
+                  {!canDelete ? (
+                    <DropdownMenu.Label className={styles.deleteDisabledHint}>
+                      <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete.tooltip" />
+                    </DropdownMenu.Label>
+                  ) : null}
                 </DropdownMenu.Content>
               </DropdownMenu.Root>
             </div>
