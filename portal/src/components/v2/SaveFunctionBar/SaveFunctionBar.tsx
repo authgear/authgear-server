@@ -30,6 +30,11 @@ export function SaveFunctionBar({
   const onDismissDiscardDialog = useCallback(() => {
     setIsDiscardDialogOpen(false);
   }, []);
+  const onDiscardDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setIsDiscardDialogOpen(false);
+    }
+  }, []);
   const onConfirmDiscard = useCallback(() => {
     onReset();
     setTimeout(() => setIsDiscardDialogOpen(false), 0);
@@ -51,7 +56,7 @@ export function SaveFunctionBar({
         aria-live="polite"
       >
         <div className={styles.message}>
-          <InfoCircledIcon className={styles.messageIcon} aria-hidden />
+          <InfoCircledIcon className={styles.messageIcon} aria-hidden={true} />
           <Text as="p" size="2" color="gray">
             <FormattedMessage id="SaveFunctionBar.message" />
           </Text>
@@ -74,11 +79,7 @@ export function SaveFunctionBar({
       </div>
       <ConfirmationDialog
         open={isDiscardDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsDiscardDialogOpen(false);
-          }
-        }}
+        onOpenChange={onDiscardDialogOpenChange}
         title={<FormattedMessage id="FormContainer.reset-dialog.title" />}
         description={<FormattedMessage id="FormContainer.reset-dialog.message" />}
         confirmText={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
