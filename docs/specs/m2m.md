@@ -337,7 +337,7 @@ In my own interpretation:
 
 To support M2M, we need to introduce Resource and its associated Scope.
 
-The canonical specification of Resources and Scopes — including URI requirements, scope requirements, the `allow_any_client_access` flag, and the data model — is in [API Resources and Scopes](./api-resource.md).
+The canonical specification of Resources and Scopes — including URI requirements, scope requirements, the access policy, and the data model — is in [API Resources and Scopes](./api-resource.md).
 
 Per `RFC8707`, resource has to be identified with a URI.
 Therefore, it follows naturally that we mandate a Resource identified by a non-modifiable URI.

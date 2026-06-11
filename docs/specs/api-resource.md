@@ -5,7 +5,7 @@ API Resources represent protected external services identified by HTTPS URIs. To
 Resources are shared across multiple features:
 
 - **M2M** (`client_credentials` grant) — confidential clients request tokens bound to a specific Resource. See [M2M spec](./m2m.md).
-- **Third-party clients** (dynamically registered via DCR) — clients can request tokens for Resources marked as `allow_any_client_access`. See [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
+- **Third-party clients** — clients can request tokens for Resources where `access_policy.allow_third_party_client_access` is `true`. See [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
 - **First-party clients** (all grant types) — first-party clients can request resource-bound tokens if they are explicitly associated with the Resource.
 
 ## Table of Contents
@@ -13,7 +13,7 @@ Resources are shared across multiple features:
 - [Glossary](#glossary)
 - [Resource URI Requirements](#resource-uri-requirements)
 - [Scope Requirements](#scope-requirements)
-- [Access Without Per-Client Association](#access-without-per-client-association)
+- [Access Policy](#access-policy)
 - [Client-Resource Association](#client-resource-association)
 - [Access Token Behavior](#access-token-behavior)
 - [Data Model](#data-model)
@@ -48,21 +48,28 @@ Scopes are defined per-Resource. A scope value must:
 - Not start with `https://authgear.com`.
 - Conform to the `scope-token` grammar defined in [RFC 6749 §3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3).
 
-## Access Without Per-Client Association
+## Access Policy
 
-By default, Resources and Scopes are only accessible to clients with an explicit [Client-Resource Association](#client-resource-association). The `allow_any_client_access` flag removes this requirement, allowing any client to access the Resource or Scope without a per-client association.
+Each Resource and Scope has an `access_policy` JSON object that controls which clients may access it without a per-client association. By default all policy flags are `false` (absent keys are treated as `false`).
 
-The primary use case is dynamically registered third-party clients (DCR clients), which cannot be given explicit per-client associations by design. However, the flag applies to all client types — any client that requests a Resource with this flag set may receive a token for it.
+### Current policy keys
 
-The `allow_any_client_access` flag works as follows:
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `allow_third_party_client_access` | boolean | `false` | When `true`, all third-party clients may access this Resource or Scope without a per-client association |
 
-- **Resource level** — when `true` on a Resource, any client may include that Resource URI in the `resource` parameter of their authorization requests, without requiring an explicit association.
-- **Scope level** — when `true` on a Scope, that scope is requestable by any client without explicit association. When `false` (the default), the scope requires explicit client association even if the parent Resource has the flag set.
-- Both the Resource and the individual Scope must have `allow_any_client_access: true` for a client to successfully request that scope without association.
+### Two-level check
 
-This allows fine-grained control: for example, a Resource may expose `read:orders` to any client but keep `delete:orders` restricted to explicitly associated clients.
+Both the Resource and the individual Scope must have `allow_third_party_client_access: true` for a third-party client to successfully request that scope:
 
-> **Rationale:** Third-party clients registered via DCR are not created by project collaborators and cannot be individually trusted with per-client associations. The `allow_any_client_access` flag lets admins declare, once per Resource/Scope, which permissions are safe to expose to any client. Any subsequently registered third-party client (or other client) may then access those resources without further admin action per client.
+- **Resource level** — when `true`, any third-party client may include that Resource URI in the `resource` parameter of their authorization requests.
+- **Scope level** — when `true`, that scope may be requested by any third-party client. When `false` (the default), the scope is inaccessible to third-party clients even if the parent Resource has the flag set.
+
+This allows fine-grained control: for example, a Resource may expose `read:orders` to third-party clients but keep `delete:orders` restricted to explicitly associated clients.
+
+> **Rationale:** Third-party clients are not created by project collaborators and cannot be individually trusted with per-client associations. The `access_policy` on each Resource/Scope lets admins declare, once, which permissions are safe to expose to all third-party clients. Any third-party client may then access those resources without further admin action per client.
+
+> **Extensibility:** `access_policy` is a JSON object rather than a plain boolean column so that new policy dimensions can be added in the future without a schema migration. New keys default to `false` when absent, preserving the behavior of existing records.
 
 ## Client-Resource Association
 
@@ -74,7 +81,7 @@ First-party M2M clients (using `client_credentials`) require explicit associatio
 
 If a client requests a Resource it is not associated with, the server returns `invalid_resource`. If a client requests a Scope not in its grant, the server returns `invalid_scope`. If no `scope` is specified, all scopes in the client's association are granted.
 
-Clients accessing a Resource that has `allow_any_client_access: true` do not require a per-client association.
+Third-party clients accessing a Resource where `access_policy.allow_third_party_client_access` is `true` do not require a per-client association.
 
 ## Access Token Behavior
 
@@ -100,7 +107,9 @@ CREATE TABLE _auth_resource (
   uri text NOT NULL,
   name text,
   metadata jsonb,
-  allow_any_client_access boolean NOT NULL DEFAULT false
+  -- Access policy JSON object. Missing keys default to false.
+  -- Current keys: allow_third_party_client_access (bool)
+  access_policy jsonb NOT NULL DEFAULT '{}'
 );
 -- Each project has its own set of Resources. The URI must be unique within a project.
 CREATE UNIQUE INDEX _auth_resource_uri_unique ON _auth_resource USING btree (app_id, uri);
@@ -117,7 +126,9 @@ CREATE TABLE _auth_resource_scope (
   scope text NOT NULL,
   description text,
   metadata jsonb,
-  allow_any_client_access boolean NOT NULL DEFAULT false
+  -- Access policy JSON object. Missing keys default to false.
+  -- Current keys: allow_third_party_client_access (bool)
+  access_policy jsonb NOT NULL DEFAULT '{}'
 );
 -- Each Resource has its own set of Scopes. The scope must be unique within a Resource.
 CREATE UNIQUE INDEX _auth_resource_scope_unique ON _auth_resource_scope USING btree (app_id, resource_id, scope);
@@ -181,14 +192,36 @@ type Mutation {
   replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 }
 
+"""
+Access policy for a Resource or Scope. Controls which clients may access it
+without a per-client association. All fields default to false when absent
+from the underlying JSON storage.
+"""
+type AccessPolicy {
+  """
+  When true, all third-party clients may access this Resource or Scope
+  without a per-client association.
+  """
+  allowThirdPartyClientAccess: Boolean!
+}
+
+"""
+Input for setting an access policy. When provided on an update mutation,
+replaces the entire stored policy — omitted fields are reset to false.
+When omitted on an update mutation, the existing policy is left unchanged.
+"""
+input AccessPolicyInput {
+  """Default false."""
+  allowThirdPartyClientAccess: Boolean
+}
+
 type Resource implements Entity & Node {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   resourceURI: String!
   name: String
-  """Whether any client may access this resource without a per-client association."""
-  allowAnyClientAccess: Boolean!
+  accessPolicy: AccessPolicy!
   """If clientID is null, then all scopes of this Resource is returned."""
   """If clientID is specified, then only scopes that are associated with clientID is returned."""
   """If searchKeyword is non-null, a prefix search of scope is performed."""
@@ -205,8 +238,7 @@ type Scope implements Entity & Node {
   resourceID: ID!
   scope: String!
   description: String
-  """Whether any client may request this scope without a per-client association."""
-  allowAnyClientAccess: Boolean!
+  accessPolicy: AccessPolicy!
 }
 
 type ResourceEdge {
@@ -234,8 +266,8 @@ type ScopeConnection {
 input CreateResourceInput {
   resourceURI: String!
   name: String
-  """Default false."""
-  allowAnyClientAccess: Boolean
+  """If omitted, all access policy fields default to false."""
+  accessPolicy: AccessPolicyInput
 }
 
 type CreateResourcePayload {
@@ -246,7 +278,8 @@ input UpdateResourceInput {
   resourceURI: String!
   """The new name."""
   name: String
-  allowAnyClientAccess: Boolean
+  """If omitted, the existing access policy is unchanged."""
+  accessPolicy: AccessPolicyInput
 }
 
 type UpdateResourcePayload {
@@ -265,8 +298,8 @@ input CreateScopeInput {
   resourceURI: String!
   scope: String!
   description: String
-  """Default false."""
-  allowAnyClientAccess: Boolean
+  """If omitted, all access policy fields default to false."""
+  accessPolicy: AccessPolicyInput
 }
 
 type CreateScopePayload {
@@ -278,7 +311,8 @@ input UpdateScopeInput {
   scope: String!
   """The new description."""
   description: String
-  allowAnyClientAccess: Boolean
+  """If omitted, the existing access policy is unchanged."""
+  accessPolicy: AccessPolicyInput
 }
 
 type UpdateScopePayload {

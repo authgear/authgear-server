@@ -23,7 +23,7 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 
 ## Glossary
 
-**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal and optionally marked with `allow_any_client_access` to permit DCR client access. See [API Resources and Scopes](./api-resource.md).
+**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal and optionally configured with `access_policy.allow_third_party_client_access: true` to permit third-party client access. See [API Resources and Scopes](./api-resource.md).
 
 **Resource-specific Scope** — a scope value (e.g. `read:orders`) that is defined on a Resource and only meaningful when the corresponding Resource is included in the `resource` parameter.
 
@@ -102,8 +102,8 @@ The project endpoint is **not** included. See [How It Works](#how-it-works) for 
 
 When `resource` is specified, Authgear checks whether the client is permitted to access that resource using the following logic:
 
-1. If the Resource has `allow_any_client_access: true` **and** the requested Scope(s) have `allow_any_client_access: true` — any client (first-party or third-party) is allowed.
-2. Otherwise, an explicit Client-Resource Association is required. Currently only M2M clients support explicit associations (see [API Resources and Scopes](./api-resource.md#client-resource-association)). Third-party clients without `allow_any_client_access` on the resource cannot use it.
+1. If the Resource has `access_policy.allow_third_party_client_access: true` **and** the requested Scope(s) have `access_policy.allow_third_party_client_access: true` — any third-party client is allowed.
+2. Otherwise, an explicit Client-Resource Association is required. Currently only M2M clients support explicit associations (see [API Resources and Scopes](./api-resource.md#client-resource-association)). Third-party clients without the access policy set on the resource cannot use it.
 
 When access is permitted, a JWT access token is issued with `aud = [<resource_uri>]`. The project endpoint is **not** included in `aud`.
 
@@ -128,7 +128,7 @@ GET /oauth2/authorize
 - `resource` is optional.
   - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]`.
   - Third-party client, omitted: issues an opaque access token.
-- Each `resource` value must refer to a Resource the client is permitted to access: either the Resource and requested Scopes have `allow_any_client_access: true`, or the client is an M2M client with an explicit Client-Resource Association for that Resource. Otherwise `invalid_target` is returned.
+- Each `resource` value must refer to a Resource the client is permitted to access: either the Resource and requested Scopes have `access_policy.allow_third_party_client_access: true` (for third-party clients), or the client is an M2M client with an explicit Client-Resource Association for that Resource. Otherwise `invalid_target` is returned.
 - Resource URIs must not be prefixed by the Authgear project endpoint.
 - The granted resources are bound to the authorization code and stored server-side.
 
@@ -240,8 +240,8 @@ Error response format differs by endpoint:
 |---|---|
 | `resource` URI is not a pre-registered Resource | `invalid_target` |
 | `resource` URI is prefixed by the Authgear project endpoint | `invalid_target` |
-| Client is third-party and the Resource does not have `allow_any_client_access: true` | `invalid_target` |
-| Client is an M2M client, Resource does not have `allow_any_client_access: true`, and no explicit Client-Resource Association exists | `invalid_target` |
+| Client is third-party and the Resource does not have `access_policy.allow_third_party_client_access: true` | `invalid_target` |
+| Client is an M2M client and no explicit Client-Resource Association exists | `invalid_target` |
 | `scope` includes a resource-specific scope but no matching `resource` was requested | `invalid_scope` |
 | Requested scope is not permitted for the client on that resource | `invalid_scope` |
 
@@ -260,7 +260,7 @@ Unchanged. JWT with `aud = [<project_endpoint>]`. Existing resource servers that
 
 ### Third-party clients
 
-Third-party clients (dynamically registered via DCR) are new. No existing behavior is affected.
+Third-party clients are new. No existing behavior is affected.
 
 ### `aud` when `resource` is specified
 
