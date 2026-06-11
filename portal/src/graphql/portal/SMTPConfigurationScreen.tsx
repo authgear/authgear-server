@@ -2,7 +2,6 @@ import cn from "classnames";
 import React, { useCallback, useContext, useState, useMemo, useRef } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
-import { Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { parseSender } from "email-addresses";
 import ShowError from "../../ShowError";
@@ -47,7 +46,7 @@ import {
 import { TextField } from "../../components/v2/TextField/TextField";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
-import { Text } from "@radix-ui/themes";
+import { Dialog as RadixDialog, Flex, Text } from "@radix-ui/themes";
 import { EnvelopeClosedIcon, EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -482,18 +481,6 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       []
     );
 
-    const dialogContentProps = useMemo(
-      () => ({
-        title: renderToString(
-          "SMTPConfigurationScreen.send-test-email-dialog.title"
-        ),
-        subText: renderToString(
-          "SMTPConfigurationScreen.send-test-email-dialog.description"
-        ),
-      }),
-      [renderToString]
-    );
-
     const providerOptions = useMemo(
       (): IconRadioCardOption<ProviderType>[] => [
         {
@@ -838,34 +825,45 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           </div>
         ) : null}
 
-        <Dialog
-          hidden={isDialogHidden}
-          onDismiss={onDismissDialog}
-          dialogContentProps={dialogContentProps}
+        <RadixDialog.Root
+          open={!isDialogHidden}
+          onOpenChange={(open) => {
+            if (!open) {
+              onDismissDialog();
+            }
+          }}
         >
-          <TextField
-            size="3"
-            type="email"
-            placeholder="user@example.com"
-            value={toAddress}
-            required={true}
-            onChange={onChangeToAddress}
-          />
-          <DialogFooter>
-            <PrimaryButton
+          <RadixDialog.Content maxWidth="400px" size="3">
+            <RadixDialog.Title>
+              <FormattedMessage id="SMTPConfigurationScreen.send-test-email-dialog.title" />
+            </RadixDialog.Title>
+            <RadixDialog.Description size="2" mb="4">
+              <FormattedMessage id="SMTPConfigurationScreen.send-test-email-dialog.description" />
+            </RadixDialog.Description>
+            <TextField
               size="3"
-              onClick={onClickSend}
-              disabled={!sendTestEmailButtonEnabled || loading}
-              text={<FormattedMessage id="send" />}
+              type="email"
+              placeholder="user@example.com"
+              value={toAddress}
+              required={true}
+              onChange={onChangeToAddress}
             />
-            <SecondaryButton
-              size="3"
-              onClick={onDismissDialog}
-              disabled={loading}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+            <Flex gap="3" mt="4" justify="end">
+              <SecondaryButton
+                size="3"
+                onClick={onDismissDialog}
+                disabled={loading}
+                text={<FormattedMessage id="cancel" />}
+              />
+              <PrimaryButton
+                size="3"
+                onClick={onClickSend}
+                disabled={!sendTestEmailButtonEnabled || loading}
+                text={<FormattedMessage id="send" />}
+              />
+            </Flex>
+          </RadixDialog.Content>
+        </RadixDialog.Root>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
