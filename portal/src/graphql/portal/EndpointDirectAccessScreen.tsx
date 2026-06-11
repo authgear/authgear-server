@@ -77,8 +77,8 @@ function makeConstructRedirectURLFormState(domains: Domain[]) {
           ? "ShowError"
           : "ShowBrandPage"
         : default_redirect_uri === ""
-          ? "ShowLoginAndRedirectToSettings"
-          : "ShowLoginAndRedirectToCustomURL";
+        ? "ShowLoginAndRedirectToSettings"
+        : "ShowLoginAndRedirectToCustomURL";
 
     return {
       public_origin,
@@ -145,8 +145,12 @@ interface EndpointDirectAccessConfigOptionSelectorProps {
 
 const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessConfigOptionSelectorProps> =
   function EndpointDirectAccessConfigOptionSelector(props) {
-    const { form, onChangeDirectAccessOption, onChangeBrandPageURL, onChangePostLoginURL } =
-      props;
+    const {
+      form,
+      onChangeDirectAccessOption,
+      onChangeBrandPageURL,
+      onChangePostLoginURL,
+    } = props;
     const { appID } = useParams() as { appID: string };
 
     const {
@@ -233,7 +237,9 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                 <Text
                   as="span"
                   size="2"
-                  color={ShowLoginAndRedirectToSettingsDisabled ? "gray" : undefined}
+                  color={
+                    ShowLoginAndRedirectToSettingsDisabled ? "gray" : undefined
+                  }
                 >
                   <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label" />
                 </Text>
@@ -262,7 +268,9 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                 <Text
                   as="span"
                   size="2"
-                  color={ShowLoginAndRedirectToCustomURLDisabled ? "gray" : undefined}
+                  color={
+                    ShowLoginAndRedirectToCustomURLDisabled ? "gray" : undefined
+                  }
                 >
                   <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label" />
                 </Text>
@@ -384,52 +392,56 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
             <FormattedMessage id="EndpointDirectAccessScreen.settings.label" />
           }
         >
-            <div className="flex flex-col gap-4">
-              <Text as="p" size="2" color="gray">
-                <FormattedMessage
-                  id="EndpointDirectAccessScreen.section1.description"
-                  values={{
-                    endpoint: publicOrigin,
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                  }}
-                />
-              </Text>
-              <EndpointDirectAccessConfigOptionSelector
-                form={form}
-                onChangeDirectAccessOption={onChangeDirectAccessOption}
-                onChangeBrandPageURL={onChangeBrandPageURL}
-                onChangePostLoginURL={onChangePostLoginURL}
+          <div className="flex flex-col gap-4">
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage
+                id="EndpointDirectAccessScreen.section1.description"
+                values={{
+                  endpoint: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
+                }}
               />
-            </div>
+            </Text>
+            <EndpointDirectAccessConfigOptionSelector
+              form={form}
+              onChangeDirectAccessOption={onChangeDirectAccessOption}
+              onChangeBrandPageURL={onChangeBrandPageURL}
+              onChangePostLoginURL={onChangePostLoginURL}
+            />
+          </div>
 
-            <hr className="border-0 border-t border-[var(--gray-5)]" />
+          <hr className="border-0 border-t border-[var(--gray-5)]" />
 
-            <div className="flex flex-col gap-4">
-              <Text as="p" size="2" color="gray">
-                <FormattedMessage
-                  id="EndpointDirectAccessScreen.section2.description"
-                  values={{
-                    endpoint: publicOrigin,
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                  }}
-                />
-              </Text>
-              <TextField
-                size="2"
-                labelSize="2"
-                type="text"
-                placeholder="https://"
-                label={
-                  <FormattedMessage id="EndpointDirectAccessScreen.section2.input.label" />
-                }
-                value={form.state.default_post_logout_redirect_uri}
-                onChange={onChangePostLogoutURL}
-                parentJSONPointer="/ui"
-                fieldName="default_post_logout_redirect_uri"
+          <div className="flex flex-col gap-4">
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage
+                id="EndpointDirectAccessScreen.section2.description"
+                values={{
+                  endpoint: publicOrigin,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
+                }}
               />
-            </div>
+            </Text>
+            <TextField
+              size="2"
+              labelSize="2"
+              type="text"
+              placeholder="https://"
+              label={
+                <FormattedMessage id="EndpointDirectAccessScreen.section2.input.label" />
+              }
+              value={form.state.default_post_logout_redirect_uri}
+              onChange={onChangePostLogoutURL}
+              parentJSONPointer="/ui"
+              fieldName="default_post_logout_redirect_uri"
+            />
+          </div>
         </SettingsSectionCard>
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

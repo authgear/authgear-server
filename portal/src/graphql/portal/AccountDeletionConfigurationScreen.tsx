@@ -118,46 +118,46 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
             <FormattedMessage id="AccountDeletionConfigurationScreen.deletion-schedule.title" />
           }
         >
-            <TextField
-              size="2"
-              labelSize="2"
-              type="text"
-              label={
-                <FormattedMessage id="AccountDeletionConfigurationScreen.grace-period.label" />
-              }
-              hint={
-                <FormattedMessage id="AccountDeletionConfigurationScreen.grace-period.description" />
-              }
-              value={grace_period_days}
-              onChange={onChangeGracePeriod}
-              parentJSONPointer="/account_deletion"
-              fieldName="grace_period_days"
-            />
-            <Toggle
-              checked={scheduled_by_end_user_enabled}
-              onCheckedChange={onChangeEnabled}
-              text={
-                <FormattedMessage id="AccountDeletionConfigurationScreen.scheduled-by-end-user.label" />
-              }
-            />
-            <Callout.Root color="blue" variant="surface" size="1">
-              <Callout.Icon>
-                <InfoCircledIcon />
-              </Callout.Icon>
-              <Callout.Text>
-                <FormattedMessage
-                  id="AccountDeletionConfigurationScreen.apple-app-store.description"
-                  values={{
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    ExternalLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://developer.apple.com/app-store/review/guidelines/#5.1.1">
-                        {chunks}
-                      </ExternalLink>
-                    ),
-                  }}
-                />
-              </Callout.Text>
-            </Callout.Root>
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            label={
+              <FormattedMessage id="AccountDeletionConfigurationScreen.grace-period.label" />
+            }
+            hint={
+              <FormattedMessage id="AccountDeletionConfigurationScreen.grace-period.description" />
+            }
+            value={grace_period_days}
+            onChange={onChangeGracePeriod}
+            parentJSONPointer="/account_deletion"
+            fieldName="grace_period_days"
+          />
+          <Toggle
+            checked={scheduled_by_end_user_enabled}
+            onCheckedChange={onChangeEnabled}
+            text={
+              <FormattedMessage id="AccountDeletionConfigurationScreen.scheduled-by-end-user.label" />
+            }
+          />
+          <Callout.Root color="blue" variant="surface" size="1">
+            <Callout.Icon>
+              <InfoCircledIcon />
+            </Callout.Icon>
+            <Callout.Text>
+              <FormattedMessage
+                id="AccountDeletionConfigurationScreen.apple-app-store.description"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ExternalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://developer.apple.com/app-store/review/guidelines/#5.1.1">
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                }}
+              />
+            </Callout.Text>
+          </Callout.Root>
         </SettingsSectionCard>
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

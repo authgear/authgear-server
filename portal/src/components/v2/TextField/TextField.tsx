@@ -26,7 +26,20 @@ export enum TextFieldIcon {
 export interface TextInputProps {
   id?: string;
   size: TextFieldSize;
-  type?: "text" | "password" | "email" | "number" | "search" | "tel" | "url" | "hidden" | "date" | "time" | "datetime-local" | "month" | "week";
+  type?:
+    | "text"
+    | "password"
+    | "email"
+    | "number"
+    | "search"
+    | "tel"
+    | "url"
+    | "hidden"
+    | "date"
+    | "time"
+    | "datetime-local"
+    | "month"
+    | "week";
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;

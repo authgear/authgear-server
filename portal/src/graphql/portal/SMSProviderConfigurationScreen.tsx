@@ -78,11 +78,7 @@ import {
   Text,
   Tooltip as RadixTooltip,
 } from "@radix-ui/themes";
-import {
-  CodeIcon,
-  EyeOpenIcon,
-  InfoCircledIcon,
-} from "@radix-ui/react-icons";
+import { CodeIcon, EyeOpenIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
@@ -1169,28 +1165,28 @@ function SMSProviderConfigurationContent(props: {
               <FormattedMessage id="SMSProviderConfigurationScreen.settings.label" />
             }
           >
-              <FormSection form={form} onRevealSecrets={onRevealSecrets} />
-              {isSecretMasked ? (
-                <div>
-                  <PrimaryButton
-                    size="3"
-                    disabled={isCustomSMSProviderDisabled}
-                    onClick={onRevealSecrets}
-                    text={<FormattedMessage id="edit" />}
-                  />
-                </div>
-              ) : (
-                <div>
-                  <SecondaryButton
-                    size="2"
-                    onClick={onTestSMS}
-                    disabled={testConfig == null || checkDenoHookLoading}
-                    text={
-                      <FormattedMessage id="SMSProviderConfigurationScreen.testSMS" />
-                    }
-                  />
-                </div>
-              )}
+            <FormSection form={form} onRevealSecrets={onRevealSecrets} />
+            {isSecretMasked ? (
+              <div>
+                <PrimaryButton
+                  size="3"
+                  disabled={isCustomSMSProviderDisabled}
+                  onClick={onRevealSecrets}
+                  text={<FormattedMessage id="edit" />}
+                />
+              </div>
+            ) : (
+              <div>
+                <SecondaryButton
+                  size="2"
+                  onClick={onTestSMS}
+                  disabled={testConfig == null || checkDenoHookLoading}
+                  text={
+                    <FormattedMessage id="SMSProviderConfigurationScreen.testSMS" />
+                  }
+                />
+              </div>
+            )}
           </SettingsSectionCard>
         ) : null}
 
@@ -1338,7 +1334,9 @@ function TwilioForm({ form }: { form: FormModel }) {
             <Flex direction="column" gap="2">
               <Text as="label" size="2">
                 <Flex gap="2" align="center">
-                  <RadioGroup.Item value={TwilioSenderType.MessagingServiceSID} />
+                  <RadioGroup.Item
+                    value={TwilioSenderType.MessagingServiceSID}
+                  />
                   <FormattedMessage id="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID" />
                   <Tooltip
                     content={

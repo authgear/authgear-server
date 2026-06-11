@@ -234,9 +234,7 @@ export function EditSAMLCertificateForm({
       >
         <PlusIcon width="1rem" height="1rem" />
         <FormattedMessage id="EditSAMLCertificateForm.certificates.generate" />
-        {isGenerating ? (
-          <Spinner size="1" className="ml-1" />
-        ) : null}
+        {isGenerating ? <Spinner size="1" className="ml-1" /> : null}
       </button>
 
       <ConfirmationDialog

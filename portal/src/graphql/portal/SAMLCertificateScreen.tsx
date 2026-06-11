@@ -59,12 +59,12 @@ function EditSAMLCertificateContent({
           <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
         }
       >
-          <EditSAMLCertificateForm
-            configAppID={configAppID}
-            form={form}
-            certificates={certificates}
-            onGenerateNewCertitificate={generateNewCertificate}
-          />
+        <EditSAMLCertificateForm
+          configAppID={configAppID}
+          form={form}
+          certificates={certificates}
+          onGenerateNewCertitificate={generateNewCertificate}
+        />
       </SettingsSectionCard>
 
       <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

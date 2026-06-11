@@ -1,5 +1,11 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useState, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useState,
+  useMemo,
+  useRef,
+} from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "../../intl";
@@ -47,7 +53,11 @@ import { TextField } from "../../components/v2/TextField/TextField";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { Dialog as RadixDialog, Flex, Text } from "@radix-ui/themes";
-import { EnvelopeClosedIcon, EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import {
+  EnvelopeClosedIcon,
+  EyeNoneIcon,
+  EyeOpenIcon,
+} from "@radix-ui/react-icons";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -113,8 +123,8 @@ function constructFormState(
   const providerType = !enabled
     ? ProviderType.Authgear
     : isSendgrid
-      ? ProviderType.Sendgrid
-      : ProviderType.Custom;
+    ? ProviderType.Sendgrid
+    : ProviderType.Custom;
   const isPasswordMasked = enabled && secrets.smtpSecret?.password == null;
 
   let sendgridAPIKey = "";
@@ -395,7 +405,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       }
     }, [state]);
 
-    const sendTestEmailButtonEnabled = useMemo(() => toAddress !== "", [toAddress]);
+    const sendTestEmailButtonEnabled = useMemo(
+      () => toAddress !== "",
+      [toAddress]
+    );
 
     const onClickSendTestEmail = useCallback(
       (e: React.MouseEvent<unknown>) => {
@@ -581,9 +594,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       state.providerType === ProviderType.Custom;
 
     return (
-      <ScreenContent
-        className={cn(isDirty ? styles.contentWithSaveBar : null)}
-      >
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
         <div
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
@@ -622,7 +633,12 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             itemFillSpaces={true}
           />
           {providerDescription != null ? (
-            <Text as="p" size="1" color="gray" className={styles.providerDescription}>
+            <Text
+              as="p"
+              size="1"
+              color="gray"
+              className={styles.providerDescription}
+            >
               {providerDescription}
             </Text>
           ) : null}
@@ -636,181 +652,177 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               <FormattedMessage id="SMTPConfigurationScreen.settings.label" />
             }
           >
-              {state.providerType === ProviderType.Sendgrid ? (
-                <>
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    type="password"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.sendgrid.api-key.label" />
-                    }
-                    hint={renderToString(
-                      "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
-                    )}
-                    value={
-                      state.isPasswordMasked
-                        ? MASKED_PASSWORD_VALUE
-                        : state.sendgridAPIKey
-                    }
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.sendgridAPIKey}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="password"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
-                    }
-                    value={state.sendgridSenderName}
-                    disabled={state.isPasswordMasked}
-                    onChange={fieldCallbacks.sendgridSenderName}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
-                    }
-                    value={state.sendgridSenderAddress}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.sendgridSenderAddress}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
-                  />
-                </>
-              ) : null}
-              {state.providerType === ProviderType.Custom ? (
-                <>
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.host.label" />
-                    }
-                    hint={renderToString(
-                      "SMTPConfigurationScreen.host.tooltip"
-                    )}
-                    value={state.customHost}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.customHost}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="host"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.port.label" />
-                    }
-                    hint={renderToString(
-                      "SMTPConfigurationScreen.port.tooltip"
-                    )}
-                    value={state.customPortString}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onCustomPortChange}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="port"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.username.label" />
-                    }
-                    value={state.customUsername}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.customUsername}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="username"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    type={showPassword ? "text" : "password"}
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.password.label" />
-                    }
-                    value={
-                      state.isPasswordMasked
-                        ? MASKED_PASSWORD_VALUE
-                        : state.customPassword
-                    }
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.customPassword}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="password"
-                    suffixPlain={true}
-                    suffix={
-                      !state.isPasswordMasked ? (
-                        <button
-                          type="button"
-                          onClick={onToggleShowPassword}
-                          className="flex items-center text-[var(--gray-9)]"
-                        >
-                          {showPassword ? <EyeNoneIcon /> : <EyeOpenIcon />}
-                        </button>
-                      ) : undefined
-                    }
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
-                    }
-                    value={state.customSenderName}
-                    disabled={state.isPasswordMasked}
-                    onChange={fieldCallbacks.customSenderName}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
-                  />
-                  <TextField
-                    size="2"
-                    labelSize="2"
-                    label={
-                      <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
-                    }
-                    value={state.customSenderAddress}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={fieldCallbacks.customSenderAddress}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
-                  />
-                </>
-              ) : null}
-              {state.isPasswordMasked ? (
-                <div>
-                  <PrimaryButton
-                    size="3"
-                    disabled={isCustomSMTPDisabled}
-                    onClick={onClickEdit}
-                    text={<FormattedMessage id="edit" />}
-                  />
-                </div>
-              ) : (
-                <div>
-                  <SecondaryButton
-                    size="2"
-                    onClick={onClickSendTestEmail}
-                    disabled={!openSendTestEmailDialogButtonEnabled}
-                    text={
-                      <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
-                    }
-                  />
-                </div>
-              )}
+            {state.providerType === ProviderType.Sendgrid ? (
+              <>
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  type="password"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.api-key.label" />
+                  }
+                  hint={renderToString(
+                    "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
+                  )}
+                  value={
+                    state.isPasswordMasked
+                      ? MASKED_PASSWORD_VALUE
+                      : state.sendgridAPIKey
+                  }
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.sendgridAPIKey}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="password"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
+                  }
+                  value={state.sendgridSenderName}
+                  disabled={state.isPasswordMasked}
+                  onChange={fieldCallbacks.sendgridSenderName}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
+                  }
+                  value={state.sendgridSenderAddress}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.sendgridSenderAddress}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="sender"
+                />
+              </>
+            ) : null}
+            {state.providerType === ProviderType.Custom ? (
+              <>
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.host.label" />
+                  }
+                  hint={renderToString("SMTPConfigurationScreen.host.tooltip")}
+                  value={state.customHost}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customHost}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="host"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.port.label" />
+                  }
+                  hint={renderToString("SMTPConfigurationScreen.port.tooltip")}
+                  value={state.customPortString}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={onCustomPortChange}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="port"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.username.label" />
+                  }
+                  value={state.customUsername}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customUsername}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="username"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  type={showPassword ? "text" : "password"}
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.password.label" />
+                  }
+                  value={
+                    state.isPasswordMasked
+                      ? MASKED_PASSWORD_VALUE
+                      : state.customPassword
+                  }
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customPassword}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="password"
+                  suffixPlain={true}
+                  suffix={
+                    !state.isPasswordMasked ? (
+                      <button
+                        type="button"
+                        onClick={onToggleShowPassword}
+                        className="flex items-center text-[var(--gray-9)]"
+                      >
+                        {showPassword ? <EyeNoneIcon /> : <EyeOpenIcon />}
+                      </button>
+                    ) : undefined
+                  }
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
+                  }
+                  value={state.customSenderName}
+                  disabled={state.isPasswordMasked}
+                  onChange={fieldCallbacks.customSenderName}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
+                  }
+                  value={state.customSenderAddress}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customSenderAddress}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="sender"
+                />
+              </>
+            ) : null}
+            {state.isPasswordMasked ? (
+              <div>
+                <PrimaryButton
+                  size="3"
+                  disabled={isCustomSMTPDisabled}
+                  onClick={onClickEdit}
+                  text={<FormattedMessage id="edit" />}
+                />
+              </div>
+            ) : (
+              <div>
+                <SecondaryButton
+                  size="2"
+                  onClick={onClickSendTestEmail}
+                  disabled={!openSendTestEmailDialogButtonEnabled}
+                  text={
+                    <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
+                  }
+                />
+              </div>
+            )}
           </SettingsSectionCard>
         ) : null}
 

@@ -6,7 +6,10 @@ import {
   FormContainerBaseProps,
 } from "../../../FormContainerBase";
 import { SystemConfigContext } from "../../../context/SystemConfigContext";
-import { defaultSystemConfig, instantiateSystemConfig } from "../../../system-config";
+import {
+  defaultSystemConfig,
+  instantiateSystemConfig,
+} from "../../../system-config";
 import { SaveFunctionBar } from "./SaveFunctionBar";
 
 const systemConfig = instantiateSystemConfig(defaultSystemConfig);
@@ -40,7 +43,7 @@ function SaveFunctionBarStoryHarness({
   return (
     <FormContainerBase form={form}>
       <div style={{ padding: 24, paddingBottom: 120, width: 752 }}>
-        <div ref={anchorRef} aria-hidden style={{ height: 0 }} />
+        <div ref={anchorRef} aria-hidden={true} style={{ height: 0 }} />
         <label>
           Edit to show save bar
           <input
@@ -89,5 +92,5 @@ export const Default: Story = {
 };
 
 export const HiddenWhenClean: Story = {
-  render: () => <SaveFunctionBarStoryHarness startClean />,
+  render: () => <SaveFunctionBarStoryHarness startClean={true} />,
 };

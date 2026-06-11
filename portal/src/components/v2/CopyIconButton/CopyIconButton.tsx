@@ -44,9 +44,7 @@ export function CopyIconButton({
   return (
     <Tooltip
       content={
-        copied
-          ? renderToString("copied-to-clipboard")
-          : renderToString("copy")
+        copied ? renderToString("copied-to-clipboard") : renderToString("copy")
       }
       open={copied ? true : undefined}
     >

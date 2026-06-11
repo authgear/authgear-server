@@ -65,6 +65,7 @@
 /* Hide horizontal scrollbar on desktop (large screens). */
 @media (min-width: 1081px) {
   .keysTableWrapper {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge Legacy */
   }

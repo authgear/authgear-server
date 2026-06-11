@@ -98,21 +98,21 @@ const AccountAnonymizationConfigurationContent: React.VFC<AccountAnonymizationCo
             <FormattedMessage id="AccountAnonymizationConfigurationScreen.anonymization-schedule.title" />
           }
         >
-            <TextField
-              size="2"
-              labelSize="2"
-              type="text"
-              label={
-                <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.label" />
-              }
-              hint={
-                <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.description" />
-              }
-              value={grace_period_days}
-              onChange={onChangeGracePeriod}
-              parentJSONPointer="/account_anonymization"
-              fieldName="grace_period_days"
-            />
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            label={
+              <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.label" />
+            }
+            hint={
+              <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.description" />
+            }
+            value={grace_period_days}
+            onChange={onChangeGracePeriod}
+            parentJSONPointer="/account_anonymization"
+            fieldName="grace_period_days"
+          />
         </SettingsSectionCard>
 
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

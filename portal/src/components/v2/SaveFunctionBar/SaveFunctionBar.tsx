@@ -100,8 +100,12 @@ export function SaveFunctionBar({
         open={isDiscardDialogOpen}
         onOpenChange={onDiscardDialogOpenChange}
         title={<FormattedMessage id="FormContainer.reset-dialog.title" />}
-        description={<FormattedMessage id="FormContainer.reset-dialog.message" />}
-        confirmText={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
+        description={
+          <FormattedMessage id="FormContainer.reset-dialog.message" />
+        }
+        confirmText={
+          <FormattedMessage id="FormContainer.reset-dialog.confirm" />
+        }
         cancelText={<FormattedMessage id="cancel" />}
         confirmColor="red"
         onConfirm={onConfirmDiscard}

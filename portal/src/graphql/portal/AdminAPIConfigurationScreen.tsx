@@ -111,7 +111,12 @@ function SettingsSection({
   return (
     <section className={styles.section}>
       <div className={styles.sectionInner}>
-        <Heading as="h2" size="3" weight="medium" className={styles.sectionHeading}>
+        <Heading
+          as="h2"
+          size="3"
+          weight="medium"
+          className={styles.sectionHeading}
+        >
           {title}
         </Heading>
         <div className={styles.sectionContent}>{children}</div>
@@ -145,9 +150,7 @@ function ReadOnlyCopyField({
       placeholder={placeholder}
       readOnly={true}
       hint={hint}
-      inputClassName={
-        truncate ? styles.readOnlyCopyFieldTruncate : undefined
-      }
+      inputClassName={truncate ? styles.readOnlyCopyFieldTruncate : undefined}
       suffixPlain={true}
       suffix={showCopy ? <CopyIconButton textToCopy={value} /> : undefined}
     />
@@ -177,7 +180,10 @@ function AdminAPIKeysTable({
           <div className={styles.keysTableHeaderCellCreatedAt}>
             <FormattedMessage id="AdminAPIConfigurationScreen.column.created-at" />
           </div>
-          <div className={styles.keysTableHeaderCellActions} aria-hidden={true} />
+          <div
+            className={styles.keysTableHeaderCellActions}
+            aria-hidden={true}
+          />
         </div>
         {items.map((item) => (
           <div key={item.keyID} className={styles.keysTableRow}>
