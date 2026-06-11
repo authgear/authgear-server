@@ -20,8 +20,10 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 ### Custom Client Metadata
 
 - `client_id`: OIDC client ID.
-- `access_token_lifetime`: Access token lifetime in seconds, default to 1800.
-- `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
+- `access_token_lifetime_seconds`: Access token lifetime in seconds, default to 1800.
+- `refresh_token_lifetime_seconds`: Refresh token lifetime in seconds, default to max(access_token_lifetime_seconds, 86400). It must be greater than or equal to `access_token_lifetime_seconds`.
+- `refresh_token_idle_timeout_enabled`: Whether idle refresh token expiry is enabled.
+- `refresh_token_idle_timeout_seconds`: Idle timeout for refresh tokens in seconds. The refresh token expires if it has not been used for this duration. Only meaningful when `refresh_token_idle_timeout_enabled` is `true`.
 - `x_application_type`: Indicate the application type. See [Clients](#clients) for the meaning of the value. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `confidential`, `third_party_app`.
 - `x_max_concurrent_session`: Indicate whether the client restricts the number of concurrent sessions, `0` means no restriction, default is `0`. Currently, only `0` or `1` are supported. If `x_max_concurrent_session` is `1`, all refresh tokens of the client will be revoked when a new one is requested.
 - `x_authentication_flow_allowlist`: Indicate the allowed authentication flows. See [Flow Allowlist](./authentication-flow-selection.md#flow-allowlist) for details.
@@ -457,7 +459,9 @@ The content of this table is explained in [Rationale of limitations](#rationale-
 |`traditional_webapp`|First-party|public|No|Yes|
 |`native`|First-party|public|No|Yes|
 |`confidential`|First-party|confidential|Yes|No|
-|`third_party_app`|Third-party|confidential|Yes|No|
+|`third_party_app`|Third-party|public or confidential|Yes|No|
+
+See [Third-Party Client spec](./third-party-client.md) for full details on `third_party_app`.
 
 ### Rationale of limitations
 
@@ -494,11 +498,7 @@ First-party confidential clients have NO access to privileged user operations, a
 
 ### Third-Party clients
 
-Third-party clients are always confidential, thus they have `client_secret`. During code exchange, `client_secret` must be present.
-
-Third-party clients have NO access to privileged user operations, and CANNOT request the special scope value `https://authgear.com/scopes/full-access`.
-
-Third-party clients can use the scope value `https://authgear.com/scopes/full-userinfo` to request complete user info.
+See [Third-Party Client spec](./third-party-client.md).
 
 ### Confidential clients
 
@@ -522,40 +522,11 @@ The client secrets of confidential clients are stored in `authgear.secrets.yaml`
 
 First-party clients are trusted so consent screen is skipped.
 
-Third-party clients are NOT trusted so the end-user must give explicit consent in the consent screen.
+Third-party clients are NOT trusted so the end-user must give explicit consent in the consent screen. See [Third-Party Client spec — Consent Screen](./third-party-client.md#consent-screen) for details.
 
-The consent screen will be shown only if there is no authorization record (first-time login / the user revokes it). The consent screen will show the client name and the requested permissions.
+### Sessions and Authorized Apps
 
-The concent screen example:
-
-```
-<!-- App Login -->
-
-# Authorize <CLIENT_NAME>
-
-<CLIENT_NAME> wants to access your account.
-
-- Allows <CLIENT_NAME> to access your email, phone number or username if available.
-- Allows <CLIENT_NAME> to access other information of your profile.
-- Allows <CLIENT_NAME> to access your information after login.
-
-[Cancel] [Authorize]
-
-```
-
-The list will be changed based on the requested scopes. The copywriting are listed as follows:
-
-- `https://authgear.com/scopes/full-userinfo`:
-  - Allows <CLIENT_NAME> to access your email, phone number or username if available.
-  - Allows <CLIENT_NAME> to access other information of your profile.
-- `offline_access`:
-  - Allows <CLIENT_NAME> to access your information after login.
-
-### Authorized Apps page
-
-In the **Signed in Sessions** page, only IdP sessions and sessions of first-party clients are listed. The refresh token of third-party clients are NOT listed in this page because revoking a refresh token of third-party clients DOES NOT affect the login in the third-party app.
-
-The **Authorized Apps** page lists authorizations of third-party client only. Revoking an authorization revokes all the refresh tokens of the third-party client.
+See [Third-Party Client spec — Sessions and Authorization Management](./third-party-client.md#sessions-and-authorization-management).
 
 ### App Session Token
 
