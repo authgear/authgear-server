@@ -43,7 +43,6 @@ import logoAuthgear from "../../images/authgear_logo.svg";
 import { startReauthentication } from "./Authenticated";
 import { CodeField } from "../../components/common/CodeField";
 import CodeEditor from "../../CodeEditor";
-import { copyToClipboard } from "../../util/clipboard";
 import { useResourceForm } from "../../hook/useResourceForm";
 import {
   Resource,
@@ -81,12 +80,12 @@ import {
 } from "@radix-ui/themes";
 import {
   CodeIcon,
-  CopyIcon,
   EyeOpenIcon,
   InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
@@ -1503,50 +1502,6 @@ function TwilioForm({ form }: { form: FormModel }) {
         ) : null}
       </div>
     </div>
-  );
-}
-
-function CopyIconButton({
-  textToCopy,
-}: {
-  textToCopy: string;
-}): React.ReactElement {
-  const { renderToString } = useContext(MessageContext);
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleCopy = useCallback(() => {
-    copyToClipboard(textToCopy);
-    setCopied(true);
-    if (timerRef.current != null) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  }, [textToCopy]);
-
-  return (
-    <RadixTooltip
-      content={
-        copied
-          ? renderToString("copied-to-clipboard")
-          : renderToString("copy")
-      }
-      open={copied ? true : undefined}
-    >
-      <RadixIconButton
-        type="button"
-        variant="ghost"
-        color="gray"
-        size="1"
-        aria-label={renderToString("copy")}
-        onClick={handleCopy}
-        className={styles.copyIconButton}
-      >
-        <CopyIcon width="1rem" height="1rem" />
-      </RadixIconButton>
-    </RadixTooltip>
   );
 }
 

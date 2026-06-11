@@ -1,8 +1,7 @@
-import React, { useContext, useMemo, useCallback, useState, useRef } from "react";
+import React, { useContext, useMemo, useCallback, useState } from "react";
 import cn from "classnames";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
-  CopyIcon,
   DotsVerticalIcon,
   Pencil1Icon,
   PlusIcon,
@@ -13,7 +12,6 @@ import {
   Heading,
   IconButton as RadixIconButton,
   Text,
-  Tooltip as RadixTooltip,
 } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import ScreenContent from "../../ScreenContent";
@@ -37,7 +35,6 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import ExternalLink, { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
-import { copyToClipboard } from "../../util/clipboard";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 import { APIError } from "../../error/error";
 import ErrorRenderer from "../../ErrorRenderer";
@@ -46,6 +43,7 @@ import { Callout } from "../../components/v2/Callout/Callout";
 import { PrimaryButton as RadixPrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -119,50 +117,6 @@ function SettingsSection({
         <div className={styles.sectionContent}>{children}</div>
       </div>
     </section>
-  );
-}
-
-function CopyIconButton({
-  textToCopy,
-}: {
-  textToCopy: string;
-}): React.ReactElement {
-  const { renderToString } = useContext(Context);
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleCopy = useCallback(() => {
-    copyToClipboard(textToCopy);
-    setCopied(true);
-    if (timerRef.current != null) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  }, [textToCopy]);
-
-  return (
-    <RadixTooltip
-      content={
-        copied
-          ? renderToString("copied-to-clipboard")
-          : renderToString("copy")
-      }
-      open={copied ? true : undefined}
-    >
-      <RadixIconButton
-        type="button"
-        variant="ghost"
-        color="gray"
-        size="1"
-        aria-label={renderToString("copy")}
-        onClick={handleCopy}
-        className={styles.copyIconButton}
-      >
-        <CopyIcon width="1rem" height="1rem" />
-      </RadixIconButton>
-    </RadixTooltip>
   );
 }
 

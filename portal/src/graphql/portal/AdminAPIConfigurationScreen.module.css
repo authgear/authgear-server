@@ -136,14 +136,6 @@
   @apply min-w-0 truncate;
 }
 
-.copyIconButton {
-  @apply shrink-0;
-  background: none;
-  border: none;
-  box-shadow: none;
-  color: var(--gray-11);
-}
-
 .keysTableCellCreatedAt {
   width: 14rem;
   min-width: 0;
