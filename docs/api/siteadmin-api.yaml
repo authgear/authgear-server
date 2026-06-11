@@ -34,7 +34,7 @@ paths:
             maximum: 20
         - name: app_id
           in: query
-          description: Filter by app ID.
+          description: Filter by app ID prefix. Returns all apps whose ID starts with the given value.
           schema:
             type: string
         - name: owner_email

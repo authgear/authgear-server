@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -45,7 +46,7 @@ type AppServiceOwnerStore interface {
 type ListAppsStoreParams struct {
 	Page           uint64
 	PageSize       uint64
-	AppID          string                        // optional; if set, WHERE cs.app_id = ?
+	AppID          string                        // optional; if set, WHERE cs.app_id LIKE 'prefix%'
 	PlanName       string                        // optional; if set, WHERE cs.plan_name = ?
 	OwnerUserID    string                        // optional; if set, WHERE ac.user_id = ?
 	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau"
@@ -112,7 +113,7 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 			q = q.Where("ac.user_id = ?", params.OwnerUserID)
 		}
 		if params.AppID != "" {
-			q = q.Where("cs.app_id = ?", params.AppID)
+			q = q.Where("cs.app_id LIKE ?", escapeLikePattern(params.AppID)+"%")
 		}
 		return q
 	}
@@ -345,6 +346,15 @@ func (s *AppService) GetApp(ctx context.Context, appID string) (*siteadmin.AppDe
 		CreatedAt:  src.CreatedAt,
 		UserCount:  userCount,
 	}, nil
+}
+
+// escapeLikePattern escapes backslash, percent, and underscore so they are
+// treated as literals inside a SQL LIKE pattern (default escape char '\').
+func escapeLikePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
 }
 
 // ---- Private helpers ---------------------------------------------------------
