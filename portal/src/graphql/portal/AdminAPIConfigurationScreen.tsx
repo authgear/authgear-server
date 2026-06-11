@@ -1,25 +1,20 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
+import cn from "classnames";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
-  DetailsList,
-  IColumn,
-  SelectionMode,
-  MessageBar,
-  MessageBarType,
-  TooltipHost,
-  Dialog,
-  DialogFooter,
-  IconButton,
-  useTheme,
-} from "@fluentui/react";
-import cn from "classnames";
+  DotsVerticalIcon,
+  DownloadIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  Heading,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import {
@@ -27,31 +22,28 @@ import {
   AppAndSecretConfigQueryResult,
 } from "./query/appAndSecretConfigQuery";
 import { formatDatetime } from "../../util/formatDatetime";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { downloadStringAsFile } from "../../util/download";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.css";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import PrimaryButton from "../../PrimaryButton";
-import ActionButton from "../../ActionButton";
-import DefaultButton from "../../DefaultButton";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import HorizontalDivider from "../../HorizontalDivider";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import ExternalLink, { DEFAULT_EXTERNAL_LINK_PROPS } from "../../ExternalLink";
-import { TextWithCopyButton } from "../../components/common/TextWithCopyButton";
 import { useGenerateShortLivedAdminAPITokenMutation } from "./mutations/generateShortLivedAdminAPITokenMutation";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import TextField from "../../TextField";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 import { APIError } from "../../error/error";
 import ErrorRenderer from "../../ErrorRenderer";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { Callout } from "../../components/v2/Callout/Callout";
+import { PrimaryButton as RadixPrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -86,12 +78,6 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
-const messageBarStyles = {
-  root: {
-    width: "auto",
-  },
-};
-
 const EXAMPLE_QUERY = `# The Authgear Admin API follows GraphQL Cursor Connections Specification to handle pagination of results.
 # Read more about the Connection model to understand the types like "Edge", "Node", and "Cursor":
 # https://relay.dev/graphql/connections.htm
@@ -113,19 +99,156 @@ query {
 }
 `;
 
+interface SettingsSectionProps {
+  title: React.ReactNode;
+  children: React.ReactNode;
+}
+
+function SettingsSection({
+  title,
+  children,
+}: SettingsSectionProps): React.ReactElement {
+  return (
+    <section className={styles.section}>
+      <div className={styles.sectionInner}>
+        <Heading
+          as="h2"
+          size="3"
+          weight="medium"
+          className={styles.sectionHeading}
+        >
+          {title}
+        </Heading>
+        <div className={styles.sectionContent}>{children}</div>
+      </div>
+    </section>
+  );
+}
+
+interface ReadOnlyCopyFieldProps {
+  label: React.ReactNode;
+  value: string;
+  placeholder?: string;
+  hint?: React.ReactNode;
+  truncate?: boolean;
+}
+
+function ReadOnlyCopyField({
+  label,
+  value,
+  placeholder,
+  hint,
+  truncate,
+}: ReadOnlyCopyFieldProps): React.ReactElement {
+  const showCopy = value.length > 0;
+
+  return (
+    <TextField
+      size="2"
+      label={label}
+      value={value}
+      placeholder={placeholder}
+      readOnly={true}
+      hint={hint}
+      inputClassName={truncate ? styles.readOnlyCopyFieldTruncate : undefined}
+      suffixPlain={true}
+      suffix={showCopy ? <CopyIconButton textToCopy={value} /> : undefined}
+    />
+  );
+}
+
+interface AdminAPIKeysTableProps {
+  items: Item[];
+  onDownload: (keyID: string) => void;
+  onDelete: (keyID: string) => void;
+  canDelete: boolean;
+}
+
+function AdminAPIKeysTable({
+  items,
+  onDownload,
+  onDelete,
+  canDelete,
+}: AdminAPIKeysTableProps): React.ReactElement {
+  return (
+    <div className={styles.keysTableWrapper}>
+      <div className={styles.keysTable}>
+        <div className={styles.keysTableHeader}>
+          <div className={styles.keysTableHeaderCellKeyId}>
+            <FormattedMessage id="AdminAPIConfigurationScreen.column.key-id" />
+          </div>
+          <div className={styles.keysTableHeaderCellCreatedAt}>
+            <FormattedMessage id="AdminAPIConfigurationScreen.column.created-at" />
+          </div>
+          <div
+            className={styles.keysTableHeaderCellActions}
+            aria-hidden={true}
+          />
+        </div>
+        {items.map((item) => (
+          <div key={item.keyID} className={styles.keysTableRow}>
+            <div className={styles.keysTableCellKeyId}>
+              <div className={styles.keysTableCellKeyIdInner}>
+                <Text size="2" className={styles.keysTableCellKeyIdText}>
+                  {item.keyID}
+                </Text>
+                <CopyIconButton textToCopy={item.keyID} />
+              </div>
+            </div>
+            <div className={styles.keysTableCellCreatedAt}>
+              <Text size="2" className="truncate">
+                {item.createdAt ?? ""}
+              </Text>
+            </div>
+            <div className={styles.keysTableCellActions}>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <RadixIconButton variant="soft" color="gray" size="2">
+                    <DotsVerticalIcon width="1rem" height="1rem" />
+                  </RadixIconButton>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content align="end">
+                  <DropdownMenu.Item
+                    onSelect={() => {
+                      onDownload(item.keyID);
+                    }}
+                  >
+                    <DownloadIcon />
+                    <FormattedMessage id="download" />
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    color="red"
+                    disabled={!canDelete}
+                    onSelect={() => {
+                      if (canDelete) {
+                        onDelete(item.keyID);
+                      }
+                    }}
+                  >
+                    <TrashIcon />
+                    <FormattedMessage id="delete" />
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
     const { appID, secretToken, queryResult, generateKey, deleteKey } = props;
     const { locale, renderToString } = useContext(Context);
     const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
-    const { themes } = useSystemConfig();
     const isLoading = useIsLoading();
     const [deleteKeyID, setDeleteKeyID] = useState<string | null>(null);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
     const [shortLivedAdminAPIToken, setShortLivedAdminAPIToken] = useState<
       string | null
     >(null);
-    const theme = useTheme();
     const [shortLivedAdminAPITokenError, setShortLivedAdminAPITokenError] =
       useState<APIError[]>([]);
 
@@ -133,14 +256,11 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       generateShortLivedAdminAPIToken,
       loading: generatingShortLivedAdminAPITokenLoading,
     } = useGenerateShortLivedAdminAPITokenMutation(appID);
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: shortLivedAdminAPIToken ?? "",
-    });
 
     const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
       publicOrigin != null ? publicOrigin + "/_api/admin/graphql" : "";
-    const rawAppID = effectiveAppConfig?.id;
+    const rawAppID = effectiveAppConfig?.id ?? "";
 
     const graphqlEndpoint = useMemo(() => {
       const base = makeGraphQLEndpoint(appID);
@@ -196,8 +316,6 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 
     const generateShortLivedAdminAPITokenHandle = useCallback(async () => {
       if (secretToken == null) {
-        // generateShortLivedAdminAPITokenHandle should be called only
-        // when there is a secret token
         console.error("secret token should not be null");
         return;
       }
@@ -220,10 +338,6 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           console.error(e);
         });
       };
-      // There are two possible cases:
-      // 1. secretToken is null
-      // 2. secretToken is not null but failed to generate short-lived admin API token
-      // in both cases, reauthentication is needed
       if (secretToken != null) {
         generateShortLivedAdminAPITokenHandle().catch((e) => {
           const apiErrors = parseRawError(e);
@@ -258,29 +372,19 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       }
     });
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: renderToString(
-          "AdminAPIConfigurationScreen.keys.delete-dialog.title"
-        ),
-        subText: renderToString(
-          "AdminAPIConfigurationScreen.keys.delete-dialog.message"
-        ),
-      };
-    }, [renderToString]);
-
-    const showDialogAndSetDeleteKeyID = useCallback(
-      (keyID: string) => {
-        setDeleteKeyID(keyID);
-        setIsDeleteDialogVisible(true);
-      },
-      [setIsDeleteDialogVisible]
-    );
-
     const dismissDialogAndResetDeleteKeyID = useCallback(() => {
       setIsDeleteDialogVisible(false);
       setDeleteKeyID(null);
-    }, [setIsDeleteDialogVisible]);
+    }, []);
+
+    const onDeleteDialogOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open && !isLoading) {
+          dismissDialogAndResetDeleteKeyID();
+        }
+      },
+      [dismissDialogAndResetDeleteKeyID, isLoading]
+    );
 
     const onConfirmDelete = useCallback(() => {
       if (deleteKeyID == null) {
@@ -293,311 +397,220 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         .finally(dismissDialogAndResetDeleteKeyID);
     }, [deleteKey, deleteKeyID, dismissDialogAndResetDeleteKeyID]);
 
-    const keyIDColumnOnRender = useCallback((item?: Item) => {
-      return (
-        <span className={cn("flex", "items-center", "h-full")}>
-          <TextWithCopyButton text={item?.keyID ?? ""} />
-        </span>
-      );
+    const showDialogAndSetDeleteKeyID = useCallback((keyID: string) => {
+      setDeleteKeyID(keyID);
+      setIsDeleteDialogVisible(true);
     }, []);
 
-    const createdAtColumnOnRender = useCallback((item?: Item) => {
-      return (
-        <span className={cn("flex", "items-center", "h-full")}>
-          {item?.createdAt ?? ""}
-        </span>
-      );
-    }, []);
-
-    const actionColumnOnRender = useCallback(
-      (item?: Item, index?: number) => {
-        const deleteButtonID = `delete-button-${index}`;
-        const calloutProps = {
-          target: `#${deleteButtonID}`,
-        };
-        return (
-          <section className={cn("flex", "items-center", "h-full")}>
-            <ActionButton
-              className={styles.actionButton}
-              theme={themes.actionButton}
-              onClick={(e: React.MouseEvent<unknown>) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (item != null) {
-                  downloadItem(item.keyID);
-                }
-              }}
-              text={<FormattedMessage id="download" />}
-            />
-            {items.length > 1 ? (
-              <ActionButton
-                id={deleteButtonID}
-                className={styles.actionButton}
-                theme={themes.destructive}
-                onClick={(e: React.MouseEvent<unknown>) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (item != null) {
-                    showDialogAndSetDeleteKeyID(item.keyID);
-                  }
-                }}
-                text={<FormattedMessage id="delete" />}
-              />
-            ) : (
-              <TooltipHost
-                content={
-                  <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete.tooltip" />
-                }
-                calloutProps={calloutProps}
-              >
-                <ActionButton
-                  id={deleteButtonID}
-                  className={styles.actionButton}
-                  theme={themes.destructive}
-                  disabled={true}
-                  text={<FormattedMessage id="delete" />}
-                />
-              </TooltipHost>
-            )}
-          </section>
-        );
-      },
-      [
-        downloadItem,
-        items.length,
-        showDialogAndSetDeleteKeyID,
-        themes.actionButton,
-        themes.destructive,
-      ]
+    const apiEndpointDocHint = (
+      <FormattedMessage
+        id="AdminAPIConfigurationScreen.details.description"
+        values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          docLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="https://docs.authgear.com/reference/apis/admin-api">
+              {chunks}
+            </ExternalLink>
+          ),
+          // eslint-disable-next-line react/no-unstable-nested-components
+          code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+        }}
+      />
     );
 
-    const columns: IColumn[] = useMemo(() => {
-      return [
-        {
-          key: "keyID",
-          fieldName: "keyID",
-          name: renderToString("AdminAPIConfigurationScreen.column.key-id"),
-          minWidth: 150,
-          onRender: keyIDColumnOnRender,
-        },
-        {
-          key: "createdAt",
-          fieldName: "createdAt",
-          name: renderToString("AdminAPIConfigurationScreen.column.created-at"),
-          minWidth: 220,
-          onRender: createdAtColumnOnRender,
-        },
-        {
-          key: "action",
-          name: renderToString("action"),
-          minWidth: 150,
-          onRender: actionColumnOnRender,
-        },
-      ];
-    }, [
-      renderToString,
-      keyIDColumnOnRender,
-      createdAtColumnOnRender,
-      actionColumnOnRender,
-    ]);
+    const graphiqlWarning = (
+      <Callout
+        type="warning"
+        showCloseButton={false}
+        text={
+          <FormattedMessage
+            id="AdminAPIConfigurationScreen.graphiql.warning"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+            }}
+          />
+        }
+      />
+    );
 
     return (
       <>
         <ScreenLayoutScrollView>
           <ScreenContent>
-            <ScreenTitle className={styles.widget}>
-              <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-            </ScreenTitle>
-            <ScreenDescription className={styles.widget}>
-              <FormattedMessage
-                id="AdminAPIConfigurationScreen.description"
-                values={{
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-                }}
-              />
-            </ScreenDescription>
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.details.title" />
-              </WidgetTitle>
-              <TextFieldWithCopyButton
-                label={renderToString(
-                  "AdminAPIConfigurationScreen.api-endpoint.title"
-                )}
-                value={adminAPIEndpoint}
-                readOnly={true}
-              />
-              <TextFieldWithCopyButton
-                label={renderToString(
-                  "AdminAPIConfigurationScreen.project-id.title"
-                )}
-                value={rawAppID}
-                readOnly={true}
-              />
-              <WidgetDescription>
-                <FormattedMessage
-                  id="AdminAPIConfigurationScreen.details.description"
-                  values={{
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://docs.authgear.com/reference/apis/admin-api">
-                        {chunks}
-                      </ExternalLink>
-                    ),
-                  }}
-                />
-              </WidgetDescription>
-            </Widget>
-            <HorizontalDivider className={styles.separator} />
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
-              </WidgetTitle>
-              <DetailsList
-                items={items}
-                columns={columns}
-                selectionMode={SelectionMode.none}
-              />
-              {items.length >= 2 ? (
-                <MessageBar
-                  messageBarType={MessageBarType.warning}
-                  styles={messageBarStyles}
-                >
-                  <FormattedMessage id="AdminAPIConfigurationScreen.keys.generate.warning" />
-                </MessageBar>
-              ) : (
-                <ActionButton
-                  className={styles.actionButton}
-                  theme={themes.actionButton}
-                  iconProps={{
-                    iconName: "CirclePlus",
-                  }}
-                  onClick={generateKey}
-                  disabled={isLoading}
-                  text={
-                    <FormattedMessage
-                      id={"AdminAPIConfigurationScreen.keys.generate.label"}
-                    />
-                  }
-                />
-              )}
-              <div className={cn("flex", "flex-col", "gap-2")}>
-                <div className={cn("flex", "flex-row", "gap-2")}>
-                  <div className={cn("flex", "flex-row", "flex-1")}>
-                    <TextField
-                      className={cn("flex-1")}
-                      type="text"
-                      label={renderToString(
-                        "AdminAPIConfigurationScreen.short-lived-admin-api-token.label"
-                      )}
-                      value={shortLivedAdminAPIToken ?? ""}
-                      placeholder={renderToString(
-                        "AdminAPIConfigurationScreen.short-lived-admin-api-token.generate.placeholder"
-                      )}
-                      readOnly={true}
-                    />
-                    {shortLivedAdminAPIToken ? (
-                      <>
-                        <IconButton
-                          {...copyButtonProps}
-                          styles={{
-                            root: {
-                              backgroundColor: theme.palette.neutralLight,
-                            },
-                          }}
-                          className={cn("self-end")}
-                          theme={themes.actionButton}
-                        />
-                        <Feedback />
-                      </>
-                    ) : null}
-                  </div>
-                  <PrimaryButton
-                    className={cn("self-end")}
-                    onClick={onClickGenerateShortLivedAdminAPIToken}
-                    text={
-                      <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.generate" />
-                    }
-                    disabled={generatingShortLivedAdminAPITokenLoading}
-                  />
-                </div>
-                {shortLivedAdminAPITokenFieldErrors ? (
-                  <MessageBar messageBarType={MessageBarType.error}>
-                    {shortLivedAdminAPITokenFieldErrors}
-                  </MessageBar>
-                ) : null}
-                <WidgetDescription>
-                  {}
-                  <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
-                </WidgetDescription>
-              </div>
-            </Widget>
-            <HorizontalDivider className={styles.separator} />
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
-              </WidgetTitle>
-              <MessageBar
-                messageBarType={MessageBarType.warning}
-                styles={messageBarStyles}
+            <div className={cn(styles.widget, styles.pageHeader)}>
+              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+                <FormattedMessage id="AdminAPIConfigurationScreen.title" />
+              </Text>
+              <Text
+                as="p"
+                size="2"
+                color="gray"
+                className={styles.pageDescription}
               >
                 <FormattedMessage
-                  id="AdminAPIConfigurationScreen.graphiql.warning"
+                  id="AdminAPIConfigurationScreen.description"
                   values={{
                     // eslint-disable-next-line react/no-unstable-nested-components
-                    b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+                    b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                   }}
                 />
-              </MessageBar>
-              <WidgetDescription>
-                <FormattedMessage
-                  id="AdminAPIConfigurationScreen.graphiql.description"
-                  values={{
-                    graphqlEndpoint,
+              </Text>
+            </div>
 
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://docs.authgear.com/reference/apis/admin-api">
-                        {chunks}
-                      </ExternalLink>
-                    ),
-                  }}
-                />
-              </WidgetDescription>
-              <div>
-                <DefaultButton
-                  {...DEFAULT_EXTERNAL_LINK_PROPS}
-                  href={graphqlEndpoint}
-                  text={
-                    <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.open" />
+            <div className={styles.sections}>
+              <SettingsSection
+                title={
+                  <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.section-title" />
+                }
+              >
+                <ReadOnlyCopyField
+                  label={
+                    <FormattedMessage id="AdminAPIConfigurationScreen.graphql-url.label" />
                   }
+                  value={adminAPIEndpoint}
                 />
-              </div>
-            </Widget>
+                <ReadOnlyCopyField
+                  label={
+                    <FormattedMessage id="AdminAPIConfigurationScreen.project-id.title" />
+                  }
+                  value={rawAppID}
+                />
+                <Text
+                  as="p"
+                  size="1"
+                  color="gray"
+                  className={styles.sectionDescription}
+                >
+                  {apiEndpointDocHint}
+                </Text>
+              </SettingsSection>
+
+              <SettingsSection
+                title={
+                  <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
+                }
+              >
+                <AdminAPIKeysTable
+                  items={items}
+                  onDownload={downloadItem}
+                  onDelete={showDialogAndSetDeleteKeyID}
+                  canDelete={items.length > 1}
+                />
+                {items.length >= 2 ? (
+                  <Callout
+                    type="warning"
+                    showCloseButton={false}
+                    text={
+                      <FormattedMessage id="AdminAPIConfigurationScreen.keys.generate.warning" />
+                    }
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.generateKeyButton}
+                    onClick={() => {
+                      generateKey().catch((e) => {
+                        console.error(e);
+                      });
+                    }}
+                    disabled={isLoading}
+                  >
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="AdminAPIConfigurationScreen.keys.generate.label" />
+                  </button>
+                )}
+
+                <div className={styles.tokenRow}>
+                  <div className={styles.tokenFieldGroup}>
+                    <div className={styles.tokenInputRow}>
+                      <div className={styles.tokenInputRowField}>
+                        <ReadOnlyCopyField
+                          label={
+                            <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.label" />
+                          }
+                          value={shortLivedAdminAPIToken ?? ""}
+                          truncate={true}
+                          placeholder={renderToString(
+                            "AdminAPIConfigurationScreen.short-lived-admin-api-token.generate.placeholder"
+                          )}
+                        />
+                      </div>
+                      <RadixPrimaryButton
+                        size="2"
+                        text={
+                          <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.generate" />
+                        }
+                        onClick={onClickGenerateShortLivedAdminAPIToken}
+                        disabled={generatingShortLivedAdminAPITokenLoading}
+                        loading={generatingShortLivedAdminAPITokenLoading}
+                      />
+                    </div>
+                    <Text as="p" size="1" color="gray">
+                      <FormattedMessage id="AdminAPIConfigurationScreen.short-lived-admin-api-token.description" />
+                    </Text>
+                  </div>
+                  {shortLivedAdminAPITokenFieldErrors != null ? (
+                    <Callout
+                      type="error"
+                      showCloseButton={false}
+                      text={shortLivedAdminAPITokenFieldErrors}
+                    />
+                  ) : null}
+                </div>
+              </SettingsSection>
+
+              <SettingsSection
+                title={
+                  <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+                }
+              >
+                {graphiqlWarning}
+                <Text as="p" size="2" color="gray">
+                  <FormattedMessage
+                    id="AdminAPIConfigurationScreen.graphiql.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      br: () => <br />,
+                    }}
+                  />
+                </Text>
+                <div>
+                  <SecondaryButton
+                    size="2"
+                    text={
+                      <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.open" />
+                    }
+                    onClick={() => {
+                      window.open(
+                        graphqlEndpoint,
+                        DEFAULT_EXTERNAL_LINK_PROPS.target,
+                        DEFAULT_EXTERNAL_LINK_PROPS.rel
+                      );
+                    }}
+                  />
+                </div>
+              </SettingsSection>
+            </div>
           </ScreenContent>
         </ScreenLayoutScrollView>
-        <Dialog
-          hidden={!isDeleteDialogVisible}
-          dialogContentProps={dialogContentProps}
-          onDismiss={dismissDialogAndResetDeleteKeyID}
-        >
-          <DialogFooter>
-            <PrimaryButton
-              theme={themes.destructive}
-              onClick={onConfirmDelete}
-              disabled={isLoading || !isDeleteDialogVisible}
-              text={
-                <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete-dialog.confirm" />
-              }
-            />
-            <DefaultButton
-              onClick={dismissDialogAndResetDeleteKeyID}
-              disabled={isLoading || !isDeleteDialogVisible}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+        <ConfirmationDialog
+          open={isDeleteDialogVisible}
+          onOpenChange={onDeleteDialogOpenChange}
+          title={
+            <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete-dialog.title" />
+          }
+          description={
+            <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete-dialog.message" />
+          }
+          confirmText={
+            <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete-dialog.confirm" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onConfirmDelete}
+          onCancel={dismissDialogAndResetDeleteKeyID}
+          loading={isLoading}
+        />
       </>
     );
   };

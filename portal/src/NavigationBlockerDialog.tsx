@@ -64,7 +64,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
 
     return (
       <BlockerDialog
-        hidden={!navigationBlockerDialog.visible}
+        open={navigationBlockerDialog.visible}
         contentTitleId="NavigationBlockerDialog.title"
         contentSubTextId="NavigationBlockerDialog.content"
         contentConfirmId="NavigationBlockerDialog.confirm"

@@ -15,8 +15,36 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Checked: Story = {
+  args: {
+    checked: true,
+  },
+};
+
 export const WithText: Story = {
   args: {
-    text: "On",
+    text: "Allow account deletion",
+  },
+};
+
+export const CheckedWithText: Story = {
+  args: {
+    checked: true,
+    text: "Allow account deletion",
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    disabled: true,
+    text: "Allow account deletion",
+  },
+};
+
+export const DisabledChecked: Story = {
+  args: {
+    checked: true,
+    disabled: true,
+    text: "Allow account deletion",
   },
 };

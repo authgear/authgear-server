@@ -1,25 +1,23 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useState, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useState,
+  useMemo,
+  useRef,
+} from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
-import { Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { parseSender } from "email-addresses";
-import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import FormContainer from "../../FormContainer";
-import FormTextField from "../../FormTextField";
 import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import Widget from "../../Widget";
-import TextField from "../../TextField";
-import Toggle from "../../Toggle";
 import { startReauthentication } from "./Authenticated";
 import {
   PortalAPIAppConfig,
@@ -32,27 +30,37 @@ import {
   useSendTestEmailMutation,
   UseSendTestEmailMutationReturnType,
 } from "./mutations/sendTestEmail";
-import logoSendgrid from "../../images/sendgrid_logo.png";
+import logoSendgrid from "../../images/sendgrid_logo.svg";
+import logoAuthgear from "../../images/authgear_logo.svg";
 import styles from "./SMTPConfigurationScreen.module.css";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
 import ExternalLink from "../../ExternalLink";
-
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import {
-  ProviderCard,
-  ProviderCardDescription,
-} from "../../components/common/ProviderCard";
 import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError, APISMTPTestFailedError } from "../../error/error";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen } from "../../RedMessageBar";
 import { useCalloutToast } from "../../components/v2/Callout/Callout";
+import {
+  IconRadioCards,
+  IconRadioCardOption,
+} from "../../components/v2/IconRadioCards/IconRadioCards";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { Dialog as RadixDialog, Flex, Text } from "@radix-ui/themes";
+import {
+  EnvelopeClosedIcon,
+  EyeNoneIcon,
+  EyeOpenIcon,
+} from "@radix-ui/react-icons";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface LocationState {
   isEdit: boolean;
@@ -66,6 +74,7 @@ function isLocationState(raw: unknown): raw is LocationState {
 }
 
 enum ProviderType {
+  Authgear = "authgear",
   Sendgrid = "sendgrid",
   Custom = "custom",
 }
@@ -75,6 +84,9 @@ const MASKED_PASSWORD_VALUE = "****************";
 const SENDGRID_HOST = "smtp.sendgrid.net";
 const SENDGRID_PORT_STRING = "587";
 const SENDGRID_USERNAME = "apikey";
+
+// Matches v2 IconRadioCards storybook inner icon size (SquareIcon iconSize).
+const PROVIDER_RADIO_ICON_SIZE = "1.375rem";
 
 interface ConfigFormState {
   enabled: boolean;
@@ -108,7 +120,11 @@ function constructFormState(
     secrets.smtpSecret?.host === SENDGRID_HOST &&
     String(secrets.smtpSecret.port) === SENDGRID_PORT_STRING &&
     secrets.smtpSecret.username === SENDGRID_USERNAME;
-  const providerType = isSendgrid ? ProviderType.Sendgrid : ProviderType.Custom;
+  const providerType = !enabled
+    ? ProviderType.Authgear
+    : isSendgrid
+    ? ProviderType.Sendgrid
+    : ProviderType.Custom;
   const isPasswordMasked = enabled && secrets.smtpSecret?.password == null;
 
   let sendgridAPIKey = "";
@@ -251,10 +267,6 @@ function constructSecretUpdateInstruction(
   };
 }
 
-const CUSTOM_PROVIDER_ICON_PROPS = {
-  iconName: "Mail",
-};
-
 const ERROR_RULES: ErrorParseRule[] = [
   (apiError: APIError): ErrorParseRuleResult => {
     if (apiError.reason === "SMTPTestFailed") {
@@ -290,14 +302,92 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
 
     const [isDialogHidden, setIsDialogHidden] = useState(true);
     const [toAddress, setToAddress] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const { viewer } = useViewerQuery();
     const { renderToString } = useContext(Context);
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    const onChangeProviderType = useCallback(
+      (value: ProviderType) => {
+        setState((s) => ({
+          ...s,
+          enabled: value !== ProviderType.Authgear,
+          providerType: value,
+        }));
+      },
+      [setState]
+    );
+
+    const fieldCallbacks = useMemo(() => {
+      const make =
+        (
+          key:
+            | "sendgridAPIKey"
+            | "sendgridSenderName"
+            | "sendgridSenderAddress"
+            | "customHost"
+            | "customUsername"
+            | "customPassword"
+            | "customSenderName"
+            | "customSenderAddress"
+        ) =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+          const value = e.target.value;
+          setState((s) => {
+            const next: FormState = { ...s };
+            next[key] = value;
+            return next;
+          });
+        };
+      return {
+        sendgridAPIKey: make("sendgridAPIKey"),
+        sendgridSenderName: make("sendgridSenderName"),
+        sendgridSenderAddress: make("sendgridSenderAddress"),
+        customHost: make("customHost"),
+        customUsername: make("customUsername"),
+        customPassword: make("customPassword"),
+        customSenderName: make("customSenderName"),
+        customSenderAddress: make("customSenderAddress"),
+      };
+    }, [setState]);
+
+    const onCustomPortChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === "" || !isNaN(Number(value))) {
+          setState((s) => ({ ...s, customPortString: value }));
+        }
+      },
+      [setState]
+    );
+
+    const onToggleShowPassword = useCallback(() => {
+      setShowPassword((v) => !v);
+    }, []);
+
+    const navigate = useNavigate();
+
+    const onClickEdit = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const locationState: LocationState = {
+          isEdit: true,
+        };
+
+        startReauthentication(navigate, locationState).catch((e) => {
+          console.error(e);
+        });
+      },
+      [navigate]
+    );
 
     const openSendTestEmailDialogButtonEnabled = useMemo(() => {
-      if (!state.enabled) {
-        return false;
-      }
       switch (state.providerType) {
+        case ProviderType.Authgear:
+          return false;
         case ProviderType.Sendgrid:
           return (
             state.sendgridAPIKey !== "" && state.sendgridSenderAddress !== ""
@@ -310,113 +400,20 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             state.customPassword !== "" &&
             state.customSenderAddress !== ""
           );
+        default:
+          return false;
       }
     }, [state]);
 
-    const sendTestEmailButtonEnabled = useMemo(() => {
-      return toAddress !== "";
-    }, [toAddress]);
-
-    const onStringChangeCallbacks = useMemo(() => {
-      const callbackFactory = (
-        key:
-          | "sendgridAPIKey"
-          | "sendgridSenderName"
-          | "sendgridSenderAddress"
-          | "customHost"
-          | "customUsername"
-          | "customPassword"
-          | "customSenderName"
-          | "customSenderAddress"
-      ) => {
-        return (_: unknown, value?: string) => {
-          if (value != null) {
-            setState((state) => {
-              const s: FormState = {
-                ...state,
-              };
-              s[key] = value;
-              return s;
-            });
-          }
-        };
-      };
-      return {
-        sendgridAPIKey: callbackFactory("sendgridAPIKey"),
-        sendgridSenderName: callbackFactory("sendgridSenderName"),
-        sendgridSenderAddress: callbackFactory("sendgridSenderAddress"),
-        customHost: callbackFactory("customHost"),
-        customUsername: callbackFactory("customUsername"),
-        customPassword: callbackFactory("customPassword"),
-        customSenderName: callbackFactory("customSenderName"),
-        customSenderAddress: callbackFactory("customSenderAddress"),
-      };
-    }, [setState]);
-
-    const onCustomPortChange = useCallback(
-      (_: unknown, value?: string) => {
-        if (value != null) {
-          let newValue: string | undefined;
-          if (value !== "") {
-            const port = Number(value);
-            if (!isNaN(port)) {
-              newValue = value;
-            }
-          } else {
-            newValue = "";
-          }
-          if (newValue !== undefined) {
-            const v = newValue;
-            setState((state) => {
-              return {
-                ...state,
-                customPortString: v,
-              };
-            });
-          }
-        }
-      },
-      [setState]
-    );
-
-    const onChangeEnabled = useCallback(
-      (_event, checked?: boolean) => {
-        if (checked != null) {
-          setState((state) => {
-            return {
-              ...state,
-              enabled: checked,
-            };
-          });
-        }
-      },
-      [setState]
-    );
-
-    const navigate = useNavigate();
-
-    const onClickEdit = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const state: LocationState = {
-          isEdit: true,
-        };
-
-        startReauthentication(navigate, state).catch((e) => {
-          // Normally there should not be any error.
-          console.error(e);
-        });
-      },
-      [navigate]
+    const sendTestEmailButtonEnabled = useMemo(
+      () => toAddress !== "",
+      [toAddress]
     );
 
     const onClickSendTestEmail = useCallback(
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
         e.stopPropagation();
-
         setToAddress(viewer?.email ?? "");
         setIsDialogHidden(false);
       },
@@ -427,7 +424,6 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       (e?: React.MouseEvent<unknown>) => {
         e?.preventDefault();
         e?.stopPropagation();
-
         if (!loading) {
           setIsDialogHidden(true);
         }
@@ -442,6 +438,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
 
         let input: SendTestEmailOptions;
         switch (state.providerType) {
+          case ProviderType.Authgear:
+            return;
           case ProviderType.Sendgrid:
             input = {
               smtpHost: SENDGRID_HOST,
@@ -468,6 +466,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               to: toAddress,
             };
             break;
+          default:
+            return;
         }
 
         sendTestEmail(input).then(
@@ -488,79 +488,128 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       [sendTestEmail, showToast, state, toAddress]
     );
 
-    const onChangeToAddress = useCallback((_, value?: string) => {
-      if (value != null) {
-        setToAddress(value);
+    const onChangeToAddress = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setToAddress(e.target.value);
+      },
+      []
+    );
+
+    const providerOptions = useMemo(
+      (): IconRadioCardOption<ProviderType>[] => [
+        {
+          value: ProviderType.Authgear,
+          icon: (
+            <img
+              src={logoAuthgear}
+              alt=""
+              className="object-contain"
+              style={{
+                width: PROVIDER_RADIO_ICON_SIZE,
+                height: PROVIDER_RADIO_ICON_SIZE,
+              }}
+            />
+          ),
+          title: (
+            <FormattedMessage id="SMTPConfigurationScreen.provider.authgear" />
+          ),
+          disabled: state.isPasswordMasked,
+        },
+        {
+          value: ProviderType.Sendgrid,
+          icon: (
+            <img
+              src={logoSendgrid}
+              alt=""
+              className="object-contain"
+              style={{
+                width: PROVIDER_RADIO_ICON_SIZE,
+                height: PROVIDER_RADIO_ICON_SIZE,
+              }}
+            />
+          ),
+          title: (
+            <FormattedMessage id="SMTPConfigurationScreen.provider.sendgrid" />
+          ),
+          disabled: state.isPasswordMasked || isCustomSMTPDisabled,
+        },
+        {
+          value: ProviderType.Custom,
+          icon: (
+            <EnvelopeClosedIcon
+              width={PROVIDER_RADIO_ICON_SIZE}
+              height={PROVIDER_RADIO_ICON_SIZE}
+            />
+          ),
+          title: (
+            <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
+          ),
+          disabled: state.isPasswordMasked || isCustomSMTPDisabled,
+        },
+      ],
+      [isCustomSMTPDisabled, state.isPasswordMasked]
+    );
+
+    const providerDescription = useMemo(() => {
+      switch (state.providerType) {
+        case ProviderType.Authgear:
+          return (
+            <FormattedMessage id="SMTPConfigurationScreen.authgear.description" />
+          );
+        case ProviderType.Sendgrid:
+          return (
+            <FormattedMessage
+              id="SMTPConfigurationScreen.sendgrid.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          );
+        case ProviderType.Custom:
+          return (
+            <FormattedMessage
+              id="SMTPConfigurationScreen.custom.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                DocLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          );
+        default:
+          return null;
       }
-    }, []);
+    }, [state.providerType]);
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: renderToString(
-          "SMTPConfigurationScreen.send-test-email-dialog.title"
-        ),
-        subText: renderToString(
-          "SMTPConfigurationScreen.send-test-email-dialog.description"
-        ),
-      };
-    }, [renderToString]);
-
-    const onClickProviderSendgrid = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setState((state) => {
-          return {
-            ...state,
-            providerType: ProviderType.Sendgrid,
-          };
-        });
-      },
-      [setState]
-    );
-
-    const onClickProviderCustom = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setState((state) => {
-          return {
-            ...state,
-            providerType: ProviderType.Custom,
-          };
-        });
-      },
-      [setState]
-    );
-
-    const hostProps = useTextFieldTooltip({
-      tooltipLabel: renderToString("SMTPConfigurationScreen.host.tooltip"),
-    });
-
-    const portProps = useTextFieldTooltip({
-      tooltipLabel: renderToString("SMTPConfigurationScreen.port.tooltip"),
-    });
-
-    const sendgridAPIKeyProps = useTextFieldTooltip({
-      tooltipLabel: renderToString(
-        "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
-      ),
-    });
+    const showSettings =
+      state.providerType === ProviderType.Sendgrid ||
+      state.providerType === ProviderType.Custom;
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          {isAuthgearOnce ? (
-            <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />
-          ) : (
-            <FormattedMessage id="SMTPConfigurationScreen.title" />
-          )}
-        </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="SMTPConfigurationScreen.description" />
-        </ScreenDescription>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            {isAuthgearOnce ? (
+              <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />
+            ) : (
+              <FormattedMessage id="SMTPConfigurationScreen.title" />
+            )}
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage id="SMTPConfigurationScreen.description" />
+          </Text>
+        </div>
         {isCustomSMTPDisabled ? (
           <FeatureDisabledMessageBar
             className={styles.widget}
@@ -574,239 +623,249 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             <RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen className="self-start w-fit" />
           </div>
         ) : null}
-        <Widget className={styles.widget} contentLayout="grid">
-          <Toggle
-            className={styles.columnFull}
-            checked={state.enabled}
-            onChange={onChangeEnabled}
-            label={renderToString("SMTPConfigurationScreen.enable.label")}
-            inlineLabel={true}
-            disabled={state.isPasswordMasked || isCustomSMTPDisabled}
-          />
-          {state.enabled ? (
-            <>
-              <ProviderCard
-                className={styles.columnLeft}
-                onClick={onClickProviderSendgrid}
-                isSelected={state.providerType === ProviderType.Sendgrid}
-                disabled={state.isPasswordMasked}
-                logoSrc={logoSendgrid}
-              >
-                <FormattedMessage id="SMTPConfigurationScreen.provider.sendgrid" />
-              </ProviderCard>
-              <ProviderCard
-                className={styles.columnRight}
-                onClick={onClickProviderCustom}
-                isSelected={state.providerType === ProviderType.Custom}
-                disabled={state.isPasswordMasked}
-                iconProps={CUSTOM_PROVIDER_ICON_PROPS}
-              >
-                <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
-              </ProviderCard>
-              {form.state.providerType === ProviderType.Custom ? (
-                <>
-                  <ProviderCardDescription>
-                    <FormattedMessage
-                      id="SMTPConfigurationScreen.custom.description"
-                      values={{
-                        // eslint-disable-next-line react/no-unstable-nested-components
-                        DocLink: (chunks: React.ReactNode) => (
-                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
-                            {chunks}
-                          </ExternalLink>
-                        ),
-                      }}
-                    />
-                  </ProviderCardDescription>
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString("SMTPConfigurationScreen.host.label")}
-                    value={state.customHost}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onStringChangeCallbacks.customHost}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="host"
-                    {...hostProps}
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString("SMTPConfigurationScreen.port.label")}
-                    value={state.customPortString}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onCustomPortChange}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="port"
-                    {...portProps}
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.username.label"
-                    )}
-                    value={state.customUsername}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onStringChangeCallbacks.customUsername}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="username"
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="password"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.password.label"
-                    )}
-                    value={
-                      state.isPasswordMasked
-                        ? MASKED_PASSWORD_VALUE
-                        : state.customPassword
-                    }
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onStringChangeCallbacks.customPassword}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="password"
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.senderName.label"
-                    )}
-                    value={state.customSenderName}
-                    disabled={state.isPasswordMasked}
-                    onChange={onStringChangeCallbacks.customSenderName}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    /* Otherwise, the field is registered twice, and the error will be shown twice. */
-                    /* Luckily, this field will not have any error so we can work around this way. */
-                    fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.senderAddress.label"
-                    )}
-                    value={state.customSenderAddress}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onStringChangeCallbacks.customSenderAddress}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
-                  />
-                </>
-              ) : null}
-              {form.state.providerType === ProviderType.Sendgrid ? (
-                <>
-                  <ProviderCardDescription>
-                    <FormattedMessage
-                      id="SMTPConfigurationScreen.sendgrid.description"
-                      values={{
-                        // eslint-disable-next-line react/no-unstable-nested-components
-                        DocLink: (chunks: React.ReactNode) => (
-                          <ExternalLink href="https://docs.authgear.com/customization/custom-providers/custom-email-provider">
-                            {chunks}
-                          </ExternalLink>
-                        ),
-                      }}
-                    />
-                  </ProviderCardDescription>
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="password"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.sendgrid.api-key.label"
-                    )}
-                    value={
-                      state.isPasswordMasked
-                        ? MASKED_PASSWORD_VALUE
-                        : state.sendgridAPIKey
-                    }
-                    required={true}
-                    disabled={state.isPasswordMasked}
-                    onChange={onStringChangeCallbacks.sendgridAPIKey}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="password"
-                    {...sendgridAPIKeyProps}
-                  />
 
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.senderName.label"
-                    )}
-                    value={state.sendgridSenderName}
-                    disabled={state.isPasswordMasked}
-                    onChange={onStringChangeCallbacks.sendgridSenderName}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
-                  />
-                  <FormTextField
-                    className={styles.columnLeft}
-                    type="text"
-                    label={renderToString(
-                      "SMTPConfigurationScreen.senderAddress.label"
-                    )}
-                    value={state.sendgridSenderAddress}
-                    disabled={state.isPasswordMasked}
-                    required={true}
-                    onChange={onStringChangeCallbacks.sendgridSenderAddress}
-                    parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
-                  />
-                </>
-              ) : null}
-              {state.isPasswordMasked ? (
+        <div className={cn(styles.widget, styles.providerSelector)}>
+          <IconRadioCards
+            size="3"
+            value={state.providerType}
+            onValueChange={onChangeProviderType}
+            options={providerOptions}
+            itemFillSpaces={true}
+          />
+          {providerDescription != null ? (
+            <Text
+              as="p"
+              size="1"
+              color="gray"
+              className={styles.providerDescription}
+            >
+              {providerDescription}
+            </Text>
+          ) : null}
+        </div>
+
+        {showSettings ? (
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
+              <FormattedMessage id="SMTPConfigurationScreen.settings.label" />
+            }
+          >
+            {state.providerType === ProviderType.Sendgrid ? (
+              <>
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  type="password"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.api-key.label" />
+                  }
+                  hint={renderToString(
+                    "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
+                  )}
+                  value={
+                    state.isPasswordMasked
+                      ? MASKED_PASSWORD_VALUE
+                      : state.sendgridAPIKey
+                  }
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.sendgridAPIKey}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="password"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
+                  }
+                  value={state.sendgridSenderName}
+                  disabled={state.isPasswordMasked}
+                  onChange={fieldCallbacks.sendgridSenderName}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
+                  }
+                  value={state.sendgridSenderAddress}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.sendgridSenderAddress}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="sender"
+                />
+              </>
+            ) : null}
+            {state.providerType === ProviderType.Custom ? (
+              <>
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.host.label" />
+                  }
+                  hint={renderToString("SMTPConfigurationScreen.host.tooltip")}
+                  value={state.customHost}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customHost}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="host"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.port.label" />
+                  }
+                  hint={renderToString("SMTPConfigurationScreen.port.tooltip")}
+                  value={state.customPortString}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={onCustomPortChange}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="port"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.username.label" />
+                  }
+                  value={state.customUsername}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customUsername}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="username"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  type={showPassword ? "text" : "password"}
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.password.label" />
+                  }
+                  value={
+                    state.isPasswordMasked
+                      ? MASKED_PASSWORD_VALUE
+                      : state.customPassword
+                  }
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customPassword}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="password"
+                  suffixPlain={true}
+                  suffix={
+                    !state.isPasswordMasked ? (
+                      <button
+                        type="button"
+                        onClick={onToggleShowPassword}
+                        className="flex items-center text-[var(--gray-9)]"
+                      >
+                        {showPassword ? <EyeNoneIcon /> : <EyeOpenIcon />}
+                      </button>
+                    ) : undefined
+                  }
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderName.label" />
+                  }
+                  value={state.customSenderName}
+                  disabled={state.isPasswordMasked}
+                  onChange={fieldCallbacks.customSenderName}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
+                />
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  label={
+                    <FormattedMessage id="SMTPConfigurationScreen.senderAddress.label" />
+                  }
+                  value={state.customSenderAddress}
+                  disabled={state.isPasswordMasked}
+                  required={true}
+                  onChange={fieldCallbacks.customSenderAddress}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="sender"
+                />
+              </>
+            ) : null}
+            {state.isPasswordMasked ? (
+              <div>
                 <PrimaryButton
-                  className={styles.columnSmall}
+                  size="3"
                   disabled={isCustomSMTPDisabled}
                   onClick={onClickEdit}
                   text={<FormattedMessage id="edit" />}
                 />
-              ) : (
-                <DefaultButton
-                  className={styles.columnSmall}
+              </div>
+            ) : (
+              <div>
+                <SecondaryButton
+                  size="2"
                   onClick={onClickSendTestEmail}
                   disabled={!openSendTestEmailDialogButtonEnabled}
                   text={
                     <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
                   }
                 />
-              )}
-              <Dialog
-                hidden={isDialogHidden}
-                onDismiss={onDismissDialog}
-                dialogContentProps={dialogContentProps}
-              >
-                <TextField
-                  type="email"
-                  placeholder="user@example.com"
-                  value={toAddress}
-                  required={true}
-                  onChange={onChangeToAddress}
-                />
-                <DialogFooter>
-                  <PrimaryButton
-                    onClick={onClickSend}
-                    disabled={!sendTestEmailButtonEnabled || loading}
-                    text={<FormattedMessage id="send" />}
-                  />
-                  <DefaultButton
-                    onClick={onDismissDialog}
-                    disabled={loading}
-                    text={<FormattedMessage id="cancel" />}
-                  />
-                </DialogFooter>
-              </Dialog>
-            </>
-          ) : null}
-        </Widget>
+              </div>
+            )}
+          </SettingsSectionCard>
+        ) : null}
+
+        <RadixDialog.Root
+          open={!isDialogHidden}
+          onOpenChange={(open) => {
+            if (!open) {
+              onDismissDialog();
+            }
+          }}
+        >
+          <RadixDialog.Content maxWidth="400px" size="3">
+            <RadixDialog.Title>
+              <FormattedMessage id="SMTPConfigurationScreen.send-test-email-dialog.title" />
+            </RadixDialog.Title>
+            <RadixDialog.Description size="2" mb="4">
+              <FormattedMessage id="SMTPConfigurationScreen.send-test-email-dialog.description" />
+            </RadixDialog.Description>
+            <TextField
+              size="3"
+              type="email"
+              placeholder="user@example.com"
+              value={toAddress}
+              required={true}
+              onChange={onChangeToAddress}
+            />
+            <Flex gap="3" mt="4" justify="end">
+              <SecondaryButton
+                size="3"
+                onClick={onDismissDialog}
+                disabled={loading}
+                text={<FormattedMessage id="cancel" />}
+              />
+              <PrimaryButton
+                size="3"
+                onClick={onClickSend}
+                disabled={!sendTestEmailButtonEnabled || loading}
+                text={<FormattedMessage id="send" />}
+              />
+            </Flex>
+          </RadixDialog.Content>
+        </RadixDialog.Root>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -909,6 +968,7 @@ const SMTPConfigurationScreen1: React.VFC<{
   return (
     <FormContainer
       form={form}
+      hideFooterComponent={true}
       errorRules={ERROR_RULES}
       localError={sendTestEmailHandle.error}
     >

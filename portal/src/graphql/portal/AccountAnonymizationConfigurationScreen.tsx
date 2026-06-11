@@ -1,6 +1,8 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage, Context } from "../../intl";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import {
   AppConfigFormModel,
@@ -10,13 +12,13 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import { PortalAPIAppConfig } from "../../types";
 import styles from "./AccountAnonymizationConfigurationScreen.module.css";
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import FormTextField from "../../FormTextField";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { checkIntegerInput } from "../../util/input";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface FormState {
   grace_period_days: string;
@@ -56,47 +58,64 @@ const AccountAnonymizationConfigurationContent: React.VFC<AccountAnonymizationCo
     const { form } = props;
     const { state, setState } = form;
     const { grace_period_days } = state;
-
-    const { renderToString } = useContext(Context);
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeGracePeriod = useCallback(
-      (_e, value?: string) => {
-        if (value != null) {
-          if (checkIntegerInput(value)) {
-            setState((prev) => {
-              return {
-                ...prev,
-                grace_period_days: value,
-              };
-            });
-          }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (checkIntegerInput(value)) {
+          setState((prev) => ({
+            ...prev,
+            grace_period_days: value,
+          }));
         }
       },
       [setState]
     );
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="AccountAnonymizationConfigurationScreen.title" />
-        </ScreenTitle>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="AccountAnonymizationConfigurationScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage id="AccountAnonymizationConfigurationScreen.description" />
+          </Text>
+        </div>
+
+        <SettingsSectionCard
+          className={cn(
+            styles.widget,
+            isDirty && styles.settingsCardSaveBarClearance
+          )}
+          contentClassName="gap-4"
+          title={
             <FormattedMessage id="AccountAnonymizationConfigurationScreen.anonymization-schedule.title" />
-          </WidgetTitle>
-          <FormTextField
-            parentJSONPointer="/account_anonymization"
-            fieldName="grace_period_days"
-            label={renderToString(
-              "AccountAnonymizationConfigurationScreen.grace-period.label"
-            )}
-            description={renderToString(
-              "AccountAnonymizationConfigurationScreen.grace-period.description"
-            )}
+          }
+        >
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            label={
+              <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.label" />
+            }
+            hint={
+              <FormattedMessage id="AccountAnonymizationConfigurationScreen.grace-period.description" />
+            }
             value={grace_period_days}
             onChange={onChangeGracePeriod}
+            parentJSONPointer="/account_anonymization"
+            fieldName="grace_period_days"
           />
-        </Widget>
+        </SettingsSectionCard>
+
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -119,7 +138,7 @@ const AccountAnonymizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} hideFooterComponent={true}>
         <AccountAnonymizationConfigurationContent form={form} />
       </FormContainer>
     );

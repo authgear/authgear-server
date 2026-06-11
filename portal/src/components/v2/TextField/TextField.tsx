@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useId, useMemo } from "react";
 import cn from "classnames";
 import { TextField as RadixTextField } from "@radix-ui/themes";
 import styles from "./TextField.module.css";
@@ -24,9 +24,25 @@ export enum TextFieldIcon {
 }
 
 export interface TextInputProps {
+  id?: string;
   size: TextFieldSize;
+  type?:
+    | "text"
+    | "password"
+    | "email"
+    | "number"
+    | "search"
+    | "tel"
+    | "url"
+    | "hidden"
+    | "date"
+    | "time"
+    | "datetime-local"
+    | "month"
+    | "week";
   disabled?: boolean;
   readOnly?: boolean;
+  required?: boolean;
   placeholder?: string;
   error?: React.ReactNode;
 
@@ -39,8 +55,13 @@ export interface TextInputProps {
 export interface TextFieldProps extends TextInputProps {
   darkMode?: boolean;
   label?: React.ReactNode;
+  /** Label typography size; defaults to `size` when omitted. */
+  labelSize?: TextFieldSize;
   optional?: boolean;
+  required?: boolean;
   suffix?: React.ReactNode;
+  /** Icon-only suffix (e.g. password visibility) without chip background/border. */
+  suffixPlain?: boolean;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
   hint?: React.ReactNode;
@@ -51,6 +72,7 @@ export interface TextFieldProps extends TextInputProps {
   parentJSONPointer?: string | RegExp;
   fieldName?: string;
   errorRules?: ErrorParseRule[];
+  inputClassName?: string;
 }
 
 function TextField_(props: TextFieldProps): React.ReactElement {
@@ -58,17 +80,22 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     darkMode,
     size,
     label,
+    labelSize,
     optional,
+    required,
     error,
     hint,
     iconStart,
     iconEnd,
     suffix,
+    suffixPlain,
 
     parentJSONPointer = "",
     fieldName,
     errorRules,
   } = props;
+  const generatedId = useId();
+  const id = props.id ?? generatedId;
   const field = useMemo(
     () =>
       fieldName != null
@@ -87,8 +114,11 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     <FormField
       darkMode={darkMode}
       size={size}
+      labelSize={labelSize}
       label={label}
+      htmlFor={id}
       optional={optional}
+      required={required}
       error={error}
       hint={hint}
       labelSpace="1"
@@ -98,6 +128,7 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     >
       <Input
         {...props}
+        id={id}
         disabled={props.disabled || fieldProps.disabled}
         error={props.error ?? fieldProps.errorMessage}
       >
@@ -108,7 +139,10 @@ function TextField_(props: TextFieldProps): React.ReactElement {
         ) : null}
         {suffix != null ? (
           <RadixTextField.Slot
-            className={styles.textField__suffix}
+            className={cn(
+              styles.textField__suffix,
+              suffixPlain && styles["textField__suffix--plain"]
+            )}
             side="right"
           >
             {suffix}
@@ -124,25 +158,38 @@ function TextField_(props: TextFieldProps): React.ReactElement {
 }
 
 function Input({
+  id,
   size,
+  type,
   disabled,
   readOnly,
+  required,
   placeholder,
   error,
   value,
   onChange,
   onBlur,
   onFocus,
+  inputClassName,
   children,
-}: TextInputProps & { children: React.ReactNode }): React.ReactElement {
+}: TextInputProps & {
+  children: React.ReactNode;
+  inputClassName?: string;
+}): React.ReactElement {
   return (
     <RadixTextField.Root
-      className={cn(error != null ? styles["textField--error"] : null)}
+      className={cn(
+        error != null ? styles["textField--error"] : null,
+        inputClassName
+      )}
       variant="surface"
+      id={id}
       size={size}
+      type={type}
       placeholder={placeholder}
       disabled={disabled}
       readOnly={readOnly}
+      required={required}
       value={value}
       onChange={onChange}
       onBlur={onBlur}

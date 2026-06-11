@@ -1,15 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import { FormattedMessage } from "../../intl";
-import EditTemplatesWidget, {
-  EditTemplatesWidgetSection,
-} from "./EditTemplatesWidget";
-import {
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react/lib/Dialog";
+import CodeEditor from "../../CodeEditor";
 
 import styles from "./EditConfigurationScreen.module.css";
 import { useParams, useNavigate } from "react-router-dom";
@@ -28,8 +22,9 @@ import {
 } from "../../util/resource";
 import { RESOURCE_AUTHGEAR_YAML } from "../../resources";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import DefaultButton from "../../DefaultButton";
-import PrimaryButton from "../../PrimaryButton";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface FormModel {
   isLoading: boolean;
@@ -51,6 +46,88 @@ const AUTHGEAR_YAML_RESOURCE_SPECIFIER: ResourceSpecifier = {
   extension: null,
 };
 
+interface EditConfigurationContentProps {
+  rawAuthgearYAML: string | null;
+  onChange: (value: string | undefined, e: unknown) => void;
+  isWarningDialogVisible: boolean;
+  onDismissWarning: () => void;
+  onCancelWarning: () => void;
+}
+
+const EditConfigurationContent: React.VFC<EditConfigurationContentProps> =
+  function EditConfigurationContent(props) {
+    const {
+      rawAuthgearYAML,
+      onChange,
+      isWarningDialogVisible,
+      onDismissWarning,
+      onCancelWarning,
+    } = props;
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    return (
+      <>
+        <ConfirmationDialog
+          open={isWarningDialogVisible}
+          onOpenChange={() => {}}
+          maxWidth="500px"
+          title={
+            <FormattedMessage id="EditConfigurationScreen.warning.title" />
+          }
+          description={
+            <FormattedMessage
+              id="EditConfigurationScreen.warning.content"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                br: () => <br />,
+              }}
+            />
+          }
+          confirmText={
+            <FormattedMessage id="EditConfigurationScreen.warning.confirm" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onDismissWarning}
+          onCancel={onCancelWarning}
+          confirmColor="indigo"
+        />
+        <ScreenContent
+          className={cn(isDirty ? styles.contentWithSaveBar : null)}
+        >
+          <div
+            ref={contentWidthAnchorRef}
+            className={cn(styles.widget, styles.pageHeader)}
+          >
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="EditConfigurationScreen.title" />
+            </Text>
+          </div>
+          <div
+            className={cn(
+              styles.widget,
+              styles.editorCard,
+              isDirty && styles.settingsCardSaveBarClearance
+            )}
+          >
+            <div className={styles.editorCardHeader}>
+              <Text as="p" size="3" weight="medium">
+                <FormattedMessage id="EditConfigurationScreen.config.label" />
+              </Text>
+            </div>
+            <CodeEditor
+              className={styles.codeEditor}
+              language="yaml"
+              value={rawAuthgearYAML ?? ""}
+              onChange={onChange}
+            />
+          </div>
+          <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+        </ScreenContent>
+      </>
+    );
+  };
+
 const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
@@ -60,25 +137,13 @@ const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
 
   const [isWarningDialogVisible, setWarningDialogVisible] = useState(true);
 
-  const onDismiss = useCallback(() => {
+  const onDismissWarning = useCallback(() => {
     setWarningDialogVisible(false);
   }, []);
 
-  const onCancel = useCallback(() => {
+  const onCancelWarning = useCallback(() => {
     navigate(-1);
   }, [navigate]);
-
-  const dialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="EditConfigurationScreen.warning.title" />
-      ) as unknown as string,
-      subText: (
-        <FormattedMessage id="EditConfigurationScreen.warning.content" />
-      ) as unknown as string,
-      showCloseButton: false,
-    };
-  }, []);
 
   const form: FormModel = useMemo(
     () => ({
@@ -131,60 +196,15 @@ const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
-  const authgearYAMLSections: [EditTemplatesWidgetSection] = [
-    {
-      key: "authgear.yaml",
-      title: null,
-      items: [
-        {
-          key: "authgear.yaml",
-          title: null,
-          editor: "code",
-          language: "yaml",
-
-          value: rawAuthgearYAML ?? "",
-          onChange,
-        },
-      ],
-    },
-  ];
-
   return (
-    <FormContainer form={form}>
-      <Dialog
-        hidden={!isWarningDialogVisible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{
-          isBlocking: true,
-          styles: {
-            main: { "@media (min-width: 480px)": { maxWidth: "500px" } },
-          },
-        }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <DefaultButton
-            onClick={onCancel}
-            text={<FormattedMessage id="cancel" />}
-          />
-          <PrimaryButton
-            onClick={onDismiss}
-            text={
-              <FormattedMessage id="EditConfigurationScreen.warning.confirm" />
-            }
-          />
-        </DialogFooter>
-      </Dialog>
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="EditConfigurationScreen.title" />
-        </ScreenTitle>
-        <EditTemplatesWidget
-          className={styles.widget}
-          codeEditorClassname={styles.codeEditor}
-          sections={authgearYAMLSections}
-        />
-      </ScreenContent>
+    <FormContainer form={form} hideFooterComponent={true}>
+      <EditConfigurationContent
+        rawAuthgearYAML={rawAuthgearYAML}
+        onChange={onChange}
+        isWarningDialogVisible={isWarningDialogVisible}
+        onDismissWarning={onDismissWarning}
+        onCancelWarning={onCancelWarning}
+      />
     </FormContainer>
   );
 };

@@ -1,0 +1,77 @@
+.root {
+  position: fixed;
+  bottom: var(--space-6);
+  z-index: 100;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: var(--shadow-5);
+  box-sizing: border-box;
+}
+
+@keyframes saveFunctionBarIn {
+  from {
+    opacity: 0;
+    transform: translateY(calc(100% + var(--space-6)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes saveFunctionBarOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(100% + var(--space-6)));
+  }
+}
+
+/* Keep durations in sync with TRANSITION_MS in SaveFunctionBar.tsx. */
+.rootIn {
+  animation: saveFunctionBarIn 200ms ease;
+}
+
+.rootOut {
+  animation: saveFunctionBarOut 200ms ease forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rootIn,
+  .rootOut {
+    animation: none;
+  }
+}
+
+.message {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.messageIcon {
+  flex-shrink: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  color: var(--gray-a9);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-3);
+}

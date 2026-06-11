@@ -1,37 +1,26 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useState } from "react";
+import cn from "classnames";
+import {
+  DotsVerticalIcon,
+  DownloadIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Spinner,
+  Text,
+} from "@radix-ui/themes";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
-import WidgetTitle from "../../WidgetTitle";
-import { FormattedMessage, Context as MessageContext } from "../../intl";
+import { FormattedMessage } from "../../intl";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
-import {
-  DetailsList,
-  IColumn,
-  SelectionMode,
-  Text,
-  ILinkStyles,
-  Dialog,
-  IDialogContentProps,
-  DialogFooter,
-  Spinner,
-  SpinnerSize,
-} from "@fluentui/react";
-import cn from "classnames";
-import LinkButton from "../../LinkButton";
 import { downloadStringAsFile } from "../../util/download";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import styles from "./EditSAMLCertificateForm.module.css";
-import ActionButton from "../../ActionButton";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
 import { formatCertificateFilename } from "../../model/saml";
+import styles from "./EditSAMLCertificateForm.module.css";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 interface EditSAMLCertificateFormProps {
   configAppID: string;
@@ -40,7 +29,102 @@ interface EditSAMLCertificateFormProps {
   onGenerateNewCertitificate: () => Promise<void>;
 }
 
-const actionLinkButtonStyle: ILinkStyles = { root: { fontSize: 14 } };
+interface SAMLCertificatesTableProps {
+  certificates: SAMLIdpSigningCertificate[];
+  activeKeyID: string | undefined;
+  activatingKeyID: string | null;
+  formDisabled: boolean;
+  onDownload: (cert: SAMLIdpSigningCertificate) => void;
+  onRemove: (cert: SAMLIdpSigningCertificate) => void;
+  onActivate: (cert: SAMLIdpSigningCertificate) => void;
+}
+
+function SAMLCertificatesTable({
+  certificates,
+  activeKeyID,
+  activatingKeyID,
+  formDisabled,
+  onDownload,
+  onRemove,
+  onActivate,
+}: SAMLCertificatesTableProps): React.ReactElement {
+  return (
+    <div className={styles.keysTableWrapper}>
+      <div className={styles.keysTable}>
+        <div className={styles.keysTableHeader}>
+          <div className={styles.keysTableHeaderCellFingerprint}>
+            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.fingerprint" />
+          </div>
+          <div className={styles.keysTableHeaderCellStatus}>
+            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status" />
+          </div>
+          <div
+            className={styles.keysTableHeaderCellActions}
+            aria-hidden={true}
+          />
+        </div>
+        {certificates.map((cert) => {
+          const isActive = activeKeyID === cert.keyID;
+          const isActivating = activatingKeyID === cert.keyID;
+          return (
+            <div key={cert.keyID} className={styles.keysTableRow}>
+              <div className={styles.keysTableCellFingerprint}>
+                <Text size="2" className={styles.keysTableCellFingerprintText}>
+                  {cert.certificateFingerprint}
+                </Text>
+              </div>
+              <div className={styles.keysTableCellStatus}>
+                {isActive || isActivating ? (
+                  <CertificateActiveStatus isLoading={isActivating} />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.activateButton}
+                    disabled={formDisabled}
+                    onClick={() => onActivate(cert)}
+                  >
+                    <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.activate" />
+                  </button>
+                )}
+              </div>
+              <div className={styles.keysTableCellActions}>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger>
+                    <RadixIconButton variant="soft" color="gray" size="2">
+                      <DotsVerticalIcon width="1rem" height="1rem" />
+                    </RadixIconButton>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content align="end">
+                    <DropdownMenu.Item
+                      onSelect={() => {
+                        onDownload(cert);
+                      }}
+                    >
+                      <DownloadIcon />
+                      <FormattedMessage id="download" />
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      color="red"
+                      disabled={isActive || formDisabled}
+                      onSelect={() => {
+                        if (!isActive) {
+                          onRemove(cert);
+                        }
+                      }}
+                    >
+                      <TrashIcon />
+                      <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function EditSAMLCertificateForm({
   configAppID,
@@ -48,162 +132,62 @@ export function EditSAMLCertificateForm({
   certificates,
   onGenerateNewCertitificate,
 }: EditSAMLCertificateFormProps): React.ReactElement {
-  const submitElRef = useRef<HTMLButtonElement | null>(null);
   const { onSubmit } = useFormContainerBaseContext();
-  const { renderToString } = useContext(MessageContext);
-  const { themes } = useSystemConfig();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [activatingKeyID, setActivatingKeyID] = useState<string | null>(null);
 
   const generateNewCert = useCallback(async () => {
-    setIsLoading(true);
+    setIsGenerating(true);
     try {
       await onGenerateNewCertitificate();
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   }, [onGenerateNewCertitificate]);
 
-  const onClickDownloadCert = useMemo(() => {
-    const callbacks: Record<string, () => void> = {};
-    for (const cert of certificates) {
-      callbacks[cert.keyID] = () => {
-        downloadStringAsFile({
-          content: cert.certificatePEM,
-          mimeType: "application/x-pem-file",
-          filename: formatCertificateFilename(
-            configAppID,
-            cert.certificateFingerprint
-          ),
-        });
-      };
-    }
-    return callbacks;
-  }, [configAppID, certificates]);
+  const onClickDownloadCert = useCallback(
+    (cert: SAMLIdpSigningCertificate) => {
+      downloadStringAsFile({
+        content: cert.certificatePEM,
+        mimeType: "application/x-pem-file",
+        filename: formatCertificateFilename(
+          configAppID,
+          cert.certificateFingerprint
+        ),
+      });
+    },
+    [configAppID]
+  );
 
-  const onRemoveCert = useMemo(() => {
-    const callbacks: Record<string, () => void> = {};
-    for (const cert of certificates) {
-      callbacks[cert.keyID] = () => {
-        form.setState((prevState) => {
-          return {
-            ...prevState,
-            removingCertificateKeyID: cert.keyID,
-          };
-        });
-      };
-    }
-    return callbacks;
-  }, [certificates, form]);
+  const onRemoveCert = useCallback(
+    (cert: SAMLIdpSigningCertificate) => {
+      form.setState((prevState) => ({
+        ...prevState,
+        removingCertificateKeyID: cert.keyID,
+      }));
+    },
+    [form]
+  );
 
-  const onChangeActiveKey = useMemo(() => {
-    const callbacks: Record<string, () => Promise<void>> = {};
-    for (const cert of certificates) {
-      callbacks[cert.keyID] = async () => {
-        form.setState((prevState) => ({
-          ...prevState,
+  const onChangeActiveKey = useCallback(
+    async (cert: SAMLIdpSigningCertificate) => {
+      if (form.isUpdating || activatingKeyID != null) {
+        return;
+      }
+      setActivatingKeyID(cert.keyID);
+      try {
+        await form.saveWithState({
+          ...form.state,
           isUpdatingActiveKeyID: true,
           activeKeyID: cert.keyID,
-        }));
-        // Submit the form after the state is updated and all rerendering completed, i.e. next tick.
-        setTimeout(() => {
-          submitElRef.current?.click();
-        }, 0);
-      };
-    }
-    return callbacks;
-  }, [certificates, form]);
-
-  const columns: IColumn[] = useMemo(() => {
-    const renderFingerprint = (
-      item?: SAMLIdpSigningCertificate,
-      _index?: number,
-      _column?: IColumn
-    ) => {
-      if (!item) {
-        return null;
+        });
+      } finally {
+        setActivatingKeyID(null);
       }
-      return (
-        <div className="grid grid-cols-1 gap-y-2">
-          <Text className={"text-neutral-secondary"} block={true}>
-            {item.certificateFingerprint}
-          </Text>
-          <div className="grid grid-rows-1 grid-flow-col gap-x-4 justify-start">
-            <LinkButton
-              styles={actionLinkButtonStyle}
-              onClick={onClickDownloadCert[item.keyID]}
-            >
-              <FormattedMessage id="EditSAMLCertificateForm.certificates.download" />
-            </LinkButton>
-            {form.state.activeKeyID !== item.keyID ? (
-              <LinkButton
-                styles={actionLinkButtonStyle}
-                onClick={onRemoveCert[item.keyID]}
-                theme={themes.destructive}
-                disabled={form.isLoading || form.isUpdating}
-              >
-                <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
-              </LinkButton>
-            ) : null}
-          </div>
-        </div>
-      );
-    };
-    const renderStatus = (
-      item?: SAMLIdpSigningCertificate,
-      _index?: number,
-      _column?: IColumn
-    ) => {
-      if (!item) {
-        return null;
-      }
-      if (form.state.activeKeyID === item.keyID) {
-        return (
-          <CertificateActiveStatus
-            isLoading={form.state.isUpdatingActiveKeyID}
-          />
-        );
-      }
-      return (
-        <LinkButton
-          styles={actionLinkButtonStyle}
-          onClick={onChangeActiveKey[item.keyID]}
-          disabled={form.isLoading || form.isUpdating}
-        >
-          <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.activate" />
-        </LinkButton>
-      );
-    };
-    return [
-      {
-        key: "certificateFingerprint",
-        fieldName: "certificateFingerprint",
-        name: renderToString(
-          "EditSAMLCertificateForm.certificates.column.fingerprint"
-        ),
-        minWidth: 150,
-        onRender: renderFingerprint,
-      },
-      {
-        key: "status",
-        name: renderToString(
-          "EditSAMLCertificateForm.certificates.column.status"
-        ),
-        minWidth: 150,
-        onRender: renderStatus,
-      },
-    ];
-  }, [
-    renderToString,
-    onClickDownloadCert,
-    form.state.activeKeyID,
-    form.state.isUpdatingActiveKeyID,
-    form.isLoading,
-    form.isUpdating,
-    onRemoveCert,
-    themes.destructive,
-    onChangeActiveKey,
-  ]);
+    },
+    [activatingKeyID, form]
+  );
 
   const dismissRemoveCertificateDialog = useCallback(() => {
     form.setState((state) => ({
@@ -224,97 +208,78 @@ export function EditSAMLCertificateForm({
     );
   }, [form, dismissRemoveCertificateDialog]);
 
-  const removeCertDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      title: renderToString(
-        "EditSAMLCertificateForm.removeCertificateDialog.title"
-      ),
-      subText: renderToString(
-        "EditSAMLCertificateForm.removeCertificateDialog.description"
-      ),
-    };
-  }, [renderToString]);
-
-  const isRemoveCertificateDialogVisible =
+  const isRemoveCertificateDialogOpen =
     form.state.removingCertificateKeyID != null;
+
+  const formDisabled =
+    form.isLoading || form.isUpdating || activatingKeyID != null;
 
   return (
     <form onSubmit={onSubmit}>
-      <button className="hidden" type="submit" ref={submitElRef} />
-      <WidgetTitle>
-        <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
-      </WidgetTitle>
+      <SAMLCertificatesTable
+        certificates={certificates}
+        activeKeyID={form.state.activeKeyID}
+        activatingKeyID={activatingKeyID}
+        formDisabled={formDisabled}
+        onDownload={onClickDownloadCert}
+        onRemove={onRemoveCert}
+        onActivate={onChangeActiveKey}
+      />
 
-      <div className="grid grid-cols-1 gap-y-12">
-        <div>
-          <DetailsList
-            items={certificates}
-            columns={columns}
-            selectionMode={SelectionMode.none}
-          />
-          <ActionButton
-            className="mt-4"
-            theme={themes.actionButton}
-            iconProps={{
-              iconName: "CirclePlus",
-              className: styles.addButtonIcon,
-            }}
-            onClick={generateNewCert}
-            text={
-              <FormattedMessage
-                id={"EditSAMLCertificateForm.certificates.generate"}
-              />
-            }
-            disabled={certificates.length >= 2 || isLoading}
-          />
-        </div>
-      </div>
-
-      <Dialog
-        hidden={!isRemoveCertificateDialogVisible}
-        dialogContentProps={removeCertDialogContentProps}
-        modalProps={{ isBlocking: form.isUpdating }}
-        onDismiss={dismissRemoveCertificateDialog}
+      <button
+        type="button"
+        className={cn(styles.generateKeyButton, "mt-4")}
+        onClick={generateNewCert}
+        disabled={certificates.length >= 2 || isGenerating || formDisabled}
       >
-        <DialogFooter>
-          <ButtonWithLoading
-            theme={themes.actionButton}
-            loading={form.isUpdating}
-            onClick={onConfirmRemoveCertificate}
-            disabled={!isRemoveCertificateDialogVisible}
-            labelId="confirm"
-          />
-          <DefaultButton
-            onClick={dismissRemoveCertificateDialog}
-            disabled={form.isUpdating || !isRemoveCertificateDialogVisible}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        <PlusIcon width="1rem" height="1rem" />
+        <FormattedMessage id="EditSAMLCertificateForm.certificates.generate" />
+        {isGenerating ? <Spinner size="1" className="ml-1" /> : null}
+      </button>
+
+      <ConfirmationDialog
+        open={isRemoveCertificateDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            dismissRemoveCertificateDialog();
+          }
+        }}
+        title={
+          <FormattedMessage id="EditSAMLCertificateForm.removeCertificateDialog.title" />
+        }
+        description={
+          <FormattedMessage id="EditSAMLCertificateForm.removeCertificateDialog.description" />
+        }
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        loading={form.isUpdating}
+        confirmColor="red"
+        onConfirm={onConfirmRemoveCertificate}
+        onCancel={dismissRemoveCertificateDialog}
+      />
     </form>
   );
 }
+
 function CertificateActiveStatus({ isLoading }: { isLoading: boolean }) {
   return (
-    <div className="w-fit relative text-status-green">
+    <div className={styles.activeStatus}>
       <Text
-        styles={{
-          root: {
-            color: "inherit",
-            visibility: isLoading ? "hidden" : undefined,
-          },
-        }}
+        as="p"
+        size="2"
+        weight="medium"
+        className={cn(
+          styles.activeStatusText,
+          isLoading ? "invisible" : undefined
+        )}
       >
         <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
       </Text>
-      <div
-        className={cn(
-          "absolute top-0 left-0 bottom-0 right-0",
-          isLoading ? null : "hidden"
-        )}
-      >
-        <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
-      </div>
+      {isLoading ? (
+        <div className={styles.activeStatusSpinner}>
+          <Spinner size="1" />
+        </div>
+      ) : null}
     </div>
   );
 }
