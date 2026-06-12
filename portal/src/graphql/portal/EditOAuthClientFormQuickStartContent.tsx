@@ -19,7 +19,8 @@ import { useEndpoints } from "../../hook/useEndpoints";
 import { CodeField } from "../../components/common/CodeField";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import DefaultButton from "../../DefaultButton";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import PortalLink from "../../Link";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { Resource } from "../adminapi/globalTypes.generated";
@@ -191,7 +192,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
               values={{
                 // eslint-disable-next-line react/no-unstable-nested-components
                 reactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to="?tab=api-resources">{chunks}</Link>
+                  <PortalLink to="?tab=api-resources">{chunks}</PortalLink>
                 ),
               }}
             />

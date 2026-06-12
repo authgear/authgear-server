@@ -1,0 +1,12 @@
+.card {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+  display: block;
+  margin-right: 8px;
+}
