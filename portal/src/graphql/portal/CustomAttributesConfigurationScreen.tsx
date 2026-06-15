@@ -141,6 +141,7 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
                   <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
                 }
                 iconProps={useMemo(() => ({ iconName: "Add" }), [])}
+                // eslint-disable-next-line @typescript-eslint/strict-void-return
                 onClick={useCallback(async () => navigate("./add"), [navigate])}
               />
             </div>

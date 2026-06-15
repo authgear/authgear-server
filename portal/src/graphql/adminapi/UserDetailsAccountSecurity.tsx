@@ -909,6 +909,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       return globalEndAt > userEndAt ? globalEndAt : userEndAt;
     }, [globalGracePeriodEndAt, userGracePeriod, authenticationConfig]);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const canExtendMFAGracePeriod = useMemo(() => {
       // Global grace period without deadline, no need to extend
       if (
@@ -1478,15 +1479,18 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         <SetPasswordExpiredConfirmationDialog
           store={setPasswordExpiredConfirmDialog}
           isExpired={isExpired}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmSetPasswordExpired}
         />
         <SetMFAGracePeriodConfirmationDialog
           store={setMFAGracePeriodConfirmationDialog}
           action={mfaGracePeriodAction}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmSetMFAGracePeriod}
         />
         <CancelMFAGracePeriodConfirmationDialog
           store={cancelMFAGracePeriodConfirmationDialog}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmRemoveMFAGracePeriod}
         />
       </div>

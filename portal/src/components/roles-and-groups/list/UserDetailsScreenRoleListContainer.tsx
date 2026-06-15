@@ -129,6 +129,7 @@ function UserDetailsScreenRoleListContainer({
   }, [isSearch, combinedRoles, offset, searchKeyword]);
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 

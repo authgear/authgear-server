@@ -1831,6 +1831,7 @@ export function LoginMethodSelectLoginMethodsSection(
       if (opt === "oauth" || opt === "custom") {
         onChangeLoginMethod(opt);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         onChangeLoginMethod(`password-${opt}` as LoginMethod);
       }
     },

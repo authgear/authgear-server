@@ -201,10 +201,12 @@ const AppsScreen: React.VFC = function AppsScreen() {
   }
 
   if (errorViewer != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={errorViewer} onRetry={refetchViewer} />;
   }
 
   if (errorAppList != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={errorAppList} onRetry={refetchAppList} />;
   }
 

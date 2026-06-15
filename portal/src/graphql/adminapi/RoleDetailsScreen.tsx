@@ -320,6 +320,7 @@ function RoleDetailsScreenGroupListContainer({
   }, [role.groups?.edges]);
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -435,6 +436,7 @@ const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
   }, [appID, error, loading, navigate, role]);
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 

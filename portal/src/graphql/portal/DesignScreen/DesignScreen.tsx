@@ -898,6 +898,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   }, [designForm.state]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsIframeLoading(true);
   }, [src]);
 
@@ -1001,6 +1002,7 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
               <DefaultButton
                 text={renderToString("DesignScreen.action.try")}
                 iconProps={{ iconName: "Play" }}
+                // eslint-disable-next-line @typescript-eslint/strict-void-return
                 onClick={onTry}
                 disabled={canSave || isTryLoading}
               />

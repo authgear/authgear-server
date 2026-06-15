@@ -259,6 +259,7 @@ export function EditSAMLCertificateForm({
               iconName: "CirclePlus",
               className: styles.addButtonIcon,
             }}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={generateNewCert}
             text={
               <FormattedMessage

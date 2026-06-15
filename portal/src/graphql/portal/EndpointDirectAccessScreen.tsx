@@ -581,6 +581,7 @@ const EndpointDirectAccessScreen: React.VFC =
       return <ShowLoading />;
     }
     if (error) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
 

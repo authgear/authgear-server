@@ -122,6 +122,7 @@ export default function App2AppConfigurationScreen(): React.ReactElement {
   }
 
   if (loadError) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={loadError} onRetry={reload} />;
   }
 

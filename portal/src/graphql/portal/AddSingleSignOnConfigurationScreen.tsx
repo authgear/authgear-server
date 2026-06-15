@@ -158,6 +158,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
 
     useEffect(() => {
       if (selectedProviderKey == null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setNewAlias(null);
         return;
       }

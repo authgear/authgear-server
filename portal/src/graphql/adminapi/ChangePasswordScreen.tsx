@@ -177,10 +177,12 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   }
 
   if (configError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={configError} onRetry={refetchConfig} />;
   }
 
   if (userError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={userError} onRetry={refetchUser} />;
   }
 

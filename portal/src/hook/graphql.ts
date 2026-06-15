@@ -28,6 +28,7 @@ export function useGraphqlMutation<
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(errorResult);
   }, [errorResult]);
 

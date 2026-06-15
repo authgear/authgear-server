@@ -473,6 +473,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                   iconProps={{
                     iconName: "CirclePlus",
                   }}
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={generateKey}
                   disabled={isLoading}
                   text={
@@ -660,6 +661,7 @@ const AdminAPIConfigurationScreen1: React.VFC<{
 
   if (queryResult.loadError) {
     return (
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       <ShowError error={queryResult.loadError} onRetry={queryResult.refetch} />
     );
   }

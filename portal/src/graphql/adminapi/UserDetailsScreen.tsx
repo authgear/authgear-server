@@ -583,10 +583,12 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const loading = loadingUser || loadingAppConfig;
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   if (appConfigError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 
@@ -601,6 +603,7 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   return (
     <UserDetailsScreenContent
       user={user}
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       refreshUser={refetch}
       effectiveAppConfig={effectiveAppConfig}
     />

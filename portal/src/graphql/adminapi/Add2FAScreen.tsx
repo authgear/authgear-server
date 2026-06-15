@@ -58,6 +58,7 @@ function PhoneField(props: { onChange: (value: string) => void }) {
     [onChange]
   );
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue("");
   }, [resetToken]);
 
@@ -289,10 +290,12 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
   }
 
   if (userError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={userError} onRetry={refetchUser} />;
   }
 
   if (appConfigError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 

@@ -40,6 +40,7 @@ const FormConfirmOverridingDialog: React.VFC<FormConfirmOverridingDialogProps> =
     }, []);
 
     useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(isConfliced);
     }, [isConfliced]);
 

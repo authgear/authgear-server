@@ -727,6 +727,7 @@ function SMSProviderConfigurationScreen1({
 
   const [localError, setLocalError] = useState<APIError | null>(null);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const state = useMemo<FormState>(() => {
     return {
       ...configForm.state,
@@ -1015,6 +1016,7 @@ function SMSProviderConfigurationContent(props: {
                   <FormattedMessage id="SMSProviderConfigurationScreen.testSMS" />
                 }
                 disabled={testConfig == null || checkDenoHookLoading}
+                // eslint-disable-next-line @typescript-eslint/strict-void-return
                 onClick={onTestSMS}
               />
               {isSecretMasked ? (

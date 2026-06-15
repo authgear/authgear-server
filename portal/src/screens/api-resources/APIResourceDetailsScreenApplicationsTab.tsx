@@ -238,6 +238,7 @@ export function APIResourceDetailsScreenApplicationsTab({
               applications={filteredApplications}
               className="flex-1 min-h-0"
               loading={false} // The app config query should always be completed
+              // eslint-disable-next-line @typescript-eslint/strict-void-return
               onToggleAuthorized={onToggleAuthorized}
               onManageScopes={onManageScopes}
               disabledToggleClientIDs={disabledToggleClientIDs}
@@ -252,6 +253,7 @@ export function APIResourceDetailsScreenApplicationsTab({
             : null
         }
         onDismiss={handleCloseUnauthorizeDialog}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={handleConfirmUnauthorize}
         onDismissed={handleCloseUnauthorizeDialog}
       />

@@ -154,6 +154,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
     capture("header.clicked-docs");
   }, [capture]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const scheduleDemoLink = useMemo(() => {
     const url = new URL("https://www.authgear.com/schedule-demo");
     if (viewer?.email) {

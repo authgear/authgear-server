@@ -58,6 +58,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
 
     const messageBar = useMemo(() => {
       if (error != null) {
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         return <ShowError error={error} onRetry={refetch} />;
       }
       return null;
@@ -112,6 +113,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
           return "—";
       }
     })();
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const rawEventLog = useMemo(() => {
       if (node?.data == null) {
         return "{}";

@@ -28,6 +28,7 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
 
   useEffect(() => {
     if (color != null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInputValue(color);
     }
   }, [color]);
@@ -111,6 +112,7 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
       />
       {isColorPickerVisible ? (
         <Callout
+          // eslint-disable-next-line react-hooks/refs
           target={colorboxRef.current}
           gapSpace={10}
           onDismiss={hideColorPicker}

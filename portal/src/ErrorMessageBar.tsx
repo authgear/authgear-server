@@ -91,6 +91,7 @@ export const ErrorMessageBarContextProvider: React.VFC<
 
   useEffect(() => {
     if (propsErrors !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setErrors(propsErrors);
     }
   }, [propsErrors]);

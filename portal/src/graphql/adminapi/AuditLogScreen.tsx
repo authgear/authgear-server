@@ -207,6 +207,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const onClickCustomDateRange = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
       setDateRangeDialogHidden(false);
@@ -226,6 +227,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   // Keep local state in sync when the URL changes (e.g. browser back/forward).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilters((prev) => {
       const next = {
         searchKeyword: queryString,
@@ -242,10 +244,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [queryString, defaultActivityType]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOffset(initialOffset);
   }, [initialOffset]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSortDirection(queryOrderBy);
   }, [queryOrderBy]);
 
@@ -257,11 +261,13 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (next.getTime() === lastUpdatedAt.getTime()) {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLastUpdatedAt(next);
   }, [queryLastUpdatedAt, lastUpdatedAt]);
 
   // Reset page to zero on search
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOffset(0);
   }, [debouncedSearchQuery]);
 
@@ -278,6 +284,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (queryLastUpdatedAt != null && queryLastUpdatedAt !== "") {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLastUpdatedAt(new Date());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -379,6 +386,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return encodeOffsetToCursor(offset);
   }, [offset]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
   }, []);
@@ -454,6 +462,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const messageBar = useMemo(() => {
     if (error != null) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
     if (featureConfig.loadError != null) {
@@ -470,6 +479,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [error, refetch, featureConfig]);
 
   const onFilterChange = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
       const newFilters = fn(filters);
 
@@ -481,6 +491,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [filters]
   );
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const onRemoveAllFilters = useCallback(() => {
     setOffset(0);
     setRangeFromImmediately(null);
@@ -519,6 +530,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [searchBoxPlaceholder]);
 
   const onDismissDateRangeDialog = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (e?: React.MouseEvent<unknown>) => {
       e?.stopPropagation();
       setDateRangeDialogHidden(true);
@@ -529,6 +541,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const commitDateRange = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (e?: React.MouseEvent<unknown>) => {
       e?.preventDefault();
       e?.stopPropagation();
@@ -572,6 +585,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setRangeTo, setRangeFrom, uncommittedRangeFrom]
   );
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const onToggleSortDirection = useCallback(() => {
     if (sortDirection === SortDirection.Desc) {
       setSortDirection(SortDirection.Asc);
@@ -581,6 +595,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [sortDirection]);
 
   const onTabChange = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (item?: PivotItem) => {
       if (item == null) {
         return;
