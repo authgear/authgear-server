@@ -76,10 +76,11 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		// Assume the labeler has been put into context.
 		labeler, _ := otelhttp.LabelerFromContext(ctx)
 
-		// Gather method, path, and scheme before invoking the handler.
+		// Gather method, path, host, and scheme before invoking the handler.
 		// Avoid the rare case of the handler modifying r.Method, r.URL, or r.Header.
 		method := r.Method
 		path := r.URL.Path
+		host := r.Host
 		labeler.Add(otelutil.HTTPRequestMethod(r))
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
 		labeler.Add(otelutil.HTTPURLScheme(scheme))
@@ -119,6 +120,7 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				slog.String("http.path", path),
 				slog.String("http.route", httpRoute),
 				slog.String("url.scheme", scheme),
+				slog.String("server.address", host),
 				slog.Int("http.status_code", statusCode),
 				slog.Int64("duration_ms", requestDuration.Milliseconds()),
 			)
