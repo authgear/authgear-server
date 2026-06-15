@@ -1,10 +1,6 @@
-"""
-The account lockout state of a user
-"""
+"""The account lockout state of a user"""
 type AccountLockout {
-  """
-  Whether the user is currently locked
-  """
+  """Whether the user is currently locked"""
   isLocked: Boolean!
 
   """
@@ -12,9 +8,7 @@ type AccountLockout {
   """
   lockedIPs: [LockedIP!]!
 
-  """
-  When the global lock expires. Non-nil only for per_user lockout type
-  """
+  """When the global lock expires. Non-nil only for per_user lockout type"""
   lockedUntil: DateTime
 
   """
@@ -23,838 +17,606 @@ type AccountLockout {
   lockoutType: String!
 }
 
-"""
-"""
+""""""
 input AddGroupToRolesInput {
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   groupKey: String!
 
-  """
-  The list of role keys.
-  """
+  """The list of role keys."""
   roleKeys: [String!]!
 }
 
-"""
-"""
+""""""
 type AddGroupToRolesPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input AddGroupToUsersInput {
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   groupKey: String!
 
-  """
-  The list of user ids.
-  """
+  """The list of user ids."""
   userIDs: [ID!]
 }
 
-"""
-"""
+""""""
 type AddGroupToUsersPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input AddResourceToClientIDInput {
-  """
-  The client ID to associate.
-  """
+  """The client ID to associate."""
   clientID: String!
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 }
 
-"""
-"""
+""""""
 type AddResourceToClientIDPayload {
-  """
-  """
+  """"""
   resource: Resource!
 }
 
-"""
-"""
+""""""
 input AddRoleToGroupsInput {
-  """
-  The list of group keys.
-  """
+  """The list of group keys."""
   groupKeys: [String!]!
 
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   roleKey: String!
 }
 
-"""
-"""
+""""""
 type AddRoleToGroupsPayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input AddRoleToUsersInput {
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   roleKey: String!
 
-  """
-  The list of user ids.
-  """
+  """The list of user ids."""
   userIDs: [ID!]
 }
 
-"""
-"""
+""""""
 type AddRoleToUsersPayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input AddScopesToClientIDInput {
-  """
-  The client ID.
-  """
+  """The client ID."""
   clientID: String!
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The list of scopes to add.
-  """
+  """The list of scopes to add."""
   scopes: [String!]!
 }
 
-"""
-"""
+""""""
 type AddScopesToClientIDPayload {
-  """
-  """
+  """"""
   scopes: [Scope!]!
 }
 
-"""
-"""
+""""""
 input AddUserToGroupsInput {
-  """
-  The list of group keys.
-  """
+  """The list of group keys."""
   groupKeys: [String!]
 
-  """
-  The ID of the user.
-  """
+  """The ID of the user."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type AddUserToGroupsPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input AddUserToRolesInput {
-  """
-  The list of role keys.
-  """
+  """The list of role keys."""
   roleKeys: [String!]
 
-  """
-  The id of the user.
-  """
+  """The id of the user."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type AddUserToRolesPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input AnonymizeUserInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type AnonymizeUserPayload {
-  """
-  """
+  """"""
   anonymizedUserID: ID!
 }
 
-"""
-Audit log
-"""
+"""Audit log"""
 type AuditLog implements Node {
-  """
-  """
+  """"""
   activityType: AuditLogActivityType!
 
-  """
-  """
+  """"""
   clientID: String
 
-  """
-  """
+  """"""
   createdAt: DateTime!
 
-  """
-  """
+  """"""
   data: AuditLogData
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   ipAddress: String
 
-  """
-  """
+  """"""
   user: User
 
-  """
-  """
+  """"""
   userAgent: String
 }
 
-"""
-"""
+""""""
 enum AuditLogActivityType {
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_GROUP_TO_ROLES_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_GROUP_TO_USERS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_RESOURCE_TO_CLIENTID_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_ROLE_TO_GROUPS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_ROLE_TO_USERS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ADD_USER_TO_ROLES_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_RESOURCE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_SCOPE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_SESSION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_CREATE_USER_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_AUTHORIZATION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_GROUP_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_IDENTITY_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_RESOURCE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_SCOPE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_DELETE_USER_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_GROUP_FROM_USERS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_RESOURCE_FROM_CLIENTID_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_ROLE_FROM_GROUPS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_ROLE_FROM_USERS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_USER_FROM_GROUPS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_RESET_ACCOUNT_LOCKOUT_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REVOKE_ALL_SESSIONS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_REVOKE_SESSION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_DELETION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SEND_RESET_PASSWORD_MESSAGE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_ACCOUNT_VALID_FROM_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_ACCOUNT_VALID_PERIOD_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_ACCOUNT_VALID_UNTIL_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_IDENTITY_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_RESOURCE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED
 
-  """
-  """
+  """"""
   ADMIN_API_MUTATION_UPDATE_USER_EXECUTED
 
-  """
-  """
+  """"""
   AUTHENTICATION_BLOCKED
 
-  """
-  """
+  """"""
   AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_IDENTITY_BIOMETRIC_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_PRIMARY_OOB_OTP_EMAIL_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_PRIMARY_OOB_OTP_SMS_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_PRIMARY_PASSWORD_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_SECONDARY_OOB_OTP_EMAIL_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_SECONDARY_OOB_OTP_SMS_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_SECONDARY_PASSWORD_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_SECONDARY_RECOVERY_CODE_FAILED
 
-  """
-  """
+  """"""
   AUTHENTICATION_SECONDARY_TOTP_FAILED
 
-  """
-  """
+  """"""
   BOT_PROTECTION_VERIFICATION_FAILED
 
-  """
-  """
+  """"""
   EMAIL_ERROR
 
-  """
-  """
+  """"""
   EMAIL_SENT
 
-  """
-  """
+  """"""
   EMAIL_SUPPRESSED
 
-  """
-  """
+  """"""
   FRAUD_PROTECTION_DECISION_RECORDED
 
-  """
-  """
+  """"""
   IDENTITY_BIOMETRIC_DISABLED
 
-  """
-  """
+  """"""
   IDENTITY_BIOMETRIC_ENABLED
 
-  """
-  """
+  """"""
   IDENTITY_EMAIL_ADDED
 
-  """
-  """
+  """"""
   IDENTITY_EMAIL_REMOVED
 
-  """
-  """
+  """"""
   IDENTITY_EMAIL_UNVERIFIED
 
-  """
-  """
+  """"""
   IDENTITY_EMAIL_UPDATED
 
-  """
-  """
+  """"""
   IDENTITY_EMAIL_VERIFIED
 
-  """
-  """
+  """"""
   IDENTITY_OAUTH_CONNECTED
 
-  """
-  """
+  """"""
   IDENTITY_OAUTH_DISCONNECTED
 
-  """
-  """
+  """"""
   IDENTITY_PHONE_ADDED
 
-  """
-  """
+  """"""
   IDENTITY_PHONE_REMOVED
 
-  """
-  """
+  """"""
   IDENTITY_PHONE_UNVERIFIED
 
-  """
-  """
+  """"""
   IDENTITY_PHONE_UPDATED
 
-  """
-  """
+  """"""
   IDENTITY_PHONE_VERIFIED
 
-  """
-  """
+  """"""
   IDENTITY_USERNAME_ADDED
 
-  """
-  """
+  """"""
   IDENTITY_USERNAME_REMOVED
 
-  """
-  """
+  """"""
   IDENTITY_USERNAME_UPDATED
 
-  """
-  """
+  """"""
   M2M_TOKEN_CREATED
 
-  """
-  """
+  """"""
   PROJECT_APP_CREATED
 
-  """
-  """
+  """"""
   PROJECT_APP_SECRET_VIEWED
 
-  """
-  """
+  """"""
   PROJECT_APP_UPDATED
 
-  """
-  """
+  """"""
   PROJECT_BILLING_CHECKOUT_CREATED
 
-  """
-  """
+  """"""
   PROJECT_BILLING_SUBSCRIPTION_CANCELLED
 
-  """
-  """
+  """"""
   PROJECT_BILLING_SUBSCRIPTION_STATUS_UPDATED
 
-  """
-  """
+  """"""
   PROJECT_BILLING_SUBSCRIPTION_UPDATED
 
-  """
-  """
+  """"""
   PROJECT_COLLABORATOR_DELETED
 
-  """
-  """
+  """"""
   PROJECT_COLLABORATOR_INVITATION_ACCEPTED
 
-  """
-  """
+  """"""
   PROJECT_COLLABORATOR_INVITATION_CREATED
 
-  """
-  """
+  """"""
   PROJECT_COLLABORATOR_INVITATION_DELETED
 
-  """
-  """
+  """"""
   PROJECT_DOMAIN_CREATED
 
-  """
-  """
+  """"""
   PROJECT_DOMAIN_DELETED
 
-  """
-  """
+  """"""
   PROJECT_DOMAIN_VERIFIED
 
-  """
-  """
+  """"""
   RATE_LIMIT_BLOCKED
 
-  """
-  """
+  """"""
   SMS_ERROR
 
-  """
-  """
+  """"""
   SMS_SENT
 
-  """
-  """
+  """"""
   SMS_SUPPRESSED
 
-  """
-  """
+  """"""
   USAGE_ALERT_TRIGGERED
 
-  """
-  """
+  """"""
   USER_ANONYMIZATION_SCHEDULED
 
-  """
-  """
+  """"""
   USER_ANONYMIZATION_UNSCHEDULED
 
-  """
-  """
+  """"""
   USER_ANONYMIZED
 
-  """
-  """
+  """"""
   USER_ANONYMOUS_PROMOTED
 
-  """
-  """
+  """"""
   USER_AUTHENTICATED
 
-  """
-  """
+  """"""
   USER_CREATED
 
-  """
-  """
+  """"""
   USER_DELETED
 
-  """
-  """
+  """"""
   USER_DELETION_SCHEDULED
 
-  """
-  """
+  """"""
   USER_DELETION_UNSCHEDULED
 
-  """
-  """
+  """"""
   USER_DISABLED
 
-  """
-  """
+  """"""
   USER_PROFILE_UPDATED
 
-  """
-  """
+  """"""
   USER_REAUTHENTICATED
 
-  """
-  """
+  """"""
   USER_REENABLED
 
-  """
-  """
+  """"""
   USER_SESSION_TERMINATED
 
-  """
-  """
+  """"""
   USER_SIGNED_OUT
 
-  """
-  """
+  """"""
   WHATSAPP_ERROR
 
-  """
-  """
+  """"""
   WHATSAPP_OTP_VERIFIED
 
-  """
-  """
+  """"""
   WHATSAPP_SENT
 
-  """
-  """
+  """"""
   WHATSAPP_SUPPRESSED
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type AuditLogConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [AuditLogEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-The `AuditLogData` scalar type represents the data of the audit log
-"""
+"""The `AuditLogData` scalar type represents the data of the audit log"""
 scalar AuditLogData
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type AuditLogEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: AuditLog
 }
 
-"""
-"""
+""""""
 type Authenticator implements Entity & Node {
-  """
-  """
+  """"""
   claims(names: [String!]): AuthenticatorClaims!
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  """
+  """"""
   expireAfter: DateTime
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   isDefault: Boolean!
 
-  """
-  """
+  """"""
   kind: AuthenticatorKind!
 
-  """
-  """
+  """"""
   type: AuthenticatorType!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
@@ -863,23 +625,15 @@ The `AuthenticatorClaims` scalar type represents a set of claims belonging to an
 """
 scalar AuthenticatorClaims
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type AuthenticatorConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [AuthenticatorEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
@@ -887,9 +641,7 @@ type AuthenticatorConnection {
 Definition of an authenticator. This is a union object, exactly one of the available fields must be present.
 """
 input AuthenticatorDefinition {
-  """
-  Kind of authenticator.
-  """
+  """Kind of authenticator."""
   kind: AuthenticatorKind!
 
   """
@@ -907,361 +659,245 @@ input AuthenticatorDefinition {
   """
   password: AuthenticatorDefinitionPassword
 
-  """
-  Type of authenticator.
-  """
+  """Type of authenticator."""
   type: AuthenticatorType!
 }
 
-"""
-"""
+""""""
 input AuthenticatorDefinitionOOBOTPEmail {
-  """
-  Email of the new oob otp sms authenticator.
-  """
+  """Email of the new oob otp sms authenticator."""
   email: String!
 }
 
-"""
-"""
+""""""
 input AuthenticatorDefinitionOOBOTPSMS {
-  """
-  Phone number of the new oob otp sms authenticator.
-  """
+  """Phone number of the new oob otp sms authenticator."""
   phone: String!
 }
 
-"""
-"""
+""""""
 input AuthenticatorDefinitionPassword {
-  """
-  Password of the new authenticator.
-  """
+  """Password of the new authenticator."""
   password: String!
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type AuthenticatorEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Authenticator
 }
 
-"""
-"""
+""""""
 enum AuthenticatorKind {
-  """
-  """
+  """"""
   PRIMARY
 
-  """
-  """
+  """"""
   SECONDARY
 }
 
-"""
-"""
+""""""
 enum AuthenticatorType {
-  """
-  """
+  """"""
   OOB_OTP_EMAIL
 
-  """
-  """
+  """"""
   OOB_OTP_SMS
 
-  """
-  """
+  """"""
   PASSKEY
 
-  """
-  """
+  """"""
   PASSWORD
 
-  """
-  """
+  """"""
   TOTP
 }
 
-"""
-"""
+""""""
 type Authorization implements Entity & Node {
-  """
-  """
+  """"""
   clientID: String!
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   scopes: [String!]!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type AuthorizationConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [AuthorizationEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type AuthorizationEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Authorization
 }
 
-"""
-"""
+""""""
 type Claim {
-  """
-  """
+  """"""
   name: String!
 
-  """
-  """
+  """"""
   value: String!
 }
 
-"""
-"""
+""""""
 input CreateAuthenticatorInput {
-  """
-  Definition of the new authenticator.
-  """
+  """Definition of the new authenticator."""
   definition: AuthenticatorDefinition!
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type CreateAuthenticatorPayload {
-  """
-  """
+  """"""
   authenticator: Authenticator!
 }
 
-"""
-"""
+""""""
 input CreateGroupInput {
-  """
-  The optional description of the group.
-  """
+  """The optional description of the group."""
   description: String
 
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   key: String!
 
-  """
-  The optional name of the group.
-  """
+  """The optional name of the group."""
   name: String
 }
 
-"""
-"""
+""""""
 type CreateGroupPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input CreateIdentityInput {
-  """
-  Definition of the new identity.
-  """
+  """Definition of the new identity."""
   definition: IdentityDefinition!
 
-  """
-  Password for the user if required.
-  """
+  """Password for the user if required."""
   password: String
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type CreateIdentityPayload {
-  """
-  """
+  """"""
   identity: Identity!
 
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input CreateResourceInput {
-  """
-  The optional name of the resource.
-  """
+  """The optional name of the resource."""
   name: String
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 }
 
-"""
-"""
+""""""
 type CreateResourcePayload {
-  """
-  """
+  """"""
   resource: Resource!
 }
 
-"""
-"""
+""""""
 input CreateRoleInput {
-  """
-  The optional description of the role.
-  """
+  """The optional description of the role."""
   description: String
 
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   key: String!
 
-  """
-  The optional name of the role.
-  """
+  """The optional name of the role."""
   name: String
 }
 
-"""
-"""
+""""""
 type CreateRolePayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input CreateScopeInput {
-  """
-  The optional description of the scope.
-  """
+  """The optional description of the scope."""
   description: String
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The scope string.
-  """
+  """The scope string."""
   scope: String!
 }
 
-"""
-"""
+""""""
 type CreateScopePayload {
-  """
-  """
+  """"""
   scope: Scope!
 }
 
-"""
-"""
+""""""
 input CreateSessionInput {
-  """
-  Target client ID.
-  """
+  """Target client ID."""
   clientID: String!
 
-  """
-  Base64-encoded Device information.
-  """
+  """Base64-encoded Device information."""
   deviceInfo: String
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type CreateSessionPayload {
-  """
-  """
+  """"""
   accessToken: String!
 
-  """
-  """
+  """"""
   expiresIn: Int!
 
-  """
-  """
+  """"""
   refreshToken: String!
 
-  """
-  """
+  """"""
   tokenType: String!
 }
 
-"""
-"""
+""""""
 input CreateUserInput {
   """
   Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.
@@ -1273,9 +909,7 @@ input CreateUserInput {
   """
   accountValidUntil: DateTime
 
-  """
-  Definition of the identity of new user.
-  """
+  """Definition of the identity of new user."""
   definition: IdentityDefinition!
 
   """
@@ -1283,9 +917,7 @@ input CreateUserInput {
   """
   password: String
 
-  """
-  Indicate whether to send the new password to the user.
-  """
+  """Indicate whether to send the new password to the user."""
   sendPassword: Boolean
 
   """
@@ -1294,11 +926,9 @@ input CreateUserInput {
   setPasswordExpired: Boolean
 }
 
-"""
-"""
+""""""
 type CreateUserPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
@@ -1307,258 +937,180 @@ The `DateTime` scalar type represents a DateTime. The DateTime is serialized as 
 """
 scalar DateTime
 
-"""
-"""
+""""""
 input DeleteAuthenticatorInput {
-  """
-  Target authenticator ID.
-  """
+  """Target authenticator ID."""
   authenticatorID: ID!
 }
 
-"""
-"""
+""""""
 type DeleteAuthenticatorPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input DeleteAuthorizationInput {
-  """
-  Target authorization ID.
-  """
+  """Target authorization ID."""
   authorizationID: ID!
 }
 
-"""
-"""
+""""""
 type DeleteAuthorizationPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input DeleteGroupInput {
-  """
-  The ID of the group.
-  """
+  """The ID of the group."""
   id: ID!
 }
 
-"""
-"""
+""""""
 type DeleteGroupPayload {
-  """
-  """
+  """"""
   ok: Boolean
 }
 
-"""
-"""
+""""""
 input DeleteIdentityInput {
-  """
-  Target identity ID.
-  """
+  """Target identity ID."""
   identityID: ID!
 }
 
-"""
-"""
+""""""
 type DeleteIdentityPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input DeleteResourceInput {
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 }
 
-"""
-"""
+""""""
 type DeleteResourcePayload {
-  """
-  """
+  """"""
   ok: Boolean
 }
 
-"""
-"""
+""""""
 input DeleteRoleInput {
-  """
-  The ID of the role.
-  """
+  """The ID of the role."""
   id: ID!
 }
 
-"""
-"""
+""""""
 type DeleteRolePayload {
-  """
-  """
+  """"""
   ok: Boolean
 }
 
-"""
-"""
+""""""
 input DeleteScopeInput {
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The scope string.
-  """
+  """The scope string."""
   scope: String!
 }
 
-"""
-"""
+""""""
 type DeleteScopePayload {
-  """
-  """
+  """"""
   ok: Boolean
 }
 
-"""
-"""
+""""""
 input DeleteUserInput {
-  """
-  The reason for deleting the user.
-  """
+  """The reason for deleting the user."""
   reason: String
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type DeleteUserPayload {
-  """
-  """
+  """"""
   deletedUserID: ID!
 }
 
-"""
-"""
+""""""
 interface Entity {
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The ID of entity
-  """
+  """The ID of entity"""
   id: ID!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
-"""
-"""
+""""""
 enum FraudProtectionAction {
-  """
-  """
+  """"""
   send_sms
 }
 
-"""
-"""
+""""""
 enum FraudProtectionDecision {
-  """
-  """
+  """"""
   allowed
 
-  """
-  """
+  """"""
   blocked
 }
 
-"""
-"""
-union FraudProtectionDecisionActionDetail =
-    FraudProtectionDecisionSendSMSActionDetail
+""""""
+union FraudProtectionDecisionActionDetail = FraudProtectionDecisionSendSMSActionDetail
 
-"""
-"""
+""""""
 type FraudProtectionDecisionRecord implements Node {
-  """
-  """
+  """"""
   action: FraudProtectionAction!
 
-  """
-  """
+  """"""
   actionDetail: FraudProtectionDecisionActionDetail!
 
-  """
-  """
+  """"""
   createdAt: DateTime!
 
-  """
-  """
+  """"""
   data: FraudProtectionDecisionRecordData
 
-  """
-  """
+  """"""
   decision: FraudProtectionDecision!
 
-  """
-  """
+  """"""
   geoLocationCode: String
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   ipAddress: String
 
-  """
-  """
+  """"""
   triggeredWarnings: [FraudProtectionWarningType!]!
 
-  """
-  """
+  """"""
   userAgent: String
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type FraudProtectionDecisionRecordConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [FraudProtectionDecisionRecordEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
@@ -1567,235 +1119,159 @@ The `FraudProtectionDecisionRecordData` scalar type represents the raw fraud pro
 """
 scalar FraudProtectionDecisionRecordData
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type FraudProtectionDecisionRecordEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: FraudProtectionDecisionRecord
 }
 
-"""
-"""
+""""""
 type FraudProtectionDecisionSendSMSActionDetail {
-  """
-  """
+  """"""
   phoneNumberCountryCode: String
 
-  """
-  """
+  """"""
   recipient: String!
 
-  """
-  """
+  """"""
   type: String!
 }
 
-"""
-"""
+""""""
 type FraudProtectionOverview {
-  """
-  """
+  """"""
   sendSMS: FraudProtectionOverviewSendSMS!
 }
 
-"""
-"""
+""""""
 type FraudProtectionOverviewSendSMS {
-  """
-  """
+  """"""
   blocked: Int!
 
-  """
-  """
+  """"""
   flagged: Int!
 
-  """
-  """
+  """"""
   topSourceIPs: [FraudProtectionOverviewTopSourceIP!]!
 
-  """
-  """
+  """"""
   total: Int!
 }
 
-"""
-"""
+""""""
 type FraudProtectionOverviewTopSourceIP {
-  """
-  """
+  """"""
   blocked: Int!
 
-  """
-  """
+  """"""
   flagged: Int!
 
-  """
-  """
+  """"""
   ipAddress: String!
 
-  """
-  """
+  """"""
   total: Int!
 }
 
-"""
-"""
+""""""
 enum FraudProtectionWarningType {
-  """
-  """
+  """"""
   SMS__PHONE_COUNTRIES__BY_IP__DAILY_THRESHOLD_EXCEEDED
 
-  """
-  """
+  """"""
   SMS__UNVERIFIED_OTPS__BY_IP__DAILY_THRESHOLD_EXCEEDED
 
-  """
-  """
+  """"""
   SMS__UNVERIFIED_OTPS__BY_IP__HOURLY_THRESHOLD_EXCEEDED
 
-  """
-  """
+  """"""
   SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__DAILY_THRESHOLD_EXCEEDED
 
-  """
-  """
+  """"""
   SMS__UNVERIFIED_OTPS__BY_PHONE_COUNTRY__HOURLY_THRESHOLD_EXCEEDED
 }
 
-"""
-"""
+""""""
 input GenerateOOBOTPCodeInput {
-  """
-  Purpose of the generated OTP code.
-  """
+  """Purpose of the generated OTP code."""
   purpose: OTPPurpose
 
-  """
-  Target user's email or phone number.
-  """
+  """Target user's email or phone number."""
   target: String!
 }
 
-"""
-"""
+""""""
 type GenerateOOBOTPCodePayload {
-  """
-  """
+  """"""
   code: String!
 }
 
-"""
-Authgear group
-"""
+"""Authgear group"""
 type Group implements Entity & Node {
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The optional description of the group.
-  """
+  """The optional description of the group."""
   description: String
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   key: String!
 
-  """
-  The optional name of the group.
-  """
+  """The optional name of the group."""
   name: String
 
-  """
-  The list of roles this group has.
-  """
+  """The list of roles this group has."""
   roles(after: String, before: String, first: Int, last: Int): RoleConnection
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 
-  """
-  The list of users in the group.
-  """
+  """The list of users in the group."""
   users(after: String, before: String, first: Int, last: Int): UserConnection
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type GroupConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [GroupEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type GroupEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Group
 }
 
-"""
-"""
+""""""
 type Identity implements Entity & Node {
-  """
-  """
+  """"""
   claims(names: [String!]): IdentityClaims!
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   type: IdentityType!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
@@ -1804,23 +1280,15 @@ The `IdentityClaims` scalar type represents a set of claims belonging to an iden
 """
 scalar IdentityClaims
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type IdentityConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [IdentityEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
@@ -1828,209 +1296,129 @@ type IdentityConnection {
 Definition of an identity. This is a union object, exactly one of the available fields must be present.
 """
 input IdentityDefinition {
-  """
-  Login ID identity definition.
-  """
+  """Login ID identity definition."""
   loginID: IdentityDefinitionLoginID
 }
 
-"""
-"""
+""""""
 input IdentityDefinitionLoginID {
-  """
-  The login ID key.
-  """
+  """The login ID key."""
   key: String!
 
-  """
-  The login ID.
-  """
+  """The login ID."""
   value: String!
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type IdentityEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Identity
 }
 
-"""
-"""
+""""""
 enum IdentityType {
-  """
-  """
+  """"""
   ANONYMOUS
 
-  """
-  """
+  """"""
   BIOMETRIC
 
-  """
-  """
+  """"""
   LDAP
 
-  """
-  """
+  """"""
   LOGIN_ID
 
-  """
-  """
+  """"""
   OAUTH
 
-  """
-  """
+  """"""
   PASSKEY
 
-  """
-  """
+  """"""
   SIWE
 }
 
-"""
-A locked IP address and when its lock expires
-"""
+"""A locked IP address and when its lock expires"""
 type LockedIP {
-  """
-  The locked IP address
-  """
+  """The locked IP address"""
   ipAddress: String!
 
-  """
-  The time the lock for this IP expires
-  """
+  """The time the lock for this IP expires"""
   lockedUntil: DateTime!
 }
 
-"""
-"""
+""""""
 type Mutation {
-  """
-  Add the group to the roles.
-  """
+  """Add the group to the roles."""
   addGroupToRoles(input: AddGroupToRolesInput!): AddGroupToRolesPayload!
 
-  """
-  Add the group to the users.
-  """
+  """Add the group to the users."""
   addGroupToUsers(input: AddGroupToUsersInput!): AddGroupToUsersPayload!
 
-  """
-  Associate a resource with a clientID.
-  """
-  addResourceToClientID(
-    input: AddResourceToClientIDInput!
-  ): AddResourceToClientIDPayload!
+  """Associate a resource with a clientID."""
+  addResourceToClientID(input: AddResourceToClientIDInput!): AddResourceToClientIDPayload!
 
-  """
-  Add the role to the groups.
-  """
+  """Add the role to the groups."""
   addRoleToGroups(input: AddRoleToGroupsInput!): AddRoleToGroupsPayload!
 
-  """
-  Add the role to the users.
-  """
+  """Add the role to the users."""
   addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
 
-  """
-  Associate multiple scopes with a clientID.
-  """
-  addScopesToClientID(
-    input: AddScopesToClientIDInput!
-  ): AddScopesToClientIDPayload!
+  """Associate multiple scopes with a clientID."""
+  addScopesToClientID(input: AddScopesToClientIDInput!): AddScopesToClientIDPayload!
 
-  """
-  Add the user to the groups.
-  """
+  """Add the user to the groups."""
   addUserToGroups(input: AddUserToGroupsInput!): AddUserToGroupsPayload!
 
-  """
-  Add the user to the roles.
-  """
+  """Add the user to the roles."""
   addUserToRoles(input: AddUserToRolesInput!): AddUserToRolesPayload!
 
-  """
-  Anonymize specified user
-  """
+  """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
 
-  """
-  Create authenticator of user
-  """
-  createAuthenticator(
-    input: CreateAuthenticatorInput!
-  ): CreateAuthenticatorPayload!
+  """Create authenticator of user"""
+  createAuthenticator(input: CreateAuthenticatorInput!): CreateAuthenticatorPayload!
 
-  """
-  Create a new group.
-  """
+  """Create a new group."""
   createGroup(input: CreateGroupInput!): CreateGroupPayload!
 
-  """
-  Create new identity for user
-  """
+  """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
-  """
-  Create a new resource.
-  """
+  """Create a new resource."""
   createResource(input: CreateResourceInput!): CreateResourcePayload!
 
-  """
-  Create a new role.
-  """
+  """Create a new role."""
   createRole(input: CreateRoleInput!): CreateRolePayload!
 
-  """
-  Create a new scope.
-  """
+  """Create a new scope."""
   createScope(input: CreateScopeInput!): CreateScopePayload!
 
-  """
-  Create a session of a given user
-  """
+  """Create a session of a given user"""
   createSession(input: CreateSessionInput!): CreateSessionPayload!
 
-  """
-  Create new user
-  """
+  """Create new user"""
   createUser(input: CreateUserInput!): CreateUserPayload!
 
-  """
-  Delete authenticator of user
-  """
-  deleteAuthenticator(
-    input: DeleteAuthenticatorInput!
-  ): DeleteAuthenticatorPayload!
+  """Delete authenticator of user"""
+  deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!
 
-  """
-  Delete authorization
-  """
-  deleteAuthorization(
-    input: DeleteAuthorizationInput!
-  ): DeleteAuthorizationPayload!
+  """Delete authorization"""
+  deleteAuthorization(input: DeleteAuthorizationInput!): DeleteAuthorizationPayload!
 
   """
   Delete an existing group. The associations between the group with other roles and other users will also be deleted.
   """
   deleteGroup(input: DeleteGroupInput!): DeleteGroupPayload!
 
-  """
-  Delete identity of user
-  """
+  """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
 
-  """
-  Delete a resource.
-  """
+  """Delete a resource."""
   deleteResource(input: DeleteResourceInput!): DeleteResourcePayload!
 
   """
@@ -2038,644 +1426,350 @@ type Mutation {
   """
   deleteRole(input: DeleteRoleInput!): DeleteRolePayload!
 
-  """
-  Delete a scope.
-  """
+  """Delete a scope."""
   deleteScope(input: DeleteScopeInput!): DeleteScopePayload!
 
-  """
-  Delete specified user
-  """
+  """Delete specified user"""
   deleteUser(input: DeleteUserInput!): DeleteUserPayload!
 
-  """
-  Generate OOB OTP code for user
-  """
-  generateOOBOTPCode(
-    input: GenerateOOBOTPCodeInput!
-  ): GenerateOOBOTPCodePayload!
+  """Generate OOB OTP code for user"""
+  generateOOBOTPCode(input: GenerateOOBOTPCodeInput!): GenerateOOBOTPCodePayload!
 
-  """
-  Remove the group from the roles.
-  """
-  removeGroupFromRoles(
-    input: RemoveGroupFromRolesInput!
-  ): RemoveGroupFromRolesPayload!
+  """Remove the group from the roles."""
+  removeGroupFromRoles(input: RemoveGroupFromRolesInput!): RemoveGroupFromRolesPayload!
 
-  """
-  Remove the group to the users.
-  """
-  removeGroupFromUsers(
-    input: RemoveGroupFromUsersInput!
-  ): RemoveGroupToUsersPayload!
+  """Remove the group to the users."""
+  removeGroupFromUsers(input: RemoveGroupFromUsersInput!): RemoveGroupToUsersPayload!
 
-  """
-  Revoke user grace period for MFA enrollment
-  """
-  removeMFAGracePeriod(
-    input: removeMFAGracePeriodInput!
-  ): removeMFAGracePeriodPayload!
+  """Revoke user grace period for MFA enrollment"""
+  removeMFAGracePeriod(input: removeMFAGracePeriodInput!): removeMFAGracePeriodPayload!
 
-  """
-  Disassociate a resource from a clientID.
-  """
-  removeResourceFromClientID(
-    input: RemoveResourceFromClientIDInput!
-  ): RemoveResourceFromClientIDPayload!
+  """Disassociate a resource from a clientID."""
+  removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
 
-  """
-  Remove the role from the groups.
-  """
-  removeRoleFromGroups(
-    input: RemoveRoleFromGroupsInput!
-  ): RemoveRoleFromGroupsPayload!
+  """Remove the role from the groups."""
+  removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
 
-  """
-  Remove the role to the users.
-  """
-  removeRoleFromUsers(
-    input: RemoveRoleFromUsersInput!
-  ): RemoveRoleFromUsersPayload!
+  """Remove the role to the users."""
+  removeRoleFromUsers(input: RemoveRoleFromUsersInput!): RemoveRoleFromUsersPayload!
 
-  """
-  Disassociate multiple scopes from a clientID.
-  """
-  removeScopesFromClientID(
-    input: RemoveScopesFromClientIDInput!
-  ): RemoveScopesFromClientIDPayload!
+  """Disassociate multiple scopes from a clientID."""
+  removeScopesFromClientID(input: RemoveScopesFromClientIDInput!): RemoveScopesFromClientIDPayload!
 
-  """
-  Remove the user from the groups.
-  """
-  removeUserFromGroups(
-    input: RemoveUserFromGroupsInput!
-  ): RemoveUserFromGroupsPayload!
+  """Remove the user from the groups."""
+  removeUserFromGroups(input: RemoveUserFromGroupsInput!): RemoveUserFromGroupsPayload!
 
-  """
-  Remove the user from the roles.
-  """
-  removeUserFromRoles(
-    input: RemoveUserFromRolesInput!
-  ): RemoveUserFromRolesPayload!
+  """Remove the user from the roles."""
+  removeUserFromRoles(input: RemoveUserFromRolesInput!): RemoveUserFromRolesPayload!
 
-  """
-  Replace the set of scopes associated with a clientID.
-  """
-  replaceScopesOfClientID(
-    input: ReplaceScopesOfClientIDInput!
-  ): ReplaceScopesOfClientIDPayload!
+  """Replace the set of scopes associated with a clientID."""
+  replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 
-  """
-  Reset the account lockout state of a user
-  """
-  resetAccountLockout(
-    input: ResetAccountLockoutInput!
-  ): ResetAccountLockoutPayload!
+  """Reset the account lockout state of a user"""
+  resetAccountLockout(input: ResetAccountLockoutInput!): ResetAccountLockoutPayload!
 
-  """
-  Reset password of user
-  """
+  """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
 
-  """
-  Revoke all sessions of user
-  """
+  """Revoke all sessions of user"""
   revokeAllSessions(input: RevokeAllSessionsInput!): RevokeAllSessionsPayload!
 
-  """
-  Revoke session of user
-  """
+  """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
 
-  """
-  Schedule account anonymization
-  """
-  scheduleAccountAnonymization(
-    input: ScheduleAccountAnonymizationInput!
-  ): ScheduleAccountAnonymizationPayload!
+  """Schedule account anonymization"""
+  scheduleAccountAnonymization(input: ScheduleAccountAnonymizationInput!): ScheduleAccountAnonymizationPayload!
 
-  """
-  Schedule account deletion
-  """
-  scheduleAccountDeletion(
-    input: ScheduleAccountDeletionInput!
-  ): ScheduleAccountDeletionPayload!
+  """Schedule account deletion"""
+  scheduleAccountDeletion(input: ScheduleAccountDeletionInput!): ScheduleAccountDeletionPayload!
 
-  """
-  Send a reset password message to user
-  """
+  """Send a reset password message to user"""
   sendResetPasswordMessage(input: SendResetPasswordMessageInput!): Boolean
 
-  """
-  Set the start timestamp of the account valid period
-  """
-  setAccountValidFrom(
-    input: SetAccountValidFromInput!
-  ): SetAccountValidFromPayload!
+  """Set the start timestamp of the account valid period"""
+  setAccountValidFrom(input: SetAccountValidFromInput!): SetAccountValidFromPayload!
 
   """
   Set the start timestamp and the end timestamp of the account valid period
   """
-  setAccountValidPeriod(
-    input: SetAccountValidPeriodInput!
-  ): SetAccountValidPeriodPayload!
+  setAccountValidPeriod(input: SetAccountValidPeriodInput!): SetAccountValidPeriodPayload!
 
-  """
-  Set the end timestamp of the account valid period
-  """
-  setAccountValidUntil(
-    input: SetAccountValidUntilInput!
-  ): SetAccountValidUntilPayload!
+  """Set the end timestamp of the account valid period"""
+  setAccountValidUntil(input: SetAccountValidUntilInput!): SetAccountValidUntilPayload!
 
-  """
-  Set disabled status of user
-  """
+  """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
-  """
-  Grant user grace period for MFA enrollment
-  """
+  """Grant user grace period for MFA enrollment"""
   setMFAGracePeriod(input: SetMFAGracePeriodInput!): SetMFAGracePeriodPayload!
 
-  """
-  Force user to change password on next login
-  """
-  setPasswordExpired(
-    input: SetPasswordExpiredInput!
-  ): SetPasswordExpiredPayload!
+  """Force user to change password on next login"""
+  setPasswordExpired(input: SetPasswordExpiredInput!): SetPasswordExpiredPayload!
 
-  """
-  Set verified status of a claim of user
-  """
+  """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
 
-  """
-  Unschedule account anonymization
-  """
-  unscheduleAccountAnonymization(
-    input: UnscheduleAccountAnonymizationInput!
-  ): UnscheduleAccountAnonymizationPayload!
+  """Unschedule account anonymization"""
+  unscheduleAccountAnonymization(input: UnscheduleAccountAnonymizationInput!): UnscheduleAccountAnonymizationPayload!
 
-  """
-  Unschedule account deletion
-  """
-  unscheduleAccountDeletion(
-    input: UnscheduleAccountDeletionInput!
-  ): UnscheduleAccountDeletionPayload!
+  """Unschedule account deletion"""
+  unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
 
-  """
-  Update an existing group.
-  """
+  """Update an existing group."""
   updateGroup(input: UpdateGroupInput!): UpdateGroupPayload!
 
-  """
-  Update an existing identity of user
-  """
+  """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
 
-  """
-  Update an existing resource.
-  """
+  """Update an existing resource."""
   updateResource(input: UpdateResourceInput!): UpdateResourcePayload!
 
-  """
-  Update an existing role.
-  """
+  """Update an existing role."""
   updateRole(input: UpdateRoleInput!): UpdateRolePayload!
 
-  """
-  Update an existing scope.
-  """
+  """Update an existing scope."""
   updateScope(input: UpdateScopeInput!): UpdateScopePayload!
 
-  """
-  Update user
-  """
+  """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
-"""
-An object with an ID
-"""
+"""An object with an ID"""
 interface Node {
-  """
-  The id of the object
-  """
+  """The id of the object"""
   id: ID!
 }
 
-"""
-"""
+""""""
 enum OTPPurpose {
-  """
-  """
+  """"""
   LOGIN
 
-  """
-  """
+  """"""
   VERIFICATION
 }
 
-"""
-Information about pagination in a connection.
-"""
+"""Information about pagination in a connection."""
 type PageInfo {
-  """
-  When paginating forwards, the cursor to continue.
-  """
+  """When paginating forwards, the cursor to continue."""
   endCursor: String
 
-  """
-  When paginating forwards, are there more items?
-  """
+  """When paginating forwards, are there more items?"""
   hasNextPage: Boolean!
 
-  """
-  When paginating backwards, are there more items?
-  """
+  """When paginating backwards, are there more items?"""
   hasPreviousPage: Boolean!
 
-  """
-  When paginating backwards, the cursor to continue.
-  """
+  """When paginating backwards, the cursor to continue."""
   startCursor: String
 }
 
-"""
-"""
+""""""
 type Query {
-  """
-  Audit logs
-  """
-  auditLogs(
-    activityTypes: [AuditLogActivityType!]
-    after: String
-    before: String
-    emailAddresses: [String!]
-    first: Int
-    last: Int
-    phoneNumbers: [String!]
-    rangeFrom: DateTime
-    rangeTo: DateTime
-    sortDirection: SortDirection
-    userIDs: [ID!]
-  ): AuditLogConnection
+  """Audit logs"""
+  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
-  """
-  Fraud protection decision records
-  """
-  fraudProtectionLogs(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    maximumWarningCount: Int
-    minimumWarningCount: Int
-    rangeFrom: DateTime
-    rangeTo: DateTime
-    reasonCodes: [String!]
-    search: String
-    sortDirection: SortDirection
-    verdicts: [FraudProtectionDecision!]
-  ): FraudProtectionDecisionRecordConnection
+  """Fraud protection decision records"""
+  fraudProtectionLogs(after: String, before: String, first: Int, last: Int, maximumWarningCount: Int, minimumWarningCount: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection
 
-  """
-  Fraud protection overview
-  """
-  fraudProtectionOverview(
-    rangeFrom: DateTime
-    rangeTo: DateTime
-  ): FraudProtectionOverview!
+  """Fraud protection overview"""
+  fraudProtectionOverview(rangeFrom: DateTime, rangeTo: DateTime): FraudProtectionOverview!
 
-  """
-  Get user by Login ID.
-  """
+  """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User
 
-  """
-  Get user by OAuth Alias and user ID.
-  """
-  getUserByOAuth(
-    oauthProviderAlias: String!
-    oauthProviderUserID: String!
-  ): User
+  """Get user by OAuth Alias and user ID."""
+  getUserByOAuth(oauthProviderAlias: String!, oauthProviderUserID: String!): User
 
   """
   Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.
   """
-  getUsersByStandardAttribute(
-    attributeName: String!
-    attributeValue: String!
-  ): [User!]!
+  getUsersByStandardAttribute(attributeName: String!, attributeValue: String!): [User!]!
 
-  """
-  All groups
-  """
-  groups(
-    after: String
-    before: String
-    excludedIDs: [ID!]
-    first: Int
-    last: Int
-    searchKeyword: String
-  ): GroupConnection
+  """All groups"""
+  groups(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): GroupConnection
 
-  """
-  Fetches an object given its ID
-  """
+  """Fetches an object given its ID"""
   node(
-    """
-    The ID of an object
-    """
+    """The ID of an object"""
     id: ID!
   ): Node
 
-  """
-  Lookup nodes by a list of IDs.
-  """
+  """Lookup nodes by a list of IDs."""
   nodes(
-    """
-    The list of node IDs.
-    """
+    """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
 
-  """
-  All resources
-  """
-  resources(
-    after: String
-    before: String
-    clientID: String
-    first: Int
-    last: Int
-    searchKeyword: String
-  ): ResourceConnection
+  """All resources"""
+  resources(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ResourceConnection
 
-  """
-  All roles
-  """
-  roles(
-    after: String
-    before: String
-    excludedIDs: [ID!]
-    first: Int
-    last: Int
-    searchKeyword: String
-  ): RoleConnection
+  """All roles"""
+  roles(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): RoleConnection
 
-  """
-  All users
-  """
-  users(
-    after: String
-    before: String
-    first: Int
-    groupKeys: [String!]
-    last: Int
-    roleKeys: [String!]
-    searchKeyword: String
-    sortBy: UserSortBy
-    sortDirection: SortDirection
-  ): UserConnection
+  """All users"""
+  users(after: String, before: String, first: Int, groupKeys: [String!], last: Int, roleKeys: [String!], searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
 }
 
-"""
-"""
+""""""
 input RemoveGroupFromRolesInput {
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   groupKey: String!
 
-  """
-  The list of role keys.
-  """
+  """The list of role keys."""
   roleKeys: [String!]!
 }
 
-"""
-"""
+""""""
 type RemoveGroupFromRolesPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input RemoveGroupFromUsersInput {
-  """
-  The key of the group.
-  """
+  """The key of the group."""
   groupKey: String!
 
-  """
-  The list of user ids.
-  """
+  """The list of user ids."""
   userIDs: [ID!]
 }
 
-"""
-"""
+""""""
 type RemoveGroupToUsersPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input RemoveResourceFromClientIDInput {
-  """
-  The client ID to disassociate.
-  """
+  """The client ID to disassociate."""
   clientID: String!
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 }
 
-"""
-"""
+""""""
 type RemoveResourceFromClientIDPayload {
-  """
-  """
+  """"""
   resource: Resource!
 }
 
-"""
-"""
+""""""
 input RemoveRoleFromGroupsInput {
-  """
-  The list of group keys.
-  """
+  """The list of group keys."""
   groupKeys: [String!]!
 
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   roleKey: String!
 }
 
-"""
-"""
+""""""
 type RemoveRoleFromGroupsPayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input RemoveRoleFromUsersInput {
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   roleKey: String!
 
-  """
-  The list of user ids.
-  """
+  """The list of user ids."""
   userIDs: [ID!]
 }
 
-"""
-"""
+""""""
 type RemoveRoleFromUsersPayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input RemoveScopesFromClientIDInput {
-  """
-  The client ID.
-  """
+  """The client ID."""
   clientID: String!
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The list of scopes to remove.
-  """
+  """The list of scopes to remove."""
   scopes: [String!]!
 }
 
-"""
-"""
+""""""
 type RemoveScopesFromClientIDPayload {
-  """
-  """
+  """"""
   scopes: [Scope!]!
 }
 
-"""
-"""
+""""""
 input RemoveUserFromGroupsInput {
-  """
-  The list of group keys.
-  """
+  """The list of group keys."""
   groupKeys: [String!]
 
-  """
-  The ID of the user.
-  """
+  """The ID of the user."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type RemoveUserFromGroupsPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input RemoveUserFromRolesInput {
-  """
-  The list of role keys.
-  """
+  """The list of role keys."""
   roleKeys: [String!]
 
-  """
-  The id of the user.
-  """
+  """The id of the user."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type RemoveUserFromRolesPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input ReplaceScopesOfClientIDInput {
-  """
-  The client ID.
-  """
+  """The client ID."""
   clientID: String!
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The new list of scopes.
-  """
+  """The new list of scopes."""
   scopes: [String!]!
 }
 
-"""
-"""
+""""""
 type ReplaceScopesOfClientIDPayload {
-  """
-  """
+  """"""
   scopes: [Scope!]!
 }
 
-"""
-"""
+""""""
 input ResetAccountLockoutInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type ResetAccountLockoutPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input ResetPasswordInput {
-  """
-  New password.
-  """
+  """New password."""
   password: String
 
-  """
-  Indicate whether to send the new password to the user.
-  """
+  """Indicate whether to send the new password to the user."""
   sendPassword: Boolean
 
   """
@@ -2683,472 +1777,304 @@ input ResetPasswordInput {
   """
   setPasswordExpired: Boolean
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type ResetPasswordPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-Authgear resource
-"""
+"""Authgear resource"""
 type Resource implements Entity & Node {
-  """
-  The list of client IDs associated with this Resource.
-  """
+  """The list of client IDs associated with this Resource."""
   clientIDs: [String!]!
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  The optional name of the resource.
-  """
+  """The optional name of the resource."""
   name: String
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The list of scopes for this resource.
-  """
-  scopes(
-    after: String
-    before: String
-    clientID: String
-    first: Int
-    last: Int
-    searchKeyword: String
-  ): ScopeConnection
+  """The list of scopes for this resource."""
+  scopes(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ScopeConnection
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type ResourceConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [ResourceEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type ResourceEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Resource
 }
 
-"""
-"""
+""""""
 input RevokeAllSessionsInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type RevokeAllSessionsPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input RevokeSessionInput {
-  """
-  Target session ID.
-  """
+  """Target session ID."""
   sessionID: ID!
 }
 
-"""
-"""
+""""""
 type RevokeSessionPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-Authgear role
-"""
+"""Authgear role"""
 type Role implements Entity & Node {
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The optional description of the role.
-  """
+  """The optional description of the role."""
   description: String
 
-  """
-  The list of groups this role is in.
-  """
+  """The list of groups this role is in."""
   groups(after: String, before: String, first: Int, last: Int): GroupConnection
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  The key of the role.
-  """
+  """The key of the role."""
   key: String!
 
-  """
-  The optional name of the role.
-  """
+  """The optional name of the role."""
   name: String
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 
-  """
-  The list of users who has this role.
-  """
+  """The list of users who has this role."""
   users(after: String, before: String, first: Int, last: Int): UserConnection
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type RoleConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [RoleEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type RoleEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Role
 }
 
-"""
-"""
+""""""
 input ScheduleAccountAnonymizationInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type ScheduleAccountAnonymizationPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input ScheduleAccountDeletionInput {
-  """
-  The reason for scheduling the account deletion.
-  """
+  """The reason for scheduling the account deletion."""
   reason: String
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type ScheduleAccountDeletionPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-Authgear scope
-"""
+"""Authgear scope"""
 type Scope implements Entity & Node {
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The optional description of the scope.
-  """
+  """The optional description of the scope."""
   description: String
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  The resource ID.
-  """
+  """The resource ID."""
   resourceID: ID!
 
-  """
-  The scope string.
-  """
+  """The scope string."""
   scope: String!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type ScopeConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [ScopeEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type ScopeEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Scope
 }
 
-"""
-"""
+""""""
 input SendResetPasswordMessageInput {
-  """
-  Target login ID.
-  """
+  """Target login ID."""
   loginID: ID!
 }
 
-"""
-"""
+""""""
 type Session implements Entity & Node {
-  """
-  """
+  """"""
   acr: String
 
-  """
-  """
+  """"""
   amr: [String!]!
 
-  """
-  """
+  """"""
   applicationName: String
 
-  """
-  """
+  """"""
   clientID: String
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  """
+  """"""
   createdByIP: String!
 
-  """
-  """
+  """"""
   displayName: String!
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  """
+  """"""
   lastAccessedAt: DateTime!
 
-  """
-  """
+  """"""
   lastAccessedByIP: String!
 
-  """
-  """
+  """"""
   lastAccessedByIPCountryCode: String!
 
-  """
-  """
+  """"""
   lastAccessedByIPEnglishCountryName: String!
 
-  """
-  """
+  """"""
   type: SessionType!
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 
-  """
-  """
+  """"""
   userAgent: String
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type SessionConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [SessionEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type SessionEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: Session
 }
 
-"""
-"""
+""""""
 enum SessionType {
-  """
-  """
+  """"""
   IDP
 
-  """
-  """
+  """"""
   OFFLINE_GRANT
 }
 
-"""
-"""
+""""""
 input SetAccountValidFromInput {
   """
   Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.
   """
   accountValidFrom: DateTime
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetAccountValidFromPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetAccountValidPeriodInput {
   """
   Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.
@@ -3160,48 +2086,36 @@ input SetAccountValidPeriodInput {
   """
   accountValidUntil: DateTime
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetAccountValidPeriodPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetAccountValidUntilInput {
   """
   Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.
   """
   accountValidUntil: DateTime
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetAccountValidUntilPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetDisabledStatusInput {
-  """
-  Indicate whether the target user is disabled.
-  """
+  """Indicate whether the target user is disabled."""
   isDisabled: Boolean!
 
   """
@@ -3219,153 +2133,108 @@ input SetDisabledStatusInput {
   """
   temporarilyDisabledUntil: DateTime
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetDisabledStatusPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetMFAGracePeriodInput {
-  """
-  Indicate when will user's MFA grace period end
-  """
+  """Indicate when will user's MFA grace period end"""
   endAt: DateTime!
 
-  """
-  Target user ID
-  """
+  """Target user ID"""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetMFAGracePeriodPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetPasswordExpiredInput {
-  """
-  Indicate whether the user's password is expired.
-  """
+  """Indicate whether the user's password is expired."""
   expired: Boolean!
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetPasswordExpiredPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input SetVerifiedStatusInput {
-  """
-  Name of the claim to set verified status.
-  """
+  """Name of the claim to set verified status."""
   claimName: String!
 
-  """
-  Value of the claim.
-  """
+  """Value of the claim."""
   claimValue: String!
 
-  """
-  Indicate whether the target claim is verified.
-  """
+  """Indicate whether the target claim is verified."""
   isVerified: Boolean!
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type SetVerifiedStatusPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 enum SortDirection {
-  """
-  """
+  """"""
   ASC
 
-  """
-  """
+  """"""
   DESC
 }
 
-"""
-"""
+""""""
 input UnscheduleAccountAnonymizationInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type UnscheduleAccountAnonymizationPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input UnscheduleAccountDeletionInput {
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type UnscheduleAccountDeletionPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input UpdateGroupInput {
   """
   The new description of the group. Pass null if you do not need to update the description. Pass an empty string to remove the description.
   """
   description: String
 
-  """
-  The ID of the group.
-  """
+  """The ID of the group."""
   id: ID!
 
   """
@@ -3379,78 +2248,58 @@ input UpdateGroupInput {
   name: String
 }
 
-"""
-"""
+""""""
 type UpdateGroupPayload {
-  """
-  """
+  """"""
   group: Group!
 }
 
-"""
-"""
+""""""
 input UpdateIdentityInput {
-  """
-  New definition of the identity.
-  """
+  """New definition of the identity."""
   definition: IdentityDefinition!
 
-  """
-  Target identity ID.
-  """
+  """Target identity ID."""
   identityID: ID!
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type UpdateIdentityPayload {
-  """
-  """
+  """"""
   identity: Identity!
 
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-"""
+""""""
 input UpdateResourceInput {
   """
   The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.
   """
   name: String
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 }
 
-"""
-"""
+""""""
 type UpdateResourcePayload {
-  """
-  """
+  """"""
   resource: Resource!
 }
 
-"""
-"""
+""""""
 input UpdateRoleInput {
   """
   The new description of the role. Pass null if you do not need to update the description. Pass an empty string to remove the description.
   """
   description: String
 
-  """
-  The ID of the role.
-  """
+  """The ID of the role."""
   id: ID!
 
   """
@@ -3464,328 +2313,190 @@ input UpdateRoleInput {
   name: String
 }
 
-"""
-"""
+""""""
 type UpdateRolePayload {
-  """
-  """
+  """"""
   role: Role!
 }
 
-"""
-"""
+""""""
 input UpdateScopeInput {
   """
   The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description.
   """
   description: String
 
-  """
-  The URI of the resource.
-  """
+  """The URI of the resource."""
   resourceURI: String!
 
-  """
-  The scope string.
-  """
+  """The scope string."""
   scope: String!
 }
 
-"""
-"""
+""""""
 type UpdateScopePayload {
-  """
-  """
+  """"""
   scope: Scope!
 }
 
-"""
-"""
+""""""
 input UpdateUserInput {
-  """
-  Whole custom attributes to be set on the user.
-  """
+  """Whole custom attributes to be set on the user."""
   customAttributes: UserCustomAttributes
 
-  """
-  Whole standard attributes to be set on the user.
-  """
+  """Whole standard attributes to be set on the user."""
   standardAttributes: UserStandardAttributes
 
-  """
-  Target user ID.
-  """
+  """Target user ID."""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type UpdateUserPayload {
-  """
-  """
+  """"""
   user: User!
 }
 
-"""
-Authgear user
-"""
+"""Authgear user"""
 type User implements Entity & Node {
-  """
-  The account lockout state of this user
-  """
+  """The account lockout state of this user"""
   accountLockout: AccountLockout!
 
-  """
-  The start timestamp of the account valid period
-  """
+  """The start timestamp of the account valid period"""
   accountValidFrom: DateTime
 
-  """
-  The end timestamp of the account valid period
-  """
+  """The end timestamp of the account valid period"""
   accountValidUntil: DateTime
 
-  """
-  The scheduled anonymization time of the user
-  """
+  """The scheduled anonymization time of the user"""
   anonymizeAt: DateTime
 
-  """
-  The list of authenticators
-  """
-  authenticators(
-    after: String
-    authenticatorKind: AuthenticatorKind
-    authenticatorType: AuthenticatorType
-    before: String
-    first: Int
-    last: Int
-  ): AuthenticatorConnection
+  """The list of authenticators"""
+  authenticators(after: String, authenticatorKind: AuthenticatorKind, authenticatorType: AuthenticatorType, before: String, first: Int, last: Int): AuthenticatorConnection
 
-  """
-  The list of third party app authorizations
-  """
-  authorizations(
-    after: String
-    before: String
-    first: Int
-    last: Int
-  ): AuthorizationConnection
+  """The list of third party app authorizations"""
+  authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
 
-  """
-  The list of biometric registrations
-  """
+  """The list of biometric registrations"""
   biometricRegistrations: [Identity!]!
 
-  """
-  The creation time of entity
-  """
+  """The creation time of entity"""
   createdAt: DateTime!
 
-  """
-  The user's custom attributes
-  """
+  """The user's custom attributes"""
   customAttributes: UserCustomAttributes!
 
-  """
-  The scheduled deletion time of the user
-  """
+  """The scheduled deletion time of the user"""
   deleteAt: DateTime
 
-  """
-  The reason of scheduled deletion
-  """
+  """The reason of scheduled deletion"""
   deleteReason: String
 
-  """
-  The reason of disabled
-  """
+  """The reason of disabled"""
   disableReason: String
 
-  """
-  The list of computed roles this user has.
-  """
-  effectiveRoles(
-    after: String
-    before: String
-    first: Int
-    last: Int
-  ): RoleConnection
+  """The list of computed roles this user has."""
+  effectiveRoles(after: String, before: String, first: Int, last: Int): RoleConnection
 
   """
   The end user account id constructed based on user's personal data. (e.g. email, phone...etc)
   """
   endUserAccountID: String
 
-  """
-  The user's formatted name
-  """
+  """The user's formatted name"""
   formattedName: String
 
-  """
-  The list of groups this user has.
-  """
+  """The list of groups this user has."""
   groups(after: String, before: String, first: Int, last: Int): GroupConnection
 
-  """
-  The ID of an object
-  """
+  """The ID of an object"""
   id: ID!
 
-  """
-  The list of identities
-  """
-  identities(
-    after: String
-    before: String
-    first: Int
-    identityType: IdentityType
-    last: Int
-  ): IdentityConnection
+  """The list of identities"""
+  identities(after: String, before: String, first: Int, identityType: IdentityType, last: Int): IdentityConnection
 
-  """
-  Indicates if the user is anonymized
-  """
+  """Indicates if the user is anonymized"""
   isAnonymized: Boolean!
 
-  """
-  Indicates if the user is anonymous
-  """
+  """Indicates if the user is anonymous"""
   isAnonymous: Boolean!
 
-  """
-  Indicates if the user is deactivated
-  """
+  """Indicates if the user is deactivated"""
   isDeactivated: Boolean!
 
-  """
-  Indicates if the user is disabled
-  """
+  """Indicates if the user is disabled"""
   isDisabled: Boolean!
 
-  """
-  The last login time of user
-  """
+  """The last login time of user"""
   lastLoginAt: DateTime
 
-  """
-  The list of login ids
-  """
+  """The list of login ids"""
   loginIDs: [Identity!]!
 
-  """
-  Indicate when will user's MFA grace period will end
-  """
+  """Indicate when will user's MFA grace period will end"""
   mfaGracePeriodEndAt: DateTime
 
-  """
-  The list of oauth connections
-  """
+  """The list of oauth connections"""
   oauthConnections: [Identity!]!
 
-  """
-  The list of passkeys
-  """
+  """The list of passkeys"""
   passkeys: [Identity!]!
 
-  """
-  The primary passwordless via email authenticator
-  """
+  """The primary passwordless via email authenticator"""
   primaryOOBOTPEmailAuthenticator: Authenticator
 
-  """
-  The primary passwordless via phone authenticator
-  """
+  """The primary passwordless via phone authenticator"""
   primaryOOBOTPSMSAuthenticator: Authenticator
 
-  """
-  The primary password authenticator
-  """
+  """The primary password authenticator"""
   primaryPassword: Authenticator
 
-  """
-  The list of roles this user has.
-  """
+  """The list of roles this user has."""
   roles(after: String, before: String, first: Int, last: Int): RoleConnection
 
-  """
-  The list of secondary passwordless via email authenticators
-  """
+  """The list of secondary passwordless via email authenticators"""
   secondaryOOBOTPEmailAuthenticators: [Authenticator!]!
 
-  """
-  The list of secondary passwordless via phone authenticators
-  """
+  """The list of secondary passwordless via phone authenticators"""
   secondaryOOBOTPSMSAuthenticators: [Authenticator!]!
 
-  """
-  The secondary password authenticator
-  """
+  """The secondary password authenticator"""
   secondaryPassword: Authenticator
 
-  """
-  The list of secondary TOTP authenticators
-  """
+  """The list of secondary TOTP authenticators"""
   secondaryTOTPAuthenticators: [Authenticator!]!
 
-  """
-  The list of first party app sessions
-  """
-  sessions(
-    after: String
-    before: String
-    first: Int
-    last: Int
-  ): SessionConnection
+  """The list of first party app sessions"""
+  sessions(after: String, before: String, first: Int, last: Int): SessionConnection
 
-  """
-  The user's standard attributes
-  """
+  """The user's standard attributes"""
   standardAttributes: UserStandardAttributes!
 
-  """
-  The start timestamp of the temporarily disabled period
-  """
+  """The start timestamp of the temporarily disabled period"""
   temporarilyDisabledFrom: DateTime
 
-  """
-  The end timestamp of the temporarily disabled period
-  """
+  """The end timestamp of the temporarily disabled period"""
   temporarilyDisabledUntil: DateTime
 
-  """
-  The update time of entity
-  """
+  """The update time of entity"""
   updatedAt: DateTime!
 
-  """
-  The list of user's verified claims
-  """
+  """The list of user's verified claims"""
   verifiedClaims: [Claim!]!
 
-  """
-  The web3 claims
-  """
+  """The web3 claims"""
   web3: Web3Claims!
 }
 
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type UserConnection {
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   edges: [UserEdge]
 
-  """
-  Information to aid in pagination.
-  """
+  """Information to aid in pagination."""
   pageInfo: PageInfo!
 
-  """
-  Total number of nodes in the connection.
-  """
+  """Total number of nodes in the connection."""
   totalCount: Int
 }
 
@@ -3794,30 +2505,21 @@ The `UserCustomAttributes` scalar type represents the custom attributes of the u
 """
 scalar UserCustomAttributes
 
-"""
-An edge in a connection
-"""
+"""An edge in a connection"""
 type UserEdge {
-  """
-  cursor for use in pagination
-  """
+  """ cursor for use in pagination"""
   cursor: String!
 
-  """
-  The item at the end of the edge
-  """
+  """The item at the end of the edge"""
   node: User
 }
 
-"""
-"""
+""""""
 enum UserSortBy {
-  """
-  """
+  """"""
   CREATED_AT
 
-  """
-  """
+  """"""
   LAST_LOGIN_AT
 }
 
@@ -3826,24 +2528,17 @@ The `UserStandardAttributes` scalar type represents the standard attributes of t
 """
 scalar UserStandardAttributes
 
-"""
-The `Web3Claims` scalar type represents the scalar type of the user
-"""
+"""The `Web3Claims` scalar type represents the scalar type of the user"""
 scalar Web3Claims
 
-"""
-"""
+""""""
 input removeMFAGracePeriodInput {
-  """
-  Target user ID
-  """
+  """Target user ID"""
   userID: ID!
 }
 
-"""
-"""
+""""""
 type removeMFAGracePeriodPayload {
-  """
-  """
+  """"""
   user: User!
 }

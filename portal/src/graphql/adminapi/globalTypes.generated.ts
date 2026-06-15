@@ -311,7 +311,7 @@ export type AuditLogConnection = {
 /** An edge in a connection */
 export type AuditLogEdge = {
   __typename?: 'AuditLogEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<AuditLog>;
@@ -380,7 +380,7 @@ export type AuthenticatorDefinitionPassword = {
 /** An edge in a connection */
 export type AuthenticatorEdge = {
   __typename?: 'AuthenticatorEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Authenticator>;
@@ -425,7 +425,7 @@ export type AuthorizationConnection = {
 /** An edge in a connection */
 export type AuthorizationEdge = {
   __typename?: 'AuthorizationEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Authorization>;
@@ -688,7 +688,7 @@ export type FraudProtectionDecisionRecordConnection = {
 /** An edge in a connection */
 export type FraudProtectionDecisionRecordEdge = {
   __typename?: 'FraudProtectionDecisionRecordEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<FraudProtectionDecisionRecord>;
@@ -795,7 +795,7 @@ export type GroupConnection = {
 /** An edge in a connection */
 export type GroupEdge = {
   __typename?: 'GroupEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Group>;
@@ -845,7 +845,7 @@ export type IdentityDefinitionLoginId = {
 /** An edge in a connection */
 export type IdentityEdge = {
   __typename?: 'IdentityEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Identity>;
@@ -1622,7 +1622,7 @@ export type ResourceConnection = {
 /** An edge in a connection */
 export type ResourceEdge = {
   __typename?: 'ResourceEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Resource>;
@@ -1701,7 +1701,7 @@ export type RoleConnection = {
 /** An edge in a connection */
 export type RoleEdge = {
   __typename?: 'RoleEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Role>;
@@ -1760,7 +1760,7 @@ export type ScopeConnection = {
 /** An edge in a connection */
 export type ScopeEdge = {
   __typename?: 'ScopeEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Scope>;
@@ -1807,7 +1807,7 @@ export type SessionConnection = {
 /** An edge in a connection */
 export type SessionEdge = {
   __typename?: 'SessionEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Session>;
@@ -2195,7 +2195,7 @@ export type UserConnection = {
 /** An edge in a connection */
 export type UserEdge = {
   __typename?: 'UserEdge';
-  /** cursor for use in pagination */
+  /**  cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<User>;
