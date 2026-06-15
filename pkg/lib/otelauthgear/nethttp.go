@@ -2,6 +2,7 @@ package otelauthgear
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type HTTPInstrumentationMiddleware struct {
@@ -74,8 +76,10 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		// Assume the labeler has been put into context.
 		labeler, _ := otelhttp.LabelerFromContext(ctx)
 
-		// Gather method and scheme before invoking the handler.
-		// Avoid the rare case of the handler modify r.Method or r.Header.
+		// Gather method, path, and scheme before invoking the handler.
+		// Avoid the rare case of the handler modifying r.Method, r.URL, or r.Header.
+		method := r.Method
+		path := r.URL.Path
 		labeler.Add(otelutil.HTTPRequestMethod(r))
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
 		labeler.Add(otelutil.HTTPURLScheme(scheme))
@@ -88,15 +92,15 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 			statusCodeAttr := otelutil.HTTPResponseStatusCode(statusCode)
 
 			// Record the metric.
-			httpRouteOK := false
+			httpRoute := ""
 			labeler, _ := otelhttp.LabelerFromContext(ctx)
 			labelerAttrs := labeler.Get()
 			for _, attr := range labelerAttrs {
 				if attr.Key == semconv.HTTPRouteKey {
-					httpRouteOK = true
+					httpRoute = attr.Value.AsString()
 				}
 			}
-			if httpRouteOK {
+			if httpRoute != "" {
 				// By default, we do not include server.address because it depends on
 				// external input like X-Forwarded-Host, Host
 				// If we include server.address, then the attacker can trigger cardinality limits.
@@ -107,6 +111,17 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				seconds := requestDuration.Seconds()
 				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram.Inst(), seconds, options...)
 			}
+
+			// Log the access log.
+			logger := slogutil.GetContextLogger(ctx)
+			logger.LogAttrs(ctx, slog.LevelInfo, "access",
+				slog.String("http.method", method),
+				slog.String("http.path", path),
+				slog.String("http.route", httpRoute),
+				slog.String("url.scheme", scheme),
+				slog.Int("http.status_code", statusCode),
+				slog.Int64("duration_ms", requestDuration.Milliseconds()),
+			)
 		})
 	})
 }
