@@ -18,5 +18,6 @@
     "noUnusedParameters": true,
     "esModuleInterop": true
   },
-  "include": ["./src", "vite.config.ts"]
+  "include": ["./src"],
+  "exclude": ["vite.config.ts"]
 }
