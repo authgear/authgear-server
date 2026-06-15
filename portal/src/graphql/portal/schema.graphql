@@ -1,373 +1,518 @@
-""""""
+"""
+"""
 input AcceptCollaboratorInvitationInput {
-  """Invitation code."""
+  """
+  Invitation code.
+  """
   code: String!
 }
 
-""""""
+"""
+"""
 type AcceptCollaboratorInvitationPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input AdminAPIAuthKeyDeleteDataInput {
-  """"""
+  """
+  """
   keyID: String!
 }
 
-""""""
+"""
+"""
 input AdminAPIAuthKeyUpdateInstructionInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   deleteData: AdminAPIAuthKeyDeleteDataInput
 }
 
-"""Admin API secret"""
+"""
+Admin API secret
+"""
 type AdminAPISecret {
-  """"""
+  """
+  """
   createdAt: DateTime
 
-  """"""
+  """
+  """
   keyID: String!
 
-  """"""
+  """
+  """
   privateKeyPEM: String
 
-  """"""
+  """
+  """
   publicKeyPEM: String!
 }
 
-"""Authgear app"""
+"""
+Authgear app
+"""
 type App implements Node {
-  """"""
+  """
+  """
   collaboratorInvitations: [CollaboratorInvitation!]!
 
-  """"""
+  """
+  """
   collaborators: [Collaborator!]!
 
-  """"""
+  """
+  """
   domains: [Domain!]!
 
-  """"""
+  """
+  """
   effectiveAppConfig: AppConfig!
 
-  """"""
+  """
+  """
   effectiveFeatureConfig: FeatureConfig!
 
-  """"""
+  """
+  """
   effectiveSecretConfig: EffectiveSecretConfig!
 
-  """The ID of an object"""
+  """
+  The ID of an object
+  """
   id: ID!
 
-  """"""
+  """
+  """
   isProcessingSubscription: Boolean!
 
-  """"""
+  """
+  """
   lastStripeError: StripeError
 
-  """"""
+  """
+  """
   planName: String!
 
-  """"""
+  """
+  """
   rawAppConfig: AppConfig!
 
-  """"""
+  """
+  """
   rawAppConfigChecksum: String!
 
-  """"""
+  """
+  """
   resources(paths: [String!]): [AppResource!]!
 
-  """"""
+  """
+  """
   samlIdpEntityID: String!
 
-  """"""
+  """
+  """
   secretConfig(token: String): SecretConfig!
 
-  """"""
+  """
+  """
   secretConfigChecksum: String!
 
-  """"""
+  """
+  """
   subscription: Subscription
 
-  """"""
+  """
+  """
   subscriptionUsage(date: DateTime!): SubscriptionUsage
 
-  """"""
+  """
+  """
   tutorialStatus: TutorialStatus!
 
-  """"""
+  """
+  """
   usage(date: DateTime!): Usage
 
-  """"""
+  """
+  """
   viewer: Collaborator!
 }
 
-"""The `AppConfig` scalar type represents an app config JSON object"""
+"""
+The `AppConfig` scalar type represents an app config JSON object
+"""
 scalar AppConfig
 
-""""""
+"""
+"""
 type AppListItem {
-  """"""
+  """
+  """
   appID: String!
 
-  """"""
+  """
+  """
   publicOrigin: String!
 }
 
-"""Resource file for an app"""
+"""
+Resource file for an app
+"""
 type AppResource {
   """
   The checksum of the resource file. It is an opaque string that will be used to detect conflict.
   """
   checksum: String
 
-  """"""
+  """
+  """
   data: String
 
-  """"""
+  """
+  """
   effectiveData: String
 
-  """"""
+  """
+  """
   languageTag: String
 
-  """"""
+  """
+  """
   path: String!
 }
 
-"""Update to resource file."""
+"""
+Update to resource file.
+"""
 input AppResourceUpdate {
   """
   The checksum of the original resource file. If provided, it will be used to detect conflict.
   """
   checksum: String
 
-  """New data of the resource file. Set to null to remove it."""
+  """
+  New data of the resource file. Set to null to remove it.
+  """
   data: String
 
-  """Path of the resource file to update."""
+  """
+  Path of the resource file to update.
+  """
   path: String!
 }
 
-""""""
+"""
+"""
 enum AppSecretKey {
-  """"""
+  """
+  """
   ADMIN_API_SECRETS
 
-  """"""
+  """
+  """
   BOT_PROTECTION_PROVIDER_SECRET
 
-  """"""
+  """
+  """
   OAUTH_CLIENT_SECRETS
 
-  """"""
+  """
+  """
   OAUTH_SSO_PROVIDER_CLIENT_SECRETS
 
-  """"""
+  """
+  """
   SAML_IDP_SIGNING_SECRETS
 
-  """"""
+  """
+  """
   SAML_SP_SIGNING_SECRETS
 
-  """"""
+  """
+  """
   SMS_PROVIDER_SECRETS
 
-  """"""
+  """
+  """
   SMTP_SECRET
 
-  """"""
+  """
+  """
   WEBHOOK_SECRET
 }
 
-"""Bot protection provider secret"""
+"""
+Bot protection provider secret
+"""
 type BotProtectionProviderSecret {
-  """"""
+  """
+  """
   secretKey: String
 
-  """"""
+  """
+  """
   type: String!
 }
 
-""""""
+"""
+"""
 input BotProtectionProviderSecretInput {
-  """"""
+  """
+  """
   secretKey: String
 
-  """"""
+  """
+  """
   type: String!
 }
 
-""""""
+"""
+"""
 input BotProtectionProviderSecretUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   data: BotProtectionProviderSecretInput
 }
 
-""""""
+"""
+"""
 type CancelFailedSubscriptionPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 type Chart {
-  """"""
+  """
+  """
   dataset: [DataPoint]!
 }
 
-""""""
+"""
+"""
 type CheckCollaboratorInvitationPayload {
-  """"""
+  """
+  """
   appID: String!
 
-  """"""
+  """
+  """
   isInvitee: Boolean!
 }
 
-""""""
+"""
+"""
 input CheckIPInput {
-  """App ID."""
+  """
+  App ID.
+  """
   appID: ID!
 
-  """List of CIDRs to check against."""
+  """
+  List of CIDRs to check against.
+  """
   cidrs: [String!]!
 
-  """List of alpha-2 country codes to check against."""
+  """
+  List of alpha-2 country codes to check against.
+  """
   countryCodes: [String!]!
 
-  """The IP address to check."""
+  """
+  The IP address to check.
+  """
   ipAddress: String!
 }
 
-"""Collaborator of an app"""
+"""
+Collaborator of an app
+"""
 type Collaborator {
-  """"""
+  """
+  """
   createdAt: DateTime!
 
-  """"""
+  """
+  """
   id: String!
 
-  """"""
+  """
+  """
   role: CollaboratorRole!
 
-  """"""
+  """
+  """
   user: User!
 }
 
-"""Collaborator invitation of an app"""
+"""
+Collaborator invitation of an app
+"""
 type CollaboratorInvitation {
-  """"""
+  """
+  """
   createdAt: DateTime!
 
-  """"""
+  """
+  """
   expireAt: DateTime!
 
-  """"""
+  """
+  """
   id: String!
 
-  """"""
+  """
+  """
   invitedBy: User!
 
-  """"""
+  """
+  """
   inviteeEmail: String!
 }
 
-""""""
+"""
+"""
 enum CollaboratorRole {
-  """"""
+  """
+  """
   EDITOR
 
-  """"""
+  """
+  """
   OWNER
 }
 
-""""""
+"""
+"""
 input CreateAppInput {
-  """ID of the new app."""
+  """
+  ID of the new app.
+  """
   id: String!
 
-  """Data of project wizard"""
+  """
+  Data of project wizard
+  """
   projectWizardData: ProjectWizardData
 }
 
-""""""
+"""
+"""
 type CreateAppPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input CreateCheckoutSessionInput {
-  """App ID."""
+  """
+  App ID.
+  """
   appID: ID!
 
-  """Plan name."""
+  """
+  Plan name.
+  """
   planName: String!
 }
 
-""""""
+"""
+"""
 type CreateCheckoutSessionPayload {
-  """"""
+  """
+  """
   url: String!
 }
 
-""""""
+"""
+"""
 input CreateCollaboratorInvitationInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Invitee email address."""
+  """
+  Invitee email address.
+  """
   inviteeEmail: String!
 }
 
-""""""
+"""
+"""
 type CreateCollaboratorInvitationPayload {
-  """"""
+  """
+  """
   app: App!
 
-  """"""
+  """
+  """
   collaboratorInvitation: CollaboratorInvitation!
 }
 
-""""""
+"""
+"""
 input CreateDomainInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Domain name."""
+  """
+  Domain name.
+  """
   domain: String!
 }
 
-""""""
+"""
+"""
 type CreateDomainPayload {
-  """"""
+  """
+  """
   app: App!
 
-  """"""
+  """
+  """
   domain: Domain!
 }
 
-""""""
+"""
+"""
 input CustomSmsProviderSecretsInput {
-  """"""
+  """
+  """
   timeout: Int
 
-  """"""
+  """
+  """
   url: String!
 }
 
-""""""
+"""
+"""
 type DataPoint {
-  """"""
+  """
+  """
   data: Float!
 
-  """"""
+  """
+  """
   label: String!
 }
 
@@ -381,75 +526,105 @@ The `DateTime` scalar type represents a DateTime. The DateTime is serialized as 
 """
 scalar DateTime
 
-""""""
+"""
+"""
 input DeleteCollaboratorInput {
-  """Collaborator ID."""
+  """
+  Collaborator ID.
+  """
   collaboratorID: String!
 }
 
-""""""
+"""
+"""
 input DeleteCollaboratorInvitationInput {
-  """Collaborator invitation ID."""
+  """
+  Collaborator invitation ID.
+  """
   collaboratorInvitationID: String!
 }
 
-""""""
+"""
+"""
 type DeleteCollaboratorInvitationPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 type DeleteCollaboratorPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input DeleteDomainInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Domain ID."""
+  """
+  Domain ID.
+  """
   domainID: String!
 }
 
-""""""
+"""
+"""
 type DeleteDomainPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-"""DNS domain of an app"""
+"""
+DNS domain of an app
+"""
 type Domain {
-  """"""
+  """
+  """
   apexDomain: String!
 
-  """"""
+  """
+  """
   cookieDomain: String!
 
-  """"""
+  """
+  """
   createdAt: DateTime!
 
-  """"""
+  """
+  """
   domain: String!
 
-  """"""
+  """
+  """
   id: String!
 
-  """"""
+  """
+  """
   isCustom: Boolean!
 
-  """"""
+  """
+  """
   isVerified: Boolean!
 
-  """"""
+  """
+  """
   verificationDNSRecord: String!
 }
 
-"""Effective secret config"""
+"""
+Effective secret config
+"""
 type EffectiveSecretConfig {
-  """"""
+  """
+  """
   oauthSSOProviderDemoSecrets: [OAuthSSOProviderDemoSecretItem!]
 }
 
@@ -458,240 +633,391 @@ The `FeatureConfig` scalar type represents an feature config JSON object
 """
 scalar FeatureConfig
 
-""""""
+"""
+"""
 input GenerateAppSecretVisitTokenInput {
-  """ID of the app."""
+  """
+  ID of the app.
+  """
   id: ID!
 
-  """Secrets to visit."""
+  """
+  Secrets to visit.
+  """
   secrets: [AppSecretKey!]!
 }
 
-""""""
+"""
+"""
 type GenerateAppSecretVisitTokenPayloadPayload {
-  """The generated token"""
+  """
+  The generated token
+  """
   token: String!
 }
 
-""""""
+"""
+"""
 type GenerateShortLivedAdminAPITokenPayload {
-  """"""
+  """
+  """
   token: String!
 }
 
-""""""
+"""
+"""
 input GenerateStripeCustomerPortalSessionInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 }
 
-""""""
+"""
+"""
 type GenerateStripeCustomerPortalSessionPayload {
-  """"""
+  """
+  """
   url: String!
 }
 
-""""""
+"""
+"""
 input GenerateTestTokenInput {
-  """ID of the app."""
+  """
+  ID of the app.
+  """
   id: ID!
 
-  """URI to return to in the tester page"""
+  """
+  URI to return to in the tester page
+  """
   returnUri: String!
 }
 
-""""""
+"""
+"""
 type GenerateTestTokenPayload {
-  """The generated token"""
+  """
+  The generated token
+  """
   token: String!
 }
 
-""""""
+"""
+"""
 type Mutation {
-  """Accept collaborator invitation to the target app."""
-  acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
+  """
+  Accept collaborator invitation to the target app.
+  """
+  acceptCollaboratorInvitation(
+    input: AcceptCollaboratorInvitationInput!
+  ): AcceptCollaboratorInvitationPayload!
 
-  """Cancel failed subscription"""
-  cancelFailedSubscription(input: cancelFailedSubscriptionInput!): CancelFailedSubscriptionPayload!
+  """
+  Cancel failed subscription
+  """
+  cancelFailedSubscription(
+    input: cancelFailedSubscriptionInput!
+  ): CancelFailedSubscriptionPayload!
 
-  """Check Deno Hook"""
+  """
+  Check Deno Hook
+  """
   checkDenoHook(input: sendDenoHookInput!): Boolean
 
-  """Check an IP address against blocklists."""
+  """
+  Check an IP address against blocklists.
+  """
   checkIP(input: CheckIPInput!): Boolean
 
-  """Create new app"""
+  """
+  Create new app
+  """
   createApp(input: CreateAppInput!): CreateAppPayload!
 
-  """Create stripe checkout session"""
-  createCheckoutSession(input: CreateCheckoutSessionInput!): CreateCheckoutSessionPayload!
+  """
+  Create stripe checkout session
+  """
+  createCheckoutSession(
+    input: CreateCheckoutSessionInput!
+  ): CreateCheckoutSessionPayload!
 
-  """Invite a collaborator to the target app."""
-  createCollaboratorInvitation(input: CreateCollaboratorInvitationInput!): CreateCollaboratorInvitationPayload!
+  """
+  Invite a collaborator to the target app.
+  """
+  createCollaboratorInvitation(
+    input: CreateCollaboratorInvitationInput!
+  ): CreateCollaboratorInvitationPayload!
 
-  """Create domain for target app"""
+  """
+  Create domain for target app
+  """
   createDomain(input: CreateDomainInput!): CreateDomainPayload!
 
-  """Delete collaborator of target app."""
-  deleteCollaborator(input: DeleteCollaboratorInput!): DeleteCollaboratorPayload!
+  """
+  Delete collaborator of target app.
+  """
+  deleteCollaborator(
+    input: DeleteCollaboratorInput!
+  ): DeleteCollaboratorPayload!
 
-  """Delete collaborator invitation of target app."""
-  deleteCollaboratorInvitation(input: DeleteCollaboratorInvitationInput!): DeleteCollaboratorInvitationPayload!
+  """
+  Delete collaborator invitation of target app.
+  """
+  deleteCollaboratorInvitation(
+    input: DeleteCollaboratorInvitationInput!
+  ): DeleteCollaboratorInvitationPayload!
 
-  """Delete domain of target app"""
+  """
+  Delete domain of target app
+  """
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
-  """Generate a token for visiting app secrets"""
-  generateAppSecretVisitToken(input: GenerateAppSecretVisitTokenInput!): GenerateAppSecretVisitTokenPayloadPayload!
+  """
+  Generate a token for visiting app secrets
+  """
+  generateAppSecretVisitToken(
+    input: GenerateAppSecretVisitTokenInput!
+  ): GenerateAppSecretVisitTokenPayloadPayload!
 
-  """Generate short-lived admin API token"""
-  generateShortLivedAdminAPIToken(input: generateShortLivedAdminAPITokenInput!): GenerateShortLivedAdminAPITokenPayload
+  """
+  Generate short-lived admin API token
+  """
+  generateShortLivedAdminAPIToken(
+    input: generateShortLivedAdminAPITokenInput!
+  ): GenerateShortLivedAdminAPITokenPayload
 
-  """Generate Stripe customer portal session"""
-  generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
+  """
+  Generate Stripe customer portal session
+  """
+  generateStripeCustomerPortalSession(
+    input: GenerateStripeCustomerPortalSessionInput!
+  ): GenerateStripeCustomerPortalSessionPayload!
 
-  """Generate a token for tester"""
+  """
+  Generate a token for tester
+  """
   generateTesterToken(input: GenerateTestTokenInput!): GenerateTestTokenPayload!
 
-  """Preview update subscription"""
-  previewUpdateSubscription(input: PreviewUpdateSubscriptionInput!): PreviewUpdateSubscriptionPayload!
+  """
+  Preview update subscription
+  """
+  previewUpdateSubscription(
+    input: PreviewUpdateSubscriptionInput!
+  ): PreviewUpdateSubscriptionPayload!
 
-  """Reconcile the completed checkout session"""
-  reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
+  """
+  Reconcile the completed checkout session
+  """
+  reconcileCheckoutSession(
+    input: reconcileCheckoutSession!
+  ): reconcileCheckoutSessionPayload!
 
-  """Updates the current user's custom attribute with 'survey' key"""
+  """
+  Updates the current user's custom attribute with 'survey' key
+  """
   saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
 
-  """Save the progress of project wizard of the app"""
-  saveProjectWizardData(input: SaveProjectWizardDataInput!): SaveProjectWizardDataPayload!
+  """
+  Save the progress of project wizard of the app
+  """
+  saveProjectWizardData(
+    input: SaveProjectWizardDataInput!
+  ): SaveProjectWizardDataPayload!
 
-  """Send a SMS to test the configuration"""
+  """
+  Send a SMS to test the configuration
+  """
   sendTestSMSConfiguration(input: SendTestSMSInput!): Boolean
 
-  """Send test STMP configuration email"""
-  sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
+  """
+  Send test STMP configuration email
+  """
+  sendTestSMTPConfigurationEmail(
+    input: sendTestSMTPConfigurationEmailInput!
+  ): Boolean
 
-  """Set app subscription cancellation status"""
-  setSubscriptionCancelledStatus(input: SetSubscriptionCancelledStatusInput!): SetSubscriptionCancelledStatusPayload!
+  """
+  Set app subscription cancellation status
+  """
+  setSubscriptionCancelledStatus(
+    input: SetSubscriptionCancelledStatusInput!
+  ): SetSubscriptionCancelledStatusPayload!
 
-  """Skip the tutorial of the app"""
+  """
+  Skip the tutorial of the app
+  """
   skipAppTutorial(input: SkipAppTutorialInput!): SkipAppTutorialPayload!
 
-  """Skip a progress of the tutorial of the app"""
-  skipAppTutorialProgress(input: SkipAppTutorialProgressInput!): SkipAppTutorialProgressPayload!
+  """
+  Skip a progress of the tutorial of the app
+  """
+  skipAppTutorialProgress(
+    input: SkipAppTutorialProgressInput!
+  ): SkipAppTutorialProgressPayload!
 
-  """Update app"""
+  """
+  Update app
+  """
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
-  """Update subscription"""
-  updateSubscription(input: UpdateSubscriptionInput!): UpdateSubscriptionPayload!
+  """
+  Update subscription
+  """
+  updateSubscription(
+    input: UpdateSubscriptionInput!
+  ): UpdateSubscriptionPayload!
 
-  """Request verification of a domain of target app"""
+  """
+  Request verification of a domain of target app
+  """
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
 }
 
-"""An object with an ID"""
+"""
+An object with an ID
+"""
 interface Node {
-  """The id of the object"""
+  """
+  The id of the object
+  """
   id: ID!
 }
 
-""""""
+"""
+"""
 input OAuthClientSecretsCleanupDataInput {
-  """"""
+  """
+  """
   keepClientIDs: [String!]!
 }
 
-""""""
+"""
+"""
 input OAuthClientSecretsDeleteDataInput {
-  """"""
+  """
+  """
   clientID: String!
 
-  """"""
+  """
+  """
   keyID: String!
 }
 
-""""""
+"""
+"""
 input OAuthClientSecretsGenerateDataInput {
-  """"""
+  """
+  """
   clientID: String!
 }
 
-""""""
+"""
+"""
 input OAuthClientSecretsUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   cleanupData: OAuthClientSecretsCleanupDataInput
 
-  """"""
+  """
+  """
   deleteData: OAuthClientSecretsDeleteDataInput
 
-  """"""
+  """
+  """
   generateData: OAuthClientSecretsGenerateDataInput
 }
 
-"""OAuth client secret"""
+"""
+OAuth client secret
+"""
 type OAuthSSOProviderClientSecret {
-  """"""
+  """
+  """
   alias: String!
 
-  """"""
+  """
+  """
   clientSecret: String
 }
 
-""""""
+"""
+"""
 input OAuthSSOProviderClientSecretInput {
-  """"""
+  """
+  """
   newAlias: String!
 
-  """"""
+  """
+  """
   newClientSecret: String
 
-  """"""
+  """
+  """
   originalAlias: String
 }
 
-""""""
+"""
+"""
 input OAuthSSOProviderClientSecretsUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   data: [OAuthSSOProviderClientSecretInput!]
 }
 
-"""OAuth SSO Provider demo secret item"""
+"""
+OAuth SSO Provider demo secret item
+"""
 type OAuthSSOProviderDemoSecretItem {
-  """"""
+  """
+  """
   type: String!
 }
 
-""""""
+"""
+"""
 enum Periodical {
-  """"""
+  """
+  """
   MONTHLY
 
-  """"""
+  """
+  """
   WEEKLY
 }
 
-""""""
+"""
+"""
 input PreviewUpdateSubscriptionInput {
-  """App ID."""
+  """
+  App ID.
+  """
   appID: ID!
 
-  """Plan name."""
+  """
+  Plan name.
+  """
   planName: String!
 }
 
-""""""
+"""
+"""
 type PreviewUpdateSubscriptionPayload {
-  """"""
+  """
+  """
   amountDue: Int!
 
-  """"""
+  """
+  """
   currency: String!
 }
 
@@ -700,627 +1026,878 @@ The `ProjectWizardData` scalar type represents form data of project wizard
 """
 scalar ProjectWizardData
 
-""""""
+"""
+"""
 type Query {
-  """Active users chart dataset"""
+  """
+  Active users chart dataset
+  """
   activeUserChart(
-    """Target app ID."""
+    """
+    Target app ID.
+    """
     appID: ID!
 
-    """"""
+    """
+    """
     periodical: Periodical!
 
-    """"""
+    """
+    """
     rangeFrom: Date!
 
-    """"""
+    """
+    """
     rangeTo: Date!
   ): Chart
 
-  """The list of apps accessible to the current viewer"""
+  """
+  The list of apps accessible to the current viewer
+  """
   appList: [AppListItem!]
 
-  """Check whether the viewer can accept the collaboration invitation"""
+  """
+  Check whether the viewer can accept the collaboration invitation
+  """
   checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
 
-  """Fetches an object given its ID"""
+  """
+  Fetches an object given its ID
+  """
   node(
-    """The ID of an object"""
+    """
+    The ID of an object
+    """
     id: ID!
   ): Node
 
-  """Lookup nodes by a list of IDs."""
+  """
+  Lookup nodes by a list of IDs.
+  """
   nodes(
-    """The list of node IDs."""
+    """
+    The list of node IDs.
+    """
     ids: [ID!]!
   ): [Node]!
 
-  """Signup by methods dataset"""
+  """
+  Signup by methods dataset
+  """
   signupByMethodsChart(
-    """Target app ID."""
+    """
+    Target app ID.
+    """
     appID: ID!
 
-    """"""
+    """
+    """
     rangeFrom: Date!
 
-    """"""
+    """
+    """
     rangeTo: Date!
   ): Chart
 
-  """Signup conversion rate dashboard data"""
+  """
+  Signup conversion rate dashboard data
+  """
   signupConversionRate(
-    """Target app ID."""
+    """
+    Target app ID.
+    """
     appID: ID!
 
-    """"""
+    """
+    """
     rangeFrom: Date!
 
-    """"""
+    """
+    """
     rangeTo: Date!
   ): SignupConversionRate
 
-  """Available subscription plans"""
+  """
+  Available subscription plans
+  """
   subscriptionPlans: [SubscriptionPlan!]!
 
-  """Total users count chart dataset"""
+  """
+  Total users count chart dataset
+  """
   totalUserCountChart(
-    """Target app ID."""
+    """
+    Target app ID.
+    """
     appID: ID!
 
-    """"""
+    """
+    """
     rangeFrom: Date!
 
-    """"""
+    """
+    """
     rangeTo: Date!
   ): Chart
 
-  """The current viewer"""
+  """
+  The current viewer
+  """
   viewer: Viewer
 }
 
-"""SAML Identity Provider signing certificate"""
+"""
+SAML Identity Provider signing certificate
+"""
 type SAMLIdpSigningCertificate {
-  """"""
+  """
+  """
   certificateFingerprint: String!
 
-  """"""
+  """
+  """
   certificatePEM: String!
 
-  """"""
+  """
+  """
   keyID: String!
 }
 
-"""SAML Identity Provider signing secrets"""
+"""
+SAML Identity Provider signing secrets
+"""
 type SAMLIdpSigningSecrets {
-  """"""
+  """
+  """
   certificates: [SAMLIdpSigningCertificate!]!
 }
 
-""""""
+"""
+"""
 input SAMLIdpSigningSecretsDeleteDataInput {
-  """"""
+  """
+  """
   keyIDs: [String!]!
 }
 
-""""""
+"""
+"""
 input SAMLIdpSigningSecretsUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   deleteData: SAMLIdpSigningSecretsDeleteDataInput
 }
 
-"""SAML Service Provider signing secrets"""
+"""
+SAML Service Provider signing secrets
+"""
 type SAMLSpSigningSecrets {
-  """"""
+  """
+  """
   certificates: [samlSpSigningCertificate!]!
 
-  """"""
+  """
+  """
   clientID: String!
 }
 
-""""""
+"""
+"""
 input SAMLSpSigningSecretsSetDataInput {
-  """"""
+  """
+  """
   items: [SAMLSpSigningSecretsSetDataInputItem!]!
 }
 
-""""""
+"""
+"""
 input SAMLSpSigningSecretsSetDataInputItem {
-  """"""
+  """
+  """
   certificates: [String!]!
 
-  """"""
+  """
+  """
   clientID: String!
 }
 
-""""""
+"""
+"""
 input SAMLSpSigningSecretsUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   setData: SAMLSpSigningSecretsSetDataInput
 }
 
-""""""
+"""
+"""
 input SMSProviderConfigurationDenoInput {
-  """"""
+  """
+  """
   script: String!
 
-  """"""
+  """
+  """
   timeout: Int
 }
 
-""""""
+"""
+"""
 input SMSProviderConfigurationInput {
-  """Deno hook configuration"""
+  """
+  Deno hook configuration
+  """
   deno: SMSProviderConfigurationDenoInput
 
-  """Twilio configuration"""
+  """
+  Twilio configuration
+  """
   twilio: SMSProviderConfigurationTwilioInput
 
-  """Webhook Configuration"""
+  """
+  Webhook Configuration
+  """
   webhook: SMSProviderConfigurationWebhookInput
 }
 
-""""""
+"""
+"""
 input SMSProviderConfigurationTwilioInput {
-  """"""
+  """
+  """
   accountSID: String!
 
-  """"""
+  """
+  """
   apiKeySID: String
 
-  """"""
+  """
+  """
   apiKeySecret: String
 
-  """"""
+  """
+  """
   authToken: String
 
-  """"""
+  """
+  """
   credentialType: TwilioCredentialType!
 
-  """"""
+  """
+  """
   from: String
 
-  """"""
+  """
+  """
   messagingServiceSID: String
 }
 
-""""""
+"""
+"""
 input SMSProviderConfigurationWebhookInput {
-  """"""
+  """
+  """
   timeout: Int
 
-  """"""
+  """
+  """
   url: String!
 }
 
-"""Custom SMS Provider configs"""
+"""
+Custom SMS Provider configs
+"""
 type SMSProviderCustomSMSProviderSecrets {
-  """"""
+  """
+  """
   timeout: Int
 
-  """"""
+  """
+  """
   url: String!
 }
 
-"""SMS Provider secrets"""
+"""
+SMS Provider secrets
+"""
 type SMSProviderSecrets {
-  """"""
+  """
+  """
   customSMSProviderCredentials: SMSProviderCustomSMSProviderSecrets
 
-  """"""
+  """
+  """
   twilioCredentials: SMSProviderTwilioCredentials
 }
 
-""""""
+"""
+"""
 input SMSProviderSecretsSetDataInput {
-  """"""
+  """
+  """
   customSMSProviderCredentials: CustomSmsProviderSecretsInput
 
-  """"""
+  """
+  """
   twilioCredentials: SMSProviderTwilioCredentialsInput
 }
 
-""""""
+"""
+"""
 input SMSProviderSecretsUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   setData: SMSProviderSecretsSetDataInput
 }
 
-"""Twilio credentials"""
+"""
+Twilio credentials
+"""
 type SMSProviderTwilioCredentials {
-  """"""
+  """
+  """
   accountSID: String!
 
-  """"""
+  """
+  """
   apiKeySID: String
 
-  """"""
+  """
+  """
   apiKeySecret: String
 
-  """"""
+  """
+  """
   authToken: String
 
-  """"""
+  """
+  """
   credentialType: TwilioCredentialType!
 
-  """"""
+  """
+  """
   from: String
 
-  """"""
+  """
+  """
   messagingServiceSID: String
 }
 
-""""""
+"""
+"""
 input SMSProviderTwilioCredentialsInput {
-  """"""
+  """
+  """
   accountSID: String!
 
-  """"""
+  """
+  """
   apiKeySID: String
 
-  """"""
+  """
+  """
   apiKeySecret: String
 
-  """"""
+  """
+  """
   authToken: String
 
-  """"""
+  """
+  """
   credentialType: TwilioCredentialType!
 
-  """"""
+  """
+  """
   from: String
 
-  """"""
+  """
+  """
   messagingServiceSID: String
 }
 
-"""SMTP secret"""
+"""
+SMTP secret
+"""
 type SMTPSecret {
-  """"""
+  """
+  """
   host: String!
 
-  """"""
+  """
+  """
   password: String
 
-  """"""
+  """
+  """
   port: Int!
 
-  """"""
+  """
+  """
   sender: String
 
-  """"""
+  """
+  """
   username: String!
 }
 
-""""""
+"""
+"""
 input SMTPSecretInput {
-  """"""
+  """
+  """
   host: String!
 
-  """"""
+  """
+  """
   password: String
 
-  """"""
+  """
+  """
   port: Int!
 
-  """"""
+  """
+  """
   sender: String
 
-  """"""
+  """
+  """
   username: String!
 }
 
-""""""
+"""
+"""
 input SaveOnboardingSurveyInput {
-  """Onboarding survey result JSON."""
+  """
+  Onboarding survey result JSON.
+  """
   surveyJSON: String!
 }
 
-""""""
+"""
+"""
 input SaveProjectWizardDataInput {
-  """The project wizard data to save."""
+  """
+  The project wizard data to save.
+  """
   data: ProjectWizardData
 
-  """ID of the app."""
+  """
+  ID of the app.
+  """
   id: String!
 }
 
-""""""
+"""
+"""
 type SaveProjectWizardDataPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-"""The content of authgear.secrets.yaml"""
+"""
+The content of authgear.secrets.yaml
+"""
 type SecretConfig {
-  """"""
+  """
+  """
   adminAPISecrets: [AdminAPISecret!]
 
-  """"""
+  """
+  """
   botProtectionProviderSecret: BotProtectionProviderSecret
 
-  """"""
+  """
+  """
   oauthClientSecrets: [oauthClientSecretItem!]
 
-  """"""
+  """
+  """
   oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecret!]
 
-  """"""
+  """
+  """
   samlIdpSigningSecrets: SAMLIdpSigningSecrets
 
-  """"""
+  """
+  """
   samlSpSigningSecrets: [SAMLSpSigningSecrets!]
 
-  """"""
+  """
+  """
   smsProviderSecrets: SMSProviderSecrets
 
-  """"""
+  """
+  """
   smtpSecret: SMTPSecret
 
-  """"""
+  """
+  """
   webhookSecret: WebhookSecret
 }
 
-""""""
+"""
+"""
 input SecretConfigUpdateInstructionsInput {
-  """"""
+  """
+  """
   adminAPIAuthKey: AdminAPIAuthKeyUpdateInstructionInput
 
-  """"""
+  """
+  """
   botProtectionProviderSecret: BotProtectionProviderSecretUpdateInstructionsInput
 
-  """"""
+  """
+  """
   oauthClientSecrets: OAuthClientSecretsUpdateInstructionsInput
 
-  """"""
+  """
+  """
   oauthSSOProviderClientSecrets: OAuthSSOProviderClientSecretsUpdateInstructionsInput
 
-  """"""
+  """
+  """
   samlIdpSigningSecrets: SAMLIdpSigningSecretsUpdateInstructionsInput
 
-  """"""
+  """
+  """
   samlSpSigningSecrets: SAMLSpSigningSecretsUpdateInstructionsInput
 
-  """"""
+  """
+  """
   smsProviderSecrets: SMSProviderSecretsUpdateInstructionsInput
 
-  """"""
+  """
+  """
   smtpSecret: SmtpSecretUpdateInstructionsInput
 }
 
-""""""
+"""
+"""
 input SendTestSMSInput {
-  """App ID to test."""
+  """
+  App ID to test.
+  """
   appID: ID!
 
-  """The SMS provider configuration."""
+  """
+  The SMS provider configuration.
+  """
   providerConfiguration: SMSProviderConfigurationInput!
 
-  """The recipient phone number."""
+  """
+  The recipient phone number.
+  """
   to: String!
 }
 
-""""""
+"""
+"""
 input SetSubscriptionCancelledStatusInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Target app subscription cancellation status."""
+  """
+  Target app subscription cancellation status.
+  """
   cancelled: Boolean!
 }
 
-""""""
+"""
+"""
 type SetSubscriptionCancelledStatusPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-"""Signup conversion rate dashboard data"""
+"""
+Signup conversion rate dashboard data
+"""
 type SignupConversionRate {
-  """"""
+  """
+  """
   conversionRate: Float!
 
-  """"""
+  """
+  """
   totalSignup: Int!
 
-  """"""
+  """
+  """
   totalSignupUniquePageView: Int!
 }
 
-""""""
+"""
+"""
 input SkipAppTutorialInput {
-  """ID of the app."""
+  """
+  ID of the app.
+  """
   id: String!
 }
 
-""""""
+"""
+"""
 type SkipAppTutorialPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input SkipAppTutorialProgressInput {
-  """ID of the app."""
+  """
+  ID of the app.
+  """
   id: String!
 
-  """The progress to skip."""
+  """
+  The progress to skip.
+  """
   progress: String!
 }
 
-""""""
+"""
+"""
 type SkipAppTutorialProgressPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input SmtpSecretUpdateInstructionsInput {
-  """"""
+  """
+  """
   action: String!
 
-  """"""
+  """
+  """
   data: SMTPSecretInput
 }
 
-"""The `StripeError` scalar type represents Stripe error"""
+"""
+The `StripeError` scalar type represents Stripe error
+"""
 scalar StripeError
 
-""""""
+"""
+"""
 type Subscription {
-  """"""
+  """
+  """
   cancelledAt: DateTime
 
-  """"""
+  """
+  """
   createdAt: DateTime!
 
-  """"""
+  """
+  """
   endedAt: DateTime
 
-  """"""
+  """
+  """
   id: String!
 
-  """"""
+  """
+  """
   updatedAt: DateTime!
 }
 
-""""""
+"""
+"""
 type SubscriptionItemPrice {
-  """"""
+  """
+  """
   currency: String!
 
-  """"""
+  """
+  """
   freeQuantity: Int
 
-  """"""
+  """
+  """
   smsRegion: UsageSMSRegion!
 
-  """"""
+  """
+  """
   transformQuantityDivideBy: Int
 
-  """"""
+  """
+  """
   transformQuantityRound: TransformQuantityRound!
 
-  """"""
+  """
+  """
   type: SubscriptionItemPriceType!
 
-  """"""
+  """
+  """
   unitAmount: Int!
 
-  """"""
+  """
+  """
   usageType: UsageType!
 
-  """"""
+  """
+  """
   whatsappRegion: UsageWhatsappRegion!
 }
 
-""""""
+"""
+"""
 enum SubscriptionItemPriceType {
-  """"""
+  """
+  """
   FIXED
 
-  """"""
+  """
+  """
   USAGE
 }
 
-""""""
+"""
+"""
 type SubscriptionPlan {
-  """"""
+  """
+  """
   name: String!
 
-  """"""
+  """
+  """
   prices: [SubscriptionItemPrice!]!
 }
 
-""""""
+"""
+"""
 type SubscriptionUsage {
-  """"""
+  """
+  """
   items: [SubscriptionUsageItem!]!
 
-  """"""
+  """
+  """
   nextBillingDate: DateTime!
 }
 
-""""""
+"""
+"""
 type SubscriptionUsageItem {
-  """"""
+  """
+  """
   currency: String
 
-  """"""
+  """
+  """
   freeQuantity: Int
 
-  """"""
+  """
+  """
   quantity: Int!
 
-  """"""
+  """
+  """
   smsRegion: UsageSMSRegion!
 
-  """"""
+  """
+  """
   totalAmount: Int
 
-  """"""
+  """
+  """
   transformQuantityDivideBy: Int
 
-  """"""
+  """
+  """
   transformQuantityRound: TransformQuantityRound!
 
-  """"""
+  """
+  """
   type: SubscriptionItemPriceType!
 
-  """"""
+  """
+  """
   unitAmount: Int
 
-  """"""
+  """
+  """
   usageType: UsageType!
 
-  """"""
+  """
+  """
   whatsappRegion: UsageWhatsappRegion!
 }
 
-""""""
+"""
+"""
 enum TransformQuantityRound {
-  """"""
+  """
+  """
   DOWN
 
-  """"""
+  """
+  """
   NONE
 
-  """"""
+  """
+  """
   UP
 }
 
-"""Tutorial status of an app"""
+"""
+Tutorial status of an app
+"""
 type TutorialStatus {
-  """"""
+  """
+  """
   appID: String!
 
-  """"""
+  """
+  """
   data: TutorialStatusData!
 }
 
-"""The `TutorialStatusData` scalar type represents tutorial status data"""
+"""
+The `TutorialStatusData` scalar type represents tutorial status data
+"""
 scalar TutorialStatusData
 
-""""""
+"""
+"""
 enum TwilioCredentialType {
-  """"""
+  """
+  """
   api_key
 
-  """"""
+  """
+  """
   auth_token
 }
 
-""""""
+"""
+"""
 input UpdateAppInput {
-  """authgear.yaml in JSON."""
+  """
+  authgear.yaml in JSON.
+  """
   appConfig: AppConfig
 
   """
@@ -1328,10 +1905,14 @@ input UpdateAppInput {
   """
   appConfigChecksum: String
 
-  """App ID to update."""
+  """
+  App ID to update.
+  """
   appID: ID!
 
-  """update secret config instructions."""
+  """
+  update secret config instructions.
+  """
   secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput
 
   """
@@ -1339,237 +1920,342 @@ input UpdateAppInput {
   """
   secretConfigUpdateInstructionsChecksum: String
 
-  """Resource file updates."""
+  """
+  Resource file updates.
+  """
   updates: [AppResourceUpdate!]
 }
 
-""""""
+"""
+"""
 type UpdateAppPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 input UpdateSubscriptionInput {
-  """App ID."""
+  """
+  App ID.
+  """
   appID: ID!
 
-  """Plan name."""
+  """
+  Plan name.
+  """
   planName: String!
 }
 
-""""""
+"""
+"""
 type UpdateSubscriptionPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-""""""
+"""
+"""
 type Usage {
-  """"""
+  """
+  """
   items: [UsageItem!]!
 }
 
-""""""
+"""
+"""
 type UsageItem {
-  """"""
+  """
+  """
   quantity: Int!
 
-  """"""
+  """
+  """
   smsRegion: UsageSMSRegion!
 
-  """"""
+  """
+  """
   usageType: UsageType!
 
-  """"""
+  """
+  """
   whatsappRegion: UsageWhatsappRegion!
 }
 
-""""""
+"""
+"""
 enum UsageSMSRegion {
-  """"""
+  """
+  """
   NONE
 
-  """"""
+  """
+  """
   NORTH_AMERICA
 
-  """"""
+  """
+  """
   OTHER_REGIONS
 }
 
-""""""
+"""
+"""
 enum UsageType {
-  """"""
+  """
+  """
   MAU
 
-  """"""
+  """
+  """
   NONE
 
-  """"""
+  """
+  """
   SMS
 
-  """"""
+  """
+  """
   WHATSAPP
 }
 
-""""""
+"""
+"""
 enum UsageWhatsappRegion {
-  """"""
+  """
+  """
   NONE
 
-  """"""
+  """
+  """
   NORTH_AMERICA
 
-  """"""
+  """
+  """
   OTHER_REGIONS
 }
 
-"""Portal User"""
+"""
+Portal User
+"""
 type User implements Node {
-  """"""
+  """
+  """
   email: String
 
-  """The ID of an object"""
+  """
+  The ID of an object
+  """
   id: ID!
 }
 
-""""""
+"""
+"""
 input VerifyDomainInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Domain ID."""
+  """
+  Domain ID.
+  """
   domainID: String!
 }
 
-""""""
+"""
+"""
 type VerifyDomainPayload {
-  """"""
+  """
+  """
   app: App!
 
-  """"""
+  """
+  """
   domain: Domain!
 }
 
-"""The viewer"""
+"""
+The viewer
+"""
 type Viewer implements Node {
-  """"""
+  """
+  """
   email: String
 
-  """"""
+  """
+  """
   formattedName: String
 
-  """"""
+  """
+  """
   geoIPCountryCode: String
 
-  """The ID of an object"""
+  """
+  The ID of an object
+  """
   id: ID!
 
-  """"""
+  """
+  """
   isOnboardingSurveyCompleted: Boolean
 
-  """"""
+  """
+  """
   projectOwnerCount: Int!
 
-  """"""
+  """
+  """
   projectQuota: Int
 }
 
-"""Webhook secret"""
+"""
+Webhook secret
+"""
 type WebhookSecret {
-  """"""
+  """
+  """
   secret: String
 }
 
-""""""
+"""
+"""
 input cancelFailedSubscriptionInput {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 }
 
-""""""
+"""
+"""
 input generateShortLivedAdminAPITokenInput {
-  """App ID to generate token for."""
+  """
+  App ID to generate token for.
+  """
   appID: ID!
 
-  """App secret visit token."""
+  """
+  App secret visit token.
+  """
   appSecretVisitToken: String!
 }
 
-"""OAuth client secret item"""
+"""
+OAuth client secret item
+"""
 type oauthClientSecretItem {
-  """"""
+  """
+  """
   clientID: String!
 
-  """"""
+  """
+  """
   keys: [oauthClientSecretKey!]
 }
 
-"""OAuth client secret key"""
+"""
+OAuth client secret key
+"""
 type oauthClientSecretKey {
-  """"""
+  """
+  """
   createdAt: DateTime
 
-  """"""
+  """
+  """
   key: String!
 
-  """"""
+  """
+  """
   keyID: String!
 }
 
-""""""
+"""
+"""
 input reconcileCheckoutSession {
-  """Target app ID."""
+  """
+  Target app ID.
+  """
   appID: ID!
 
-  """Checkout session ID."""
+  """
+  Checkout session ID.
+  """
   checkoutSessionID: String!
 }
 
-""""""
+"""
+"""
 type reconcileCheckoutSessionPayload {
-  """"""
+  """
+  """
   app: App!
 }
 
-"""SAML Identity Provider signing certificate"""
+"""
+SAML Identity Provider signing certificate
+"""
 type samlSpSigningCertificate {
-  """"""
+  """
+  """
   certificateFingerprint: String!
 
-  """"""
+  """
+  """
   certificatePEM: String!
 }
 
-""""""
+"""
+"""
 input sendDenoHookInput {
-  """App ID."""
+  """
+  App ID.
+  """
   appID: ID!
 
-  """The content of the hook."""
+  """
+  The content of the hook.
+  """
   content: String!
 }
 
-""""""
+"""
+"""
 input sendTestSMTPConfigurationEmailInput {
-  """App ID to test."""
+  """
+  App ID to test.
+  """
   appID: ID!
 
-  """SMTP Host."""
+  """
+  SMTP Host.
+  """
   smtpHost: String!
 
-  """SMTP Password."""
+  """
+  SMTP Password.
+  """
   smtpPassword: String!
 
-  """SMTP Port."""
+  """
+  SMTP Port.
+  """
   smtpPort: Int!
 
-  """SMTP Sender."""
+  """
+  SMTP Sender.
+  """
   smtpSender: String!
 
-  """SMTP Username."""
+  """
+  SMTP Username.
+  """
   smtpUsername: String!
 
-  """The recipient email address."""
+  """
+  The recipient email address.
+  """
   to: String!
 }

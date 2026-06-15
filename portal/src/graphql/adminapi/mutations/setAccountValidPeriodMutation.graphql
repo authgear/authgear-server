@@ -1,13 +1,15 @@
 mutation setAccountValidPeriodMutation(
-  $userID: ID!,
-  $accountValidFrom: DateTime,
+  $userID: ID!
+  $accountValidFrom: DateTime
   $accountValidUntil: DateTime
 ) {
-  setAccountValidPeriod(input: {
-    userID: $userID,
-    accountValidFrom: $accountValidFrom,
-    accountValidUntil: $accountValidUntil
-  }) {
+  setAccountValidPeriod(
+    input: {
+      userID: $userID
+      accountValidFrom: $accountValidFrom
+      accountValidUntil: $accountValidUntil
+    }
+  ) {
     user {
       id
       isDisabled

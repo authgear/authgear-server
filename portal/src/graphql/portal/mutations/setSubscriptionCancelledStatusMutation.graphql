@@ -3,10 +3,7 @@ mutation setSubscriptionCancelledStatusMutation(
   $cancelled: Boolean!
 ) {
   setSubscriptionCancelledStatus(
-    input: {
-      appID: $appID
-      cancelled: $cancelled
-    }
+    input: { appID: $appID, cancelled: $cancelled }
   ) {
     app {
       id
