@@ -307,7 +307,7 @@
 /pkg/lib/oauth/response_mode.go:161:40: requestcontext
 /pkg/lib/oauth/scope.go:118:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
-/pkg/lib/otelauthgear/nethttp.go:73:10: requestcontext
+/pkg/lib/otelauthgear/nethttp.go:75:10: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:176:35: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:207:35: requestcontext
 /pkg/lib/session/middleware.go:42:23: requestcontext
@@ -347,8 +347,8 @@
 /pkg/util/httputil/json.go:96:9: requestcontext
 /pkg/util/httputil/result.go:29:11: requestcontext
 /pkg/util/jwkutil/contextbackground.go:11:52: contextbackground
-/pkg/util/otelutil/nethttp.go:121:46: requestcontext
-/pkg/util/otelutil/nethttp.go:154:49: requestcontext
+/pkg/util/otelutil/nethttp.go:122:46: requestcontext
+/pkg/util/otelutil/nethttp.go:156:49: requestcontext
 /pkg/util/otelutil/oteldatabasesql/instrumentation.go:301:13: contextbackground
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
