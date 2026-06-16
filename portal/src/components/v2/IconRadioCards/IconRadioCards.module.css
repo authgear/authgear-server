@@ -14,6 +14,12 @@
   @apply self-stretch flex items-start gap-3;
 }
 
+/* Title-only cards (no subtitle) center their icon + label vertically so a
+   wrapped label stays aligned with the equal-height sibling cards. */
+.iconRadioCards__itemContainer--center {
+  @apply items-center;
+}
+
 .iconRadioCards__iconContainer {
   @apply flex flex-none;
 }

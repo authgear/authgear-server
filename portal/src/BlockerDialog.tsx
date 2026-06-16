@@ -1,23 +1,14 @@
-import React, { useContext, useMemo } from "react";
-import {
-  IDialogContentProps,
-  Dialog,
-  DialogType,
-  DialogFooter,
-  IDialogProps,
-  IButtonProps,
-} from "@fluentui/react";
-import PrimaryButton from "./PrimaryButton";
-import DefaultButton from "./DefaultButton";
-import { Context, FormattedMessage } from "./intl";
-import { useSystemConfig } from "./context/SystemConfigContext";
+import React from "react";
+import { FormattedMessage } from "./intl";
+import { ConfirmationDialog } from "./components/v2/ConfirmationDialog/ConfirmationDialog";
 
-export interface BlockerDialogProps extends IDialogProps {
+export interface BlockerDialogProps {
+  open: boolean;
   contentTitleId: string;
   contentSubTextId: string;
   contentConfirmId?: string;
   contentCancelId?: string;
-  onDialogConfirm?: IButtonProps["onClick"];
+  onDialogConfirm?: () => void;
   onDialogDismiss?: () => void;
 }
 
@@ -25,45 +16,31 @@ const BlockerDialog: React.VFC<BlockerDialogProps> = function BlockerDialog(
   props
 ) {
   const {
+    open,
     contentTitleId,
     contentSubTextId,
     contentConfirmId,
     contentCancelId,
     onDialogConfirm,
     onDialogDismiss,
-    ...rest
   } = props;
 
-  const { themes } = useSystemConfig();
-  const { renderToString } = useContext(Context);
-
-  const dialogContentProps: IDialogContentProps = useMemo(
-    () => ({
-      type: DialogType.normal,
-      title: <FormattedMessage id={contentTitleId} />,
-      subText: renderToString(contentSubTextId),
-    }),
-    [renderToString, contentTitleId, contentSubTextId]
-  );
-
   return (
-    <Dialog
-      dialogContentProps={dialogContentProps}
-      onDismiss={onDialogDismiss}
-      {...rest}
-    >
-      <DialogFooter>
-        <PrimaryButton
-          onClick={onDialogConfirm}
-          theme={themes.destructive}
-          text={<FormattedMessage id={contentConfirmId ?? "confirm"} />}
-        />
-        <DefaultButton
-          onClick={onDialogDismiss}
-          text={<FormattedMessage id={contentCancelId ?? "cancel"} />}
-        />
-      </DialogFooter>
-    </Dialog>
+    <ConfirmationDialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onDialogDismiss?.();
+        }
+      }}
+      title={<FormattedMessage id={contentTitleId} />}
+      description={<FormattedMessage id={contentSubTextId} />}
+      confirmText={<FormattedMessage id={contentConfirmId ?? "confirm"} />}
+      cancelText={<FormattedMessage id={contentCancelId ?? "cancel"} />}
+      confirmColor="red"
+      onConfirm={() => onDialogConfirm?.()}
+      onCancel={() => onDialogDismiss?.()}
+    />
   );
 };
 

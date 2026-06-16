@@ -16,3 +16,9 @@
   --cursor-slider-thumb-active: grabbing;
   --cursor-switch: pointer;
 }
+
+/* Radix dialog overlay has no z-index by default; Monaco editor minimap (z-index: 5)
+   can paint above the mask without this. Keep above ScreenHeader (9999). */
+.rt-BaseDialogOverlay {
+  z-index: 10000;
+}

@@ -1,10 +1,9 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
+import React, { useCallback, useContext, useState } from "react";
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
 import PrimaryButton from "./PrimaryButton";
-import DefaultButton from "./DefaultButton";
 import DefaultLayout from "./DefaultLayout";
 import {
   FormContainerBase,
@@ -13,6 +12,7 @@ import {
 } from "./FormContainerBase";
 import ActionButton from "./ActionButton";
 import styles from "./FormContainer.module.css";
+import { ConfirmationDialog } from "./components/v2/ConfirmationDialog/ConfirmationDialog";
 
 export interface SaveButtonProps {
   labelId: string;
@@ -60,13 +60,6 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     setTimeout(() => setIsResetDialogVisible(false), 0);
   }, [onReset]);
 
-  const resetDialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id="FormContainer.reset-dialog.title" />,
-      subText: renderToString("FormContainer.reset-dialog.message"),
-    };
-  }, [renderToString]);
-
   return (
     <>
       <DefaultLayout
@@ -93,23 +86,25 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
           {props.children}
         </form>
       </DefaultLayout>
-      <Dialog
-        hidden={!isResetDialogVisible}
-        dialogContentProps={resetDialogContentProps}
-        onDismiss={onDismissResetDialog}
-      >
-        <DialogFooter>
-          <PrimaryButton
-            onClick={doReset}
-            theme={themes.destructive}
-            text={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
-          />
-          <DefaultButton
-            onClick={onDismissResetDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={isResetDialogVisible}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismissResetDialog();
+          }
+        }}
+        title={<FormattedMessage id="FormContainer.reset-dialog.title" />}
+        description={
+          <FormattedMessage id="FormContainer.reset-dialog.message" />
+        }
+        confirmText={
+          <FormattedMessage id="FormContainer.reset-dialog.confirm" />
+        }
+        cancelText={<FormattedMessage id="cancel" />}
+        confirmColor="red"
+        onConfirm={doReset}
+        onCancel={onDismissResetDialog}
+      />
     </>
   );
 };
