@@ -320,3 +320,5 @@ tool (
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 )
+
+replace github.com/authgear/oauthrelyingparty => ../oauthrelyingparty

@@ -17,6 +17,7 @@ func NewOAuthError(errResp *oauthrelyingparty.ErrorResponse, providerType string
 		"error_description": errResp.ErrorDescription,
 		"error_uri":         errResp.ErrorURI,
 		"provider_type":     providerType,
+		"error_category":    string(errResp.Category),
 	})
 }
 

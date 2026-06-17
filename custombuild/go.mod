@@ -3,6 +3,8 @@ module github.com/authgear/authgear-server/custombuild
 go 1.26.4
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
+replace github.com/authgear/oauthrelyingparty => ../../oauthrelyingparty
+replace github.com/authgear/iamsmart => ../../iamsmart
 
 require (
 	github.com/authgear/authgear-server v0.0.0
