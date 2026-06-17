@@ -5,7 +5,7 @@ API Resources represent protected external services identified by HTTPS URIs. To
 Resources are shared across multiple features:
 
 - **M2M** (`client_credentials` grant) — confidential clients request tokens bound to a specific Resource. See [M2M spec](./m2m.md).
-- **Third-party clients** — clients can request tokens for Resources where `access_policy.allow_third_party_client_access` is `true`. See [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
+- **Third-party clients** — clients can request tokens for Resources where `access_policy.allow_dynamic_third_party_client_access` is `true`. See [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
 - **First-party clients** (all grant types) — first-party clients can request resource-bound tokens if they are explicitly associated with the Resource.
 
 ## Table of Contents
@@ -56,11 +56,11 @@ Each Resource and Scope has an `access_policy` JSON object that controls which c
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `allow_third_party_client_access` | boolean | `false` | When `true`, all third-party clients may access this Resource or Scope without a per-client association |
+| `allow_dynamic_third_party_client_access` | boolean | `false` | When `true`, all third-party clients may access this Resource or Scope without a per-client association |
 
 ### Two-level check
 
-Both the Resource and the individual Scope must have `allow_third_party_client_access: true` for a third-party client to successfully request that scope:
+Both the Resource and the individual Scope must have `allow_dynamic_third_party_client_access: true` for a third-party client to successfully request that scope:
 
 - **Resource level** — when `true`, any third-party client may include that Resource URI in the `resource` parameter of their authorization requests.
 - **Scope level** — when `true`, that scope may be requested by any third-party client. When `false` (the default), the scope is inaccessible to third-party clients even if the parent Resource has the flag set.
@@ -81,7 +81,7 @@ First-party M2M clients (using `client_credentials`) require explicit associatio
 
 If a client requests a Resource it is not associated with, the server returns `invalid_resource`. If a client requests a Scope not in its grant, the server returns `invalid_scope`. If no `scope` is specified, all scopes in the client's association are granted.
 
-Third-party clients accessing a Resource where `access_policy.allow_third_party_client_access` is `true` do not require a per-client association.
+Third-party clients accessing a Resource where `access_policy.allow_dynamic_third_party_client_access` is `true` do not require a per-client association.
 
 ## Access Token Behavior
 
@@ -108,7 +108,7 @@ CREATE TABLE _auth_resource (
   name text,
   metadata jsonb,
   -- Access policy JSON object. Missing keys default to false.
-  -- Current keys: allow_third_party_client_access (bool)
+  -- Current keys: allow_dynamic_third_party_client_access (bool)
   access_policy jsonb NOT NULL DEFAULT '{}'
 );
 -- Each project has its own set of Resources. The URI must be unique within a project.
@@ -127,7 +127,7 @@ CREATE TABLE _auth_resource_scope (
   description text,
   metadata jsonb,
   -- Access policy JSON object. Missing keys default to false.
-  -- Current keys: allow_third_party_client_access (bool)
+  -- Current keys: allow_dynamic_third_party_client_access (bool)
   access_policy jsonb NOT NULL DEFAULT '{}'
 );
 -- Each Resource has its own set of Scopes. The scope must be unique within a Resource.
@@ -202,7 +202,7 @@ type AccessPolicy {
   When true, all third-party clients may access this Resource or Scope
   without a per-client association.
   """
-  allowThirdPartyClientAccess: Boolean!
+  allowDynamicThirdPartyClientAccess: Boolean!
 }
 
 """
@@ -212,7 +212,7 @@ When omitted on an update mutation, the existing policy is left unchanged.
 """
 input AccessPolicyInput {
   """Default false."""
-  allowThirdPartyClientAccess: Boolean
+  allowDynamicThirdPartyClientAccess: Boolean
 }
 
 type Resource implements Entity & Node {
