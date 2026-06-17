@@ -82,6 +82,7 @@ const meta = {
         <SystemConfigContext.Provider value={systemConfig}>
           <AccountStatusDialogStoryChrome
             Story={Story}
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             storyArgs={context.args as AccountStatusDialogProps}
           />
         </SystemConfigContext.Provider>

@@ -12,6 +12,7 @@ export function useDebounced<T>(
       return () => {};
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDebouncing(true);
     const handle = setTimeout(() => {
       setDebouncedValue(value);

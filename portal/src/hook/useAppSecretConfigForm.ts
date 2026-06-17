@@ -224,6 +224,7 @@ export function useAppSecretConfigForm<State>(
   const state = currentState ?? initialState;
 
   const initialStateRef = useRef(initialState);
+  // eslint-disable-next-line react-hooks/refs
   initialStateRef.current = initialState;
   const setState = useCallback((fn: (state: State) => State) => {
     setCurrentState((s) => {
@@ -242,7 +243,7 @@ export function useAppSecretConfigForm<State>(
     updateError,
     state,
     setState,
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
     reload,
     reset,
     save,

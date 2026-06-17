@@ -16,7 +16,7 @@ export function useMergedStyles<TStylesProps, TStyleSet extends IStyleSetBase>(
     (props) => {
       return concatStyleSetsWithProps(props, ...styless);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/use-memo
     [...styless]
   );
 }
@@ -26,7 +26,7 @@ export function useMergedStylesPlain<TStyleSet extends IStyleSetBase>(
 ): IConcatenatedStyleSet<TStyleSet> {
   return useMemo(
     () => concatStyleSets(...styless),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/use-memo
     [...styless]
   ) as IConcatenatedStyleSet<TStyleSet>;
 }

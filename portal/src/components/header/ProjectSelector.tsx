@@ -278,6 +278,7 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
         </button>
         {isCalloutOpen ? (
           <Callout
+            // eslint-disable-next-line react-hooks/refs
             target={triggerRef.current}
             gapSpace={4}
             isBeakVisible={false}

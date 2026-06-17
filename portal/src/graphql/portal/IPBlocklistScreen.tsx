@@ -118,6 +118,7 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCheckIPError(checkIPMutationError);
   }, [checkIPMutationError]);
   const clearCheckIPError = useCallback(async () => {
@@ -155,6 +156,7 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCheckIPResult(null);
   }, [
     appConfigForm.state.blockedCountryAlpha2s,

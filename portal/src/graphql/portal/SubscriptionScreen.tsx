@@ -438,6 +438,7 @@ function PlansSection({
         <DialogFooter>
           <ButtonWithLoading
             loading={reactivateSubscriptionLoading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickConfirmReactivate}
             disabled={isReactiveDialogHidden}
             labelId="confirm"
@@ -608,6 +609,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <ButtonWithLoading
               theme={themes.destructive}
               loading={cancelSubscriptionLoading}
+              // eslint-disable-next-line @typescript-eslint/strict-void-return
               onClick={onClickCancelSubscriptionConfirm}
               disabled={cancelDialogHidden}
               labelId="confirm"
@@ -901,6 +903,7 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
               <div className={styles.processingPaymentButtonContainer}>
                 <ButtonWithLoading
                   loading={cancelFailedSubscriptionLoading}
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onClickCancelFailedSubscription}
                   labelId="SubscriptionScreen.cancel-transaction.label"
                 />

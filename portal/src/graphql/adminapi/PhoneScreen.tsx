@@ -51,6 +51,7 @@ function LoginIDField(props: LoginIDFieldProps) {
     [onChange]
   );
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue("");
   }, [resetToken]);
   return (
@@ -155,10 +156,12 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
   }
 
   if (userError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={userError} onRetry={refetchUser} />;
   }
 
   if (appConfigError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 

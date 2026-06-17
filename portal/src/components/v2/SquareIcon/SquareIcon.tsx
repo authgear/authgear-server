@@ -54,7 +54,7 @@ export function SquareIcon({
     if (iconSize != null) {
       style["--square-icon__icon-size"] = iconSize;
     }
-    return style;
+    return style as React.CSSProperties;
   }, [backgroundColor, iconSize]);
 
   return (

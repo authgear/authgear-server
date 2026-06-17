@@ -8,9 +8,9 @@ mutation createUserMutation(
 ) {
   createUser(
     input: {
-      definition: { loginID: $identityDefinition },
-      password: $password,
-      sendPassword: $sendPassword,
+      definition: { loginID: $identityDefinition }
+      password: $password
+      sendPassword: $sendPassword
       setPasswordExpired: $setPasswordExpired
       accountValidFrom: $accountValidFrom
       accountValidUntil: $accountValidUntil

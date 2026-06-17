@@ -41,6 +41,7 @@ export function useSimpleForm<State, Result = unknown>(
 
   useEffect(() => {
     if (stateMode === "UpdateInitialStateWithUseEffect") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInitialState(defaultState);
       setCurrentState(defaultState);
     }

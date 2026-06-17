@@ -64,6 +64,7 @@ export function ColorPickerField({
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTextInputValue(value);
   }, [value]);
 

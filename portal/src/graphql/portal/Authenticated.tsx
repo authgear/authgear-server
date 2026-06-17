@@ -95,6 +95,7 @@ const Authenticated: React.VFC<Props> = function Authenticated(
   }
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 

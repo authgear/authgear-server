@@ -446,6 +446,7 @@ const FraudProtectionLogsTab: React.VFC<FraudProtectionLogsTabProps> =
     }, [entries]);
 
     useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOffset(0);
     }, [resultFilter, selectedReasonCodes, debouncedSearch]);
 

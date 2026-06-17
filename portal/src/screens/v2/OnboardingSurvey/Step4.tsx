@@ -119,6 +119,7 @@ export function Step4(): React.ReactElement {
           type="submit"
           size="4"
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.finish" />}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={form.save}
           loading={form.isUpdating}
           disabled={!form.canSave}

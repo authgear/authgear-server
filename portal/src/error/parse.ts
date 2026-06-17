@@ -154,6 +154,7 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (!messageID) {
     return {
       messageID: "errors.validation.unknown",
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       arguments: cause as unknown as Values,
     };
   }
@@ -381,6 +382,7 @@ export function makeValidationErrorCustomMessageIDRule(
         if (kind === cause.kind && locationRegExp.test(cause.location)) {
           parsedAPIErrors.push({
             messageID: errorMessageID,
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             arguments: values ?? (cause.details as unknown as Values),
           });
         } else {

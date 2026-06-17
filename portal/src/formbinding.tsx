@@ -36,6 +36,7 @@ export function useErrorDialog(formField: FormField): DialogProps {
 
   useEffect(() => {
     if (errors.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHidden(false);
     }
   }, [errors.length]);

@@ -60,6 +60,7 @@ export function AutoGenerateFirstCertificate({
   }, []);
 
   if (error) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={generate} />;
   }
 

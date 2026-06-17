@@ -162,7 +162,7 @@ export function useResourceForm<State>(
     updateError,
     state,
     setState,
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
     reload,
     reset,
     save,

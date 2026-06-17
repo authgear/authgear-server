@@ -39,6 +39,7 @@ const PortalColorPicker: React.VFC<PortalColorPickerProps> =
 
     // Set text field value when color changes.
     useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setColorStr(color);
     }, [color]);
 
@@ -106,6 +107,7 @@ const PortalColorPicker: React.VFC<PortalColorPickerProps> =
         {isColorPickerVisible ? (
           <Callout
             gapSpace={10}
+            // eslint-disable-next-line react-hooks/refs
             target={colorboxRef.current}
             onDismiss={onCalloutDismiss}
           >

@@ -136,11 +136,5 @@ export default defineConfig({
     // Avoid image assets being inlined into css files
     assetsInlineLimit: 0,
     assetsDir: "shared-assets",
-    rollupOptions: {
-      // Workaround for building bundles with non-deterministic filenames
-      // Active issue: https://github.com/vitejs/vite/issues/13672
-      // Workaround from https://github.com/vitejs/vite/issues/10506#issuecomment-1367718113
-      maxParallelFileOps: 1,
-    },
   },
 });

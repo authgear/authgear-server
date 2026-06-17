@@ -176,6 +176,7 @@ export function useAppConfigForm<State>(
   );
 
   const saveWith = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (fn: (state: State) => State, ignoreConflict: boolean = false) => {
       if (!rawConfig || !initialState || secretConfig == null || isUpdating) {
         return;
@@ -214,7 +215,7 @@ export function useAppConfigForm<State>(
     initialState,
     state,
     setState,
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
     reload,
     reset,
     save,

@@ -260,6 +260,7 @@ const ERROR_RULES: ErrorParseRule[] = [
     if (apiError.reason === "SMTPTestFailed") {
       return {
         parsedAPIErrors: [
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           { message: (apiError as APISMTPTestFailedError).message },
         ],
         fullyHandled: true,
@@ -827,6 +828,7 @@ const SMTPConfigurationScreen1: React.VFC<{
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const state = useMemo<FormState>(() => {
     return {
       ...configForm.state,

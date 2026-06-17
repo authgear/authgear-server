@@ -1242,6 +1242,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
               <div className={styles.codeEditorFooter}>
                 <PrimaryButton
                   text="Finish Editing"
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onClickFinishEditing}
                   disabled={isLoading}
                 />

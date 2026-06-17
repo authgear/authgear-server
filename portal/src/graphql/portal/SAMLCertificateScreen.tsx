@@ -117,6 +117,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
   } = useAppAndSecretConfigQuery(appID);
 
   if (error) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -135,6 +136,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
     return (
       <AutoGenerateFirstCertificate
         appID={appID}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onComplete={refetch}
         rawAppConfig={rawAppConfig}
         certificates={certificates}

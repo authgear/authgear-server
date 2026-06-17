@@ -6,7 +6,7 @@
   ],
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -b && tsc -p tsconfig.vite.json",
     "format": "npm run prettier:format && npm run eslint:format && npm run stylelint:format",
     "prettier:format": "prettier --cache --write --list-different ./src",
     "eslint:format": "eslint --fix",
@@ -24,6 +24,7 @@
     "process": false
   },
   "overrides": {
+    "esbuild": "^0.28.1",
     "@microsoft/tsdoc-config": {
       "ajv": "^8.18.0"
     },
@@ -55,7 +56,7 @@
     "tailwindcss": "3.3.5",
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
-    "vite": "^7.3.2"
+    "vite": "^8.0.0"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",

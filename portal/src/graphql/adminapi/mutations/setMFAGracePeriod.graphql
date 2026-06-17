@@ -1,13 +1,5 @@
-mutation setMFAGracePeriodMutation(
-  $userID: ID!
-  $endAt: DateTime!
-) {
-  setMFAGracePeriod(
-    input: {
-      userID: $userID
-      endAt: $endAt
-    }
-  ) {
+mutation setMFAGracePeriodMutation($userID: ID!, $endAt: DateTime!) {
+  setMFAGracePeriod(input: { userID: $userID, endAt: $endAt }) {
     user {
       id
       mfaGracePeriodEndAt

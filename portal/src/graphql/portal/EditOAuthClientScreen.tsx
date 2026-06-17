@@ -834,6 +834,7 @@ const EditOAuthClientScreen1: React.VFC<{
           samlIdpSigningCertificates={samlIdPSigningCertificates}
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           refetchAppAndSecretConfig={refetchAppAndSecretConfig}
           clientSecretHook={generateClientSecretHook}
         />

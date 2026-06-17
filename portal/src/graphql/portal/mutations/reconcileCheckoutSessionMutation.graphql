@@ -1,5 +1,10 @@
-mutation reconcileCheckoutSessionMutation($appID: ID!, $checkoutSessionID: String!) {
-  reconcileCheckoutSession(input: { appID: $appID, checkoutSessionID: $checkoutSessionID }) {
+mutation reconcileCheckoutSessionMutation(
+  $appID: ID!
+  $checkoutSessionID: String!
+) {
+  reconcileCheckoutSession(
+    input: { appID: $appID, checkoutSessionID: $checkoutSessionID }
+  ) {
     app {
       id
     }

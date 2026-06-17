@@ -121,6 +121,7 @@ function ErrorBoundSuspense(
   // factory may change when route changes.
   // We have to re-create the LazyComponent when this happens.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLazyComponent(lazy(factory));
 
     // In some screens, for example, AuditLogScreen,

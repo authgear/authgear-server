@@ -665,6 +665,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   text={renderToString(
                     "EditOAuthClientForm.client-secrets.create-new-secret"
                   )}
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onGenerateClientSecretClick}
                   disabled={
                     clientSecretHook.isLoading || clientSecretHook.isUpdating
@@ -1011,6 +1012,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         <DeleteClientSecretConfirmationDialog
           data={deleteClientSecretDialogData}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmDeleteClientSecret}
           onDismiss={onDismissDeleteClientSecret}
           isLoading={clientSecretHook.isLoading || clientSecretHook.isUpdating}

@@ -70,6 +70,7 @@ const CALLOUT_STYLES = {
 export function useCopyFeedback(
   input: UseCopyFeedbackInput
 ): UseCopyFeedbackOutput {
+  // eslint-disable-next-line react-hooks/purity
   const { current: id } = useRef("id-" + String(Math.random()).slice(2));
   const { textToCopy } = input;
   const [isCalloutVisible, setIsCalloutVisible] = useState(false);
@@ -114,8 +115,11 @@ export function useCopyFeedback(
     );
   }, [isCalloutVisible, id, dismissCallout]);
 
+  // eslint-disable-next-line react-hooks/refs
   return {
+    // eslint-disable-next-line react-hooks/refs
     copyButtonProps: {
+      // eslint-disable-next-line react-hooks/refs
       id,
       text,
       title,
