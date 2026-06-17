@@ -533,32 +533,9 @@ type RevokeInitialAccessTokenPayload {
 }
 ```
 
-### New GraphQL type
+### Client model
 
-```graphql
-enum OAuthClientKind {
-  FIRST_PARTY
-  THIRD_PARTY
-}
-
-type OAuthClient implements Node {
-  id: ID!
-  clientID: String!
-  clientName: String!
-  """The OIDC application_type value: "web" or "native"."""
-  applicationType: String!
-  """Whether this client is first-party or third-party."""
-  kind: OAuthClientKind!
-
-  # ISO 8601 timestamp of when the client was registered via DCR.
-  # Null for statically configured clients.
-  registeredAt: DateTime
-
-  redirectURIs: [String!]!
-  grantTypes: [String!]!
-  responseTypes: [String!]!
-}
-```
+DCR-registered clients are represented using the unified `OAuthClient` model defined in [Client Model](./client.md). See that document for the full type definition and the mapping from DCR registration fields to model fields.
 
 ### New query
 
