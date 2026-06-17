@@ -541,8 +541,24 @@ DCR-registered clients are represented using the unified `OAuthClient` model def
 
 ```graphql
 extend type Query {
-  # Returns all clients: both static (authgear.yaml) and DCR-registered.
-  oauthClients: [OAuthClient!]!
+  """Returns DCR-registered clients only. Static clients are managed via authgear.yaml."""
+  dynamicClients(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): DynamicClientConnection!
+}
+
+type DynamicClientConnection {
+  edges: [DynamicClientEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DynamicClientEdge {
+  node: OAuthClient!
+  cursor: String!
 }
 ```
 
