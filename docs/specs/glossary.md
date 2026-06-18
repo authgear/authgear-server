@@ -10,6 +10,8 @@
   * [Authentication Flow](#authentication-flow)
     + [Identification](#identification)
     + [Authentication](#authentication)
+  * [PII](#pii)
+    + [pii_type](#pii_type)
 
 # Glossary
 
@@ -60,3 +62,15 @@ Read the [authentication flow API reference](./authentication-flow-api-reference
 Authentication is the means the user uses to prove they are the user identified with the identification method. For example, by using a password, OTP, or biometrics.
 
 Read the [authentication flow API reference](./authentication-flow-api-reference.md) for details.
+
+## PII
+
+Personally Identifiable Information. Any data that can be used to identify a specific individual.
+
+See [PII Masking](./pii-masking.md) for how Authgear handles PII in API responses.
+
+### pii_type
+
+A classification tag applied to a user profile attribute or audit log field that determines which masking format is applied when `pii.masking` is enabled.
+
+See [PII Types](./pii-masking.md#pii-types) for the full list of valid values and their masking formats.
