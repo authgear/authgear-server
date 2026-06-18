@@ -115,10 +115,10 @@ func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages 
 	loadTemplate = func(desc *HTML) (string, error) {
 		// Include main template.
 		h, err := e.Resolver.ResolveHTML(ctx, desc, preferredLanguages)
-		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template %s: %w", desc.Name, err)
 		}
+		tpl := h.Template
 		for _, tpl := range tpl.Templates() {
 			if _, err := t.AddParseTree(tpl.Name(), tpl.Tree); err != nil {
 				return "", fmt.Errorf("failed to add template parse tree: %w", err)
@@ -176,10 +176,10 @@ func (e *Engine) renderMessageHTML(ctx context.Context, desc *MessageHTML, prefe
 	loadTemplate = func(desc *MessageHTML) (string, error) {
 		// Include main template.
 		h, err := e.Resolver.ResolveMessageHTML(ctx, desc, preferredLanguages)
-		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template %s: %w", desc.Name, err)
 		}
+		tpl := h.Template
 		for _, tpl := range tpl.Templates() {
 			if _, err := t.AddParseTree(tpl.Name(), tpl.Tree); err != nil {
 				return "", fmt.Errorf("failed to add template parse tree: %w", err)
@@ -232,10 +232,10 @@ func (e *Engine) renderPlainText(ctx context.Context, desc *PlainText, preferred
 	loadTemplate = func(desc *PlainText) (string, error) {
 		// Include main template.
 		h, err := e.Resolver.ResolvePlainText(ctx, desc, preferredLanguages)
-		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template: %w", err)
 		}
+		tpl := h.Template
 		for _, tpl := range tpl.Templates() {
 			if _, err := t.AddParseTree(tpl.Name(), tpl.Tree); err != nil {
 				return "", fmt.Errorf("failed to add template parse tree: %w", err)
@@ -293,10 +293,10 @@ func (e *Engine) renderMessagePlainText(ctx context.Context, desc *MessagePlainT
 	loadTemplate = func(desc *MessagePlainText) (string, error) {
 		// Include main template.
 		h, err := e.Resolver.ResolveMessagePlainText(ctx, desc, preferredLanguages)
-		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template: %w", err)
 		}
+		tpl := h.Template
 		for _, tpl := range tpl.Templates() {
 			if _, err := t.AddParseTree(tpl.Name(), tpl.Tree); err != nil {
 				return "", fmt.Errorf("failed to add template parse tree: %w", err)
