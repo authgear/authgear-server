@@ -98,13 +98,15 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 				]
 			}
 		},
-		"url": { "type": "string", "format": "x_hook_uri" }
+		"url": { "type": "string", "format": "x_hook_uri" },
+		"name": { "type": "string" }
 	},
 	"required": ["events", "url"]
 }
 `)
 
 type NonBlockingHandlersConfig struct {
+	Name   string   `json:"name,omitempty"`
 	Events []string `json:"events"`
 	URL    string   `json:"url"`
 }

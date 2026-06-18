@@ -270,6 +270,7 @@ interface BlockingEventHandler {
 }
 
 interface NonBlockingEventHandler {
+  name: string;
   events: string[];
   kind: HookKind;
   url: string;
@@ -992,6 +993,16 @@ function NonBlockingHooksTable({
     [draft, applyDraftChange]
   );
 
+  const onDraftNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (draft == null) {
+        return;
+      }
+      applyDraftChange({ ...draft, name: e.target.value });
+    },
+    [draft, applyDraftChange]
+  );
+
   const onDraftURLChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (draft == null) {
@@ -1027,11 +1038,12 @@ function NonBlockingHooksTable({
         <div className={styles.hookAccordionList}>
           {handlers.map((handler, index) => {
             const isOpen = expandedIndex === index;
-            const headerLabel =
+            const fallbackLabel =
               handler.kind === "webhook"
                 ? handler.url ||
                   renderToString("HookConfigurationScreen.hook-kind.webhook")
                 : renderToString("HookConfigurationScreen.hook-kind.denohook");
+            const headerLabel = handler.name || fallbackLabel;
 
             return (
               <div key={index} className={styles.hookAccordionItem}>
@@ -1083,6 +1095,19 @@ function NonBlockingHooksTable({
 
                 {isOpen && draft != null ? (
                   <div className={styles.hookAccordionBody}>
+                    <div className={styles.hookAccordionField}>
+                      <RadixText as="label" size="1" weight="medium" color="gray">
+                        <FormattedMessage id="HookConfigurationScreen.non-blocking-handler.name.label" />
+                      </RadixText>
+                      <RadixTextField.Input
+                        size="2"
+                        value={draft.name}
+                        onChange={onDraftNameChange}
+                        placeholder={renderToString("HookConfigurationScreen.non-blocking-handler.name.placeholder")}
+                      >
+                        {null}
+                      </RadixTextField.Input>
+                    </div>
                     <div className={styles.hookAccordionField}>
                       <RadixText as="label" size="1" weight="medium" color="gray">
                         <FormattedMessage id="HookConfigurationScreen.header.type.label" />
@@ -1525,6 +1550,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     // non-blocking handlers
     const makeDefaultNonBlockingHandler = useCallback(
       (): NonBlockingEventHandler => ({
+        name: "",
         events: ["*"],
         kind: "webhook",
         url: "",
@@ -1539,6 +1565,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           produce(state, (state) => {
             const newValue = value.map((h) => {
               return {
+                name: h.name || undefined,
                 events: h.events,
                 url: h.url,
               };
@@ -1561,6 +1588,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           produce(state, (state) => {
             const newValue = value.map((h) => {
               return {
+                name: h.name || undefined,
                 events: h.events,
                 url: h.url,
               };
@@ -1649,6 +1677,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       for (const c of cfgs) {
         out.push({
           ...c,
+          name: c.name ?? "",
           kind: getHookKind(c.url),
           isDirty: checkDirty(diff, c.url),
         });

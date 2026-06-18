@@ -616,6 +616,7 @@ export interface BlockingHookHandlerConfig {
 }
 
 export interface NonBlockingHookHandlerConfig {
+  name?: string;
   events: string[];
   url: string;
 }

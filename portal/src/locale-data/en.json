@@ -2729,5 +2729,7 @@
   "HookConfigurationScreen.blocking-event.authentication.post_identified.description": "Occurs right after an identity is identified during authentication, for example after user enters their email address, username or phone number.",
   "HookConfigurationScreen.blocking-event.authentication.pre_authenticated.description": "Occurs right before any authentication flows completed. It is triggered when the remaining flow no longer contains any of the steps: identify, authenticate, create_authenticator, or verify.",
   "HookConfigurationScreen.non-blocking-handlers.label": "Non-blocking Hooks",
-  "HookConfigurationScreen.non-blocking-handlers.empty": "No non-blocking hooks yet."
+  "HookConfigurationScreen.non-blocking-handlers.empty": "No non-blocking hooks yet.",
+  "HookConfigurationScreen.non-blocking-handler.name.label": "Name",
+  "HookConfigurationScreen.non-blocking-handler.name.placeholder": "e.g. Send welcome email"
 }
