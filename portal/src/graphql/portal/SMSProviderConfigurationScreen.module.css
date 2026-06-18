@@ -1,48 +1,19 @@
 .widget {
-  grid-column: 1 / span 9;
+  grid-column: 1 / span 8;
 
   @apply tablet:col-span-full;
 }
 
-.providerSelector {
-  @apply flex flex-col gap-1;
+.columnFull {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
 }
 
-.pageHeader {
-  @apply flex flex-col gap-2;
+.providerGrid {
+  @apply grid gap-4 grid-cols-2;
 }
 
-.pageTitle {
-  margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-  color: var(--gray-12);
-}
-
-.pageDescription,
-.providerDescription {
-  color: var(--gray-a11);
-}
-
-.providerDescription {
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.contentWithSaveBar {
-  padding-bottom: 8rem;
-}
-
-.senderInfoIcon {
-  cursor: default;
-  color: var(--accent-9);
-}
-
-.copyIconButton {
-  @apply shrink-0;
-  background: none;
-  border: none;
-  box-shadow: none;
-  color: var(--gray-11);
+.textFieldInOption {
+  @apply ml-6 my-1;
 }

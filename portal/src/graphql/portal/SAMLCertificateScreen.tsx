@@ -1,6 +1,4 @@
-import React, { useCallback, useRef } from "react";
-import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   useSAMLCertificateForm,
@@ -9,17 +7,18 @@ import {
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import FormContainer from "../../FormContainer";
+import { FormContainerBase } from "../../FormContainerBase";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import ScreenDescription from "../../ScreenDescription";
 import { FormattedMessage } from "../../intl";
 import styles from "./SAMLCertificateScreen.module.css";
 import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertificateForm";
 import { AutoGenerateFirstCertificate } from "../../components/saml/AutoGenerateFirstCertificate";
-import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
-import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 function EditSAMLCertificateContent({
   configAppID,
@@ -32,34 +31,23 @@ function EditSAMLCertificateContent({
   certificates: SAMLIdpSigningCertificate[];
   generateNewCertificate: () => Promise<void>;
 }) {
-  const { isDirty } = useFormContainerBaseContext();
-  const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="SAMLCertificateScreen.title" />,
+      },
+    ];
+  }, []);
 
   return (
-    <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
-      <div
-        ref={contentWidthAnchorRef}
-        className={cn(styles.widget, styles.pageHeader)}
-      >
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-          <FormattedMessage id="SAMLCertificateScreen.title" />
-        </Text>
-        <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+    <ScreenLayoutScrollView>
+      <ScreenContent>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <ScreenDescription className={styles.widget}>
           <FormattedMessage id="SAMLCertificateScreen.desc" />
-        </Text>
-      </div>
-
-      <div
-        className={cn(
-          styles.widget,
-          "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
-          isDirty && styles.settingsCardSaveBarClearance
-        )}
-      >
-        <Text as="p" size="3" weight="medium" className={styles.sectionHeading}>
-          <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
-        </Text>
-        <div className="flex-1 min-w-0">
+        </ScreenDescription>
+        <div className={styles.widget}>
           <EditSAMLCertificateForm
             configAppID={configAppID}
             form={form}
@@ -67,10 +55,8 @@ function EditSAMLCertificateContent({
             onGenerateNewCertitificate={generateNewCertificate}
           />
         </div>
-      </div>
-
-      <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
-    </ScreenContent>
+      </ScreenContent>
+    </ScreenLayoutScrollView>
   );
 }
 
@@ -107,14 +93,14 @@ function EditSAMLCertificateFormContainer({
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true}>
+    <FormContainerBase form={form} canSave={true}>
       <EditSAMLCertificateContent
         configAppID={configAppID}
         certificates={certificates}
         form={form}
         generateNewCertificate={generateNewCertificate}
       />
-    </FormContainer>
+    </FormContainerBase>
   );
 }
 
@@ -131,6 +117,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
   } = useAppAndSecretConfigQuery(appID);
 
   if (error) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -149,6 +136,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
     return (
       <AutoGenerateFirstCertificate
         appID={appID}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onComplete={refetch}
         rawAppConfig={rawAppConfig}
         certificates={certificates}

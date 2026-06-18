@@ -243,38 +243,49 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   );
 
   const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    k: OAuthSSOProviderItemKey;
+    alias: string;
+  } | null>(null);
+
   const onDisplayDeleteDialog = useCallback(
     (k: OAuthSSOProviderItemKey, alias: string) => {
-      form.setState((state) => ({
-        ...state,
-        providers: state.providers.filter((p) => {
-          if (
-            createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
-              k &&
-            p.config.alias === alias
-          ) {
-            return false;
-          }
-          return true;
-        }),
-      }));
+      setPendingDelete({ k, alias });
       setIsDeleteDialogVisible(true);
     },
-    [form]
+    []
   );
   const onDismissDeleteDialog = useCallback(() => {
     setIsDeleteDialogVisible(false);
-    form.reset();
-  }, [form]);
+    setPendingDelete(null);
+  }, []);
 
   const deleteConnection = useCallback(() => {
-    form.save().then(
+    if (pendingDelete == null) {
+      return;
+    }
+    const { k, alias } = pendingDelete;
+    const filteredState = {
+      ...form.state,
+      providers: form.state.providers.filter((p) => {
+        if (
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
+            k &&
+          p.config.alias === alias
+        ) {
+          return false;
+        }
+        return true;
+      }),
+    };
+    form.saveWithState(filteredState).then(
       () => {
         setIsDeleteDialogVisible(false);
+        setPendingDelete(null);
       },
       () => {}
     );
-  }, [form]);
+  }, [form, pendingDelete]);
 
   const deleteDialogContentProps = useMemo(() => {
     return {

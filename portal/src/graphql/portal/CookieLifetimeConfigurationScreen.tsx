@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo, useRef } from "react";
-import cn from "classnames";
-import { Text } from "@radix-ui/themes";
-import { FormattedMessage } from "../../intl";
+import React, { useCallback, useContext, useMemo } from "react";
+import { Text } from "@fluentui/react";
+import { Context, FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 
@@ -18,10 +17,11 @@ import FormContainer from "../../FormContainer";
 
 import styles from "./CookieLifetimeConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
-import { TextField } from "../../components/v2/TextField/TextField";
-import { Toggle } from "../../components/v2/Toggle/Toggle";
-import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
-import { useFormContainerBaseContext } from "../../FormContainerBase";
+import ScreenTitle from "../../ScreenTitle";
+import Widget from "../../Widget";
+import Toggle from "../../Toggle";
+import TextField from "../../TextField";
+
 function getHostname(publicOrigin: string): string {
   try {
     return new URL(publicOrigin).hostname;
@@ -60,16 +60,15 @@ function constructConfig(
   });
 }
 
-interface CookieLifetimeConfigurationScreenContentProps {
+interface SessionConfigurationWidgetProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigurationScreenContentProps> =
-  function CookieLifetimeConfigurationScreenContent(props) {
-    const { form } = props;
-    const { state, setState } = form;
-    const { isDirty } = useFormContainerBaseContext();
-    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+const SessionConfigurationWidget: React.VFC<SessionConfigurationWidgetProps> =
+  function SessionConfigurationWidget(props: SessionConfigurationWidgetProps) {
+    const { state, setState } = props.form;
+
+    const { renderToString } = useContext(Context);
 
     const hostname = useMemo(
       () => getHostname(state.publicOrigin),
@@ -77,113 +76,100 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
     );
 
     const onSessionLifetimeSecondsChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      (_, value?: string) => {
         setState((prev) => ({
           ...prev,
-          sessionLifetimeSeconds: parseIntegerAllowLeadingZeros(e.target.value),
+          sessionLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
     );
 
     const onIdleTimeoutEnabledChange = useCallback(
-      (checked: boolean) => {
+      (_, value?: boolean) => {
         setState((state) => ({
           ...state,
-          idleTimeoutEnabled: checked,
+          idleTimeoutEnabled: value ?? false,
         }));
       },
       [setState]
     );
 
     const onIdleTimeoutSecondsChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      (_, value?: string) => {
         setState((prev) => ({
           ...prev,
-          idleTimeoutSeconds: parseIntegerAllowLeadingZeros(e.target.value),
+          idleTimeoutSeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
     );
 
     return (
-      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
-        <div
-          ref={contentWidthAnchorRef}
-          className={cn(styles.widget, styles.pageHeader)}
-        >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="CookieLifetimeConfigurationScreen.title" />
-          </Text>
-          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+      <Widget className={styles.widget}>
+        <TextField
+          type="text"
+          label={renderToString(
+            "CookieLifetimeConfigurationScreen.session-lifetime.label"
+          )}
+          description={renderToString(
+            "CookieLifetimeConfigurationScreen.session-lifetime.description",
+            { hostname }
+          )}
+          value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
+          onChange={onSessionLifetimeSecondsChange}
+        />
+        <Toggle
+          label={renderToString(
+            "CookieLifetimeConfigurationScreen.invalidate-session-after-idling.label"
+          )}
+          description={renderToString(
+            "CookieLifetimeConfigurationScreen.invalidate-session-after-idling.description"
+          )}
+          checked={state.idleTimeoutEnabled}
+          onChange={onIdleTimeoutEnabledChange}
+        />
+        <TextField
+          type="text"
+          disabled={!state.idleTimeoutEnabled}
+          label={renderToString(
+            "CookieLifetimeConfigurationScreen.idle-timeout.label"
+          )}
+          description={renderToString(
+            "CookieLifetimeConfigurationScreen.idle-timeout.description"
+          )}
+          value={state.idleTimeoutSeconds?.toFixed(0) ?? ""}
+          onChange={onIdleTimeoutSecondsChange}
+        />
+      </Widget>
+    );
+  };
+
+interface CookieLifetimeConfigurationScreenContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigurationScreenContentProps> =
+  function CookieLifetimeConfigurationScreenContent(props) {
+    const { form } = props;
+    return (
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
+          <FormattedMessage id="CookieLifetimeConfigurationScreen.title" />
+        </ScreenTitle>
+        <Widget className={styles.widget}>
+          <Text>
             <FormattedMessage
               id="CookieLifetimeConfigurationScreen.description"
               values={{
-                hostname,
+                hostname: getHostname(form.state.publicOrigin),
                 // eslint-disable-next-line react/no-unstable-nested-components
                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
               }}
             />
           </Text>
-        </div>
-
-        <div
-          className={cn(
-            styles.widget,
-            "border border-[var(--gray-5)] rounded-lg p-6 flex gap-8 bg-white",
-            isDirty && styles.settingsCardSaveBarClearance
-          )}
-        >
-          <Text as="p" size="3" weight="medium" className="shrink-0 w-[200px]">
-            <FormattedMessage id="CookieLifetimeConfigurationScreen.settings.label" />
-          </Text>
-          <div className="flex-1 flex flex-col gap-4 min-w-0">
-          <TextField
-            size="2"
-            labelSize="2"
-            type="text"
-            label={
-              <FormattedMessage id="CookieLifetimeConfigurationScreen.session-lifetime.label" />
-            }
-            hint={
-              <FormattedMessage
-                id="CookieLifetimeConfigurationScreen.session-lifetime.description"
-                values={{ hostname }}
-              />
-            }
-            value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
-            onChange={onSessionLifetimeSecondsChange}
-          />
-          <div className="flex flex-col gap-1">
-            <Toggle
-              checked={state.idleTimeoutEnabled}
-              onCheckedChange={onIdleTimeoutEnabledChange}
-              text={
-                <FormattedMessage id="CookieLifetimeConfigurationScreen.invalidate-session-after-idling.label" />
-              }
-            />
-            <Text as="p" size="1" color="gray">
-              <FormattedMessage id="CookieLifetimeConfigurationScreen.invalidate-session-after-idling.description" />
-            </Text>
-          </div>
-          <TextField
-            size="2"
-            labelSize="2"
-            type="text"
-            disabled={!state.idleTimeoutEnabled}
-            label={
-              <FormattedMessage id="CookieLifetimeConfigurationScreen.idle-timeout.label" />
-            }
-            hint={
-              <FormattedMessage id="CookieLifetimeConfigurationScreen.idle-timeout.description" />
-            }
-            value={state.idleTimeoutSeconds?.toFixed(0) ?? ""}
-            onChange={onIdleTimeoutSecondsChange}
-          />
-          </div>
-        </div>
-
-        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+        </Widget>
+        <SessionConfigurationWidget form={form} />
       </ScreenContent>
     );
   };
@@ -207,7 +193,7 @@ const CookieLifetimeConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <CookieLifetimeConfigurationScreenContent form={form} />
       </FormContainer>
     );

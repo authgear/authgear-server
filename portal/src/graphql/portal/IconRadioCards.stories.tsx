@@ -69,6 +69,7 @@ function IconRadioCardsWithSelectionRender() {
         firstLevelOption !== "custom" &&
         firstLevelOption !== "username"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         setLoginMethod(`${opt}-${firstLevelOption}` as LoginMethod);
       }
     },

@@ -156,6 +156,7 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
   ]);
 
   const handleToggleAuthorization = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (item: ApplicationResourceListItem, isAuthorized: boolean) => {
       const clientId = client.client_id;
       const resourceUri = item.resourceURI;
@@ -230,6 +231,7 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
     onChangeOffset,
   };
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
   return (
@@ -250,6 +252,7 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
         resources={resourceListData}
         loading={loading}
         pagination={pagination}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onToggleAuthorization={handleToggleAuthorization}
         disabledToggleClientIDs={disabledToggleClientIDs}
         onManageScopes={onManageScopes}
@@ -261,6 +264,7 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
             : null
         }
         onDismiss={handleCloseUnauthorizeDialog}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={handleConfirmUnauthorize}
         onDismissed={handleCloseUnauthorizeDialog}
       />

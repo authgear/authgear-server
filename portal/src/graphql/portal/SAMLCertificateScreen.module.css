@@ -1,35 +1,5 @@
 .widget {
-  grid-column: 1 / span 9;
+  grid-column: 1 / span 8;
 
   @apply tablet:col-span-full;
-}
-
-.pageHeader {
-  @apply flex flex-col gap-2;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-  color: var(--gray-12);
-}
-
-.pageDescription {
-  color: var(--gray-a11);
-}
-
-.contentWithSaveBar {
-  padding-bottom: 5.5rem;
-}
-
-.settingsCardSaveBarClearance {
-  margin-bottom: 5.5rem;
-}
-
-.sectionHeading {
-  flex-shrink: 0;
-  width: 8.75rem;
-  color: var(--gray-12);
 }

@@ -67,6 +67,7 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     return parseDate(analyticEpochStr);
   }, [analyticEpochStr]);
 
+  // eslint-disable-next-line react-hooks/purity
   const today = useConst(new Date(Date.now()));
   const yesterday = useMemo(() => {
     // yesterday
@@ -308,6 +309,7 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   );
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 

@@ -190,6 +190,7 @@ const AcceptAdminInvitationScreen: React.VFC =
     }
 
     if (error != null) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
 
@@ -203,6 +204,7 @@ const AcceptAdminInvitationScreen: React.VFC =
         >
           <PrimaryButton
             className={styles.loginButton}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={goToHome}
             text={renderToString(
               "AcceptAdminInvitationScreen.continue-to-authgear.label"
