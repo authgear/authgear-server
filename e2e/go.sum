@@ -65,8 +65,8 @@ github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3 h1:LyeTJauAchnWdre3sAyterGrz
 github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3/go.mod h1:FTzydeQVmR24FI0D6XWUOMKckjXehM/jgMn1xC+DA9M=
 github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef h1:2JGTg6JapxP9/R33ZaagQtAM4EkkSYnIAlOG5EI8gkM=
 github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef/go.mod h1:JS7hed4L1fj0hXcyEejnW57/7LCetXggd+vwrRnYeII=
-github.com/authgear/oauthrelyingparty v1.5.0 h1:Gysu4Y+XfOy/WKPieIOZ4d1iIHsC4Hek2o1kSAtDW2k=
-github.com/authgear/oauthrelyingparty v1.5.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
+github.com/authgear/oauthrelyingparty v1.6.0 h1:+Iv4Y0EYR8FMuzg7DqxGxcveGypJ34OVh1+ClfJGQzQ=
+github.com/authgear/oauthrelyingparty v1.6.0/go.mod h1:iwtTPfedq8DU8FxW48E2shlylVzLv+PvsfGf66jzIwY=
 github.com/aws/aws-sdk-go-v2 v1.41.5 h1:dj5kopbwUsVUVFgO4Fi5BIT3t4WyqIDjGKCangnV/yY=
 github.com/aws/aws-sdk-go-v2 v1.41.5/go.mod h1:mwsPRE8ceUUpiTgF7QmQIJ7lgsKUPQOUl3o72QBrE1o=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 h1:eBMB84YGghSocM7PsjmmPffTa+1FBUeNvGvFou6V/4o=

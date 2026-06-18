@@ -48,7 +48,7 @@ require (
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect
-	github.com/authgear/oauthrelyingparty v1.5.0 // indirect
+	github.com/authgear/oauthrelyingparty v1.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.41.5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.31.2 // indirect

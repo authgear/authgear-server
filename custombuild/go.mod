@@ -3,12 +3,10 @@ module github.com/authgear/authgear-server/custombuild
 go 1.26.4
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
-replace github.com/authgear/oauthrelyingparty => ../../oauthrelyingparty
-replace github.com/authgear/iamsmart => ../../iamsmart
 
 require (
 	github.com/authgear/authgear-server v0.0.0
-	github.com/authgear/iamsmart v0.0.0-20250103072050-45db5c837ec2
+	github.com/authgear/iamsmart v0.0.0-20260618075227-105f2d56e769
 	github.com/joho/godotenv v1.5.1
 	go.uber.org/automaxprocs v1.6.0
 	k8s.io/client-go v0.31.8
@@ -35,7 +33,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3 // indirect
-	github.com/authgear/oauthrelyingparty v1.5.0 // indirect
+	github.com/authgear/oauthrelyingparty v1.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.41.5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.31.2 // indirect
