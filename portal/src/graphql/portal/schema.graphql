@@ -76,7 +76,7 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
-  rawAppConfigChecksum: AppConfig!
+  rawAppConfigChecksum: String!
 
   """"""
   resources(paths: [String!]): [AppResource!]!
