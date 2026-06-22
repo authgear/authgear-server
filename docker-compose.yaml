@@ -86,7 +86,9 @@ services:
     - "8011:8011"
     - "8100:8100"
     - "3100:3100"
-    - "443:443"
+    #- "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   prometheus:
     image: prom/prometheus:v2.55.1
