@@ -9,6 +9,8 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -18,6 +20,10 @@ import (
 )
 
 var ErrCollaboratorAlreadyOwner = apierrors.AlreadyExists.WithReason("CollaboratorAlreadyOwner").New("collaborator is already the owner")
+
+type CollaboratorServiceAuditService interface {
+	LogEvent(ctx context.Context, appID string, payload event.NonBlockingPayload) error
+}
 
 type CollaboratorServiceStore interface {
 	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)
@@ -136,6 +142,7 @@ type CollaboratorService struct {
 	GlobalDatabase AppServiceDatabase
 	Store          CollaboratorServiceStore
 	AdminAPI       *AdminAPIService
+	AuditService   CollaboratorServiceAuditService
 }
 
 func (s *CollaboratorService) ListCollaborators(ctx context.Context, appID string) ([]siteadmin.Collaborator, error) {
@@ -203,6 +210,18 @@ func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string,
 		return nil, err
 	}
 
+	if s.AuditService != nil {
+		if err := s.AuditService.LogEvent(ctx, appID, &nonblocking.SiteAdminAppCollaboratorAddedEventPayload{
+			AppID:              appID,
+			CollaboratorID:     newCollaborator.ID,
+			CollaboratorUserID: newCollaborator.UserID,
+			UserEmail:          userEmail,
+			Role:               string(newCollaborator.Role),
+		}); err != nil {
+			AuditServiceLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to emit site admin audit log")
+		}
+	}
+
 	return &siteadmin.Collaborator{
 		Id:        newCollaborator.ID,
 		AppId:     newCollaborator.AppID,
@@ -215,6 +234,7 @@ func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string,
 
 func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID string, collaboratorID string) (*siteadmin.Collaborator, error) {
 	var promoted *model.Collaborator
+	var demotedOwner *model.Collaborator // nil if the app had no previous owner
 	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		target, err := s.Store.GetCollaborator(ctx, collaboratorID)
 		if err != nil {
@@ -251,15 +271,37 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 		}
 
 		promoted = target
+		demotedOwner = currentOwner
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	emailMap, err := s.AdminAPI.ResolveUserEmails(ctx, []string{promoted.UserID})
+	userIDsToResolve := []string{promoted.UserID}
+	if demotedOwner != nil {
+		userIDsToResolve = append(userIDsToResolve, demotedOwner.UserID)
+	}
+	emailMap, err := s.AdminAPI.ResolveUserEmails(ctx, userIDsToResolve)
 	if err != nil {
 		return nil, err
+	}
+
+	if s.AuditService != nil {
+		payload := &nonblocking.SiteAdminAppCollaboratorPromotedEventPayload{
+			AppID:                  appID,
+			NewOwnerCollaboratorID: promoted.ID,
+			NewOwnerUserID:         promoted.UserID,
+			NewOwnerUserEmail:      emailMap[promoted.UserID],
+		}
+		if demotedOwner != nil {
+			payload.DemotedEditorCollaboratorID = demotedOwner.ID
+			payload.DemotedEditorUserID = demotedOwner.UserID
+			payload.DemotedEditorUserEmail = emailMap[demotedOwner.UserID]
+		}
+		if err := s.AuditService.LogEvent(ctx, appID, payload); err != nil {
+			AuditServiceLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to emit site admin audit log")
+		}
 	}
 
 	return &siteadmin.Collaborator{
@@ -273,7 +315,8 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 }
 
 func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID string, collaboratorID string) error {
-	return s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+	var deleted *model.Collaborator
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		c, err := s.Store.GetCollaborator(ctx, collaboratorID)
 		if err != nil {
 			return err
@@ -281,8 +324,26 @@ func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID stri
 		if c.AppID != appID {
 			return portalservice.ErrCollaboratorNotFound
 		}
+		deleted = c
 		return s.Store.DeleteCollaborator(ctx, c)
 	})
+	if err != nil {
+		return err
+	}
+
+	if s.AuditService != nil {
+		emailMap, _ := s.AdminAPI.ResolveUserEmails(ctx, []string{deleted.UserID})
+		if err := s.AuditService.LogEvent(ctx, deleted.AppID, &nonblocking.SiteAdminAppCollaboratorDeletedEventPayload{
+			AppID:                 deleted.AppID,
+			CollaboratorID:        deleted.ID,
+			CollaboratorUserID:    deleted.UserID,
+			CollaboratorUserEmail: emailMap[deleted.UserID],
+		}); err != nil {
+			AuditServiceLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to emit site admin audit log")
+		}
+	}
+
+	return nil
 }
 
 func scanCollaborator(scanner interface{ Scan(dest ...any) error }) (*model.Collaborator, error) {
