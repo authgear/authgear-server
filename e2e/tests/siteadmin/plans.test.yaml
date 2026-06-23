@@ -68,6 +68,31 @@ steps:
     rows: |
       [{"plan_name": "enterprise"}]
 
+- name: audit_change_plan
+  action: audit_query
+  audit_query: |
+    SELECT
+      activity_type,
+      data->'payload'->>'app_id'   AS affected_app_id,
+      data->'payload'->>'old_plan' AS old_plan,
+      data->'payload'->>'new_plan' AS new_plan
+    FROM _audit_log
+    WHERE app_id = 'e2e-portal'
+      AND activity_type = 'site_admin.app.plan.updated'
+      AND data->'payload'->>'app_id' = 'e2e-siteadmin-app-beta'
+    ORDER BY created_at DESC
+    LIMIT 1
+  audit_query_output:
+    rows: |
+      [
+        {
+          "activity_type": "site_admin.app.plan.updated",
+          "affected_app_id": "e2e-siteadmin-app-beta",
+          "old_plan": "[[string]]",
+          "new_plan": "enterprise"
+        }
+      ]
+
 - name: change_plan_back_to_free
   action: http_request
   http_request_method: POST
