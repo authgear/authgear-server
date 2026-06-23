@@ -81,8 +81,15 @@ For each directory:
    - If the override is no longer needed, remove it only after you have evidence that the vulnerable resolved versions are gone. Then run `npm install` and confirm with `npm audit` that there are no regressions before proceeding. Include the removal in the same commit as any other fixes for this directory.
    - Do **not** remove an override speculatively just to "see what happens". If removing it causes `npm audit` to re-report the vulnerability, restore the override and treat it as still required.
    - If `npm list` shows a vulnerable transitive version that is still being suppressed by an override, keep the override unless you can point to a non-vulnerable resolved version or an upstream package release that makes the override redundant.
-2. `cd` into it and run `npm audit --json`.
-2. Parse the output:
+
+   **After removing any override and running `npm install`, you MUST verify the removal was safe:**
+   - Run `npm ci --dry-run` — if it fails, the removal broke the lockfile. Restore the override.
+   - Run `npm ls <overridden-package> --all 2>&1 | grep -E "UNMET|invalid"` — any UNMET result means a package now depends on a version that isn't available. Restore the override.
+   - Check every package that previously used the removed override still has a compatible resolved version. Inspect `node_modules/<parent-pkg>/package.json` for its declared dep range on the overridden package, and confirm the now-resolved version satisfies that range. If the resolved version is a different major, the removal is incorrect — restore the override or add a scoped replacement.
+
+   The same verification applies when `npm install` shrinks the lockfile in any other way (e.g. deduplication removes nested entries). Treat any reduction in nested `node_modules/.../node_modules/` entries as an implicit override removal and apply the same checks above before committing.
+2. Run `npm audit --json`.
+3. Parse the output:
    - If **no vulnerabilities**, note it and move on to the next directory.
    - Before applying any fix, inspect what versions `npm audit fix` would install by running `npm audit fix --dry-run --json`. For each package that would be updated:
      - If the proposed fix is a **major version bump** (semver major increases), it is a potential breaking change regardless of whether the build will pass.
@@ -96,7 +103,7 @@ For each directory:
    - If a vulnerability can only be fixed by a major version bump, do not apply it automatically. Record it in the Breaking Change Report and revisit it only after all patchable fixes have been applied.
    - If vulnerabilities are **unfixable via npm audit fix** (i.e. `npm audit fix --dry-run` shows no resolution), check if the vulnerability is in a **transitive dependency** whose parent has not yet released a patch:
       1. Identify the vulnerable transitive package and the minimum safe version that fixes it (from the advisory).
-      2. Run `npm list <transitive-package> --all` to see **every installed version** of that package across the dependency tree. This is critical — there may be multiple versions installed at different semver ranges (e.g. `3.x`, `9.x`, `10.x`). Only the version(s) that fall in the advisory's vulnerable range need to be overridden.
+      2. Run `npm list <transitive-package> --all` to see **every installed version** of that package across the dependency tree. This is critical — there may be multiple versions installed at different semver ranges (e.g. `3.x`, `9.x`, `10.x`). Only the version(s) that fall in the advisory's vulnerable range need to be overridden. **Record this full list — it is your baseline.**
      3. Identify the **direct parent package(s)** that pull in the vulnerable version (e.g. `eslint-plugin-sonarjs` → `minimatch@10.1.2`).
      4. Check the changelog/release notes between the currently-used vulnerable version and the safe version:
         - Look for any breaking changes (API removals, changed behavior, new peer-dep requirements).
@@ -108,14 +115,47 @@ For each directory:
             }
           }
           ```
-          Then run `npm install` to apply, then `npm list <transitive-package> --all` to verify only the targeted instance changed, and `npm audit` to confirm the vulnerability is resolved.
+          Then run `npm install` to apply. **Before accepting the result**, run `npm list <transitive-package> --all` again and diff it against your baseline: only the targeted parent's instance should have changed version. If any other package's resolved version of `<transitive-package>` changed, the override is broader than intended — remove it and use a more specific scope or a per-parent override. Then run `npm audit` to confirm the vulnerability is resolved.
         - If there **are breaking changes**, do not apply the override. Add the vulnerability to the **Unfixable Issues Report** and explain why the override is unsafe.
-3. After applying fixes in a directory, verify the project still builds:
+3. **After any npm operation that changes the lockfile**, run these two validation checks before touching the build or committing:
+
+   **a) Lockfile self-consistency**
+   Run `npm ci --dry-run`. If it fails with "Missing: <pkg>@<version> from lock file", the lockfile is inconsistent and must be fixed before proceeding. Do not commit a lockfile that fails `npm ci`.
+
+   **b) Silent dedup detection**
+   If the lockfile shrank significantly (many deletions, few or no insertions), nested package entries may have been removed by npm's deduplication. Removed nested entries are usually fine — unless a package's declared dependency range is no longer satisfied by the hoisted version.
+
+   Run: `git diff -- package-lock.json | grep "^-" | grep '"node_modules/.*/node_modules/' | grep -o '"[^"]*node_modules/[^"]*"' | sort -u`
+
+   For each removed nested path (e.g. `node_modules/@eslint/config-array/node_modules/minimatch`), extract the parent package and transitive package name. Then check:
+   ```
+   npm ls <transitive-package> 2>&1 | grep -E "UNMET|invalid|extraneous"
+   ```
+   Also inspect the parent's own `package.json` on disk (`node_modules/<parent>/package.json`) to find its declared range for the transitive dep. If the hoisted version does NOT satisfy that range (different major), the dedup is silent but incorrect.
+
+   **Fix:** Add a scoped override in the directory's `package.json` to make the upgrade intentional:
+   ```json
+   "overrides": {
+     "<parent-package>": {
+       "<transitive-package>": "^<hoisted-safe-version>"
+     }
+   }
+   ```
+   Then run `npm install` and re-run `npm ci --dry-run` to confirm.
+
+   **c) Jest peer alignment** (authui only)
+   After any npm operation in `authui/`, run:
+   ```
+   npm ls jest-environment-jsdom jest-runtime 2>&1 | grep -E "jest-environment-jsdom|jest-runtime"
+   ```
+   Both must resolve to the same `major.minor`. If `jest-runtime` is at `30.4.x` but `jest-environment-jsdom` is still pinned to `^30.2.0` in `package.json`, update the pin to `^30.4.0` (matching the runtime minor), then run `npm install`. Misalignment causes a runtime error (`clearMocksOnScope is not a function`) that only surfaces when tests run — not during install.
+
+4. After applying fixes in a directory, verify the project still builds:
    - For `portal/`: `npm run build` (or `npm run typecheck` if faster)
    - For `authui/`: `npm run build`
    - For `portalgraphiql/`: `npm run build`
    - For `scripts/npm/`: skip build check (utility scripts)
-4. Stage and commit changes for that directory immediately:
+5. Stage and commit changes for that directory immediately:
    - `git add <dir>/package.json <dir>/package-lock.json`
    - If overrides were added, include a comment in the commit body explaining which transitive dep was pinned, why, and a link to the advisory.
    - Commit message: `chore: fix npm dependency vulnerabilities in <dir>`
