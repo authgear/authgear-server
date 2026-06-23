@@ -301,26 +301,30 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
                   />
                 </div>
               </section>
-              <hr className={styles.divider} />
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <FormattedMessage id="ScreenHeader.projectSelector.switch-project" />
-                </div>
-                <div className={styles.projectList}>
-                  {otherApps.map((app) => (
-                    <button
-                      key={app.appID}
-                      type="button"
-                      className={styles.projectListItem}
-                      onClick={() => onSelectProject(app.appID)}
-                    >
-                      <span className={styles.projectListItemLabel}>
-                        {app.appID}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+              {otherApps.length > 0 ? (
+                <>
+                  <hr className={styles.divider} />
+                  <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                      <FormattedMessage id="ScreenHeader.projectSelector.switch-project" />
+                    </div>
+                    <div className={styles.projectList}>
+                      {otherApps.map((app) => (
+                        <button
+                          key={app.appID}
+                          type="button"
+                          className={styles.projectListItem}
+                          onClick={() => onSelectProject(app.appID)}
+                        >
+                          <span className={styles.projectListItemLabel}>
+                            {app.appID}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              ) : null}
               {!isAuthgearOnce ? (
                 <>
                   <hr className={styles.divider} />
