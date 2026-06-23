@@ -25,6 +25,10 @@ authgearonce-start-portal: GO_RUN_TAGS += authgearonce
 authgearonce-start-portal:
 	$(MAKE) start-portal GO_RUN_TAGS::="$(GO_RUN_TAGS)"
 
+.PHONY: setup
+setup: vendor
+	./scripts/sh/setup-dev.sh
+
 .PHONY: vendor
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.11.3
