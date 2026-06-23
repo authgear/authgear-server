@@ -109,14 +109,7 @@ ADMIN_EMAIL=dev@example.com ADMIN_PASSWORD=s3cr3t make setup
 
 ## Step 10: Done
 
-Add DNS entries so the portal hostnames resolve (if not already present in `/etc/hosts`):
-
-```
-127.0.0.1 portal.localhost
-127.0.0.1 accounts.portal.localhost
-```
-
-Then start the three long-running dev servers, each in its own terminal:
+Start the three long-running dev servers, each in its own terminal:
 
 ```sh
 make start            # main auth server
@@ -126,7 +119,8 @@ cd portal && npm start  # portal frontend (Vite)
 
 Print a summary:
 
-- Portal: http://portal.localhost:8000
+- Portal: http://localhost:8000
+- Auth UI: http://localhost:3100
 - Bootstrap credentials: printed at the end of `make setup`
 
 Then point the user at the post-setup topics in CONTRIBUTING.md when they need them:

@@ -77,8 +77,8 @@ if [ ! -f ./var/authgear.yaml ]; then
     --output-folder ./var \
     --purpose portal \
     --app-id accounts \
-    --public-origin 'http://accounts.portal.localhost:3100' \
-    --portal-origin 'http://portal.localhost:8000' \
+    --public-origin 'http://localhost:3100' \
+    --portal-origin 'http://localhost:8000' \
     --portal-client-id portal \
     --siteadmin-client-id siteadmin \
     --siteadmin-redirect-uri 'http://localhost:8101/oauth2-redirect.html' \
@@ -101,6 +101,12 @@ log "Running database migrations..."
 # ── 5. Portal config source ───────────────────────────────────────────────────
 log "Creating portal config source (safe to re-run)..."
 "${GO_RUN[@]}" ./cmd/portal internal configsource create ./var 2>&1 || true
+
+# ── 5a. Custom domain for accounts app ────────────────────────────────────────
+log "Registering localhost as custom domain for accounts app (safe to re-run)..."
+"${GO_RUN[@]}" ./cmd/portal internal domain create-custom accounts \
+  --apex-domain="localhost" \
+  --domain="localhost" 2>&1 || true
 
 # ── 6. MinIO buckets ──────────────────────────────────────────────────────────
 log "Waiting for MinIO to be ready..."
@@ -158,7 +164,7 @@ set +e
 "${GO_RUN[@]}" ./cmd/authgear internal admin-api invoke \
   --app-id accounts \
   --endpoint "http://localhost:3002" \
-  --host "accounts.portal.localhost:3100" \
+  --host "localhost:3100" \
   --query '
     mutation createUser($email: String!, $password: String!) {
       createUser(input: {
@@ -223,10 +229,6 @@ log "Next steps:"
 log "  1. Run 'make start'              – main auth server"
 log "  2. Run 'make start-portal'       – portal backend"
 log "  3. Run 'cd portal && npm start'  – portal frontend"
-log "  4. Visit http://portal.localhost:8000 and log in as:"
+log "  4. Visit http://localhost:8000 and log in as:"
 log "       Email:    $ADMIN_EMAIL"
 log "       Password: $ADMIN_PASSWORD"
-log ""
-log "Tip: edit /etc/hosts or configure dnsmasq so that"
-log "  portal.localhost → 127.0.0.1"
-log "  accounts.portal.localhost → 127.0.0.1"
