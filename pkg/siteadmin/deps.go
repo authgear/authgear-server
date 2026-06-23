@@ -62,6 +62,7 @@ var DependencySet = wire.NewSet(
 	// Audit DB (optional — nil when not configured)
 	auditdb.DependencySet,
 	auditdb.NewReadHandle,
+	auditdb.NewWriteHandle,
 	wire.Struct(new(analytic.AuditDBReadStore), "*"),
 
 	// usage.GlobalDBStore satisfies UsageServiceGlobalDBStore
@@ -76,6 +77,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(siteadminservice.PlanServiceGlobalDatabase), new(*globaldb.Handle)),
 	wire.Bind(new(siteadminservice.PlanServiceConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(siteadminservice.PlanServiceOwnerStore), new(*siteadminservice.AppOwnerStore)),
+	wire.Bind(new(siteadminservice.PlanServiceAuditService), new(*siteadminservice.SiteAdminAuditService)),
+	wire.Bind(new(siteadminservice.CollaboratorServiceAuditService), new(*siteadminservice.SiteAdminAuditService)),
 
 	// transport bindings
 	wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),

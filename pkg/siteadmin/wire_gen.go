@@ -271,10 +271,36 @@ func newCollaboratorsListHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	collaboratorService := &service.CollaboratorService{
 		GlobalDatabase: handle,
 		Store:          collaboratorStore,
 		AdminAPI:       serviceAdminAPIService,
+		AuditService:   siteAdminAuditService,
 	}
 	collaboratorsListHandler := &transport.CollaboratorsListHandler{
 		Service: collaboratorService,
@@ -322,10 +348,36 @@ func newCollaboratorAddHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	collaboratorService := &service.CollaboratorService{
 		GlobalDatabase: handle,
 		Store:          collaboratorStore,
 		AdminAPI:       serviceAdminAPIService,
+		AuditService:   siteAdminAuditService,
 	}
 	collaboratorAddHandler := &transport.CollaboratorAddHandler{
 		Service: collaboratorService,
@@ -373,10 +425,36 @@ func newCollaboratorRemoveHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	collaboratorService := &service.CollaboratorService{
 		GlobalDatabase: handle,
 		Store:          collaboratorStore,
 		AdminAPI:       serviceAdminAPIService,
+		AuditService:   siteAdminAuditService,
 	}
 	collaboratorRemoveHandler := &transport.CollaboratorRemoveHandler{
 		Service: collaboratorService,
@@ -424,10 +502,36 @@ func newCollaboratorPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	collaboratorService := &service.CollaboratorService{
 		GlobalDatabase: handle,
 		Store:          collaboratorStore,
 		AdminAPI:       serviceAdminAPIService,
+		AuditService:   siteAdminAuditService,
 	}
 	collaboratorPromoteHandler := &transport.CollaboratorPromoteHandler{
 		Service: collaboratorService,
@@ -529,12 +633,38 @@ func newPlansListHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	planService := &service.PlanService{
 		GlobalDatabase:    handle,
 		PlanStore:         store,
 		ConfigSourceStore: configsourceStore,
 		OwnerStore:        appOwnerStore,
 		AdminAPI:          serviceAdminAPIService,
+		AuditService:      siteAdminAuditService,
 		Clock:             clockClock,
 	}
 	plansListHandler := &transport.PlansListHandler{
@@ -591,12 +721,38 @@ func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPI:   adminAPIService,
 		HTTPClient: siteAdminHTTPClient,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
 	planService := &service.PlanService{
 		GlobalDatabase:    handle,
 		PlanStore:         store,
 		ConfigSourceStore: configsourceStore,
 		OwnerStore:        appOwnerStore,
 		AdminAPI:          serviceAdminAPIService,
+		AuditService:      siteAdminAuditService,
 		Clock:             clockClock,
 	}
 	appPlanChangeHandler := &transport.AppPlanChangeHandler{
