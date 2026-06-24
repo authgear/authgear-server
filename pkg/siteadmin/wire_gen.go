@@ -586,12 +586,52 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAuditLogsListHandler(p *deps.RequestProvider) http.Handler {
-	auditLogsListHandler := &transport.AuditLogsListHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	sqlBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	siteAdminAuditLogStore := &service.SiteAdminAuditLogStore{
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    readSQLExecutor,
+		AuthgearConfig: authgearConfig,
+	}
+	siteAdminAuditReadService := &service.SiteAdminAuditReadService{
+		AuditDatabase: readHandle,
+		Store:         siteAdminAuditLogStore,
+	}
+	auditLogsListHandler := &transport.AuditLogsListHandler{
+		AuditLogsList: siteAdminAuditReadService,
+	}
 	return auditLogsListHandler
 }
 
 func newAuditLogGetHandler(p *deps.RequestProvider) http.Handler {
-	auditLogGetHandler := &transport.AuditLogGetHandler{}
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	sqlBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	siteAdminAuditLogStore := &service.SiteAdminAuditLogStore{
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    readSQLExecutor,
+		AuthgearConfig: authgearConfig,
+	}
+	siteAdminAuditReadService := &service.SiteAdminAuditReadService{
+		AuditDatabase: readHandle,
+		Store:         siteAdminAuditLogStore,
+	}
+	auditLogGetHandler := &transport.AuditLogGetHandler{
+		AuditLogGet: siteAdminAuditReadService,
+	}
 	return auditLogGetHandler
 }
 

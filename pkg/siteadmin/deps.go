@@ -64,6 +64,7 @@ var DependencySet = wire.NewSet(
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
 	wire.Struct(new(analytic.AuditDBReadStore), "*"),
+	wire.Bind(new(siteadminservice.SiteAdminAuditReadDatabase), new(*auditdb.ReadHandle)),
 
 	// usage.GlobalDBStore satisfies UsageServiceGlobalDBStore
 	wire.Struct(new(usagepkg.GlobalDBStore), "SQLBuilder", "SQLExecutor"),
@@ -91,4 +92,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.PlansListService), new(*siteadminservice.PlanService)),
 	wire.Bind(new(transport.AppPlanChangeService), new(*siteadminservice.PlanService)),
 	wire.Bind(new(transport.CollaboratorPromoteService), new(*siteadminservice.CollaboratorService)),
+
+	// audit log read service transport bindings
+	wire.Bind(new(transport.AuditLogsListService), new(*siteadminservice.SiteAdminAuditReadService)),
+	wire.Bind(new(transport.AuditLogGetService), new(*siteadminservice.SiteAdminAuditReadService)),
 )
