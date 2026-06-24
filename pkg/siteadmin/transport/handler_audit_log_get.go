@@ -10,7 +10,7 @@ import (
 )
 
 func ConfigureAuditLogGetRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("GET").
+	return route.WithMethods("OPTIONS", "GET").
 		WithPathPattern("/api/v1/audit-logs/:id")
 }
 
