@@ -79,7 +79,7 @@ require (
 
 require (
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3
-	github.com/authgear/oauthrelyingparty v1.5.0
+	github.com/authgear/oauthrelyingparty v1.6.0
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.31.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.6
