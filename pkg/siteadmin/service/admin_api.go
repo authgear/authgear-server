@@ -69,13 +69,13 @@ func (s *AdminAPIService) FindUserIDsByEmail(ctx context.Context, email string) 
 	return ids, nil
 }
 
-// ownerSearchPageSize is the maximum number of portal users fetched per owner_search
-// call. It caps how many distinct owners are considered when filtering apps.
-// A higher value increases coverage but also increases Admin API query cost.
-const ownerSearchPageSize = 20
+// collaboratorSearchPageSize is the maximum number of portal users fetched per
+// collaborator_search call. A higher value increases coverage but also increases
+// Admin API query cost.
+const collaboratorSearchPageSize = 20
 
 // SearchUsersByKeyword searches portal users by keyword via the Admin GraphQL API.
-// Returns up to ownerSearchPageSize user IDs in search-rank order and whether the
+// Returns up to collaboratorSearchPageSize user IDs in search-rank order and whether the
 // result was truncated (i.e. the search matched more users than the cap allows).
 func (s *AdminAPIService) SearchUsersByKeyword(ctx context.Context, keyword string) (ids []string, truncated bool, err error) {
 	params := graphqlutil.DoParams{
@@ -92,7 +92,7 @@ func (s *AdminAPIService) SearchUsersByKeyword(ctx context.Context, keyword stri
 		`,
 		Variables: map[string]any{
 			"keyword":  keyword,
-			"pageSize": ownerSearchPageSize,
+			"pageSize": collaboratorSearchPageSize,
 		},
 	}
 
