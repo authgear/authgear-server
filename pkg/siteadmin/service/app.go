@@ -48,12 +48,12 @@ type AppServiceOwnerStore interface {
 type ListAppsStoreParams struct {
 	Page           uint64
 	PageSize       uint64
-	AppID          string                        // optional; if set, WHERE cs.app_id LIKE 'prefix%'
-	PlanName       string                        // optional; if set, WHERE cs.plan_name = ?
-	OwnerUserIDs   []string                      // optional; if set, WHERE ac.user_id = ANY(?)
-	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau" | "relevance"
-	Order          siteadmin.OrderDirection // "asc" | "desc"
-	LastMonthStart time.Time                     // exact start_time value for the usage record JOIN
+	AppID          string                       // optional; if set, WHERE cs.app_id LIKE 'prefix%'
+	PlanName       string                       // optional; if set, WHERE cs.plan_name = ?
+	OwnerUserIDs   []string                     // optional; if set, WHERE ac.user_id = ANY(?)
+	Sort           siteadmin.ListAppsParamsSort // "created_at" | "mau" | "relevance"
+	Order          siteadmin.OrderDirection     // "asc" | "desc"
+	LastMonthStart time.Time                    // exact start_time value for the usage record JOIN
 }
 
 // AppStoreRow is a single row returned by ListAppsWithStats.
@@ -206,9 +206,9 @@ type ListAppsParams struct {
 	PageSize    uint64
 	AppID       string
 	OwnerSearch string
-	Plan        string                        // exact plan name filter
-	Sort        siteadmin.ListAppsParamsSort  // "created_at" (default) | "mau" | "relevance"
-	Order       siteadmin.OrderDirection // "desc" (default) | "asc"
+	Plan        string                       // exact plan name filter
+	Sort        siteadmin.ListAppsParamsSort // "created_at" (default) | "mau" | "relevance"
+	Order       siteadmin.OrderDirection     // "desc" (default) | "asc"
 }
 
 type ListAppsResult struct {

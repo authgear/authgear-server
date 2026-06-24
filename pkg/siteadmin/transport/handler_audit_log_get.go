@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	service "github.com/authgear/authgear-server/pkg/siteadmin/service"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -22,5 +23,25 @@ type AuditLogGetHandler struct {
 }
 
 func (h *AuditLogGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+	id := httproute.GetParam(r, "id")
+
+	entry, err := h.AuditLogGet.GetAuditLog(r.Context(), id)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+
+	a := entryToSiteAdminAuditLog(entry.AuditLogEntry)
+	detail := siteadmin.SiteAdminAuditLogDetail{
+		ActivityType:  a.ActivityType,
+		ActorUserId:   a.ActorUserId,
+		AffectedAppId: a.AffectedAppId,
+		CreatedAt:     a.CreatedAt,
+		Id:            a.Id,
+		IpAddress:     a.IpAddress,
+		UserAgent:     a.UserAgent,
+		Data:          entry.Data,
+	}
+
+	SiteAdminAPISuccessResponse{Body: detail}.WriteTo(w)
 }

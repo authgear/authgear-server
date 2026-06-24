@@ -57,6 +57,50 @@ func parseAuditLogsListParams(r *http.Request) auditLogsListParams {
 	}
 }
 
+func entryToSiteAdminAuditLog(e service.AuditLogEntry) siteadmin.SiteAdminAuditLog {
+	a := siteadmin.SiteAdminAuditLog{
+		Id:           e.ID,
+		CreatedAt:    e.CreatedAt,
+		ActivityType: e.ActivityType,
+	}
+	if e.IPAddress != "" {
+		a.IpAddress = &e.IPAddress
+	}
+	if e.UserAgent != "" {
+		a.UserAgent = &e.UserAgent
+	}
+	if e.ActorUserID != "" {
+		a.ActorUserId = &e.ActorUserID
+	}
+	if e.AffectedAppID != "" {
+		a.AffectedAppId = &e.AffectedAppID
+	}
+	return a
+}
+
 func (h *AuditLogsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+	params := parseAuditLogsListParams(r)
+
+	result, err := h.AuditLogsList.ListAuditLogs(r.Context(), service.ListAuditLogsParams{
+		Page:          params.Page,
+		PageSize:      params.PageSize,
+		AffectedAppID: params.AffectedAppID,
+		Order:         params.Order,
+	})
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+
+	entries := make([]siteadmin.SiteAdminAuditLog, len(result.Entries))
+	for i, e := range result.Entries {
+		entries[i] = entryToSiteAdminAuditLog(e)
+	}
+
+	SiteAdminAPISuccessResponse{Body: siteadmin.SiteAdminAuditLogsListResponse{
+		AuditLogs:  entries,
+		TotalCount: result.TotalCount,
+		Page:       params.Page,
+		PageSize:   params.PageSize,
+	}}.WriteTo(w)
 }
