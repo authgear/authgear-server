@@ -1,8 +1,12 @@
 package transport
 
 import (
+	"context"
 	"net/http"
+	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/siteadmin"
+	service "github.com/authgear/authgear-server/pkg/siteadmin/service"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -11,7 +15,46 @@ func ConfigureAuditLogsListRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/api/v1/audit-logs")
 }
 
+type AuditLogsListService interface {
+	ListAuditLogs(ctx context.Context, params service.ListAuditLogsParams) (*service.ListAuditLogsResult, error)
+}
+
 type AuditLogsListHandler struct {
+	AuditLogsList AuditLogsListService
+}
+
+type auditLogsListParams struct {
+	Page          uint64
+	PageSize      uint64
+	AffectedAppID string
+	Order         siteadmin.OrderDirection
+}
+
+func parseAuditLogsListParams(r *http.Request) auditLogsListParams {
+	q := r.URL.Query()
+
+	page := uint64(1)
+	if v := q.Get("page"); v != "" {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
+			page = n
+		}
+	}
+
+	pageSize := uint64(20)
+	if v := q.Get("page_size"); v != "" {
+		if n, err := strconv.ParseUint(v, 10, 64); err == nil && n >= 1 {
+			pageSize = min(n, service.AuditLogsMaxPageSize)
+		}
+	}
+
+	order := siteadmin.OrderDirection(q.Get("order"))
+
+	return auditLogsListParams{
+		Page:          page,
+		PageSize:      pageSize,
+		AffectedAppID: q.Get("affected_app_id"),
+		Order:         order,
+	}
 }
 
 func (h *AuditLogsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
