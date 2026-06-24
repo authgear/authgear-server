@@ -19,6 +19,7 @@ import (
 	portalmodel "github.com/authgear/authgear-server/pkg/portal/model"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 )
 
 type fakeCollaboratorDatabase struct {
@@ -318,6 +319,141 @@ func TestCollaboratorService(t *testing.T) {
 
 			So(err, ShouldEqual, ErrCollaboratorAlreadyOwner)
 			So(store.updated, ShouldBeEmpty)
+		})
+
+		Convey("AddCollaborator emits audit log", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				existingByAppUser: map[string]*portalmodel.Collaborator{},
+				now:               now,
+			}
+			globalID := relay.ToGlobalID("User", "user-2")
+			svr := adminAPIServer(getUsersByEmailResponse(globalID))
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+				AuditService:   audit,
+			}
+
+			_, err := svc.AddCollaborator(ctxWithCollaboratorSession(), "app-1", "bob@example.com")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorAddedPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.AppID, ShouldEqual, "app-1")
+			So(payload.CollaboratorUserID, ShouldEqual, "user-2")
+			So(payload.UserEmail, ShouldEqual, "bob@example.com")
+			So(payload.Role, ShouldEqual, "editor")
+		})
+
+		Convey("RemoveCollaborator emits audit log", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				existingByID: map[string]*portalmodel.Collaborator{
+					"collab-1": {ID: "collab-1", AppID: "app-1", UserID: "user-1", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			globalID := relay.ToGlobalID("User", "user-1")
+			svr := adminAPIServer(getNodesResponse(
+				map[string]any{"id": globalID, "standardAttributes": map[string]any{"email": "alice@example.com"}},
+			))
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+				AuditService:   audit,
+			}
+
+			err := svc.RemoveCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorDeletedPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.AppID, ShouldEqual, "app-1")
+			So(payload.CollaboratorID, ShouldEqual, "collab-1")
+			So(payload.CollaboratorUserID, ShouldEqual, "user-1")
+			So(payload.CollaboratorUserEmail, ShouldEqual, "alice@example.com")
+		})
+
+		Convey("PromoteCollaborator emits audit log with demoted owner", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				listed: []*portalmodel.Collaborator{
+					{ID: "owner-1", AppID: "app-1", UserID: "user-owner", CreatedAt: now, Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+				existingByID: map[string]*portalmodel.Collaborator{
+					"editor-1": {ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			editorGlobalID := relay.ToGlobalID("User", "user-editor")
+			ownerGlobalID := relay.ToGlobalID("User", "user-owner")
+			svr := adminAPIServer(getNodesResponse(
+				map[string]any{"id": editorGlobalID, "standardAttributes": map[string]any{"email": "editor@example.com"}},
+				map[string]any{"id": ownerGlobalID, "standardAttributes": map[string]any{"email": "owner@example.com"}},
+			))
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+				AuditService:   audit,
+			}
+
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
+			So(payload.NewOwnerUserID, ShouldEqual, "user-editor")
+			So(payload.NewOwnerUserEmail, ShouldEqual, "editor@example.com")
+			So(payload.DemotedEditorCollaboratorID, ShouldEqual, "owner-1")
+			So(payload.DemotedEditorUserID, ShouldEqual, "user-owner")
+			So(payload.DemotedEditorUserEmail, ShouldEqual, "owner@example.com")
+		})
+
+		Convey("PromoteCollaborator emits audit log without demoted fields when no previous owner", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				listed: []*portalmodel.Collaborator{
+					{ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+				existingByID: map[string]*portalmodel.Collaborator{
+					"editor-1": {ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			editorGlobalID := relay.ToGlobalID("User", "user-editor")
+			svr := adminAPIServer(getNodesResponse(
+				map[string]any{"id": editorGlobalID, "standardAttributes": map[string]any{"email": "editor@example.com"}},
+			))
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+				AuditService:   audit,
+			}
+
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
+			So(payload.DemotedEditorCollaboratorID, ShouldEqual, "")
+			So(payload.DemotedEditorUserID, ShouldEqual, "")
 		})
 	})
 }

@@ -25,6 +25,8 @@ const (
 	TriggeredBySystem TriggeredByType = "system"
 	// TriggeredByPortal means the event originates from the management portal.
 	TriggeredByPortal TriggeredByType = "portal"
+	// TriggeredBySiteAdmin means the event originates from the Site Admin API.
+	TriggeredBySiteAdmin TriggeredByType = "site_admin"
 )
 
 type Context struct {

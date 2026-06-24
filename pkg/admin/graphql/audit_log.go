@@ -419,6 +419,19 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
+// knownAuditLogActivityTypes is derived from the enum above.
+// It is used as a default filter when the caller does not specify activityTypes,
+// ensuring that unknown DB values (e.g. site_admin.*) are never returned and
+// cannot cause a serialization error on the non-null activityType field.
+var knownAuditLogActivityTypes = func() []string {
+	values := auditLogActivityType.Values()
+	result := make([]string, 0, len(values))
+	for _, v := range values {
+		result = append(result, v.Value.(string))
+	}
+	return result
+}()
+
 const typeAuditLog = "AuditLog"
 
 var nodeAuditLog = node(

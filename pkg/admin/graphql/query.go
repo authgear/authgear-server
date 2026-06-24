@@ -291,6 +291,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 						}
 					}
 				}
+				// Default to the whitelist when no filter is given so that
+				// unknown DB values (e.g. site_admin.*) are filtered out at
+				// the query level and never reach enum serialization.
+				if len(activityTypes) == 0 {
+					activityTypes = knownAuditLogActivityTypes
+				}
 
 				var userIDs []string
 				if arr, ok := p.Args["userIDs"].([]any); ok {

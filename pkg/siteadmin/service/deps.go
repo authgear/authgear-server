@@ -22,5 +22,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CollaboratorService), "*"),
 	wire.Struct(new(UsageService), "*"),
 	wire.Struct(new(PlanService), "*"),
+	wire.Struct(new(SiteAdminAuditService), "*"),
 	NewHTTPClient,
 )
