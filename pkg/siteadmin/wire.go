@@ -118,6 +118,20 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newAuditLogsListHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AuditLogsListHandler)),
+	))
+}
+
+func newAuditLogGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AuditLogGetHandler)),
+	))
+}
+
 func newPlansListHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

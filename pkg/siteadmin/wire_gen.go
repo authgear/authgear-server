@@ -585,6 +585,16 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	return monthlyActiveUsersUsageHandler
 }
 
+func newAuditLogsListHandler(p *deps.RequestProvider) http.Handler {
+	auditLogsListHandler := &transport.AuditLogsListHandler{}
+	return auditLogsListHandler
+}
+
+func newAuditLogGetHandler(p *deps.RequestProvider) http.Handler {
+	auditLogGetHandler := &transport.AuditLogGetHandler{}
+	return auditLogGetHandler
+}
+
 func newPlansListHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
