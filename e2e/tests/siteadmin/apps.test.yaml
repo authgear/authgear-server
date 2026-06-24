@@ -21,13 +21,13 @@ steps:
         "total_count": "[[number]]",
         "page": 1,
         "page_size": "[[number]]",
-        "owner_search_truncated": false
+        "collaborator_search_truncated": false
       }
 
 # ── Owner search ──────────────────────────────────────────────────────────────
-# owner_search requires Elasticsearch to be indexed; only the validation error
-# case (sort=relevance without owner_search → 400) is tested in e2e.
-- name: sort=relevance without owner_search returns 400
+# collaborator_search requires Elasticsearch to be indexed; only the validation error
+# case (sort=relevance without collaborator_search → 400) is tested in e2e.
+- name: sort=relevance without collaborator_search returns 400
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
