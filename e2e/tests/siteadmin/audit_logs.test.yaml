@@ -1,0 +1,146 @@
+name: Site Admin - Audit Logs
+app_id: e2e-portal
+before:
+- type: custom_audit_sql
+  custom_audit_sql:
+    path: fixture/seed_siteadmin_audit_logs.sql
+
+steps:
+# ── List: basic structure ──────────────────────────────────────────────────
+- name: list_audit_logs
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "audit_logs": "[[array]]",
+        "total_count": "[[number]]",
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+# ── List: filter by affected_app_id ───────────────────────────────────────
+# Only the 3 seeded entries belong to e2e-audit-log-app.
+- name: list_audit_logs_filtered_by_app
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    affected_app_id: "e2e-audit-log-app"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "total_count": 3,
+        "page": 1,
+        "page_size": "[[number]]"
+      }
+
+# ── List: order=desc returns newest first ──────────────────────────────────
+# e2e000000000003 (2026-01-01 12:00) is newest.
+- name: list_audit_logs_order_desc
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    affected_app_id: "e2e-audit-log-app"
+    order: "desc"
+    page_size: "1"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "audit_logs": [{"id": "e2e000000000003"}],
+        "total_count": 3,
+        "page": 1,
+        "page_size": 1
+      }
+
+# ── List: order=asc returns oldest first ──────────────────────────────────
+# e2e000000000001 (2026-01-01 10:00) is oldest.
+- name: list_audit_logs_order_asc
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    affected_app_id: "e2e-audit-log-app"
+    order: "asc"
+    page_size: "1"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "audit_logs": [{"id": "e2e000000000001"}],
+        "total_count": 3,
+        "page": 1,
+        "page_size": 1
+      }
+
+# ── List: pagination ───────────────────────────────────────────────────────
+# page_size=1, page=2 → middle entry (e2e000000000002, 11:00) in desc order.
+- name: list_audit_logs_page_2
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_request_query:
+    affected_app_id: "e2e-audit-log-app"
+    page_size: "1"
+    page: "2"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "audit_logs": [{"id": "e2e000000000002"}],
+        "total_count": 3,
+        "page": 2,
+        "page_size": 1
+      }
+
+# ── Get by ID: detail includes raw data ───────────────────────────────────
+- name: get_audit_log_detail
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs/e2e000000000003
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "id": "e2e000000000003",
+        "activity_type": "site_admin.app.plan.updated",
+        "affected_app_id": "e2e-audit-log-app",
+        "actor_user_id": "00000000-0000-0000-0000-000000000001",
+        "ip_address": "127.0.0.1/32",
+        "user_agent": "Mozilla/5.0",
+        "data": "[[object]]"
+      }
+
+# ── Error cases ────────────────────────────────────────────────────────────
+- name: get_non_existent_audit_log_returns_404
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/audit-logs/0000000000000000
+  http_request_headers:
+    X-Authgear-Session-Valid: "true"
+    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+  http_output:
+    http_status: 404
