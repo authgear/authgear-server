@@ -10,11 +10,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -211,7 +211,7 @@ func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string,
 	}
 
 	if s.AuditService != nil {
-		if err := s.AuditService.LogEvent(ctx, appID, &nonblocking.SiteAdminAppCollaboratorAddedEventPayload{
+		if err := s.AuditService.LogEvent(ctx, appID, &siteadminauditlog.AppCollaboratorAddedPayload{
 			AppID:              appID,
 			CollaboratorID:     newCollaborator.ID,
 			CollaboratorUserID: newCollaborator.UserID,
@@ -288,7 +288,7 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 	}
 
 	if s.AuditService != nil {
-		payload := &nonblocking.SiteAdminAppCollaboratorPromotedEventPayload{
+		payload := &siteadminauditlog.AppCollaboratorPromotedPayload{
 			AppID:                  appID,
 			NewOwnerCollaboratorID: promoted.ID,
 			NewOwnerUserID:         promoted.UserID,
@@ -333,7 +333,7 @@ func (s *CollaboratorService) RemoveCollaborator(ctx context.Context, appID stri
 
 	if s.AuditService != nil {
 		emailMap, _ := s.AdminAPI.ResolveUserEmails(ctx, []string{deleted.UserID})
-		if err := s.AuditService.LogEvent(ctx, deleted.AppID, &nonblocking.SiteAdminAppCollaboratorDeletedEventPayload{
+		if err := s.AuditService.LogEvent(ctx, deleted.AppID, &siteadminauditlog.AppCollaboratorDeletedPayload{
 			AppID:                 deleted.AppID,
 			CollaboratorID:        deleted.ID,
 			CollaboratorUserID:    deleted.UserID,

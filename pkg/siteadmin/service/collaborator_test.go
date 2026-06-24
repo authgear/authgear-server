@@ -13,13 +13,13 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	portalmodel "github.com/authgear/authgear-server/pkg/portal/model"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 )
 
 type fakeCollaboratorDatabase struct {
@@ -342,7 +342,7 @@ func TestCollaboratorService(t *testing.T) {
 			_, err := svc.AddCollaborator(ctxWithCollaboratorSession(), "app-1", "bob@example.com")
 			So(err, ShouldBeNil)
 			So(audit.logged, ShouldHaveLength, 1)
-			payload, ok := audit.logged[0].(*nonblocking.SiteAdminAppCollaboratorAddedEventPayload)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorAddedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.AppID, ShouldEqual, "app-1")
 			So(payload.CollaboratorUserID, ShouldEqual, "user-2")
@@ -374,7 +374,7 @@ func TestCollaboratorService(t *testing.T) {
 			err := svc.RemoveCollaborator(ctxWithCollaboratorSession(), "app-1", "collab-1")
 			So(err, ShouldBeNil)
 			So(audit.logged, ShouldHaveLength, 1)
-			payload, ok := audit.logged[0].(*nonblocking.SiteAdminAppCollaboratorDeletedEventPayload)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorDeletedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.AppID, ShouldEqual, "app-1")
 			So(payload.CollaboratorID, ShouldEqual, "collab-1")
@@ -412,7 +412,7 @@ func TestCollaboratorService(t *testing.T) {
 			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
 			So(err, ShouldBeNil)
 			So(audit.logged, ShouldHaveLength, 1)
-			payload, ok := audit.logged[0].(*nonblocking.SiteAdminAppCollaboratorPromotedEventPayload)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
 			So(payload.NewOwnerUserID, ShouldEqual, "user-editor")
@@ -449,7 +449,7 @@ func TestCollaboratorService(t *testing.T) {
 			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
 			So(err, ShouldBeNil)
 			So(audit.logged, ShouldHaveLength, 1)
-			payload, ok := audit.logged[0].(*nonblocking.SiteAdminAppCollaboratorPromotedEventPayload)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
 			So(payload.DemotedEditorCollaboratorID, ShouldEqual, "")

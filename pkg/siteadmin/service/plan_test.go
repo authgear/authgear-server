@@ -11,11 +11,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/config/plan"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -214,7 +214,7 @@ func TestPlanService_ChangeAppPlan(t *testing.T) {
 			_, err := svc.ChangeAppPlan(ctxWithSession(), "app1", "enterprise")
 			So(err, ShouldBeNil)
 			So(audit.logged, ShouldHaveLength, 1)
-			payload, ok := audit.logged[0].(*nonblocking.SiteAdminAppPlanUpdatedEventPayload)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppPlanUpdatedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.AppID, ShouldEqual, "app1")
 			So(payload.OldPlan, ShouldEqual, "free")

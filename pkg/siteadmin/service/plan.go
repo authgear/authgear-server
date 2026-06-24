@@ -6,10 +6,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/config/plan"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -116,7 +116,7 @@ func (s *PlanService) ChangeAppPlan(ctx context.Context, appID string, planName 
 	}
 
 	if s.AuditService != nil {
-		if err := s.AuditService.LogEvent(ctx, appID, &nonblocking.SiteAdminAppPlanUpdatedEventPayload{
+		if err := s.AuditService.LogEvent(ctx, appID, &siteadminauditlog.AppPlanUpdatedPayload{
 			AppID:   appID,
 			OldPlan: oldPlanName,
 			NewPlan: planName,
