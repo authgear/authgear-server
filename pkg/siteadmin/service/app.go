@@ -52,7 +52,7 @@ type ListAppsStoreParams struct {
 	PlanName       string                        // optional; if set, WHERE cs.plan_name = ?
 	OwnerUserIDs   []string                      // optional; if set, WHERE ac.user_id = ANY(?)
 	Sort           siteadmin.ListAppsParamsSort  // "created_at" | "mau" | "relevance"
-	Order          siteadmin.ListAppsParamsOrder // "asc" | "desc"
+	Order          siteadmin.OrderDirection // "asc" | "desc"
 	LastMonthStart time.Time                     // exact start_time value for the usage record JOIN
 }
 
@@ -208,7 +208,7 @@ type ListAppsParams struct {
 	OwnerSearch string
 	Plan        string                        // exact plan name filter
 	Sort        siteadmin.ListAppsParamsSort  // "created_at" (default) | "mau" | "relevance"
-	Order       siteadmin.ListAppsParamsOrder // "desc" (default) | "asc"
+	Order       siteadmin.OrderDirection // "desc" (default) | "asc"
 }
 
 type ListAppsResult struct {
