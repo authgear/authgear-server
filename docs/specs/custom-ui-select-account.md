@@ -10,7 +10,7 @@
   - [Phase 3a: User continues with existing account](#phase-3a-user-continues-with-existing-account)
   - [Phase 3b: User switches to a different account](#phase-3b-user-switches-to-a-different-account)
 - [HTTP API](#http-api)
-  - [GET /api/v1/accounts_hint/{token}](#get-apiv1accounts_hinttoken)
+  - [GET /api/v1/select_account_tokens/{token}](#get-apiv1select_account_tokenstoken)
   - [GET /api/v1/select_account](#get-apiv1select_account)
 - [End-to-end flow diagram](#end-to-end-flow-diagram)
 - [Edge cases](#edge-cases)
@@ -71,27 +71,27 @@ At `GET /oauth2/authorize`, when **all** of the following conditions hold:
 Authgear MUST:
 
 1. Enumerate all logged-in accounts (via session cookie). Record the ordered list—`[{user_id, display_name}, …]`—associated with `x_ref` (server-side). The order is stable and defines the `x_account_index` used at continuation.
-2. Generate a random, cryptographically secure **accounts hint token** (32 bytes, URL-safe base64-encoded).
+2. Generate a random, cryptographically secure **select account token** (32 bytes, URL-safe base64-encoded).
 3. Store the token with a TTL of **10 minutes**, associated with:
    - The same ordered list of eligible accounts: `[{user_id, display_name}, …]`
    - `x_ref` (to prevent use across different authorization requests)
-4. Append `x_accounts_hint=<token>` to the Custom UI redirect URL.
+4. Append `x_select_account_token=<token>` to the Custom UI redirect URL.
 
 The token MUST NOT contain any PII or user-identifiable information. It is an opaque random identifier only.
 
 **Example redirect to Custom UI:**
 
 ```
-https://custom.example.com/auth?x_ref=oauthsession_abc123&client_id=my_app&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback&x_accounts_hint=Rn4xT7...
+https://custom.example.com/auth?x_ref=oauthsession_abc123&client_id=my_app&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback&x_select_account_token=Rn4xT7...
 ```
 
 ---
 
 ### Phase 2: Custom UI — display the account picker
 
-When the Custom UI receives `x_accounts_hint` in its URL parameters, it MUST call `GET /api/v1/accounts_hint/{x_accounts_hint}` to retrieve account display names, then present an account-selection screen showing the logged-in accounts. See [HTTP API](#get-apiv1accounts_hinttoken) for the response format.
+When the Custom UI receives `x_select_account_token` in its URL parameters, it MUST call `GET /api/v1/select_account_tokens/{x_select_account_token}` to retrieve account display names, then present an account-selection screen showing the logged-in accounts. See [HTTP API](#get-apiv1select_account_tokenstoken) for the response format.
 
-If `x_accounts_hint` is absent from the Custom UI URL, the Custom UI MUST proceed with a normal authentication flow as if no existing session exists (see [Phase 3b](#phase-3b-user-switches-to-a-different-account)).
+If `x_select_account_token` is absent from the Custom UI URL, the Custom UI MUST proceed with a normal authentication flow as if no existing session exists (see [Phase 3b](#phase-3b-user-switches-to-a-different-account)).
 
 ---
 
@@ -108,7 +108,7 @@ window.location.href =
 
 A GET redirect is required for a specific reason: the session cookie has `SameSite=Lax`. Under this policy, the browser sends the cookie on cross-site requests **only** when they are top-level navigations using a safe method (GET/HEAD). A cross-site form POST would not include the cookie, so Authgear would never see the session. A GET redirect satisfies both requirements and makes the cookie available to Authgear on this same-origin request.
 
-The `x_account_index` parameter is the 0-based position of the selected account in the array returned by `GET /api/v1/accounts_hint/{token}`. If omitted, it defaults to `0`.
+The `x_account_index` parameter is the 0-based position of the selected account in the array returned by `GET /api/v1/select_account_tokens/{token}`. If omitted, it defaults to `0`.
 
 Using an index rather than a user ID ensures that no user identifier appears in the URL.
 
@@ -141,7 +141,7 @@ POST /api/v1/authentication_flows
 }
 ```
 
-This is identical to the current Custom UI flow. The `x_accounts_hint` is simply ignored. The user proceeds through `identify` → `authenticate` as normal.
+This is identical to the current Custom UI flow. The `x_select_account_token` is simply ignored. The user proceeds through `identify` → `authenticate` as normal.
 
 ---
 
@@ -151,21 +151,21 @@ This feature introduces two new endpoints, both under `/api/v1/` (the namespace 
 
 | Endpoint | Call method | Response type | Cookie required |
 |---|---|---|---|
-| `GET /api/v1/accounts_hint/{token}` | XHR / fetch (cross-origin) | JSON | No |
+| `GET /api/v1/select_account_tokens/{token}` | XHR / fetch (cross-origin) | JSON | No |
 | `GET /api/v1/select_account` | Top-level browser navigation (`window.location.href`) | HTTP 302 redirect | Yes (session cookie) |
 
 `/authflow/v2/` is the internal prefix used by Authgear's built-in Auth UI and is not part of the Custom UI integration API. Both custom UI endpoints are under `/api/v1/`.
 
 ---
 
-### GET /api/v1/accounts_hint/{token}
+### GET /api/v1/select_account_tokens/{token}
 
-Retrieves account display information for the accounts hint token. This is a read-only, unauthenticated endpoint. Its result is informational only and does not grant any authentication.
+Retrieves account display information for the select account token. This is a read-only, unauthenticated endpoint. Its result is informational only and does not grant any authentication.
 
 **Request:**
 
 ```
-GET /api/v1/accounts_hint/Rn4xT7... HTTP/1.1
+GET /api/v1/select_account_tokens/Rn4xT7... HTTP/1.1
 ```
 
 **Successful response (200):**
@@ -195,8 +195,8 @@ Each entry corresponds to one eligible account. The position in the array is the
 {
   "error": {
     "name": "NotFound",
-    "reason": "AccountsHintNotFound",
-    "message": "account hint not found or expired",
+    "reason": "SelectAccountTokenNotFound",
+    "message": "select account token not found or expired",
     "code": 404
   }
 }
@@ -221,7 +221,7 @@ GET /api/v1/select_account?x_ref=oauthsession_abc123&x_account_index=0 HTTP/1.1
 | Parameter | Required | Description |
 |---|---|---|
 | `x_ref` | Yes | The OAuth session ID passed to the Custom UI. |
-| `x_account_index` | No | 0-based index of the selected account from the `GET /api/v1/accounts_hint/{token}` response. Defaults to `0`. |
+| `x_account_index` | No | 0-based index of the selected account from the `GET /api/v1/select_account_tokens/{token}` response. Defaults to `0`. |
 
 **Validation:**
 
@@ -268,13 +268,13 @@ App
   ├─▶ GET /oauth2/authorize?client_id=...&code_challenge=...
   │       Authgear reads session cookie ✓
   │       Stores eligible user_ids in OAuth session
-  │       Generates x_accounts_hint (random opaque token)
+  │       Generates x_select_account_token (random opaque token)
   │       ↓
-  ├─◀ 302 → https://custom.example.com?x_ref=...&x_accounts_hint=...
+  ├─◀ 302 → https://custom.example.com?x_ref=...&x_select_account_token=...
   │
 Custom UI
   │
-  ├─▶ GET /api/v1/accounts_hint/{x_accounts_hint}
+  ├─▶ GET /api/v1/select_account_tokens/{x_select_account_token}
   │       ↓
   ├─◀ { accounts: [{ display_name }, …] }
   │
@@ -302,11 +302,11 @@ App
 
 ## Edge cases
 
-### `x_accounts_hint` expires before the user acts
+### `x_select_account_token` expires before the user acts
 
 The token has a 10-minute TTL. If the display info call returns 404 (token expired before the Custom UI loaded), the Custom UI MUST fall back to Phase 3b (normal authflow).
 
-If the Custom UI already fetched and cached the accounts list before expiry, it MAY still navigate to the account continuation endpoint — it does not require `x_accounts_hint` and is unaffected by its expiry. The only requirement for continuation is a valid session cookie.
+If the Custom UI already fetched and cached the accounts list before expiry, it MAY still navigate to the account continuation endpoint — it does not require `x_select_account_token` and is unaffected by its expiry. The only requirement for continuation is a valid session cookie.
 
 ### No session at continuation time
 
@@ -314,11 +314,11 @@ If the session expired or was revoked between authorization start and continuati
 
 ### `prompt=login`
 
-When the authorization request includes `prompt=login`, Authgear MUST NOT generate `x_accounts_hint`. The user is required to re-authenticate. The Custom UI receives no account-selection signal.
+When the authorization request includes `prompt=login`, Authgear MUST NOT generate `x_select_account_token`. The user is required to re-authenticate. The Custom UI receives no account-selection signal.
 
 ### `prompt=none`
 
-When the authorization request includes `prompt=none`, Authgear either completes authentication silently (if a valid session exists) or returns a `login_required` error — in neither case is the Custom UI involved, so `x_accounts_hint` is never generated.
+When the authorization request includes `prompt=none`, Authgear either completes authentication silently (if a valid session exists) or returns a `login_required` error — in neither case is the Custom UI involved, so `x_select_account_token` is never generated.
 
 ### Multiple active accounts (Not implemented)
 
@@ -326,7 +326,7 @@ Multiple active accounts are not supported at this time. The eligible accounts l
 
 ### `login_hint` present
 
-When the authorization request includes `login_hint`, it targets a specific user and `x_accounts_hint` MUST NOT be generated.
+When the authorization request includes `login_hint`, it targets a specific user and `x_select_account_token` MUST NOT be generated.
 
 ### CSRF
 
@@ -342,15 +342,15 @@ No additional CSRF protection is required.
 
 | Threat | Mitigation |
 |---|---|
-| Attacker captures the Custom UI redirect URL (contains `x_ref` and `x_accounts_hint`) | Continuing requires the victim's session cookie in the attacker's browser. The attacker's browser does not have it. |
-| Attacker calls the display info endpoint with a captured `x_accounts_hint` | Learns the account display name only (not credentials). The display name is not sufficient for authentication. Token TTL limits the exposure window. |
-| Forged `x_accounts_hint` | The token is a cryptographically random server-generated value. An attacker cannot forge a valid token. |
+| Attacker captures the Custom UI redirect URL (contains `x_ref` and `x_select_account_token`) | Continuing requires the victim's session cookie in the attacker's browser. The attacker's browser does not have it. |
+| Attacker calls the display info endpoint with a captured `x_select_account_token` | Learns the account display name only (not credentials). The display name is not sufficient for authentication. Token TTL limits the exposure window. |
+| Forged `x_select_account_token` | The token is a cryptographically random server-generated value. An attacker cannot forge a valid token. |
 
 ---
 
 ## Backward compatibility
 
-The `x_accounts_hint` parameter is additive. Custom UI implementations that do not recognize it simply ignore it. They receive `x_ref` and other existing parameters as before, create a normal authentication flow, and proceed through `identify` → `authenticate` unchanged.
+The `x_select_account_token` parameter is additive. Custom UI implementations that do not recognize it simply ignore it. They receive `x_ref` and other existing parameters as before, create a normal authentication flow, and proceed through `identify` → `authenticate` unchanged.
 
 The Authentication Flow API (`POST /api/v1/authentication_flows` and `POST /api/v1/authentication_flows/states/input`) is not modified. No new action types are added to existing flows.
 
