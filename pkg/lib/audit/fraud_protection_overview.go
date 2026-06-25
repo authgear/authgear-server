@@ -17,17 +17,42 @@ type FraudProtectionOverview struct {
 }
 
 type FraudProtectionOverviewSendSMS struct {
-	TotalActions   int                         `json:"totalActions"`
-	BlockedActions int                         `json:"blockedActions"`
-	WarnedActions  int                         `json:"warnedActions"`
-	TopSourceIPs   []FraudProtectionOverviewIP `json:"topSourceIPs"`
+	TotalActions   int                                `json:"totalActions"`
+	BlockedActions int                                `json:"blockedActions"`
+	WarnedActions  int                                `json:"warnedActions"`
+	TopSourceIPs   []FraudProtectionOverviewIP        `json:"topSourceIPs"`
+	TopIPLocations []FraudProtectionOverviewIPLocation `json:"topIPLocations"`
+	TopSMSOrigins  []FraudProtectionOverviewSMSOrigin `json:"topSMSOrigins"`
+	TimeBuckets    []FraudProtectionOverviewTimeBucket `json:"timeBuckets"`
+}
+
+type FraudProtectionOverviewTimeBucket struct {
+	Hour    time.Time `json:"hour"`
+	Total   int       `json:"total"`
+	Blocked int       `json:"blocked"`
+	Flagged int       `json:"flagged"`
 }
 
 type FraudProtectionOverviewIP struct {
-	IPAddress string `json:"ipAddress"`
-	Total     int    `json:"total"`
-	Blocked   int    `json:"blocked"`
-	Flagged   int    `json:"flagged"`
+	IPAddress      string `json:"ipAddress"`
+	GeoCountryCode string `json:"geoCountryCode"`
+	Total          int    `json:"total"`
+	Blocked        int    `json:"blocked"`
+	Flagged        int    `json:"flagged"`
+}
+
+type FraudProtectionOverviewSMSOrigin struct {
+	PhoneCountryCode string `json:"phoneCountryCode"`
+	Total            int    `json:"total"`
+	Blocked          int    `json:"blocked"`
+	Flagged          int    `json:"flagged"`
+}
+
+type FraudProtectionOverviewIPLocation struct {
+	GeoCountryCode string `json:"geoCountryCode"`
+	Total          int    `json:"total"`
+	Blocked        int    `json:"blocked"`
+	Flagged        int    `json:"flagged"`
 }
 
 type FraudProtectionOverviewQueryOptions struct {
@@ -98,6 +123,7 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 	topIPsQuery := s.SQLBuilder.
 		Select(
 			"ip_address",
+			`COALESCE(MODE() WITHIN GROUP (ORDER BY NULLIF(UPPER(data#>>'{payload,record,geo_location_code}'), '')), '') AS geo_country_code`,
 			"COUNT(*) AS total_actions",
 			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
 			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
@@ -121,7 +147,7 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		var total int64
 		var blocked int64
 		var warnings int64
-		if err := rows.Scan(&ip, &total, &blocked, &warnings); err != nil {
+		if err := rows.Scan(&ip, &item.GeoCountryCode, &total, &blocked, &warnings); err != nil {
 			return nil, err
 		}
 		if ip.Valid {
@@ -136,12 +162,124 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		return nil, err
 	}
 
+	topSMSOriginsQuery := s.SQLBuilder.
+		Select(
+			"COALESCE(data#>>'{payload,record,action_detail,phone_number_country_code}', '') AS phone_country_code",
+			"COUNT(*) AS total_actions",
+			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
+			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
+		).
+		FromSelect(baseQuery, "records").
+		Where("COALESCE(data#>>'{payload,record,action_detail,phone_number_country_code}', '') <> ''").
+		GroupBy("phone_country_code").
+		OrderBy("total_actions DESC", "phone_country_code ASC").
+		Limit(10)
+
+	smsRows, err := s.SQLExecutor.QueryWith(ctx, topSMSOriginsQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer smsRows.Close()
+
+	topSMSOrigins := make([]FraudProtectionOverviewSMSOrigin, 0)
+	for smsRows.Next() {
+		var item FraudProtectionOverviewSMSOrigin
+		var total int64
+		var blocked int64
+		var warnings int64
+		if err := smsRows.Scan(&item.PhoneCountryCode, &total, &blocked, &warnings); err != nil {
+			return nil, err
+		}
+		item.Total = int(total)
+		item.Blocked = int(blocked)
+		item.Flagged = int(warnings)
+		topSMSOrigins = append(topSMSOrigins, item)
+	}
+	if err := smsRows.Err(); err != nil {
+		return nil, err
+	}
+
+	topIPLocationsQuery := s.SQLBuilder.
+		Select(
+			"COALESCE(UPPER(data#>>'{payload,record,geo_location_code}'), '') AS geo_country_code",
+			"COUNT(*) AS total_actions",
+			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
+			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
+		).
+		FromSelect(baseQuery, "records").
+		Where("COALESCE(data#>>'{payload,record,geo_location_code}', '') <> ''").
+		GroupBy("geo_country_code").
+		OrderBy("total_actions DESC", "geo_country_code ASC").
+		Limit(10)
+
+	ipLocationRows, err := s.SQLExecutor.QueryWith(ctx, topIPLocationsQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer ipLocationRows.Close()
+
+	topIPLocations := make([]FraudProtectionOverviewIPLocation, 0)
+	for ipLocationRows.Next() {
+		var item FraudProtectionOverviewIPLocation
+		var total int64
+		var blocked int64
+		var warnings int64
+		if err := ipLocationRows.Scan(&item.GeoCountryCode, &total, &blocked, &warnings); err != nil {
+			return nil, err
+		}
+		item.Total = int(total)
+		item.Blocked = int(blocked)
+		item.Flagged = int(warnings)
+		topIPLocations = append(topIPLocations, item)
+	}
+	if err := ipLocationRows.Err(); err != nil {
+		return nil, err
+	}
+
+	timeBucketsQuery := s.SQLBuilder.
+		Select(
+			"DATE_TRUNC('hour', created_at) AS hour",
+			"COUNT(*) AS total_actions",
+			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
+			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
+		).
+		FromSelect(baseQuery, "records").
+		GroupBy("hour").
+		OrderBy("hour ASC")
+
+	timeBucketRows, err := s.SQLExecutor.QueryWith(ctx, timeBucketsQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer timeBucketRows.Close()
+
+	timeBuckets := make([]FraudProtectionOverviewTimeBucket, 0)
+	for timeBucketRows.Next() {
+		var item FraudProtectionOverviewTimeBucket
+		var total int64
+		var blocked int64
+		var warnings int64
+		if err := timeBucketRows.Scan(&item.Hour, &total, &blocked, &warnings); err != nil {
+			return nil, err
+		}
+		item.Total = int(total)
+		item.Blocked = int(blocked)
+		item.Flagged = int(warnings)
+		timeBuckets = append(timeBuckets, item)
+	}
+	if err := timeBucketRows.Err(); err != nil {
+		return nil, err
+	}
+
 	return &FraudProtectionOverview{
 		SendSMS: FraudProtectionOverviewSendSMS{
 			TotalActions:   int(totalActions),
 			BlockedActions: int(blockedActions),
 			WarnedActions:  int(warnedActions),
 			TopSourceIPs:   topSourceIPs,
+			TopIPLocations: topIPLocations,
+			TopSMSOrigins:  topSMSOrigins,
+			TimeBuckets:    timeBuckets,
 		},
 	}, nil
 }
