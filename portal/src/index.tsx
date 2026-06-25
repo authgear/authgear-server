@@ -31,6 +31,7 @@ import {
   LinearScale,
   BarElement,
   Tooltip,
+  Legend,
   PointElement,
   LineElement,
   ArcElement,
@@ -63,8 +64,8 @@ registerIcons({
 // https://github.com/authgear/authgear-server/issues/2561
 setAutoFreeze(false);
 
-// ChartJS registration for Bar chart in the AnalyticsActivityWidget
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+// ChartJS registration for Bar chart in the AnalyticsActivityWidget and fraud protection
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 // ChartJS registration for Line chart in the AnalyticsActivityWidget
 ChartJS.register(

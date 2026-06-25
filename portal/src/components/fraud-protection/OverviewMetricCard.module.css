@@ -68,6 +68,7 @@
 .metricLink {
   @apply mt-1 w-fit appearance-none border-0 bg-transparent p-0 text-left text-[14px] leading-5;
   color: #176df3;
+  font-family: inherit;
   font-weight: 400;
 }
 
