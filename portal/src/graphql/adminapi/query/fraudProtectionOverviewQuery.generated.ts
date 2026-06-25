@@ -9,7 +9,7 @@ export type FraudProtectionOverviewQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type FraudProtectionOverviewQueryQuery = { __typename?: 'Query', fraudProtectionOverview: { __typename?: 'FraudProtectionOverview', sendSMS: { __typename?: 'FraudProtectionOverviewSendSMS', total: number, blocked: number, flagged: number, topSourceIPs: Array<{ __typename?: 'FraudProtectionOverviewTopSourceIP', ipAddress: string, total: number, blocked: number, flagged: number }> } } };
+export type FraudProtectionOverviewQueryQuery = { __typename?: 'Query', fraudProtectionOverview: { __typename?: 'FraudProtectionOverview', sendSMS: { __typename?: 'FraudProtectionOverviewSendSMS', total: number, blocked: number, flagged: number, topSourceIPs: Array<{ __typename?: 'FraudProtectionOverviewTopSourceIP', ipAddress: string, geoCountryCode: string, total: number, blocked: number, flagged: number }>, topIPLocations: Array<{ __typename?: 'FraudProtectionOverviewIPLocation', geoCountryCode: string, total: number, blocked: number, flagged: number }>, topSMSOrigins: Array<{ __typename?: 'FraudProtectionOverviewSMSOrigin', phoneCountryCode: string, total: number, blocked: number, flagged: number }>, timeBuckets: Array<{ __typename?: 'FraudProtectionOverviewTimeBucket', hour: any, total: number, blocked: number, flagged: number }> } } };
 
 
 export const FraudProtectionOverviewQueryDocument = gql`
@@ -21,6 +21,25 @@ export const FraudProtectionOverviewQueryDocument = gql`
       flagged
       topSourceIPs {
         ipAddress
+        geoCountryCode
+        total
+        blocked
+        flagged
+      }
+      topIPLocations {
+        geoCountryCode
+        total
+        blocked
+        flagged
+      }
+      topSMSOrigins {
+        phoneCountryCode
+        total
+        blocked
+        flagged
+      }
+      timeBuckets {
+        hour
         total
         blocked
         flagged

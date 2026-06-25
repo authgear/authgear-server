@@ -1147,6 +1147,36 @@ type FraudProtectionOverview {
 }
 
 """"""
+type FraudProtectionOverviewIPLocation {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
+
+  """"""
+  geoCountryCode: String!
+
+  """"""
+  total: Int!
+}
+
+""""""
+type FraudProtectionOverviewSMSOrigin {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
+
+  """"""
+  phoneCountryCode: String!
+
+  """"""
+  total: Int!
+}
+
+""""""
 type FraudProtectionOverviewSendSMS {
   """"""
   blocked: Int!
@@ -1155,7 +1185,31 @@ type FraudProtectionOverviewSendSMS {
   flagged: Int!
 
   """"""
+  timeBuckets: [FraudProtectionOverviewTimeBucket!]!
+
+  """"""
+  topIPLocations: [FraudProtectionOverviewIPLocation!]!
+
+  """"""
+  topSMSOrigins: [FraudProtectionOverviewSMSOrigin!]!
+
+  """"""
   topSourceIPs: [FraudProtectionOverviewTopSourceIP!]!
+
+  """"""
+  total: Int!
+}
+
+""""""
+type FraudProtectionOverviewTimeBucket {
+  """"""
+  blocked: Int!
+
+  """"""
+  flagged: Int!
+
+  """"""
+  hour: DateTime!
 
   """"""
   total: Int!
@@ -1168,6 +1222,9 @@ type FraudProtectionOverviewTopSourceIP {
 
   """"""
   flagged: Int!
+
+  """"""
+  geoCountryCode: String!
 
   """"""
   ipAddress: String!
