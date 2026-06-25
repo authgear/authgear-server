@@ -63,7 +63,9 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
+import { FormField } from "../../components/v2/FormField/FormField";
 import { TextField as RadixTextField } from "../../components/v2/TextField/TextField";
+import { isValidWebhookHookURI } from "../../util/hookUri";
 import ExternalLink from "../../ExternalLink";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
@@ -526,6 +528,7 @@ interface BlockingHooksTableProps {
   onEditDeno: (index: number, value: BlockingEventHandler) => void;
   addDisabled: boolean;
   onEditingChange?: (editing: boolean) => void;
+  showEndpointErrors: boolean;
 }
 
 function BlockingHooksTable({
@@ -536,6 +539,7 @@ function BlockingHooksTable({
   onEditDeno,
   addDisabled,
   onEditingChange,
+  showEndpointErrors,
 }: BlockingHooksTableProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { isDirty } = useFormContainerBaseContext();
@@ -671,6 +675,24 @@ function BlockingHooksTable({
     },
     [draft, applyDraftChange]
   );
+
+  const draftEndpointFormatError = useMemo(() => {
+    if (!showEndpointErrors) {
+      return null;
+    }
+    if (draft == null || draft.kind !== "webhook") {
+      return null;
+    }
+    if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="errors.validation.format"
+        values={{ format: "other" }}
+      />
+    );
+  }, [showEndpointErrors, draft]);
 
   const onClickEditScript = useCallback(() => {
     if (expandedIndex == null) {
@@ -819,19 +841,24 @@ function BlockingHooksTable({
                       </RadioGroup.Root>
                     </div>
                     {draft.kind === "webhook" ? (
-                      <div className={styles.hookAccordionField}>
-                        <RadixText as="label" size="1" weight="medium" color="gray">
+                      <FormField
+                        size="2"
+                        labelSpace="1"
+                        label={
                           <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-                        </RadixText>
+                        }
+                        error={draftEndpointFormatError}
+                      >
                         <RadixTextField.Input
                           size="2"
                           value={draft.url}
                           onChange={onDraftURLChange}
                           placeholder="https://example.com/callback"
+                          error={draftEndpointFormatError}
                         >
                           {null}
                         </RadixTextField.Input>
-                      </div>
+                      </FormField>
                     ) : null}
                     {draft.kind === "denohook" ? (
                       <div className={styles.hookAccordionField}>
@@ -884,6 +911,7 @@ interface NonBlockingHooksTableProps {
   onEditDeno: (index: number, value: NonBlockingEventHandler) => void;
   addDisabled: boolean;
   onEditingChange?: (editing: boolean) => void;
+  showEndpointErrors: boolean;
 }
 
 function NonBlockingHooksTable({
@@ -894,6 +922,7 @@ function NonBlockingHooksTable({
   onEditDeno,
   addDisabled,
   onEditingChange,
+  showEndpointErrors,
 }: NonBlockingHooksTableProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { isDirty } = useFormContainerBaseContext();
@@ -1013,6 +1042,24 @@ function NonBlockingHooksTable({
     [draft, applyDraftChange]
   );
 
+  const draftEndpointFormatError = useMemo(() => {
+    if (!showEndpointErrors) {
+      return null;
+    }
+    if (draft == null || draft.kind !== "webhook") {
+      return null;
+    }
+    if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="errors.validation.format"
+        values={{ format: "other" }}
+      />
+    );
+  }, [showEndpointErrors, draft]);
+
   const onClickEditScript = useCallback(() => {
     if (expandedIndex == null) {
       return;
@@ -1128,19 +1175,24 @@ function NonBlockingHooksTable({
                       </Select.Root>
                     </div>
                     {draft.kind === "webhook" ? (
-                      <div className={styles.hookAccordionField}>
-                        <RadixText as="label" size="1" weight="medium" color="gray">
+                      <FormField
+                        size="2"
+                        labelSpace="1"
+                        label={
                           <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-                        </RadixText>
+                        }
+                        error={draftEndpointFormatError}
+                      >
                         <RadixTextField.Input
                           size="2"
                           value={draft.url}
                           onChange={onDraftURLChange}
                           placeholder="https://example.com/callback"
+                          error={draftEndpointFormatError}
                         >
                           {null}
                         </RadixTextField.Input>
-                      </div>
+                      </FormField>
                     ) : null}
                     {draft.kind === "denohook" ? (
                       <div className={styles.hookAccordionField}>
@@ -1685,12 +1737,41 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return out;
     }, [state.diff, state.non_blocking_handlers]);
 
+    const hasInvalidWebhookURL = useMemo(() => {
+      const allHandlers = [
+        ...state.blocking_handlers,
+        ...state.non_blocking_handlers,
+      ];
+      return allHandlers.some(
+        (h) =>
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+      );
+    }, [state.blocking_handlers, state.non_blocking_handlers]);
+
+    const [showEndpointErrors, setShowEndpointErrors] = useState(false);
+
+    const beforeSave = useCallback(async () => {
+      if (hasInvalidWebhookURL) {
+        setShowEndpointErrors(true);
+        throw new Error("invalid webhook endpoint");
+      }
+      setShowEndpointErrors(false);
+    }, [hasInvalidWebhookURL]);
+
+    useEffect(() => {
+      if (!form.isDirty) {
+        setShowEndpointErrors(false);
+      }
+    }, [form.isDirty]);
+
     const contentWidthAnchorRef = React.useRef<HTMLDivElement>(null);
 
     return (
       <FormContainer
         form={form}
         hideFooterComponent={true}
+        beforeSave={beforeSave}
       >
         <HookScreenWithSaveBar
           codeEditorState={codeEditorState}
@@ -1830,6 +1911,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             onEditDeno={onEditBlocking}
                             addDisabled={blockingHandlerLimitReached}
                             onEditingChange={setBlockingTableEditing}
+                            showEndpointErrors={showEndpointErrors}
                           />
                         ) : null}
                       </div>
@@ -1888,6 +1970,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             onEditDeno={onEditNonBlocking}
                             addDisabled={nonBlockingHandlerLimitReached}
                             onEditingChange={setNonBlockingTableEditing}
+                            showEndpointErrors={showEndpointErrors}
                           />
                         ) : null}
                       </div>
