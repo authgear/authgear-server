@@ -6,6 +6,7 @@ import {
   IComboBox,
   ITimeRange,
   defaultDatePickerStrings,
+  DirectionalHint,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "./intl";
 import { DateTime } from "luxon";
@@ -304,6 +305,11 @@ export default function DateTimePicker(
           onChange={onChange}
           onValidateUserInput={onValidateUserInput}
           onFormatDate={onFormatDate}
+          calloutProps={{
+            directionalHint: DirectionalHint.bottomLeftEdge,
+            calloutMaxHeight: 240,
+            doNotLayer: false,
+          }}
         />
         {showClearButton ? (
           <DefaultButton
