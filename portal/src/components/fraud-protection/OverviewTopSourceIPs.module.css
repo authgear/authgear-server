@@ -1,18 +1,29 @@
 .topSourceSection {
-  @apply flex flex-col gap-4 rounded-lg border border-[#edebe9] bg-white px-[0.875rem] py-4;
+  @apply flex flex-col gap-3 rounded-lg border border-[#edebe9] bg-white px-[0.875rem] py-4;
+  font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system,
+    BlinkMacSystemFont, "Noto Sans", "Helvetica", "Arial", sans-serif;
 }
 
 .topSourceIPsHeader {
-  @apply flex items-center justify-between w-full;
+  @apply flex items-center w-full;
+}
+
+.headerToggle {
+  @apply flex flex-none items-center justify-end;
+  width: 156px;
 }
 
 .topSourceIPsHeaderLeft {
-  @apply flex items-center gap-[10px];
+  @apply flex items-start gap-[10px] flex-1 min-w-0;
 }
 
 .topSourceIPsIcon {
   @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-[16px];
   @apply bg-[#fff4ce] text-[#d97706];
+}
+
+.topSourceIPsTitleGroup {
+  @apply flex flex-col gap-0.5;
 }
 
 .topSourceIPsTitle {
@@ -21,20 +32,58 @@
   font-size: 14px;
 }
 
+.topSourceIPsSubtitle {
+  color: #8a8886;
+  font-size: 12px;
+  line-height: 1.4;
+  min-height: calc(12px * 1.4 * 2);
+}
+
+/* Column header row */
+.columnHeaders {
+  @apply flex items-center w-full;
+}
+
+.columnHeadersLabel {
+  @apply flex-1 min-w-0;
+}
+
+.columnHeadersRight {
+  @apply flex items-center flex-none;
+}
+
+.columnHeader {
+  @apply font-medium text-right;
+  font-size: 12px;
+  color: #8a8886;
+}
+
+.columnHeader.colTotal {
+  width: 44px;
+  font-weight: 600;
+}
+
+.columnHeader.colBlocked {
+  width: 56px;
+  color: #dc2626;
+}
+
+.columnHeader.colFlagged {
+  width: 56px;
+  color: #d97706;
+}
+
+/* List */
 .topSourceIPsList {
   @apply flex flex-col gap-2.5;
 }
 
 .topSourceIPRow {
-  @apply flex flex-col gap-1 w-full;
-}
-
-.topSourceIPInfo {
-  @apply flex items-center justify-between text-xs leading-4;
+  @apply flex items-center w-full text-xs leading-4;
 }
 
 .topSourceIPInfoLeft {
-  @apply flex items-center gap-1.5;
+  @apply flex items-center gap-1.5 flex-1 min-w-0;
 }
 
 .topSourceIPRank {
@@ -43,33 +92,35 @@
 }
 
 .topSourceIPAddress {
-  @apply text-xs;
+  @apply text-xs truncate;
   color: #201f1e;
 }
 
 .topSourceIPMetrics {
-  @apply flex items-center gap-1.5 flex-none;
+  @apply flex items-center flex-none;
 }
 
-.totalValue {
-  @apply text-[11px];
+.metricCol {
+  @apply text-right;
+  font-size: 12px;
+}
+
+.metricCol.colTotal {
+  width: 44px;
   color: #605e5c;
+  font-weight: 600;
 }
 
-.blockedStatus {
-  @apply text-[11px];
+.metricCol.colBlocked {
+  width: 56px;
   color: #dc2626;
 }
 
-.flaggedStatus {
-  @apply text-[11px];
+.metricCol.colFlagged {
+  width: 56px;
   color: #d97706;
 }
 
-.topSourceIPProgress {
-  @apply h-1 w-full rounded-full bg-[#f3f2f1];
-}
-
-.progressBar {
-  @apply h-full rounded-full bg-[#176df3];
+.metricEmpty {
+  color: #c8c6c4;
 }
