@@ -26,7 +26,8 @@ import {
 } from "@radix-ui/themes";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import ScreenContent from "../../ScreenContent";
-import WidgetTitle from "../../WidgetTitle";
+import { PrimaryButton as RadixPrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   BlockingHookHandlerConfig,
   HookFeatureConfig,
@@ -56,7 +57,6 @@ import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { genRandomHexadecimalString } from "../../util/random";
 import styles from "./HookConfigurationScreen.module.css";
-import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import { startReauthentication } from "./Authenticated";
@@ -68,9 +68,7 @@ import { TextField as RadixTextField } from "../../components/v2/TextField/TextF
 import { isValidWebhookHookURI } from "../../util/hookUri";
 import ExternalLink from "../../ExternalLink";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import PrimaryButton from "../../PrimaryButton";
 import CodeEditor from "../../CodeEditor";
-import DefaultButton from "../../DefaultButton";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { DENO_TYPES_URL } from "../../util/deno";
@@ -750,9 +748,7 @@ function BlockingHooksTable({
                       {handler.event}
                     </RadixText>
                     {handler.isDirty ? (
-                      <RadixText size="1" className={styles.hookDirtyDot}>
-                        {"●"}
-                      </RadixText>
+                      <span className={styles.hookDirtyDot} aria-hidden={true} />
                     ) : null}
                   </button>
                   <RadixIconButton
@@ -868,7 +864,7 @@ function BlockingHooksTable({
                           onClick={onClickEditScript}
                         >
                           <Pencil1Icon />
-                          <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                          <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
                         </button>
                       </div>
                     ) : null}
@@ -1106,9 +1102,7 @@ function NonBlockingHooksTable({
                       {headerLabel}
                     </RadixText>
                     {handler.isDirty ? (
-                      <RadixText size="1" className={styles.hookDirtyDot}>
-                        {"●"}
-                      </RadixText>
+                      <span className={styles.hookDirtyDot} aria-hidden={true} />
                     ) : null}
                   </button>
                   <RadixIconButton
@@ -1202,7 +1196,7 @@ function NonBlockingHooksTable({
                           onClick={onClickEditScript}
                         >
                           <Pencil1Icon />
-                          <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                          <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
                         </button>
                       </div>
                     ) : null}
@@ -1794,47 +1788,64 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         >
           {codeEditorState != null ? (
             <div className={cn(styles.codeEditorContainer)}>
-              <WidgetTitle>
-                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage
-                  id="HookConfigurationScreen.edit-hook.description"
-                  values={{
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink
-                        href={
-                          codeEditorState.eventKind === "blocking"
-                            ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
-                            : "https://docs.authgear.com/customization/events-hooks/non-blocking-events"
-                        }
-                      >
-                        {chunks}
-                      </ExternalLink>
-                    ),
-                  }}
+              <div className={cn(styles.widget, styles.pageHeader)}>
+                <h1 className={styles.pageTitle}>
+                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                </h1>
+                <RadixText
+                  as="p"
+                  size="2"
+                  color="gray"
+                  className={styles.pageDescription}
+                >
+                  <FormattedMessage
+                    id="HookConfigurationScreen.edit-hook.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink
+                          href={
+                            codeEditorState.eventKind === "blocking"
+                              ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
+                              : "https://docs.authgear.com/customization/events-hooks/non-blocking-events"
+                          }
+                        >
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
+                </RadixText>
+              </div>
+              <div className={cn(styles.widget, styles.editorCard)}>
+                <div className={styles.editorCardHeader}>
+                  <RadixText as="p" size="3" weight="medium">
+                    <FormattedMessage id="HookConfigurationScreen.edit-typescript.label" />
+                  </RadixText>
+                </div>
+                <CodeEditor
+                  className={styles.codeEditor}
+                  language="typescript"
+                  value={code}
+                  onChange={onChangeCode}
+                  options={CODE_EDITOR_OPTIONS}
                 />
-              </WidgetDescription>
-              <CodeEditor
-                className={styles.codeEditor}
-                language="typescript"
-                value={code}
-                onChange={onChangeCode}
-                options={CODE_EDITOR_OPTIONS}
-              />
-              <div className={styles.codeEditorFooter}>
-                <PrimaryButton
-                  text="Finish Editing"
+              </div>
+              <Flex gap="2" direction="row">
+                <RadixPrimaryButton
+                  size="2"
+                  text={<FormattedMessage id="finish-editing" />}
                   onClick={onClickFinishEditing}
                   disabled={isLoading}
+                  loading={isLoading}
                 />
-                <DefaultButton
-                  text="Cancel"
+                <SecondaryButton
+                  size="2"
+                  text={<FormattedMessage id="cancel" />}
                   onClick={onClickCancelEditing}
                   disabled={isLoading}
                 />
-              </div>
+              </Flex>
             </div>
           ) : (
             <>

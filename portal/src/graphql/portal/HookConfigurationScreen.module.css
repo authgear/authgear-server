@@ -167,14 +167,22 @@
   min-width: 200px;
 }
 
-.codeEditor {
-  height: 50vh;
+.editorCard {
+  @apply min-w-0 overflow-hidden rounded-xl border border-solid;
+  border-color: var(--gray-a6);
 }
 
-.codeEditorFooter {
-  display: flex;
-  flex-direction: row;
-  column-gap: 8px;
+.editorCardHeader {
+  @apply border-b border-solid px-6 py-4;
+  border-color: var(--gray-a6);
+}
+
+.codeEditor {
+  display: block;
+  height: 70vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
 .dot {
@@ -397,7 +405,12 @@
 }
 
 .hookDirtyDot {
-  color: var(--accent-9);
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-9);
+  flex-shrink: 0;
 }
 
 .hookAccordionBody {
