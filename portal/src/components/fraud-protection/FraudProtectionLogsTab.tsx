@@ -48,7 +48,10 @@ import {
 } from "../../graphql/adminapi/globalTypes.generated";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { useDebounced } from "../../hook/useDebounced";
-import { formatCustomDateRangeLabel } from "../../util/formatDatetime";
+import {
+  formatCustomDateRangeLabel,
+  formatDatetime,
+} from "../../util/formatDatetime";
 import styles from "./FraudProtectionLogsTab.module.css";
 
 const PAGE_SIZE = 20;
@@ -279,7 +282,7 @@ const COLUMN_DEFS: ColumnDef[] = [
 ];
 
 const FRAUD_PROTECTION_LOGS_COLUMNS_STORAGE_KEY_PREFIX =
-  "fraud-protection-logs-visible-columns:";
+  "fraud-protection-logs-visible-columns-v2:";
 
 const OPTIONAL_COLUMN_KEYS = new Set<ColumnKey>(
   COLUMN_DEFS.filter((c) => !c.alwaysShown).map((c) => c.key)
@@ -309,6 +312,9 @@ function loadVisibleOptionalColumns(appID: string): Set<ColumnKey> {
       (key): key is ColumnKey =>
         typeof key === "string" && OPTIONAL_COLUMN_KEYS.has(key as ColumnKey)
     );
+    if (keys.length === 0) {
+      return getDefaultVisibleOptionalColumns();
+    }
     return new Set(keys);
   } catch {
     return getDefaultVisibleOptionalColumns();
@@ -738,6 +744,8 @@ const FraudProtectionLogsTab: React.VFC =
         switch (column?.key) {
           case "columnSettings":
             return null;
+          case "timestamp":
+            return <span>{formatDatetime(locale, entry.createdAt) ?? "—"}</span>;
           case "action":
             return (
               <span className={styles.actionCell}>
@@ -771,7 +779,7 @@ const FraudProtectionLogsTab: React.VFC =
           }
         }
       },
-      []
+      [locale]
     );
 
     const onRenderRow = useCallback(
