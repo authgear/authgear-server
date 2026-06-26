@@ -528,7 +528,7 @@ interface BlockingHooksTableProps {
   onEditDeno: (index: number, value: BlockingEventHandler) => void;
   addDisabled: boolean;
   onEditingChange?: (editing: boolean) => void;
-  showEndpointErrors: boolean;
+  endpointErrorIndices: ReadonlySet<number>;
 }
 
 function BlockingHooksTable({
@@ -539,7 +539,7 @@ function BlockingHooksTable({
   onEditDeno,
   addDisabled,
   onEditingChange,
-  showEndpointErrors,
+  endpointErrorIndices,
 }: BlockingHooksTableProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { isDirty } = useFormContainerBaseContext();
@@ -677,13 +677,10 @@ function BlockingHooksTable({
   );
 
   const draftEndpointFormatError = useMemo(() => {
-    if (!showEndpointErrors) {
+    if (expandedIndex == null || !endpointErrorIndices.has(expandedIndex)) {
       return null;
     }
     if (draft == null || draft.kind !== "webhook") {
-      return null;
-    }
-    if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
       return null;
     }
     return (
@@ -692,7 +689,7 @@ function BlockingHooksTable({
         values={{ format: "other" }}
       />
     );
-  }, [showEndpointErrors, draft]);
+  }, [endpointErrorIndices, expandedIndex, draft]);
 
   const onClickEditScript = useCallback(() => {
     if (expandedIndex == null) {
@@ -1749,19 +1746,37 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       );
     }, [state.blocking_handlers, state.non_blocking_handlers]);
 
+    const blockingInvalidEndpointIndices = useMemo(() => {
+      const indices = new Set<number>();
+      state.blocking_handlers.forEach((h, i) => {
+        if (
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+        ) {
+          indices.add(i);
+        }
+      });
+      return indices;
+    }, [state.blocking_handlers]);
+
     const [showEndpointErrors, setShowEndpointErrors] = useState(false);
+    const [blockingEndpointErrorIndices, setBlockingEndpointErrorIndices] =
+      useState<ReadonlySet<number>>(() => new Set());
 
     const beforeSave = useCallback(async () => {
       if (hasInvalidWebhookURL) {
         setShowEndpointErrors(true);
+        setBlockingEndpointErrorIndices(blockingInvalidEndpointIndices);
         throw new Error("invalid webhook endpoint");
       }
       setShowEndpointErrors(false);
-    }, [hasInvalidWebhookURL]);
+      setBlockingEndpointErrorIndices(new Set());
+    }, [blockingInvalidEndpointIndices, hasInvalidWebhookURL]);
 
     useEffect(() => {
       if (!form.isDirty) {
         setShowEndpointErrors(false);
+        setBlockingEndpointErrorIndices(new Set());
       }
     }, [form.isDirty]);
 
@@ -1911,7 +1926,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             onEditDeno={onEditBlocking}
                             addDisabled={blockingHandlerLimitReached}
                             onEditingChange={setBlockingTableEditing}
-                            showEndpointErrors={showEndpointErrors}
+                            endpointErrorIndices={blockingEndpointErrorIndices}
                           />
                         ) : null}
                       </div>
