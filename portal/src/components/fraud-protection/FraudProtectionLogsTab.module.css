@@ -5,17 +5,50 @@
 /* Filter bar */
 
 .filterRow {
-  @apply flex flex-wrap items-center justify-between gap-3;
-  @apply pb-4;
+  @apply flex flex-wrap items-center gap-x-3 gap-y-2 pb-4;
   border-bottom: 1px solid #edebe9;
+
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-2;
 }
 
 .filterGroup {
-  @apply flex flex-wrap items-stretch gap-2 h-8;
+  @apply flex flex-wrap items-center gap-2 min-h-8 min-w-0;
+
+  @apply tablet:grid tablet:grid-cols-2 tablet:gap-2 tablet:w-full;
+}
+
+.bottomRow {
+  @apply flex items-center gap-2;
+  flex: 1 1 auto;
+  min-width: 320px;
+
+  @apply tablet:w-full tablet:flex-wrap;
 }
 
 .filterActions {
-  @apply flex items-stretch gap-2 h-8;
+  @apply flex flex-shrink-0 items-center gap-2 ml-auto;
+}
+
+.dateRangeFilter {
+  @apply h-8 tablet:h-11 tablet:col-span-2;
+}
+
+.dateRangeFilterCustom {
+  @apply h-auto min-h-8 self-center;
+  max-width: min(100%, 520px);
+
+  @apply tablet:col-span-2 tablet:max-w-none;
+}
+
+.dateRangeFilterCustom :global(.ms-Button-label) {
+  white-space: normal;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.actionDropdown,
+.resultDropdown {
+  @apply tablet:w-full tablet:min-w-0 tablet:h-11;
 }
 
 .actionDropdown {
@@ -27,17 +60,42 @@
 }
 
 .reasonCodeComboBox {
-  min-width: 200px;
+  width: 180px;
+  flex: 0 0 180px;
+
+  @apply tablet:w-full tablet:basis-full tablet:max-w-none tablet:h-11;
 }
 
-.searchBox {
-  width: 240px;
+.searchBoxFilter {
+  width: 180px;
+  flex: 0 0 180px;
+  height: 32px;
+
+  @apply tablet:flex-1 tablet:w-auto tablet:min-w-0 tablet:max-w-none;
+}
+
+.searchBoxFilter :global(.ms-SearchBox) {
+  height: 100%;
+  min-height: unset;
+}
+
+.searchBoxFilter :global(.ms-SearchBox-field) {
+  height: 100%;
+  line-height: normal;
+}
+
+.refreshButton {
+  @apply h-8 flex-shrink-0;
 }
 
 /* Table */
 
+.tableWrapper {
+  overflow-x: auto;
+}
+
 .list {
-  @apply border-0;
+  @apply w-full border-0;
 }
 
 .logRow {
@@ -152,5 +210,73 @@
 /* Pagination */
 
 .pagination {
-  @apply mt-2;
+  @apply mt-2 flex justify-end;
+}
+
+/* Columns dropdown */
+
+.columnsDropdownWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.columnsButton {
+  @apply inline-flex items-center gap-1.5 h-8 px-3 flex-shrink-0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  color: #323130;
+  background: transparent;
+  border: 1px solid #8a8886;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.columnsButton:hover {
+  background: #f3f2f1;
+}
+
+.columnsButtonIcon {
+  @apply flex items-center;
+  color: #605e5c;
+}
+
+/* Columns callout */
+
+.columnsCallout {
+  @apply flex flex-col;
+  min-width: 200px;
+  padding: 8px 0;
+}
+
+.columnsSectionLabel {
+  padding: 4px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #8a8886;
+}
+
+.columnsSectionLabelOptional {
+  margin-top: 4px;
+  border-top: 1px solid #edebe9;
+  padding-top: 8px;
+}
+
+.columnsCheckboxAlways {
+  padding: 4px 12px;
+}
+
+.columnsCheckbox {
+  padding: 4px 12px;
+}
+
+.columnsCalloutFooter {
+  @apply flex justify-end;
+  padding: 8px 12px 4px;
+  margin-top: 4px;
+  border-top: 1px solid #edebe9;
+}
+
+.columnsCheckbox :global(.ms-Checkbox-text) {
+  font-size: 14px;
 }

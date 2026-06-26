@@ -3,3 +3,15 @@
   height: 0;
   visibility: hidden;
 }
+
+.dateTimePicker {
+  margin-bottom: 12px;
+}
+
+.dateTimePickerLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #323130;
+  margin-bottom: 4px;
+}

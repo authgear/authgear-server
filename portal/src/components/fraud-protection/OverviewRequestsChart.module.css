@@ -1,0 +1,20 @@
+.container {
+  @apply flex flex-col gap-3;
+  background: #fff;
+  border: 1px solid #edebe9;
+  border-radius: 4px;
+  padding: 20px 24px 16px;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #323130;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.chartWrap {
+  height: 200px;
+  width: 100%;
+}
