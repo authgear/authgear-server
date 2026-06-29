@@ -3,6 +3,7 @@ import {
   Cross2Icon,
   CheckCircledIcon,
   ExclamationTriangleIcon,
+  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { useCallback } from "react";
@@ -10,7 +11,7 @@ import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 import { semanticToRadixColor } from "../../../util/radix";
 
-export type CalloutType = "error" | "success" | "warning";
+export type CalloutType = "error" | "success" | "warning" | "info";
 
 export interface CalloutProps {
   className?: string;
@@ -19,14 +20,16 @@ export interface CalloutProps {
   showCloseButton?: boolean;
 }
 
-function typeToSemantic(type: CalloutType) {
+function typeToColor(type: CalloutType) {
   switch (type) {
     case "error":
-      return "error";
+      return semanticToRadixColor("error");
     case "success":
-      return "success";
+      return semanticToRadixColor("success");
     case "warning":
-      return "warning";
+      return semanticToRadixColor("warning");
+    case "info":
+      return "blue" as const;
   }
 }
 
@@ -38,6 +41,8 @@ function CalloutIcon({ color }: { color: CalloutType }) {
       return <CheckCircledIcon width="1rem" height="1rem" />;
     case "warning":
       return <ExclamationTriangleIcon width="1rem" height="1rem" />;
+    case "info":
+      return <InfoCircledIcon width="1rem" height="1rem" />;
   }
 }
 
@@ -56,7 +61,7 @@ export function Callout({
   return (
     <RadixCallout.Root
       className={cn(styles.calloutRoot, className)}
-      color={semanticToRadixColor(typeToSemantic(type))}
+      color={typeToColor(type)}
       size="2"
       variant="surface"
     >
