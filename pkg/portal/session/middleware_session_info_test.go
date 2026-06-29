@@ -76,7 +76,7 @@ func signToken(t *testing.T, privJWKSet jwk.Set, typ string, sub string, issuedA
 	_ = claims.Set(string(model.ClaimUserIsAnonymous), false)
 	_ = claims.Set(string(model.ClaimUserIsVerified), true)
 	_ = claims.Set(string(model.ClaimUserCanReauthenticate), true)
-	_ = claims.Set(string(model.ClaimAuthgearRoles), []interface{}{})
+	_ = claims.Set(string(model.ClaimAuthgearRoles), []any{})
 
 	privKey, _ := privJWKSet.Key(0)
 
