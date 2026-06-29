@@ -1,20 +1,87 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @apply rounded-xl border border-solid;
+  border-color: var(--gray-a6);
 }
 
-.acceptedStatus {
-  color: #33ba89;
+/* Hide horizontal scrollbar on desktop (large screens). */
+@media (min-width: 1081px) {
+  .tableWrapper {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge Legacy */
+  }
+
+  .tableWrapper::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
 }
 
-.pendingStatus {
-  color: #fbca4e;
+.table {
+  min-width: 32rem;
 }
 
-.actionButton {
-  padding: 0;
-  font-size: 12px;
-  font-weight: 600;
-  display: contents;
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 32rem;
+  min-height: 2.75rem;
+}
+
+.headerCellEmail,
+.headerCellStatus,
+.headerCellActions {
+  @apply flex items-center px-4 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.headerCellEmail {
+  @apply min-w-0 flex-1;
+}
+
+.headerCellStatus {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.headerCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-width: 32rem;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.cellEmail,
+.cellStatus,
+.cellActions {
+  @apply flex items-center px-4 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.cellEmail {
+  @apply min-w-0 flex-1 overflow-hidden;
+}
+
+.cellEmailText {
+  @apply min-w-0 truncate;
+}
+
+.cellStatus {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.cellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
 }

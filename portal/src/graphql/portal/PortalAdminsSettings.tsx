@@ -1,6 +1,8 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Context, FormattedMessage } from "../../intl";
+import React, { useCallback, useMemo, useState } from "react";
+import { FormattedMessage } from "../../intl";
 import { useNavigate, useParams } from "react-router-dom";
+import { PlusIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 
 import { makeReasonErrorParseRule } from "../../error/parse";
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
@@ -20,13 +22,14 @@ import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.css";
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import PrimaryButton from "../../PrimaryButton";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import { Callout } from "../../components/v2/Callout/Callout";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import Link from "../../Link";
+import ExternalLink from "../../ExternalLink";
 import { getNextPlan } from "../../util/plan";
 
 const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
-  const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
@@ -79,34 +82,24 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     featureConfigRefetch().finally(() => {});
   }, [refetchCollaboratorsAndInvitations, featureConfigRefetch]);
 
-  const inviteButtonProps = useMemo(() => {
-    let disabled = false;
+  const inviteDisabled = useMemo(() => {
     if (effectiveFeatureConfig?.collaborator?.maximum != null) {
       const maximum = effectiveFeatureConfig.collaborator.maximum;
       const length1 = collaborators?.length ?? 0;
       const length2 = collaboratorInvitations?.length ?? 0;
       if (length1 + length2 >= maximum) {
-        disabled = true;
+        return true;
       }
     }
-    return {
-      text: renderToString("PortalAdminsSettings.invite"),
-      iconProps: { iconName: "Add" },
-      disabled,
-      onClick: () => {
-        navigate("./invite");
-      },
-    };
-  }, [
-    navigate,
-    renderToString,
-    collaborators,
-    collaboratorInvitations,
-    effectiveFeatureConfig,
-  ]);
+    return false;
+  }, [collaborators, collaboratorInvitations, effectiveFeatureConfig]);
+
+  const onInviteClicked = useCallback(() => {
+    navigate("./invite");
+  }, [navigate]);
 
   const onRemoveCollaboratorClicked = useCallback(
-    (_event: React.MouseEvent<unknown>, id: string) => {
+    (id: string) => {
       if (!collaborators) {
         return;
       }
@@ -125,7 +118,7 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   );
 
   const onRemoveCollaboratorInvitationClicked = useCallback(
-    (_event: React.MouseEvent<unknown>, id: string) => {
+    (id: string) => {
       if (!collaboratorInvitations) {
         return;
       }
@@ -181,12 +174,6 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     );
   }, [effectiveFeatureConfig]);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      { to: ".", label: <FormattedMessage id="PortalAdminSettings.title" /> },
-    ];
-  }, []);
-
   const canUpgradePlan = useMemo(() => {
     return getNextPlan(planName ?? "") != null;
   }, [planName]);
@@ -205,6 +192,23 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     );
   }, [collaborators, collaboratorInvitations, displayedCollaboratorMaximum]);
 
+  const maximumWarningMessageValues = useMemo(() => {
+    const planPagePath = `/project/${appID}/billing`;
+    const contactUsHref =
+      "https://www.authgear.com/schedule-demo?utm_source=portal&utm_medium=link&utm_campaign=additional_order";
+    return {
+      maximum: displayedCollaboratorMaximum!,
+      // eslint-disable-next-line react/no-unstable-nested-components
+      ReactRouterLink: (chunks: React.ReactNode) => (
+        <Link to={planPagePath}>{chunks}</Link>
+      ),
+      // eslint-disable-next-line react/no-unstable-nested-components
+      ExternalLink: (chunks: React.ReactNode) => (
+        <ExternalLink href={contactUsHref}>{chunks}</ExternalLink>
+      ),
+    };
+  }, [appID, displayedCollaboratorMaximum]);
+
   if (loadingCollaboratorsAndInvitations || featureConfigLoading) {
     return <ShowLoading />;
   }
@@ -217,40 +221,55 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
 
   return (
     <>
-      <ScreenContent layout="list">
-        <div className={styles.widget}>
-          <div className={styles.header}>
-            <NavBreadcrumb
-              className={styles.widget}
-              items={navBreadcrumbItems}
-            />
-            <PrimaryButton {...inviteButtonProps} />
+      <ScreenLayoutScrollView>
+        <ScreenContent layout="list">
+          <div className={styles.widget}>
+            <div className={styles.header}>
+              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+                <FormattedMessage id="PortalAdminSettings.title" />
+              </Text>
+              <PrimaryButton
+                size="2"
+                disabled={inviteDisabled}
+                onClick={onInviteClicked}
+                text={
+                  <span className={styles.inviteButtonContent}>
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="PortalAdminsSettings.invite" />
+                  </span>
+                }
+              />
+            </div>
           </div>
           {displayMaximumWarning ? (
-            <FeatureDisabledMessageBar
-              className={styles.messageBar}
-              messageID={
-                canUpgradePlan
-                  ? "FeatureConfig.collaborator.upgrade"
-                  : "FeatureConfig.collaborator.contact-us"
-              }
-              messageValues={{
-                maximum: displayedCollaboratorMaximum!,
-              }}
-            />
+            <div className={styles.widget}>
+              <Callout
+                type="info"
+                showCloseButton={false}
+                text={
+                  <FormattedMessage
+                    id={
+                      canUpgradePlan
+                        ? "FeatureConfig.collaborator.upgrade"
+                        : "FeatureConfig.collaborator.contact-us"
+                    }
+                    values={maximumWarningMessageValues}
+                  />
+                }
+              />
+            </div>
           ) : null}
-        </div>
-        <PortalAdminList
-          className={styles.widget}
-          loading={false}
-          collaborators={collaborators ?? []}
-          collaboratorInvitations={collaboratorInvitations ?? []}
-          onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
-          onRemoveCollaboratorInvitationClicked={
-            onRemoveCollaboratorInvitationClicked
-          }
-        />
-      </ScreenContent>
+          <PortalAdminList
+            className={styles.widget}
+            collaborators={collaborators ?? []}
+            collaboratorInvitations={collaboratorInvitations ?? []}
+            onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
+            onRemoveCollaboratorInvitationClicked={
+              onRemoveCollaboratorInvitationClicked
+            }
+          />
+        </ScreenContent>
+      </ScreenLayoutScrollView>
       <RemovePortalAdminConfirmationDialog
         visible={isRemovePortalAdminConfirmationDialogVisible}
         data={removePortalAdminConfirmationDialogData ?? undefined}

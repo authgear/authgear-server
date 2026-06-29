@@ -1,10 +1,7 @@
-import React, { useMemo, useContext, useCallback } from "react";
-import { Context, FormattedMessage } from "../../intl";
-import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
+import React, { useCallback } from "react";
+import { FormattedMessage } from "../../intl";
 
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 
 export interface RemovePortalAdminConfirmationDialogData {
   userID: string;
@@ -29,22 +26,10 @@ const RemovePortalAdminConfirmationDialog: React.VFC<RemovePortalAdminConfirmati
       onDismiss: onDismissProps,
     } = props;
 
-    const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
-
-    const dialogContentProps: IDialogContentProps = useMemo(() => {
-      return {
-        title: (
-          <FormattedMessage id="RemovePortalAdminConfirmationDialog.title" />
-        ),
-        subText: renderToString("RemovePortalAdminConfirmationDialog.message", {
-          email: data?.email ?? "",
-        }),
-      };
-    }, [data?.email, renderToString]);
-
     const onConfirmClicked = useCallback(() => {
-      deleteCollaborator(data!.userID);
+      if (data != null) {
+        deleteCollaborator(data.userID);
+      }
     }, [data, deleteCollaborator]);
 
     const onDismiss = useCallback(() => {
@@ -53,28 +38,35 @@ const RemovePortalAdminConfirmationDialog: React.VFC<RemovePortalAdminConfirmati
       }
     }, [onDismissProps, deletingCollaborator]);
 
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDismiss();
+        }
+      },
+      [onDismiss]
+    );
+
     return (
-      <Dialog
-        hidden={!visible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: deletingCollaborator }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            theme={themes.destructive}
-            loading={deletingCollaborator}
-            disabled={!visible}
+      <ConfirmationDialog
+        open={visible}
+        onOpenChange={onOpenChange}
+        title={
+          <FormattedMessage id="RemovePortalAdminConfirmationDialog.title" />
+        }
+        description={
+          <FormattedMessage
+            id="RemovePortalAdminConfirmationDialog.message"
+            values={{ email: data?.email ?? "" }}
           />
-          <DefaultButton
-            disabled={deletingCollaborator || !visible}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        }
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={deletingCollaborator}
+        confirmColor="red"
+      />
     );
   };
 
