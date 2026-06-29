@@ -16,7 +16,7 @@ import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
-import NavBreadcrumb from "../../NavBreadcrumb";
+import { Text } from "@radix-ui/themes";
 import AuditLogList from "./AuditLogList";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
@@ -382,10 +382,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return [filters.activityType];
   }, [availableActivityTypes, filters.activityType]);
 
-  const items = useMemo(() => {
-    return [{ to: ".", label: <FormattedMessage id="AuditLogScreen.title" /> }];
-  }, []);
-
   const cursor = useMemo(() => {
     return encodeOffsetToCursor(offset);
   }, [offset]);
@@ -630,7 +626,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     <>
       <div className={styles.root}>
         <div className={styles.header}>
-          <NavBreadcrumb className="" items={items} />
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="AuditLogScreen.title" />
+          </Text>
           {logRetrievalDays !== -1 ? (
             <FeatureDisabledMessageBar
               className={styles.messageBar}

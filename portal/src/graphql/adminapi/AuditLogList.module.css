@@ -4,21 +4,224 @@
   overflow: hidden;
 }
 
-.listWrapper {
+/* ── Table wrapper (scrollable) ── */
+
+.tableWrapper {
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-a6);
+  margin: 0 24px;
 }
 
-.pagination {
-  align-self: flex-end;
-  margin: 12px 16px;
+.emptyWrapper {
+  flex: 0 0 auto;
+}
+
+/* ── Table ── */
+
+.table {
+  min-width: 40rem;
+  width: 100%;
+}
+
+/* ── Header row ── */
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  min-width: 40rem;
+}
+
+.headerCellUser,
+.headerCellActivityType,
+.headerCellCreatedAt,
+.headerCellChevron {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.headerCellUser {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.headerCellActivityType {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
+.headerCellCreatedAt {
+  width: 17rem;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.headerCellChevron {
+  width: 2.75rem;
+  flex-shrink: 0;
+}
+
+/* ── Sort button inside Created At header ── */
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+  width: 100%;
+  white-space: nowrap;
+}
+
+.sortButton:hover {
+  color: var(--accent-9);
 }
 
 .sortIcon {
-  margin-right: 8px;
+  flex-shrink: 0;
 }
 
-.empty {
+/* ── Data rows ── */
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  min-width: 40rem;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a2);
+}
+
+.cellUser,
+.cellActivityType,
+.cellCreatedAt,
+.cellChevron {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.cellUser {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cellUserLink {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cellText {
+  @apply truncate;
+  min-width: 0;
+  display: block;
+}
+
+.cellActivityType {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
+.activityTypeLink {
+  color: var(--accent-9);
+}
+
+.activityTypeLink:hover {
+  color: var(--accent-10);
+}
+
+.cellCreatedAt {
+  width: 17rem;
+  flex-shrink: 0;
+}
+
+.cellCreatedAt .cellText {
+  white-space: nowrap;
+}
+
+.cellChevron {
+  width: 2.75rem;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+.chevronIcon {
+  color: var(--gray-9);
+}
+
+/* ── Shimmer skeleton ── */
+
+.shimmerRow {
+  display: flex;
+  align-items: center;
+  min-width: 40rem;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+  animation: shimmer-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.shimmerCell {
+  height: 0.875rem;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-a5);
+  margin: 12px 16px;
+}
+
+.shimmerUser {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 16rem;
+}
+
+.shimmerActivityType {
+  width: 8rem;
+  flex-shrink: 0;
+}
+
+.shimmerCreatedAt {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.shimmerChevron {
+  width: 0.75rem;
+  margin: 12px auto;
+}
+
+/* ── Pagination ── */
+
+.pagination {
+  align-self: flex-end;
+  margin: 12px 24px;
+}
+
+.paginationHidden {
   @apply hidden;
 }
