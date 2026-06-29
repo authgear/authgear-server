@@ -46,7 +46,7 @@ export function useAppTemplatesQuery(
     return pairs;
   }, [specifiers]);
 
-  const { data, loading, error, refetch } = useQuery<
+  const { data, previousData, loading, error, refetch } = useQuery<
     AppTemplatesQueryQuery,
     AppTemplatesQueryQueryVariables
   >(AppTemplatesQueryDocument, {
@@ -59,7 +59,14 @@ export function useAppTemplatesQuery(
   });
 
   const resources = useMemo(() => {
-    const appNode = data?.node?.__typename === "App" ? data.node : null;
+    // While a refetch triggered by changed `paths` (e.g. adding a new Deno
+    // hook) is in flight, `data` is transiently undefined. Falling back to
+    // `previousData` keeps the already-loaded resources populated so existing
+    // hooks are not momentarily diffed as new (which caused a flashing unsaved
+    // indicator).
+    const currentData = data ?? previousData;
+    const appNode =
+      currentData?.node?.__typename === "App" ? currentData.node : null;
     const resources: Resource[] = [];
 
     for (const { specifier, path } of pairs) {
@@ -106,7 +113,7 @@ export function useAppTemplatesQuery(
     }
 
     return resources;
-  }, [data, pairs]);
+  }, [data, previousData, pairs]);
 
   return { resources, loading, error, refetch };
 }
