@@ -1,5 +1,39 @@
-.widget {
-  grid-column: 1 / span 8;
-
+.pageHeader {
+  grid-column: 1 / span 9;
   @apply tablet:col-span-full;
+  @apply flex flex-col gap-2;
+}
+
+.breadcrumb {
+  @apply flex items-center;
+  gap: 8px;
+}
+
+.breadcrumbText {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.breadcrumbParent {
+  @apply cursor-pointer border-0 bg-transparent p-0;
+}
+
+.breadcrumbParent:hover > span {
+  opacity: 0.75;
+}
+
+.breadcrumbSeparator {
+  color: var(--gray-a9);
+  flex-shrink: 0;
+}
+
+.formContent {
+  grid-column: 1 / span 9;
+  @apply tablet:col-span-full;
+  @apply flex flex-col gap-4;
+}
+
+.formActions {
+  @apply flex flex-row items-center justify-end gap-2;
 }

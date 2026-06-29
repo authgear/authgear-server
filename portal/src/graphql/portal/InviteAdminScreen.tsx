@@ -1,64 +1,37 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
-import { Context, FormattedMessage } from "../../intl";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { FormattedMessage } from "../../intl";
 import { useNavigate, useParams } from "react-router-dom";
-import FormTextField from "../../FormTextField";
-import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
+import { ChevronRightIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
+import {
+  ErrorParseRule,
+  makeReasonErrorParseRule,
+  parseAPIErrors,
+  parseRawError,
+} from "../../error/parse";
 import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
-import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
-import FormContainer from "../../FormContainer";
+import { useSimpleForm } from "../../hook/useSimpleForm";
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import ErrorRenderer from "../../ErrorRenderer";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import styles from "./InviteAdminScreen.module.css";
 
 interface FormState {
   email: string;
 }
 
-const defaultState: FormState = {
-  email: "",
-};
+const defaultState: FormState = { email: "" };
 
-interface InviteAdminContentProps {
-  form: SimpleFormModel<FormState>;
-}
-
-const InviteAdminContent: React.VFC<InviteAdminContentProps> =
-  function InviteAdminContent(props: InviteAdminContentProps) {
-    const { state, setState } = props.form;
-    const { renderToString } = useContext(Context);
-
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/portal-admins",
-          label: <FormattedMessage id="PortalAdminSettings.title" />,
-        },
-        { to: ".", label: <FormattedMessage id="InviteAdminScreen.title" /> },
-      ];
-    }, []);
-
-    const onEmailChange = useCallback(
-      (_, value?: string) => {
-        setState((s) => ({ ...s, email: value ?? "" }));
-      },
-      [setState]
-    );
-
-    return (
-      <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <FormTextField
-          parentJSONPointer=""
-          fieldName="inviteeEmail"
-          className={styles.widget}
-          type="text"
-          label={renderToString("InviteAdminScreen.email.label")}
-          value={state.email}
-          onChange={onEmailChange}
-        />
-      </ScreenContent>
-    );
-  };
+const errorRules: ErrorParseRule[] = [
+  makeReasonErrorParseRule(
+    "CollaboratorInvitationDuplicate",
+    "InviteAdminScreen.duplicated-error"
+  ),
+];
 
 const InviteAdminScreen: React.VFC = function InviteAdminScreen() {
   const { appID } = useParams() as { appID: string };
@@ -78,40 +51,123 @@ const InviteAdminScreen: React.VFC = function InviteAdminScreen() {
     submit,
   });
 
+  const {
+    setState,
+    save,
+    isUpdating,
+    updateError,
+    state,
+    isSubmitted,
+    isDirty,
+    reset,
+  } = form;
+
   useEffect(() => {
-    if (form.isSubmitted) {
+    if (isSubmitted) {
       navigate("./..");
     }
-  }, [form.isSubmitted, navigate]);
+  }, [isSubmitted, navigate]);
 
-  const errorRules: ErrorParseRule[] = useMemo(
-    () => [
-      makeReasonErrorParseRule(
-        "CollaboratorInvitationDuplicate",
-        "InviteAdminScreen.duplicated-error"
-      ),
-    ],
-    []
+  const onEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setState((s) => ({ ...s, email: value }));
+    },
+    [setState]
   );
 
-  const saveButtonProps = useMemo(
-    () => ({
-      labelId: "InviteAdminScreen.add-user.label",
-      iconProps: {
-        iconName: "Add",
-      },
-    }),
-    []
-  );
+  const onSubmit = useCallback(() => {
+    save().catch(() => {});
+  }, [save]);
+
+  const onCancel = useCallback(() => {
+    navigate("./..");
+  }, [navigate]);
+
+  const onConfirmDiscardNavigation = useCallback(() => {
+    reset();
+  }, [reset]);
+
+  const formError = useMemo(() => {
+    if (updateError == null) return null;
+    const apiErrors = parseRawError(updateError);
+    const { topErrors } = parseAPIErrors(apiErrors, [], errorRules);
+    return topErrors.length > 0 ? <ErrorRenderer errors={topErrors} /> : null;
+  }, [updateError]);
 
   return (
-    <FormContainer
-      form={form}
-      saveButtonProps={saveButtonProps}
-      errorRules={errorRules}
-    >
-      <InviteAdminContent form={form} />
-    </FormContainer>
+    <ScreenLayoutScrollView>
+      <ScreenContent>
+        <div className={styles.pageHeader}>
+          <div className={styles.breadcrumb}>
+            <button
+              type="button"
+              className={styles.breadcrumbParent}
+              onClick={onCancel}
+            >
+              <Text
+                as="span"
+                size="5"
+                weight="bold"
+                color="gray"
+                className={styles.breadcrumbText}
+              >
+                <FormattedMessage id="PortalAdminSettings.title" />
+              </Text>
+            </button>
+            <ChevronRightIcon
+              className={styles.breadcrumbSeparator}
+              width={20}
+              height={20}
+            />
+            <Text
+              as="span"
+              size="5"
+              weight="bold"
+              className={styles.breadcrumbText}
+            >
+              <FormattedMessage id="InviteAdminScreen.title" />
+            </Text>
+          </div>
+        </div>
+
+        <div className={styles.formContent}>
+          <TextField
+            size="2"
+            type="email"
+            required={true}
+            label={<FormattedMessage id="InviteAdminScreen.email.label" />}
+            hint={
+              formError == null ? (
+                <FormattedMessage id="InviteAdminScreen.email.description" />
+              ) : undefined
+            }
+            error={formError}
+            value={state.email}
+            onChange={onEmailChange}
+          />
+          <div className={styles.formActions}>
+            <SecondaryButton
+              size="2"
+              text={<FormattedMessage id="cancel" />}
+              onClick={onCancel}
+              disabled={isUpdating}
+            />
+            <PrimaryButton
+              size="2"
+              text={<FormattedMessage id="InviteAdminScreen.add-user.label" />}
+              onClick={onSubmit}
+              loading={isUpdating}
+              disabled={isUpdating}
+            />
+          </div>
+        </div>
+      </ScreenContent>
+      <NavigationBlockerDialog
+        blockNavigation={isDirty}
+        onConfirmNavigation={onConfirmDiscardNavigation}
+      />
+    </ScreenLayoutScrollView>
   );
 };
 
