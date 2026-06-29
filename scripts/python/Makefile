@@ -5,7 +5,7 @@ PYTHON := ./venv/bin/python
 # After that, we always use $(PIP) or $(PYTHON)
 .PHONY: venv
 venv:
-	python -m venv venv
+	python3 -m venv venv
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
 
