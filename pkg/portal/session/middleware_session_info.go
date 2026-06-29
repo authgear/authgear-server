@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -15,6 +16,7 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
 var simpleCache = cache.New(5*time.Minute, 10*time.Minute)
@@ -73,7 +75,21 @@ func (m *SessionInfoMiddleware) jwtToSessionInfo(jwkSet jwk.Set, header http.Hea
 	// Zero value means invalid session.
 	sessionInfo = &model.SessionInfo{}
 
-	token, err := jwt.ParseHeader(header, "Authorization",
+	authorization := header.Get("Authorization")
+	const bearerPrefix = "Bearer "
+	if !strings.HasPrefix(authorization, bearerPrefix) {
+		return
+	}
+	rawToken := authorization[len(bearerPrefix):]
+
+	// Only accept JWT access tokens (typ: "at+jwt"). Reject id_tokens (typ: "JWT")
+	// and any other token type to prevent token confusion.
+	hdr, _, err := jwtutil.SplitWithoutVerify([]byte(rawToken))
+	if err != nil || hdr.Type() != "at+jwt" {
+		return
+	}
+
+	token, err := jwt.ParseString(rawToken,
 		jwt.WithVerify(true),
 		jwt.WithKeySet(jwkSet),
 		jwt.WithClock(jwtClock{m.Clock}),
