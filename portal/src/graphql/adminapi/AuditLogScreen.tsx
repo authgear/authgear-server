@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
 } from "react";
 import {
   useParams,
@@ -101,6 +102,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       ? new Date(Number(queryLastUpdatedAt))
       : new Date()
   );
+  const lastUpdatedAtRef = useRef(lastUpdatedAt);
+  lastUpdatedAtRef.current = lastUpdatedAt;
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
   const auditLogKind: AuditLogKind = isAuditLogKind(queryAuditLogKind)
     ? queryAuditLogKind
@@ -258,12 +261,16 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       return;
     }
     const next = new Date(Number(queryLastUpdatedAt));
-    if (next.getTime() === lastUpdatedAt.getTime()) {
+    if (next.getTime() === lastUpdatedAtRef.current.getTime()) {
       return;
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLastUpdatedAt(next);
-  }, [queryLastUpdatedAt, lastUpdatedAt]);
+    // lastUpdatedAtRef is intentionally excluded from deps — it's a ref that
+    // always reflects the latest value, so adding it would cause the effect to
+    // re-run on every state change and fight the state→URL sync effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryLastUpdatedAt]);
 
   // Reset page to zero on search
   useEffect(() => {
