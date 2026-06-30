@@ -30,7 +30,7 @@ type AppsListParams struct {
 	OwnerSearch string
 	Plan        string
 	Sort        siteadmin.ListAppsParamsSort
-	Order       siteadmin.ListAppsParamsOrder
+	Order       siteadmin.OrderDirection
 }
 
 func parseAppsListParams(r *http.Request) AppsListParams {
@@ -51,7 +51,7 @@ func parseAppsListParams(r *http.Request) AppsListParams {
 	}
 
 	sortVal := siteadmin.ListAppsParamsSort(q.Get("sort"))
-	orderVal := siteadmin.ListAppsParamsOrder(q.Get("order"))
+	orderVal := siteadmin.OrderDirection(q.Get("order"))
 
 	return AppsListParams{
 		Page:        page,

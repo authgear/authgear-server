@@ -49,6 +49,8 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	router.Add(transport.ConfigureMonthlyActiveUsersUsageRoute(route), p.Handler(newMonthlyActiveUsersUsageHandler))
 	router.Add(transport.ConfigurePlansListRoute(route), p.Handler(newPlansListHandler))
 	router.Add(transport.ConfigureAppPlanChangeRoute(route), p.Handler(newAppPlanChangeHandler))
+	router.Add(transport.ConfigureAuditLogsListRoute(route), p.Handler(newAuditLogsListHandler))
+	router.Add(transport.ConfigureAuditLogGetRoute(route), p.Handler(newAuditLogGetHandler))
 
 	return router.HTTPHandler()
 }

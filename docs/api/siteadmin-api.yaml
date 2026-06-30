@@ -73,11 +73,7 @@ paths:
             Sort direction. Defaults to `desc`. Ignored when `sort=relevance`
             (relevance is always highest-match first).
           schema:
-            type: string
-            enum:
-              - asc
-              - desc
-            default: desc
+            $ref: "#/components/schemas/OrderDirection"
       responses:
         "200":
           description: A list of apps
@@ -89,6 +85,77 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  /api/v1/audit-logs:
+    get:
+      operationId: listAuditLogs
+      summary: List site admin audit log entries
+      description: >
+        Returns audit log entries for actions performed by site admins
+        (e.g. plan changes, collaborator mutations). These are distinct from
+        per-app user-event logs, which will be available at
+        /api/v1/apps/{app_id}/audit-logs in the future.
+      parameters:
+        - name: page
+          in: query
+          description: Page number, 1-based. Defaults to 1.
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          description: Number of entries per page. Defaults to 20, maximum 100.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: affected_app_id
+          in: query
+          description: >
+            Filter by the app that was acted on. When provided, only entries
+            whose payload.app_id matches this value are returned.
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Sort direction for created_at. Defaults to `desc` (newest first).
+          schema:
+            $ref: "#/components/schemas/OrderDirection"
+      responses:
+        "200":
+          description: A list of site admin audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteAdminAuditLogsListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/audit-logs/{id}:
+    get:
+      operationId: getAuditLog
+      summary: Get a site admin audit log entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Site admin audit log entry with raw data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteAdminAuditLogDetail"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/v1/plans:
     get:
@@ -646,6 +713,13 @@ components:
           type: string
           description: The plan to assign to the app
 
+    OrderDirection:
+      type: string
+      description: Sort direction.
+      enum:
+        - asc
+        - desc
+
     AppDetail:
       allOf:
         - $ref: "#/components/schemas/App"
@@ -656,3 +730,75 @@ components:
             user_count:
               type: integer
               description: Number of users in the app
+
+    SiteAdminAuditLogsListResponse:
+      type: object
+      required:
+        - audit_logs
+        - total_count
+        - page
+        - page_size
+      properties:
+        audit_logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SiteAdminAuditLog"
+        total_count:
+          type: integer
+          description: Total number of entries matching the query.
+        page:
+          type: integer
+          format: uint64
+          description: Current page number.
+        page_size:
+          type: integer
+          format: uint64
+          description: Number of entries per page.
+
+    SiteAdminAuditLog:
+      type: object
+      required:
+        - id
+        - created_at
+        - activity_type
+      properties:
+        id:
+          type: string
+          description: Audit log entry ID (hex-encoded sequence number).
+        created_at:
+          type: string
+          format: date-time
+          description: When the event occurred, in RFC 3339 format.
+        activity_type:
+          type: string
+          description: The site admin activity type (e.g. site_admin.app.plan.updated).
+        ip_address:
+          type: string
+          description: IP address of the actor.
+        user_agent:
+          type: string
+          description: User agent string of the actor's browser.
+        actor_user_id:
+          type: string
+          description: >
+            Portal user ID of the site admin who performed the action,
+            extracted from audit_context.actor_user_id.
+        affected_app_id:
+          type: string
+          description: >
+            ID of the app that was acted on, extracted from
+            data.payload.app_id.
+
+    SiteAdminAuditLogDetail:
+      allOf:
+        - $ref: "#/components/schemas/SiteAdminAuditLog"
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              description: >
+                Raw audit log data — the full event JSON stored in the
+                _audit_log.data column, including context and payload.
+              additionalProperties: true

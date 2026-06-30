@@ -585,6 +585,56 @@ func newMonthlyActiveUsersUsageHandler(p *deps.RequestProvider) http.Handler {
 	return monthlyActiveUsersUsageHandler
 }
 
+func newAuditLogsListHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	sqlBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	siteAdminAuditLogStore := &service.SiteAdminAuditLogStore{
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    readSQLExecutor,
+		AuthgearConfig: authgearConfig,
+	}
+	siteAdminAuditReadService := &service.SiteAdminAuditReadService{
+		AuditDatabase: readHandle,
+		Store:         siteAdminAuditLogStore,
+	}
+	auditLogsListHandler := &transport.AuditLogsListHandler{
+		AuditLogsList: siteAdminAuditReadService,
+	}
+	return auditLogsListHandler
+}
+
+func newAuditLogGetHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	sqlBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	siteAdminAuditLogStore := &service.SiteAdminAuditLogStore{
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    readSQLExecutor,
+		AuthgearConfig: authgearConfig,
+	}
+	siteAdminAuditReadService := &service.SiteAdminAuditReadService{
+		AuditDatabase: readHandle,
+		Store:         siteAdminAuditLogStore,
+	}
+	auditLogGetHandler := &transport.AuditLogGetHandler{
+		AuditLogGet: siteAdminAuditReadService,
+	}
+	return auditLogGetHandler
+}
+
 func newPlansListHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
