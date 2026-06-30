@@ -1,0 +1,68 @@
+.root {
+  position: relative;
+  width: 10.5rem;
+  min-width: 10.5rem;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 2rem;
+  padding: 0 12px;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-2);
+  background-color: var(--color-panel-solid);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--gray-12);
+}
+
+.trigger:hover {
+  border-color: var(--gray-a7);
+}
+
+.triggerLabel {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.triggerIcon {
+  flex-shrink: 0;
+  color: var(--gray-11);
+}
+
+.content {
+  width: 14rem;
+  min-width: 14rem;
+  padding: 8px;
+  /* Stay above the sticky table header (z-index: 1). */
+  z-index: 50;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 2rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+
+.option:hover {
+  background-color: var(--gray-a3);
+}
+
+.optionLabel {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--gray-12);
+}
