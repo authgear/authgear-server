@@ -7,6 +7,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
@@ -767,6 +768,10 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) delete(currentConfig *SecretCon
 			continue
 		}
 		newCertificates = append(newCertificates, cert)
+	}
+
+	if len(newCertificates) == 0 {
+		return nil, apierrors.NewInvalid("cannot delete the last SAML IdP signing certificate")
 	}
 
 	credentials.Certificates = newCertificates
