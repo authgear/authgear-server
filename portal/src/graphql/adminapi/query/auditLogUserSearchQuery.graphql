@@ -1,0 +1,9 @@
+query AuditLogUserSearchQuery($searchKeyword: String!) {
+  users(first: 50, searchKeyword: $searchKeyword) {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+}

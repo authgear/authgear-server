@@ -2,15 +2,12 @@
   @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
   @apply h-11;
 
-  /* Align the first item with the screen title. */
-  @apply px-3.5;
+  /* Align the left/right edges with the screen title and the table below. */
+  @apply px-6;
 
   @apply tablet:flex tablet:flex-col;
   @apply tablet:h-auto;
-  @apply tablet:px-4;
-
-  /* Mimick command bar bottom border */
-  border-bottom: 1px solid #edebe9;
+  @apply tablet:px-6;
 }
 
 .filterContainer {
@@ -29,18 +26,56 @@
   @apply tablet:mx-0;
 }
 
+/* Force the Radix text field height to match the dropdown triggers (2rem),
+   regardless of the theme's --scaling factor. The combined selector raises
+   specificity above Radix's own --text-field-height rule. */
+.searchBox:global(.rt-TextFieldRoot) {
+  --text-field-height: 2rem;
+}
+
+.searchIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--gray-11);
+}
+
+.searchClearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gray-11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .dateRangeFilter {
   @apply h-full tablet:h-11;
+  @apply flex items-center tablet:block;
+  width: 10.5rem;
+  min-width: 10.5rem;
 }
 
 .activityTypeFilter {
   @apply h-full tablet:h-11;
   @apply flex items-center tablet:block;
+  width: 13rem;
+  min-width: 13rem;
 }
 
 .filterActionContainer {
   @apply h-full;
-  @apply flex items-center;
+  @apply flex items-center justify-end;
   @apply flex-1-0-auto;
 
   /* Keep a definite height in the stacked (tablet) layout so command bar
@@ -49,13 +84,4 @@
      height when the screen wrapper has no definite height. */
   @apply tablet:h-11;
   @apply tablet:w-full;
-}
-
-.clearAllButtonContainer {
-  @apply h-full;
-  @apply flex-1-0-auto;
-}
-
-.clearAllButton {
-  @apply h-full tablet:h-11;
 }

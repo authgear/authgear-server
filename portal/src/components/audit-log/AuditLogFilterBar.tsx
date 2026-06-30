@@ -1,17 +1,19 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import cn from "classnames";
+import { Cross2Icon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { TextField as RadixTextField } from "@radix-ui/themes";
 import styles from "./AuditLogFilterBar.module.css";
-import { ISearchBoxProps, SearchBox } from "@fluentui/react";
+import { ISearchBoxProps } from "@fluentui/react";
+import { Context as MessageContext } from "../../intl";
 import {
-  DateRangeFilterDropdown,
-  DateRangeFilterDropdownOptionKey,
-} from "./DateRangeFilterDropdown";
+  AuditLogDateRangeFilterDropdown,
+  AuditLogDateRangePresetKey,
+} from "./AuditLogDateRangeFilterDropdown";
 import {
   ActivityTypeFilterDropdown,
   ActivityTypeFilterDropdownOptionKey,
 } from "./ActivityTypeFilterDropdown";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
-import { ClearAllButton } from "./ClearAllButton";
 import { RefreshButton } from "./RefreshButton";
 
 export interface AuditLogFilter {
@@ -20,27 +22,19 @@ export interface AuditLogFilter {
 }
 
 export interface AuditLogFilterBarPropsDateRange {
-  value: DateRangeFilterDropdownOptionKey;
-  onClickAllDateRange: (
-    e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
-  ) => void;
-  onClickCustomDateRange: (
-    e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
-  ) => void;
+  value: AuditLogDateRangePresetKey;
+  onChange: (value: AuditLogDateRangePresetKey) => void;
 }
 
 interface AuditLogFilterBarProps {
   className?: string;
   filters: AuditLogFilter;
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
-  onRemoveAllFilters: () => void;
   onRefresh: () => void;
   searchBoxProps?: ISearchBoxProps;
-  hideSearchBox?: boolean;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
   lastUpdatedAt: Date;
-  trailingActions?: React.ReactNode;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -48,20 +42,16 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     className,
     filters,
     onFilterChange,
-    onRemoveAllFilters,
     onRefresh,
     searchBoxProps,
-    hideSearchBox = false,
     dateRange,
     availableActivityTypes,
     lastUpdatedAt,
-    trailingActions,
   }) {
+    const { renderToString } = useContext(MessageContext);
+
     const onChangeSearchKeyword = useCallback(
-      (e?: React.ChangeEvent<HTMLInputElement>) => {
-        if (e === undefined) {
-          return;
-        }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.currentTarget.value;
         onFilterChange((prev) => ({
           ...prev,
@@ -70,24 +60,23 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
       },
       [onFilterChange]
     );
+    const onClearSearchKeyword = useCallback(() => {
+      onFilterChange((prev) => ({ ...prev, searchKeyword: "" }));
+    }, [onFilterChange]);
     const onChangeActivityType = useCallback(
       (newAT: ActivityTypeFilterDropdownOptionKey) => {
         onFilterChange((prev) => ({ ...prev, activityType: newAT }));
       },
       [onFilterChange]
     );
-    const onClearSearchKeyword = useCallback(() => {
-      onFilterChange((prev) => ({ ...prev, searchKeyword: "" }));
-    }, [onFilterChange]);
 
     return (
       <div className={cn(styles.root, className)}>
         <div className={styles.filterContainer}>
-          <DateRangeFilterDropdown
+          <AuditLogDateRangeFilterDropdown
             className={styles.dateRangeFilter}
             value={dateRange.value}
-            onClickAllDateRange={dateRange.onClickAllDateRange}
-            onClickCustomDateRange={dateRange.onClickCustomDateRange}
+            onChange={dateRange.onChange}
           />
           <ActivityTypeFilterDropdown
             className={styles.activityTypeFilter}
@@ -95,25 +84,33 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
             onChange={onChangeActivityType}
             availableActivityTypes={availableActivityTypes}
           />
-          {hideSearchBox ? null : (
-            <SearchBox
-              className={styles.searchBox}
-              value={filters.searchKeyword}
-              onChange={onChangeSearchKeyword}
-              onClear={onClearSearchKeyword}
-              {...searchBoxProps}
-            />
-          )}
+          <RadixTextField.Root
+            className={styles.searchBox}
+            size="2"
+            type="search"
+            value={filters.searchKeyword}
+            placeholder={searchBoxProps?.placeholder}
+            onChange={onChangeSearchKeyword}
+          >
+            <RadixTextField.Slot side="left">
+              <MagnifyingGlassIcon className={styles.searchIcon} />
+            </RadixTextField.Slot>
+            {filters.searchKeyword !== "" ? (
+              <RadixTextField.Slot side="right">
+                <button
+                  type="button"
+                  className={styles.searchClearButton}
+                  aria-label={renderToString("AuditLogScreen.clear-search")}
+                  onClick={onClearSearchKeyword}
+                >
+                  <Cross2Icon className={styles.searchClearIcon} />
+                </button>
+              </RadixTextField.Slot>
+            ) : null}
+          </RadixTextField.Root>
         </div>
         <div className={styles.filterActionContainer}>
-          <div className={styles.clearAllButtonContainer}>
-            <ClearAllButton
-              className={styles.clearAllButton}
-              onClick={onRemoveAllFilters}
-            />
-          </div>
           <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
-          {trailingActions}
         </div>
       </div>
     );

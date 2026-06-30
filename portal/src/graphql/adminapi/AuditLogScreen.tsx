@@ -4,23 +4,21 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useRef,
 } from "react";
 import {
   useParams,
   useSearchParams,
   URLSearchParamsInit,
 } from "react-router-dom";
-import { addDays, PivotItem, ISearchBoxProps } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { addDays, ISearchBoxProps } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
-import { Text } from "@radix-ui/themes";
+import { Tabs, Text } from "@radix-ui/themes";
 import AuditLogList from "./AuditLogList";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
-import DateRangeDialog from "../portal/DateRangeDialog";
+import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRangeDialog";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import useTransactionalState from "../../hook/useTransactionalState";
 import {
@@ -28,19 +26,16 @@ import {
   AuditLogListQueryQueryVariables,
   AuditLogListQueryDocument,
 } from "./query/auditLogListQuery.generated";
-import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import {
-  ADMIN_ACTIVITY_TYPES,
-  AuditLogKind,
-  isAuditLogKind,
-  USER_ACTIVITY_TYPES,
-} from "./auditLogActivityTypes";
+  AuditLogUserSearchQueryDocument,
+  AuditLogUserSearchQueryQuery,
+  AuditLogUserSearchQueryQueryVariables,
+} from "./query/auditLogUserSearchQuery.generated";
+import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
 import { useDebounced } from "../../hook/useDebounced";
-import { toTypedID } from "../../util/graphql";
-import { NodeType } from "./node";
 import { parseEmail } from "../../util/email";
 import { parsePhoneNumber } from "../../util/phone";
 import {
@@ -52,21 +47,36 @@ import {
   ACTIVITY_TYPE_ALL,
   ActivityTypeFilterDropdownOptionKey,
 } from "../../components/audit-log/ActivityTypeFilterDropdown";
+import {
+  AuditLogDateRangePresetKey,
+  detectDateRangePreset,
+  getInitialAuditLogDateRange,
+  getPresetDateRange,
+} from "../../components/audit-log/dateRangePresets";
 
 const pageSize = 100;
 
-function isBareAuditLogListURL(
-  queryAuditLogKind: string,
-  queryString: string,
-  queryLastUpdatedAt: string | null,
-  queryPage: string | null
-): boolean {
-  return (
-    queryAuditLogKind === "" &&
-    queryString === "" &&
-    (queryLastUpdatedAt == null || queryLastUpdatedAt === "") &&
-    (queryPage == null || queryPage === "")
-  );
+const ALL_ACTIVITY_TYPES = Object.values(AuditLogActivityType);
+const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
+  (activityType) =>
+    activityType.startsWith("ADMIN_API") || activityType.startsWith("PROJECT")
+);
+// Activity types to hide from the audit log (shown elsewhere in the portal)
+const HIDDEN_ACTIVITY_TYPES = [
+  AuditLogActivityType.FraudProtectionDecisionRecorded,
+];
+const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
+  (activityType) =>
+    !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
+    !HIDDEN_ACTIVITY_TYPES.includes(activityType)
+);
+
+enum AuditLogKind {
+  User = "user",
+  Admin = "admin",
+}
+function isAuditLogKind(s: string): s is AuditLogKind {
+  return Object.values(AuditLogKind).includes(s as AuditLogKind);
 }
 
 const AuditLogScreen: React.VFC = function AuditLogScreen() {
@@ -102,14 +112,22 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       ? new Date(Number(queryLastUpdatedAt))
       : new Date()
   );
-  const lastUpdatedAtRef = useRef(lastUpdatedAt);
-  useEffect(() => {
-    lastUpdatedAtRef.current = lastUpdatedAt;
-  });
+  const initialDateRange = useMemo(
+    () =>
+      getInitialAuditLogDateRange(queryFrom, queryTo, queryLastUpdatedAt),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const auditLogKind: AuditLogKind = isAuditLogKind(queryAuditLogKind)
-    ? queryAuditLogKind
-    : AuditLogKind.User;
+  const [dateRangePreset, setDateRangePreset] =
+    useState<AuditLogDateRangePresetKey>(initialDateRange.preset);
+  const [auditLogKind, setAuditLogKind] = useState<AuditLogKind>(() => {
+    if (isAuditLogKind(queryAuditLogKind)) {
+      return queryAuditLogKind;
+    }
+    return AuditLogKind.User;
+  });
 
   const availableActivityTypes = useMemo(() => {
     return auditLogKind === "admin"
@@ -130,7 +148,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }, [availableActivityTypes, queryActivityType]);
 
   const [filters, setFilters] = useState<AuditLogFilter>({
-    searchKeyword: queryString,
+    searchKeyword: "",
     activityType: defaultActivityType,
   });
 
@@ -141,9 +159,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setCommittedValue: setRangeFromImmediately,
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
-  } = useTransactionalState<Date | null>(
-    queryFrom != null && queryFrom !== "" ? new Date(queryFrom) : null
-  );
+  } = useTransactionalState<Date | null>(initialDateRange.rangeFrom);
 
   const {
     committedValue: rangeTo,
@@ -152,9 +168,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setCommittedValue: setRangeToImmediately,
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
-  } = useTransactionalState<Date | null>(
-    queryTo != null && queryTo !== "" ? new Date(queryTo) : null
-  );
+  } = useTransactionalState<Date | null>(initialDateRange.rangeTo);
 
   const { appID } = useParams() as { appID: string };
   const featureConfig = useAppFeatureConfigQuery(appID);
@@ -200,96 +214,63 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
-  const isCustomDateRange = rangeFrom != null || rangeTo != null;
+  useEffect(() => {
+    if (dateRangePreset === "custom") {
+      return;
+    }
+    const range = getPresetDateRange(
+      dateRangePreset,
+      lastUpdatedAt,
+      datePickerMinDate
+    );
+    setRangeFromImmediately(range.from);
+    setRangeToImmediately(range.to);
+  }, [
+    dateRangePreset,
+    lastUpdatedAt,
+    datePickerMinDate,
+    setRangeFromImmediately,
+    setRangeToImmediately,
+  ]);
 
-  const onClickAllDateRange = useCallback(
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setRangeFromImmediately(null);
-      setRangeToImmediately(null);
-    },
-    [setRangeFromImmediately, setRangeToImmediately]
-  );
-
-  const onClickCustomDateRange = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setDateRangeDialogHidden(false);
+  const onChangeDateRangePreset = useCallback(
+    (preset: AuditLogDateRangePresetKey) => {
+      setDateRangePreset(preset);
+      if (preset === "custom") {
+        setDateRangeDialogHidden(false);
+        return;
+      }
+      setOffset(0);
     },
     []
   );
 
   const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
     return {
-      value: isCustomDateRange ? "customDateRange" : "allDateRange",
-      onClickAllDateRange,
-      onClickCustomDateRange,
+      value: dateRangePreset,
+      onChange: onChangeDateRangePreset,
     };
-  }, [isCustomDateRange, onClickAllDateRange, onClickCustomDateRange]);
+  }, [dateRangePreset, onChangeDateRangePreset]);
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
-  // Keep local state in sync when the URL changes (e.g. browser back/forward).
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFilters((prev) => {
-      const next = {
-        searchKeyword: queryString,
-        activityType: defaultActivityType,
-      };
-      if (
-        prev.searchKeyword === next.searchKeyword &&
-        prev.activityType === next.activityType
-      ) {
-        return prev;
-      }
-      return next;
-    });
-  }, [queryString, defaultActivityType]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOffset(initialOffset);
-  }, [initialOffset]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSortDirection(queryOrderBy);
-  }, [queryOrderBy]);
-
-  useEffect(() => {
-    if (queryLastUpdatedAt == null || queryLastUpdatedAt === "") {
-      return;
-    }
-    const next = new Date(Number(queryLastUpdatedAt));
-    if (next.getTime() === lastUpdatedAtRef.current.getTime()) {
-      return;
-    }
-    setLastUpdatedAt(next);
-  }, [queryLastUpdatedAt]);
-
   // Reset page to zero on search
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOffset(0);
   }, [debouncedSearchQuery]);
 
   const { renderToString } = useContext(Context);
 
-  // On first page load without a timestamp in the URL (e.g. sidebar nav),
-  // set last_updated_at. When arriving via a link that already includes
-  // last_updated_at (e.g. User Details "View all"), keep the URL value so we
-  // do not rewrite search params and break the browser back button.
+  // When the page is refreshed, and it is on the first page,
+  // update last_updated_at.
+  // Note that if the page is navigated from another page,
+  // this effect is NOT run.
+  // This is the intended behavior because we do not
+  // want to change last_updated_at.
   useEffect(() => {
-    if (queryPage !== "1") {
-      return;
+    if (queryPage === "1") {
+      setLastUpdatedAt(new Date());
     }
-    if (queryLastUpdatedAt != null && queryLastUpdatedAt !== "") {
-      return;
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLastUpdatedAt(new Date());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -347,13 +328,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
 
     if (callSet) {
-      const replace = isBareAuditLogListURL(
-        queryAuditLogKind,
-        queryString,
-        queryLastUpdatedAt,
-        queryPage
-      );
-      setSearchParams(params, { replace });
+      setSearchParams(params);
     }
   }, [
     queryFrom,
@@ -386,7 +361,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return encodeOffsetToCursor(offset);
   }, [offset]);
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
   }, []);
@@ -423,15 +397,58 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
   }, [debouncedSearchQuery, filters.activityType]);
 
-  const queryUserIDs = useMemo(() => {
+  const shouldSearchUsers = useMemo(() => {
+    if (debouncedSearchQuery === "") {
+      return false;
+    }
     if (queryEmailAddresses != null || queryPhoneNumbers != null) {
+      return false;
+    }
+    switch (filters.activityType) {
+      case ACTIVITY_TYPE_ALL:
+        return true;
+      case AuditLogActivityType.EmailSent:
+      case AuditLogActivityType.SmsSent:
+      case AuditLogActivityType.WhatsappSent:
+        return false;
+      default:
+        return true;
+    }
+  }, [
+    debouncedSearchQuery,
+    queryEmailAddresses,
+    queryPhoneNumbers,
+    filters.activityType,
+  ]);
+
+  const {
+    data: userSearchData,
+    loading: userSearchLoading,
+    error: userSearchError,
+  } = useQuery<
+    AuditLogUserSearchQueryQuery,
+    AuditLogUserSearchQueryQueryVariables
+  >(AuditLogUserSearchQueryDocument, {
+    variables: {
+      searchKeyword: debouncedSearchQuery,
+    },
+    skip: !shouldSearchUsers,
+    fetchPolicy: "network-only",
+  });
+
+  const queryUserIDs = useMemo(() => {
+    if (!shouldSearchUsers) {
       return null;
     }
-    // only search by userIDs if query notLikeEmail & notLikePhoneNumber
-    return debouncedSearchQuery
-      ? [toTypedID(NodeType.User, debouncedSearchQuery)]
-      : null;
-  }, [debouncedSearchQuery, queryEmailAddresses, queryPhoneNumbers]);
+    if (userSearchLoading) {
+      return null;
+    }
+    const edges = userSearchData?.users?.edges ?? [];
+    return edges.flatMap((edge) => (edge?.node?.id != null ? [edge.node.id] : []));
+  }, [shouldSearchUsers, userSearchLoading, userSearchData?.users?.edges]);
+
+  const noMatchingUsers =
+    shouldSearchUsers && !userSearchLoading && queryUserIDs?.length === 0;
 
   const {
     data: currentData,
@@ -454,16 +471,26 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         sortDirection,
       },
       fetchPolicy: "network-only",
-      skip: featureConfig.isLoading,
+      skip:
+        featureConfig.isLoading ||
+        (shouldSearchUsers && userSearchLoading) ||
+        noMatchingUsers,
     }
   );
 
   const data = currentData ?? previousData;
+  const auditLogs = noMatchingUsers
+    ? { edges: [], totalCount: 0 }
+    : data?.auditLogs ?? null;
+  const listLoading =
+    loading || featureConfig.isLoading || (shouldSearchUsers && userSearchLoading);
 
   const messageBar = useMemo(() => {
     if (error != null) {
-      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
+    }
+    if (userSearchError != null) {
+      return <ShowError error={userSearchError} />;
     }
     if (featureConfig.loadError != null) {
       return (
@@ -476,10 +503,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       );
     }
     return null;
-  }, [error, refetch, featureConfig]);
+  }, [error, userSearchError, refetch, featureConfig]);
 
   const onFilterChange = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
       const newFilters = fn(filters);
 
@@ -490,17 +516,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     },
     [filters]
   );
-
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
-  const onRemoveAllFilters = useCallback(() => {
-    setOffset(0);
-    setRangeFromImmediately(null);
-    setRangeToImmediately(null);
-    onFilterChange(() => ({
-      searchKeyword: "",
-      activityType: ACTIVITY_TYPE_ALL,
-    }));
-  }, [onFilterChange, setRangeFromImmediately, setRangeToImmediately]);
 
   const onClickRefresh = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
@@ -514,12 +529,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const searchBoxPlaceholder = useMemo(() => {
     switch (filters.activityType) {
       case AuditLogActivityType.EmailSent:
-        return renderToString("AuditLogScreen.search-by-user-id-or-email");
+        return renderToString("AuditLogScreen.search-by-email");
       case AuditLogActivityType.SmsSent:
       case AuditLogActivityType.WhatsappSent:
-        return renderToString("AuditLogScreen.search-by-user-id-or-phone");
+        return renderToString("AuditLogScreen.search-by-phone");
       default:
-        return renderToString("AuditLogScreen.search-by-user-id");
+        return renderToString("AuditLogScreen.search-by-user-name-or-email");
     }
   }, [filters.activityType, renderToString]);
 
@@ -530,24 +545,38 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [searchBoxPlaceholder]);
 
   const onDismissDateRangeDialog = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (e?: React.MouseEvent<unknown>) => {
       e?.stopPropagation();
       setDateRangeDialogHidden(true);
       rollbackRangeFrom();
       rollbackRangeTo();
+      setDateRangePreset(
+        detectDateRangePreset(
+          rangeFrom,
+          rangeTo,
+          lastUpdatedAt,
+          datePickerMinDate
+        )
+      );
     },
-    [rollbackRangeFrom, rollbackRangeTo]
+    [
+      rollbackRangeFrom,
+      rollbackRangeTo,
+      rangeFrom,
+      rangeTo,
+      lastUpdatedAt,
+      datePickerMinDate,
+    ]
   );
 
   const commitDateRange = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (e?: React.MouseEvent<unknown>) => {
       e?.preventDefault();
       e?.stopPropagation();
       setDateRangeDialogHidden(true);
       commitRangeFrom();
       commitRangeTo();
+      setDateRangePreset("custom");
       setOffset(0);
     },
     [commitRangeFrom, commitRangeTo]
@@ -585,7 +614,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setRangeTo, setRangeFrom, uncommittedRangeFrom]
   );
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const onToggleSortDirection = useCallback(() => {
     if (sortDirection === SortDirection.Desc) {
       setSortDirection(SortDirection.Asc);
@@ -595,32 +623,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [sortDirection]);
 
   const onTabChange = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    (item?: PivotItem) => {
-      if (item == null) {
+    (value: string) => {
+      if (!isAuditLogKind(value) || value === auditLogKind) {
         return;
       }
-      const { itemKey } = item.props;
-      if (!itemKey || !isAuditLogKind(itemKey)) {
-        return;
-      }
+      setAuditLogKind(value);
       setOffset(0);
-      setFilters((prev) => ({
-        ...prev,
+      setFilters({
+        searchKeyword: "",
         activityType: ACTIVITY_TYPE_ALL,
-      }));
-      setSearchParams(
-        (prev) => {
-          const params = new URLSearchParams(prev);
-          params.set("kind", itemKey);
-          params.set("page", "1");
-          params.set("activity_type", ACTIVITY_TYPE_ALL);
-          return params;
-        },
-        { replace: false }
-      );
+      });
     },
-    [setSearchParams]
+    [auditLogKind]
   );
   return (
     <>
@@ -636,20 +650,20 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
               messageValues={{ logRetrievalDays: logRetrievalDays }}
             />
           ) : null}
-          <AGPivot
+          <Tabs.Root
+            value={auditLogKind}
+            onValueChange={onTabChange}
             className={styles.pivot}
-            selectedKey={auditLogKind}
-            onLinkClick={onTabChange}
           >
-            <PivotItem
-              itemKey={AuditLogKind.User}
-              headerText={renderToString("AuditLogScreen.acitity-kind.user")}
-            />
-            <PivotItem
-              itemKey={AuditLogKind.Admin}
-              headerText={renderToString("AuditLogScreen.acitity-kind.admin")}
-            />
-          </AGPivot>
+            <Tabs.List>
+              <Tabs.Trigger value={AuditLogKind.User}>
+                {renderToString("AuditLogScreen.acitity-kind.user")}
+              </Tabs.Trigger>
+              <Tabs.Trigger value={AuditLogKind.Admin}>
+                {renderToString("AuditLogScreen.acitity-kind.admin")}
+              </Tabs.Trigger>
+            </Tabs.List>
+          </Tabs.Root>
         </div>
         <AuditLogFilterBar
           filters={filters}
@@ -657,13 +671,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           searchBoxProps={searchBoxProps}
           dateRange={filtersDateRange}
           availableActivityTypes={availableActivityTypes}
-          onRemoveAllFilters={onRemoveAllFilters}
           onRefresh={onClickRefresh}
           lastUpdatedAt={lastUpdatedAt}
         />
         <div className={styles.listContainer}>
           <CommandBarContainer
-            isLoading={loading}
+            isLoading={listLoading}
             messageBar={messageBar}
             hideCommandBar={true}
             className={styles.commandBarContainerContent}
@@ -671,12 +684,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           >
             <AuditLogList
               className={styles.list}
-              loading={loading}
-              auditLogs={data?.auditLogs ?? null}
+              loading={listLoading}
+              auditLogs={auditLogs}
               searchParams={searchParams.toString()}
               offset={offset}
               pageSize={pageSize}
-              totalCount={data?.auditLogs?.totalCount ?? undefined}
+              totalCount={auditLogs?.totalCount ?? undefined}
               onChangeOffset={onChangeOffset}
               onToggleSortDirection={onToggleSortDirection}
               sortDirection={sortDirection}
@@ -684,7 +697,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           </CommandBarContainer>
         </div>
       </div>
-      <DateRangeDialog
+      <AuditLogDateRangeDialog
         hidden={dateRangeDialogHidden}
         title={renderToString("AuditLogScreen.date-range.custom")}
         fromDatePickerLabel={renderToString(
