@@ -7,7 +7,9 @@
 /* ── Table wrapper (scrollable) ── */
 
 .tableWrapper {
-  flex: 1 1 0;
+  /* Size to content so a short list doesn't leave a tall empty box,
+     but still shrink + scroll when the rows exceed the available height. */
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
@@ -16,10 +18,6 @@
   border-radius: var(--radius-3);
   border: 1px solid var(--gray-a6);
   margin: 0 24px;
-}
-
-.emptyWrapper {
-  flex: 0 0 auto;
 }
 
 /* ── Table ── */
@@ -36,6 +34,14 @@
   align-items: center;
   min-height: 2.75rem;
   min-width: 40rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
+
+  /* Keep the header visible while the table body scrolls. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .headerCellUser,
@@ -51,7 +57,8 @@
 }
 
 .headerCellUser {
-  flex: 1 1 0;
+  width: 24rem;
+  flex-shrink: 0;
   min-width: 0;
 }
 
@@ -61,8 +68,8 @@
 }
 
 .headerCellCreatedAt {
-  width: 17rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 18rem;
   padding: 0;
 }
 
@@ -110,6 +117,20 @@
   background-color: var(--gray-a2);
 }
 
+.emptyRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 16px;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.emptyText {
+  color: var(--gray-11);
+  text-align: center;
+}
+
 .cellUser,
 .cellActivityType,
 .cellCreatedAt,
@@ -122,7 +143,8 @@
 }
 
 .cellUser {
-  flex: 1 1 0;
+  width: 24rem;
+  flex-shrink: 0;
   min-width: 0;
   overflow: hidden;
 }
@@ -136,6 +158,24 @@
   @apply truncate;
   min-width: 0;
   display: block;
+}
+
+.userCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userPrimary {
+  font-weight: 500;
+  color: var(--gray-12);
+}
+
+.userSecondary {
+  font-weight: 400;
+  color: var(--gray-11);
 }
 
 .cellActivityType {
@@ -152,8 +192,8 @@
 }
 
 .cellCreatedAt {
-  width: 17rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 18rem;
 }
 
 .cellCreatedAt .cellText {
@@ -195,19 +235,19 @@
 }
 
 .shimmerUser {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 16rem;
+  width: 10rem;
+  flex-shrink: 0;
 }
 
 .shimmerActivityType {
-  width: 8rem;
+  width: 12rem;
   flex-shrink: 0;
 }
 
 .shimmerCreatedAt {
-  width: 10rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 14rem;
 }
 
 .shimmerChevron {

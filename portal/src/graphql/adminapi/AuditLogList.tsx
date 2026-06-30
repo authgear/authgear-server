@@ -21,7 +21,6 @@ import { useDebounced } from "../../hook/useDebounced";
 
 import styles from "./AuditLogList.module.css";
 import { useParams } from "react-router-dom";
-import { MessageBar } from "@fluentui/react";
 
 const PLACEHOLDER = "-";
 const SHIMMER_ROW_COUNT = 5;
@@ -44,26 +43,64 @@ interface AuditLogListItem {
   activityType: string;
   createdAt: string;
   userID: string | null;
-  rawUserID: string | null;
+  userPrimary: string;
+  userSecondary: string | null;
 }
 
-function getRawUserIDFromAuditLog(
+function getUserDisplayFromAuditLog(
   renderToString: (id: string, values: Values | undefined) => string,
   node: AuditLogEdgesNodeFragment
-): string | null {
-  const userID = node.user?.id ?? null;
-  if (userID != null) {
-    return extractRawID(userID);
+): { primary: string; secondary: string | null } {
+  const user = node.user;
+  if (user != null) {
+    const attrs = (user.standardAttributes ?? {}) as {
+      email?: string;
+      phone_number?: string;
+    };
+    const email = attrs.email ?? null;
+    const phone = attrs.phone_number ?? null;
+    const name = user.formattedName ?? null;
+
+    // Prefer email, then phone, as the primary contact line.
+    const contact = email ?? phone ?? null;
+    if (contact != null) {
+      return { primary: contact, secondary: name };
+    }
+
+    // No contact info: fall back to name / account id as a single line.
+    const fallback = name ?? user.endUserAccountID ?? extractRawID(user.id);
+    return { primary: fallback, secondary: null };
   }
 
+  // No linked user record; fall back to the raw id from the event payload.
   const rawUserID = node.data?.payload?.user?.id;
   if (rawUserID != null) {
-    return renderToString("AuditLogList.label.user-id", {
-      id: rawUserID,
-    });
+    return {
+      primary: renderToString("AuditLogList.label.user-id", { id: rawUserID }),
+      secondary: null,
+    };
   }
 
-  return null;
+  return { primary: PLACEHOLDER, secondary: null };
+}
+
+function UserCellContent(props: {
+  primary: string;
+  secondary: string | null;
+}): React.ReactElement {
+  const { primary, secondary } = props;
+  return (
+    <div className={styles.userCell}>
+      <Text size="2" className={cn(styles.cellText, styles.userPrimary)}>
+        {primary}
+      </Text>
+      {secondary != null ? (
+        <Text size="2" className={cn(styles.cellText, styles.userSecondary)}>
+          {secondary}
+        </Text>
+      ) : null}
+    </div>
+  );
 }
 
 const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
@@ -95,11 +132,12 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
         const node = edge?.node;
         if (node != null) {
           const userID = node.user?.id ?? null;
-          const rawUserID = getRawUserIDFromAuditLog(renderToString, node);
+          const userDisplay = getUserDisplayFromAuditLog(renderToString, node);
           items.push({
             id: node.id,
             userID,
-            rawUserID,
+            userPrimary: userDisplay.primary,
+            userSecondary: userDisplay.secondary,
             createdAt: formatDatetime(locale, node.createdAt)!,
             activityType: renderToString(
               "AuditLogActivityType." + node.activityType
@@ -138,7 +176,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
     <div className={cn(styles.root, className)}>
       <div
         ref={listWrapperRef}
-        className={cn(styles.tableWrapper, isEmpty && styles.emptyWrapper)}
+        className={styles.tableWrapper}
         data-is-scrollable="true"
       >
         <div className={styles.table}>
@@ -198,14 +236,16 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
                           className={styles.cellUserLink}
                           to={userHref}
                         >
-                          <Text size="2" className={styles.cellText}>
-                            {item.rawUserID ?? PLACEHOLDER}
-                          </Text>
+                          <UserCellContent
+                            primary={item.userPrimary}
+                            secondary={item.userSecondary}
+                          />
                         </Link>
                       ) : (
-                        <Text size="2" className={styles.cellText}>
-                          {item.rawUserID ?? PLACEHOLDER}
-                        </Text>
+                        <UserCellContent
+                          primary={item.userPrimary}
+                          secondary={item.userSecondary}
+                        />
                       )}
                     </div>
                     <div className={styles.cellActivityType}>
@@ -234,14 +274,17 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
                   </div>
                 );
               })}
+
+          {/* Empty state row inside the table */}
+          {isEmpty ? (
+            <div className={styles.emptyRow}>
+              <Text size="2" className={styles.emptyText}>
+                <FormattedMessage id="AuditLogList.empty" />
+              </Text>
+            </div>
+          ) : null}
         </div>
       </div>
-
-      {isEmpty ? (
-        <MessageBar>
-          <FormattedMessage id="AuditLogList.empty" />
-        </MessageBar>
-      ) : null}
 
       <PaginationWidget
         className={cn(styles.pagination, isEmpty && styles.paginationHidden)}

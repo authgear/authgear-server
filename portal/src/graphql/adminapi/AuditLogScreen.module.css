@@ -21,6 +21,11 @@
   margin-top: 20px;
 }
 
+.pivot :global(.rt-TabsList) {
+  box-shadow: none;
+  border-bottom: 1px solid var(--gray-a6);
+}
+
 .listContainer {
   flex: 1 1 0px;
   display: flex;
