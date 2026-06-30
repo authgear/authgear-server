@@ -103,7 +103,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : new Date()
   );
   const lastUpdatedAtRef = useRef(lastUpdatedAt);
-  lastUpdatedAtRef.current = lastUpdatedAt;
+  useEffect(() => {
+    lastUpdatedAtRef.current = lastUpdatedAt;
+  });
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
   const auditLogKind: AuditLogKind = isAuditLogKind(queryAuditLogKind)
     ? queryAuditLogKind
@@ -264,12 +266,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (next.getTime() === lastUpdatedAtRef.current.getTime()) {
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLastUpdatedAt(next);
-    // lastUpdatedAtRef is intentionally excluded from deps — it's a ref that
-    // always reflects the latest value, so adding it would cause the effect to
-    // re-run on every state change and fight the state→URL sync effect.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryLastUpdatedAt]);
 
   // Reset page to zero on search
