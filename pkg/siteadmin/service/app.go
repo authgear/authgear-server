@@ -156,14 +156,18 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 	}
 	orderExpr := primaryExpr + " " + dirSQL + ", cs.app_id ASC"
 	if params.Sort == siteadmin.Relevance && len(params.CollaboratorUserIDs) > 0 {
-		// Rank by the best (lowest) search-result position among all of the app's
-		// collaborators (any role). UUIDs contain only [0-9a-f-] so single-quoting is safe.
+		// Rank by the best (lowest) search-result position among matching collaborators.
+		// AND acr.user_id = ANY(?) lets PostgreSQL use the UNIQUE(app_id, user_id) index
+		// for point lookups instead of scanning every collaborator of the app.
+		// UUIDs contain only [0-9a-f-] so single-quoting is safe.
 		quotedIDs := make([]string, len(params.CollaboratorUserIDs))
 		for i, id := range params.CollaboratorUserIDs {
 			quotedIDs[i] = "'" + id + "'"
 		}
-		rankExpr := "(SELECT MIN(array_position(ARRAY[" + strings.Join(quotedIDs, ",") +
-			"]::text[], acr.user_id)) FROM " + collaboratorTable + " acr WHERE acr.app_id = cs.app_id)"
+		inlinedArray := "ARRAY[" + strings.Join(quotedIDs, ",") + "]::text[]"
+		rankExpr := "(SELECT MIN(array_position(" + inlinedArray + ", acr.user_id))" +
+			" FROM " + collaboratorTable + " acr" +
+			" WHERE acr.app_id = cs.app_id AND acr.user_id = ANY(" + inlinedArray + "))"
 		orderExpr = rankExpr + " ASC, " + orderExpr
 	}
 
