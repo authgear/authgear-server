@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	usagepkg "github.com/authgear/authgear-server/pkg/lib/usage"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -20,6 +21,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/siteadmin/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+// provideSiteAdminSessionInfoMiddleware constructs SessionInfoMiddleware with
+// WebSDKSessionType hard-wired to "refresh_token". The site admin web client
+// authenticates via Bearer JWT in the Authorization header. Cookie mode (the
+// portal default) is not part of the site admin authentication flow and must
+// never be used here.
+func provideSiteAdminSessionInfoMiddleware(
+	c *portalconfig.AuthgearConfig,
+	httpClient session.HTTPClient,
+	clk clock.Clock,
+) *session.SessionInfoMiddleware {
+	cfg := *c // shallow copy — safe for string fields
+	cfg.WebSDKSessionType = "refresh_token"
+	return &session.SessionInfoMiddleware{
+		AuthgearConfig: &cfg,
+		HTTPClient:     httpClient,
+		Clock:          clk,
+	}
+}
 
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
@@ -31,7 +51,10 @@ var DependencySet = wire.NewSet(
 	globaldb.NewSQLExecutor,
 	globaldb.NewSQLBuilder,
 	globalredis.DependencySet,
-	session.DependencySet,
+	// Session: always refresh_token for site admin (web client uses Bearer JWT).
+	// Cookie mode is for the portal UI only and must never be used here.
+	session.NewHTTPClient,
+	provideSiteAdminSessionInfoMiddleware,
 	transport.DependencySet,
 	wire.FieldsOf(new(*config.EnvironmentConfig), "CORSAllowedOrigins"),
 	wire.Struct(new(CORSMatcher), "*"),
