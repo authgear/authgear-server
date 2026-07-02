@@ -5,7 +5,14 @@ const {
     printSchema,
 } = require("graphql/utilities");
 
-const {stdout, stderr} = spawnSync("go", ["run", "../graphqlschema/main.go", process.argv[2] || "unset"], {
+const ALLOWED_PACKAGES = ["admin", "portal"];
+const pkg = process.argv[2];
+if (!ALLOWED_PACKAGES.includes(pkg)) {
+    console.error(`invalid package argument: ${JSON.stringify(pkg)}. must be one of: ${ALLOWED_PACKAGES.join(", ")}`);
+    process.exit(1);
+}
+
+const {stdout, stderr} = spawnSync("go", ["run", "../graphqlschema/main.go", pkg], {
     input: getIntrospectionQuery(),
 })
 if (stderr.length > 0) {
