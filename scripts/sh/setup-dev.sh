@@ -24,7 +24,7 @@ die()   { error "$*"; exit 1; }
 
 # ── Container tool (docker or podman) ────────────────────────────────────────
 # Override by setting COMPOSE_CMD, e.g. COMPOSE_CMD="podman compose"
-if [ -z "${COMPOSE_CMD:-}" ]; then
+if [[ -z "${COMPOSE_CMD:-}" ]]; then
   if command -v docker &>/dev/null; then
     COMPOSE_CMD="docker compose"
   elif command -v podman &>/dev/null; then
@@ -51,7 +51,7 @@ export OTEL_TRACES_EXPORTER=none
 export LOG_HANDLERS=console
 
 # ── 1. .env ───────────────────────────────────────────────────────────────────
-if [ ! -f .env ]; then
+if [[ ! -f .env ]]; then
   log "Copying .env.example → .env"
   cp .env.example .env
 else
@@ -70,7 +70,7 @@ done
 $COMPOSE_CMD exec -T postgres16 pg_isready -U postgres -q || die "PostgreSQL did not become ready after 60 s"
 
 # ── 3. Generate config files ──────────────────────────────────────────────────
-if [ ! -f ./var/authgear.yaml ]; then
+if [[ ! -f ./var/authgear.yaml ]]; then
   log "Generating config files in ./var ..."
   "${GO_RUN[@]}" ./cmd/authgear init \
     --interactive false \
@@ -187,7 +187,7 @@ set +e
 CREATE_EXIT=$?
 set -e
 
-if [ $CREATE_EXIT -ne 0 ]; then
+if [[ $CREATE_EXIT -ne 0 ]]; then
   warn "Admin account creation returned an error (account may already exist). Raw output:"
   cat "$QUERY_OUTPUT" >&2
   rm -f "$QUERY_OUTPUT"
@@ -198,7 +198,7 @@ else
   ENCODED_NODE_ID="$(jq -r '.data.createUser.user.id // empty' "$QUERY_OUTPUT")"
   rm -f "$QUERY_OUTPUT"
 
-  if [ -z "$ENCODED_NODE_ID" ]; then
+  if [[ -z "$ENCODED_NODE_ID" ]]; then
     warn "Could not extract user ID from the Admin API response. Skipping collaborator step."
   else
     # Decode base64url → "User:<uuid>", then strip the "User:" prefix.
