@@ -56,18 +56,29 @@ function getUserDisplayFromAuditLog(
     const attrs = (user.standardAttributes ?? {}) as {
       email?: string;
       phone_number?: string;
+      preferred_username?: string;
     };
-    const email = attrs.email ?? null;
-    const phone = attrs.phone_number ?? null;
-    const name = user.formattedName ?? null;
+    const email = attrs.email?.trim() || null;
+    const phone = attrs.phone_number?.trim() || null;
+    const username = attrs.preferred_username?.trim() || null;
+    const name = user.formattedName?.trim() || null;
 
-    // Prefer email, then phone, as the primary contact line.
-    const contact = email ?? phone ?? null;
-    if (contact != null) {
-      return { primary: contact, secondary: name };
+    if (email != null && name != null) {
+      return { primary: email, secondary: name };
+    }
+    if (email != null) {
+      return { primary: email, secondary: null };
+    }
+    if (phone != null) {
+      return { primary: phone, secondary: name };
+    }
+    if (username != null && name != null) {
+      return { primary: username, secondary: name };
+    }
+    if (username != null) {
+      return { primary: username, secondary: null };
     }
 
-    // No contact info: fall back to name / account id as a single line.
     const fallback = name ?? user.endUserAccountID ?? extractRawID(user.id);
     return { primary: fallback, secondary: null };
   }
