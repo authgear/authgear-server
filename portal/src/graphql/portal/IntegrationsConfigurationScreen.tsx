@@ -1,15 +1,7 @@
-import React, { useContext, useMemo, useCallback } from "react";
+import React, { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
-import {
-  DetailsList,
-  IColumn,
-  ColumnActionsMode,
-  SelectionMode,
-  Text,
-  Image,
-  ImageFit,
-} from "@fluentui/react";
 import {
   AppConfigFormModel,
   useAppConfigForm,
@@ -18,9 +10,9 @@ import Link from "../../Link";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import { Badge } from "../../components/v2/Badge/Badge";
 import { PortalAPIAppConfig } from "../../types";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./IntegrationsConfigurationScreen.module.css";
 
 import gtmLogoURL from "../../images/gtm_logo.png";
@@ -34,6 +26,7 @@ interface Item {
   name: string;
   description: string;
   connected: boolean;
+  editPath: string;
 }
 
 export interface IntegrationsConfigurationContentProps {
@@ -60,32 +53,17 @@ interface AddonProps {
 }
 
 function Addon(props: AddonProps) {
-  const {
-    themes: {
-      main: {
-        palette: { neutralTertiary },
-      },
-    },
-  } = useSystemConfig();
+  const { item } = props;
   return (
     <div className={styles.addon}>
       <div className={styles.addonLogo}>
-        <Image
-          className={styles.addonLogoImage}
-          src={props.item.iconURL}
-          imageFit={ImageFit.cover}
-        />
+        <img className={styles.addonLogoImage} src={item.iconURL} alt="" />
       </div>
-      <Text className={styles.addonName}>{props.item.name}</Text>
-      <Text
-        className={styles.addonDescription}
-        styles={{
-          root: {
-            color: neutralTertiary,
-          },
-        }}
-      >
-        {props.item.description}
+      <Text as="div" size="2" weight="medium" className={styles.addonName}>
+        {item.name}
+      </Text>
+      <Text as="div" size="2" className={styles.addonDescription}>
+        {item.description}
       </Text>
     </div>
   );
@@ -98,36 +76,8 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
         state: { googleTagManagerContainerID },
       },
     } = props;
-    const {
-      themes: {
-        main: {
-          palette: { neutralSecondary },
-        },
-      },
-    } = useSystemConfig();
 
     const { renderToString } = useContext(Context);
-    const columns: IColumn[] = [
-      {
-        key: "add-on",
-        name: renderToString("IntegrationsConfigurationScreen.add-on"),
-        minWidth: 250,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "status",
-        // Empty string here is intentional.
-        name: "",
-        minWidth: 100,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "action",
-        name: renderToString("IntegrationsConfigurationScreen.action"),
-        minWidth: 100,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-    ];
 
     const items: Item[] = useMemo(() => {
       return [
@@ -140,71 +90,63 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
             "IntegrationsConfigurationScreen.add-on.gtm.description"
           ),
           connected: googleTagManagerContainerID !== "",
+          editPath: "./google-tag-manager",
         },
       ];
     }, [renderToString, googleTagManagerContainerID]);
 
-    const onRenderItemColumn = useCallback(
-      (item?: Item, _index?: number, column?: IColumn) => {
-        if (item == null || column == null) {
-          return null;
-        }
-        switch (column.key) {
-          case "add-on": {
-            return <Addon item={item} />;
-          }
-          case "status": {
-            if (item.connected) {
-              return (
-                <div className={styles.cell}>
-                  <Text
-                    styles={{
-                      root: {
-                        color: neutralSecondary,
-                      },
-                    }}
-                  >
-                    <FormattedMessage id="IntegrationsConfigurationScreen.status.connected" />
-                  </Text>
-                </div>
-              );
-            }
-            return null;
-          }
-          case "action": {
-            return (
-              <div className={styles.cell}>
-                <Link to="./google-tag-manager" className={styles.action}>
-                  {item.connected ? (
-                    <FormattedMessage id="edit" />
-                  ) : (
-                    <FormattedMessage id="connect" />
-                  )}
-                </Link>
-              </div>
-            );
-          }
-        }
-        return null;
-      },
-      [neutralSecondary]
-    );
-
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="IntegrationsConfigurationScreen.title" />
-        </ScreenTitle>
-        <div className={styles.widget}>
-          <DetailsList
-            styles={{}}
-            columns={columns}
-            items={items}
-            selectionMode={SelectionMode.none}
-            onRenderItemColumn={onRenderItemColumn}
-          />
-        </div>
-      </ScreenContent>
+      <ScreenLayoutScrollView>
+        <ScreenContent layout="list">
+          <div className={styles.widget}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="IntegrationsConfigurationScreen.title" />
+            </Text>
+          </div>
+          <div className={styles.widget}>
+            <div className={styles.tableWrapper}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
+                  <div className={styles.headerCellAddon}>
+                    <FormattedMessage id="IntegrationsConfigurationScreen.add-on" />
+                  </div>
+                  <div className={styles.headerCellStatus} aria-hidden={true} />
+                  <div className={styles.headerCellAction}>
+                    <FormattedMessage id="IntegrationsConfigurationScreen.action" />
+                  </div>
+                </div>
+                {items.map((item) => (
+                  <div key={item.name} className={styles.tableRow}>
+                    <div className={styles.cellAddon}>
+                      <Addon item={item} />
+                    </div>
+                    <div className={styles.cellStatus}>
+                      {item.connected ? (
+                        <Badge
+                          size="1"
+                          variant="success"
+                          text={
+                            <FormattedMessage id="IntegrationsConfigurationScreen.status.connected" />
+                          }
+                        />
+                      ) : null}
+                    </div>
+                    <div className={styles.cellAction}>
+                      <Link to={item.editPath} className={styles.action}>
+                        {item.connected ? (
+                          <FormattedMessage id="edit" />
+                        ) : (
+                          <FormattedMessage id="connect" />
+                        )}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </ScreenContent>
+      </ScreenLayoutScrollView>
     );
   };
 
