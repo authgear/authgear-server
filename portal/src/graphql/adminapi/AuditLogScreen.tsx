@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
 } from "react";
 import {
   useParams,
@@ -101,6 +102,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       ? new Date(Number(queryLastUpdatedAt))
       : new Date()
   );
+  const lastUpdatedAtRef = useRef(lastUpdatedAt);
+  useEffect(() => {
+    lastUpdatedAtRef.current = lastUpdatedAt;
+  });
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
   const auditLogKind: AuditLogKind = isAuditLogKind(queryAuditLogKind)
     ? queryAuditLogKind
@@ -258,12 +263,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       return;
     }
     const next = new Date(Number(queryLastUpdatedAt));
-    if (next.getTime() === lastUpdatedAt.getTime()) {
+    if (next.getTime() === lastUpdatedAtRef.current.getTime()) {
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLastUpdatedAt(next);
-  }, [queryLastUpdatedAt, lastUpdatedAt]);
+  }, [queryLastUpdatedAt]);
 
   // Reset page to zero on search
   useEffect(() => {

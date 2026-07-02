@@ -219,7 +219,6 @@ export function useAppConfigForm<State>(
     reload,
     reset,
     save,
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     saveWith,
     effectiveConfig,
   };
