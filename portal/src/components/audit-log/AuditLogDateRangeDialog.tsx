@@ -1,9 +1,10 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import { DatePicker } from "@fluentui/react";
 import { Dialog, Flex, Text } from "@radix-ui/themes";
-import { FormattedMessage } from "../../intl";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
+import { formatDateOnly } from "../../util/formatDateOnly";
 import styles from "./AuditLogDateRangeDialog.module.css";
 
 interface AuditLogDateRangeDialogProps {
@@ -42,6 +43,18 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
       onDismiss,
     } = props;
 
+    const { locale } = useContext(MessageContext);
+
+    const formatDate = useCallback(
+      (date?: Date) => {
+        if (date == null) {
+          return "";
+        }
+        return formatDateOnly(locale, date) ?? "";
+      },
+      [locale]
+    );
+
     const onOpenChange = useCallback(
       (open: boolean) => {
         if (!open) {
@@ -78,6 +91,7 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
                 value={rangeFrom}
                 minDate={fromDatePickerMinDate}
                 maxDate={fromDatePickerMaxDate}
+                formatDate={formatDate}
                 onSelectDate={onSelectRangeFrom}
               />
             </div>
@@ -89,6 +103,7 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
                 value={rangeTo}
                 minDate={toDatePickerMinDate}
                 maxDate={toDatePickerMaxDate}
+                formatDate={formatDate}
                 onSelectDate={onSelectRangeTo}
               />
             </div>

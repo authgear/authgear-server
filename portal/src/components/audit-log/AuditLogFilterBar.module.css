@@ -62,8 +62,6 @@
 .dateRangeFilter {
   @apply h-full tablet:h-11;
   @apply flex items-center tablet:block;
-  width: 10.5rem;
-  min-width: 10.5rem;
 }
 
 .activityTypeFilter {

@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
 } from "react";
 import {
   useParams,
@@ -120,6 +121,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
+  const presetBeforeCustomDialogRef =
+    useRef<AuditLogDateRangePresetKey>("today");
   const [dateRangePreset, setDateRangePreset] =
     useState<AuditLogDateRangePresetKey>(initialDateRange.preset);
   const [auditLogKind, setAuditLogKind] = useState<AuditLogKind>(() => {
@@ -233,24 +236,40 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setRangeToImmediately,
   ]);
 
+  const onOpenCustomDateRangeDialog = useCallback(() => {
+    presetBeforeCustomDialogRef.current = dateRangePreset;
+    setDateRangeDialogHidden(false);
+  }, [dateRangePreset]);
+
   const onChangeDateRangePreset = useCallback(
     (preset: AuditLogDateRangePresetKey) => {
-      setDateRangePreset(preset);
       if (preset === "custom") {
+        presetBeforeCustomDialogRef.current = dateRangePreset;
+        setDateRangePreset(preset);
         setDateRangeDialogHidden(false);
         return;
       }
+      setDateRangePreset(preset);
       setOffset(0);
     },
-    []
+    [dateRangePreset]
   );
 
   const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
     return {
       value: dateRangePreset,
       onChange: onChangeDateRangePreset,
+      rangeFrom,
+      rangeTo,
+      onOpenCustomDateRangeDialog,
     };
-  }, [dateRangePreset, onChangeDateRangePreset]);
+  }, [
+    dateRangePreset,
+    onChangeDateRangePreset,
+    rangeFrom,
+    rangeTo,
+    onOpenCustomDateRangeDialog,
+  ]);
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
@@ -527,16 +546,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const searchBoxPlaceholder = useMemo(() => {
-    switch (filters.activityType) {
-      case AuditLogActivityType.EmailSent:
-        return renderToString("AuditLogScreen.search-by-email");
-      case AuditLogActivityType.SmsSent:
-      case AuditLogActivityType.WhatsappSent:
-        return renderToString("AuditLogScreen.search-by-phone");
-      default:
-        return renderToString("AuditLogScreen.search-by-user-name-or-email");
-    }
-  }, [filters.activityType, renderToString]);
+    return renderToString("AuditLogScreen.search-by-user-name-or-email");
+  }, [renderToString]);
 
   const searchBoxProps = useMemo<ISearchBoxProps>(() => {
     return {
@@ -550,6 +561,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       setDateRangeDialogHidden(true);
       rollbackRangeFrom();
       rollbackRangeTo();
+      if (presetBeforeCustomDialogRef.current === "custom") {
+        setDateRangePreset("custom");
+        return;
+      }
       setDateRangePreset(
         detectDateRangePreset(
           rangeFrom,
@@ -673,6 +688,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           availableActivityTypes={availableActivityTypes}
           onRefresh={onClickRefresh}
           lastUpdatedAt={lastUpdatedAt}
+          wideActivityTypeDropdown={auditLogKind === AuditLogKind.Admin}
         />
         <div className={styles.listContainer}>
           <CommandBarContainer

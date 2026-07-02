@@ -24,6 +24,9 @@ export interface AuditLogFilter {
 export interface AuditLogFilterBarPropsDateRange {
   value: AuditLogDateRangePresetKey;
   onChange: (value: AuditLogDateRangePresetKey) => void;
+  rangeFrom?: Date | null;
+  rangeTo?: Date | null;
+  onOpenCustomDateRangeDialog?: () => void;
 }
 
 interface AuditLogFilterBarProps {
@@ -35,6 +38,7 @@ interface AuditLogFilterBarProps {
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
   lastUpdatedAt: Date;
+  wideActivityTypeDropdown?: boolean;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -47,6 +51,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     dateRange,
     availableActivityTypes,
     lastUpdatedAt,
+    wideActivityTypeDropdown = false,
   }) {
     const { renderToString } = useContext(MessageContext);
 
@@ -77,12 +82,16 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
             className={styles.dateRangeFilter}
             value={dateRange.value}
             onChange={dateRange.onChange}
+            rangeFrom={dateRange.rangeFrom}
+            rangeTo={dateRange.rangeTo}
+            onOpenCustomDateRangeDialog={dateRange.onOpenCustomDateRangeDialog}
           />
           <ActivityTypeFilterDropdown
             className={styles.activityTypeFilter}
             value={filters.activityType}
             onChange={onChangeActivityType}
             availableActivityTypes={availableActivityTypes}
+            wideContent={wideActivityTypeDropdown}
           />
           <RadixTextField.Root
             className={styles.searchBox}

@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { formatDateOnly } from "../../util/formatDateOnly";
 
 export type AuditLogDateRangePresetKey =
   | "today"
@@ -107,4 +108,36 @@ export function getInitialAuditLogDateRange(
 
   const range = getPresetDateRange(preset, referenceDate);
   return { preset, rangeFrom: range.from, rangeTo: range.to };
+}
+
+export function formatCustomDateRangeLabel(
+  locale: string,
+  rangeFrom: Date | null,
+  rangeTo: Date | null
+): string | null {
+  if (rangeFrom == null || rangeTo == null) {
+    return null;
+  }
+
+  const fromDateTime = DateTime.fromJSDate(rangeFrom).setLocale(locale);
+  const toDateTime = DateTime.fromJSDate(rangeTo);
+  const fromLabel = formatDateOnly(locale, rangeFrom);
+  const toLabel = formatDateOnly(locale, rangeTo);
+  if (fromLabel == null || toLabel == null) {
+    return null;
+  }
+
+  if (isSameDay(rangeFrom, rangeTo)) {
+    return fromLabel;
+  }
+
+  if (fromDateTime.hasSame(toDateTime, "year")) {
+    const fromMonthDay = fromDateTime.toLocaleString({
+      month: "short",
+      day: "numeric",
+    });
+    return `${fromMonthDay} – ${toLabel}`;
+  }
+
+  return `${fromLabel} – ${toLabel}`;
 }
