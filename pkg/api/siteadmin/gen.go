@@ -122,8 +122,8 @@ type AppDetail struct {
 type AppsListResponse struct {
 	Apps []App `json:"apps"`
 
-	// OwnerSearchTruncated True when the `owner_search` keyword matched more than 20 portal users and results are limited to the top 20 matches. `total_count` is a lower bound in this case. Always `false` when `owner_search` is not provided.
-	OwnerSearchTruncated bool `json:"owner_search_truncated"`
+	// CollaboratorSearchTruncated True when the `collaborator_search` keyword matched more than 20 portal users and results are limited to the top 20 matches. `total_count` is a lower bound in this case. Always `false` when `collaborator_search` is not provided.
+	CollaboratorSearchTruncated bool `json:"collaborator_search_truncated"`
 
 	// Page Current page number.
 	Page uint64 `json:"page"`
@@ -131,7 +131,7 @@ type AppsListResponse struct {
 	// PageSize Number of apps per page.
 	PageSize uint64 `json:"page_size"`
 
-	// TotalCount Total number of apps matching the query. When `owner_search_truncated` is `true`, this is a lower bound — apps owned by owners beyond the 100-match cap are not counted.
+	// TotalCount Total number of apps matching the query. When `collaborator_search_truncated` is `true`, this is a lower bound — apps whose collaborators are beyond the 20-match cap are not counted.
 	TotalCount int `json:"total_count"`
 }
 
@@ -309,13 +309,13 @@ type ListAppsParams struct {
 	// AppId Filter by app ID prefix. Returns all apps whose ID starts with the given value.
 	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
-	// OwnerSearch Filter by owner keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps whose owner matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 20 matching owners are considered; if more than 20 owners match, `owner_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
-	OwnerSearch *string `form:"owner_search,omitempty" json:"owner_search,omitempty"`
+	// CollaboratorSearch Filter by collaborator keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps that have any collaborator (owner or editor) whose profile matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 20 matching users are considered; if more than 20 users match, `collaborator_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
+	CollaboratorSearch *string `form:"collaborator_search,omitempty" json:"collaborator_search,omitempty"`
 
 	// Plan Filter by plan name.
 	Plan *string `form:"plan,omitempty" json:"plan,omitempty"`
 
-	// Sort Field to sort by. Defaults to `created_at`, or `relevance` when `owner_search` is provided. `relevance` sorts by how well the app's owner matches the `owner_search` keyword and requires `owner_search` to be set; using `relevance` without `owner_search` returns 400.
+	// Sort Field to sort by. Defaults to `created_at`, or `relevance` when `collaborator_search` is provided. `relevance` sorts by how well the app's best-matching collaborator matches the `collaborator_search` keyword and requires `collaborator_search` to be set; using `relevance` without `collaborator_search` returns 400.
 	Sort *ListAppsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
 	// Order Sort direction. Defaults to `desc`. Ignored when `sort=relevance` (relevance is always highest-match first).
