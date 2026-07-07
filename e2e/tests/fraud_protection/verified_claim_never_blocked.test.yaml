@@ -1,0 +1,129 @@
+name: Fraud protection - verified phone number claim is never blocked
+authgear.yaml:
+  override: |
+    fraud_protection:
+      decision:
+        action: deny_if_any_warning
+before:
+  # Insert a verified claim for +6591230001 directly into the database.
+  # This simulates a phone number that a user previously verified via OTP.
+  - type: custom_sql
+    custom_sql:
+      path: ./verified_claim_fixture.sql
+steps:
+  # Flows 1-3: fill the SG country hourly bucket to level 3.
+  # With no verified history the minimum threshold is 3, so level 3 is not yet > 3.
+  # These numbers have no verified claim.
+
+  - name: flow 1 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 1 - identify phone (SG, no claim)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230002"}
+  - name: flow 1 - send sms (allowed, level 1)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 2 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 2 - identify phone (SG, no claim)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230003"}
+  - name: flow 2 - send sms (allowed, level 2)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  - name: flow 3 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 3 - identify phone (SG, no claim)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230004"}
+  - name: flow 3 - send sms (allowed, level 3)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Flow 4: +6591230005 has no verified claim. Level 4 > threshold 3 → blocked.
+  # This confirms fraud protection is active before testing the exception.
+
+  - name: flow 4 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 4 - identify phone (SG, no claim)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230005"}
+  - name: flow 4 - send sms (blocked, level 4 > threshold)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "BlockedByFraudProtection",
+          "code": 429
+        }
+
+  # Flow 5: +6591230001 IS a verified claim. Level would be 5 > threshold 3,
+  # but the block is suppressed because the phone number is a verified claim.
+
+  - name: flow 5 - create
+    action: create
+    input: |
+      {"type": "signup", "name": "default"}
+  - name: flow 5 - identify phone (SG, verified claim)
+    action: input
+    input: |
+      {"identification": "phone", "login_id": "+6591230001"}
+  - name: flow 5 - send sms (allowed despite triggered warning, verified claim exception)
+    action: input
+    input: |
+      {"channel": "sms"}
+    output:
+      result: |
+        {"action": {"type": "verify"}}
+
+  # Audit log: flows 1-3 allowed (no reason), flow 4 blocked, flow 5 allowed with
+  # allow_reason=verified_claim.
+
+  - name: check audit log
+    action: audit_query
+    audit_query: |
+      SELECT
+        data->'payload'->'record'->>'decision' AS decision,
+        data->'payload'->'record'->>'allow_reason' AS allow_reason
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'fraud_protection.decision_recorded'
+      ORDER BY decision, allow_reason, created_at
+    audit_query_output:
+      rows: |
+        [
+          {"decision": "allowed", "allow_reason": "verified_claim"},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "blocked", "allow_reason": null}
+        ]
