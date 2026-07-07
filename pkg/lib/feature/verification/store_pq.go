@@ -173,3 +173,18 @@ func (s *StorePQ) DeleteAll(ctx context.Context, userID string) error {
 
 	return nil
 }
+
+func (s *StorePQ) ExistsByClaimNameAndValue(ctx context.Context, claimName, claimValue string) (bool, error) {
+	q := s.selectQuery().Where("name = ? AND value = ?", claimName, claimValue).Limit(1)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return false, err
+	}
+	_, err = s.scan(row)
+	if errors.Is(err, ErrClaimUnverified) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
