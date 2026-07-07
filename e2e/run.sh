@@ -10,15 +10,8 @@ else
     exit 1
 fi
 
-# Kill any process listening on a TCP port.
-# Tries lsof first (macOS / some Linux), then fuser (most Linux).
 function kill_port {
-    local port=$1
-    if command -v lsof &>/dev/null; then
-        kill -9 $(lsof -ti:"$port") > /dev/null 2>&1 || true
-    elif command -v fuser &>/dev/null; then
-        fuser -k "$port"/tcp > /dev/null 2>&1 || true
-    fi
+    kill -9 $(lsof -ti:"$1") > /dev/null 2>&1 || true
 }
 
 function setup {( set -e
