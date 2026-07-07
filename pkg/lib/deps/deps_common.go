@@ -524,6 +524,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
 		wire.Bind(new(accountmanagement.VerificationService), new(*verification.Service)),
 		wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
+		wire.Bind(new(fraudprotection.VerifiedClaimChecker), new(*verification.StorePQ)),
 	),
 
 	wire.NewSet(
