@@ -1,18 +1,47 @@
 name: Site Admin - Apps
 app_id: e2e-portal
+authgear.yaml:
+  override: |
+    http:
+      public_origin: "http://localhost:4000"
 before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_actor.sql
 - type: custom_sql
   custom_sql:
     path: fixture/seed_siteadmin_apps.sql
 steps:
+# ── Authentication ─────────────────────────────────────────────────────────
+# Generate a Bearer access token for the test actor via the e2e-portal OAuth
+# server at localhost:4000 (SITEADMIN_AUTHGEAR_ENDPOINT).
+- name: generate_token
+  action: generate_refresh_token
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000001"
+  generate_refresh_token_client_id: e2e
+
+- name: get_access_token
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://localhost:4000/oauth2/token
+  http_request_form_urlencoded_body:
+    grant_type: refresh_token
+    refresh_token: "{{ .steps.generate_token.result.refresh_token }}"
+    client_id: e2e
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "access_token": "[[string]]"
+      }
+
 # ── Basic list ────────────────────────────────────────────────────────────────
 - name: list all apps
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -32,8 +61,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     sort: "relevance"
   http_output:
@@ -44,8 +72,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     app_id: "e2e-siteadmin-app-alpha"
   http_output:
@@ -64,10 +91,9 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
-    app_id: "{{ .AppID }}"
+    app_id: "e2e-portal"
   http_output:
     http_status: 200
     json_body: |
@@ -82,8 +108,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     app_id: "non-existent-app"
   http_output:
@@ -102,8 +127,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     app_id: "e2e-siteadmin-app-a"
   http_output:
@@ -121,8 +145,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     app_id: "e2e-siteadmin-app-"
     sort: "created_at"
@@ -144,8 +167,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     app_id: "e2e_siteadmin"
   http_output:
@@ -165,8 +187,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
   http_output:
@@ -183,8 +204,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "non-existent-plan"
   http_output:
@@ -204,8 +224,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "mau"
@@ -226,8 +245,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "mau"
@@ -250,8 +268,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "created_at"
@@ -272,8 +289,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "created_at"
@@ -295,8 +311,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "mau"
@@ -320,8 +335,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     plan: "startups"
     sort: "mau"
@@ -344,10 +358,9 @@ steps:
 - name: get existing app created by test framework
   action: http_request
   http_request_method: GET
-  http_request_url: http://127.0.0.1:4003/api/v1/apps/{{ .AppID }}
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-portal
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -365,8 +378,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-siteadmin-app-alpha
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -384,7 +396,6 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 404

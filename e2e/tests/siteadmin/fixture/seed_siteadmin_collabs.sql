@@ -2,18 +2,7 @@
 -- Uses dedicated app IDs (e2e-collab-*) so this test can freely mutate
 -- collaborator rows without interfering with apps.test.yaml or other tests
 -- that share e2e-siteadmin-app-*.
-
--- Grant Site Admin access in e2e-portal for the test actor.
-INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, updated_at, role)
-VALUES (
-    gen_random_uuid()::text,
-    'e2e-portal',
-    '00000000-0000-0000-0000-000000000001',
-    NOW(),
-    NOW(),
-    'owner'
-)
-ON CONFLICT (app_id, user_id) DO NOTHING;
+-- Run seed_siteadmin_actor.sql first to create user-001 and its e2e-portal membership.
 
 -- Users (shared with other siteadmin seeds; ON CONFLICT keeps them idempotent).
 INSERT INTO _auth_user (

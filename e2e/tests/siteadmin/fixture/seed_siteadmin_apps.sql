@@ -1,17 +1,6 @@
 -- Shared Site Admin seed used by the app, collaborator, plan, and usage e2e tests.
--- It grants Site Admin access in e2e-portal, inserts known test apps, and seeds
--- a known owner user for e2e-siteadmin-app-alpha.
-
-INSERT INTO _portal_app_collaborator (id, app_id, user_id, created_at, updated_at, role)
-VALUES (
-    gen_random_uuid()::text,
-    'e2e-portal',
-    '00000000-0000-0000-0000-000000000001',
-    NOW(),
-    NOW(),
-    'owner'
-)
-ON CONFLICT (app_id, user_id) DO NOTHING;
+-- It inserts known test apps and seeds a known owner user for e2e-siteadmin-app-alpha.
+-- Run seed_siteadmin_actor.sql first to create user-001 and its e2e-portal membership.
 
 INSERT INTO _portal_config_source (id, app_id, data, plan_name, created_at, updated_at)
 VALUES
