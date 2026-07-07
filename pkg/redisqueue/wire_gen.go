@@ -587,6 +587,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock:           clock,
 		Database:        handle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

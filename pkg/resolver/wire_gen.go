@@ -720,6 +720,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:           clock,
 		Database:        appdbHandle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

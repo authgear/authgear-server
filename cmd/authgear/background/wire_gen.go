@@ -694,6 +694,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:           clockClock,
 		Database:        handle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
