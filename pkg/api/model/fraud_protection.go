@@ -9,6 +9,15 @@ const (
 	FraudProtectionDecisionBlocked FraudProtectionDecision = "blocked"
 )
 
+type FraudProtectionAllowReason string
+
+const (
+	FraudProtectionAllowReasonAlwaysAllowIP    FraudProtectionAllowReason = "always_allow_ip"
+	FraudProtectionAllowReasonAlwaysAllowPhone FraudProtectionAllowReason = "always_allow_phone"
+	FraudProtectionAllowReasonVerifiedClaim    FraudProtectionAllowReason = "verified_claim"
+	FraudProtectionAllowReasonRecordOnly       FraudProtectionAllowReason = "record_only"
+)
+
 type FraudProtectionAction string
 
 const (
@@ -24,6 +33,7 @@ type FraudProtectionDecisionActionDetail struct {
 type FraudProtectionDecisionRecord struct {
 	Timestamp         time.Time                           `json:"timestamp"`
 	Decision          FraudProtectionDecision             `json:"decision"`
+	AllowReason       FraudProtectionAllowReason          `json:"allow_reason,omitempty"`
 	Action            FraudProtectionAction               `json:"action"`
 	ActionDetail      FraudProtectionDecisionActionDetail `json:"action_detail"`
 	TriggeredWarnings []string                            `json:"triggered_warnings"`
