@@ -475,6 +475,7 @@ func TestCheckAndRecord(t *testing.T) {
 				RemoteIP:       httputil.RemoteIP("1.2.3.4"),
 				Metrics:        &stubMetrics{},
 				LeakyBucket:    &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Database:       &stubDatabaseHandle{},
 				VerifiedClaims: &stubVerifiedClaimChecker{err: import_err},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
