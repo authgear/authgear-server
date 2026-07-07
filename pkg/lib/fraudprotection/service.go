@@ -134,7 +134,7 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 
 	alwaysAllowReason := s.alwaysAllowReason(s.Config, ip, phoneNumber, phoneCountry)
 
-	isVerifiedClaim, err := s.VerifiedClaims.ExistsByClaimNameAndValue(ctx, string(model.ClaimPhoneNumber), phoneNumber)
+	isVerifiedClaim, err := s.checkVerifiedClaim(ctx, phoneNumber)
 	if err != nil {
 		return err
 	}
@@ -455,4 +455,19 @@ func (s *Service) dispatchEventImmediately(ctx context.Context, payload event.No
 	return s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		return s.EventService.DispatchEventImmediately(ctx, payload)
 	})
+}
+
+// checkVerifiedClaim queries the verified-claim store, opening a read-only
+// transaction if the caller is not already inside one.
+func (s *Service) checkVerifiedClaim(ctx context.Context, phoneNumber string) (bool, error) {
+	if s.Database.IsInTx(ctx) {
+		return s.VerifiedClaims.ExistsByClaimNameAndValue(ctx, string(model.ClaimPhoneNumber), phoneNumber)
+	}
+	var result bool
+	err := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		var checkErr error
+		result, checkErr = s.VerifiedClaims.ExistsByClaimNameAndValue(ctx, string(model.ClaimPhoneNumber), phoneNumber)
+		return checkErr
+	})
+	return result, err
 }

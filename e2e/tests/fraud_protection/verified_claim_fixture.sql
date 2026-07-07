@@ -1,7 +1,7 @@
 -- Insert a minimal user so the verified claim foreign key is satisfied.
 WITH new_user AS (
-  INSERT INTO _auth_user (id, app_id, created_at, updated_at)
-  VALUES ('{{ uuidv4 }}', '{{ .AppID }}', NOW(), NOW())
+  INSERT INTO _auth_user (id, app_id, created_at, updated_at, is_disabled)
+  VALUES ('{{ uuidv4 }}', '{{ .AppID }}', NOW(), NOW(), FALSE)
   RETURNING id
 )
 INSERT INTO _auth_verified_claim (id, app_id, user_id, name, value, created_at, metadata)
