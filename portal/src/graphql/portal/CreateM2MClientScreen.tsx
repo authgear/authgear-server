@@ -115,11 +115,12 @@ interface StepAuthorizeResourceProps {
   client: OAuthClientConfig;
   form: AppSecretConfigFormModel<FormState>;
   onClickSave: () => void;
+  onClickBack: () => void;
 }
 
 const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
   function StepAuthorizeResource(props) {
-    const { client, form, onClickSave } = props;
+    const { client, form, onClickSave, onClickBack } = props;
     const { isDirty, isUpdating, setState } = form;
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
@@ -202,7 +203,7 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
     }
 
     return (
-      <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
+      <Widget className={cn(styles.widget, styles.wizardWidget)}>
         <FormTextField
           parentJSONPointer={/\/oauth\/clients\/\d+/}
           fieldName="name"
@@ -236,12 +237,16 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
             onToggleAuthorization={handleToggleAuthorization}
           />
         </div>
-        <div className={styles.buttons}>
+        <div className={styles.footer}>
+          <DefaultButton
+            text={renderToString("back")}
+            onClick={onClickBack}
+          />
           <ButtonWithLoading
             onClick={onClickSave}
             loading={isUpdating}
             disabled={!isDirty}
-            labelId="save"
+            labelId="CreateOAuthClientScreen.submit"
           />
         </div>
       </Widget>
@@ -299,6 +304,10 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
         .catch(() => {});
     }, [save, appID, clientId, navigate]);
 
+    const onClickBack = useCallback(() => {
+      navigate(`/project/${appID}/configuration/apps/add`);
+    }, [appID, navigate]);
+
     return (
       <ScreenContent className="flex-1-0-auto" layout={"list"}>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
@@ -306,6 +315,7 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
           client={client}
           form={form}
           onClickSave={onClickSave}
+          onClickBack={onClickBack}
         />
       </ScreenContent>
     );
