@@ -238,16 +238,13 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
           />
         </div>
         <div className={styles.footer}>
-          <DefaultButton
-            text={renderToString("back")}
-            onClick={onClickBack}
-          />
           <ButtonWithLoading
             onClick={onClickSave}
             loading={isUpdating}
             disabled={!isDirty}
             labelId="CreateOAuthClientScreen.submit"
           />
+          <DefaultButton text={renderToString("back")} onClick={onClickBack} />
         </div>
       </Widget>
     );

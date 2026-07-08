@@ -314,10 +314,6 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             />
           ) : null}
           <div className={styles.footer}>
-            <DefaultButton
-              text={renderToString("CreateOAuthClientScreen.cancel")}
-              onClick={onClickCancel}
-            />
             <ButtonWithLoading
               onClick={state.m2mSelected ? onClickNext : onClickSave}
               loading={isUpdating}
@@ -327,6 +323,10 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
                   ? "CreateOAuthClientScreen.next"
                   : "CreateOAuthClientScreen.submit"
               }
+            />
+            <DefaultButton
+              text={renderToString("CreateOAuthClientScreen.cancel")}
+              onClick={onClickCancel}
             />
           </div>
         </Widget>
