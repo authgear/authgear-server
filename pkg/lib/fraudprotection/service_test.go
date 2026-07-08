@@ -7,6 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -87,6 +88,15 @@ type stubEventService struct{}
 
 func (s *stubEventService) DispatchEventImmediately(_ context.Context, _ event.NonBlockingPayload) error {
 	return nil
+}
+
+type stubVerifiedClaimChecker struct {
+	exists bool
+	err    error
+}
+
+func (s *stubVerifiedClaimChecker) ExistsByClaimNameAndValue(_ context.Context, _, _ string) (bool, error) {
+	return s.exists, s.err
 }
 
 type stubDatabaseHandle struct{}
@@ -173,20 +183,20 @@ func TestEvaluateWarnings(t *testing.T) {
 	})
 }
 
-func TestIsAlwaysAllowed(t *testing.T) {
-	Convey("isAlwaysAllowed", t, func() {
+func TestAlwaysAllowReason(t *testing.T) {
+	Convey("alwaysAllowReason", t, func() {
 		svc := &Service{}
 
-		Convey("returns false when AlwaysAllow is nil", func() {
+		Convey("returns empty when AlwaysAllow is nil", func() {
 			cfg := &config.FraudProtectionConfig{
 				Decision: &config.FraudProtectionDecision{AlwaysAllow: nil},
 			}
-			So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldBeFalse)
+			So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReason(""))
 		})
 
-		Convey("returns false when Decision is nil", func() {
+		Convey("returns empty when Decision is nil", func() {
 			cfg := &config.FraudProtectionConfig{Decision: nil}
-			So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldBeFalse)
+			So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReason(""))
 		})
 
 		Convey("IP CIDR allowlist", func() {
@@ -200,17 +210,17 @@ func TestIsAlwaysAllowed(t *testing.T) {
 				},
 			}
 
-			Convey("allows IP inside CIDR", func() {
-				So(svc.isAlwaysAllowed(cfg, "10.1.2.3", "+6591234567", "SG"), ShouldBeTrue)
+			Convey("returns always_allow_ip for IP inside CIDR", func() {
+				So(svc.alwaysAllowReason(cfg, "10.1.2.3", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReasonAlwaysAllowIP)
 			})
 
-			Convey("does not allow IP outside CIDR", func() {
-				So(svc.isAlwaysAllowed(cfg, "11.0.0.1", "+6591234567", "SG"), ShouldBeFalse)
+			Convey("returns empty for IP outside CIDR", func() {
+				So(svc.alwaysAllowReason(cfg, "11.0.0.1", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReason(""))
 			})
 
 			Convey("skips invalid CIDR gracefully", func() {
 				cfg.Decision.AlwaysAllow.IPAddress.CIDRs = []string{"not-a-cidr", "10.0.0.0/8"}
-				So(svc.isAlwaysAllowed(cfg, "10.5.5.5", "+6591234567", "SG"), ShouldBeTrue)
+				So(svc.alwaysAllowReason(cfg, "10.5.5.5", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReasonAlwaysAllowIP)
 			})
 		})
 
@@ -225,12 +235,12 @@ func TestIsAlwaysAllowed(t *testing.T) {
 				},
 			}
 
-			Convey("allows phone from allowed country", func() {
-				So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldBeTrue)
+			Convey("returns always_allow_phone for phone from allowed country", func() {
+				So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReasonAlwaysAllowPhone)
 			})
 
-			Convey("does not allow phone from non-allowed country", func() {
-				So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+12125550000", "US"), ShouldBeFalse)
+			Convey("returns empty for phone from non-allowed country", func() {
+				So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+12125550000", "US"), ShouldEqual, model.FraudProtectionAllowReason(""))
 			})
 		})
 
@@ -245,17 +255,17 @@ func TestIsAlwaysAllowed(t *testing.T) {
 				},
 			}
 
-			Convey("allows phone matching regex", func() {
-				So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldBeTrue)
+			Convey("returns always_allow_phone for phone matching regex", func() {
+				So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReasonAlwaysAllowPhone)
 			})
 
-			Convey("does not allow phone not matching regex", func() {
-				So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6592345678", "SG"), ShouldBeFalse)
+			Convey("returns empty for phone not matching regex", func() {
+				So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6592345678", "SG"), ShouldEqual, model.FraudProtectionAllowReason(""))
 			})
 
 			Convey("skips invalid regex gracefully", func() {
 				cfg.Decision.AlwaysAllow.PhoneNumber.Regex = []string{`[invalid`, `^\+6591\d{6}$`}
-				So(svc.isAlwaysAllowed(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldBeTrue)
+				So(svc.alwaysAllowReason(cfg, "1.2.3.4", "+6591234567", "SG"), ShouldEqual, model.FraudProtectionAllowReasonAlwaysAllowPhone)
 			})
 		})
 	})
@@ -403,13 +413,14 @@ func TestCheckAndRecord(t *testing.T) {
 				Action: config.FraudProtectionDecisionActionRecordOnly,
 			}
 			svc := &Service{
-				Config:       recordOnlyCfg,
-				RemoteIP:     httputil.RemoteIP("1.2.3.4"),
-				Metrics:      &stubMetrics{},
-				LeakyBucket:  &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
-				Clock:        clock.NewMockClock(),
-				Database:     &stubDatabaseHandle{},
-				EventService: &stubEventService{},
+				Config:         recordOnlyCfg,
+				RemoteIP:       httputil.RemoteIP("1.2.3.4"),
+				Metrics:        &stubMetrics{},
+				LeakyBucket:    &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Clock:          clock.NewMockClock(),
+				Database:       &stubDatabaseHandle{},
+				EventService:   &stubEventService{},
+				VerifiedClaims: &stubVerifiedClaimChecker{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
@@ -417,16 +428,32 @@ func TestCheckAndRecord(t *testing.T) {
 
 		Convey("returns ErrBlockedByFraudProtection when warning triggered and action is deny", func() {
 			svc := &Service{
-				Config:       enabledCfg,
-				RemoteIP:     httputil.RemoteIP("1.2.3.4"),
-				Metrics:      &stubMetrics{},
-				LeakyBucket:  &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
-				Clock:        clock.NewMockClock(),
-				Database:     &stubDatabaseHandle{},
-				EventService: &stubEventService{},
+				Config:         enabledCfg,
+				RemoteIP:       httputil.RemoteIP("1.2.3.4"),
+				Metrics:        &stubMetrics{},
+				LeakyBucket:    &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Clock:          clock.NewMockClock(),
+				Database:       &stubDatabaseHandle{},
+				EventService:   &stubEventService{},
+				VerifiedClaims: &stubVerifiedClaimChecker{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldEqual, ErrBlockedByFraudProtection)
+		})
+
+		Convey("returns nil when phone is a verified claim even if warning triggered", func() {
+			svc := &Service{
+				Config:         enabledCfg,
+				RemoteIP:       httputil.RemoteIP("1.2.3.4"),
+				Metrics:        &stubMetrics{},
+				LeakyBucket:    &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Clock:          clock.NewMockClock(),
+				Database:       &stubDatabaseHandle{},
+				EventService:   &stubEventService{},
+				VerifiedClaims: &stubVerifiedClaimChecker{exists: true},
+			}
+			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
+			So(err, ShouldBeNil)
 		})
 
 		Convey("returns error when leaky bucket fails", func() {
@@ -441,7 +468,21 @@ func TestCheckAndRecord(t *testing.T) {
 			So(err, ShouldEqual, import_err)
 		})
 
-		Convey("skips check for allowlisted IP CIDR", func() {
+		Convey("returns error when verified claim check fails", func() {
+			import_err := &testError{"db error"}
+			svc := &Service{
+				Config:         enabledCfg,
+				RemoteIP:       httputil.RemoteIP("1.2.3.4"),
+				Metrics:        &stubMetrics{},
+				LeakyBucket:    &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Database:       &stubDatabaseHandle{},
+				VerifiedClaims: &stubVerifiedClaimChecker{err: import_err},
+			}
+			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
+			So(err, ShouldEqual, import_err)
+		})
+
+		Convey("allowlisted IP CIDR still fills buckets but is never blocked", func() {
 			cfgWithAllowlist := defaultCfg()
 			cfgWithAllowlist.Decision = &config.FraudProtectionDecision{
 				Action: config.FraudProtectionDecisionActionDenyIfAnyWarning,
@@ -451,15 +492,21 @@ func TestCheckAndRecord(t *testing.T) {
 					},
 				},
 			}
-			// Even with a triggered bucket, the allowlist should bypass the block.
+			leakyBucket := &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}}
 			svc := &Service{
-				Config:      cfgWithAllowlist,
-				RemoteIP:    httputil.RemoteIP("10.1.2.3"),
-				Metrics:     &stubMetrics{},
-				LeakyBucket: &stubLeakyBucket{triggered: LeakyBucketTriggered{CountryDaily: true}},
+				Config:         cfgWithAllowlist,
+				RemoteIP:       httputil.RemoteIP("10.1.2.3"),
+				Metrics:        &stubMetrics{},
+				LeakyBucket:    leakyBucket,
+				Clock:          clock.NewMockClock(),
+				Database:       &stubDatabaseHandle{},
+				EventService:   &stubEventService{},
+				VerifiedClaims: &stubVerifiedClaimChecker{},
 			}
 			err := svc.CheckAndRecord(ctx, "+6591234567", "otp")
 			So(err, ShouldBeNil)
+			// bucket was filled despite the allowlist match
+			So(leakyBucket.triggered.CountryDaily, ShouldBeTrue)
 		})
 	})
 }

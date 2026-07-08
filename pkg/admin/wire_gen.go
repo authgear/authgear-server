@@ -693,6 +693,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Database:        handle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
