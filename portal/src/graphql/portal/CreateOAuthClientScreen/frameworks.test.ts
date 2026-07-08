@@ -70,4 +70,18 @@ describe("frameworks catalog", () => {
     const ids = frameworksForType("native").map((f) => f.id);
     expect(ids).toEqual(["react-native", "ios", "android", "flutter", "ionic"]);
   });
+
+  it("other-oidc belongs to the integration section", () => {
+    expect(findFramework("other-oidc")!.section).toBe("integration");
+  });
+
+  it("every framework has a known section", () => {
+    for (const f of frameworks) {
+      expect(["website", "mobile", "integration"]).toContain(f.section);
+    }
+  });
+
+  it("m2m is not a framework entry", () => {
+    expect(frameworks.some((f) => (f.id as string) === "m2m")).toBe(false);
+  });
 });

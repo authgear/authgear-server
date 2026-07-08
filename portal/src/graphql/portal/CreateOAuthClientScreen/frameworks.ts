@@ -1,6 +1,6 @@
 import type { Framework, ApplicationType } from "../../../types";
 
-export type FrameworkSection = "website" | "mobile";
+export type FrameworkSection = "website" | "mobile" | "integration";
 export type Stage2Need = "none" | "token-or-cookie";
 export type AuthMethodChoice = "token" | "cookie";
 
@@ -235,7 +235,7 @@ export const frameworks: FrameworkEntry[] = [
     id: "other-oidc",
     displayName: "Other OIDC/SAML compatible",
     helperText: "Any OIDC/SAML compatible app",
-    section: "website",
+    section: "integration",
     iconName: "shield-check",
     docLink: `${DOCS}/oidc-provider`,
     stage2: "none",
