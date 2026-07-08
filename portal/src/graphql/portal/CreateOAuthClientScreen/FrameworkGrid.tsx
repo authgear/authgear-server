@@ -13,6 +13,7 @@ import styles from "./FrameworkGrid.module.css";
 
 export interface FrameworkGridProps {
   selectedId: Framework | null;
+  m2mSelected: boolean;
   onSelect: (id: Framework) => void;
   onSelectM2M: () => void;
 }
@@ -26,6 +27,7 @@ const sectionLabelKey: Record<FrameworkSection, string> = {
 
 export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
   selectedId,
+  m2mSelected,
   onSelect,
   onSelectM2M,
 }) => {
@@ -57,7 +59,7 @@ export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
               />
             ))}
             {section === "integration" ? (
-              <M2MCard onSelect={onSelectM2M} />
+              <M2MCard selected={m2mSelected} onSelect={onSelectM2M} />
             ) : null}
           </div>
         </div>

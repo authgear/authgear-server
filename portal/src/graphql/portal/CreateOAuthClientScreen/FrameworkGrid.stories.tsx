@@ -6,6 +6,7 @@ const meta = {
   component: FrameworkGrid,
   args: {
     selectedId: null,
+    m2mSelected: false,
     onSelect: () => {},
     onSelectM2M: () => {},
   },
@@ -31,5 +32,12 @@ export const FlaskSelected: Story = {
 export const MobileSelected: Story = {
   args: {
     selectedId: "ios",
+  },
+};
+
+export const M2MSelected: Story = {
+  args: {
+    selectedId: null,
+    m2mSelected: true,
   },
 };

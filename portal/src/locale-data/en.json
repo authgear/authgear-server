@@ -835,6 +835,7 @@
   "CreateOAuthClientScreen.stage2.option.cookie.docs-link": "See the nginx cookie auth guide",
   "CreateOAuthClientScreen.stage2.required": "Please choose an auth method",
   "CreateOAuthClientScreen.submit": "Create application",
+  "CreateOAuthClientScreen.next": "Next",
   "CreateOAuthClientScreen.cancel": "Cancel",
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",

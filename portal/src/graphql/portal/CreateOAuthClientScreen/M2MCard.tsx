@@ -5,16 +5,18 @@ import ChoiceButton from "../../../ChoiceButton";
 import styles from "./FrameworkCard.module.css";
 
 export interface M2MCardProps {
+  selected: boolean;
   onSelect: () => void;
 }
 
 /**
- * A navigational card shown in the "Integrations & other" section of the
- * Create Application grid. Unlike a FrameworkCard it does not select a
- * framework or resolve an application type; selecting it routes to the
- * dedicated machine-to-machine create screen.
+ * A selectable card shown in the "Integrations & other" section of the
+ * Create Application grid. Unlike a FrameworkCard it does not resolve a
+ * framework or application type in place; selecting it marks the wizard as
+ * machine-to-machine, and the wizard's Next button routes to the dedicated
+ * machine-to-machine create screen.
  */
-export const M2MCard: React.FC<M2MCardProps> = ({ onSelect }) => {
+export const M2MCard: React.FC<M2MCardProps> = ({ selected, onSelect }) => {
   const { renderToString } = useContext(Context);
 
   const IconComponent = useMemo(() => {
@@ -37,7 +39,7 @@ export const M2MCard: React.FC<M2MCardProps> = ({ onSelect }) => {
   return (
     <ChoiceButton
       className={styles.card}
-      checked={false}
+      checked={selected}
       text={renderToString("CreateOAuthClientScreen.framework.m2m.title")}
       secondaryText={renderToString(
         "CreateOAuthClientScreen.framework.m2m.description"
