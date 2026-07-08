@@ -13,7 +13,6 @@ import {
   IButtonStyles,
   IColumn,
   IconButton,
-  IContextualMenuProps,
   IDetailsRowProps,
   IDetailsRowStyleProps,
   IDialogContentProps,
@@ -279,38 +278,6 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       navigate(`/project/${appID}/configuration/apps/add`);
     }, [appID, navigate]);
 
-    const goToCreateM2M = useCallback(() => {
-      navigate(`/project/${appID}/configuration/apps/add-m2m`);
-    }, [appID, navigate]);
-
-    const createMenu: IContextualMenuProps = useMemo(
-      () => ({
-        items: [
-          {
-            key: "application",
-            text: renderToString(
-              "ApplicationsConfigurationScreen.create-menu.application"
-            ),
-            secondaryText: renderToString(
-              "ApplicationsConfigurationScreen.create-menu.application.description"
-            ),
-            onClick: () => goToCreateApp(),
-          },
-          {
-            key: "m2m",
-            text: renderToString(
-              "ApplicationsConfigurationScreen.create-menu.m2m"
-            ),
-            secondaryText: renderToString(
-              "ApplicationsConfigurationScreen.create-menu.m2m.description"
-            ),
-            onClick: () => goToCreateM2M(),
-          },
-        ],
-      }),
-      [renderToString, goToCreateApp, goToCreateM2M]
-    );
-
     const showDialogAndSetRemoveClientByID = useCallback(
       (clientID) => {
         deleteForm.setState((state) => ({
@@ -453,13 +420,11 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </ScreenTitle>
           <PrimaryButton
-            split={true}
             text={renderToString(
               "ApplicationsConfigurationScreen.add-client-button"
             )}
             iconProps={{ iconName: "Add" }}
             onClick={goToCreateApp}
-            menuProps={createMenu}
             disabled={hardLimitReached}
           />
         </div>
