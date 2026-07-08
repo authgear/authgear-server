@@ -45,7 +45,18 @@ When the user authenticates successfully, an IdP session is created.
 
 Idp session has a configurable lifetime. IdP session may optionally have idle timeout. The session must be accessed before the timeout, or the session is expired.
 
-IdP session token is stored in the user agent cookie storage. The cookie domain attribute is configurable. The default value is eTLD + 1. As long as the web application is under the same domain with Authgear, the IdP session is shared across between the two. The cookie is a persistent cookie by default. The cookie is http-only and is not configurable. The cookie is SameSite=lax and is not configurable. The cookie is secure by default.
+IdP session token is stored in the user agent cookie storage. The cookie domain attribute is configurable. The default value is eTLD + 1. As long as the web application is under the same domain with Authgear, the IdP session is shared across between the two. The cookie is http-only and is not configurable. The cookie is SameSite=lax and is not configurable. The cookie is secure by default.
+
+By default, the cookie is a persistent cookie: its `Max-Age` attribute is set to the session lifetime, so the cookie survives browser restarts. The developer can set `session.is_session_cookie` to `true` to make the cookie a [session cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#define_the_lifetime_of_a_cookie) instead:
+
+```yaml
+session:
+  is_session_cookie: true
+```
+
+When `is_session_cookie` is `true`, the `Max-Age` attribute is omitted from the cookie, so a compliant browser deletes it when the browser is closed.
+
+`is_session_cookie` only controls when the *browser* discards the cookie. It does NOT affect server-side session expiry: the session still expires according to `lifetime_seconds` and `idle_timeout_seconds` regardless of this setting, and a request bearing an expired session cookie is still rejected. `is_session_cookie` also does not guarantee logout on browser close: many modern browsers restore session cookies when they resume a previous browsing session (e.g. "Continue where you left off"), so this setting is best-effort only.
 
 The IdP session configuration is global.
 
