@@ -233,6 +233,10 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       return true;
     }, [client.name, framework, needsStage2, state.stage2]);
 
+    const onSelectM2M = useCallback(() => {
+      navigate(`/project/${appID}/configuration/apps/add-m2m`);
+    }, [appID, navigate]);
+
     const onClickCancel = useCallback(() => {
       navigate(`/project/${appID}/configuration/apps`);
     }, [appID, navigate]);
@@ -281,6 +285,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           <FrameworkGrid
             selectedId={state.frameworkId}
             onSelect={onSelectFramework}
+            onSelectM2M={onSelectM2M}
           />
           {needsStage2 ? (
             <AuthMethodChoiceComponent

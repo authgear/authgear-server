@@ -7,6 +7,7 @@ const meta = {
   args: {
     selectedId: null,
     onSelect: () => {},
+    onSelectM2M: () => {},
   },
 } satisfies Meta<typeof FrameworkGrid>;
 

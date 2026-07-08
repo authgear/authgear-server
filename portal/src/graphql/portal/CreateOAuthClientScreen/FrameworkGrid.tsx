@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { FormattedMessage } from "react-intl";
 import { FrameworkCard } from "./FrameworkCard";
+import { M2MCard } from "./M2MCard";
 import WidgetSubtitle from "../../../WidgetSubtitle";
 import {
   frameworks,
@@ -13,22 +14,26 @@ import styles from "./FrameworkGrid.module.css";
 export interface FrameworkGridProps {
   selectedId: Framework | null;
   onSelect: (id: Framework) => void;
+  onSelectM2M: () => void;
 }
 
-const sectionsOrder: FrameworkSection[] = ["website", "mobile"];
+const sectionsOrder: FrameworkSection[] = ["website", "mobile", "integration"];
 const sectionLabelKey: Record<FrameworkSection, string> = {
   website: "CreateOAuthClientScreen.framework.section.website",
   mobile: "CreateOAuthClientScreen.framework.section.mobile",
+  integration: "CreateOAuthClientScreen.framework.section.integration",
 };
 
 export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
   selectedId,
   onSelect,
+  onSelectM2M,
 }) => {
   const grouped = useMemo(() => {
     const acc: Record<FrameworkSection, FrameworkEntry[]> = {
       website: [],
       mobile: [],
+      integration: [],
     };
     frameworks.forEach((f) => {
       acc[f.section].push(f);
@@ -51,6 +56,9 @@ export const FrameworkGrid: React.FC<FrameworkGridProps> = ({
                 onSelect={() => onSelect(f.id)}
               />
             ))}
+            {section === "integration" ? (
+              <M2MCard onSelect={onSelectM2M} />
+            ) : null}
           </div>
         </div>
       ))}
