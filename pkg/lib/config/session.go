@@ -8,7 +8,8 @@ var _ = Schema.Add("SessionConfig", `
 		"lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"idle_timeout_enabled": { "type": "boolean" },
 		"idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"cookie_non_persistent": { "type": "boolean" }
+		"cookie_non_persistent": { "type": "boolean" },
+		"is_session_cookie": { "type": "boolean" }
 	}
 }
 `)
@@ -39,6 +40,10 @@ type SessionConfig struct {
 	IdleTimeoutEnabled             *bool           `json:"idle_timeout_enabled,omitempty"`
 	IdleTimeout                    DurationSeconds `json:"idle_timeout_seconds,omitempty"`
 	Deprecated_CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
+	// IsSessionCookie indicates whether the IdP session cookie is a HTTP session cookie,
+	// i.e. it has no Max-Age, so the browser discards it when it is closed.
+	// This does NOT affect server-side session expiry.
+	IsSessionCookie bool `json:"is_session_cookie,omitempty"`
 }
 
 func (c *SessionConfig) SetDefaults() {
