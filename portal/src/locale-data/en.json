@@ -822,7 +822,7 @@
   "CreateOAuthClientScreen.authorize-resource.description": "At least one authorized API Resource is required. Please select an API resource that will be used by this application.",
   "CreateOAuthClientScreen.framework.section.website": "Website",
   "CreateOAuthClientScreen.framework.section.mobile": "Mobile · Desktop",
-  "CreateOAuthClientScreen.framework.section.integration": "Integrations · other",
+  "CreateOAuthClientScreen.framework.section.integration": "Other",
   "CreateOAuthClientScreen.framework.m2m.title": "Machine-to-machine",
   "CreateOAuthClientScreen.framework.m2m.description": "Server-to-server access (client credentials)",
   "CreateOAuthClientScreen.framework.label": "Framework",
