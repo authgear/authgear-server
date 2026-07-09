@@ -816,11 +816,7 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authgearConfig := rootProvider.AuthgearConfig
 	httpClient := session.NewHTTPClient()
 	clockClock := _wireSystemClockValue
-	sessionInfoMiddleware := &session.SessionInfoMiddleware{
-		AuthgearConfig: authgearConfig,
-		HTTPClient:     httpClient,
-		Clock:          clockClock,
-	}
+	sessionInfoMiddleware := provideSiteAdminSessionInfoMiddleware(authgearConfig, httpClient, clockClock)
 	return sessionInfoMiddleware
 }
 

@@ -117,6 +117,7 @@ oauth:
     - code
     - none
     x_application_type: spa
+    issue_jwt_access_token: true
   - access_token_lifetime_seconds: 1800
     client_id: portal
     name: Portal
