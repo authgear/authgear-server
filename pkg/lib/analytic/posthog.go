@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -30,6 +31,18 @@ type PosthogCredentials struct {
 }
 
 var PosthogLogger = slogutil.NewLogger("posthog-integration")
+
+// firstAuthUUIDNamespace is a fixed namespace so that the UUIDv5 for a given
+// (app_id, client_id) is stable across batch runs, making application.first_auth
+// events idempotent in PostHog.
+var firstAuthUUIDNamespace = uuid.MustParse("6f1c4d2e-0b3a-5c7d-8e9f-1a2b3c4d5e6f")
+
+// firstAuthActivityTypes are the audit activity types that count as a successful auth.
+var firstAuthActivityTypes = []string{"user.authenticated", "m2m.token.created"}
+
+// firstAuthLookback bounds how far back the forwarder scans. It must be <= the 90-day
+// audit retention and MUST exceed the batch job's cron interval so no first-auth is missed.
+const firstAuthLookback = 35 * 24 * time.Hour
 
 type PosthogHTTPClient struct {
 	*http.Client
@@ -299,6 +312,71 @@ func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessa
 	}
 
 	return events, nil
+}
+
+func (p *PosthogIntegration) makeFirstAuthEvents(appID string, firstAuthByClient map[string]time.Time) ([]json.RawMessage, error) {
+	var events []json.RawMessage
+	for clientID, firstAuthAt := range firstAuthByClient {
+		eventUUID := uuid.NewSHA1(firstAuthUUIDNamespace, []byte(appID+":"+clientID)).String()
+		event := map[string]any{
+			"event":       "application.first_auth",
+			"distinct_id": clientID,
+			"uuid":        eventUUID,
+			"timestamp":   firstAuthAt.UTC().Format(time.RFC3339),
+			"properties": map[string]any{
+				"client_id":               clientID,
+				"app_id":                  appID,
+				"$geoip_disable":          true,
+				"$process_person_profile": false,
+			},
+		}
+		b, err := json.Marshal(event)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, json.RawMessage(b))
+	}
+	return events, nil
+}
+
+// ForwardFirstAuthEvents derives first-successful-auth-per-client from the audit DB
+// and forwards them to PostHog as application.first_auth events. Idempotent across runs.
+func (p *PosthogIntegration) ForwardFirstAuthEvents(ctx context.Context) error {
+	logger := PosthogLogger.GetLogger(ctx)
+	since := p.Clock.NowUTC().Add(-firstAuthLookback)
+
+	appIDs, err := p.getAppIDs(ctx)
+	if err != nil {
+		return err
+	}
+
+	var allEvents []json.RawMessage
+	for _, appID := range appIDs {
+		var firstAuthByClient map[string]time.Time
+		err := p.AuditDBReadHandle.WithTx(ctx, func(ctx context.Context) error {
+			m, err := p.MeterAuditDBReadStore.GetFirstAuthTimeByClientID(ctx, appID, firstAuthActivityTypes, since)
+			if err != nil {
+				return err
+			}
+			firstAuthByClient = m
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		events, err := p.makeFirstAuthEvents(appID, firstAuthByClient)
+		if err != nil {
+			return err
+		}
+		allEvents = append(allEvents, events...)
+		logger.Info(ctx, "prepared first-auth events",
+			slog.String("app_id", appID),
+			slog.Int("client_count", len(events)),
+		)
+	}
+
+	return p.Batch(ctx, allEvents)
 }
 
 type PosthogBatchRequest struct {
