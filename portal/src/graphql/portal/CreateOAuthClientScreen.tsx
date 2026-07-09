@@ -3,6 +3,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import cn from "classnames";
@@ -493,7 +494,12 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
     const capture = useCapture();
+    const viewedRef = useRef(false);
     useEffect(() => {
+      if (viewedRef.current) {
+        return;
+      }
+      viewedRef.current = true;
       capture("createApplication.viewed", { wizard_version: "legacy" });
     }, [capture]);
 
