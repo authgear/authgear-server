@@ -340,7 +340,12 @@ func (p *PosthogIntegration) makeFirstAuthEvents(appID string, firstAuthByClient
 }
 
 // ForwardFirstAuthEvents derives first-successful-auth-per-client from the audit DB
-// and forwards them to PostHog as application.first_auth events. Idempotent across runs.
+// and forwards them to PostHog as application.first_auth events.
+// Idempotent for the metrics as defined (which aggregate with min): each event's
+// uuid is deterministic per (app_id, client_id). Note a client whose first auth
+// ages past firstAuthLookback and then re-authenticates can get a second event with
+// the same uuid but a later timestamp; this does not affect min-based insights but
+// means raw event counts may double-count such clients.
 func (p *PosthogIntegration) ForwardFirstAuthEvents(ctx context.Context) error {
 	logger := PosthogLogger.GetLogger(ctx)
 	since := p.Clock.NowUTC().Add(-firstAuthLookback)

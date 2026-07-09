@@ -29,6 +29,7 @@ func TestMakeFirstAuthEvents(t *testing.T) {
 		So(props["client_id"], ShouldEqual, "client-abc")
 		So(props["app_id"], ShouldEqual, "app-1")
 		So(props["$process_person_profile"], ShouldEqual, false)
+		So(props["$geoip_disable"], ShouldEqual, true)
 
 		uuid1 := e["uuid"]
 		So(uuid1, ShouldNotBeNil)
