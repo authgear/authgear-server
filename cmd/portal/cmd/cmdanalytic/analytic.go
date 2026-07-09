@@ -62,5 +62,14 @@ func init() {
 	binder.BindString(cmdAnalyticPosthogUser.Flags(), portalcmd.ArgPosthogAPIKey)
 	binder.BindString(cmdAnalyticPosthogUser.Flags(), portalcmd.ArgAnalyticPortalAppID)
 
+	cmdAnalyticPosthog.AddCommand(cmdAnalyticPosthogFirstAuth)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgAuditDatabaseURL)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgAuditDatabaseSchema)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgAnalyticRedisURL)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgPosthogEndpoint)
+	binder.BindString(cmdAnalyticPosthogFirstAuth.Flags(), portalcmd.ArgPosthogAPIKey)
+
 	portalcmd.Root.AddCommand(cmdAnalytic)
 }
