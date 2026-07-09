@@ -63,3 +63,7 @@ GROUP BY created.wizard_version;
   its own line via `application_type`; never blend it into the interactive number.
 - **Internal/test apps** inflate creation and deflate activation — exclude known internal `app_id`s.
 - **Not an A/B test.** Legacy vs framework_first is time-separated; results are directional.
+- **Raw first_auth counts vs. min().** The forwarder re-emits `application.first_auth` on a
+  35-day sliding window, so a client active beyond that window can produce a second event
+  (same uuid, later timestamp). Always aggregate with `min(timestamp)` / funnel first-match
+  (as Insight B does) — never a naïve `count()` of raw `application.first_auth` events.
