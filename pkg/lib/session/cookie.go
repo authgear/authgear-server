@@ -32,7 +32,7 @@ func NewSessionCookieDef(sessionCfg *config.SessionConfig) CookieDef {
 		IsNonHostOnly: true,
 	}
 
-	if !sessionCfg.IsSessionCookie {
+	if !sessionCfg.UseSessionCookie {
 		// HTTP permanent cookie: MaxAge = session lifetime
 		maxAge := int(sessionCfg.Lifetime)
 		def.MaxAge = &maxAge

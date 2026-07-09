@@ -4,22 +4,22 @@ error: null
 value: {}
 ---
 part: SessionConfig
-name: is-session-cookie-true
+name: use-session-cookie-true
 error: null
 value:
-  is_session_cookie: true
+  use_session_cookie: true
 ---
 part: SessionConfig
-name: is-session-cookie-false
+name: use-session-cookie-false
 error: null
 value:
-  is_session_cookie: false
+  use_session_cookie: false
 ---
 part: SessionConfig
-name: is-session-cookie-invalid-type
+name: use-session-cookie-invalid-type
 error: |-
   invalid value:
-  /is_session_cookie: type
+  /use_session_cookie: type
     map[actual:[string] expected:[boolean]]
 value:
-  is_session_cookie: "true"
+  use_session_cookie: "true"

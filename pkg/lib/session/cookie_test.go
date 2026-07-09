@@ -21,8 +21,8 @@ func TestNewSessionCookieDef(t *testing.T) {
 			So(*def.SameSiteStrictDef.MaxAge, ShouldEqual, 3600)
 		})
 
-		Convey("is a HTTP session cookie when IsSessionCookie is true", func() {
-			cfg := &config.SessionConfig{Lifetime: 3600, IsSessionCookie: true}
+		Convey("is a HTTP session cookie when UseSessionCookie is true", func() {
+			cfg := &config.SessionConfig{Lifetime: 3600, UseSessionCookie: true}
 			def := session.NewSessionCookieDef(cfg)
 
 			So(def.Def.MaxAge, ShouldBeNil)
