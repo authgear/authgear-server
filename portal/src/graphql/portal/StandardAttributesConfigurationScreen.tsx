@@ -14,6 +14,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import UserProfileAttributesList, {
   UserProfileAttributesListItem,
+  UserProfileAttributesListSection,
   ItemComponentProps,
 } from "../../UserProfileAttributesList";
 import {
@@ -34,24 +35,49 @@ interface StandardAttributesConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const naturalOrder = [
-  "/email",
-  "/phone_number",
-  "/preferred_username",
-  "/name",
-  "/given_name",
-  "/family_name",
-  "/middle_name",
-  "/nickname",
-  "/profile",
-  "/picture",
-  "/website",
-  "/gender",
-  "/birthdate",
-  "/zoneinfo",
-  "/locale",
-  "/address",
+const standardAttributeSections: UserProfileAttributesListSection[] = [
+  {
+    key: "identity",
+    titleMessageId:
+      "StandardAttributesConfigurationScreen.section.identity-attributes",
+    pointers: ["/email", "/phone_number", "/preferred_username"],
+  },
+  {
+    key: "name",
+    titleMessageId:
+      "StandardAttributesConfigurationScreen.section.name-attributes",
+    pointers: [
+      "/name",
+      "/given_name",
+      "/family_name",
+      "/middle_name",
+      "/nickname",
+    ],
+  },
+  {
+    key: "profile",
+    titleMessageId:
+      "StandardAttributesConfigurationScreen.section.profile-attributes",
+    pointers: [
+      "/profile",
+      "/picture",
+      "/website",
+      "/gender",
+      "/birthdate",
+      "/address",
+    ],
+  },
+  {
+    key: "local-preferences",
+    titleMessageId:
+      "StandardAttributesConfigurationScreen.section.local-preferences-attributes",
+    pointers: ["/zoneinfo", "/locale"],
+  },
 ];
+
+const naturalOrder = standardAttributeSections.flatMap(
+  (section) => section.pointers
+);
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   const items = config.user_profile?.standard_attributes?.access_control ?? [];
@@ -172,6 +198,7 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
             items={state.standardAttributesItems}
             onChangeItems={onChangeItems}
             ItemComponent={ItemComponent}
+            sections={standardAttributeSections}
           />
         </div>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

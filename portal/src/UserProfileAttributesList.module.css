@@ -5,6 +5,7 @@
   box-sizing: border-box;
   border: 1px solid var(--gray-4);
   border-radius: var(--radius-3);
+  overflow: hidden;
 }
 
 .headerRow,
@@ -21,6 +22,16 @@
 .gridWithActions .headerCell {
   flex-wrap: nowrap;
   white-space: nowrap;
+}
+
+.sectionTitleRow {
+  min-height: 44px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  background-color: var(--gray-a3);
+  border-bottom: 1px solid var(--gray-4);
+  color: var(--gray-12);
 }
 
 .headerRow {

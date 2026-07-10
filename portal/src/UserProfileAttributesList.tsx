@@ -1,4 +1,3 @@
-/* global JSX */
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { FormattedMessage, Context } from "./intl";
@@ -27,6 +26,21 @@ import {
 import { parseJSONPointer } from "./util/jsonpointer";
 import styles from "./UserProfileAttributesList.module.css";
 
+function EndUserSettingsDocLink(chunks: React.ReactNode) {
+  return (
+    <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
+      {chunks}
+    </ExternalLink>
+  );
+}
+
+function UserProfileDocLink(chunks: React.ReactNode) {
+  return (
+    <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
+      {chunks}
+    </ExternalLink>
+  );
+}
 export type UserProfileAttributesListAccessControlAdjustment = [
   keyof UserProfileAttributesAccessControl,
   AccessControlLevelString
@@ -42,6 +56,13 @@ export interface ItemComponentProps<T> {
   item: T;
 }
 
+export interface UserProfileAttributesListSection {
+  key: string;
+  titleMessageId: string;
+  /** JSON pointers belonging to this section, in display order. */
+  pointers: string[];
+}
+
 export interface UserProfileAttributesListProps<
   T extends UserProfileAttributesListItem
 > {
@@ -50,6 +71,11 @@ export interface UserProfileAttributesListProps<
   onChangeItems: (items: T[]) => void;
   onEditButtonClick?: (index: number) => void;
   onReorderItems?: (items: T[]) => void;
+  /**
+   * When provided, items are grouped under section title rows with a
+   * repeated column header per section (as in Standard Attributes).
+   */
+  sections?: UserProfileAttributesListSection[];
 }
 
 export interface UserProfileAttributesListPendingUpdate {
@@ -244,11 +270,11 @@ function AccessControlSelect({
           <Select.Item value="readonly">
             {renderToString("user-profile.access-control-level.readonly")}
           </Select.Item>
-          {includeReadwrite && (
+          {includeReadwrite ? (
             <Select.Item value="readwrite">
               {renderToString("user-profile.access-control-level.readwrite")}
             </Select.Item>
-          )}
+          ) : null}
         </Select.Content>
       </Select.Root>
     </div>
@@ -294,6 +320,64 @@ function ItemActionsMenu({
   );
 }
 
+interface ColumnHeaderRowProps {
+  canReorder: boolean;
+  hasEdit: boolean;
+  gridClassName: string | undefined;
+  endUserTooltipContent: React.ReactNode;
+  bearerTooltipContent: React.ReactNode;
+  portalUiTooltipContent: React.ReactNode;
+}
+
+function ColumnHeaderRow(props: ColumnHeaderRowProps) {
+  const {
+    canReorder,
+    hasEdit,
+    gridClassName,
+    endUserTooltipContent,
+    bearerTooltipContent,
+    portalUiTooltipContent,
+  } = props;
+
+  return (
+    <div className={cn(styles.headerRow, gridClassName)}>
+      <div className={styles.headerCellMain}>
+        {canReorder ? (
+          <span className={styles.headerReorderSpacer} aria-hidden={true} />
+        ) : null}
+        <Text size="2" weight="medium">
+          <FormattedMessage id="UserProfileAttributesList.header.label.attribute-name" />
+        </Text>
+      </div>
+      <div className={styles.headerCell}>
+        <Text size="2" weight="medium">
+          <FormattedMessage id="UserProfileAttributesList.header.label.portal_ui" />
+        </Text>
+        <Tooltip content={portalUiTooltipContent}>
+          <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+        </Tooltip>
+      </div>
+      <div className={styles.headerCell}>
+        <Text size="2" weight="medium">
+          <FormattedMessage id="UserProfileAttributesList.header.label.bearer" />
+        </Text>
+        <Tooltip content={bearerTooltipContent}>
+          <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+        </Tooltip>
+      </div>
+      <div className={styles.headerCell}>
+        <Text size="2" weight="medium">
+          <FormattedMessage id="UserProfileAttributesList.header.label.end_user" />
+        </Text>
+        <Tooltip content={endUserTooltipContent}>
+          <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+        </Tooltip>
+      </div>
+      {hasEdit ? <div className={styles.headerCellSmall} /> : null}
+    </div>
+  );
+}
+
 function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   props: UserProfileAttributesListProps<T>
 ): React.ReactElement<any, any> | null {
@@ -303,6 +387,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     ItemComponent,
     onEditButtonClick,
     onReorderItems,
+    sections,
   } = props;
   const { renderToString } = useContext(Context);
   const [pendingUpdate, setPendingUpdate] = useState<
@@ -314,6 +399,32 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   const hasEdit = onEditButtonClick != null;
 
   const gridClassName = hasEdit ? styles.gridWithActions : undefined;
+
+  const itemIndexByPointer = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((item, index) => {
+      map.set(item.pointer, index);
+    });
+    return map;
+  }, [items]);
+
+  const sectionedItems = useMemo(() => {
+    if (sections == null || sections.length === 0) {
+      return null;
+    }
+    return sections
+      .map((section) => ({
+        section,
+        items: section.pointers.flatMap((pointer) => {
+          const index = itemIndexByPointer.get(pointer);
+          if (index == null) {
+            return [];
+          }
+          return [{ item: items[index], index }];
+        }),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [sections, items, itemIndexByPointer]);
 
   const reorder = useCallback(
     (index: number, targetItem: T) => {
@@ -426,11 +537,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       <FormattedMessage
         id="UserProfileAttributesList.header.tooltip.end_user"
         values={{
-          DocLink: (chunks: React.ReactNode) => (
-            <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
-              {chunks}
-            </ExternalLink>
-          ),
+          DocLink: EndUserSettingsDocLink,
         }}
       />
     ),
@@ -442,11 +549,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       <FormattedMessage
         id="UserProfileAttributesList.header.tooltip.bearer"
         values={{
-          DocLink: (chunks: React.ReactNode) => (
-            <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
-              {chunks}
-            </ExternalLink>
-          ),
+          DocLink: UserProfileDocLink,
         }}
       />
     ),
@@ -460,110 +563,121 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     []
   );
 
+  const renderItemRow = useCallback(
+    (item: T, index: number) => (
+      <div
+        key={item.pointer}
+        className={cn(styles.row, gridClassName)}
+        draggable={canReorder}
+        onDragStart={() => setDNDIndex(index)}
+        onDragEnd={() => setDNDIndex(undefined)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => {
+          if (dndIndex != null && dndIndex !== index) {
+            reorder(dndIndex, item);
+          }
+          setDNDIndex(undefined);
+        }}
+        data-dnd-before={
+          dndIndex != null && index < dndIndex ? true : undefined
+        }
+        data-dnd-after={
+          dndIndex != null && index > dndIndex ? true : undefined
+        }
+      >
+        <div className={styles.cellMain}>
+          {canReorder ? (
+            <div className={styles.reorderHandle}>
+              <DragHandleDots2Icon />
+            </div>
+          ) : null}
+          <div className={styles.cellMainContent}>
+            <ItemComponent className="" item={item} />
+          </div>
+        </div>
+        <div className={styles.cell}>
+          <AccessControlSelect
+            accessControlKey="portal_ui"
+            item={item}
+            onValueChange={makeSelectOnChange(index, "portal_ui")}
+          />
+        </div>
+        <div className={styles.cell}>
+          <AccessControlSelect
+            accessControlKey="bearer"
+            item={item}
+            onValueChange={makeSelectOnChange(index, "bearer")}
+          />
+        </div>
+        <div className={styles.cell}>
+          <AccessControlSelect
+            accessControlKey="end_user"
+            item={item}
+            onValueChange={makeSelectOnChange(index, "end_user")}
+          />
+        </div>
+        {onEditButtonClick != null ? (
+          <div className={styles.cellSmall}>
+            <ItemActionsMenu
+              index={index}
+              onEditButtonClick={onEditButtonClick}
+              menuLabel={renderToString(
+                "UserProfileAttributesList.row-actions"
+              )}
+            />
+          </div>
+        ) : null}
+      </div>
+    ),
+    [
+      ItemComponent,
+      canReorder,
+      dndIndex,
+      gridClassName,
+      makeSelectOnChange,
+      onEditButtonClick,
+      renderToString,
+      reorder,
+    ]
+  );
+
   return (
     <>
       <div className={styles.table}>
-        <div className={cn(styles.headerRow, gridClassName)}>
-          <div className={styles.headerCellMain}>
-            {canReorder ? (
-              <span className={styles.headerReorderSpacer} aria-hidden={true} />
-            ) : null}
-            <Text size="2" weight="medium">
-              <FormattedMessage id="UserProfileAttributesList.header.label.attribute-name" />
-            </Text>
-          </div>
-          <div className={styles.headerCell}>
-            <Text size="2" weight="medium">
-              <FormattedMessage id="UserProfileAttributesList.header.label.portal_ui" />
-            </Text>
-            <Tooltip content={portalUiTooltipContent}>
-              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
-            </Tooltip>
-          </div>
-          <div className={styles.headerCell}>
-            <Text size="2" weight="medium">
-              <FormattedMessage id="UserProfileAttributesList.header.label.bearer" />
-            </Text>
-            <Tooltip content={bearerTooltipContent}>
-              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
-            </Tooltip>
-          </div>
-          <div className={styles.headerCell}>
-            <Text size="2" weight="medium">
-              <FormattedMessage id="UserProfileAttributesList.header.label.end_user" />
-            </Text>
-            <Tooltip content={endUserTooltipContent}>
-              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
-            </Tooltip>
-          </div>
-          {hasEdit ? <div className={styles.headerCellSmall} /> : null}
-        </div>
-
-        {items.map((item, index) => (
-          <div
-            key={item.pointer}
-            className={cn(styles.row, gridClassName)}
-            draggable={canReorder}
-            onDragStart={() => setDNDIndex(index)}
-            onDragEnd={() => setDNDIndex(undefined)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => {
-              if (dndIndex != null && dndIndex !== index) {
-                reorder(dndIndex, item);
-              }
-              setDNDIndex(undefined);
-            }}
-            data-dnd-before={
-              dndIndex != null && index < dndIndex ? true : undefined
-            }
-            data-dnd-after={
-              dndIndex != null && index > dndIndex ? true : undefined
-            }
-          >
-            <div className={styles.cellMain}>
-              {canReorder ? (
-                <div className={styles.reorderHandle}>
-                  <DragHandleDots2Icon />
+        {sectionedItems != null
+          ? sectionedItems.map(({ section, items: groupItems }) => (
+              <React.Fragment key={section.key}>
+                <div className={styles.sectionTitleRow}>
+                  <Text size="2" weight="medium">
+                    <FormattedMessage id={section.titleMessageId} />
+                  </Text>
                 </div>
-              ) : null}
-              <div className={styles.cellMainContent}>
-                <ItemComponent className="" item={item} />
-              </div>
-            </div>
-            <div className={styles.cell}>
-              <AccessControlSelect
-                accessControlKey="portal_ui"
-                item={item}
-                onValueChange={makeSelectOnChange(index, "portal_ui")}
-              />
-            </div>
-            <div className={styles.cell}>
-              <AccessControlSelect
-                accessControlKey="bearer"
-                item={item}
-                onValueChange={makeSelectOnChange(index, "bearer")}
-              />
-            </div>
-            <div className={styles.cell}>
-              <AccessControlSelect
-                accessControlKey="end_user"
-                item={item}
-                onValueChange={makeSelectOnChange(index, "end_user")}
-              />
-            </div>
-            {hasEdit ? (
-              <div className={styles.cellSmall}>
-                <ItemActionsMenu
-                  index={index}
-                  onEditButtonClick={onEditButtonClick!}
-                  menuLabel={renderToString(
-                    "UserProfileAttributesList.row-actions"
-                  )}
+                <ColumnHeaderRow
+                  canReorder={canReorder}
+                  hasEdit={hasEdit}
+                  gridClassName={gridClassName}
+                  endUserTooltipContent={endUserTooltipContent}
+                  bearerTooltipContent={bearerTooltipContent}
+                  portalUiTooltipContent={portalUiTooltipContent}
                 />
-              </div>
-            ) : null}
-          </div>
-        ))}
+                {groupItems.map(({ item, index }) =>
+                  renderItemRow(item, index)
+                )}
+              </React.Fragment>
+            ))
+          : (
+              <>
+                <ColumnHeaderRow
+                  canReorder={canReorder}
+                  hasEdit={hasEdit}
+                  gridClassName={gridClassName}
+                  endUserTooltipContent={endUserTooltipContent}
+                  bearerTooltipContent={bearerTooltipContent}
+                  portalUiTooltipContent={portalUiTooltipContent}
+                />
+                {items.map((item, index) => renderItemRow(item, index))}
+              </>
+            )}
       </div>
 
       <Dialog.Root
