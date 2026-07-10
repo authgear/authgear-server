@@ -1,22 +1,14 @@
-import React, { useMemo, useContext, useCallback, useState } from "react";
-import {
-  Dropdown,
-  DetailsList,
-  DetailsRow,
-  Label,
-  IconButton,
-  Icon,
-  SelectionMode,
-  Text,
-  IDropdownOption,
-  IDragDropEvents,
-  IRenderFunction,
-  IDetailsRowProps,
-} from "@fluentui/react";
+import React, { useContext, useCallback, useMemo, useId } from "react";
+import cn from "classnames";
+import { Select, Text, TextField as RadixTextField } from "@radix-ui/themes";
+import { PlusIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "./intl";
-import Widget from "./Widget";
-import FormTextField from "./FormTextField";
-import PrimaryButton from "./PrimaryButton";
+import { TextField } from "./components/v2/TextField/TextField";
+import { PrimaryButton } from "./components/v2/Button/PrimaryButton/PrimaryButton";
+import {
+  IconButton,
+  IconButtonIcon,
+} from "./components/v2/IconButton/IconButton";
 import { parseJSONPointer, jsonPointerToString } from "./util/jsonpointer";
 import { checkNumberInput, checkIntegerInput } from "./util/input";
 import {
@@ -24,14 +16,8 @@ import {
   CustomAttributeType,
   isCustomAttributeType,
 } from "./types";
-import { useSystemConfig } from "./context/SystemConfigContext";
-import FormErrorMessageText from "./FormErrorMessageText";
 import styles from "./EditCustomAttributeForm.module.css";
 import { makeValidationErrorCustomMessageIDRule } from "./error/parse";
-
-const REMOVE_BUTTON_ICON_PROPS = {
-  iconName: "Blocked12",
-};
 
 export interface CustomAttributeDraft {
   pointer: string;
@@ -49,281 +35,217 @@ export interface EditCustomAttributeFormProps {
   onChangeDraft: (draft: CustomAttributeDraft) => void;
 }
 
-interface CustomAttributeTypeNumberOptionProps {
+// ---------------------------------------------------------------------------
+// FormRow — audit-log table row: label on left, content on right
+// ---------------------------------------------------------------------------
+
+interface FormRowProps {
+  label: React.ReactNode;
+  description?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+function FormRow({ label, description, children }: FormRowProps) {
+  return (
+    <div className={styles.tableRow}>
+      <div className={styles.cellLabel}>
+        <Text as="p" size="2" className={styles.cellLabelText}>
+          {label}
+        </Text>
+        {description != null ? (
+          <Text as="p" size="1" color="gray" className={styles.cellDescription}>
+            {description}
+          </Text>
+        ) : null}
+      </div>
+      <div className={styles.cellValue}>{children}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Number option (min / max)
+// ---------------------------------------------------------------------------
+
+interface NumberOptionProps {
   parentJSONPointer: string;
   draft: CustomAttributeDraft;
   onChangeDraft: (draft: CustomAttributeDraft) => void;
   checkFunction: (value: string) => boolean;
 }
 
-function CustomAttributeTypeNumberOption(
-  props: CustomAttributeTypeNumberOptionProps
-) {
-  const { parentJSONPointer, draft, onChangeDraft, checkFunction } = props;
-  const { renderToString } = useContext(Context);
-
+function NumberOption({
+  parentJSONPointer,
+  draft,
+  onChangeDraft,
+  checkFunction,
+}: NumberOptionProps) {
   const onChangeMinimum = useCallback(
-    (_e: React.FormEvent<unknown>, newValue?: string) => {
-      if (newValue == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
       if (!checkFunction(newValue)) {
         return;
       }
-      onChangeDraft({
-        ...draft,
-        minimum: newValue,
-      });
+      onChangeDraft({ ...draft, minimum: newValue });
     },
     [draft, onChangeDraft, checkFunction]
   );
 
   const onChangeMaximum = useCallback(
-    (_e: React.FormEvent<unknown>, newValue?: string) => {
-      if (newValue == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
       if (!checkFunction(newValue)) {
         return;
       }
-      onChangeDraft({
-        ...draft,
-        maximum: newValue,
-      });
+      onChangeDraft({ ...draft, maximum: newValue });
     },
     [draft, onChangeDraft, checkFunction]
   );
 
   return (
-    <div className={styles.numberOptionContainer}>
-      <Label className={styles.numberOptionLabel}>
-        <FormattedMessage id="EditCustomAttributeForm.label.options" />
-      </Label>
-      <FormTextField
-        parentJSONPointer={parentJSONPointer}
-        fieldName="minimum"
-        className={styles.numberOptionMin}
-        prefix={renderToString("EditCustomAttributeForm.label.min")}
-        value={draft.minimum}
-        onChange={onChangeMinimum}
-      />
-      <FormTextField
-        parentJSONPointer={parentJSONPointer}
-        fieldName="maximum"
-        className={styles.numberOptionMax}
-        prefix={renderToString("EditCustomAttributeForm.label.max")}
-        value={draft.maximum}
-        onChange={onChangeMaximum}
-      />
+    <div className={styles.tableRow}>
+      <div className={styles.numberRangeRow}>
+        <div className={styles.fieldBlock}>
+          <Text as="p" size="2" className={styles.fieldLabel}>
+            <FormattedMessage id="EditCustomAttributeForm.label.min" />
+          </Text>
+          <TextField
+            size="2"
+            type="text"
+            value={draft.minimum}
+            onChange={onChangeMinimum}
+            parentJSONPointer={parentJSONPointer}
+            fieldName="minimum"
+          />
+        </div>
+        <div className={styles.fieldBlock}>
+          <Text as="p" size="2" className={styles.fieldLabel}>
+            <FormattedMessage id="EditCustomAttributeForm.label.max" />
+          </Text>
+          <TextField
+            size="2"
+            type="text"
+            value={draft.maximum}
+            onChange={onChangeMaximum}
+            parentJSONPointer={parentJSONPointer}
+            fieldName="maximum"
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-interface CustomAttributeTypeEnumOptionProps {
+// ---------------------------------------------------------------------------
+// Enum option
+// ---------------------------------------------------------------------------
+
+interface EnumOptionProps {
   parentJSONPointer: string;
   draft: CustomAttributeDraft;
   onChangeDraft: (draft: CustomAttributeDraft) => void;
 }
 
-function CustomAttributeTypeEnumOption(
-  props: CustomAttributeTypeEnumOptionProps
-) {
-  const { parentJSONPointer, draft, onChangeDraft } = props;
-  const { enum: items } = draft;
-  const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
-  const { destructive } = themes;
-  const [dndIndex, setDNDIndex] = useState<number | undefined>(undefined);
-  const [value, setValue] = useState("");
-  const onChangeValue = useCallback(
-    (_e: React.FormEvent<unknown>, newValue?: string) => {
-      if (newValue != null) {
-        setValue(newValue);
-      }
+function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
+  const addInputId = useId();
+  const [addValue, setAddValue] = React.useState("");
+
+  const onChangeAddValue = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAddValue(e.target.value);
     },
     []
   );
+
   const onClickAdd = useCallback(
     (e: React.MouseEvent<unknown>) => {
       e.preventDefault();
       e.stopPropagation();
+      if (addValue.trim() === "") return;
+      onChangeDraft({ ...draft, enum: [...draft.enum, addValue.trim()] });
+      setAddValue("");
+    },
+    [draft, onChangeDraft, addValue]
+  );
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (addValue.trim() === "") return;
+        onChangeDraft({ ...draft, enum: [...draft.enum, addValue.trim()] });
+        setAddValue("");
+      }
+    },
+    [draft, onChangeDraft, addValue]
+  );
+
+  const makeOnRemove = useCallback(
+    (index: number) => (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
       onChangeDraft({
         ...draft,
-        enum: [...draft.enum, value],
+        enum: draft.enum.filter((_, i) => i !== index),
       });
-      setValue("");
     },
-    [draft, onChangeDraft, value]
-  );
-
-  const onRenderValue = useCallback(
-    (item?: string, index?: number) => {
-      if (item == null || index == null) {
-        return null;
-      }
-      return (
-        <div className={styles.itemCell}>
-          <Text className={styles.enumValue} block={true}>
-            {item}
-          </Text>
-          <FormErrorMessageText
-            block={true}
-            parentJSONPointer={parentJSONPointer + "/enum"}
-            fieldName={String(index)}
-          />
-        </div>
-      );
-    },
-    [parentJSONPointer]
-  );
-  const onRenderRemoveButton = useCallback(
-    (_item?: string, index?: number) => {
-      if (index == null) {
-        return null;
-      }
-      const onClick = (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onChangeDraft({
-          ...draft,
-          enum: draft.enum.filter((_, i) => i !== index),
-        });
-      };
-      return (
-        <IconButton
-          theme={destructive}
-          iconProps={REMOVE_BUTTON_ICON_PROPS}
-          title={renderToString("remove")}
-          ariaLabel={renderToString("remove")}
-          onClick={onClick}
-          disabled={items.length <= 1}
-        />
-      );
-    },
-    [draft, items, onChangeDraft, renderToString, destructive]
-  );
-  const onRenderReorderHandle = useCallback(() => {
-    return (
-      <div className={styles.reorderHandle}>
-        <Icon iconName="GlobalNavButton" />
-      </div>
-    );
-  }, []);
-  const columns = useMemo(() => {
-    return [
-      {
-        key: "value",
-        name: "",
-        minWidth: 0,
-        onRender: onRenderValue,
-      },
-      {
-        key: "remove",
-        name: "",
-        minWidth: 24,
-        maxWidth: 24,
-        onRender: onRenderRemoveButton,
-      },
-      {
-        key: "reorder",
-        name: "",
-        minWidth: 24,
-        maxWidth: 24,
-        onRender: onRenderReorderHandle,
-      },
-    ];
-  }, [onRenderValue, onRenderRemoveButton, onRenderReorderHandle]);
-
-  const reorder = useCallback(
-    (index: number, item: string) => {
-      const itemsWithoutIndex = [
-        ...items.slice(0, index),
-        ...items.slice(index + 1),
-      ];
-      const insertIndex = items.indexOf(item);
-      if (insertIndex >= 0) {
-        itemsWithoutIndex.splice(insertIndex, 0, items[index]);
-        onChangeDraft({
-          ...draft,
-          enum: itemsWithoutIndex,
-        });
-      }
-    },
-    [items, draft, onChangeDraft]
-  );
-
-  const dragDropEvents: IDragDropEvents = useMemo(() => {
-    return {
-      canDrop: () => true,
-      canDrag: () => true,
-      onDragEnter: () => styles.onDragEnter,
-      onDragLeave: () => {},
-      onDragStart: (_item?: string, index?: number) => {
-        if (index != null) {
-          setDNDIndex(index);
-        }
-      },
-      onDragEnd: (_item?: string) => {
-        setDNDIndex(undefined);
-      },
-      onDrop: (item?: string) => {
-        if (dndIndex != null && item != null) {
-          reorder(dndIndex, item);
-        }
-      },
-    };
-  }, [reorder, dndIndex]);
-
-  const onRenderRow: IRenderFunction<IDetailsRowProps> = useCallback(
-    (props?: IDetailsRowProps) => {
-      if (props == null) {
-        return null;
-      }
-      let className = "";
-      const { itemIndex } = props;
-      if (dndIndex != null) {
-        if (itemIndex < dndIndex) {
-          className = styles.before;
-        } else if (itemIndex > dndIndex) {
-          className = styles.after;
-        }
-      }
-      return <DetailsRow {...props} className={className} />;
-    },
-    [dndIndex]
+    [draft, onChangeDraft]
   );
 
   return (
-    <div className={styles.enumOptionContainer}>
-      <Label className={styles.enumOptionLabel}>
-        <FormattedMessage id="EditCustomAttributeForm.label.options" />
-      </Label>
-      <FormTextField
-        parentJSONPointer={parentJSONPointer}
-        fieldName="enum"
-        className={styles.enumOptionTextField}
-        value={value}
-        onChange={onChangeValue}
-      />
-      <PrimaryButton
-        className={styles.enumOptionAddButton}
-        onClick={onClickAdd}
-        text={renderToString("add")}
-        disabled={value === ""}
-      />
-      <div className={styles.enumOptionList}>
-        <DetailsList
-          columns={columns}
-          items={items}
-          selectionMode={SelectionMode.none}
-          onRenderRow={onRenderRow}
-          isHeaderVisible={false}
-          dragDropEvents={dragDropEvents}
-        />
+    <FormRow
+      label={<FormattedMessage id="EditCustomAttributeForm.label.options" />}
+    >
+      <div className={styles.enumContainer}>
+        {/* Existing enum values */}
+        {draft.enum.length > 0 ? (
+          <div className={styles.enumList}>
+            {draft.enum.map((value, i) => (
+              <div key={i} className={styles.enumItem}>
+                <Text as="p" size="2" weight="medium" className={styles.enumValue}>
+                  {value}
+                </Text>
+                <IconButton
+                  variant="destroy"
+                  size="1"
+                  icon={IconButtonIcon.Trash}
+                  onClick={makeOnRemove(i)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Add new value */}
+        <div className={styles.enumAddRow}>
+          <RadixTextField.Root
+            id={addInputId}
+            size="2"
+            variant="surface"
+            value={addValue}
+            onChange={onChangeAddValue}
+            onKeyDown={onKeyDown}
+          />
+          <PrimaryButton
+            size="2"
+            disabled={addValue.trim() === ""}
+            onClick={onClickAdd}
+            text={
+              <span className={styles.addButtonContent}>
+                <PlusIcon />
+                <FormattedMessage id="add" />
+              </span>
+            }
+          />
+        </div>
       </div>
-    </div>
+    </FormRow>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Main form
+// ---------------------------------------------------------------------------
 
 const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
   function EditCustomAttributeForm(props: EditCustomAttributeFormProps) {
@@ -338,15 +260,12 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
       if (draft.pointer === "") {
         return "";
       }
-
       return parseJSONPointer(draft.pointer)[0];
     }, [draft]);
 
     const onChangeFieldName = useCallback(
-      (_e: React.FormEvent<unknown>, newValue?: string) => {
-        if (newValue == null) {
-          return;
-        }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
         onChangeDraft({
           ...draft,
           pointer: jsonPointerToString([newValue]),
@@ -355,87 +274,98 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
       [draft, onChangeDraft]
     );
 
-    const typeOptions: IDropdownOption[] = useMemo(() => {
-      return customAttributeTypes.map((key) => {
-        return {
-          key,
-          text: renderToString("custom-attribute-type." + key),
-        };
-      });
-    }, [renderToString]);
-
     const onChangeType = useCallback(
-      (_e: React.FormEvent<unknown>, option?: IDropdownOption) => {
-        if (option == null) {
+      (value: string) => {
+        if (!isCustomAttributeType(value)) {
           return;
         }
-        if (!isCustomAttributeType(option.key)) {
-          return;
-        }
-        onChangeDraft({
-          ...draft,
-          type: option.key,
-        });
+        onChangeDraft({ ...draft, type: value });
       },
       [draft, onChangeDraft]
     );
 
     return (
-      <Widget className={className}>
-        <FormTextField
-          parentJSONPointer={parentJSONPointer}
-          fieldName="pointer"
-          required={true}
-          value={fieldName}
-          onChange={onChangeFieldName}
-          label={renderToString("EditCustomAttributeForm.label.attribute-name")}
-          description={renderToString(
-            "EditCustomAttributeForm.description.attribute-name"
-          )}
-          errorRules={[
-            makeValidationErrorCustomMessageIDRule(
-              "not",
-              /\/pointer$/,
-              "EditCustomAttributeForm.error.not"
-            ),
-            makeValidationErrorCustomMessageIDRule(
-              "duplicated",
-              /\/pointer$/,
-              "EditCustomAttributeForm.error.duplicated-attribute-name"
-            ),
-          ]}
-        />
-        <Dropdown
-          selectedKey={draft.type}
-          options={typeOptions}
-          label={renderToString("EditCustomAttributeForm.label.type")}
-          onChange={onChangeType}
-          disabled={mode === "edit"}
-        />
-        {draft.type === "number" ? (
-          <CustomAttributeTypeNumberOption
-            parentJSONPointer={parentJSONPointer}
-            draft={draft}
-            onChangeDraft={onChangeDraft}
-            checkFunction={checkNumberInput}
-          />
-        ) : null}
-        {draft.type === "integer" ? (
-          <CustomAttributeTypeNumberOption
-            parentJSONPointer={parentJSONPointer}
-            draft={draft}
-            onChangeDraft={onChangeDraft}
-            checkFunction={checkIntegerInput}
-          />
-        ) : null}
-        {draft.type === "enum" ? (
-          <CustomAttributeTypeEnumOption
-            parentJSONPointer={parentJSONPointer}
-            draft={draft}
-            onChangeDraft={onChangeDraft}
-          />
-        ) : null}
-      </Widget>
+      <div className={cn(styles.tableWrapper, className)}>
+        <div className={styles.topFields}>
+          <div className={styles.fieldBlock}>
+            <Text as="p" size="2" className={styles.fieldLabel}>
+              <FormattedMessage id="EditCustomAttributeForm.label.attribute-name" />
+            </Text>
+            <TextField
+              size="2"
+              type="text"
+              required={true}
+              value={fieldName}
+              onChange={onChangeFieldName}
+              parentJSONPointer={parentJSONPointer}
+              fieldName="pointer"
+              errorRules={[
+                makeValidationErrorCustomMessageIDRule(
+                  "not",
+                  /\/pointer$/,
+                  "EditCustomAttributeForm.error.not"
+                ),
+                makeValidationErrorCustomMessageIDRule(
+                  "duplicated",
+                  /\/pointer$/,
+                  "EditCustomAttributeForm.error.duplicated-attribute-name"
+                ),
+              ]}
+            />
+            <Text as="p" size="1" color="gray" className={styles.fieldDescription}>
+              <FormattedMessage id="EditCustomAttributeForm.description.attribute-name" />
+            </Text>
+          </div>
+          <div className={styles.fieldBlock}>
+            <Text as="p" size="2" className={styles.fieldLabel}>
+              <FormattedMessage id="EditCustomAttributeForm.label.type" />
+            </Text>
+            <Select.Root
+              value={draft.type}
+              onValueChange={onChangeType}
+              disabled={mode === "edit"}
+            >
+              <Select.Trigger variant="surface" />
+              <Select.Content>
+                {customAttributeTypes.map((key) => (
+                  <Select.Item key={key} value={key}>
+                    {renderToString("custom-attribute-type." + key)}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          </div>
+        </div>
+
+        <div className={styles.table}>
+          {/* Number / Integer options */}
+          {draft.type === "number" ? (
+            <NumberOption
+              parentJSONPointer={parentJSONPointer}
+              draft={draft}
+              onChangeDraft={onChangeDraft}
+              checkFunction={checkNumberInput}
+            />
+          ) : null}
+          {draft.type === "integer" ? (
+            <NumberOption
+              parentJSONPointer={parentJSONPointer}
+              draft={draft}
+              onChangeDraft={onChangeDraft}
+              checkFunction={checkIntegerInput}
+            />
+          ) : null}
+
+          {/* Enum options */}
+          {draft.type === "enum" ? (
+            <EnumOption
+              parentJSONPointer={parentJSONPointer}
+              draft={draft}
+              onChangeDraft={onChangeDraft}
+            />
+          ) : null}
+        </div>
+      </div>
     );
   };
 

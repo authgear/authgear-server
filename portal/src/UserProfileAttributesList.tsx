@@ -1,31 +1,24 @@
 /* global JSX */
 import React, { useMemo, useCallback, useContext, useState } from "react";
+import cn from "classnames";
 import { FormattedMessage, Context } from "./intl";
 import {
-  DetailsList,
-  DetailsHeader,
-  DetailsRow,
-  DirectionalHint,
-  Dropdown,
+  Select,
   Dialog,
-  DialogFooter,
-  IconButton,
-  SelectionMode,
-  IColumn,
-  IDropdownOption,
-  IDialogContentProps,
-  IDetailsHeaderProps,
-  IDetailsRowProps,
-  IDetailsColumnRenderTooltipProps,
-  IRenderFunction,
-  IIconProps,
-  IDragDropEvents,
-  Icon,
   Text,
-} from "@fluentui/react";
-import PrimaryButton from "./PrimaryButton";
-import DefaultButton from "./DefaultButton";
-import LabelWithTooltip from "./LabelWithTooltip";
+  Button,
+  Flex,
+  IconButton,
+  DropdownMenu,
+} from "@radix-ui/themes";
+import {
+  QuestionMarkCircledIcon,
+  Pencil1Icon,
+  DragHandleDots2Icon,
+  DotsVerticalIcon,
+} from "@radix-ui/react-icons";
+import { Tooltip } from "./components/v2/Tooltip/Tooltip";
+import { SecondaryButton } from "./components/v2/Button/SecondaryButton/SecondaryButton";
 import ExternalLink from "./ExternalLink";
 import {
   UserProfileAttributesAccessControl,
@@ -65,10 +58,6 @@ export interface UserProfileAttributesListPendingUpdate {
   mainAdjustment: UserProfileAttributesListAccessControlAdjustment;
   otherAdjustments: UserProfileAttributesListAccessControlAdjustment[];
 }
-
-const EDIT_BUTTON_ICON_PROPS: IIconProps = {
-  iconName: "Edit",
-};
 
 function intOfAccessControlLevelString(
   level: AccessControlLevelString
@@ -226,6 +215,85 @@ function applyUpdate<T extends UserProfileAttributesListItem>(
   return newItems;
 }
 
+interface AccessControlSelectProps {
+  accessControlKey: keyof UserProfileAttributesAccessControl;
+  item: UserProfileAttributesListItem;
+  onValueChange: (value: string) => void;
+}
+
+function AccessControlSelect({
+  accessControlKey,
+  item,
+  onValueChange,
+}: AccessControlSelectProps) {
+  const { renderToString } = useContext(Context);
+  const selectedValue = item.access_control[accessControlKey];
+  const includeReadwrite = accessControlKey !== "bearer";
+
+  return (
+    <div className={styles.selectRoot}>
+      <Select.Root value={selectedValue} onValueChange={onValueChange}>
+        <Select.Trigger
+          variant="surface"
+          className={styles.selectTrigger}
+        />
+        <Select.Content>
+          <Select.Item value="hidden">
+            {renderToString("user-profile.access-control-level.hidden")}
+          </Select.Item>
+          <Select.Item value="readonly">
+            {renderToString("user-profile.access-control-level.readonly")}
+          </Select.Item>
+          {includeReadwrite && (
+            <Select.Item value="readwrite">
+              {renderToString("user-profile.access-control-level.readwrite")}
+            </Select.Item>
+          )}
+        </Select.Content>
+      </Select.Root>
+    </div>
+  );
+}
+
+interface ItemActionsMenuProps {
+  index: number;
+  onEditButtonClick: (index: number) => void;
+  menuLabel: string;
+}
+
+function ItemActionsMenu({
+  index,
+  onEditButtonClick,
+  menuLabel,
+}: ItemActionsMenuProps) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        <IconButton
+          variant="ghost"
+          size="2"
+          aria-label={menuLabel}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <DotsVerticalIcon />
+        </IconButton>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+        <DropdownMenu.Item
+          onSelect={() => {
+            onEditButtonClick(index);
+          }}
+        >
+          <Pencil1Icon />
+          <FormattedMessage id="edit" />
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  );
+}
+
 function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   props: UserProfileAttributesListProps<T>
 ): React.ReactElement<any, any> | null {
@@ -242,42 +310,25 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   >();
   const [dndIndex, setDNDIndex] = useState<number | undefined>(undefined);
 
+  const canReorder = onReorderItems != null;
+  const hasEdit = onEditButtonClick != null;
+
+  const gridClassName = hasEdit ? styles.gridWithActions : undefined;
+
   const reorder = useCallback(
-    (index: number, item: T) => {
-      const itemsWithoutIndex = [
-        ...items.slice(0, index),
-        ...items.slice(index + 1),
-      ];
-      const insertIndex = items.indexOf(item);
+    (index: number, targetItem: T) => {
+      const insertIndex = items.indexOf(targetItem);
       if (insertIndex >= 0) {
+        const itemsWithoutIndex = [
+          ...items.slice(0, index),
+          ...items.slice(index + 1),
+        ];
         itemsWithoutIndex.splice(insertIndex, 0, items[index]);
         onReorderItems?.(itemsWithoutIndex);
       }
     },
     [items, onReorderItems]
   );
-
-  const dragDropEvents: IDragDropEvents = useMemo(() => {
-    return {
-      canDrop: () => true,
-      canDrag: () => true,
-      onDragEnter: () => styles.onDragEnter,
-      onDragLeave: () => {},
-      onDragStart: (_item?: T, index?: number) => {
-        if (index != null) {
-          setDNDIndex(index);
-        }
-      },
-      onDragEnd: (_item?: T) => {
-        setDNDIndex(undefined);
-      },
-      onDrop: (item?: T) => {
-        if (dndIndex != null && item != null) {
-          reorder(dndIndex, item);
-        }
-      },
-    };
-  }, [reorder, dndIndex]);
 
   const onClickConfirmPendingUpdate = useCallback(
     (e: React.MouseEvent<unknown>) => {
@@ -297,376 +348,252 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     setPendingUpdate(undefined);
   }, []);
 
-  // title and subText are typed as string but they can actually be any JSX.Element.
-  // @ts-expect-error
-  const pendingUpdateDialogContentProps: IDialogContentProps = useMemo(() => {
-    if (pendingUpdate == null) {
-      return {
-        title: "",
-        subText: "",
-      };
-    }
-
-    const { index } = pendingUpdate;
-
-    const pointer = items[index].pointer;
-    const fieldName = parseJSONPointer(pointer)[0];
-
-    return {
-      title: (
-        <FormattedMessage
-          id="UserProfileAttributesList.dialog.title.pending-update"
-          values={{
-            fieldName,
-            party: pendingUpdate.mainAdjustment[0],
-          }}
-        />
-      ),
-      subText: (
-        <>
-          <Text block={true}>
-            <FormattedMessage
-              id="UserProfileAttributesList.dialog.adjustment.condition"
-              values={{
-                fieldName,
-                party: pendingUpdate.mainAdjustment[0],
-                level: renderToString(
-                  "user-profile.access-control-level." +
-                    pendingUpdate.mainAdjustment[1]
-                ),
-              }}
-            />
-          </Text>
-          {pendingUpdate.otherAdjustments.map((a, i) => {
-            return (
-              <Text key={i} block={true} className={styles.consequence}>
-                <FormattedMessage
-                  id="UserProfileAttributesList.dialog.adjustment.consequence"
-                  values={{
-                    party: a[0],
-                    level: renderToString(
-                      "user-profile.access-control-level." + a[1]
-                    ),
-                  }}
-                />
-              </Text>
-            );
-          })}
-        </>
-      ),
-    };
-  }, [renderToString, pendingUpdate, items]);
-
-  const makeDropdownOnChange = useCallback(
+  const makeSelectOnChange = useCallback(
     (index: number, key: keyof UserProfileAttributesAccessControl) => {
-      return (
-        _e: React.FormEvent<unknown>,
-        option?: IDropdownOption<AccessControlLevelString>,
-        _index?: number
-      ) => {
-        if (option == null) {
-          return;
-        }
-
-        const pendingUpdate = makeUpdate(
+      return (value: string) => {
+        const update = makeUpdate(
           items,
           index,
           key,
-          option.key as AccessControlLevelString
+          value as AccessControlLevelString
         );
 
-        if (pendingUpdate.otherAdjustments.length !== 0) {
-          setPendingUpdate(pendingUpdate);
+        if (update.otherAdjustments.length !== 0) {
+          setPendingUpdate(update);
           return;
         }
 
-        const newItems = applyUpdate(items, pendingUpdate);
+        const newItems = applyUpdate(items, update);
         onChangeItems(newItems);
       };
     },
     [items, onChangeItems]
   );
 
-  const makeRenderDropdown = useCallback(
-    (key: keyof UserProfileAttributesAccessControl) => {
-      return (
-        item?: UserProfileAttributesListItem,
-        index?: number,
-        _column?: IColumn
-      ) => {
-        if (item == null || index == null) {
-          return null;
-        }
-
-        const optionHidden: IDropdownOption = {
-          key: "hidden",
-          text: renderToString("user-profile.access-control-level.hidden"),
-        };
-
-        const optionReadonly: IDropdownOption = {
-          key: "readonly",
-          text: renderToString("user-profile.access-control-level.readonly"),
-        };
-
-        const optionReadwrite: IDropdownOption = {
-          key: "readwrite",
-          text: renderToString("user-profile.access-control-level.readwrite"),
-        };
-
-        let options: IDropdownOption<AccessControlLevelString>[] = [];
-        let selectedKey: string | undefined;
-        switch (key) {
-          case "portal_ui":
-            options = [optionHidden, optionReadonly, optionReadwrite];
-            selectedKey = item.access_control.portal_ui;
-            break;
-          case "bearer":
-            options = [optionHidden, optionReadonly];
-            selectedKey = item.access_control.bearer;
-            break;
-          case "end_user":
-            options = [optionHidden, optionReadonly, optionReadwrite];
-            selectedKey = item.access_control.end_user;
-            break;
-        }
-
-        return (
-          <Dropdown
-            options={options}
-            selectedKey={selectedKey}
-            onChange={makeDropdownOnChange(index, key)}
-          />
-        );
-      };
-    },
-    [renderToString, makeDropdownOnChange]
-  );
-
-  const onRenderPointer = useCallback(
-    (item?: T, _index?: number, _column?: IColumn) => {
-      if (item == null) {
-        return null;
-      }
-      return <ItemComponent className="" item={item} />;
-    },
-    [ItemComponent]
-  );
-
-  const onRenderEditButton = useCallback(
-    (
-      _item?: UserProfileAttributesListItem,
-      index?: number,
-      _column?: IColumn
-    ) => {
-      if (index == null) {
-        return null;
-      }
-      const onClick = (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onEditButtonClick?.(index);
-      };
-      return (
-        <IconButton
-          iconProps={EDIT_BUTTON_ICON_PROPS}
-          title={renderToString("edit")}
-          ariaLabel={renderToString("edit")}
-          onClick={onClick}
-        />
-      );
-    },
-    [onEditButtonClick, renderToString]
-  );
-
-  const onRenderReorderHandle = useCallback(() => {
+  const pendingDialogTitle = useMemo(() => {
+    if (pendingUpdate == null) return "";
+    const pointer = items[pendingUpdate.index].pointer;
+    const fieldName = parseJSONPointer(pointer)[0];
     return (
-      <div className={styles.reorderHandle}>
-        <Icon iconName="GlobalNavButton" />
-      </div>
+      <FormattedMessage
+        id="UserProfileAttributesList.dialog.title.pending-update"
+        values={{
+          fieldName,
+          party: pendingUpdate.mainAdjustment[0],
+        }}
+      />
     );
-  }, []);
+  }, [pendingUpdate, items]);
 
-  const columns: IColumn[] = useMemo(() => {
-    const columns: IColumn[] = [
-      {
-        key: "pointer",
-        minWidth: 200,
-        name: renderToString(
-          "UserProfileAttributesList.header.label.attribute-name"
-        ),
-        onRender: onRenderPointer,
-        isMultiline: true,
-      },
-      {
-        key: "portal_ui",
-        minWidth: 200,
-        maxWidth: 200,
-        name: "",
-        onRender: makeRenderDropdown("portal_ui"),
-      },
-      {
-        key: "bearer",
-        minWidth: 200,
-        maxWidth: 200,
-        name: "",
-        onRender: makeRenderDropdown("bearer"),
-      },
-      {
-        key: "end_user",
-        minWidth: 200,
-        maxWidth: 200,
-        name: "",
-        onRender: makeRenderDropdown("end_user"),
-      },
-    ];
-    if (onEditButtonClick != null) {
-      columns.push({
-        key: "edit",
-        minWidth: 24,
-        maxWidth: 24,
-        name: "",
-        onRender: onRenderEditButton,
-      });
-    }
-    if (onReorderItems != null) {
-      columns.push({
-        key: "reorder",
-        minWidth: 24,
-        maxWidth: 24,
-        name: "",
-        onRender: onRenderReorderHandle,
-      });
-    }
-    return columns;
-  }, [
-    onEditButtonClick,
-    onReorderItems,
-    renderToString,
-    makeRenderDropdown,
-    onRenderPointer,
-    onRenderEditButton,
-    onRenderReorderHandle,
-  ]);
-
-  const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
-    useCallback(
-      (
-        props?: IDetailsColumnRenderTooltipProps,
-        defaultRender?: (
-          props: IDetailsColumnRenderTooltipProps
-        ) => JSX.Element | null
-      ) => {
-        if (props == null || defaultRender == null) {
-          return null;
-        }
-        if (props.column == null) {
-          return null;
-        }
-        if (
-          props.column.key === "portal_ui" ||
-          props.column.key === "bearer" ||
-          props.column.key === "end_user"
-        ) {
-          let tooltipValues: Record<string, any> | undefined;
-          if (props.column.key === "end_user") {
-            tooltipValues = {
-              // eslint-disable-next-line react/no-unstable-nested-components
-              DocLink: (chunks: React.ReactNode) => (
-                <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
-                  {chunks}
-                </ExternalLink>
+  const pendingDialogDescription = useMemo(() => {
+    if (pendingUpdate == null) return null;
+    const pointer = items[pendingUpdate.index].pointer;
+    const fieldName = parseJSONPointer(pointer)[0];
+    return (
+      <>
+        <Text as="p" size="2">
+          <FormattedMessage
+            id="UserProfileAttributesList.dialog.adjustment.condition"
+            values={{
+              fieldName,
+              party: pendingUpdate.mainAdjustment[0],
+              level: renderToString(
+                "user-profile.access-control-level." +
+                  pendingUpdate.mainAdjustment[1]
               ),
-            };
-          } else if (props.column.key === "bearer") {
-            tooltipValues = {
-              // eslint-disable-next-line react/no-unstable-nested-components
-              DocLink: (chunks: React.ReactNode) => (
-                <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
-                  {chunks}
-                </ExternalLink>
-              ),
-            };
-          }
-
-          return (
-            <LabelWithTooltip
-              labelId={
-                "UserProfileAttributesList.header.label." + props.column.key
-              }
-              tooltipMessageId={
-                "UserProfileAttributesList.header.tooltip." + props.column.key
-              }
-              tooltipValues={tooltipValues}
-              directionalHint={DirectionalHint.topCenter}
-            />
-          );
-        }
-        return defaultRender(props);
-      },
-      []
-    );
-
-  const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> =
-    useCallback(
-      (props?: IDetailsHeaderProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <DetailsHeader
-            {...props}
-            onRenderColumnHeaderTooltip={onRenderColumnHeaderTooltip}
+            }}
           />
-        );
-      },
-      [onRenderColumnHeaderTooltip]
+        </Text>
+        {pendingUpdate.otherAdjustments.map((a, i) => (
+          <Text key={i} as="p" size="2" className={styles.consequence}>
+            <FormattedMessage
+              id="UserProfileAttributesList.dialog.adjustment.consequence"
+              values={{
+                party: a[0],
+                level: renderToString(
+                  "user-profile.access-control-level." + a[1]
+                ),
+              }}
+            />
+          </Text>
+        ))}
+      </>
     );
+  }, [renderToString, pendingUpdate, items]);
 
-  const onRenderRow: IRenderFunction<IDetailsRowProps> = useCallback(
-    (props?: IDetailsRowProps) => {
-      if (props == null) {
-        return null;
-      }
-      let className = "";
-      const { itemIndex } = props;
-      if (dndIndex != null) {
-        if (itemIndex < dndIndex) {
-          className = styles.before;
-        } else if (itemIndex > dndIndex) {
-          className = styles.after;
-        }
-      }
-      return <DetailsRow {...props} className={className} />;
-    },
-    [dndIndex]
+  const endUserTooltipContent = useMemo(
+    () => (
+      <FormattedMessage
+        id="UserProfileAttributesList.header.tooltip.end_user"
+        values={{
+          DocLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="https://docs.authgear.com/customization/built-in-ui/user-settings">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
+      />
+    ),
+    []
+  );
+
+  const bearerTooltipContent = useMemo(
+    () => (
+      <FormattedMessage
+        id="UserProfileAttributesList.header.tooltip.bearer"
+        values={{
+          DocLink: (chunks: React.ReactNode) => (
+            <ExternalLink href="https://docs.authgear.com/integration/user-profiles/user-profile">
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
+      />
+    ),
+    []
+  );
+
+  const portalUiTooltipContent = useMemo(
+    () => (
+      <FormattedMessage id="UserProfileAttributesList.header.tooltip.portal_ui" />
+    ),
+    []
   );
 
   return (
     <>
-      <DetailsList
-        columns={columns}
-        items={items}
-        selectionMode={SelectionMode.none}
-        onRenderDetailsHeader={onRenderDetailsHeader}
-        onRenderRow={onRenderRow}
-        dragDropEvents={onReorderItems != null ? dragDropEvents : undefined}
-      />
-      <Dialog
-        hidden={pendingUpdate == null}
-        onDismiss={onDismissPendingUpdateDialog}
-        dialogContentProps={pendingUpdateDialogContentProps}
+      <div className={styles.table}>
+        <div className={cn(styles.headerRow, gridClassName)}>
+          <div className={styles.headerCellMain}>
+            {canReorder ? (
+              <span className={styles.headerReorderSpacer} aria-hidden={true} />
+            ) : null}
+            <Text size="2" weight="medium">
+              <FormattedMessage id="UserProfileAttributesList.header.label.attribute-name" />
+            </Text>
+          </div>
+          <div className={styles.headerCell}>
+            <Text size="2" weight="medium">
+              <FormattedMessage id="UserProfileAttributesList.header.label.portal_ui" />
+            </Text>
+            <Tooltip content={portalUiTooltipContent}>
+              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+            </Tooltip>
+          </div>
+          <div className={styles.headerCell}>
+            <Text size="2" weight="medium">
+              <FormattedMessage id="UserProfileAttributesList.header.label.bearer" />
+            </Text>
+            <Tooltip content={bearerTooltipContent}>
+              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+            </Tooltip>
+          </div>
+          <div className={styles.headerCell}>
+            <Text size="2" weight="medium">
+              <FormattedMessage id="UserProfileAttributesList.header.label.end_user" />
+            </Text>
+            <Tooltip content={endUserTooltipContent}>
+              <QuestionMarkCircledIcon className={styles.tooltipIcon} />
+            </Tooltip>
+          </div>
+          {hasEdit ? <div className={styles.headerCellSmall} /> : null}
+        </div>
+
+        {items.map((item, index) => (
+          <div
+            key={item.pointer}
+            className={cn(styles.row, gridClassName)}
+            draggable={canReorder}
+            onDragStart={() => setDNDIndex(index)}
+            onDragEnd={() => setDNDIndex(undefined)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dndIndex != null && dndIndex !== index) {
+                reorder(dndIndex, item);
+              }
+              setDNDIndex(undefined);
+            }}
+            data-dnd-before={
+              dndIndex != null && index < dndIndex ? true : undefined
+            }
+            data-dnd-after={
+              dndIndex != null && index > dndIndex ? true : undefined
+            }
+          >
+            <div className={styles.cellMain}>
+              {canReorder ? (
+                <div className={styles.reorderHandle}>
+                  <DragHandleDots2Icon />
+                </div>
+              ) : null}
+              <div className={styles.cellMainContent}>
+                <ItemComponent className="" item={item} />
+              </div>
+            </div>
+            <div className={styles.cell}>
+              <AccessControlSelect
+                accessControlKey="portal_ui"
+                item={item}
+                onValueChange={makeSelectOnChange(index, "portal_ui")}
+              />
+            </div>
+            <div className={styles.cell}>
+              <AccessControlSelect
+                accessControlKey="bearer"
+                item={item}
+                onValueChange={makeSelectOnChange(index, "bearer")}
+              />
+            </div>
+            <div className={styles.cell}>
+              <AccessControlSelect
+                accessControlKey="end_user"
+                item={item}
+                onValueChange={makeSelectOnChange(index, "end_user")}
+              />
+            </div>
+            {hasEdit ? (
+              <div className={styles.cellSmall}>
+                <ItemActionsMenu
+                  index={index}
+                  onEditButtonClick={onEditButtonClick!}
+                  menuLabel={renderToString(
+                    "UserProfileAttributesList.row-actions"
+                  )}
+                />
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      <Dialog.Root
+        open={pendingUpdate != null}
+        onOpenChange={(open) => {
+          if (!open) onDismissPendingUpdateDialog();
+        }}
       >
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onClickConfirmPendingUpdate}
-            text={<FormattedMessage id="confirm" />}
-          />
-          <DefaultButton
-            onClick={onDismissPendingUpdateDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>{pendingDialogTitle}</Dialog.Title>
+          <Dialog.Description size="2">
+            <div>{pendingDialogDescription}</div>
+          </Dialog.Description>
+          <Flex gap="3" justify="end" mt="4">
+            <SecondaryButton
+              size="2"
+              text={<FormattedMessage id="cancel" />}
+              onClick={onDismissPendingUpdateDialog}
+            />
+            <Button
+              size="2"
+              variant="solid"
+              color="indigo"
+              onClick={onClickConfirmPendingUpdate}
+            >
+              <FormattedMessage id="confirm" />
+            </Button>
+          </Flex>
+        </Dialog.Content>
+      </Dialog.Root>
     </>
   );
 }
