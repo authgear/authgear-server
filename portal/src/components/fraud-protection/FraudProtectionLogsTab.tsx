@@ -308,13 +308,12 @@ function loadVisibleOptionalColumns(appID: string): Set<ColumnKey> {
     if (!Array.isArray(parsed)) {
       return getDefaultVisibleOptionalColumns();
     }
+    // Honor an explicit empty selection ([]). Only fall back to defaults when
+    // the preference has never been saved (raw == null) or the value is malformed.
     const keys = parsed.filter(
       (key): key is ColumnKey =>
         typeof key === "string" && OPTIONAL_COLUMN_KEYS.has(key as ColumnKey)
     );
-    if (keys.length === 0) {
-      return getDefaultVisibleOptionalColumns();
-    }
     return new Set(keys);
   } catch {
     return getDefaultVisibleOptionalColumns();

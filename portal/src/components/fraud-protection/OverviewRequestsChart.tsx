@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 import { ChartOptions } from "chart.js";
 import { DateTime } from "luxon";
+import { Context } from "../../intl";
 import { FraudProtectionOverviewQueryQuery } from "../../graphql/adminapi/query/fraudProtectionOverviewQuery.generated";
 import styles from "./OverviewRequestsChart.module.css";
 
@@ -105,6 +106,26 @@ function buildSlots(
 
 const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
   function OverviewRequestsChart({ timeBuckets, timeRange, rangeFrom, rangeTo }) {
+    const { renderToString } = useContext(Context);
+
+    const chartLabels = useMemo(
+      () => ({
+        title: renderToString(
+          "FraudProtectionConfigurationScreen.overview.chart.title"
+        ),
+        blocked: renderToString(
+          "FraudProtectionConfigurationScreen.overview.chart.blocked"
+        ),
+        flagged: renderToString(
+          "FraudProtectionConfigurationScreen.overview.chart.flagged"
+        ),
+        totalRequests: renderToString(
+          "FraudProtectionConfigurationScreen.overview.chart.totalRequests"
+        ),
+      }),
+      [renderToString]
+    );
+
     const slots = useMemo(
       () => buildSlots(timeBuckets, rangeFrom, rangeTo, timeRange),
       [timeBuckets, rangeFrom, rangeTo, timeRange]
@@ -115,21 +136,21 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
         labels: slots.map((s) => s.label),
         datasets: [
           {
-            label: "Blocked",
+            label: chartLabels.blocked,
             data: slots.map((s) => s.blocked),
             backgroundColor: "#fca5a5",
             borderWidth: 0,
             stack: "stack",
           },
           {
-            label: "Flagged",
+            label: chartLabels.flagged,
             data: slots.map((s) => s.flagged),
             backgroundColor: "#fde68a",
             borderWidth: 0,
             stack: "stack",
           },
           {
-            label: "Total requests",
+            label: chartLabels.totalRequests,
             data: slots.map((s) => Math.max(0, s.total - s.blocked - s.flagged)),
             backgroundColor: "#e5e5e5",
             borderWidth: 0,
@@ -137,7 +158,7 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
           },
         ],
       }),
-      [slots]
+      [chartLabels.blocked, chartLabels.flagged, chartLabels.totalRequests, slots]
     );
 
     const options = useMemo<ChartOptions<"bar">>(
@@ -176,7 +197,7 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             borderWidth: 1,
             titleColor: "#323130",
             bodyColor: "#605e5c",
-            titleFont: { size: 12, weight: "600" as const, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
+            titleFont: { size: 12, weight: 600, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
             bodyFont: { size: 12, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
             padding: 10,
             cornerRadius: 2,
@@ -185,14 +206,20 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             usePointStyle: true,
             callbacks: {
               label: (ctx) => {
-                const ds = ctx.dataset.label ?? "";
-                if (ds === "Total requests") {
+                if (ctx.datasetIndex === 2) {
                   const blocked = ctx.chart.data.datasets[0].data[ctx.dataIndex] as number;
                   const flagged = ctx.chart.data.datasets[1].data[ctx.dataIndex] as number;
                   const allowed = ctx.raw as number;
-                  return `  Total requests: ${blocked + flagged + allowed}`;
+                  return `  ${renderToString(
+                    "FraudProtectionConfigurationScreen.overview.chart.tooltip.totalRequests",
+                    { count: blocked + flagged + allowed }
+                  )}`;
                 }
-                return `  ${ds}: ${ctx.raw}`;
+                const label = ctx.dataset.label ?? "";
+                return `  ${renderToString(
+                  "FraudProtectionConfigurationScreen.overview.chart.tooltip.item",
+                  { label, count: ctx.raw }
+                )}`;
               },
             },
           },
@@ -221,12 +248,12 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
           },
         },
       }),
-      [timeRange]
+      [renderToString, timeRange]
     );
 
     return (
       <div className={styles.container}>
-        <div className={styles.title}>Requests by action</div>
+        <div className={styles.title}>{chartLabels.title}</div>
         <div className={styles.chartWrap}>
           <Bar options={options} data={data} />
         </div>

@@ -29,12 +29,21 @@ export interface OverviewTopListProps {
   onToggleShowAll: () => void;
 }
 
-const countryDisplayNames = new Intl.DisplayNames(["en"], { type: "region" });
+const countryDisplayNamesCache = new Map<string, Intl.DisplayNames>();
 
-function formatCountryLabel(code: string): string {
+function getCountryDisplayNames(locale: string): Intl.DisplayNames {
+  let displayNames = countryDisplayNamesCache.get(locale);
+  if (displayNames == null) {
+    displayNames = new Intl.DisplayNames([locale], { type: "region" });
+    countryDisplayNamesCache.set(locale, displayNames);
+  }
+  return displayNames;
+}
+
+function formatCountryLabel(locale: string, code: string): string {
   if (!code) return code;
   try {
-    const fullName = countryDisplayNames.of(code);
+    const fullName = getCountryDisplayNames(locale).of(code);
     return fullName != null && fullName !== code
       ? `${fullName} (${code})`
       : code;
@@ -223,15 +232,16 @@ export interface OverviewTopSMSOriginsProps {
 export const OverviewTopSMSOrigins: React.VFC<OverviewTopSMSOriginsProps> =
   function OverviewTopSMSOrigins(props) {
     const { smsOrigins, showAll, onToggleShowAll } = props;
+    const { locale } = useContext(Context);
     const rows: SourceRow[] = useMemo(
       () =>
         smsOrigins.map((r) => ({
-          label: formatCountryLabel(r.phoneCountryCode),
+          label: formatCountryLabel(locale, r.phoneCountryCode),
           total: r.total,
           blocked: r.blocked,
           flagged: r.flagged,
         })),
-      [smsOrigins]
+      [locale, smsOrigins]
     );
     return (
       <OverviewTopList
@@ -261,15 +271,16 @@ export interface OverviewTopIPLocationsProps {
 export const OverviewTopIPLocations: React.VFC<OverviewTopIPLocationsProps> =
   function OverviewTopIPLocations(props) {
     const { ipLocations, showAll, onToggleShowAll } = props;
+    const { locale } = useContext(Context);
     const rows: SourceRow[] = useMemo(
       () =>
         ipLocations.map((r) => ({
-          label: formatCountryLabel(r.geoCountryCode),
+          label: formatCountryLabel(locale, r.geoCountryCode),
           total: r.total,
           blocked: r.blocked,
           flagged: r.flagged,
         })),
-      [ipLocations]
+      [ipLocations, locale]
     );
     return (
       <OverviewTopList
