@@ -11,13 +11,14 @@
   gap: 4px;
   font-size: 14px;
   line-height: 20px;
-  color: var(--gray-11);
+  color: var(--accent-9);
   text-decoration: none;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 
 .backLink:hover {
-  color: var(--gray-12);
+  color: var(--accent-11);
+  text-decoration: underline;
 }
 
 .backLinkIcon {

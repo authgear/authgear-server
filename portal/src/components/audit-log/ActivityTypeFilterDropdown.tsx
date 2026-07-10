@@ -11,7 +11,7 @@ import {
   ChevronRightIcon,
   Cross2Icon,
 } from "@radix-ui/react-icons";
-import { Popover, Text } from "@radix-ui/themes";
+import { Checkbox, Popover, Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 import {
@@ -31,14 +31,33 @@ import styles from "./ActivityTypeFilterDropdown.module.css";
 export type AuditLogActivityTypeAll = "ALL";
 export const ACTIVITY_TYPE_ALL: AuditLogActivityTypeAll = "ALL";
 
-export type ActivityTypeFilterDropdownOptionKey =
-  | AuditLogActivityType
-  | AuditLogActivityTypeAll;
+export function parseActivityTypesFromQuery(
+  query: string | null,
+  availableActivityTypes: AuditLogActivityType[]
+): AuditLogActivityType[] {
+  if (query == null || query === "" || query === ACTIVITY_TYPE_ALL) {
+    return [];
+  }
+  return query
+    .split(",")
+    .filter((type): type is AuditLogActivityType =>
+      availableActivityTypes.includes(type as AuditLogActivityType)
+    );
+}
+
+export function serializeActivityTypesToQuery(
+  activityTypes: AuditLogActivityType[]
+): string {
+  if (activityTypes.length === 0) {
+    return ACTIVITY_TYPE_ALL;
+  }
+  return activityTypes.join(",");
+}
 
 interface ActivityTypeFilterDropdownProps {
   className?: string;
-  value: ActivityTypeFilterDropdownOptionKey;
-  onChange: (newValue: ActivityTypeFilterDropdownOptionKey) => void;
+  value: AuditLogActivityType[];
+  onChange: (newValue: AuditLogActivityType[]) => void;
   availableActivityTypes: AuditLogActivityType[];
   wideContent?: boolean;
 }
@@ -82,10 +101,15 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
     const placeholder = renderToString("AuditLogActivityType.ALL");
 
     const selectedLabel = useMemo(() => {
-      if (value === ACTIVITY_TYPE_ALL) {
+      if (value.length === 0) {
         return null;
       }
-      return renderToString("AuditLogActivityType." + value);
+      if (value.length === 1) {
+        return renderToString("AuditLogActivityType." + value[0]);
+      }
+      return renderToString("AuditLogScreen.activity-types-selected", {
+        count: value.length,
+      });
     }, [renderToString, value]);
 
     const groupSections = useMemo<ActivityTypeGroupSection[]>(() => {
@@ -145,19 +169,25 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
         });
     }, [availableActivityTypes, renderToString, searchValue]);
 
-    const selectedSubcategoryId = useMemo(() => {
-      if (value === ACTIVITY_TYPE_ALL) {
-        return null;
+    const selectedSubcategoryIds = useMemo(() => {
+      if (value.length === 0) {
+        return new Set<ActivityTypeSubcategoryId>();
       }
-      return getActivityTypeSubcategory(value);
+      return new Set(
+        value.map((activityType) => getActivityTypeSubcategory(activityType))
+      );
     }, [value]);
 
-    const selectedGroupId = useMemo(() => {
-      if (selectedSubcategoryId == null) {
-        return null;
+    const selectedGroupIds = useMemo(() => {
+      if (selectedSubcategoryIds.size === 0) {
+        return new Set<ActivityTypeCategoryGroupId>();
       }
-      return getActivityTypeCategoryGroup(selectedSubcategoryId);
-    }, [selectedSubcategoryId]);
+      return new Set(
+        [...selectedSubcategoryIds].map((subcategoryId) =>
+          getActivityTypeCategoryGroup(subcategoryId)
+        )
+      );
+    }, [selectedSubcategoryIds]);
 
     useEffect(() => {
       if (!open) {
@@ -179,9 +209,9 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
         return;
       }
 
-      if (selectedGroupId != null && selectedSubcategoryId != null) {
-        setExpandedGroupIds(new Set([selectedGroupId]));
-        setExpandedSubcategoryIds(new Set([selectedSubcategoryId]));
+      if (selectedGroupIds.size > 0 && selectedSubcategoryIds.size > 0) {
+        setExpandedGroupIds(selectedGroupIds);
+        setExpandedSubcategoryIds(selectedSubcategoryIds);
         return;
       }
 
@@ -190,8 +220,8 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
     }, [
       open,
       searchValue,
-      selectedGroupId,
-      selectedSubcategoryId,
+      selectedGroupIds,
+      selectedSubcategoryIds,
       groupSections,
     ]);
 
@@ -222,13 +252,15 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
       []
     );
 
-    const onSelectOption = useCallback(
-      (activityType: AuditLogActivityType) => {
-        onChange(activityType);
-        setOpen(false);
-        setSearchValue("");
+    const onToggleOption = useCallback(
+      (activityType: AuditLogActivityType, checked: boolean) => {
+        if (checked) {
+          onChange([...value, activityType]);
+          return;
+        }
+        onChange(value.filter((selected) => selected !== activityType));
       },
-      [onChange]
+      [onChange, value]
     );
 
     const onClearFilter = useCallback(
@@ -236,7 +268,7 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
         e.preventDefault();
         e.stopPropagation();
         setSearchValue("");
-        onChange(ACTIVITY_TYPE_ALL);
+        onChange([]);
         setOpen(false);
       },
       [onChange]
@@ -249,28 +281,35 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
       }
     }, []);
 
-    const hasSelection = value !== ACTIVITY_TYPE_ALL;
+    const hasSelection = value.length > 0;
 
     const renderOptions = useCallback(
       (options: ActivityTypeOption[], indentClassName: string) => {
-        return options.map((option) => (
-          <button
-            key={option.key}
-            type="button"
-            className={cn(
-              styles.item,
-              indentClassName,
-              value === option.key && styles.itemSelected
-            )}
-            onClick={() => {
-              onSelectOption(option.key);
-            }}
-          >
-            {option.label}
-          </button>
-        ));
+        return options.map((option) => {
+          const isSelected = value.includes(option.key);
+          return (
+            <label
+              key={option.key}
+              className={cn(
+                styles.item,
+                indentClassName,
+                isSelected && styles.itemSelected
+              )}
+            >
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => {
+                  onToggleOption(option.key, checked === true);
+                }}
+              />
+              <Text as="span" className={styles.itemLabel}>
+                {option.label}
+              </Text>
+            </label>
+          );
+        });
       },
-      [onSelectOption, value]
+      [onToggleOption, value]
     );
 
     return (

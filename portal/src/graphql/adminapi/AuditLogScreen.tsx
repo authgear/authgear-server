@@ -45,8 +45,8 @@ import {
   AuditLogFilterBarPropsDateRange,
 } from "../../components/audit-log/AuditLogFilterBar";
 import {
-  ACTIVITY_TYPE_ALL,
-  ActivityTypeFilterDropdownOptionKey,
+  parseActivityTypesFromQuery,
+  serializeActivityTypesToQuery,
 } from "../../components/audit-log/ActivityTypeFilterDropdown";
 import {
   AuditLogDateRangePresetKey,
@@ -71,6 +71,36 @@ const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
     !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
     !HIDDEN_ACTIVITY_TYPES.includes(activityType)
 );
+
+const EMAIL_ONLY_ACTIVITY_TYPES = [AuditLogActivityType.EmailSent];
+const PHONE_ONLY_ACTIVITY_TYPES = [
+  AuditLogActivityType.SmsSent,
+  AuditLogActivityType.WhatsappSent,
+];
+const NON_USER_SEARCH_ACTIVITY_TYPES = [
+  ...EMAIL_ONLY_ACTIVITY_TYPES,
+  ...PHONE_ONLY_ACTIVITY_TYPES,
+];
+
+function includesActivityTypeOrAll(
+  selectedActivityTypes: AuditLogActivityType[],
+  activityType: AuditLogActivityType
+): boolean {
+  return (
+    selectedActivityTypes.length === 0 ||
+    selectedActivityTypes.includes(activityType)
+  );
+}
+
+function areActivityTypesEqual(
+  left: AuditLogActivityType[],
+  right: AuditLogActivityType[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((activityType) => right.includes(activityType));
+}
 
 enum AuditLogKind {
   User = "user",
@@ -138,21 +168,16 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : USER_ACTIVITY_TYPES;
   }, [auditLogKind]);
 
-  const defaultActivityType =
-    useMemo<ActivityTypeFilterDropdownOptionKey>(() => {
-      if (queryActivityType == null) {
-        return ACTIVITY_TYPE_ALL;
-      }
-      const queryActivityTypeKey = queryActivityType as AuditLogActivityType;
-      if (availableActivityTypes.includes(queryActivityTypeKey)) {
-        return queryActivityTypeKey;
-      }
-      return ACTIVITY_TYPE_ALL;
-    }, [availableActivityTypes, queryActivityType]);
+  const defaultActivityTypes = useMemo<AuditLogActivityType[]>(() => {
+    return parseActivityTypesFromQuery(
+      queryActivityType,
+      availableActivityTypes
+    );
+  }, [availableActivityTypes, queryActivityType]);
 
   const [filters, setFilters] = useState<AuditLogFilter>({
     searchKeyword: "",
-    activityType: defaultActivityType,
+    activityTypes: defaultActivityTypes,
   });
 
   const {
@@ -306,7 +331,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       rangeTo != null ? DateTime.fromJSDate(rangeTo).toISODate() : "";
     const newQueryOrderBy = sortDirection;
     const newQueryPage = page.toString();
-    const newQueryActivityType = filters.activityType;
+    const newQueryActivityType = serializeActivityTypesToQuery(
+      filters.activityTypes
+    );
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
     const newAuditLogKind = auditLogKind;
     const newQueryString = debouncedSearchQuery;
@@ -360,7 +387,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     rangeTo,
     sortDirection,
     offset,
-    filters.activityType,
+    filters.activityTypes,
     lastUpdatedAt,
     setSearchParams,
     auditLogKind,
@@ -370,11 +397,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   ]);
 
   const activityTypes: AuditLogActivityType[] | null = useMemo(() => {
-    if (filters.activityType === ACTIVITY_TYPE_ALL) {
+    if (filters.activityTypes.length === 0) {
       return availableActivityTypes;
     }
-    return [filters.activityType];
-  }, [availableActivityTypes, filters.activityType]);
+    return filters.activityTypes;
+  }, [availableActivityTypes, filters.activityTypes]);
 
   const cursor = useMemo(() => {
     return encodeOffsetToCursor(offset);
@@ -390,31 +417,36 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       return null;
     }
 
-    switch (filters.activityType) {
-      // Only search email addresses if `all` or `email_sent` filter active
-      case ACTIVITY_TYPE_ALL:
-      case AuditLogActivityType.EmailSent:
-        return email ? [email] : null;
-      default:
-        return null;
+    if (
+      includesActivityTypeOrAll(
+        filters.activityTypes,
+        AuditLogActivityType.EmailSent
+      )
+    ) {
+      return [email];
     }
-  }, [debouncedSearchQuery, filters.activityType]);
+    return null;
+  }, [debouncedSearchQuery, filters.activityTypes]);
 
   const queryPhoneNumbers = useMemo(() => {
     const phoneNumber = parsePhoneNumber(debouncedSearchQuery);
     if (phoneNumber == null) {
       return null;
     }
-    switch (filters.activityType) {
-      // Only search phone numbers if `all` or `phone_sent` or `whatsapp_sent` filter active
-      case ACTIVITY_TYPE_ALL:
-      case AuditLogActivityType.SmsSent:
-      case AuditLogActivityType.WhatsappSent:
-        return [phoneNumber];
-      default:
-        return null;
+    if (
+      includesActivityTypeOrAll(
+        filters.activityTypes,
+        AuditLogActivityType.SmsSent
+      ) ||
+      includesActivityTypeOrAll(
+        filters.activityTypes,
+        AuditLogActivityType.WhatsappSent
+      )
+    ) {
+      return [phoneNumber];
     }
-  }, [debouncedSearchQuery, filters.activityType]);
+    return null;
+  }, [debouncedSearchQuery, filters.activityTypes]);
 
   const shouldSearchUsers = useMemo(() => {
     if (debouncedSearchQuery === "") {
@@ -423,21 +455,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (queryEmailAddresses != null || queryPhoneNumbers != null) {
       return false;
     }
-    switch (filters.activityType) {
-      case ACTIVITY_TYPE_ALL:
-        return true;
-      case AuditLogActivityType.EmailSent:
-      case AuditLogActivityType.SmsSent:
-      case AuditLogActivityType.WhatsappSent:
-        return false;
-      default:
-        return true;
+    if (filters.activityTypes.length === 0) {
+      return true;
     }
+    return filters.activityTypes.some(
+      (activityType) =>
+        !NON_USER_SEARCH_ACTIVITY_TYPES.includes(activityType)
+    );
   }, [
     debouncedSearchQuery,
     queryEmailAddresses,
     queryPhoneNumbers,
-    filters.activityType,
+    filters.activityTypes,
   ]);
 
   const {
@@ -528,7 +557,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
       const newFilters = fn(filters);
 
-      if (newFilters.activityType !== filters.activityType) {
+      if (
+        !areActivityTypesEqual(
+          newFilters.activityTypes,
+          filters.activityTypes
+        )
+      ) {
         setOffset(0);
       }
       setFilters(fn);
@@ -646,7 +680,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       setOffset(0);
       setFilters({
         searchKeyword: "",
-        activityType: ACTIVITY_TYPE_ALL,
+        activityTypes: [],
       });
     },
     [auditLogKind]

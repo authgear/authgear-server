@@ -172,7 +172,9 @@
 }
 
 .item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   padding: 6px 12px;
   border: none;
@@ -182,6 +184,11 @@
   line-height: 20px;
   color: var(--gray-12);
   text-align: left;
+}
+
+.itemLabel {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .itemInGroup {

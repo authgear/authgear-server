@@ -11,14 +11,13 @@ import {
 } from "./AuditLogDateRangeFilterDropdown";
 import {
   ActivityTypeFilterDropdown,
-  ActivityTypeFilterDropdownOptionKey,
 } from "./ActivityTypeFilterDropdown";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 import { RefreshButton } from "./RefreshButton";
 
 export interface AuditLogFilter {
   searchKeyword: string;
-  activityType: ActivityTypeFilterDropdownOptionKey;
+  activityTypes: AuditLogActivityType[];
 }
 
 export interface AuditLogFilterBarPropsDateRange {
@@ -68,9 +67,9 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     const onClearSearchKeyword = useCallback(() => {
       onFilterChange((prev) => ({ ...prev, searchKeyword: "" }));
     }, [onFilterChange]);
-    const onChangeActivityType = useCallback(
-      (newAT: ActivityTypeFilterDropdownOptionKey) => {
-        onFilterChange((prev) => ({ ...prev, activityType: newAT }));
+    const onChangeActivityTypes = useCallback(
+      (newActivityTypes: AuditLogActivityType[]) => {
+        onFilterChange((prev) => ({ ...prev, activityTypes: newActivityTypes }));
       },
       [onFilterChange]
     );
@@ -88,8 +87,8 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
           />
           <ActivityTypeFilterDropdown
             className={styles.activityTypeFilter}
-            value={filters.activityType}
-            onChange={onChangeActivityType}
+            value={filters.activityTypes}
+            onChange={onChangeActivityTypes}
             availableActivityTypes={availableActivityTypes}
             wideContent={wideActivityTypeDropdown}
           />
