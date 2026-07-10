@@ -108,6 +108,11 @@ services:
 
   otelcol:
     image: otel/opentelemetry-collector-contrib:0.114.0
+    environment:
+      # In production (opentelemetry-collector Helm chart), this is injected
+      # automatically from the pod name via the downward API. Locally there
+      # is only one replica and no Kubernetes, so we set a fixed value here.
+      OTEL_K8S_POD_NAME: "otelcol-0"
     volumes:
     - ./otelcol-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
