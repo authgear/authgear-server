@@ -960,6 +960,7 @@
   "EditOAuthClientFormFrameworkQuickStart.tutorial.body.other-oidc": "See the <docLink>OIDC provider docs</docLink> for the endpoints and configuration needed to connect any OIDC- or SAML-compatible app to Authgear.",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.title": "Change framework",
   "EditOAuthClientFormFrameworkQuickStart.change-dialog.apply": "Apply",
+  "EditOAuthClientFormFrameworkQuickStart.change-dialog.other-platform-note": "Building for a different platform like mobile, backend, OIDC/SAML, or machine-to-machine? <createAppLink>Create a new application.</createAppLink>",
   "EditOAuthClientFormFrameworkQuickStart.snippet.title": "Read user session in your code",
   "EditOAuthClientFormFrameworkQuickStart.snippet.description": "After nginx forwards the request, your backend can read the user session from the x-authgear-* headers.",
   "EditOAuthClientFormFrameworkQuickStart.oidc.title": "Use Authgear as an OpenID Connect Provider",

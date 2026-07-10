@@ -30,8 +30,9 @@ import type {
 import { useEndpoints } from "../../hook/useEndpoints";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { LocationState } from "./EditOAuthClientScreen";
+import PortalLink from "../../Link";
 import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
 
 const MASKED_SECRET = "***************";
@@ -253,6 +254,7 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
     onDismiss,
   } = props;
   const { renderToString } = useContext(Context);
+  const { appID } = useParams() as { appID: string };
   const [selected, setSelected] = useState<Framework | null>(
     currentFrameworkId
   );
@@ -263,6 +265,9 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
     if (visible) setSelected(currentFrameworkId);
   }, [visible, currentFrameworkId]);
 
+  // Only frameworks compatible with this client's application type can be
+  // switched to; the application type is fixed at creation. Other platforms
+  // require a new application (see the note below the grid).
   const options = useMemo<FrameworkEntry[]>(
     () => frameworksForType(applicationType),
     [applicationType]
@@ -302,6 +307,19 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
             onSelect={() => setSelected(f.id)}
           />
         ))}
+      </div>
+      <div className={styles.changeFrameworkNote}>
+        <FormattedMessage
+          id="EditOAuthClientFormFrameworkQuickStart.change-dialog.other-platform-note"
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            createAppLink: (chunks: React.ReactNode) => (
+              <PortalLink to={`/project/${appID}/configuration/apps/add`}>
+                {chunks}
+              </PortalLink>
+            ),
+          }}
+        />
       </div>
       <DialogFooter>
         <PrimaryButton
