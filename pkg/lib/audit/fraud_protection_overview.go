@@ -3,15 +3,22 @@ package audit
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
+
+// FraudProtectionOverviewMaxRangeDays bounds how wide a rangeFrom/rangeTo
+// window callers of the overview query may request, so the hourly
+// timeBuckets result set stays bounded without needing to truncate it.
+const FraudProtectionOverviewMaxRangeDays = 90
 
 type FraudProtectionOverview struct {
 	SendSMS FraudProtectionOverviewSendSMS `json:"sendSMS"`
@@ -62,6 +69,16 @@ type FraudProtectionOverviewQueryOptions struct {
 	Actions   []model.FraudProtectionAction
 }
 
+func (o FraudProtectionOverviewQueryOptions) Validate() error {
+	maxRange := time.Duration(FraudProtectionOverviewMaxRangeDays) * 24 * time.Hour
+	// An open-ended bound (nil rangeFrom or rangeTo) is an unbounded range,
+	// which is exactly what the max-range check exists to reject.
+	if o.RangeFrom == nil || o.RangeTo == nil || o.RangeTo.Sub(*o.RangeFrom) > maxRange {
+		return apierrors.NewInvalid(fmt.Sprintf("rangeFrom and rangeTo are required and must not span more than %d days", FraudProtectionOverviewMaxRangeDays))
+	}
+	return nil
+}
+
 func (o FraudProtectionOverviewQueryOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
 	if o.RangeFrom != nil {
 		q = q.Where("created_at >= ?", o.RangeFrom)
@@ -98,6 +115,10 @@ func (s *ReadStore) fraudProtectionDecisionRecordsQuery() db.SelectBuilder {
 }
 
 func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudProtectionOverviewQueryOptions) (*FraudProtectionOverview, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
 	baseQuery := s.fraudProtectionDecisionRecordsQuery()
 	baseQuery = opts.Apply(baseQuery)
 
@@ -248,10 +269,7 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		).
 		FromSelect(baseQuery, "records").
 		GroupBy("hour").
-		OrderBy("hour ASC").
-		// Cap returned hourly buckets (~90 days) so unbounded Admin API
-		// callers cannot pull an arbitrarily large result set.
-		Limit(24 * 90)
+		OrderBy("hour ASC")
 
 	timeBucketRows, err := s.SQLExecutor.QueryWith(ctx, timeBucketsQuery)
 	if err != nil {
