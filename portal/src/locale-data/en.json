@@ -1736,6 +1736,8 @@
   "ReauthDialog.title": "Authentication Required",
   "ReauthDialog.description": "For your security, please confirm your access to proceed.",
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
+  "StandardAttributesConfigurationScreen.search.placeholder": "Search by name",
+  "StandardAttributesConfigurationScreen.clear-search": "Clear search",
   "StandardAttributesConfigurationScreen.section.identity-attributes": "Identity Attributes",
   "StandardAttributesConfigurationScreen.section.name-attributes": "Name Attributes",
   "StandardAttributesConfigurationScreen.section.profile-attributes": "Profile Attributes",

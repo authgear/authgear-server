@@ -31,3 +31,36 @@
   font-weight: 600;
   color: var(--gray-12);
 }
+
+.toolbar {
+  @apply flex flex-wrap items-center gap-4;
+}
+
+.searchField {
+  width: 300px;
+  max-width: 100%;
+}
+
+.searchClearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gray-11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.emptySearch {
+  margin: 0;
+}

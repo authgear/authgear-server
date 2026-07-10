@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
-import { FormattedMessage } from "../../intl";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Context, FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import FormContainer from "../../FormContainer";
 import {
@@ -23,6 +24,10 @@ import {
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./StandardAttributesConfigurationScreen.module.css";
 import ExternalLink from "../../ExternalLink";
@@ -165,18 +170,54 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
     const { isDirty } = useFormContainerBaseContext();
+    const { renderToString } = useContext(Context);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+    const [searchKeyword, setSearchKeyword] = useState("");
+
+    const onChangeSearchKeyword = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchKeyword(e.currentTarget.value);
+      },
+      []
+    );
+
+    const onClearSearchKeyword = useCallback(() => {
+      setSearchKeyword("");
+    }, []);
+
+    const filteredItems = useMemo(() => {
+      const keyword = searchKeyword.trim().toLowerCase();
+      if (keyword === "") {
+        return state.standardAttributesItems;
+      }
+      return state.standardAttributesItems.filter((item) => {
+        const fieldName = parseJSONPointer(item.pointer)[0];
+        const name = renderToString(
+          "standard-attribute." + fieldName
+        ).toLowerCase();
+        return (
+          name.includes(keyword) || fieldName.toLowerCase().includes(keyword)
+        );
+      });
+    }, [searchKeyword, state.standardAttributesItems, renderToString]);
+
     const onChangeItems = useCallback(
       (newItems: UserProfileAttributesListItem[]) => {
         setState((prev) => {
+          const updatedByPointer = new Map(
+            newItems.map((item) => [item.pointer, item])
+          );
           return {
             ...prev,
-            standardAttributesItems: newItems,
+            standardAttributesItems: prev.standardAttributesItems.map(
+              (item) => updatedByPointer.get(item.pointer) ?? item
+            ),
           };
         });
       },
       [setState]
     );
+
     return (
       <ScreenContent
         layout="list"
@@ -193,13 +234,48 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
             <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
           </Text>
         </div>
+        <div className={cn(styles.widget, styles.toolbar)}>
+          <div className={styles.searchField}>
+            <TextField
+              size="2"
+              type="search"
+              value={searchKeyword}
+              placeholder={renderToString(
+                "StandardAttributesConfigurationScreen.search.placeholder"
+              )}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              onChange={onChangeSearchKeyword}
+              suffixPlain={true}
+              suffix={
+                searchKeyword !== "" ? (
+                  <button
+                    type="button"
+                    className={styles.searchClearButton}
+                    aria-label={renderToString(
+                      "StandardAttributesConfigurationScreen.clear-search"
+                    )}
+                    onClick={onClearSearchKeyword}
+                  >
+                    <Cross2Icon className={styles.searchClearIcon} />
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
+        </div>
         <div className={cn(styles.widget, styles.tableWidget)}>
-          <UserProfileAttributesList
-            items={state.standardAttributesItems}
-            onChangeItems={onChangeItems}
-            ItemComponent={ItemComponent}
-            sections={standardAttributeSections}
-          />
+          {filteredItems.length === 0 ? (
+            <Text as="p" size="2" color="gray" className={styles.emptySearch}>
+              <FormattedMessage id="SearchableDropdown.empty" />
+            </Text>
+          ) : (
+            <UserProfileAttributesList
+              items={filteredItems}
+              onChangeItems={onChangeItems}
+              ItemComponent={ItemComponent}
+              sections={standardAttributeSections}
+            />
+          )}
         </div>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
