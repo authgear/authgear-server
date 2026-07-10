@@ -164,17 +164,23 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
                 </div>
                 <div className={styles.topSourceIPMetrics}>
                   <div
-                    className={`${styles.metricCol} ${styles.colBlocked} ${isEmpty ? styles.metricEmpty : ""}`}
+                    className={`${styles.metricCol} ${styles.colBlocked} ${
+                      isEmpty ? styles.metricEmpty : ""
+                    }`}
                   >
                     {isEmpty ? "—" : row.blocked}
                   </div>
                   <div
-                    className={`${styles.metricCol} ${styles.colFlagged} ${isEmpty ? styles.metricEmpty : ""}`}
+                    className={`${styles.metricCol} ${styles.colFlagged} ${
+                      isEmpty ? styles.metricEmpty : ""
+                    }`}
                   >
                     {isEmpty ? "—" : row.flagged}
                   </div>
                   <div
-                    className={`${styles.metricCol} ${styles.colTotal} ${isEmpty ? styles.metricEmpty : ""}`}
+                    className={`${styles.metricCol} ${styles.colTotal} ${
+                      isEmpty ? styles.metricEmpty : ""
+                    }`}
                   >
                     {isEmpty ? "—" : row.total}
                   </div>

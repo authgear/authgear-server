@@ -124,7 +124,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
     const rawEventLog = useMemo(() => {
       if (node?.data == null) return "{}";
       return JSON.stringify(node.data, null, 2);
-    }, [node?.data]);
+    }, [node]);
 
     if (!loading && error == null && node == null) {
       return (
@@ -189,9 +189,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
                 <span className={styles.detailLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.userAgent" />
                 </span>
-                <span className={styles.detailValueMonospace}>
-                  {userAgent}
-                </span>
+                <span className={styles.detailValueMonospace}>{userAgent}</span>
               </div>
             </section>
 

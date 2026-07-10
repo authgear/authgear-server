@@ -362,9 +362,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
                     onChangeToSettings={() => onChangeKey("settings")}
                   />
                 ) : null}
-                {selectedKey === "logs" ? (
-                  <FraudProtectionLogsTab />
-                ) : null}
+                {selectedKey === "logs" ? <FraudProtectionLogsTab /> : null}
                 {selectedKey === "settings" ? (
                   <FraudProtectionSettingsTab
                     isModifiable={isModifiable}
@@ -408,11 +406,7 @@ const FraudProtectionConfigurationScreen: React.VFC =
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
     const { selectedKey, onLinkClick, onChangeKey } =
-      usePivotNavigation<FraudProtectionTab>([
-        "overview",
-        "logs",
-        "settings",
-      ]);
+      usePivotNavigation<FraudProtectionTab>(["overview", "logs", "settings"]);
 
     const handleToggleEnabledAndSave = useCallback(
       (enabled: boolean) => {

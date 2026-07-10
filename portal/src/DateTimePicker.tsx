@@ -43,7 +43,10 @@ function formatDate(date?: Date): string {
   });
 }
 
-function clampToMax(candidate: DateTime, maxDateTime: Date | null | undefined): DateTime {
+function clampToMax(
+  candidate: DateTime,
+  maxDateTime: Date | null | undefined
+): DateTime {
   if (maxDateTime == null) {
     return candidate;
   }
@@ -56,7 +59,10 @@ function clampToMax(candidate: DateTime, maxDateTime: Date | null | undefined): 
 
 // Day-granularity variant of clampToMax's bound check, used by callers that
 // only need to reject/accept a calendar date rather than clamp an exact time.
-function isAfterMaxDay(date: Date, maxDateTime: Date | null | undefined): boolean {
+function isAfterMaxDay(
+  date: Date,
+  maxDateTime: Date | null | undefined
+): boolean {
   if (maxDateTime == null) {
     return false;
   }
@@ -117,7 +123,9 @@ export default function DateTimePicker(
           end: 0,
         };
       }
-      if (startOfDay_pickedDateTime.valueOf() === startOfDay_minDate.valueOf()) {
+      if (
+        startOfDay_pickedDateTime.valueOf() === startOfDay_minDate.valueOf()
+      ) {
         start = min.getHours();
       }
     }
@@ -132,7 +140,9 @@ export default function DateTimePicker(
           end: 0,
         };
       }
-      if (startOfDay_pickedDateTime.valueOf() === startOfDay_maxDate.valueOf()) {
+      if (
+        startOfDay_pickedDateTime.valueOf() === startOfDay_maxDate.valueOf()
+      ) {
         // ITimeRange.end is exclusive; include the max hour.
         end = Math.min(24, max.getHours() + 1);
       }
@@ -290,10 +300,10 @@ export default function DateTimePicker(
               pickedDateTime != null
                 ? DateTime.fromJSDate(pickedDateTime)
                 : minDateTime != null
-                  ? DateTime.fromJSDate(getNowWithSecondsStripped())
-                  : maxDateTime != null
-                    ? DateTime.fromJSDate(maxDateTime)
-                    : null;
+                ? DateTime.fromJSDate(getNowWithSecondsStripped())
+                : maxDateTime != null
+                ? DateTime.fromJSDate(maxDateTime)
+                : null;
             if (anchor == null) {
               return true;
             }

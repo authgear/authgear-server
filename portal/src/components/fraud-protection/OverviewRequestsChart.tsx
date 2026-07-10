@@ -32,7 +32,7 @@ function buildHourlySlots(
   const byHour = new Map<string, TimeBucket>();
   for (const b of timeBuckets) {
     const key = DateTime.fromISO(b.hour).toUTC().startOf("hour").toISO();
-    if (key != null) byHour.set(key, b);
+    byHour.set(key, b);
   }
 
   const from = DateTime.fromISO(rangeFrom).toUTC().startOf("hour");
@@ -42,7 +42,7 @@ function buildHourlySlots(
   let cursor = from;
   while (cursor <= to) {
     const key = cursor.toISO();
-    const bucket = key != null ? byHour.get(key) : undefined;
+    const bucket = byHour.get(key);
     slots.push({
       label: cursor.toLocal().toFormat("h a"),
       total: bucket?.total ?? 0,
@@ -71,7 +71,12 @@ function buildDailySlots(
       existing.flagged += b.flagged;
     } else {
       const label = DateTime.fromISO(b.hour).toLocal().toFormat("LLL d");
-      byDay.set(dayKey, { label, total: b.total, blocked: b.blocked, flagged: b.flagged });
+      byDay.set(dayKey, {
+        label,
+        total: b.total,
+        blocked: b.blocked,
+        flagged: b.flagged,
+      });
     }
   }
 
@@ -85,7 +90,12 @@ function buildDailySlots(
     const dayKey = cursor.toFormat("yyyy-MM-dd");
     const existing = byDay.get(dayKey);
     slots.push(
-      existing ?? { label: cursor.toFormat("LLL d"), total: 0, blocked: 0, flagged: 0 }
+      existing ?? {
+        label: cursor.toFormat("LLL d"),
+        total: 0,
+        blocked: 0,
+        flagged: 0,
+      }
     );
     cursor = cursor.plus({ days: 1 });
   }
@@ -105,7 +115,12 @@ function buildSlots(
 }
 
 const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
-  function OverviewRequestsChart({ timeBuckets, timeRange, rangeFrom, rangeTo }) {
+  function OverviewRequestsChart({
+    timeBuckets,
+    timeRange,
+    rangeFrom,
+    rangeTo,
+  }) {
     const { renderToString } = useContext(Context);
 
     const chartLabels = useMemo(
@@ -151,14 +166,21 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
           },
           {
             label: chartLabels.totalRequests,
-            data: slots.map((s) => Math.max(0, s.total - s.blocked - s.flagged)),
+            data: slots.map((s) =>
+              Math.max(0, s.total - s.blocked - s.flagged)
+            ),
             backgroundColor: "#e5e5e5",
             borderWidth: 0,
             stack: "stack",
           },
         ],
       }),
-      [chartLabels.blocked, chartLabels.flagged, chartLabels.totalRequests, slots]
+      [
+        chartLabels.blocked,
+        chartLabels.flagged,
+        chartLabels.totalRequests,
+        slots,
+      ]
     );
 
     const options = useMemo<ChartOptions<"bar">>(
@@ -175,7 +197,10 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
               boxHeight: 12,
               padding: 24,
               color: "#605e5c",
-              font: { size: 12, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
+              font: {
+                size: 12,
+                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              },
               generateLabels: (chart) => {
                 const datasets = chart.data.datasets;
                 return datasets.map((ds, i) => ({
@@ -197,8 +222,15 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             borderWidth: 1,
             titleColor: "#323130",
             bodyColor: "#605e5c",
-            titleFont: { size: 12, weight: 600, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
-            bodyFont: { size: 12, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
+            titleFont: {
+              size: 12,
+              weight: 600,
+              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            },
+            bodyFont: {
+              size: 12,
+              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            },
             padding: 10,
             cornerRadius: 2,
             boxWidth: 10,
@@ -207,8 +239,12 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             callbacks: {
               label: (ctx) => {
                 if (ctx.datasetIndex === 2) {
-                  const blocked = ctx.chart.data.datasets[0].data[ctx.dataIndex] as number;
-                  const flagged = ctx.chart.data.datasets[1].data[ctx.dataIndex] as number;
+                  const blocked = ctx.chart.data.datasets[0].data[
+                    ctx.dataIndex
+                  ] as number;
+                  const flagged = ctx.chart.data.datasets[1].data[
+                    ctx.dataIndex
+                  ] as number;
                   const allowed = ctx.raw as number;
                   return `  ${renderToString(
                     "FraudProtectionConfigurationScreen.overview.chart.tooltip.totalRequests",
@@ -231,7 +267,10 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             ticks: {
               maxRotation: 0,
               autoSkip: false,
-              font: { size: 11, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
+              font: {
+                size: 11,
+                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              },
               color: "#8a8886",
             },
           },
@@ -241,14 +280,17 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             grid: { color: "#f3f2f1" },
             ticks: {
               precision: 0,
-              font: { size: 11, family: "'Segoe UI', system-ui, -apple-system, sans-serif" },
+              font: {
+                size: 11,
+                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              },
               color: "#8a8886",
             },
             border: { display: false },
           },
         },
       }),
-      [renderToString, timeRange]
+      [renderToString]
     );
 
     return (

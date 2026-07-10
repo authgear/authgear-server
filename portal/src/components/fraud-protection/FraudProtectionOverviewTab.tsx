@@ -74,7 +74,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
       void refetchOverview();
     }, [refetchOverview]);
 
-    const sendSMS = overviewData?.fraudProtectionOverview?.sendSMS;
+    const sendSMS = overviewData?.fraudProtectionOverview.sendSMS;
 
     const sourceIPs = useMemo<SourceIPRow[]>(() => {
       return (sendSMS?.topSourceIPs ?? []).map((ip) => ({
