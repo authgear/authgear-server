@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
+import cn from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
 import { Context, FormattedMessage } from "./intl";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -82,7 +83,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         }
         messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
       >
-        <form className={props.className} onSubmit={onSubmit}>
+        <form className={cn(styles.form, props.className)} onSubmit={onSubmit}>
           {props.children}
         </form>
       </DefaultLayout>

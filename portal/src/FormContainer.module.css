@@ -2,3 +2,11 @@
   @apply flex items-center justify-center;
   @apply space-x-2;
 }
+
+.form {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
