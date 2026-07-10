@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
 
 type FraudProtectionOverview struct {
@@ -17,12 +18,12 @@ type FraudProtectionOverview struct {
 }
 
 type FraudProtectionOverviewSendSMS struct {
-	TotalActions   int                                `json:"totalActions"`
-	BlockedActions int                                `json:"blockedActions"`
-	WarnedActions  int                                `json:"warnedActions"`
-	TopSourceIPs   []FraudProtectionOverviewIP        `json:"topSourceIPs"`
+	TotalActions   int                                 `json:"totalActions"`
+	BlockedActions int                                 `json:"blockedActions"`
+	WarnedActions  int                                 `json:"warnedActions"`
+	TopSourceIPs   []FraudProtectionOverviewIP         `json:"topSourceIPs"`
 	TopIPLocations []FraudProtectionOverviewIPLocation `json:"topIPLocations"`
-	TopSMSOrigins  []FraudProtectionOverviewSMSOrigin `json:"topSMSOrigins"`
+	TopSMSOrigins  []FraudProtectionOverviewSMSOrigin  `json:"topSMSOrigins"`
 	TimeBuckets    []FraudProtectionOverviewTimeBucket `json:"timeBuckets"`
 }
 
@@ -123,7 +124,6 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 	topIPsQuery := s.SQLBuilder.
 		Select(
 			"ip_address",
-			`COALESCE(MODE() WITHIN GROUP (ORDER BY NULLIF(UPPER(data#>>'{payload,record,geo_location_code}'), '')), '') AS geo_country_code`,
 			"COUNT(*) AS total_actions",
 			"COUNT(*) FILTER (WHERE decision = 'blocked') AS blocked_actions",
 			"COUNT(*) FILTER (WHERE decision = 'allowed' AND warning_count > 0) AS warning_actions",
@@ -147,11 +147,14 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		var total int64
 		var blocked int64
 		var warnings int64
-		if err := rows.Scan(&ip, &item.GeoCountryCode, &total, &blocked, &warnings); err != nil {
+		if err := rows.Scan(&ip, &total, &blocked, &warnings); err != nil {
 			return nil, err
 		}
 		if ip.Valid {
 			item.IPAddress = ip.String
+		}
+		if info, ok := geoip.IPString(item.IPAddress); ok {
+			item.GeoCountryCode = info.CountryCode
 		}
 		item.Total = int(total)
 		item.Blocked = int(blocked)
