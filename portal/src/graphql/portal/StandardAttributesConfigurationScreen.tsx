@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Text } from "@fluentui/react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import FormContainer from "../../FormContainer";
@@ -9,7 +10,6 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import UserProfileAttributesList, {
@@ -20,8 +20,9 @@ import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
 } from "../../types";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseJSONPointer } from "../../util/jsonpointer";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./StandardAttributesConfigurationScreen.module.css";
 import ExternalLink from "../../ExternalLink";
 
@@ -102,8 +103,6 @@ function ItemComponent(
   const { className, item } = props;
   const { pointer } = item;
   const fieldName = parseJSONPointer(pointer)[0];
-  const { themes } = useSystemConfig();
-  const descriptionColor = themes.main.palette.neutralTertiary;
   const messageId = "standard-attribute.description." + fieldName;
 
   const renderExternalLink = useCallback(
@@ -126,16 +125,10 @@ function ItemComponent(
 
   return (
     <div className={className}>
-      <Text className={styles.fieldName} block={true}>
+      <Text as="p" size="2" weight="medium">
         <FormattedMessage id={"standard-attribute." + fieldName} />
       </Text>
-      <Text
-        variant="small"
-        block={true}
-        style={{
-          color: descriptionColor,
-        }}
-      >
+      <Text as="p" size="1" color="gray">
         <FormattedMessage id={messageId} values={values} />
       </Text>
     </div>
@@ -145,6 +138,8 @@ function ItemComponent(
 const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributesConfigurationScreenContentProps> =
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const onChangeItems = useCallback(
       (newItems: UserProfileAttributesListItem[]) => {
         setState((prev) => {
@@ -157,20 +152,30 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
       [setState]
     );
     return (
-      <>
-        <ScreenContent layout="list">
-          <ScreenTitle className={styles.widget}>
+      <ScreenContent
+        layout="list"
+        className={cn(
+          styles.screenContent,
+          isDirty ? styles.contentWithSaveBar : null
+        )}
+      >
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
-          </ScreenTitle>
-          <div className={styles.widget}>
-            <UserProfileAttributesList
-              items={state.standardAttributesItems}
-              onChangeItems={onChangeItems}
-              ItemComponent={ItemComponent}
-            />
-          </div>
-        </ScreenContent>
-      </>
+          </Text>
+        </div>
+        <div className={cn(styles.widget, styles.tableWidget)}>
+          <UserProfileAttributesList
+            items={state.standardAttributesItems}
+            onChangeItems={onChangeItems}
+            ItemComponent={ItemComponent}
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </ScreenContent>
     );
   };
 
@@ -194,8 +199,8 @@ const StandardAttributesConfigurationScreen: React.VFC =
     return (
       <FormContainer
         form={form}
-        stickyFooterComponent={true}
-        showDiscardButton={true}
+        hideFooterComponent={true}
+        canSave={true}
       >
         <StandardAttributesConfigurationScreenContent form={form} />
       </FormContainer>
