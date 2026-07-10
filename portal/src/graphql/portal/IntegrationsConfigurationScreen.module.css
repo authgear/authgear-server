@@ -1,5 +1,5 @@
 .widget {
-  grid-column: 1 / span 12;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
@@ -100,6 +100,16 @@
 
 .action {
   font-weight: 600;
+  color: var(--accent-9);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.action:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
 }
 
 /* ── Add-on cell ── */

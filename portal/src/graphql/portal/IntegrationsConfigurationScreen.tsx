@@ -1,36 +1,43 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Text } from "@radix-ui/themes";
+import { Dialog, Flex, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
+import { produce } from "immer";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import Link from "../../Link";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { PortalAPIAppConfig } from "../../types";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { parseAPIErrors, parseRawError } from "../../error/parse";
+import ErrorRenderer from "../../ErrorRenderer";
+import { clearEmptyObject } from "../../util/misc";
 import styles from "./IntegrationsConfigurationScreen.module.css";
 
 import gtmLogoURL from "../../images/gtm_logo.png";
 
+function isValidGTMContainerID(containerID: string): boolean {
+  return /^GTM-.+/.test(containerID);
+}
+
+function gtmContainerIDFormatError(): React.ReactNode {
+  return (
+    <FormattedMessage
+      id="errors.validation.format"
+      values={{ format: "google_tag_manager_container_id" }}
+    />
+  );
+}
+
 interface FormState {
   googleTagManagerContainerID: string;
-}
-
-interface Item {
-  iconURL: string;
-  name: string;
-  description: string;
-  connected: boolean;
-  editPath: string;
-}
-
-export interface IntegrationsConfigurationContentProps {
-  form: AppConfigFormModel<FormState>;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -42,10 +49,27 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
-  _currentState: FormState,
+  currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  return config;
+  return produce(config, (config) => {
+    config.google_tag_manager ??= {};
+    if (currentState.googleTagManagerContainerID !== "") {
+      config.google_tag_manager.container_id =
+        currentState.googleTagManagerContainerID;
+    } else {
+      delete config.google_tag_manager.container_id;
+    }
+    clearEmptyObject(config);
+  });
+}
+
+interface Item {
+  iconURL: string;
+  name: string;
+  description: string;
+  connected: boolean;
+  hasSavedConnection: boolean;
 }
 
 interface AddonProps {
@@ -69,17 +93,56 @@ function Addon(props: AddonProps) {
   );
 }
 
-const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationContentProps> =
-  function IntegrationsConfigurationContent(props) {
-    const {
-      form: {
-        state: { googleTagManagerContainerID },
-      },
-    } = props;
+export interface IntegrationsConfigurationContentProps {
+  form: AppConfigFormModel<FormState>;
+}
 
+const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationContentProps> =
+  function IntegrationsConfigurationContent({ form }) {
     const { renderToString } = useContext(Context);
+    const { initialState, isUpdating, updateError, reset } = form;
+
+    const [gtmDialogOpen, setGtmDialogOpen] = useState(false);
+    const [draftContainerID, setDraftContainerID] = useState("");
+    const [localContainerIDError, setLocalContainerIDError] =
+      useState<React.ReactNode>(null);
+
+    const gtmContainerIDField = useMemo(
+      () => ({
+        parentJSONPointer: "/google_tag_manager",
+        fieldName: "container_id",
+      }),
+      []
+    );
+
+    const containerIDError = useMemo(() => {
+      if (updateError == null) {
+        return null;
+      }
+      const apiErrors = parseRawError(updateError);
+      const { fieldErrors } = parseAPIErrors(
+        apiErrors,
+        [gtmContainerIDField],
+        []
+      );
+      for (const [field, errors] of fieldErrors.entries()) {
+        if (
+          field.fieldName === gtmContainerIDField.fieldName &&
+          field.parentJSONPointer === gtmContainerIDField.parentJSONPointer
+        ) {
+          return errors.length > 0 ? (
+            <ErrorRenderer errors={errors} />
+          ) : null;
+        }
+      }
+      return null;
+    }, [updateError, gtmContainerIDField]);
+
+    const displayContainerIDError =
+      localContainerIDError ?? containerIDError;
 
     const items: Item[] = useMemo(() => {
+      const savedConnected = initialState.googleTagManagerContainerID !== "";
       return [
         {
           iconURL: gtmLogoURL,
@@ -89,11 +152,66 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
           description: renderToString(
             "IntegrationsConfigurationScreen.add-on.gtm.description"
           ),
-          connected: googleTagManagerContainerID !== "",
-          editPath: "./google-tag-manager",
+          connected: savedConnected,
+          hasSavedConnection: savedConnected,
         },
       ];
-    }, [renderToString, googleTagManagerContainerID]);
+    }, [renderToString, initialState.googleTagManagerContainerID]);
+
+    const showStatusColumn = useMemo(
+      () => items.some((item) => item.connected),
+      [items]
+    );
+
+    const onOpenGtmDialog = useCallback(() => {
+      reset();
+      setLocalContainerIDError(null);
+      setDraftContainerID(initialState.googleTagManagerContainerID);
+      setGtmDialogOpen(true);
+    }, [initialState.googleTagManagerContainerID, reset]);
+
+    const onCloseGtmDialog = useCallback(() => {
+      if (!isUpdating) {
+        setGtmDialogOpen(false);
+        setLocalContainerIDError(null);
+        reset();
+      }
+    }, [isUpdating, reset]);
+
+    const onGtmDialogOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onCloseGtmDialog();
+        }
+      },
+      [onCloseGtmDialog]
+    );
+
+    const onDraftContainerIDChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDraftContainerID(e.target.value);
+      },
+      []
+    );
+
+    const onSaveGTM = useCallback(() => {
+      const newID = draftContainerID.trim();
+      if (newID !== "" && !isValidGTMContainerID(newID)) {
+        setLocalContainerIDError(gtmContainerIDFormatError());
+        return;
+      }
+
+      setLocalContainerIDError(null);
+      form
+        .saveWith((prev) => ({
+          ...prev,
+          googleTagManagerContainerID: newID,
+        }))
+        .then(() => {
+          setGtmDialogOpen(false);
+        })
+        .catch(() => {});
+    }, [draftContainerID, form]);
 
     return (
       <ScreenLayoutScrollView>
@@ -110,7 +228,11 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
                   <div className={styles.headerCellAddon}>
                     <FormattedMessage id="IntegrationsConfigurationScreen.add-on" />
                   </div>
-                  <div className={styles.headerCellStatus} aria-hidden={true} />
+                  {showStatusColumn ? (
+                    <div className={styles.headerCellStatus}>
+                      <FormattedMessage id="IntegrationsConfigurationScreen.status" />
+                    </div>
+                  ) : null}
                   <div className={styles.headerCellAction}>
                     <FormattedMessage id="IntegrationsConfigurationScreen.action" />
                   </div>
@@ -120,25 +242,31 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
                     <div className={styles.cellAddon}>
                       <Addon item={item} />
                     </div>
-                    <div className={styles.cellStatus}>
-                      {item.connected ? (
-                        <Badge
-                          size="1"
-                          variant="success"
-                          text={
-                            <FormattedMessage id="IntegrationsConfigurationScreen.status.connected" />
-                          }
-                        />
-                      ) : null}
-                    </div>
-                    <div className={styles.cellAction}>
-                      <Link to={item.editPath} className={styles.action}>
+                    {showStatusColumn ? (
+                      <div className={styles.cellStatus}>
                         {item.connected ? (
+                          <Badge
+                            size="1"
+                            variant="success"
+                            text={
+                              <FormattedMessage id="IntegrationsConfigurationScreen.status.connected" />
+                            }
+                          />
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <div className={styles.cellAction}>
+                      <button
+                        type="button"
+                        className={styles.action}
+                        onClick={onOpenGtmDialog}
+                      >
+                        {item.hasSavedConnection ? (
                           <FormattedMessage id="edit" />
                         ) : (
                           <FormattedMessage id="connect" />
                         )}
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -146,6 +274,41 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
             </div>
           </div>
         </ScreenContent>
+
+        <Dialog.Root open={gtmDialogOpen} onOpenChange={onGtmDialogOpenChange}>
+          <Dialog.Content maxWidth="400px" size="3">
+            <Dialog.Title>
+              <FormattedMessage id="IntegrationsConfigurationScreen.add-on.gtm.dialog.title" />
+            </Dialog.Title>
+            <TextField
+              size="2"
+              label={
+                <FormattedMessage id="IntegrationsConfigurationScreen.add-on.gtm.dialog.container-id.label" />
+              }
+              placeholder={renderToString(
+                "GoogleTagManagerConfigurationScreen.container-id.placeholder"
+              )}
+              value={draftContainerID}
+              onChange={onDraftContainerIDChange}
+              error={displayContainerIDError}
+            />
+            <Flex gap="3" mt="4" justify="end">
+              <SecondaryButton
+                size="2"
+                text={<FormattedMessage id="cancel" />}
+                onClick={onCloseGtmDialog}
+                disabled={isUpdating}
+              />
+              <PrimaryButton
+                size="2"
+                text={<FormattedMessage id="save" />}
+                onClick={onSaveGTM}
+                loading={isUpdating}
+                disabled={isUpdating}
+              />
+            </Flex>
+          </Dialog.Content>
+        </Dialog.Root>
       </ScreenLayoutScrollView>
     );
   };
