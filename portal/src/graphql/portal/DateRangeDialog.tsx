@@ -7,23 +7,38 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import DateTimePicker from "../../DateTimePicker";
 
-interface DateRangeDialogProps {
+interface DateRangeDialogBaseProps {
   hidden: boolean;
   title: string;
   fromDatePickerLabel: string;
   toDatePickerLabel: string;
   rangeFrom?: Date;
   rangeTo?: Date;
-  fromDatePickerMinDate?: Date;
-  fromDatePickerMaxDate?: Date;
-  toDatePickerMinDate?: Date;
-  toDatePickerMaxDate?: Date;
   onSelectRangeFrom?: (date: Date | null | undefined) => void;
   onSelectRangeTo?: (date: Date | null | undefined) => void;
   onCommitDateRange?: (e?: React.MouseEvent<unknown>) => void;
   onDismiss?: (e?: React.MouseEvent<unknown>) => void;
-  showTimePicker?: boolean;
 }
+
+// DateTimePicker only supports "now" as its lower bound (see DateTimePickerProps.minDateTime),
+// so fromDatePickerMinDate/toDatePickerMinDate have no equivalent when showTimePicker is true.
+// Splitting the props by showTimePicker prevents them from being passed (and silently ignored)
+// together.
+type DateRangeDialogProps = DateRangeDialogBaseProps &
+  (
+    | {
+        showTimePicker: true;
+        fromDatePickerMaxDate?: Date;
+        toDatePickerMaxDate?: Date;
+      }
+    | {
+        showTimePicker?: false;
+        fromDatePickerMinDate?: Date;
+        fromDatePickerMaxDate?: Date;
+        toDatePickerMinDate?: Date;
+        toDatePickerMaxDate?: Date;
+      }
+  );
 
 const DateRangeDialog: React.VFC<DateRangeDialogProps> =
   function DateRangeDialog(props) {
@@ -34,9 +49,7 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
       toDatePickerLabel,
       rangeFrom,
       rangeTo,
-      fromDatePickerMinDate,
       fromDatePickerMaxDate,
-      toDatePickerMinDate,
       toDatePickerMaxDate,
       onSelectRangeFrom,
       onSelectRangeTo,
@@ -44,6 +57,12 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
       onDismiss,
       showTimePicker = false,
     } = props;
+    const fromDatePickerMinDate = props.showTimePicker
+      ? undefined
+      : props.fromDatePickerMinDate;
+    const toDatePickerMinDate = props.showTimePicker
+      ? undefined
+      : props.toDatePickerMinDate;
 
     const dateRangeDialogContentProps = useMemo(() => {
       return {

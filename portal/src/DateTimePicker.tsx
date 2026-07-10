@@ -54,6 +54,17 @@ function clampToMax(candidate: DateTime, maxDateTime: Date | null | undefined): 
   return candidate;
 }
 
+// Day-granularity variant of clampToMax's bound check, used by callers that
+// only need to reject/accept a calendar date rather than clamp an exact time.
+function isAfterMaxDay(date: Date, maxDateTime: Date | null | undefined): boolean {
+  if (maxDateTime == null) {
+    return false;
+  }
+  const startOfDay_date = DateTime.fromJSDate(date).startOf("day");
+  const startOfDay_max = DateTime.fromJSDate(maxDateTime).startOf("day");
+  return startOfDay_date.valueOf() > startOfDay_max.valueOf();
+}
+
 export default function DateTimePicker(
   props: DateTimePickerProps
 ): React.ReactElement {
@@ -172,13 +183,8 @@ export default function DateTimePicker(
       }
 
       // Do not allow to pick a date greater than maxDate.
-      if (maxDateTime != null) {
-        const startOfDay_maxDate = DateTime.fromJSDate(maxDateTime).startOf(
-          "day"
-        );
-        if (startOfDay_pickedDate.valueOf() > startOfDay_maxDate.valueOf()) {
-          return;
-        }
+      if (isAfterMaxDay(date, maxDateTime)) {
+        return;
       }
 
       let candidate = DateTime.fromObject({
@@ -253,17 +259,9 @@ export default function DateTimePicker(
               return null;
             }
           }
-          if (maxDateTime != null) {
-            const startOfDay_maxDate =
-              DateTime.fromJSDate(maxDateTime).startOf("day");
-            const startOfDay_pickedDate =
-              DateTime.fromJSDate(date).startOf("day");
-            // Do not allow to enter a date greater than maxDate.
-            if (
-              startOfDay_pickedDate.valueOf() > startOfDay_maxDate.valueOf()
-            ) {
-              return null;
-            }
+          // Do not allow to enter a date greater than maxDate.
+          if (isAfterMaxDay(date, maxDateTime)) {
+            return null;
           }
           return date;
         }
