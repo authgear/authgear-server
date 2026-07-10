@@ -129,9 +129,6 @@ const CustomTextConfigurationScreen = lazy(
 const LanguagesConfigurationScreen = lazy(
   async () => import("./graphql/portal/LanguagesConfigurationScreen")
 );
-const InviteAdminScreen = lazy(
-  async () => import("./graphql/portal/InviteAdminScreen")
-);
 const PortalAdminsSettings = lazy(
   async () => import("./graphql/portal/PortalAdminsSettings")
 );
@@ -1055,14 +1052,6 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <PortalAdminsSettings />
-                </Suspense>
-              }
-            />
-            <Route
-              path="invite"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <InviteAdminScreen />
                 </Suspense>
               }
             />

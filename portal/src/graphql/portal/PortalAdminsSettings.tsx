@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "../../intl";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { Text } from "@radix-ui/themes";
 
@@ -16,6 +16,7 @@ import RemovePortalAdminConfirmationDialog, {
 import RemovePortalAdminInvitationConfirmationDialog, {
   RemovePortalAdminInvitationConfirmationDialogData,
 } from "./RemovePortalAdminInvitationConfirmationDialog";
+import InviteAdminDialog from "./InviteAdminDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -31,7 +32,6 @@ import { getNextPlan } from "../../util/plan";
 
 const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   const { appID } = useParams() as { appID: string };
-  const navigate = useNavigate();
 
   const {
     effectiveFeatureConfig,
@@ -72,6 +72,8 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     isRemovePortalAdminInvitationConfirmationDialogVisible,
     setIsRemovePortalAdminInvitationConfirmationDialogVisible,
   ] = useState(false);
+  const [isInviteAdminDialogVisible, setIsInviteAdminDialogVisible] =
+    useState(false);
   const [
     removePortalAdminInvitationConfirmationDialogData,
     setRemovePortalAdminInvitationConfirmationDialogData,
@@ -95,8 +97,12 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   }, [collaborators, collaboratorInvitations, effectiveFeatureConfig]);
 
   const onInviteClicked = useCallback(() => {
-    navigate("./invite");
-  }, [navigate]);
+    setIsInviteAdminDialogVisible(true);
+  }, []);
+
+  const dismissInviteAdminDialog = useCallback(() => {
+    setIsInviteAdminDialogVisible(false);
+  }, []);
 
   const onRemoveCollaboratorClicked = useCallback(
     (id: string) => {
@@ -283,6 +289,10 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
         onDismiss={dismissRemovePortalAdminInvitationConfirmationDialog}
         deleteCollaboratorInvitation={OnDeleteCollaboratorInvitation}
         deletingCollaboratorInvitation={deletingCollaboratorInvitation}
+      />
+      <InviteAdminDialog
+        open={isInviteAdminDialogVisible}
+        onDismiss={dismissInviteAdminDialog}
       />
       <ErrorDialog
         error={deleteCollaboratorError}
