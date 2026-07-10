@@ -1,125 +1,100 @@
 .widget {
-  grid-column: 1 / span 12;
-
+  grid-column: 1 / span 9;
   @apply tablet:col-span-full;
 }
 
-.content {
-  grid-column: 1 / span 12;
-
-  @apply tablet:col-span-full mt-6;
+.pageHeader {
+  @apply flex flex-col gap-2;
 }
 
-.enabledContent {
-  /* To limit the width of the enabledContent */
-  max-width: 45rem;
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
 
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.providerSelector {
+  @apply flex flex-col gap-1;
+}
+
+.providerDescription {
+  color: var(--gray-a11);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}
+
+.settingsCardAlignCenter {
+  align-items: center;
+}
+
+.enableToggle {
   display: flex;
-  flex-direction: column;
-
-  @apply mt-12;
+  align-items: center;
+  min-height: var(--line-height-3);
 }
 
-.columnLeft {
-  grid-column: 1 / span 4;
-}
-
-.columnRight {
-  grid-column: 5 / span 4;
-}
-
-.section {
+.enableToggleRow {
   display: flex;
-  flex-direction: column;
-  row-gap: 1rem;
+  align-items: center;
+  padding: var(--space-2) 0;
 }
 
-.providerCardContainer {
+/* Secret key row */
+.secretKeyInputRow {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--space-3);
+  align-items: center;
+}
 
-  column-gap: 0.5rem;
+.secretKeyInput {
+  min-width: 0;
+}
 
+/* Requirements */
+.requirementSelectTrigger {
   width: 100%;
 }
 
-.providerCard {
-  padding: 0.5rem 1rem;
+.requirementsNestedCard {
+  @apply flex flex-col gap-2 rounded-xl border border-solid p-4;
+  border-color: var(--gray-5);
+}
+
+.requirementRadioRow {
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-width: 0.06rem; /* 1px */
-  border-style: solid;
-  column-gap: 1rem;
-
-  /* ref https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.css */
-  /* .ms-depth-4 */
-  box-shadow: 0 1.6px 3.6px 0 rgb(0 0 0 / 0.13),
-    0 0.3px 0.9px 0 rgb(0 0 0 / 0.11);
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-height: 1.25rem;
 }
 
-.providerCard:disabled {
-  box-shadow: none;
-  cursor: not-allowed;
-  background-color: #f3f2f1;
+.requirementRadioRowLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--gray-12);
 }
 
-.providerCard > .providerCardLabel {
+.requirementRadioOption {
+  color: var(--gray-12);
   cursor: pointer;
 }
 
-.providerCard:disabled > .providerCardLabel {
-  cursor: not-allowed;
-}
-
-.secretKeyInputContainer {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  grid-template-rows: auto 1fr;
-  column-gap: 0.5rem;
-}
-.secretKeyInputWithoutEdit {
-  grid-column: 1 / span 8;
-}
-.secretKeyInputWithEdit {
-  grid-column: 1 / span 7;
-}
-.secretKeyEditButton {
-  grid-column: span 1 / span 1;
-  justify-self: center;
-  align-self: end;
-}
-
-.sectionHeader {
-  display: flex;
-  flex-direction: column;
-  row-gap: 0.75rem;
-}
-
-.subtitle {
-  font-size: 1.13rem;
-  font-weight: 600;
-  line-height: 1.5rem;
-}
-
-.requirementConfigLabelContainer {
-  @apply h-full flex items-center;
-}
-
-.disabledRequirementConfigLabelContainer {
-  @apply h-full flex items-center;
-  opacity: 0.4;
-}
-
-.requirementHeaderLabel {
-  font-weight: 600;
-}
-
-.requirementConfigLabel {
-  font-weight: 400;
-}
-
-.requirementDropdownContainer {
-  @apply pt-0.5 pb-0.5;
+.requirementRowSeparator {
+  width: 100%;
 }
