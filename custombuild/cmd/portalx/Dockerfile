@@ -90,7 +90,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026a\*; \
+            tzdata=2026b\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-portal-stage-2 /src/custombuild/authgear-portal /usr/local/bin/
 # There is no need to run update-ca-certificates
