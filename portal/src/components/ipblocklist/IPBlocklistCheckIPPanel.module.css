@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  align-items: center;
+}
+
+.input {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.hint {
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--gray-a11);
+}
+
+.checkButton {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}

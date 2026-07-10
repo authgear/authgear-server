@@ -1,14 +1,18 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import { Context as MessageContext, FormattedMessage } from "../../intl";
-import Toggle from "../../Toggle";
+import React, { useCallback, useMemo } from "react";
+import { Callout } from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { FormattedMessage } from "../../intl";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
-import { ITag, Label, MessageBar, MessageBarType } from "@fluentui/react";
-import ButtonWithLoading from "../../ButtonWithLoading";
+import { ITag, IBasePickerStyles } from "@fluentui/react";
 import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
-import FormTextField from "../../FormTextField";
 import { APIError } from "../../error/error";
 import { Address4, Address6 } from "ip-address";
+import { fixTagPickerStyles } from "../../bugs";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { TextArea } from "../v2/TextArea/TextArea";
+import { FormField } from "../v2/FormField/FormField";
+import styles from "./IPBlocklistForm.module.css";
 
 export interface IPBlocklistFormState {
   isEditAllowed: boolean;
@@ -25,14 +29,14 @@ export interface IPCheckResult {
 export interface IPBlocklistFormProps {
   state: IPBlocklistFormState;
   setState: (fn: (state: IPBlocklistFormState) => IPBlocklistFormState) => void;
-  ipToCheck: string;
-  onIPToCheckChange: (
-    e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  onCheckIP: () => void;
-  checkingIP: boolean;
-  checkIPResult: IPCheckResult | null;
 }
+
+const countryTagPickerStyles: Partial<IBasePickerStyles> = {
+  ...fixTagPickerStyles,
+  root: {
+    width: "100%",
+  },
+};
 
 export function toCIDRs(blockedIPCIDRsStr: string): string[] {
   return blockedIPCIDRsStr
@@ -63,17 +67,11 @@ export function toCIDRs(blockedIPCIDRsStr: string): string[] {
     })
     .filter((s) => s !== "");
 }
+
 export function IPBlocklistForm({
   state,
   setState,
-  ipToCheck,
-  onIPToCheckChange,
-  onCheckIP,
-  checkingIP,
-  checkIPResult,
 }: IPBlocklistFormProps): React.ReactElement {
-  const { renderToString } = useContext(MessageContext);
-
   const { alpha2Options } = useMakeAlpha2Options();
 
   const onResolveCountryCodeSuggestions = useCallback(
@@ -103,14 +101,11 @@ export function IPBlocklistForm({
   );
 
   const onBlockedIPCIDRsChange = useCallback(
-    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.currentTarget.value;
-      setState((prev) => {
-        return {
-          ...prev,
-          blockedIPCIDRs: value,
-        };
-      });
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setState((prev) => ({
+        ...prev,
+        blockedIPCIDRs: e.target.value,
+      }));
     },
     [setState]
   );
@@ -120,12 +115,17 @@ export function IPBlocklistForm({
       if (items == null) {
         return;
       }
-      setState((prev) => {
-        return {
-          ...prev,
-          blockedCountryAlpha2s: items.map((it) => it.key as string),
-        };
-      });
+      setState((prev) => ({
+        ...prev,
+        blockedCountryAlpha2s: items.map((it) => it.key as string),
+      }));
+    },
+    [setState]
+  );
+
+  const onChangeEnabled = useCallback(
+    (checked: boolean) => {
+      setState((prev) => ({ ...prev, isEnabled: checked }));
     },
     [setState]
   );
@@ -178,97 +178,63 @@ export function IPBlocklistForm({
   );
 
   return (
-    <div className="p-6 max-w-180">
+    <>
       {!state.isEditAllowed ? (
-        <div className="mb-6">
-          <MessageBar messageBarType={MessageBarType.info}>
+        <Callout.Root color="blue" variant="surface" size="1">
+          <Callout.Icon>
+            <InfoCircledIcon />
+          </Callout.Icon>
+          <Callout.Text>
             <FormattedMessage id="IPBlocklistForm.error.edit-disabled" />
-          </MessageBar>
-        </div>
+          </Callout.Text>
+        </Callout.Root>
       ) : null}
-      <Toggle
-        label={renderToString("IPBlocklistForm.enable.label")}
-        inlineLabel={false}
-        disabled={!state.isEditAllowed}
-        checked={state.isEnabled}
-        onChange={useCallback(
-          (_, checked) => {
-            setState((prev) => ({ ...prev, isEnabled: !!checked }));
-          },
-          [setState]
-        )}
-      />
+      <div className={styles.enableToggle}>
+        <Toggle
+          checked={state.isEnabled}
+          onCheckedChange={onChangeEnabled}
+          disabled={!state.isEditAllowed}
+          textWeight="medium"
+          text={<FormattedMessage id="IPBlocklistForm.enable.label" />}
+        />
+      </div>
       {state.isEnabled && state.isEditAllowed ? (
-        <div className="mt-12 flex flex-col gap-y-6">
-          <div>
-            <FormTextField
-              parentJSONPointer="/network_protection/ip_filter/rules/0/source"
-              fieldName="cidrs"
-              className="h-37"
-              label={renderToString("IPBlocklistForm.ip-address.label")}
-              multiline={true}
-              resizable={false}
-              description={renderToString(
-                "IPBlocklistForm.ip-address.description"
-              )}
-              value={state.blockedIPCIDRs}
-              onChange={onBlockedIPCIDRsChange}
-              errorRules={cidrsFieldErrorRules}
-            />
-          </div>
-          <div>
-            <CustomTagPicker
-              label={renderToString("IPBlocklistForm.block-country.label")}
-              onResolveSuggestions={onResolveCountryCodeSuggestions}
-              selectedItems={selectedCountryTags}
-              onChange={onCountryItemChange}
-            />
-          </div>
-          <div className="h-px w-full bg-separator" />
-          <div className="flex flex-col gap-y-4 p-4 bg-[#FAF9F8]">
-            <div className="flex items-start gap-x-4">
-              <FormTextField
-                parentJSONPointer=""
-                fieldName="ipAddress"
-                className="flex-1"
-                label={renderToString("IPBlocklistForm.check-ip-address.label")}
-                value={ipToCheck}
-                onChange={onIPToCheckChange}
+        <>
+          <TextArea
+            size="2"
+            labelSize="2"
+            className={styles.textArea}
+            label={
+              <FormattedMessage id="IPBlocklistForm.ip-address.label" />
+            }
+            hint={
+              <FormattedMessage id="IPBlocklistForm.ip-address.description" />
+            }
+            parentJSONPointer="/network_protection/ip_filter/rules/0/source"
+            fieldName="cidrs"
+            value={state.blockedIPCIDRs}
+            onChange={onBlockedIPCIDRsChange}
+            errorRules={cidrsFieldErrorRules}
+          />
+          <FormField
+            size="2"
+            labelSize="2"
+            label={
+              <FormattedMessage id="IPBlocklistForm.block-country.label" />
+            }
+            labelSpace="1"
+          >
+            <div className={styles.countryTagPicker}>
+              <CustomTagPicker
+                styles={countryTagPickerStyles}
+                onResolveSuggestions={onResolveCountryCodeSuggestions}
+                selectedItems={selectedCountryTags}
+                onChange={onCountryItemChange}
               />
-              <div>
-                {/* Add a empty label to align the button */}
-                <Label>&nbsp;</Label>
-                <ButtonWithLoading
-                  labelId="IPBlocklistForm.check-ip-address.button"
-                  onClick={onCheckIP}
-                  loading={checkingIP}
-                />
-              </div>
             </div>
-            {checkIPResult != null ? (
-              checkIPResult.result ? (
-                <MessageBar messageBarType={MessageBarType.error}>
-                  <FormattedMessage
-                    id="IPBlocklistForm.check-ip-address.result.is-blocked"
-                    values={{
-                      ipAddress: checkIPResult.ipAddress,
-                    }}
-                  />
-                </MessageBar>
-              ) : (
-                <MessageBar messageBarType={MessageBarType.info}>
-                  <FormattedMessage
-                    id="IPBlocklistForm.check-ip-address.result.is-not-blocked"
-                    values={{
-                      ipAddress: checkIPResult.ipAddress,
-                    }}
-                  />
-                </MessageBar>
-              )
-            ) : null}
-          </div>
-        </div>
+          </FormField>
+        </>
       ) : null}
-    </div>
+    </>
   );
 }
