@@ -248,7 +248,10 @@ func (s *ReadStore) GetFraudProtectionOverview(ctx context.Context, opts FraudPr
 		).
 		FromSelect(baseQuery, "records").
 		GroupBy("hour").
-		OrderBy("hour ASC")
+		OrderBy("hour ASC").
+		// Cap returned hourly buckets (~90 days) so unbounded Admin API
+		// callers cannot pull an arbitrarily large result set.
+		Limit(24 * 90)
 
 	timeBucketRows, err := s.SQLExecutor.QueryWith(ctx, timeBucketsQuery)
 	if err != nil {
