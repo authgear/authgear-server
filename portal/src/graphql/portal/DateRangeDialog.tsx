@@ -73,6 +73,7 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
               }
               pickedDateTime={rangeFrom ?? null}
               minDateTime={null}
+              maxDateTime={fromDatePickerMaxDate ?? null}
               onPickDateTime={onSelectRangeFrom ?? (() => {})}
               showClearButton={false}
             />
@@ -85,6 +86,7 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
               }
               pickedDateTime={rangeTo ?? null}
               minDateTime={null}
+              maxDateTime={toDatePickerMaxDate ?? null}
               onPickDateTime={onSelectRangeTo ?? (() => {})}
               showClearButton={false}
             />

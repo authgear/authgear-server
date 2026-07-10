@@ -18,6 +18,8 @@ export interface DateTimePickerProps {
   hint?: React.ReactElement | null;
   pickedDateTime: Date | null;
   minDateTime: "now" | null;
+  // Optional upper bound. When set, the picker rejects dates/times after this value.
+  maxDateTime?: Date | null;
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
 }
@@ -41,6 +43,17 @@ function formatDate(date?: Date): string {
   });
 }
 
+function clampToMax(candidate: DateTime, maxDateTime: Date | null | undefined): DateTime {
+  if (maxDateTime == null) {
+    return candidate;
+  }
+  const max = DateTime.fromJSDate(maxDateTime);
+  if (candidate.valueOf() > max.valueOf()) {
+    return max;
+  }
+  return candidate;
+}
+
 export default function DateTimePicker(
   props: DateTimePickerProps
 ): React.ReactElement {
@@ -50,6 +63,7 @@ export default function DateTimePicker(
     hint,
     pickedDateTime,
     minDateTime,
+    maxDateTime = null,
     onPickDateTime,
     showClearButton,
   } = props;
@@ -68,38 +82,56 @@ export default function DateTimePicker(
   const [timePickerKey, setTimePickerKey] = useState(0);
 
   const timeRange: ITimeRange = useMemo(() => {
-    // No limit
-    if (minDateTime == null || pickedDateTime == null) {
+    if (pickedDateTime == null) {
       return {
         start: 0,
         end: 0,
       };
     }
 
-    const min = getNowWithSecondsStripped();
-
-    const startOfDay_minDate = DateTime.fromJSDate(min).startOf("day");
     const startOfDay_pickedDateTime =
       DateTime.fromJSDate(pickedDateTime).startOf("day");
 
-    // This should not happen.
-    if (startOfDay_pickedDateTime.valueOf() < startOfDay_minDate.valueOf()) {
-      return {
-        start: 0,
-        end: 0,
-      };
+    let start = 0;
+    let end = 0;
+
+    if (minDateTime != null) {
+      const min = getNowWithSecondsStripped();
+      const startOfDay_minDate = DateTime.fromJSDate(min).startOf("day");
+
+      // This should not happen.
+      if (startOfDay_pickedDateTime.valueOf() < startOfDay_minDate.valueOf()) {
+        return {
+          start: 0,
+          end: 0,
+        };
+      }
+      if (startOfDay_pickedDateTime.valueOf() === startOfDay_minDate.valueOf()) {
+        start = min.getHours();
+      }
     }
-    if (startOfDay_pickedDateTime.valueOf() > startOfDay_minDate.valueOf()) {
-      return {
-        start: 0,
-        end: 0,
-      };
+
+    if (maxDateTime != null) {
+      const max = maxDateTime;
+      const startOfDay_maxDate = DateTime.fromJSDate(max).startOf("day");
+
+      if (startOfDay_pickedDateTime.valueOf() > startOfDay_maxDate.valueOf()) {
+        return {
+          start: 0,
+          end: 0,
+        };
+      }
+      if (startOfDay_pickedDateTime.valueOf() === startOfDay_maxDate.valueOf()) {
+        // ITimeRange.end is exclusive; include the max hour.
+        end = Math.min(24, max.getHours() + 1);
+      }
     }
+
     return {
-      start: min.getHours(),
-      end: 0,
+      start,
+      end,
     };
-  }, [minDateTime, pickedDateTime]);
+  }, [maxDateTime, minDateTime, pickedDateTime]);
 
   const onSelectDate_noMinDate = useCallback(
     (date: Date | null | undefined) => {
@@ -108,20 +140,18 @@ export default function DateTimePicker(
       } else {
         const datetime =
           pickedDateTime != null ? DateTime.fromJSDate(pickedDateTime) : null;
-        onPickDateTime(
-          DateTime.fromJSDate(date)
-            .set({
-              hour: datetime?.hour ?? 0,
-              minute: datetime?.minute ?? 0,
-              second: 0,
-              millisecond: 0,
-            })
-            .toJSDate()
-        );
+        let candidate = DateTime.fromJSDate(date).set({
+          hour: datetime?.hour ?? 0,
+          minute: datetime?.minute ?? 0,
+          second: 0,
+          millisecond: 0,
+        });
+        candidate = clampToMax(candidate, maxDateTime);
+        onPickDateTime(candidate.toJSDate());
       }
       setTimePickerKey((prev) => prev + 1);
     },
-    [onPickDateTime, pickedDateTime]
+    [maxDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onSelectDate_withMinDate = useCallback(
@@ -141,6 +171,16 @@ export default function DateTimePicker(
         return;
       }
 
+      // Do not allow to pick a date greater than maxDate.
+      if (maxDateTime != null) {
+        const startOfDay_maxDate = DateTime.fromJSDate(maxDateTime).startOf(
+          "day"
+        );
+        if (startOfDay_pickedDate.valueOf() > startOfDay_maxDate.valueOf()) {
+          return;
+        }
+      }
+
       let candidate = DateTime.fromObject({
         year: startOfDay_pickedDate.year,
         month: startOfDay_pickedDate.month,
@@ -153,11 +193,12 @@ export default function DateTimePicker(
       if (candidate.toJSDate().getTime() < min.getTime()) {
         candidate = DateTime.fromJSDate(min);
       }
+      candidate = clampToMax(candidate, maxDateTime);
 
       onPickDateTime(candidate.toJSDate());
       setTimePickerKey((prev) => prev + 1);
     },
-    [minDateTime, onPickDateTime, pickedDateTime]
+    [maxDateTime, minDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onChange = useCallback(
@@ -167,19 +208,17 @@ export default function DateTimePicker(
       }
       if (!isNaN(time.getTime())) {
         const datetime = DateTime.fromJSDate(time);
-        onPickDateTime(
-          DateTime.fromJSDate(pickedDateTime)
-            .set({
-              hour: datetime.hour,
-              minute: datetime.minute,
-              second: 0,
-              millisecond: 0,
-            })
-            .toJSDate()
-        );
+        let candidate = DateTime.fromJSDate(pickedDateTime).set({
+          hour: datetime.hour,
+          minute: datetime.minute,
+          second: 0,
+          millisecond: 0,
+        });
+        candidate = clampToMax(candidate, maxDateTime);
+        onPickDateTime(candidate.toJSDate());
       }
     },
-    [onPickDateTime, pickedDateTime]
+    [maxDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onClickClear = useCallback(() => {
@@ -214,12 +253,24 @@ export default function DateTimePicker(
               return null;
             }
           }
+          if (maxDateTime != null) {
+            const startOfDay_maxDate =
+              DateTime.fromJSDate(maxDateTime).startOf("day");
+            const startOfDay_pickedDate =
+              DateTime.fromJSDate(date).startOf("day");
+            // Do not allow to enter a date greater than maxDate.
+            if (
+              startOfDay_pickedDate.valueOf() > startOfDay_maxDate.valueOf()
+            ) {
+              return null;
+            }
+          }
           return date;
         }
       } catch {}
       return null;
     },
-    [minDateTime]
+    [maxDateTime, minDateTime]
   );
 
   const onFormatDate = useCallback((date: Date) => {
@@ -237,14 +288,31 @@ export default function DateTimePicker(
           });
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (timeOnly.isValid) {
+            const anchor =
+              pickedDateTime != null
+                ? DateTime.fromJSDate(pickedDateTime)
+                : minDateTime != null
+                  ? DateTime.fromJSDate(getNowWithSecondsStripped())
+                  : maxDateTime != null
+                    ? DateTime.fromJSDate(maxDateTime)
+                    : null;
+            if (anchor == null) {
+              return true;
+            }
+            const dt = timeOnly.set({
+              year: anchor.year,
+              month: anchor.month,
+              day: anchor.day,
+            });
             if (minDateTime != null) {
               const min = DateTime.fromJSDate(getNowWithSecondsStripped());
-              const dt = timeOnly.set({
-                year: min.year,
-                month: min.month,
-                day: min.day,
-              });
               if (dt.valueOf() < min.valueOf()) {
+                return false;
+              }
+            }
+            if (maxDateTime != null) {
+              const max = DateTime.fromJSDate(maxDateTime);
+              if (dt.valueOf() > max.valueOf()) {
                 return false;
               }
             }
@@ -262,7 +330,7 @@ export default function DateTimePicker(
       }
       return "";
     },
-    [minDateTime]
+    [maxDateTime, minDateTime, pickedDateTime]
   );
 
   const datePickerStrings = useMemo(() => {
@@ -287,6 +355,7 @@ export default function DateTimePicker(
               : onSelectDate_noMinDate
           }
           minDate={minDateTime === "now" ? new Date() : undefined}
+          maxDate={maxDateTime ?? undefined}
           formatDate={formatDate}
           parseDateFromString={parseDateFromString}
           allowTextInput={true}
