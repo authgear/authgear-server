@@ -4,6 +4,7 @@ import {
   Dropdown,
   IContextualMenuProps,
   IDropdownOption,
+  IRenderFunction,
 } from "@fluentui/react";
 import CommandBarButton from "../../CommandBarButton";
 import { useScreenBreakpoint } from "../../hook/useScreenBreakpoint";
@@ -15,6 +16,7 @@ export type DateRangeFilterDropdownOptionKey =
 interface DateRangeFilterDropdownProps {
   className?: string;
   value: DateRangeFilterDropdownOptionKey;
+  customRangeLabel?: string;
   onClickAllDateRange: (
     e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
   ) => void;
@@ -27,6 +29,7 @@ const DesktopDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
   function DesktopDateRangeFilterDropdown({
     className,
     value,
+    customRangeLabel,
     onClickAllDateRange,
     onClickCustomDateRange,
   }: DateRangeFilterDropdownProps) {
@@ -38,11 +41,11 @@ const DesktopDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
 
     const placeholder = useMemo(() => {
       if (value === "customDateRange") {
-        return renderToString("AuditLogScreen.date-range.custom");
+        return customRangeLabel ?? customDateRangeLabel;
       }
 
-      return renderToString("AuditLogScreen.date-range.all");
-    }, [renderToString, value]);
+      return allDateRangeLabel;
+    }, [allDateRangeLabel, customDateRangeLabel, customRangeLabel, value]);
 
     const menuProps = useMemo<IContextualMenuProps>(() => {
       return {
@@ -81,6 +84,7 @@ const MobileDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
   function MobileDateRangeFilterDropdown({
     className,
     value,
+    customRangeLabel,
     onClickAllDateRange,
     onClickCustomDateRange,
   }: DateRangeFilterDropdownProps) {
@@ -101,6 +105,16 @@ const MobileDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
         },
       ];
     }, [allDateRangeLabel, customDateRangeLabel]);
+
+    const onRenderTitle: IRenderFunction<IDropdownOption[]> = useCallback(
+      (selectedOptions?: IDropdownOption[]) => {
+        if (value === "customDateRange" && customRangeLabel != null) {
+          return <span>{customRangeLabel}</span>;
+        }
+        return <span>{selectedOptions?.[0]?.text ?? ""}</span>;
+      },
+      [customRangeLabel, value]
+    );
 
     const onChangeOption = useCallback(
       (_e: unknown, option?: IDropdownOption) => {
@@ -128,6 +142,7 @@ const MobileDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
         selectedKey={value}
         options={options}
         onChange={onChangeOption}
+        onRenderTitle={onRenderTitle}
       />
     );
   };

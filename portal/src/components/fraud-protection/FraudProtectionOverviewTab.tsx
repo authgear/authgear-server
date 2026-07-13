@@ -7,7 +7,12 @@ import { FraudProtectionDecisionAction } from "../../types";
 import { useFraudProtectionOverviewQueryQuery } from "../../graphql/adminapi/query/fraudProtectionOverviewQuery.generated";
 import OverviewMetricCard from "./OverviewMetricCard";
 import OverviewEnforcementCard from "./OverviewEnforcementCard";
-import OverviewTopSourceIPs, { SourceIPRow } from "./OverviewTopSourceIPs";
+import OverviewTopSourceIPs, {
+  OverviewTopIPLocations,
+  OverviewTopSMSOrigins,
+  SourceIPRow,
+} from "./OverviewTopSourceIPs";
+import OverviewRequestsChart from "./OverviewRequestsChart";
 import styles from "./FraudProtectionOverviewTab.module.css";
 
 type OverviewTimeRange = "24h" | "7d";
@@ -26,15 +31,22 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
 
     const [overviewTimeRange, setOverviewTimeRange] =
       useState<OverviewTimeRange>("24h");
+    const [showAllTopLists, setShowAllTopLists] = useState(false);
+
+    const toggleShowAllTopLists = useCallback(() => {
+      setShowAllTopLists((prev) => !prev);
+    }, []);
 
     const timeRangeVars = useMemo(() => {
       const now = new Date();
       if (overviewTimeRange === "24h") {
+        const startOfToday = new Date(now);
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date(now);
+        endOfToday.setHours(23, 59, 59, 999);
         return {
-          rangeFrom: new Date(
-            now.getTime() - 24 * 60 * 60 * 1000
-          ).toISOString(),
-          rangeTo: now.toISOString(),
+          rangeFrom: startOfToday.toISOString(),
+          rangeTo: endOfToday.toISOString(),
         };
       }
       return {
@@ -57,11 +69,43 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
         rangeTo: timeRangeVars.rangeTo,
       },
     });
-    const overview = overviewData?.fraudProtectionOverview ?? null;
     const overviewHasError = overviewError != null;
     const onRetryOverview = useCallback(() => {
       void refetchOverview();
     }, [refetchOverview]);
+
+    const sendSMS = overviewData?.fraudProtectionOverview.sendSMS;
+
+    const sourceIPs = useMemo<SourceIPRow[]>(() => {
+      return (sendSMS?.topSourceIPs ?? []).map((ip) => ({
+        ip: ip.ipAddress,
+        geoCountryCode: ip.geoCountryCode,
+        label: ip.ipAddress,
+        total: ip.total,
+        blocked: ip.blocked,
+        flagged: ip.flagged,
+      }));
+    }, [sendSMS?.topSourceIPs]);
+
+    const smsOrigins = useMemo(() => {
+      return sendSMS?.topSMSOrigins ?? [];
+    }, [sendSMS?.topSMSOrigins]);
+
+    const ipLocations = useMemo(() => {
+      return sendSMS?.topIPLocations ?? [];
+    }, [sendSMS?.topIPLocations]);
+
+    const timeBuckets = useMemo(() => {
+      return sendSMS?.timeBuckets ?? [];
+    }, [sendSMS?.timeBuckets]);
+
+    const displayMetrics = useMemo(() => {
+      return {
+        total: sendSMS?.total ?? 0,
+        blocked: sendSMS?.blocked ?? 0,
+        flagged: sendSMS?.flagged ?? 0,
+      };
+    }, [sendSMS?.blocked, sendSMS?.flagged, sendSMS?.total]);
 
     const formatCount = useCallback((value: number | undefined): string => {
       return value == null ? "—" : String(value);
@@ -77,24 +121,6 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
         ? "FraudProtectionConfigurationScreen.overview.enforcement.observe.description"
         : "FraudProtectionConfigurationScreen.overview.enforcement.protect.description"
     );
-
-    const sourceIPs = useMemo<SourceIPRow[]>(() => {
-      return (
-        overview?.sendSMS.topSourceIPs.map((sourceIP) => ({
-          ip: sourceIP.ipAddress,
-          total: sourceIP.total,
-          blocked: sourceIP.blocked,
-          flagged: sourceIP.flagged,
-        })) ?? []
-      );
-    }, [overview]);
-
-    const maxTotal = useMemo(() => {
-      if (sourceIPs.length === 0) {
-        return 0;
-      }
-      return Math.max(...sourceIPs.map((row) => row.total));
-    }, [sourceIPs]);
 
     const overviewTimeRangeOptions = useMemo(
       () => [
@@ -149,29 +175,27 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
           <ShowLoading />
         ) : (
           <div className={styles.overviewLayout}>
-            <div className={styles.overviewMain}>
-              <div className={styles.overviewMainRow1}>
-                <OverviewEnforcementCard
-                  title={enforcementTitle}
-                  description={enforcementDescription}
-                  onChangeToSettings={onChangeToSettings}
-                />
-                <OverviewMetricCard
-                  iconName="Message"
-                  iconVariant="default"
-                  title={renderToString(
-                    "FraudProtectionConfigurationScreen.overview.total.title"
-                  )}
-                  value={formatCount(overview?.sendSMS.total)}
-                />
-              </div>
+            <div className={styles.overviewCardsRow}>
+              <OverviewEnforcementCard
+                title={enforcementTitle}
+                description={enforcementDescription}
+                onChangeToSettings={onChangeToSettings}
+              />
+              <OverviewMetricCard
+                iconName="Message"
+                iconVariant="default"
+                title={renderToString(
+                  "FraudProtectionConfigurationScreen.overview.total.title"
+                )}
+                value={formatCount(displayMetrics.total)}
+              />
               <OverviewMetricCard
                 iconName="Warning"
                 iconVariant="warning"
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.flagged.title"
                 )}
-                value={formatCount(overview?.sendSMS.flagged)}
+                value={formatCount(displayMetrics.flagged)}
               />
               <OverviewMetricCard
                 iconName="BlockContact"
@@ -179,11 +203,31 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.blocked.title"
                 )}
-                value={formatCount(overview?.sendSMS.blocked)}
+                value={formatCount(displayMetrics.blocked)}
               />
             </div>
-            <div className={styles.overviewSide}>
-              <OverviewTopSourceIPs sourceIPs={sourceIPs} maxTotal={maxTotal} />
+            <OverviewRequestsChart
+              timeBuckets={timeBuckets}
+              timeRange={overviewTimeRange}
+              rangeFrom={timeRangeVars.rangeFrom}
+              rangeTo={timeRangeVars.rangeTo}
+            />
+            <div className={styles.overviewBottomRow}>
+              <OverviewTopSMSOrigins
+                smsOrigins={smsOrigins}
+                showAll={showAllTopLists}
+                onToggleShowAll={toggleShowAllTopLists}
+              />
+              <OverviewTopIPLocations
+                ipLocations={ipLocations}
+                showAll={showAllTopLists}
+                onToggleShowAll={toggleShowAllTopLists}
+              />
+              <OverviewTopSourceIPs
+                sourceIPs={sourceIPs}
+                showAll={showAllTopLists}
+                onToggleShowAll={toggleShowAllTopLists}
+              />
             </div>
           </div>
         )}
