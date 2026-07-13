@@ -22,11 +22,22 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
     const blocker = useBlocker(
       useCallback(
         ({
+          currentLocation,
           nextLocation,
         }: {
           currentLocation: Location;
           nextLocation: Location;
         }) => {
+          // A navigation that stays on the same path (e.g. a hash-only
+          // change from Pivot, a search-param update, or an internal
+          // replace navigation like useLocationEffect popping location
+          // state) does not navigate the user away from this page, so it
+          // must never trigger the confirmation dialog.
+          const isSamePath = currentLocation.pathname === nextLocation.pathname;
+          if (isSamePath) {
+            return false;
+          }
+
           if (blockNavigation && !navigationBlockerDialog.visible) {
             setNavigationBlockerDialog({
               visible: true,
@@ -48,8 +59,14 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
     }, [blocker]);
 
     const onDialogDismiss = useCallback(() => {
+      // Release the router's blocked transition. Otherwise the navigation
+      // stays blocked even after this dialog is hidden, and the very next
+      // navigation attempt can find the router still stuck mid-transition.
+      if (blocker.state === "blocked") {
+        blocker.reset();
+      }
       setNavigationBlockerDialog({ visible: false });
-    }, []);
+    }, [blocker]);
 
     const onDialogConfirm = useCallback(() => {
       const { destination } = navigationBlockerDialog;
