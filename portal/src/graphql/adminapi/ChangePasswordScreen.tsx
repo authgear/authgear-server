@@ -155,8 +155,6 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

@@ -147,8 +147,6 @@ const AddPasswordScreen: React.VFC = function AddPasswordScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

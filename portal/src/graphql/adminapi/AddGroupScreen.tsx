@@ -190,8 +190,6 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

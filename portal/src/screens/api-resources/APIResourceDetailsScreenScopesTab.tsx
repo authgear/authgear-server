@@ -54,8 +54,6 @@ export function APIResourceDetailsScreenScopesTab({
         awaitRefetchQueries: true,
       });
     },
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   const { offset, setOffset, searchKeyword, setSearchKeyword } =

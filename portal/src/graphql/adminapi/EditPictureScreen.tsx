@@ -25,7 +25,7 @@ import ReactCropperjs from "../../ReactCropperjs";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUserQuery } from "./query/userQuery";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { jsonPointerToString } from "../../util/jsonpointer";
@@ -163,6 +163,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         delete standardAttributes.picture;
         await updateUser(user.id, standardAttributes, user.customAttributes);
       }
+      return { result: undefined };
     },
     [user.id, user.standardAttributes, user.customAttributes, updateUser]
   );
@@ -176,11 +177,11 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     };
   }, [picture]);
 
-  const { updateError, save, state, setState, isUpdating } = useSimpleForm({
-    stateMode: "UpdateInitialStateWithUseEffect",
-    defaultState,
-    submit,
-  });
+  const { updateError, save, state, setState, isUpdating } =
+    useFormWithExternalInitialState({
+      defaultState,
+      submit,
+    });
 
   const isDirty = useMemo(() => {
     return state.selected != null;
