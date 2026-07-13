@@ -121,8 +121,6 @@ export function Step3(): React.ReactElement {
           size="3"
           text={<FormattedMessage id="ProjectWizardScreen.actions.done" />}
           loading={form.isUpdating}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
-          onClick={form.save}
           disabled={!form.canSave}
         />
       </div>
