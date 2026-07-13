@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Resource,
   ResourceSpecifier,
@@ -8,11 +8,16 @@ import {
 } from "../util/resource";
 import { useAppTemplatesQuery } from "../graphql/portal/query/appTemplatesQuery";
 import { useUpdateAppTemplatesMutation } from "../graphql/portal/mutations/updateAppTemplatesMutation";
+import { useLiveState } from "./useSyncFormStates";
 
 export interface ResourceFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  // Always-fresh dirty check, safe to call from anywhere (see
+  // useSyncFormStates) -- e.g. by NavigationBlockerDialog/FormContainerBase,
+  // so that afterSave() can navigate immediately after save() resolves
+  // without racing React's render timing.
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: State;
@@ -84,7 +89,8 @@ export function useResourceForm<State>(
     () => constructState(resources),
     [resources, constructState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(null);
+  const [currentState, setCurrentState, getCurrentState] =
+    useLiveState<State | null>(null);
 
   const newResources: Resource[] | null = useMemo(() => {
     if (!currentState) {
@@ -100,12 +106,21 @@ export function useResourceForm<State>(
     return diffResourceUpdates(resources, newResources);
   }, [resources, newResources]);
 
-  const isDirty = useMemo(() => {
-    if (diff == null) {
-      return false;
-    }
-    return diff.needUpdate;
-  }, [diff]);
+  const computeIsDirty = useCallback(
+    (current: State | null): boolean => {
+      if (current == null) {
+        return false;
+      }
+      return diffResourceUpdates(resources, constructResources(current))
+        .needUpdate;
+    },
+    [resources, constructResources]
+  );
+
+  const getIsDirty = useCallback(
+    () => computeIsDirty(getCurrentState()),
+    [computeIsDirty, getCurrentState]
+  );
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -113,7 +128,7 @@ export function useResourceForm<State>(
     }
     resetError();
     setCurrentState(null);
-  }, [isUpdating, resetError]);
+  }, [isUpdating, resetError, setCurrentState]);
 
   const save = useCallback(
     async (ignoreConflict: boolean = false) => {
@@ -143,7 +158,7 @@ export function useResourceForm<State>(
       } finally {
       }
     },
-    [diff, isUpdating, updateResources]
+    [diff, isUpdating, updateResources, setCurrentState]
   );
 
   const state = currentState ?? initialState;
@@ -151,13 +166,13 @@ export function useResourceForm<State>(
     (fn: (state: State) => State) => {
       setCurrentState((s) => fn(s ?? initialState));
     },
-    [initialState]
+    [initialState, setCurrentState]
   );
 
   return {
     isLoading,
     isUpdating,
-    isDirty,
+    getIsDirty,
     loadError,
     updateError,
     state,

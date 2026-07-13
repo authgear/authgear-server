@@ -4,11 +4,11 @@ import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecret
 import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
 import { PortalAPIAppConfig } from "../types";
 import { APIError } from "../error/error";
+import { useLiveState } from "./useSyncFormStates";
 
 export interface AppConfigFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
   isSubmitted: boolean;
   canSave?: boolean;
   loadError: unknown;
@@ -25,6 +25,10 @@ export interface AppConfigFormModel<State> {
   ) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
+  // Always-fresh dirty check, safe to call from anywhere (see
+  // useSyncFormStates). For a render-time boolean (e.g. disabling a
+  // button), derive one locally: useMemo(() => getIsDirty(), [getIsDirty]).
+  getIsDirty: () => boolean;
 }
 
 export type StateConstructor<State> = (config: PortalAPIAppConfig) => State;
@@ -82,22 +86,25 @@ export function useAppConfigForm<State>(
     () => constructFormState(effectiveConfig),
     [effectiveConfig, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(
+  const [currentState, setCurrentState, getCurrentState] = useLiveState<
+    State | null
+  >(
     constructInitialCurrentState != null
       ? constructInitialCurrentState(initialState)
       : null
   );
 
-  const isDirty = useMemo(() => {
-    if (!rawConfig || !currentState) {
+  const getIsDirty = useCallback(() => {
+    const current = getCurrentState();
+    if (!rawConfig || !current) {
       return false;
     }
     return !deepEqual(
       constructConfig(rawConfig, initialState, initialState, effectiveConfig),
-      constructConfig(rawConfig, initialState, currentState, effectiveConfig),
+      constructConfig(rawConfig, initialState, current, effectiveConfig),
       { strict: true }
     );
-  }, [constructConfig, rawConfig, initialState, currentState, effectiveConfig]);
+  }, [constructConfig, rawConfig, initialState, effectiveConfig, getCurrentState]);
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -106,7 +113,7 @@ export function useAppConfigForm<State>(
     setUpdateError(null);
     setCurrentState(null);
     setIsSubmitted(false);
-  }, [isUpdating]);
+  }, [isUpdating, setCurrentState]);
 
   const performSave = useCallback(
     async (stateToSave: State, ignoreConflict: boolean) => {
@@ -150,12 +157,13 @@ export function useAppConfigForm<State>(
       updateConfig,
       rawAppConfigChecksum,
       reload,
+      setCurrentState,
     ]
   );
 
   const save = useCallback(
     async (ignoreConflict: boolean = false) => {
-      const allowSave = canSave !== undefined ? canSave : isDirty;
+      const allowSave = canSave !== undefined ? canSave : getIsDirty();
       if (!rawConfig || !initialState || secretConfig == null) {
         return;
       } else if (!allowSave || isUpdating) {
@@ -165,7 +173,7 @@ export function useAppConfigForm<State>(
     },
     [
       canSave,
-      isDirty,
+      getIsDirty,
       rawConfig,
       initialState,
       secretConfig,
@@ -192,6 +200,7 @@ export function useAppConfigForm<State>(
       isUpdating,
       currentState,
       performSave,
+      setCurrentState,
     ]
   );
 
@@ -200,13 +209,12 @@ export function useAppConfigForm<State>(
     (fn: (state: State) => State) => {
       setCurrentState((s) => fn(s ?? initialState));
     },
-    [initialState]
+    [initialState, setCurrentState]
   );
 
   return {
     isLoading,
     isUpdating,
-    isDirty,
     isSubmitted,
     loadError,
     updateError,
@@ -221,5 +229,6 @@ export function useAppConfigForm<State>(
     save,
     saveWith,
     effectiveConfig,
+    getIsDirty,
   };
 }

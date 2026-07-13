@@ -177,15 +177,11 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     };
   }, [picture]);
 
-  const { updateError, save, state, setState, isUpdating } =
+  const { updateError, save, state, setState, isUpdating, getIsDirty } =
     useFormWithExternalInitialState({
       defaultState,
       submit,
     });
-
-  const isDirty = useMemo(() => {
-    return state.selected != null;
-  }, [state.selected]);
 
   const onConfirmRemove = useCallback(() => {
     save().then(
@@ -419,7 +415,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
           />
         </form>
       </DefaultLayout>
-      <NavigationBlockerDialog blockNavigation={isDirty} />
+      <NavigationBlockerDialog getIsDirty={getIsDirty} />
       <RemoveDialog
         hidden={!isRemoveDialogVisible}
         onDismiss={onDismissRemoveDialog}

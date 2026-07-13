@@ -144,7 +144,7 @@ interface ThemeSetters {
 export interface BranchDesignForm {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: BranchDesignFormState;
@@ -723,11 +723,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         resourceForm.isUpdating,
         backgroundImageResourceForm.isUpdating
       ),
-      isDirty: or_(
-        configForm.isDirty,
-        resourceForm.isDirty,
-        backgroundImageResourceForm.isDirty
-      ),
+      getIsDirty: () =>
+        or_(
+          configForm.getIsDirty(),
+          resourceForm.getIsDirty(),
+          backgroundImageResourceForm.getIsDirty()
+        ),
       loadError: nullishCoalesce(
         configForm.loadError,
         resourceForm.loadError,

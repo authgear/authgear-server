@@ -7,11 +7,11 @@ import {
 } from "../types";
 import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
+import { useLiveState } from "./useSyncFormStates";
 
 export interface AppSecretConfigFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
   loadError: unknown;
   updateError: unknown;
   state: State;
@@ -20,6 +20,10 @@ export interface AppSecretConfigFormModel<State> {
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
   saveWithState: (state: State, ignoreConflict?: boolean) => Promise<void>;
+  // Always-fresh dirty check, safe to call from anywhere (see
+  // useSyncFormStates). For a render-time boolean (e.g. disabling a
+  // button), derive one locally: useMemo(() => getIsDirty(), [getIsDirty]).
+  getIsDirty: () => boolean;
 }
 
 export type StateConstructor<State> = (
@@ -91,58 +95,63 @@ export function useAppSecretConfigForm<State>(
     () => constructFormState(effectiveConfig, secrets),
     [effectiveConfig, secrets, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(
+  const [currentState, setCurrentState, getCurrentState] = useLiveState<
+    State | null
+  >(
     constructInitialCurrentState != null
       ? constructInitialCurrentState(initialState)
       : null
   );
 
-  const isDirty = useMemo(() => {
-    if (!rawAppConfig || !currentState) {
-      return false;
-    }
-    const originalConfig = constructConfig(
-      rawAppConfig,
-      secrets,
-      initialState,
-      initialState,
-      effectiveConfig
-    );
-    const newConfig = constructConfig(
-      rawAppConfig,
-      secrets,
-      initialState,
-      currentState,
-      effectiveConfig
-    );
-    const isConfigDirty = !deepEqual(originalConfig, newConfig, {
-      strict: true,
-    });
-    if (isConfigDirty) {
-      return true;
-    }
-    const secretUpdateInstruction = constructSecretUpdateInstruction
-      ? constructSecretUpdateInstruction(
-          newConfig[0],
-          newConfig[1],
-          currentState
-        )
-      : undefined;
-    const isSecretDirty =
-      secretUpdateInstruction != null &&
-      Object.entries(secretUpdateInstruction).some(
-        ([_, instruction]) => instruction != null
+  const computeIsDirty = useCallback(
+    (current: State | null) => {
+      if (!rawAppConfig || !current) {
+        return false;
+      }
+      const originalConfig = constructConfig(
+        rawAppConfig,
+        secrets,
+        initialState,
+        initialState,
+        effectiveConfig
       );
-    return isSecretDirty;
-  }, [
-    rawAppConfig,
-    currentState,
-    constructConfig,
-    secrets,
-    initialState,
-    effectiveConfig,
-    constructSecretUpdateInstruction,
-  ]);
+      const newConfig = constructConfig(
+        rawAppConfig,
+        secrets,
+        initialState,
+        current,
+        effectiveConfig
+      );
+      const isConfigDirty = !deepEqual(originalConfig, newConfig, {
+        strict: true,
+      });
+      if (isConfigDirty) {
+        return true;
+      }
+      const secretUpdateInstruction = constructSecretUpdateInstruction
+        ? constructSecretUpdateInstruction(newConfig[0], newConfig[1], current)
+        : undefined;
+      const isSecretDirty =
+        secretUpdateInstruction != null &&
+        Object.entries(secretUpdateInstruction).some(
+          ([_, instruction]) => instruction != null
+        );
+      return isSecretDirty;
+    },
+    [
+      rawAppConfig,
+      constructConfig,
+      secrets,
+      initialState,
+      effectiveConfig,
+      constructSecretUpdateInstruction,
+    ]
+  );
+
+  const getIsDirty = useCallback(
+    () => computeIsDirty(getCurrentState()),
+    [computeIsDirty, getCurrentState]
+  );
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -150,7 +159,7 @@ export function useAppSecretConfigForm<State>(
     }
     resetError();
     setCurrentState(null);
-  }, [isUpdating, resetError]);
+  }, [isUpdating, resetError, setCurrentState]);
 
   const _save = useCallback(
     async (state: State, ignoreConflict: boolean) => {
@@ -201,6 +210,7 @@ export function useAppSecretConfigForm<State>(
       reload,
       postSave,
       setIsUpdating,
+      setCurrentState,
     ]
   );
 
@@ -233,12 +243,11 @@ export function useAppSecretConfigForm<State>(
       const newState = fn(s ?? initialStateRef.current);
       return newState;
     });
-  }, []);
+  }, [setCurrentState]);
 
   return {
     isLoading,
     isUpdating,
-    isDirty,
     loadError,
     updateError,
     state,
@@ -248,5 +257,6 @@ export function useAppSecretConfigForm<State>(
     reset,
     save,
     saveWithState,
+    getIsDirty,
   };
 }

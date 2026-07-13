@@ -4,13 +4,20 @@ import { useNavigate, useBlocker } from "react-router-dom";
 import BlockerDialog from "./BlockerDialog";
 
 interface NavigationBlockerDialogProps {
-  blockNavigation: boolean;
+  // Always-fresh dirty check (see useSyncFormStates), called at the
+  // exact moment a navigation is attempted. A plain boolean prop would
+  // only be as fresh as the last render -- a form's save() can clear
+  // dirtiness and then immediately navigate away (e.g. via
+  // FormContainerBase's afterSave) before React has re-rendered this
+  // component with the updated value, causing this dialog to show
+  // spuriously right after a successful save.
+  getIsDirty: () => boolean;
   onConfirmNavigation?: () => void;
 }
 
 const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
   function NavigationBlockerDialog(props: NavigationBlockerDialogProps) {
-    const { blockNavigation, onConfirmNavigation } = props;
+    const { getIsDirty, onConfirmNavigation } = props;
 
     const navigate = useNavigate();
 
@@ -38,7 +45,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
             return false;
           }
 
-          if (blockNavigation && !navigationBlockerDialog.visible) {
+          if (getIsDirty() && !navigationBlockerDialog.visible) {
             setNavigationBlockerDialog({
               visible: true,
               destination: nextLocation,
@@ -47,7 +54,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
           }
           return false; // Do not block navigation
         },
-        [blockNavigation, navigationBlockerDialog.visible]
+        [getIsDirty, navigationBlockerDialog.visible]
       )
     );
 

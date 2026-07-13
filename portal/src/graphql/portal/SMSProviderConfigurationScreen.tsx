@@ -770,7 +770,7 @@ function SMSProviderConfigurationScreen1({
   const form: FormModel = {
     isLoading: configForm.isLoading || resources.isLoading,
     isUpdating: configForm.isUpdating || resources.isUpdating,
-    isDirty: configForm.isDirty || resources.isDirty,
+    getIsDirty: () => configForm.getIsDirty() || resources.getIsDirty(),
     loadError: configForm.loadError ?? resources.loadError,
     updateError: configForm.updateError ?? resources.updateError,
     state,

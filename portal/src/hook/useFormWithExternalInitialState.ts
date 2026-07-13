@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
-import deepEqual from "deep-equal";
+import { useCallback, useState } from "react";
 import { APIError } from "../error/error";
 import { SimpleFormModel } from "./useSimpleForm";
+import { useSyncFormStates } from "./useSyncFormStates";
 
 export interface SubmitOutcome<State, Result> {
   result: Result;
@@ -31,18 +31,23 @@ export interface UseFormWithExternalInitialStateProps<State, Result> {
 // it settles within the same render/commit rather than one render
 // later. This matters because save() below can also synchronously
 // adopt a new baseline (via submit()'s returned nextInitialState) in
-// the very same call as reporting the submission complete -- if
-// defaultState instead needed an extra render to sync (as a useEffect
-// would), a consumer could observe submissionResult/isSubmitted update
-// while isDirty is still stale from the previous render.
+// the very same call as reporting the submission complete -- and both
+// of those, together with getIsDirty (see useSyncFormStates), stay
+// correct regardless of render timing.
 export function useFormWithExternalInitialState<State, Result = unknown>(
   props: UseFormWithExternalInitialStateProps<State, Result>
 ): SimpleFormModel<State, Result> {
   const { defaultState, submit, validate } = props;
 
+  const {
+    initialState,
+    currentState,
+    setInitialState,
+    setCurrentState,
+    getIsDirty,
+  } = useSyncFormStates<State>(defaultState, defaultState);
+
   const [prevDefaultState, setPrevDefaultState] = useState(defaultState);
-  const [initialState, setInitialState] = useState(defaultState);
-  const [currentState, setCurrentState] = useState(defaultState);
   if (defaultState !== prevDefaultState) {
     setPrevDefaultState(defaultState);
     setInitialState(defaultState);
@@ -54,10 +59,7 @@ export function useFormWithExternalInitialState<State, Result = unknown>(
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<unknown>(null);
 
-  const isDirty = useMemo(
-    () => !deepEqual(initialState, currentState, { strict: true }),
-    [initialState, currentState]
-  );
+  const state = currentState ?? initialState;
 
   const reset = useCallback(() => {
     if (isLoading) {
@@ -65,14 +67,14 @@ export function useFormWithExternalInitialState<State, Result = unknown>(
     }
     setError(null);
     setCurrentState(initialState);
-  }, [isLoading, initialState]);
+  }, [isLoading, initialState, setCurrentState]);
 
   const save = useCallback(async () => {
     if (isLoading) {
       return;
     }
 
-    const err = validate?.(currentState);
+    const err = validate?.(state);
     if (err) {
       setError(err);
       // eslint-disable-next-line @typescript-eslint/only-throw-error
@@ -81,12 +83,9 @@ export function useFormWithExternalInitialState<State, Result = unknown>(
 
     setIsLoading(true);
     try {
-      const { result, nextInitialState } = await submit(currentState);
+      const { result, nextInitialState } = await submit(state);
       setError(null);
       if (nextInitialState !== undefined) {
-        // Same batch as submissionResult/isSubmitted below -- isDirty
-        // recomputes correctly in this same render, no extra tick
-        // needed.
         setInitialState(nextInitialState);
         setCurrentState(nextInitialState);
       }
@@ -98,21 +97,24 @@ export function useFormWithExternalInitialState<State, Result = unknown>(
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, submit, validate, currentState]);
+  }, [isLoading, submit, validate, state, setInitialState, setCurrentState]);
 
-  const setState = useCallback((fn: (state: State) => State) => {
-    setCurrentState((s) => fn(s));
-  }, []);
+  const setState = useCallback(
+    (fn: (state: State) => State) => {
+      setCurrentState((s) => fn(s ?? initialState));
+    },
+    [setCurrentState, initialState]
+  );
 
   return {
     isUpdating: isLoading,
-    isDirty,
     isSubmitted,
     submissionResult: submissionResult as Result,
     updateError: error,
-    state: currentState,
+    state,
     setState,
     reset,
     save,
+    getIsDirty,
   };
 }

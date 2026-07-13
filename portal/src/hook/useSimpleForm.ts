@@ -1,10 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
-import deepEqual from "deep-equal";
+import { useCallback, useState } from "react";
 import { APIError } from "../error/error";
+import { useSyncFormStates } from "./useSyncFormStates";
 
 export interface SimpleFormModel<State, Result = unknown> {
   updateError: unknown;
-  isDirty: boolean;
   isUpdating: boolean;
   isSubmitted: boolean;
   submissionResult: Result | undefined;
@@ -12,6 +11,10 @@ export interface SimpleFormModel<State, Result = unknown> {
   setState: (fn: (state: State) => State) => void;
   reset: () => void;
   save: () => Promise<void>;
+  // Always-fresh dirty check, safe to call from anywhere (see
+  // useSyncFormStates). For a render-time boolean (e.g. disabling a
+  // button), derive one locally: useMemo(() => getIsDirty(), [getIsDirty]).
+  getIsDirty: () => boolean;
 }
 
 export interface UseSimpleFormProps<State, Result> {
@@ -34,17 +37,14 @@ export function useSimpleForm<State, Result = unknown>(
 ): SimpleFormModel<State, Result> {
   const { defaultState, submit, validate } = props;
 
-  const [initialState] = useState(defaultState);
-  const [currentState, setCurrentState] = useState(initialState);
+  const { initialState, currentState, setCurrentState, getIsDirty } =
+    useSyncFormStates<State>(defaultState, defaultState);
   const [error, setError] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<unknown>(null);
 
-  const isDirty = useMemo(
-    () => !deepEqual(initialState, currentState, { strict: true }),
-    [initialState, currentState]
-  );
+  const state = currentState ?? initialState;
 
   const reset = useCallback(() => {
     if (isLoading) {
@@ -52,14 +52,14 @@ export function useSimpleForm<State, Result = unknown>(
     }
     setError(null);
     setCurrentState(initialState);
-  }, [isLoading, initialState]);
+  }, [isLoading, initialState, setCurrentState]);
 
   const save = useCallback(async () => {
     if (isLoading) {
       return;
     }
 
-    const err = validate?.(currentState);
+    const err = validate?.(state);
     if (err) {
       setError(err);
       // eslint-disable-next-line @typescript-eslint/only-throw-error
@@ -68,37 +68,35 @@ export function useSimpleForm<State, Result = unknown>(
 
     setIsLoading(true);
     try {
-      const result = await submit(currentState);
+      const result = await submit(state);
       setError(null);
       setCurrentState(initialState);
-      // Since react 18, state updates could be batched,
-      // causing bugs like NavigationBlockerDialog showing because isDirty is not updated.
-      // Therefore we wait for next tick to ensure latest states are available
-      setTimeout(() => {
-        setSubmissionResult(result);
-        setIsSubmitted(true);
-      });
+      setSubmissionResult(result);
+      setIsSubmitted(true);
     } catch (e: unknown) {
       setError(e);
       throw e;
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, submit, validate, currentState, initialState]);
+  }, [isLoading, submit, validate, state, initialState, setCurrentState]);
 
-  const setState = useCallback((fn: (state: State) => State) => {
-    setCurrentState((s) => fn(s));
-  }, []);
+  const setState = useCallback(
+    (fn: (state: State) => State) => {
+      setCurrentState((s) => fn(s ?? initialState));
+    },
+    [setCurrentState, initialState]
+  );
 
   return {
     isUpdating: isLoading,
-    isDirty,
     isSubmitted,
     submissionResult: submissionResult as Result,
     updateError: error,
-    state: currentState,
+    state,
     setState,
     reset,
     save,
+    getIsDirty,
   };
 }
