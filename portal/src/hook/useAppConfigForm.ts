@@ -86,13 +86,12 @@ export function useAppConfigForm<State>(
     () => constructFormState(effectiveConfig),
     [effectiveConfig, constructFormState]
   );
-  const [currentState, setCurrentState, getCurrentState] = useLiveState<
-    State | null
-  >(
-    constructInitialCurrentState != null
-      ? constructInitialCurrentState(initialState)
-      : null
-  );
+  const [currentState, setCurrentState, getCurrentState] =
+    useLiveState<State | null>(
+      constructInitialCurrentState != null
+        ? constructInitialCurrentState(initialState)
+        : null
+    );
 
   const getIsDirty = useCallback(() => {
     const current = getCurrentState();
@@ -104,7 +103,13 @@ export function useAppConfigForm<State>(
       constructConfig(rawConfig, initialState, current, effectiveConfig),
       { strict: true }
     );
-  }, [constructConfig, rawConfig, initialState, effectiveConfig, getCurrentState]);
+  }, [
+    constructConfig,
+    rawConfig,
+    initialState,
+    effectiveConfig,
+    getCurrentState,
+  ]);
 
   const reset = useCallback(() => {
     if (isUpdating) {

@@ -95,13 +95,12 @@ export function useAppSecretConfigForm<State>(
     () => constructFormState(effectiveConfig, secrets),
     [effectiveConfig, secrets, constructFormState]
   );
-  const [currentState, setCurrentState, getCurrentState] = useLiveState<
-    State | null
-  >(
-    constructInitialCurrentState != null
-      ? constructInitialCurrentState(initialState)
-      : null
-  );
+  const [currentState, setCurrentState, getCurrentState] =
+    useLiveState<State | null>(
+      constructInitialCurrentState != null
+        ? constructInitialCurrentState(initialState)
+        : null
+    );
 
   const computeIsDirty = useCallback(
     (current: State | null) => {
@@ -236,14 +235,17 @@ export function useAppSecretConfigForm<State>(
   const initialStateRef = useRef(initialState);
   // eslint-disable-next-line react-hooks/refs
   initialStateRef.current = initialState;
-  const setState = useCallback((fn: (state: State) => State) => {
-    setCurrentState((s) => {
-      // setState can easily be captured by useCallback / useMemo causing stalled initialState
-      // Use a ref to reference to the latest value to prevent this problem
-      const newState = fn(s ?? initialStateRef.current);
-      return newState;
-    });
-  }, [setCurrentState]);
+  const setState = useCallback(
+    (fn: (state: State) => State) => {
+      setCurrentState((s) => {
+        // setState can easily be captured by useCallback / useMemo causing stalled initialState
+        // Use a ref to reference to the latest value to prevent this problem
+        const newState = fn(s ?? initialStateRef.current);
+        return newState;
+      });
+    },
+    [setCurrentState]
+  );
 
   return {
     isLoading,

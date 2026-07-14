@@ -70,9 +70,8 @@ export function useSyncFormStates<State>(
 ): SyncFormStatesModel<State> {
   const [initialState, setInitialState, getInitialState] =
     useLiveState(defaultInitialState);
-  const [currentState, setCurrentState, getCurrentState] = useLiveState<
-    State | null
-  >(defaultCurrentState);
+  const [currentState, setCurrentState, getCurrentState] =
+    useLiveState<State | null>(defaultCurrentState);
 
   const getIsDirty = useCallback(
     (
