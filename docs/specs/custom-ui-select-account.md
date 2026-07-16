@@ -1,40 +1,31 @@
 # Custom UI: Select Account
 
 - [Overview](#overview)
-- [Background](#background)
 - [Goals](#goals)
+- [Use Cases](#use-cases)
+  - [UC1. Returning to a second app under the same project (browser SSO continuation)](#uc1-returning-to-a-second-app-under-the-same-project-browser-sso-continuation)
+  - [UC2. Signing up for a new account while a different session is active](#uc2-signing-up-for-a-new-account-while-a-different-session-is-active)
+  - [UC3. Step-up assurance before reusing a session](#uc3-step-up-assurance-before-reusing-a-session)
+  - [UC4. Enforcing a single-active-session policy on every login, including continuation](#uc4-enforcing-a-single-active-session-policy-on-every-login-including-continuation)
 - [Design](#design)
-  - [Security principle](#security-principle)
-  - [Phase 1: Authorization endpoint — detect existing session](#phase-1-authorization-endpoint--detect-existing-session)
-  - [Phase 2: Custom UI — display the account picker](#phase-2-custom-ui--display-the-account-picker)
-  - [Phase 3a: User continues with existing account](#phase-3a-user-continues-with-existing-account)
-  - [Phase 3b: User switches to a different account](#phase-3b-user-switches-to-a-different-account)
-- [HTTP API](#http-api)
-  - [GET /api/v1/select_account_tokens/{token}](#get-apiv1select_account_tokenstoken)
-  - [POST /api/v1/select_account](#post-apiv1select_account)
-- [End-to-end flow diagram](#end-to-end-flow-diagram)
-- [Edge cases](#edge-cases)
+  - [Config changes](#config-changes)
+  - [HTTP API changes](#http-api-changes)
+  - [CORS](#cors)
+  - [Session and account resolution](#session-and-account-resolution)
+  - [Completing identification with the existing session](#completing-identification-with-the-existing-session)
+- [End-to-end sequence](#end-to-end-sequence)
 - [Security analysis](#security-analysis)
 - [Backward compatibility](#backward-compatibility)
-- [Reference: x_ref](#reference-x_ref)
+- [Edge cases](#edge-cases)
 ---
 
 ## Overview
 
-This document specifies how a Custom UI can present an account-selection screen when the end-user already has an active Authgear session, allowing them to continue as their existing account without re-entering credentials.
+This document specifies how a Custom UI presents an account-selection screen when the end-user already has an active Authgear session, letting them continue as that account without re-entering credentials — implemented as a **new identification option, `select_account`**, inside the `identify` step of the `login` and `signup_login` flows (not `signup`, `reauth`, or `account_recovery` — see [Edge cases](#edge-cases)). Like `oauth`/`passkey`, a project can configure it to complete a login without a further `authenticate` step — not because the engine treats any of these specially, but because nothing forces a flow to route a `one_of` entry into an `authenticate` step it wasn't given (see [Config changes](#config-changes)).
 
----
+Continuation happens through the same `POST /api/v1/authentication_flows` / `.../states/input` calls a Custom UI already makes — no new token, no separate endpoint, no dedicated "decline" input (declining is just choosing a different option).
 
-## Background
-
-When the built-in Auth UI handles a returning user, it routes the browser through `/authflow/v2/select_account`. This handler runs on Authgear's own domain, reads the session cookie, and—if the user clicks "Continue"—completes the OAuth authorization flow without creating an authentication flow at all.
-
-Custom UI is hosted on a different domain and communicates with Authgear via the [Authentication Flow HTTP API](./authentication-flow-api-reference.md). Two constraints make a direct port of the built-in behavior impossible:
-
-1. **Cross-domain cookies**: API calls from the Custom UI are cross-origin; the browser does not send Authgear's session cookie with them. The Custom UI cannot detect an existing session by calling the API.
-2. **Backward compatibility**: The Authentication Flow API must not inject new action types into existing flows, as that would break Custom UI implementations that do not know how to handle them.
-
-**This feature requires the Custom UI to be hosted same-site with Authgear** — i.e. sharing the same registrable domain (eTLD+1), such as Custom UI at `ui.example.com` and Authgear at `auth.example.com` (both under `example.com`). A Custom UI hosted cross-site (a different registrable domain from Authgear) does not support this browser SSO / account-continuation feature: it simply does not work, and such deployments continue to authenticate through the normal authentication flow ([Phase 3b](#phase-3b-user-switches-to-a-different-account)) without an existing-session shortcut.
+This works because a credentialed `fetch()` from a Custom UI hosted same-site with Authgear is a same-site request: `SameSite=Lax`/`Strict` only block *cross-site* requests, so the session cookie is sent as long as the browser includes credentials and the server reflects CORS for that origin. A cross-site Custom UI gets none of this — its origin is never CORS-allow-listed, so `select_account` simply never appears.
 
 ---
 
@@ -43,304 +34,531 @@ Custom UI is hosted on a different domain and communicates with Authgear via the
 - Allow a Custom UI hosted same-site with Authgear to detect that the end-user has an existing Authgear session.
 - Allow the Custom UI to show user account information (display name) for the account-selection screen.
 - Allow the end-user to continue with the existing session without re-entering credentials.
-- Preserve security: an attacker who captures the redirect URL must not be able to complete authentication on behalf of the victim.
-- Keep existing Custom UI integrations working without modification, including those hosted cross-site (which simply do not get this feature).
+- Preserve security: an attacker who captures flow state must not be able to complete authentication on behalf of the victim.
+- Do this using the existing Authentication Flow API surface — no new token store, no new endpoints, no new step type, no dedicated "decline" input.
+
+---
+
+## Use Cases
+
+### UC1. Returning to a second app under the same project (browser SSO continuation)
+
+Two OAuth clients, `client_a` and `client_b`, belong to the same Authgear project and each have a same-site Custom UI (`ui-a.example.com`, `ui-b.example.com`, both under the same registrable domain as Authgear, `auth.example.com`). The end-user has already signed in through `client_a`'s Custom UI. They now open `client_b`'s app for the first time in this browser. Because the Authgear session cookie is shared across the whole registrable domain, `client_b`'s Custom UI can offer to continue as the same account without the end-user re-entering credentials.
+
+**Required configuration** — `client_b` needs `x_custom_ui_uri` set, and its `login` flow needs `select_account` added to `identify`:
+
+```yaml
+oauth:
+  clients:
+  - client_id: client_b
+    x_custom_ui_uri: "https://ui-b.example.com/auth"
+
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+```
+
+**Step 1 — App B redirects the browser to Authgear**
+
+```
+GET /oauth2/authorize?client_id=client_b&redirect_uri=https://app-b.example.com/callback&response_type=code&code_challenge=...&code_challenge_method=S256 HTTP/1.1
+Host: auth.example.com
+Cookie: session=... (still valid from signing in through client_a earlier)
+```
+
+**Step 2 — Authgear redirects to `client_b`'s Custom UI**
+
+```
+HTTP/1.1 302 Found
+Location: https://ui-b.example.com/auth?x_ref=oauthsession_abc123&client_id=client_b&redirect_uri=https://app-b.example.com/callback
+```
+
+**Step 3 — Custom UI creates a `login` flow, forwarding `x_ref`**
+
+```
+POST /api/v1/authentication_flows HTTP/1.1
+Host: auth.example.com
+Origin: https://ui-b.example.com
+Content-Type: application/json
+
+{ "type": "login", "name": "default", "url_query": "client_id=client_b&x_ref=oauthsession_abc123" }
+```
+
+Because the request is same-site with credentials included, the session cookie is read and `select_account` appears:
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_xyz",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "type": "identification_data",
+        "options": [
+          { "identification": "select_account", "display_name": "user@example.com" },
+          { "identification": "email" }
+        ]
+      }
+    }
+  }
+}
+```
+
+**Step 4 — End-user clicks "Continue as user@example.com"**
+
+```
+POST /api/v1/authentication_flows/states/input HTTP/1.1
+Host: auth.example.com
+Origin: https://ui-b.example.com
+Content-Type: application/json
+
+{ "state_token": "authflowstate_xyz", "input": { "identification": "select_account", "index": 0 } }
+```
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_xyz2",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "finished",
+      "data": { "finish_redirect_uri": "https://auth.example.com/oauth2/consent?..." }
+    }
+  }
+}
+```
+
+**Step 5 — Custom UI navigates to `finish_redirect_uri`; Authgear resolves consent and redirects to the app**
+
+```
+HTTP/1.1 302 Found
+Location: https://app-b.example.com/callback?code=authcode_xyz&state=...
+```
+
+**Step 6 — App B exchanges the code for tokens**
+
+```
+POST /oauth2/token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code=authcode_xyz&code_verifier=...&client_id=client_b&redirect_uri=https://app-b.example.com/callback
+```
+
+> No credentials were re-entered anywhere in this sequence — the end-user only clicked "Continue as user@example.com".
+
+---
+
+### UC2. Signing up for a new account while a different session is active
+
+A project uses a single combined "Continue" entry point (`signup_login`) rather than separate sign-in/sign-up screens. An end-user who is already signed in as `existing@example.com` opens the app in the same browser and wants to register a *second*, unrelated account rather than continue as the one they're signed in as.
+
+**Required configuration** — `select_account` declares `login_flow` only; `email` declares both, as usual for `signup_login`:
+
+```yaml
+authentication_flow:
+  signup_login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+        login_flow: default_login
+      - identification: email
+        signup_flow: default_signup
+        login_flow: default_login
+```
+
+**Step 1 — Custom UI creates the `signup_login` flow**
+
+```
+POST /api/v1/authentication_flows HTTP/1.1
+Host: auth.example.com
+Origin: https://ui.example.com
+
+{ "type": "signup_login", "name": "default", "url_query": "client_id=client_a&x_ref=oauthsession_def456" }
+```
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_abc",
+    "type": "signup_login",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "type": "identification_data",
+        "options": [
+          { "identification": "select_account", "display_name": "existing@example.com" },
+          { "identification": "email" }
+        ]
+      }
+    }
+  }
+}
+```
+
+**Step 2 — End-user ignores "Continue as existing@example.com" and enters a new, not-yet-registered email instead**
+
+```
+POST /api/v1/authentication_flows/states/input HTTP/1.1
+Host: auth.example.com
+
+{ "state_token": "authflowstate_abc", "input": { "identification": "email", "login_id": "new-account@example.com" } }
+```
+
+Since `new-account@example.com` has no existing identity, the server switches this `signup_login` flow into `default_signup` — the response now reflects the signup flow's own next step (e.g. `create_authenticator`), with `result.type` changed to `"signup"`:
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_ghi",
+    "type": "signup",
+    "name": "default_signup",
+    "action": { "type": "create_authenticator", "data": { "type": "create_authenticator_data", "options": [ { "authentication": "primary_password" } ] } }
+  }
+}
+```
+
+> No `select_account`-specific handling was needed here — declining is just choosing `email` like any other option, and the existing `signup_login` new-vs-existing resolution takes over from there.
+
+---
+
+### UC3. Step-up assurance before reusing a session
+
+A higher-security project is comfortable letting end-users skip re-entering their password when their session is still valid, but wants a fresh TOTP code specifically when continuing via `select_account` — without imposing that extra step on brand-new logins, which already get 2FA enforced through their own `authenticate` step.
+
+**Required configuration** — `select_account` gets its own nested `authenticate` step. There's deliberately no shared top-level `authenticate` step here: each `one_of` entry owns exactly the authentication it needs, nested as deep as necessary — `email` needs `primary_password` and then, nested one level further under that, `secondary_totp`; `select_account` needs only `secondary_totp`. This avoids the alternative of a shared step after `identify` that both `one_of` entries would fall through to, which would ask `select_account` for TOTP twice — once via its own nested step, once via the shared one:
+
+```yaml
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: secondary_totp
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+            steps:
+            - type: authenticate
+              one_of:
+              - authentication: secondary_totp
+```
+
+**Step 1 — End-user picks `select_account`; response asks for a TOTP code instead of finishing immediately**
+
+```
+POST /api/v1/authentication_flows/states/input HTTP/1.1
+Host: auth.example.com
+
+{ "state_token": "authflowstate_xyz", "input": { "identification": "select_account", "index": 0 } }
+```
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_xyz3",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "authentication": "secondary_totp",
+      "data": { "type": "authentication_data", "options": [ { "authentication": "secondary_totp" } ] }
+    }
+  }
+}
+```
+
+**Step 2 — End-user submits the TOTP code; flow completes**
+
+```
+POST /api/v1/authentication_flows/states/input HTTP/1.1
+Host: auth.example.com
+
+{ "state_token": "authflowstate_xyz3", "input": { "authentication": "secondary_totp", "code": "123456" } }
+```
+
+> A normal `email` login on this same flow config still needs both `primary_password` and, nested under it, `secondary_totp` — two steps. `select_account` needs only its own nested `secondary_totp` — one step, entered once — since the session already satisfies the primary factor and there is no shared step left for it to also pass through.
+
+---
+
+### UC4. Enforcing a single-active-session policy on every login, including continuation
+
+A banking app enforces one active session per account: signing in anywhere terminates that account's other sessions, via a `terminate_other_sessions` step placed after `authenticate` in its login flow. This must hold regardless of how the login happened — a user continuing via `select_account` must trigger the same termination as one who just typed a password, not a quieter path that skips it.
+
+**Required configuration** — this only matters for `signup_login`, since `select_account` there switches into the *named* login flow rather than completing directly, so that flow's later steps still run. `default_login` needs its own `select_account` `one_of` entry (with no nested `steps`) for the switch to land anywhere without asking for a password:
+
+```yaml
+authentication_flow:
+  signup_login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+        login_flow: default_login
+      - identification: email
+        signup_flow: default_signup
+        login_flow: default_login
+
+  login_flows:
+  - name: default_login
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+    - type: terminate_other_sessions
+```
+
+**Step 1 — End-user picks `select_account` in the `signup_login` flow; this switches into `default_login`, replaying the input into its `select_account` entry — which has no nested `steps`, so `identify` completes immediately, landing directly on `terminate_other_sessions`**
+
+```
+POST /api/v1/authentication_flows/states/input HTTP/1.1
+Host: auth.example.com
+
+{ "state_token": "authflowstate_abc", "input": { "identification": "select_account", "index": 0 } }
+```
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_jkl",
+    "type": "signup_login",
+    "name": "default",
+    "action": { "type": "terminate_other_sessions", "data": {} }
+  }
+}
+```
+
+> The same `terminate_other_sessions` step would appear at this point for a normal `email`+`primary_password` login too — continuation via `select_account` doesn't skip it.
 
 ---
 
 ## Design
 
-### Security principle
+### Config changes
 
-The session cookie is the proof of identity for the "continue" path. It can only be read during a same-site browser navigation to Authgear's domain. Therefore:
+Add `select_account` as a new allowed `identification` value inside an `identify` step's `one_of`, in both the `login` and `signup_login` flows. Not added to `signup` (see [Edge cases](#edge-cases)).
 
-> **The account continuation step MUST be a browser navigation to Authgear, not a JSON API call from the Custom UI.**
+What happens after it's chosen is controlled by that entry's own optional nested `steps` — same as any other `identification` option. Omit `steps` for immediate completion. There's deliberately no shared top-level `authenticate` step here: any step placed after `identify` is reached regardless of *which* `one_of` entry was chosen, `oauth`/`select_account` included, and whether it then prompts the user depends only on whether they have a matching enrolled authenticator for it — not on how they identified. Giving `email` its own nested `authenticate` step instead avoids routing `oauth`/`select_account` into one they don't need:
 
-This mirrors exactly what the built-in select account handler does today.
+```yaml
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+      - identification: oauth
+        alias: google
+```
+
+Or require step-up 2FA specifically on this entry:
+
+```yaml
+      - identification: select_account
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: secondary_totp
+```
+
+**`signup_login`:** `select_account` declares `login_flow` only, never `signup_flow` — it can only ever continue an existing login. Choosing it switches into the named `login_flow`, replaying the same `identify` input into that flow — exactly like `email`/`oauth` replay their `identify` input into whichever flow they switch into. **The referenced `login_flow` must itself declare a matching `select_account` `one_of` entry** for this to go anywhere; the switch only replays the `identify` input, not proof of authentication — whether the user is then asked to authenticate again is entirely up to that target entry's own nested `steps`, the same rule as everywhere else in this document:
+
+```yaml
+authentication_flow:
+  signup_login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+        login_flow: default_login
+      - identification: email
+        signup_flow: default_signup
+        login_flow: default_login
+
+  login_flows:
+  - name: default_login
+    steps:
+    - type: identify
+      one_of:
+      - identification: select_account
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+```
+
+Here, `default_login`'s own `select_account` entry has no nested `steps`, so the switched-into flow completes immediately — no different from reaching that same entry by creating `default_login` directly. Anything configured after `identify` in `default_login` (e.g. `terminate_other_sessions`) still runs normally, same as for any other entry.
 
 ---
 
-### Phase 1: Authorization endpoint — detect existing session
+### HTTP API changes
 
-At `GET /oauth2/authorize`, when **all** of the following conditions hold:
-
-1. The requesting OAuth client has `x_custom_ui_uri` configured.
-2. A valid session exists in the browser (readable via cookie at this same-origin navigation).
-3. The request does not include `prompt=login`.
-4. The request does not include `prompt=none`.
-5. `login_hint` is not present in the authorization request.
-
-Authgear MUST:
-
-1. Enumerate all logged-in accounts (via session cookie). Record the ordered list—`[{user_id, display_name}, …]`—associated with `x_ref` (server-side). The order is stable and defines the `x_account_index` used at continuation.
-2. Generate a random, cryptographically secure **select account token** (32 bytes, URL-safe base64-encoded).
-3. Store the token with a TTL of **10 minutes**, associated with:
-   - The same ordered list of eligible accounts: `[{user_id, display_name}, …]`
-   - `x_ref` (to prevent use across different authorization requests)
-4. Append `x_select_account_token=<token>` to the Custom UI redirect URL.
-
-The token MUST NOT contain any PII or user-identifiable information. It is an opaque random identifier only.
-
-**Example redirect to Custom UI:**
-
-```
-https://ui.example.com/auth?x_ref=oauthsession_abc123&client_id=my_app&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback&x_select_account_token=Rn4xT7...
-```
-
----
-
-### Phase 2: Custom UI — display the account picker
-
-When the Custom UI receives `x_select_account_token` in its URL parameters, it MUST call `GET /api/v1/select_account_tokens/{x_select_account_token}` to retrieve account display names, then present an account-selection screen showing the logged-in accounts. See [HTTP API](#get-apiv1select_account_tokenstoken) for the response format.
-
-If `x_select_account_token` is absent from the Custom UI URL, the Custom UI MUST proceed with a normal authentication flow as if no existing session exists (see [Phase 3b](#phase-3b-user-switches-to-a-different-account)).
-
----
-
-### Phase 3a: User continues with existing account
-
-When the user selects an existing account, the Custom UI MUST submit a **top-level HTML `<form method="POST">`** to Authgear's account continuation endpoint, with `x_ref` and `x_account_index` as form fields:
-
-```html
-<form id="continueForm" method="POST" action="https://auth.example.com/api/v1/select_account">
-  <input type="hidden" name="x_ref" value="oauthsession_abc123">
-  <input type="hidden" name="x_account_index" value="0">
-</form>
-<script>document.getElementById('continueForm').submit();</script>
-```
-
-This works because the Custom UI is same-site with Authgear (see [Security principle](#security-principle)): the session cookie (`SameSite=Lax`) is sent on this request because `SameSite` restrictions only apply to cross-site requests, and this one is same-site regardless of method. The form submit is a real top-level navigation, so the browser follows the resulting 302 natively — no CORS configuration or JS-driven redirect handling is needed.
-
-The `x_account_index` parameter is the 0-based position of the selected account in the array returned by `GET /api/v1/select_account_tokens/{token}`. If omitted, it defaults to `0`.
-
-Using an index rather than a user ID ensures that no user identifier appears in the request.
-
-Authgear then:
-
-1. Reads the `x_account_index` form field (default: `0`).
-2. Reads the `x_ref` form field.
-3. Looks up the OAuth session by `x_ref` and retrieves the stored eligible accounts list.
-4. Validates that `x_account_index` is within the bounds of the eligible accounts list. If not, respond with an error and abort.
-5. Resolves `user_id = eligible_accounts[x_account_index].user_id` **server-side only**.
-6. Reads the session cookie from the browser request.
-7. Validates that the session cookie matches the resolved user. If not, redirect to the Custom UI with `error=account_changed`.
-8. Completes the OAuth authorization using the existing session and resolves the final redirect URI.
-9. Redirects the browser to `redirect_uri?code=…` (same as completing any authorization flow).
-
-See [POST /api/v1/select_account](#post-apiv1select_account) for the full endpoint spec.
-
----
-
-### Phase 3b: User switches to a different account
-
-When the user chooses to sign in with a different account, the Custom UI creates a normal authentication flow:
-
-```
-POST /api/v1/authentication_flows
-{
-  "type": "login",
-  "name": "default",
-  "url_query": "client_id=...&x_ref=..."
-}
-```
-
-This is identical to the current Custom UI flow. The `x_select_account_token` is simply ignored. The user proceeds through `identify` → `authenticate` as normal.
-
----
-
-## HTTP API
-
-This feature introduces two new endpoints, both under `/api/v1/` (the namespace for Custom UI integration). They differ in how they must be called:
-
-| Endpoint | Call method | Response type | Cookie required |
-|---|---|---|---|
-| `GET /api/v1/select_account_tokens/{token}` | XHR / fetch (cross-origin) | JSON | No |
-| `POST /api/v1/select_account` | Top-level browser navigation (HTML `<form method="POST">` submit) | HTTP 302 redirect | Yes (session cookie) |
-
-`/authflow/v2/` is the internal prefix used by Authgear's built-in Auth UI and is not part of the Custom UI integration API. Both custom UI endpoints are under `/api/v1/`.
-
----
-
-### GET /api/v1/select_account_tokens/{token}
-
-Retrieves account display information for the select account token. This is a read-only, unauthenticated endpoint. Its result is informational only and does not grant any authentication.
-
-**Request:**
-
-```
-GET /api/v1/select_account_tokens/Rn4xT7... HTTP/1.1
-```
-
-**Successful response (200):**
+No new endpoints, step types, or `action.type`. The `identify` step's response gains a new possible `options` entry:
 
 ```json
 {
   "result": {
-    "accounts": [
-      {
-        "display_name": "user@example.com"
-      },
-      {
-        "display_name": "another@example.com"
+    "state_token": "authflowstate_xyz",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "type": "identification_data",
+        "options": [
+          { "identification": "select_account", "display_name": "user@example.com" },
+          { "identification": "email" }
+        ]
       }
-    ]
+    }
   }
 }
 ```
 
-Each entry corresponds to one eligible account. The position in the array is the `x_account_index` the Custom UI MUST submit to the continuation endpoint. No user identifier is included in the response; the server resolves the identity internally from the index.
+`display_name` is the only `select_account`-specific field. No user identifier is included — the server resolves identity internally from the input's `index` (below). Absent when there's no eligible session — the response then looks exactly as it did before this feature.
 
-`display_name` is the primary identity display name of the account (email address, phone number, or username depending on the project configuration). It is returned unmasked.
+Unlike `masked_display_name` elsewhere in this API, `display_name` here is returned **unmasked**: it identifies the account already bound to the caller's own session cookie, not an as-yet-unauthenticated identity, so there's nothing to mask.
 
-**Token not found or expired (404):**
+Selection is by `index` in the *input* (an existing pattern in this API, also used by e.g. `primary_oob_otp_email`'s options) — the option itself carries no index:
 
 ```json
-{
-  "error": {
-    "name": "NotFound",
-    "reason": "SelectAccountTokenNotFound",
-    "message": "select account token not found or expired",
-    "code": 404
-  }
-}
+{ "state_token": "authflowstate_xyz", "input": { "identification": "select_account", "index": 0 } }
 ```
 
-When the Custom UI receives a 404, it MUST fall back to Phase 3b (normal authflow).
+`index` is this entry's position in the full `options` array. There's at most one `select_account` entry today; the field exists so the shape doesn't need to change if multiple concurrent accounts are supported later. `select_account`'s position in `options` follows its position in the `one_of` config, same as every other entry, and is stable across calls — a Custom UI can rely on it not moving around between requests to the same flow config.
 
-The token is NOT consumed by this endpoint. It may be called multiple times within the TTL. The token is invalidated once `POST /api/v1/select_account` completes the authorization successfully.
+Declining needs no special input — submit any other option's input instead (e.g. `{"identification": "email", "login_id": "..."}`).
 
 ---
 
-### POST /api/v1/select_account
+### CORS
 
-Completes the OAuth authorization using the end-user's existing session. This is a browser-navigation endpoint (not a JSON API): it MUST be reached via a top-level HTML `<form method="POST">` submit so that the browser includes the Authgear session cookie. This only works when the Custom UI is same-site with Authgear (see [Security principle](#security-principle)); Authgear does not verify or enforce this — if the Custom UI is cross-site, the browser simply will not include the session cookie, and the request proceeds as if there is no session. Do NOT call this via XHR or fetch — the browser will not send the cookie on a script-initiated cross-origin request.
-
-**Request:**
+For the session cookie to reach `POST /api/v1/authentication_flows`/`.../states/input` on a cross-origin `fetch()`, responses must carry:
 
 ```
-POST /api/v1/select_account HTTP/1.1
-Content-Type: application/x-www-form-urlencoded
-
-x_ref=oauthsession_abc123&x_account_index=0
+Access-Control-Allow-Origin: https://ui.example.com
+Access-Control-Allow-Credentials: true
 ```
 
-| Parameter | Required | Description |
-|---|---|---|
-| `x_ref` | Yes | The OAuth session ID passed to the Custom UI. |
-| `x_account_index` | No | 0-based index of the selected account from the `GET /api/v1/select_account_tokens/{token}` response. Defaults to `0`. |
+reflecting the caller's origin (never a wildcard), whenever it matches **any** OAuth client's `x_custom_ui_uri` in the project — the check is "is this origin a known Custom UI at all", not "is this origin the Custom UI of the specific `client_id` this request happens to target". Matching against a project-wide set rather than a single client is deliberate: origin and `client_id` are independent pieces of information (an origin either is or isn't a registered Custom UI, regardless of which client's flow it's about to call), and this project already checks it that way for every other endpoint using this same allow-list.
 
-**Validation:**
-
-The server validates all of the following. If any check fails, the behavior depends on the nature of the failure:
-
-| Failure | Behavior |
-|---|---|
-| `x_ref` is invalid or expired | Return HTTP 400 |
-| `x_account_index` is out of bounds for the eligible accounts list | Return HTTP 400 |
-| No session cookie present | Redirect to the Custom UI URL with `error=login_required` |
-| Session cookie does not match the resolved user at `x_account_index` | Redirect to the Custom UI URL with `error=account_changed` |
-
-**Error redirect format:**
-
-When a session-related check fails, Authgear redirects the browser back to the Custom UI URL (the original `x_custom_ui_uri` with `x_ref` preserved), appending OAuth-style error parameters:
-
-```
-https://ui.example.com/auth?x_ref=...&error=login_required&error_description=No+active+session+found
-```
-
-| Error code | Meaning | Recommended Custom UI behavior |
-|---|---|---|
-| `login_required` | No active session found | Proceed with normal authflow (Phase 3b) |
-| `account_changed` | Session exists but is for a different account than selected | Show a message that the session has changed, then proceed with normal authflow (Phase 3b) |
-
-**Success:**
-
-The server completes the OAuth authorization (identical to what the built-in select account handler does on "continue"), then issues a browser redirect to the app's `redirect_uri`:
-
-```
-HTTP/1.1 302 Found
-Location: https://app.example.com/callback?code=authcode_xyz&state=...
-```
-
-The app then exchanges the `code` for tokens at `POST /oauth2/token` using its PKCE `code_verifier`, exactly as in any other authorization flow.
+This must also apply to the `OPTIONS` preflight `fetch()` triggers first, which despite having no body isn't a problem: a preflight always carries the `Origin` header, and matching only ever depends on that header against the allow-list above — never on `client_id` or anything else the body would carry. This project already has this infrastructure, including for preflight, on other endpoints.
 
 ---
 
-## End-to-end flow diagram
+### Session and account resolution
+
+The `select_account` option is derived entirely from the request's session cookie — nothing client-supplied influences it. It's omitted, using the same rules as the built-in Auth UI's existing account-selection screen, when:
+
+- No session is present.
+- The session was established with "do not persist" semantics (`x_suppress_idp_session_cookie`).
+- `prompt=login` is present.
+- `login_hint` is present and identifies a different user than the session.
+
+(`prompt=none` is decided earlier, before any flow exists — not applicable here.)
+
+---
+
+### Completing identification with the existing session
+
+- **`login`:** whether anything further is asked is controlled by `select_account`'s own nested `steps` (see [Config changes](#config-changes)) — omitted, the flow completes immediately; with a nested `authenticate` step, that must be satisfied first.
+- **`signup_login`:** switches into the declared `login_flow`, replaying the same `identify` input into that flow — the switch itself carries no proof of authentication, only the input. Whether anything further is asked is controlled by the *target* flow's own `select_account` `one_of` entry and its nested `steps`, exactly as in the `login` case above; any steps configured after `identify` in that flow still run regardless.
+
+Before completing, two checks must pass:
+
+- `index` must be in bounds and point to a `select_account` entry — enforced the same way as any other option's `index`, by standard input schema validation, no `select_account`-specific error.
+- The session cookie must still resolve to the same user recorded when the option was computed — guards against the session changing between the two calls — else:
+  ```json
+  { "error": { "name": "Unauthorized", "reason": "SelectAccountSessionChanged", "message": "session no longer matches the selected account", "code": 401 } }
+  ```
+
+The existing session itself is reused as-is — not rotated or renewed — matching the built-in Auth UI's current account-selection screen.
+
+---
+
+## End-to-end sequence
+
+This shows the whole OAuth lifecycle a Custom UI sits inside, not just the `identify` exchange — including where the Custom UI's flow-creation call fits between `/oauth2/authorize` and the final redirect back to the app.
+
+One constraint worth calling out before the diagram: the Custom UI's **first** flow-creation call of this sequence must be `type: "login"` or `type: "signup_login"`, never `type: "signup"` directly — since `select_account` only exists in those two flows, that's the only way to learn whether a session is eligible. A combined-entry-point Custom UI already does this by default; one with separate "Sign in"/"Sign up" screens must route its first call through `login`/`signup_login` regardless of which screen the user is on, only creating a genuinely separate `signup` flow afterward if the user has no eligible session (or declines it) and wants a new account.
 
 ```
 App
   │
-  ├─▶ GET /oauth2/authorize?client_id=...&code_challenge=...
-  │       Authgear reads session cookie ✓
-  │       Stores eligible user_ids in OAuth session
-  │       Generates x_select_account_token (random opaque token)
-  │       ↓
-  ├─◀ 302 → https://ui.example.com?x_ref=...&x_select_account_token=...
+  ├─▶ GET /oauth2/authorize?client_id=...&redirect_uri=...&code_challenge=...
+  │       Authgear sees x_custom_ui_uri configured for this client
+  ├─◀ 302 → https://ui.example.com/auth?x_ref=oauthsession_abc&client_id=...&redirect_uri=...
   │
 Custom UI (same-site with Authgear)
   │
-  ├─▶ GET /api/v1/select_account_tokens/{x_select_account_token}
-  │       ↓
-  ├─◀ { accounts: [{ display_name }, …] }
+  ├─▶ POST /api/v1/authentication_flows   (credentials: 'include')
+  │       { type: "login", name: "default", url_query: "client_id=...&x_ref=oauthsession_abc" }
+  ├─◀ 200 { state_token, action: { type: "identify", data: { options: [ ... ] } } }
   │
-  │   [Show "Continue as user@example.com / Use different account"]
+  ├── Case A: a `select_account` entry is present
+  │     │   [Display "Continue as user@example.com" alongside the usual options]
+  │     │
+  │     └─▶ User continues:
+  │           POST /api/v1/authentication_flows/states/input
+  │             { state_token, input: { identification: "select_account", index: 0 } }
   │
-  │   User clicks "Continue" (selects account at index N)
-  │       ↓
-  ├─▶ POST /api/v1/select_account (x_ref, x_account_index=N as form fields)
-  │       (top-level form submit — same-site request, SameSite=Lax cookie is sent ✓)
-  │       Authgear reads session cookie ✓
-  │       Resolves user_id = eligible_accounts[N].user_id (server-side)
-  │       Validates cookie user == resolved user_id ✓
-  │       Completes OAuth authorization
-  │       ↓
-  ├─◀ 302 → https://app.example.com/callback?code=...
+  │       (declining instead: submit a normal identify input — in `signup_login` the
+  │        server resolves it into `signup`/`login` as usual; in `login`, the Custom UI
+  │        creates a separate `signup` flow if the user wants a brand new account)
+  │
+  └── Case B: no `select_account` entry (no eligible session) — response is
+        unchanged from before this feature; Custom UI proceeds as today
+  │
+  ├─◀ 200 { state_token, action: { type: "finished", data: { finish_redirect_uri: "https://auth.example.com/oauth2/consent?..." } } }
+  │
+  ├─▶ Top-level browser navigation (NOT a fetch call) to `finish_redirect_uri`,
+  │       i.e. GET /oauth2/consent?... — this hands control back to Authgear
+  │
+Authgear
+  │
+  ├─▶ /oauth2/consent — may redirect immediately, or require the user to approve first
+  ├─◀ 302 → https://app.example.com/callback?code=authcode_xyz&state=...
   │
 App
   │
-  └─▶ POST /oauth2/token (code + code_verifier)
-         ↓
-      Access token + Refresh token
+  └─▶ POST /oauth2/token  (code + code_verifier) → access/refresh tokens
 ```
-
----
-
-## Edge cases
-
-### `x_select_account_token` expires before the user acts
-
-The token has a 10-minute TTL. If the display info call returns 404 (token expired before the Custom UI loaded), the Custom UI MUST fall back to Phase 3b (normal authflow).
-
-If the Custom UI already fetched and cached the accounts list before expiry, it MAY still navigate to the account continuation endpoint — it does not require `x_select_account_token` and is unaffected by its expiry. The only requirement for continuation is a valid session cookie.
-
-### No session at continuation time
-
-If the session expired or was revoked between authorization start and continuation, the cookie check fails. The server MUST redirect back to the Custom UI with `error=login_required`, preserving `x_ref` so the authflow can complete the same authorization request.
-
-### `prompt=login`
-
-When the authorization request includes `prompt=login`, Authgear MUST NOT generate `x_select_account_token`. The user is required to re-authenticate. The Custom UI receives no account-selection signal.
-
-### `prompt=none`
-
-When the authorization request includes `prompt=none`, Authgear either completes authentication silently (if a valid session exists) or returns a `login_required` error — in neither case is the Custom UI involved, so `x_select_account_token` is never generated.
-
-### Multiple active accounts (Not implemented)
-
-Multiple active accounts are not supported at this time. The eligible accounts list always contains exactly one entry. This section is included for future reference: when multiple accounts are supported, the eligible accounts list will contain one entry per active account, the Custom UI will display all accounts, and the user will select one by its `x_account_index`. The continuation endpoint will resolve the selected user server-side from the index and validate the session cookie against it.
-
-### `login_hint` present
-
-When the authorization request includes `login_hint`, it targets a specific user and `x_select_account_token` MUST NOT be generated.
-
-### CSRF
-
-An external attacker's page is, by definition, hosted on a registrable domain other than Authgear's — it is not the registered same-site Custom UI. A forged auto-submitting form POST from such a page to Authgear is cross-site, and `SameSite=Lax` never sends the cookie on a cross-site POST navigation. The forged request therefore reaches Authgear with no session cookie and is rejected as `login_required`; the attacker cannot force a login or complete an authorization this way at all.
-
-The only page that can successfully submit this form with the cookie attached is the legitimate same-site Custom UI itself (or another subdomain under the same registrable domain). If an attacker captures a victim's `x_ref` and lures them into triggering that legitimate submission (e.g. a phishing link into the real Custom UI pre-selecting the attacker's captured `x_ref`), the victim authenticates as themselves and the authorization code goes to the registered `redirect_uri`, which the attacker cannot observe — a force-login, not an account takeover, and a known weak property of OAuth redirect-based flows in general.
-
-No additional CSRF protection is required. (A compromised or malicious sibling subdomain under the same registrable domain is a subdomain-takeover concern, out of scope for this spec.)
 
 ---
 
@@ -348,28 +566,28 @@ No additional CSRF protection is required. (A compromised or malicious sibling s
 
 | Threat | Mitigation |
 |---|---|
-| Attacker captures the Custom UI redirect URL (contains `x_ref` and `x_select_account_token`) | Continuing requires the victim's session cookie in the attacker's browser. The attacker's browser does not have it. |
-| Attacker calls the display info endpoint with a captured `x_select_account_token` | Learns the account display name only (not credentials). The display name is not sufficient for authentication. Token TTL limits the exposure window. |
-| Attacker auto-submits a cross-site form POST to `POST /api/v1/select_account` | `SameSite=Lax` never sends the cookie on a cross-site POST navigation, so the request arrives unauthenticated and is rejected with `login_required`. Only a same-site page (the registered Custom UI, or another sibling subdomain) can submit this form with the cookie attached. |
-| Client's `x_custom_ui_uri` is cross-site with Authgear | Not a security concern, but a functional one: the browser will not include the session cookie on the cross-site form POST, so continuation always fails with `login_required` and the Custom UI falls back to the normal authentication flow. Authgear does not need to detect or reject this case specially. |
-| Forged `x_select_account_token` | The token is a cryptographically random server-generated value. An attacker cannot forge a valid token. |
+| Forged `POST .../states/input` from an attacker's page, using a captured `state_token` | Attacker's origin isn't CORS-allow-listed, so its `fetch()` can't carry the session cookie and can't read a response either way. |
+| Compromised sibling subdomain (same registrable domain) | Out of scope — already able to impersonate the Custom UI generally. |
+| A Custom UI origin registered for one client calling a different client's flow | Intentional, not a gap: the allow-list check is "is this origin *some* project client's registered Custom UI?", not tied to the `client_id` in the request (see [CORS](#cors)) — and the caller is still bounded by the same session-cookie validation as every other case. |
+| Session changes between the option being shown and the input being submitted | Bounds + user-match check on submission (see [Completing identification](#completing-identification-with-the-existing-session)). |
+| Forged `select_account` data | Derived entirely server-side from the resolved session. |
 
 ---
 
 ## Backward compatibility
 
-The `x_select_account_token` parameter is additive. Custom UI implementations that do not recognize it simply ignore it. They receive `x_ref` and other existing parameters as before, create a normal authentication flow, and proceed through `identify` → `authenticate` unchanged.
+`select_account` is a new value; an unmodified `login`/`signup_login` `identify` config doesn't list it, so nothing changes for those projects.
 
-The Authentication Flow API (`POST /api/v1/authentication_flows` and `POST /api/v1/authentication_flows/states/input`) is not modified. No new action types are added to existing flows.
-
----
-
-## Reference: x_ref
-
-`x_ref` is an opaque identifier for the pending OAuth authorization request. When the app initiates an authorization, Authgear redirects the browser to the Custom UI and appends `x_ref` as a query parameter. The Custom UI includes `x_ref` in all subsequent interactions with Authgear — when creating an authentication flow and when navigating back to Authgear on completion — so that Authgear can associate those interactions with the correct authorization request.
-
-`x_ref` is not a new concept introduced by this spec; it is part of the existing Custom UI integration. This spec reuses it as a parameter to `POST /api/v1/select_account` for the same reason: to identify which authorization request the continuation belongs to.
+Opting in requires updating the Custom UI to recognize the new `identification` value, same as adding any other new identification method — plus, for a Custom UI with separate sign-in/sign-up screens, routing its first call through `login`/`signup_login` rather than `signup` (see [End-to-end sequence](#end-to-end-sequence)) — a real behavior change, not just a config one.
 
 ---
 
+## Edge cases
 
+- **`prompt=login`**: option omitted.
+- **`prompt=none`**: not applicable — decided before any flow exists.
+- **`login_hint` present**: option omitted, regardless of match — the caller already knows which identity it wants.
+- **Multiple active accounts**: not supported; at most one entry today.
+- **`signup`**: not added — completing it via `select_account` would create no new user, contradicting what `type: "signup"` represents.
+- **`reauth`**: not in scope — targets a specific known user, no account choice to make.
+- **`account_recovery`**: not in scope — exists for when the user has no usable session at all.
