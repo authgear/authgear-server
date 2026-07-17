@@ -4,6 +4,34 @@ export type FrameworkSection = "website" | "mobile" | "integration";
 export type Stage2Need = "none" | "token-or-cookie";
 export type AuthMethodChoice = "token" | "cookie";
 
+export type EnvValueToken = "clientID" | "endpoint" | "redirectURI";
+
+export interface StarterKitEnvVar {
+  /** The .env variable name, e.g. "VITE_AUTHGEAR_CLIENT_ID". */
+  key: string;
+  /** Which live value to substitute for this variable. */
+  token: EnvValueToken;
+}
+
+export interface StarterKit {
+  /** GitHub repo page. */
+  repoUrl: string;
+  /** Archive zip download URL. */
+  downloadUrl: string;
+  /** Fixed local redirect URI the starter kit expects. */
+  redirectURI: string;
+  /** Local dev homepage to visit after `npm start`. */
+  homepageUrl: string;
+  /** Ordered .env variables to render. */
+  env: StarterKitEnvVar[];
+  /** Install command, e.g. "npm i". */
+  installCmd: string;
+  /** Start command, e.g. "npm start". */
+  startCmd: string;
+  /** "Read <Framework> Guide" target. */
+  guideUrl: string;
+}
+
 export interface CookieSnippet {
   /** Human-readable language label, e.g. "JavaScript", "Python". */
   language: string;
@@ -29,6 +57,8 @@ export interface FrameworkEntry {
   stage2: Stage2Need;
   resolveType: (stage2?: AuthMethodChoice) => ApplicationType;
   compatibleTypes: ApplicationType[];
+  /** Optional downloadable starter-kit walkthrough for this framework. */
+  starterKit?: StarterKit;
 }
 
 const requireStage2 = (
@@ -45,7 +75,8 @@ const websiteSPA = (
   displayName: string,
   helperText: string,
   iconName: string,
-  docLink: string
+  docLink: string,
+  starterKit?: StarterKit
 ): FrameworkEntry => ({
   id,
   displayName,
@@ -56,6 +87,7 @@ const websiteSPA = (
   stage2: "none",
   resolveType: () => "spa",
   compatibleTypes: ["spa"],
+  starterKit,
 });
 
 const websiteServer = (
@@ -155,13 +187,30 @@ const mobileNative = (
 
 const DOCS = "https://docs.authgear.com/get-started";
 
+const REACT_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-react",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-react/archive/refs/heads/main.zip",
+  redirectURI: "http://localhost:4000/auth-redirect",
+  homepageUrl: "http://localhost:4000",
+  env: [
+    { key: "VITE_AUTHGEAR_CLIENT_ID", token: "clientID" },
+    { key: "VITE_AUTHGEAR_ENDPOINT", token: "endpoint" },
+    { key: "VITE_AUTHGEAR_REDIRECT_URL", token: "redirectURI" },
+  ],
+  installCmd: "npm i",
+  startCmd: "npm start",
+  guideUrl: "https://docs.authgear.com/tutorials/spa/react",
+};
+
 export const frameworks: FrameworkEntry[] = [
   websiteSPA(
     "react",
     "React",
     "SPA, uses authgear-sdk-js",
     "brand-react",
-    `${DOCS}/single-page-app/react`
+    `${DOCS}/single-page-app/react`,
+    REACT_STARTER_KIT
   ),
   websiteSPA(
     "vue",
