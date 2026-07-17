@@ -67,6 +67,31 @@ describe("buildConfigContent", () => {
       ].join("\n")
     );
   });
+
+  it("renders literal tokens as their static value", () => {
+    const kit: StarterKit = {
+      ...KIT,
+      config: {
+        format: "dotenv",
+        fileName: ".env.local",
+        vars: [
+          { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+          {
+            key: "SESSION_SECRET",
+            token: "literal",
+            literalValue: "a-random-string",
+          },
+        ],
+      },
+    };
+    const result = buildConfigContent(kit, {
+      clientID: "abc123",
+      endpoint: "https://demo.authgear.cloud",
+    });
+    expect(result).toBe(
+      ["AUTHGEAR_CLIENT_ID=abc123", "SESSION_SECRET=a-random-string"].join("\n")
+    );
+  });
 });
 
 describe("appendRedirectURI", () => {

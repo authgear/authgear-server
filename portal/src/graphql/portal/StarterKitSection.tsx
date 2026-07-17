@@ -161,7 +161,7 @@ export function StarterKitSection(
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id={`StarterKit.step3.body.${starterKit.config.format}`}
-            values={{ code: inlineCode }}
+            values={{ code: inlineCode, fileName: starterKit.config.fileName }}
           />
         </Text>
         <div className={styles.envCard}>

@@ -24,6 +24,9 @@ export function buildConfigContent(
         case "redirectURI":
           value = starterKit.redirectURI;
           break;
+        case "literal":
+          value = v.literalValue ?? "";
+          break;
       }
       if (config.format === "js") {
         return `const ${v.key} = "${value}";`;

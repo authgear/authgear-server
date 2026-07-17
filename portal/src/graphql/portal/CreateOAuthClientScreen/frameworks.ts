@@ -4,7 +4,11 @@ export type FrameworkSection = "website" | "mobile" | "integration";
 export type Stage2Need = "none" | "token-or-cookie";
 export type AuthMethodChoice = "token" | "cookie";
 
-export type ConfigValueToken = "clientID" | "endpoint" | "redirectURI";
+export type ConfigValueToken =
+  | "clientID"
+  | "endpoint"
+  | "redirectURI"
+  | "literal";
 
 /**
  * How the starter kit's config values are rendered:
@@ -18,6 +22,8 @@ export interface StarterKitConfigVar {
   key: string;
   /** Which live value to substitute for this variable. */
   token: ConfigValueToken;
+  /** Static value to render when `token` is "literal" (e.g. a placeholder the user replaces). */
+  literalValue?: string;
 }
 
 export interface StarterKitConfig {
@@ -235,6 +241,31 @@ const VUE_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/tutorials/spa/vue",
 };
 
+const NEXTJS_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-nextjs",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-nextjs/archive/HEAD.zip",
+  redirectURI: "http://localhost:3000/api/auth/callback",
+  homepageUrl: "http://localhost:3000",
+  config: {
+    format: "dotenv",
+    fileName: ".env.local",
+    vars: [
+      { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+      { key: "AUTHGEAR_REDIRECT_URI", token: "redirectURI" },
+      {
+        key: "SESSION_SECRET",
+        token: "literal",
+        literalValue: "a-random-string-of-at-least-32-characters",
+      },
+    ],
+  },
+  installCmd: "npm install",
+  startCmd: "npm run dev",
+  guideUrl: "https://docs.authgear.com/get-started/regular-web-app/nextjs",
+};
+
 const ANGULAR_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-angular",
   downloadUrl:
@@ -303,7 +334,8 @@ export const frameworks: FrameworkEntry[] = [
     "Next.js",
     "SPA/SSR, uses authgear-sdk-nextjs",
     "brand-nextjs",
-    `${DOCS}/regular-web-app/nextjs`
+    `${DOCS}/regular-web-app/nextjs`,
+    NEXTJS_STARTER_KIT
   ),
   websiteSPA(
     "other-spa",
