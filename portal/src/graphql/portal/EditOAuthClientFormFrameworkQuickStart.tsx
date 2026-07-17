@@ -129,8 +129,10 @@ export function EditOAuthClientFormFrameworkQuickStart<
           );
         }
       });
-      form.setState(() => newState);
-      form.saveWithState(newState).finally(() => setSettingRedirect(false));
+      form
+        .saveWithState(newState)
+        .catch(() => {})
+        .finally(() => setSettingRedirect(false));
     },
     [client.client_id, form]
   );
