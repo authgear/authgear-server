@@ -21,6 +21,8 @@ import {
   type FrameworkEntry,
 } from "./CreateOAuthClientScreen/frameworks";
 import { FrameworkCard } from "./CreateOAuthClientScreen/FrameworkCard";
+import { StarterKitSection } from "./StarterKitSection";
+import { appendRedirectURI } from "./CreateOAuthClientScreen/starterKit";
 import type {
   ApplicationType,
   Framework,
@@ -57,6 +59,7 @@ export interface EditOAuthClientFormFrameworkQuickStartProps<
   applicationType: ApplicationType;
   form: AppSecretConfigFormModel<S>;
   clientSecrets?: OAuthClientSecretKey[];
+  onGoToSettings?: () => void;
 }
 
 export function EditOAuthClientFormFrameworkQuickStart<
@@ -67,6 +70,7 @@ export function EditOAuthClientFormFrameworkQuickStart<
   applicationType,
   form,
   clientSecrets,
+  onGoToSettings,
 }: EditOAuthClientFormFrameworkQuickStartProps<S>): React.ReactElement {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -98,6 +102,35 @@ export function EditOAuthClientFormFrameworkQuickStart<
       } finally {
         setApplying(false);
       }
+    },
+    [client.client_id, form]
+  );
+
+  const { appID } = useParams() as { appID: string };
+  const [settingRedirect, setSettingRedirect] = useState(false);
+
+  const onSetRedirectURI = useCallback(
+    (value: string) => {
+      setSettingRedirect(true);
+      const newState = produce(form.state, (draft) => {
+        const target = draft.clients.find(
+          (c) => c.client_id === client.client_id
+        );
+        if (target != null) {
+          target.redirect_uris = appendRedirectURI(
+            target.redirect_uris ?? [],
+            value
+          );
+        }
+        if (draft.editedClient?.client_id === client.client_id) {
+          draft.editedClient.redirect_uris = appendRedirectURI(
+            draft.editedClient.redirect_uris ?? [],
+            value
+          );
+        }
+      });
+      form.setState(() => newState);
+      form.saveWithState(newState).finally(() => setSettingRedirect(false));
     },
     [client.client_id, form]
   );
@@ -221,6 +254,23 @@ export function EditOAuthClientFormFrameworkQuickStart<
 
       {applicationType === "traditional_webapp" && framework.cookieSnippet ? (
         <CookieSnippetSection snippet={framework.cookieSnippet} />
+      ) : null}
+
+      {framework.starterKit != null ? (
+        <StarterKitSection
+          starterKit={framework.starterKit}
+          frameworkDisplayName={framework.displayName}
+          clientID={client.client_id}
+          publicOrigin={form.state.publicOrigin}
+          usersPath={`/project/${appID}/users`}
+          redirectURIIsSet={
+            client.redirect_uris?.includes(framework.starterKit.redirectURI) ??
+            false
+          }
+          saving={settingRedirect}
+          onSetRedirectURI={onSetRedirectURI}
+          onGoToSettings={onGoToSettings ?? (() => {})}
+        />
       ) : null}
 
       <ChangeFrameworkDialog
