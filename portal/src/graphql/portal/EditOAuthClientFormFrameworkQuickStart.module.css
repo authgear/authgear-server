@@ -210,37 +210,6 @@
   margin-top: 8px;
 }
 
-.step {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 12px;
-  padding: 8px 0;
-}
-
-.stepNumber {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #eef4ff;
-  color: #0969da;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stepContent {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.stepTitle {
-  font-weight: 600;
-}
-
 .stepBody {
   color: #57606a;
   line-height: 1.5;

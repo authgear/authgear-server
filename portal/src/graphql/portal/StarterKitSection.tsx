@@ -12,6 +12,7 @@ import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
 import { buildEnvFileContent } from "./CreateOAuthClientScreen/starterKit";
 import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
+import { QuickStartStep } from "./QuickStartStep";
 
 export interface StarterKitSectionProps {
   starterKit: StarterKit;
@@ -23,26 +24,6 @@ export interface StarterKitSectionProps {
   saving: boolean;
   onSetRedirectURI: (value: string) => void;
   onGoToSettings: () => void;
-}
-
-interface StepProps {
-  index: number;
-  title: React.ReactNode;
-  children?: React.ReactNode;
-}
-
-function Step({ index, title, children }: StepProps) {
-  return (
-    <div className={styles.step}>
-      <div className={styles.stepNumber}>{index}</div>
-      <div className={styles.stepContent}>
-        <Text block={true} className={styles.stepTitle}>
-          {title}
-        </Text>
-        {children}
-      </div>
-    </div>
-  );
 }
 
 const inlineCode = (chunks: React.ReactNode) => (
@@ -113,7 +94,11 @@ export function StarterKitSection(
         <FormattedMessage id="StarterKit.section-title" />
       </Text>
 
-      <Step index={1} title={<FormattedMessage id="StarterKit.step1.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="1"
+        title={<FormattedMessage id="StarterKit.step1.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step1.body"
@@ -136,13 +121,20 @@ export function StarterKitSection(
             text={<FormattedMessage id="StarterKit.step1.view-github" />}
           />
         </div>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={2} title={<FormattedMessage id="StarterKit.step2.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="2"
+        title={<FormattedMessage id="StarterKit.step2.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage id="StarterKit.step2.body" />
         </Text>
-        <TextFieldWithCopyButton value={starterKit.redirectURI} readOnly={true} />
+        <TextFieldWithCopyButton
+          value={starterKit.redirectURI}
+          readOnly={true}
+        />
         {showEditor ? (
           <div className={styles.redirectSetRow}>
             <TextField
@@ -173,9 +165,13 @@ export function StarterKitSection(
             </LinkButton>
           </div>
         )}
-      </Step>
+      </QuickStartStep>
 
-      <Step index={3} title={<FormattedMessage id="StarterKit.step3.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="3"
+        title={<FormattedMessage id="StarterKit.step3.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step3.body"
@@ -191,18 +187,26 @@ export function StarterKitSection(
             <code>{envContent}</code>
           </pre>
         </div>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={4} title={<FormattedMessage id="StarterKit.step4.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="4"
+        title={<FormattedMessage id="StarterKit.step4.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step4.body"
             values={{ installCmd: starterKit.installCmd, code: inlineCode }}
           />
         </Text>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={5} title={<FormattedMessage id="StarterKit.step5.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="5"
+        title={<FormattedMessage id="StarterKit.step5.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step5.body"
@@ -219,9 +223,13 @@ export function StarterKitSection(
             }}
           />
         </Text>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={6} title={<FormattedMessage id="StarterKit.step6.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="6"
+        title={<FormattedMessage id="StarterKit.step6.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step6.body"
@@ -233,9 +241,13 @@ export function StarterKitSection(
             }}
           />
         </Text>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={7} title={<FormattedMessage id="StarterKit.step7.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="7"
+        title={<FormattedMessage id="StarterKit.step7.title" />}
+      >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage id="StarterKit.step7.body" />
         </Text>
@@ -252,16 +264,20 @@ export function StarterKitSection(
             }
           />
         </div>
-      </Step>
+      </QuickStartStep>
 
-      <Step index={8} title={<FormattedMessage id="StarterKit.step8.title" />}>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="8"
+        title={<FormattedMessage id="StarterKit.step8.title" />}
+      >
         <div className={styles.stepButtonRow}>
           <DefaultButton
             onClick={onGoToSettings}
             text={<FormattedMessage id="StarterKit.step8.settings" />}
           />
         </div>
-      </Step>
+      </QuickStartStep>
     </>
   );
 }
