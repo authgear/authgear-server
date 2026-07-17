@@ -276,7 +276,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-4"
+        className="mt-4 mb-16"
         stepNumber="8"
         title={<FormattedMessage id="StarterKit.step8.title" />}
       >
