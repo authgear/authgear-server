@@ -1,16 +1,17 @@
 import type { StarterKit } from "./frameworks";
 
-export interface StarterKitEnvValues {
+export interface StarterKitConfigValues {
   clientID: string;
   endpoint: string;
 }
 
-/** Render the .env file body for a starter kit, substituting live values. */
-export function buildEnvFileContent(
+/** Render the config block for a starter kit, substituting live values. */
+export function buildConfigContent(
   starterKit: StarterKit,
-  values: StarterKitEnvValues
+  values: StarterKitConfigValues
 ): string {
-  return starterKit.env
+  const { config } = starterKit;
+  return config.vars
     .map((v) => {
       let value: string;
       switch (v.token) {
@@ -23,6 +24,9 @@ export function buildEnvFileContent(
         case "redirectURI":
           value = starterKit.redirectURI;
           break;
+      }
+      if (config.format === "js") {
+        return `const ${v.key} = "${value}";`;
       }
       return `${v.key}=${value}`;
     })

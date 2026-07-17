@@ -10,7 +10,7 @@ import LinkButton from "../../LinkButton";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
-import { buildEnvFileContent } from "./CreateOAuthClientScreen/starterKit";
+import { buildConfigContent } from "./CreateOAuthClientScreen/starterKit";
 import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
 import { QuickStartStep } from "./QuickStartStep";
 
@@ -51,9 +51,9 @@ export function StarterKitSection(
     onSetRedirectURI,
     onGoToSettings,
   } = props;
-  const envContent = useMemo(
+  const configContent = useMemo(
     () =>
-      buildEnvFileContent(starterKit, {
+      buildConfigContent(starterKit, {
         clientID,
         endpoint: publicOrigin,
       }),
@@ -61,7 +61,7 @@ export function StarterKitSection(
   );
 
   const { copyButtonProps, Feedback } = useCopyFeedback({
-    textToCopy: envContent,
+    textToCopy: configContent,
   });
 
   const onClickAuthorize = useCallback(() => {
@@ -152,11 +152,15 @@ export function StarterKitSection(
       <QuickStartStep
         className="mt-4"
         stepNumber="3"
-        title={<FormattedMessage id="StarterKit.step3.title" />}
+        title={
+          <FormattedMessage
+            id={`StarterKit.step3.title.${starterKit.config.format}`}
+          />
+        }
       >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
-            id="StarterKit.step3.body"
+            id={`StarterKit.step3.body.${starterKit.config.format}`}
             values={{ code: inlineCode }}
           />
         </Text>
@@ -166,7 +170,7 @@ export function StarterKitSection(
             <Feedback />
           </div>
           <pre className={styles.snippetCode}>
-            <code>{envContent}</code>
+            <code>{configContent}</code>
           </pre>
         </div>
       </QuickStartStep>

@@ -4,13 +4,29 @@ export type FrameworkSection = "website" | "mobile" | "integration";
 export type Stage2Need = "none" | "token-or-cookie";
 export type AuthMethodChoice = "token" | "cookie";
 
-export type EnvValueToken = "clientID" | "endpoint" | "redirectURI";
+export type ConfigValueToken = "clientID" | "endpoint" | "redirectURI";
 
-export interface StarterKitEnvVar {
-  /** The .env variable name, e.g. "VITE_AUTHGEAR_CLIENT_ID". */
+/**
+ * How the starter kit's config values are rendered:
+ * - "dotenv": `KEY=value` lines for a `.env` file.
+ * - "js": `const KEY = "value";` lines to paste into a source file.
+ */
+export type StarterKitConfigFormat = "dotenv" | "js";
+
+export interface StarterKitConfigVar {
+  /** The variable/constant name, e.g. "VITE_AUTHGEAR_CLIENT_ID". */
   key: string;
   /** Which live value to substitute for this variable. */
-  token: EnvValueToken;
+  token: ConfigValueToken;
+}
+
+export interface StarterKitConfig {
+  /** Rendering format for the config block. */
+  format: StarterKitConfigFormat;
+  /** File the user edits, e.g. ".env" or "public/app.js". */
+  fileName: string;
+  /** Ordered config variables to render. */
+  vars: StarterKitConfigVar[];
 }
 
 export interface StarterKit {
@@ -20,13 +36,13 @@ export interface StarterKit {
   downloadUrl: string;
   /** Fixed local redirect URI the starter kit expects. */
   redirectURI: string;
-  /** Local dev homepage to visit after `npm start`. */
+  /** Local dev homepage to visit after starting the app. */
   homepageUrl: string;
-  /** Ordered .env variables to render. */
-  env: StarterKitEnvVar[];
-  /** Install command, e.g. "npm i". */
+  /** How and where the app is configured. */
+  config: StarterKitConfig;
+  /** Install command, e.g. "npm install". */
   installCmd: string;
-  /** Start command, e.g. "npm start". */
+  /** Start command, e.g. "npm run dev". */
   startCmd: string;
   /** "Read <Framework> Guide" target. */
   guideUrl: string;
@@ -187,20 +203,55 @@ const mobileNative = (
 
 const DOCS = "https://docs.authgear.com/get-started";
 
-const REACT_STARTER_KIT: StarterKit = {
-  repoUrl: "https://github.com/authgear/authgear-example-react",
-  downloadUrl:
-    "https://github.com/authgear/authgear-example-react/archive/refs/heads/main.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
-  homepageUrl: "http://localhost:4000",
-  env: [
+const VITE_DOTENV_VARS: StarterKitConfig = {
+  format: "dotenv",
+  fileName: ".env",
+  vars: [
     { key: "VITE_AUTHGEAR_CLIENT_ID", token: "clientID" },
     { key: "VITE_AUTHGEAR_ENDPOINT", token: "endpoint" },
     { key: "VITE_AUTHGEAR_REDIRECT_URL", token: "redirectURI" },
   ],
+};
+
+const REACT_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-react",
+  downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
+  redirectURI: "http://localhost:4000/auth-redirect",
+  homepageUrl: "http://localhost:4000",
+  config: VITE_DOTENV_VARS,
   installCmd: "npm i",
   startCmd: "npm start",
   guideUrl: "https://docs.authgear.com/tutorials/spa/react",
+};
+
+const VUE_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-vue",
+  downloadUrl: "https://github.com/authgear/authgear-example-vue/archive/HEAD.zip",
+  redirectURI: "http://localhost:4000/auth-redirect",
+  homepageUrl: "http://localhost:4000",
+  config: VITE_DOTENV_VARS,
+  installCmd: "npm install",
+  startCmd: "npm run dev",
+  guideUrl: "https://docs.authgear.com/tutorials/spa/vue",
+};
+
+const OTHER_SPA_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-spa-js",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
+  redirectURI: "http://localhost:3000/",
+  homepageUrl: "http://localhost:3000",
+  config: {
+    format: "js",
+    fileName: "public/app.js",
+    vars: [
+      { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+    ],
+  },
+  installCmd: "npm install",
+  startCmd: "npm run dev",
+  guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
 export const frameworks: FrameworkEntry[] = [
@@ -217,7 +268,8 @@ export const frameworks: FrameworkEntry[] = [
     "Vue",
     "SPA, uses authgear-sdk-js",
     "brand-vue",
-    `${DOCS}/single-page-app/vue`
+    `${DOCS}/single-page-app/vue`,
+    VUE_STARTER_KIT
   ),
   websiteSPA(
     "angular",
@@ -238,7 +290,8 @@ export const frameworks: FrameworkEntry[] = [
     "Other SPAs",
     "Any JavaScript SPA framework",
     "world-www",
-    `${DOCS}/single-page-app/website`
+    `${DOCS}/single-page-app/website`,
+    OTHER_SPA_STARTER_KIT
   ),
   websiteServer(
     "express",

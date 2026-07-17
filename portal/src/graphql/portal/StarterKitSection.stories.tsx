@@ -4,18 +4,40 @@ import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
 
 const KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
-  downloadUrl:
-    "https://github.com/authgear/authgear-example-react/archive/refs/heads/main.zip",
+  downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
   redirectURI: "http://localhost:4000/auth-redirect",
   homepageUrl: "http://localhost:4000",
-  env: [
-    { key: "VITE_AUTHGEAR_CLIENT_ID", token: "clientID" },
-    { key: "VITE_AUTHGEAR_ENDPOINT", token: "endpoint" },
-    { key: "VITE_AUTHGEAR_REDIRECT_URL", token: "redirectURI" },
-  ],
+  config: {
+    format: "dotenv",
+    fileName: ".env",
+    vars: [
+      { key: "VITE_AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "VITE_AUTHGEAR_ENDPOINT", token: "endpoint" },
+      { key: "VITE_AUTHGEAR_REDIRECT_URL", token: "redirectURI" },
+    ],
+  },
   installCmd: "npm i",
   startCmd: "npm start",
   guideUrl: "https://docs.authgear.com/tutorials/spa/react",
+};
+
+const JS_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-spa-js",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
+  redirectURI: "http://localhost:3000/",
+  homepageUrl: "http://localhost:3000",
+  config: {
+    format: "js",
+    fileName: "public/app.js",
+    vars: [
+      { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+    ],
+  },
+  installCmd: "npm install",
+  startCmd: "npm run dev",
+  guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
 const meta = {
@@ -42,5 +64,12 @@ export const NotSet: Story = {};
 export const RedirectURISet: Story = {
   args: {
     redirectURIIsSet: true,
+  },
+};
+
+export const JsConfig: Story = {
+  args: {
+    starterKit: JS_KIT,
+    frameworkDisplayName: "Other SPAs",
   },
 };
