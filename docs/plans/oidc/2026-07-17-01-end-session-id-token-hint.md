@@ -922,12 +922,47 @@ by running:
    underlying session/offline grant was revoked. That assertion was checking
    token statelessness, not this feature, and was removed once it failed for
    a reason unrelated to `id_token_hint`.
+9. **Added after review: every case asserting a silent logout or its absence
+   only checked the `end_session` response's status/redirect target, never
+   that a session or offline grant was actually deleted from storage** — a
+   handler bug that returned the right status code without actually calling
+   `SessionManager.Logout` (or that called it when it shouldn't have) would
+   have passed unnoticed. Fixed by adding `OAuthExchangeCodeResult.RefreshToken`
+   (`json:"refresh_token"`, read straight off the token response alongside the
+   existing `access_token`/`id_token` fields) and, after each silent-logout or
+   no-op assertion, presenting that refresh token to an independent code path
+   — a plain `grant_type=refresh_token` call to `/oauth2/token`, whose
+   `ParseRefreshToken` looks the offline grant up from storage rather than
+   trusting any in-request state — expecting `invalid_grant` (`400`) after a
+   real logout, or `200` after a confirmed no-op. This directly exercises the
+   SSO-group design (§4): the offline grant this refresh token belongs to is
+   only revoked because it's in the same SSO group as the IDP session
+   `end_session` logged out, not because it was the literal session named by
+   the request.
+10. **Found via point 9's new check, in the sid-mismatch case:** logging in as
+    user 2 while the client's cookie jar still carried user 1's session
+    cookie caused the server to delete user 1's IDP session *and* offline
+    grant outright (visible in the server log as `"delete IDP session"` /
+    `"delete offline grant"` fired synchronously during user 2's login) —
+    a "one login per browser" platform behavior entirely unrelated to
+    `end_session`. This meant the mismatch case was accidentally passing for
+    the wrong reason: `id_token_hint` was failing to resolve at all (the
+    grant it named no longer existed), not resolving successfully to a
+    genuinely different SSO group as the test intended. Fixed by calling
+    `clear_cookies` (no `clear_cookies_names`, i.e. a full jar reset — a
+    fresh "browser") between user 1's and user 2's logins, so the server
+    never sees user 1's cookie again and user 1's session/grant survive,
+    independently verifiable by point 9's refresh-token check.
 
 ### 13.2 Harness changes (implemented)
 
 1. `e2e/pkg/e2eclient/client.go`:
    - `OAuthExchangeCodeResult.RawIDToken string` (`json:"raw_id_token"`), set
      from the already-parsed `idTokenStr` before it was discarded.
+   - `OAuthExchangeCodeResult.RefreshToken string` (`json:"refresh_token"`),
+     read straight off the token response — see §13.1 point 9 for why this
+     was needed (independently verifying that a logout actually revoked the
+     offline grant, not just that `end_session` returned the expected status).
    - `SetupOAuthOptions{ClientID string; Scope []string; SSOEnabled bool}`;
      empty `ClientID` defaults to `"e2e"`, empty `Scope` defaults to the
      historical hardcoded list, `SSOEnabled` defaults to `false`
@@ -1000,6 +1035,12 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    `http_status: 303`. **No `clear_cookies` step is needed**: since
    `id_token_hint` is present, the handler skips the `SameSiteStrict` fast
    path regardless of that cookie's value (§5) — see point 6 above.
+   **Then, independently verify the logout was real (§13.1 point 9)**:
+   present `exchange_code`'s `refresh_token` to `grant_type=refresh_token`
+   (`client_id: e2e`) and assert `http_status: 400`,
+   `json_body: {"error": "invalid_grant"}` — proving the offline grant
+   (same SSO group as the session cookie) was actually deleted from storage,
+   not just that this one request returned `303`.
 
 2. **First-party client, `POST` with the same kind of `id_token_hint` →
    stash round trip then silent logout.** Same login/`exchange_code` setup.
@@ -1008,7 +1049,8 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    the captured `{{ .steps.post_end_session.result.http_response_headers.location }}`
    (note: `http_response_headers` keys are lowercased by
    `NewResultHTTPResponse`) with `follow_redirects: false` → assert
-   `http_status: 303`.
+   `http_status: 303`. Same refresh-token revocation check as case 1
+   afterward.
 
 3. **Third-party client, matching `id_token_hint` → confirmation page, not
    silent logout.** `oauth_setup` with `oauth_setup_sso_enabled: true`,
@@ -1023,25 +1065,37 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    same SSO group as the session cookie (it came from the same login), so
    this case proves `client.IsFirstParty()` alone already forces the
    confirmation page, independent of the SSO-group check succeeding.
+   **Then, the mirror check of case 1's**: present the same `refresh_token`
+   to `grant_type=refresh_token` (`client_id`/`client_secret:
+   e2ethirdparty`/`e2esecret`) and assert `http_status: 200` — proving the
+   confirmation-page path is a strict no-op, not a delayed or partial logout.
 
 4. **SSO-group mismatch → confirmation page even for a first-party client.**
    User 1 logs in and exchanges a code for an `id_token_hint` bound to their
-   own offline grant (`exchange_code_1`). User 2 then logs in in the same
-   browser (overwriting the session cookie in the shared jar with session 2's)
-   and exchanges their own code (`exchange_code_2`, used only to establish
-   session 2's login). `GET /oauth2/end_session` with **user 1's** hint while
-   the active session is user 2's → assert `http_status: 200`,
-   `redirect_path: /logout` (user 1's offline grant is not in user 2's SSO
-   group). Then, **because this next call carries no `id_token_hint` at all**,
-   `clear_cookies_names: [same_site_strict]` first (otherwise the leaked
-   companion cookie from user 2's login would trigger the `SameSiteStrict`
-   fast path and silently log the session out, defeating the point of this
-   check — see point 6 above), and call `end_session` again with **no**
-   `id_token_hint`, asserting `http_status: 200`, `redirect_path: /logout`
-   once more — proving user 2's session cookie is still alive (a logged-out
-   session would instead fall through to the no-session
-   `post_logout_redirect_uri` path), i.e. only the confirmation page was
-   shown, nothing was actually logged out.
+   own offline grant (`exchange_code_1`). **`clear_cookies` (full jar reset,
+   no `clear_cookies_names`) before user 2 logs in** — see §13.1 point 10:
+   without this, the server would delete user 1's IDP session *and* offline
+   grant outright as soon as user 2 logs in with user 1's cookie still in the
+   jar (a "one login per browser" behavior unrelated to `end_session`),
+   which would make this case pass for the wrong reason (`id_token_hint`
+   failing to resolve at all, not resolving to a different SSO group). User 2
+   then logs in as a fresh, unrelated browser session and exchanges their own
+   code (`exchange_code_2`, used only to establish session 2's login).
+   `GET /oauth2/end_session` with **user 1's** hint while the active session
+   is user 2's → assert `http_status: 200`, `redirect_path: /logout` (user
+   1's offline grant is not in user 2's SSO group). Then, **because this next
+   call carries no `id_token_hint` at all**, `clear_cookies_names:
+   [same_site_strict]` first (otherwise the leaked companion cookie from
+   user 2's login would trigger the `SameSiteStrict` fast path and silently
+   log the session out, defeating the point of this check — see point 6
+   above), and call `end_session` again with **no** `id_token_hint`,
+   asserting `http_status: 200`, `redirect_path: /logout` once more —
+   proving user 2's session cookie is still alive (a logged-out session
+   would instead fall through to the no-session `post_logout_redirect_uri`
+   path). Finally, independently verify **both** users' offline grants
+   survived the mismatch: present `exchange_code_1`'s and `exchange_code_2`'s
+   `refresh_token`s to `grant_type=refresh_token` (`client_id: e2e`) and
+   assert `http_status: 200` for both.
 
 5. **Malformed `id_token_hint` (not a JWT at all) → treated as absent,
    confirmation page, not an error.** Login (no need to mint any real hint)
@@ -1297,3 +1351,23 @@ and `http_status: 200` together assert.
     §13.3, §14, §16 updated to describe the SSO-group redesign, the e2e
     proper-scopes fix, and the `SameSiteStrict`-priority fix, replacing the
     stale `sid`-equality design and the `id_token_grant`-workaround test plan.
+
+14. **`Verify end_session actually revokes the underlying offline grant in e2e tests`**
+    - Files: `e2e/pkg/e2eclient/client.go` (`OAuthExchangeCodeResult.RefreshToken`),
+      `e2e/tests/oidc/end_session_id_token_hint.test.yaml` (refresh-token
+      revocation/no-op checks added to cases 1–4; case 4's setup fixed to
+      reset the cookie jar between logins so its liveness checks test a
+      genuine SSO-group mismatch rather than an already-deleted grant).
+    - Every prior version of this test only asserted `end_session`'s own
+      response status/redirect target, never that a session or offline grant
+      was actually deleted from (or preserved in) storage — a real gap: a
+      handler bug that returned the right status without actually revoking
+      anything (or that revoked when it shouldn't have) would have passed
+      unnoticed. See §13.1 points 9–10 for what running this live surfaced,
+      including a platform "one login per browser" behavior that had been
+      accidentally masking case 4's intended assertion.
+    - Verified against a live server: `cd e2e && ./run.sh setup` then
+      `go test ./pkg/testrunner/ -count 1 -v -timeout 10m -run
+      "TestAuthflow/oidc/end_session_id_token_hint"` and the full suite
+      (`go test ./pkg/testrunner/ -count 1 -timeout 10m`), then
+      `./run.sh teardown`.
