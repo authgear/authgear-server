@@ -1,12 +1,12 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
 import { IconButton, Text } from "@fluentui/react";
-import { Context, FormattedMessage } from "../../intl";
+import { FormattedMessage } from "../../intl";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ExternalLink from "../../ExternalLink";
 import PortalLink from "../../Link";
 import LinkButton from "../../LinkButton";
-import TextField from "../../TextField";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
@@ -51,23 +51,6 @@ export function StarterKitSection(
     onSetRedirectURI,
     onGoToSettings,
   } = props;
-  const { renderToString } = useContext(Context);
-
-  const [redirectInput, setRedirectInput] = useState(starterKit.redirectURI);
-  const [editing, setEditing] = useState(false);
-
-  // Adjust `editing` when `redirectURIIsSet` changes, following React's
-  // "adjusting state when a prop changes" pattern instead of an effect,
-  // to avoid a redundant extra render from setState-in-effect.
-  const [prevRedirectURIIsSet, setPrevRedirectURIIsSet] =
-    useState(redirectURIIsSet);
-  if (redirectURIIsSet !== prevRedirectURIIsSet) {
-    setPrevRedirectURIIsSet(redirectURIIsSet);
-    if (redirectURIIsSet) {
-      setEditing(false);
-    }
-  }
-
   const envContent = useMemo(
     () =>
       buildEnvFileContent(starterKit, {
@@ -81,19 +64,9 @@ export function StarterKitSection(
     textToCopy: envContent,
   });
 
-  const onChangeRedirect = useCallback((_e: unknown, newValue?: string) => {
-    setRedirectInput(newValue ?? "");
-  }, []);
-
-  const onClickSet = useCallback(() => {
-    onSetRedirectURI(redirectInput);
-  }, [onSetRedirectURI, redirectInput]);
-
-  const onClickEdit = useCallback(() => {
-    setEditing(true);
-  }, []);
-
-  const showEditor = editing || !redirectURIIsSet;
+  const onClickAuthorize = useCallback(() => {
+    onSetRedirectURI(starterKit.redirectURI);
+  }, [onSetRedirectURI, starterKit.redirectURI]);
 
   return (
     <>
@@ -142,45 +115,38 @@ export function StarterKitSection(
           value={starterKit.redirectURI}
           readOnly={true}
         />
-        {showEditor ? (
-          <div className={styles.redirectSetRow}>
-            <TextField
-              label={renderToString("StarterKit.step2.redirect-label")}
-              placeholder={renderToString("StarterKit.step2.placeholder")}
-              value={redirectInput}
-              onChange={onChangeRedirect}
-              styles={{ root: { flex: 1 } }}
-            />
-            <PrimaryButton
-              onClick={onClickSet}
-              disabled={saving || redirectInput === ""}
-              text={<FormattedMessage id="StarterKit.step2.set" />}
-            />
-          </div>
-        ) : (
-          <>
-            <div className={styles.redirectSetRow}>
-              <TextField
-                label={renderToString("StarterKit.step2.redirect-label")}
-                value={starterKit.redirectURI}
-                readOnly={true}
-                disabled={true}
-                styles={{ root: { flex: 1 } }}
-              />
+        <div className={styles.redirectStatusRow}>
+          {redirectURIIsSet ? (
+            <>
+              <span
+                className={cn(styles.statusChip, styles.statusChipAuthorized)}
+              >
+                <i className="ti ti-circle-check" aria-hidden={true} />
+                <FormattedMessage id="StarterKit.step2.status.authorized" />
+              </span>
+              <LinkButton
+                className={styles.redirectManageLink}
+                onClick={onGoToSettings}
+              >
+                <FormattedMessage id="StarterKit.step2.manage" />
+              </LinkButton>
+            </>
+          ) : (
+            <>
+              <span
+                className={cn(styles.statusChip, styles.statusChipUnauthorized)}
+              >
+                <i className="ti ti-alert-triangle" aria-hidden={true} />
+                <FormattedMessage id="StarterKit.step2.status.unauthorized" />
+              </span>
               <PrimaryButton
-                disabled={true}
-                iconProps={{ iconName: "CheckMark" }}
-                text={<FormattedMessage id="StarterKit.step2.set" />}
+                onClick={onClickAuthorize}
+                disabled={saving}
+                text={<FormattedMessage id="StarterKit.step2.authorize" />}
               />
-            </div>
-            <LinkButton
-              className={styles.redirectEditLink}
-              onClick={onClickEdit}
-            >
-              <FormattedMessage id="StarterKit.step2.edit" />
-            </LinkButton>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </QuickStartStep>
 
       <QuickStartStep

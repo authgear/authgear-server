@@ -235,16 +235,39 @@
   line-height: 1;
 }
 
-.redirectSetRow {
+.redirectStatusRow {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
-.redirectEditLink {
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 13px;
-  display: inline-block;
-  margin-top: 8px;
+  font-weight: 600;
+}
+
+.statusChip i {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.statusChipUnauthorized {
+  background: #fff4ce;
+  color: #8a6d00;
+}
+
+.statusChipAuthorized {
+  background: #dff6dd;
+  color: #0e700e;
+}
+
+.redirectManageLink {
+  font-size: 13px;
 }
 
 .envCard {
