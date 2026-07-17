@@ -1,0 +1,553 @@
+name: First-party client, matching id_token_hint, sid matches current session, silent logout
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  # x_sso_enabled=true is required for the interactive login below to set a
+  # real IDP session cookie at all (the default, x_sso_enabled=false, used by
+  # other e2e tests, suppresses it entirely, since SPA clients normally rely
+  # on tokens, not cookies).
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # The normal way a first-party SPA gets a persistent login: request
+  # offline_access (SetupOAuth's default scope already includes it) and
+  # exchange the code. The resulting id_token's sid is bound to the offline
+  # grant that exchange created (not directly to the IDP session cookie —
+  # see handler_token.go's authorization_code grant handling), but that
+  # grant was issued SSOEnabled and from this same login, so it is in the
+  # same SSO group as the session cookie end_session will resolve. That SSO
+  # group relationship (session.SessionBase.IsSameSSOGroup), not sid string
+  # equality, is what the server now checks.
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  # id_token_hint's sid is in the same SSO group as the session the login
+  # flow just created, and "e2e" is a first-party client
+  # (x_application_type: spa), so this must log out silently without ever
+  # visiting the /logout confirmation page.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: "{{ .steps.exchange_code.result.raw_id_token }}"
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+---
+name: First-party client, POST with the same id_token_hint, stash round trip then silent logout
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  # A POST is stashed and redirected to self first (see
+  # docs/plans/oidc/2026-07-17-01-end-session-id-token-hint.md §3): the
+  # Location must carry an opaque ref, never id_token_hint itself.
+  - name: post_end_session
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_form_urlencoded_body:
+      id_token_hint: "{{ .steps.exchange_code.result.raw_id_token }}"
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+      location_not_contains:
+        - id_token_hint
+
+  # Resuming the stashed request (the browser's next top-level GET) now sees
+  # the Lax session cookie, matches sid + first-party client, and logs out
+  # silently.
+  - name: resumed_end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.post_end_session.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+---
+name: Third-party client, matching id_token_hint, confirmation page shown, not silent logout
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+    oauth_setup_client_id: e2ethirdparty
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # e2ethirdparty is x_application_type: third_party_app, so this grant needs
+  # explicit consent before a code is issued. Third-party clients are always
+  # confidential and can't use the id-token grant (that requires full-access
+  # scope, first-party-only), so a real authorization_code exchange is used
+  # instead; its resulting id_token's sid will be offline-grant-based (see
+  # handler_token.go), not the IDP session's, but that doesn't matter here:
+  # client.IsFirstParty() alone already forces the confirmation page,
+  # regardless of what the sid comparison would have been.
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: e2ethirdparty
+    oauth_exchange_code_client_secret: e2esecret
+
+  # Even with a verifiable id_token_hint, the client is third-party, so the
+  # direct-logout fast path must not fire: the end-user must see the
+  # confirmation page.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: "{{ .steps.exchange_code.result.raw_id_token }}"
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_output:
+      http_status: 200
+      redirect_path: /logout
+
+---
+name: sid mismatch shows confirmation page even for a first-party client
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  # User 1 logs in first and obtains an id_token_hint bound to their own
+  # session (sid_1), purely to have a real, verifiable, but mismatched hint
+  # available later.
+  - name: oauth_setup_1
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow_1
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup_1.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify_1
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate_1
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code_1
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup_1.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate_1.result.action.data.finish_redirect_uri }}"
+
+  # User 2 logs in next, in the same browser: this login's session cookie
+  # overwrites user 1's in the shared cookie jar, becoming the session that
+  # will actually receive the end_session call below.
+  - name: oauth_setup_2
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow_2
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup_2.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify_2
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user2"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate_2
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code_2
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup_2.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate_2.result.action.data.finish_redirect_uri }}"
+
+  # The active session is now user 2's, but id_token_hint names user 1's
+  # offline grant (from a different login, hence a different SSO group): the
+  # mismatch must force the confirmation page, not a silent logout.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: "{{ .steps.exchange_code_1.result.raw_id_token }}"
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_output:
+      http_status: 200
+      redirect_path: /logout
+
+  # This next call has no id_token_hint at all, so — unlike the calls above —
+  # it would take the pre-existing SameSiteStrict fast path if that companion
+  # cookie were still present: this Go-based test client (unlike a real
+  # browser) attaches it to every request regardless of SameSite policy, so
+  # it must be cleared or the assertion below would observe a silent logout
+  # instead of the confirmation page it's meant to prove didn't happen.
+  - name: remove_same_site_strict
+    action: clear_cookies
+    clear_cookies_names:
+      - same_site_strict
+
+  # User 2's session must still be usable: only the confirmation page was
+  # shown, nothing was logged out yet. Calling end_session again with no
+  # id_token_hint proves the session cookie is still alive: a logged-out
+  # session would instead fall through to the no-session redirect (303).
+  - name: end_session_still_logged_in
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_output:
+      http_status: 200
+      redirect_path: /logout
+
+---
+name: Malformed id_token_hint is treated as absent, confirmation page shown, not an error
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # id_token_hint is present (even though malformed), so the SameSiteStrict
+  # fast path is skipped regardless of that cookie's value: no clear_cookies
+  # step is needed here, unlike the hint-less call in the sid-mismatch case
+  # above.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: not-a-valid-jwt
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_output:
+      http_status: 200
+      redirect_path: /logout
+
+---
+name: No session at all with a valid id_token_hint goes straight to post_logout_redirect_uri
+steps:
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: not-a-valid-jwt
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+---
+name: Invalid or expired end_session logout stash falls back to a plain end_session request
+steps:
+  # x_end_session_ref is present but no matching stash cookie was ever set in
+  # this browser (e.g. a stale link revisited from browser history after the
+  # short-lived stash cookie expired): resumeFromStash logs a warning and
+  # falls back to treating this as an end_session request with no
+  # parameters at all, rather than surfacing ErrEndSessionStashInvalid as an
+  # error. With no session and no post_logout_redirect_uri, that resolves to
+  # the same invalid-redirect-URI path as any other parameterless request:
+  # a redirect to the settings page, not a 400/500.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      x_end_session_ref: not-a-real-sealed-value
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
