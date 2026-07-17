@@ -4,11 +4,12 @@ import {
   Dialog,
   DialogFooter,
   IDialogContentProps,
+  Label,
   Text,
 } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
@@ -24,7 +25,6 @@ import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResou
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
-import { updateClientConfig } from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   OAuthClientConfig,
@@ -37,8 +37,6 @@ import { genRandomHexadecimalString } from "../../util/random";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
 import { FormProvider } from "../../form";
-import FormTextField from "../../FormTextField";
-import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
@@ -105,12 +103,6 @@ function constructSecretUpdateInstruction(
   };
 }
 
-function constructInitialCurrentState(state: FormState): FormState {
-  return produce(state, (state) => {
-    state.newClient.name = "My App";
-  });
-}
-
 interface StepAuthorizeResourceProps {
   client: OAuthClientConfig;
   form: AppSecretConfigFormModel<FormState>;
@@ -121,7 +113,7 @@ interface StepAuthorizeResourceProps {
 const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
   function StepAuthorizeResource(props) {
     const { client, form, onClickSave, onClickBack } = props;
-    const { isDirty, isUpdating, setState } = form;
+    const { isDirty, isUpdating } = form;
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [offset, setOffset] = useState(0);
@@ -138,19 +130,6 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
           debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
       },
       fetchPolicy: "cache-and-network",
-    });
-
-    const onClientConfigChange = useCallback(
-      (newClient: OAuthClientConfig) => {
-        setState((s) => ({ ...s, newClient }));
-      },
-      [setState]
-    );
-
-    const { onChange: onClientNameChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(client, "name", ensureNonEmptyString(value))
-      );
     });
 
     const resourceListData: ApplicationResourceListItem[] = useMemo(() => {
@@ -204,17 +183,10 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
 
     return (
       <Widget className={cn(styles.widget, styles.wizardWidget)}>
-        <FormTextField
-          parentJSONPointer={/\/oauth\/clients\/\d+/}
-          fieldName="name"
-          label={renderToString("CreateOAuthClientScreen.name.label")}
-          description={renderToString(
-            "CreateOAuthClientScreen.name.description"
-          )}
-          value={client.name ?? ""}
-          onChange={onClientNameChange}
-          required={true}
-        />
+        <div>
+          <Label>{renderToString("CreateOAuthClientScreen.name.label")}</Label>
+          <Text block={true}>{client.name}</Text>
+        </div>
         <Text block={true}>
           <FormattedMessage id="CreateOAuthClientScreen.authorize-resource.description" />
         </Text>
@@ -321,8 +293,21 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
 const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
+  const location = useLocation();
   const { renderToString } = useContext(Context);
   const [addResource] = useAddResourceToClientIdMutation();
+
+  // The application name is entered on the New Application screen (/add) and
+  // passed here via router state; fall back to a default on direct navigation.
+  const initialName =
+    (location.state as { name?: string } | null)?.name ?? "";
+  const constructInitialCurrentStateWithName = useCallback(
+    (state: FormState): FormState =>
+      produce(state, (state) => {
+        state.newClient.name = ensureNonEmptyString(initialName) ?? "My App";
+      }),
+    [initialName]
+  );
 
   const resourcesCountQuery = useResourcesQueryQuery({
     variables: { first: 1 },
@@ -354,7 +339,7 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
     secretVisitToken: null,
     constructFormState,
     constructConfig,
-    constructInitialCurrentState,
+    constructInitialCurrentState: constructInitialCurrentStateWithName,
     constructSecretUpdateInstruction,
     postSave: useCallback(
       async (state: FormState) => {

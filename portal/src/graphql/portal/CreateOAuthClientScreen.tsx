@@ -242,16 +242,23 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       [setState]
     );
 
+    const nameValid = useMemo(
+      () => Boolean(ensureNonEmptyString(client.name ?? "")),
+      [client.name]
+    );
+
     const canSubmit = useMemo(() => {
-      if (!ensureNonEmptyString(client.name ?? "")) return false;
+      if (!nameValid) return false;
       if (!framework) return false;
       if (needsStage2 && state.stage2 == null) return false;
       return true;
-    }, [client.name, framework, needsStage2, state.stage2]);
+    }, [nameValid, framework, needsStage2, state.stage2]);
 
     const onClickNext = useCallback(() => {
-      navigate(`/project/${appID}/configuration/apps/add-m2m`);
-    }, [appID, navigate]);
+      navigate(`/project/${appID}/configuration/apps/add-m2m`, {
+        state: { name: client.name ?? "" },
+      });
+    }, [appID, navigate, client.name]);
 
     const onClickCancel = useCallback(() => {
       navigate(`/project/${appID}/configuration/apps`);
@@ -286,20 +293,18 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       <ScreenContent className="flex-1-0-auto" layout={"list"}>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={cn(styles.widget, styles.wizardWidget)}>
-          {!state.m2mSelected ? (
-            <FormTextField
-              parentJSONPointer={/\/oauth\/clients\/\d+/}
-              fieldName="name"
-              label={renderToString("CreateOAuthClientScreen.name.label")}
-              description={renderToString(
-                "CreateOAuthClientScreen.name.description"
-              )}
-              value={client.name ?? ""}
-              onChange={onClientNameChange}
-              required={true}
-              autoFocus={true}
-            />
-          ) : null}
+          <FormTextField
+            parentJSONPointer={/\/oauth\/clients\/\d+/}
+            fieldName="name"
+            label={renderToString("CreateOAuthClientScreen.name.label")}
+            description={renderToString(
+              "CreateOAuthClientScreen.name.description"
+            )}
+            value={client.name ?? ""}
+            onChange={onClientNameChange}
+            required={true}
+            autoFocus={true}
+          />
           <FrameworkGrid
             selectedId={state.frameworkId}
             m2mSelected={state.m2mSelected}
@@ -317,7 +322,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             <ButtonWithLoading
               onClick={state.m2mSelected ? onClickNext : onClickSave}
               loading={isUpdating}
-              disabled={state.m2mSelected ? false : !canSubmit}
+              disabled={state.m2mSelected ? !nameValid : !canSubmit}
               labelId={
                 state.m2mSelected
                   ? "CreateOAuthClientScreen.next"
