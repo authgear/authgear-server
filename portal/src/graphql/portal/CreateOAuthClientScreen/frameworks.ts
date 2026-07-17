@@ -235,6 +235,25 @@ const VUE_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/tutorials/spa/vue",
 };
 
+const ANGULAR_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-angular",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-angular/archive/HEAD.zip",
+  redirectURI: "http://localhost:4000/auth-redirect",
+  homepageUrl: "http://localhost:4000",
+  config: {
+    format: "dotenv",
+    fileName: ".env",
+    vars: [
+      { key: "NG_APP_AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "NG_APP_AUTHGEAR_ENDPOINT", token: "endpoint" },
+    ],
+  },
+  installCmd: "npm install",
+  startCmd: "npm start",
+  guideUrl: "https://docs.authgear.com/get-started/single-page-app/angular",
+};
+
 const OTHER_SPA_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
@@ -276,7 +295,8 @@ export const frameworks: FrameworkEntry[] = [
     "Angular",
     "SPA, uses authgear-sdk-js",
     "brand-angular",
-    `${DOCS}/single-page-app/angular`
+    `${DOCS}/single-page-app/angular`,
+    ANGULAR_STARTER_KIT
   ),
   websiteSPA(
     "nextjs",
