@@ -151,19 +151,28 @@ export function StarterKitSection(
             />
           </div>
         ) : (
-          <div className={styles.redirectSetRow}>
-            <TextFieldWithCopyButton
-              value={starterKit.redirectURI}
-              readOnly={true}
-              disabled={true}
-            />
+          <>
+            <div className={styles.redirectSetRow}>
+              <TextField
+                label={renderToString("StarterKit.step2.redirect-label")}
+                value={starterKit.redirectURI}
+                readOnly={true}
+                disabled={true}
+                styles={{ root: { flex: 1 } }}
+              />
+              <PrimaryButton
+                disabled={true}
+                iconProps={{ iconName: "CheckMark" }}
+                text={<FormattedMessage id="StarterKit.step2.set" />}
+              />
+            </div>
             <LinkButton
               className={styles.redirectEditLink}
               onClick={onClickEdit}
             >
               <FormattedMessage id="StarterKit.step2.edit" />
             </LinkButton>
-          </div>
+          </>
         )}
       </QuickStartStep>
 
