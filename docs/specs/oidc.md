@@ -250,6 +250,7 @@ The end session endpoint accepts both `GET` and `POST`. Parameters can therefore
 
 - `id_token_hint`: The ID token previously issued to the end-user. See [id_token_hint](#id_token_hint-2) below for its effect.
 - `post_logout_redirect_uri`: Where the user agent is redirected to after logout. It MUST exactly match one of the client's registered `post_logout_redirect_uris`, otherwise it is treated as absent, and the user agent is redirected to the end-user's Settings page instead.
+  - This silent fallback, instead of returning an error, is API debt: an invalid or unregistered `post_logout_redirect_uri` should ideally be rejected with an error, as most other OP implementations do. It is kept as-is to avoid a breaking change for existing clients relying on the fallback.
 - `state`: Opaque value round-tripped back to `post_logout_redirect_uri` unchanged.
 
 ### id_token_hint
