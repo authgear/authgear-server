@@ -230,6 +230,11 @@
   padding: 1px 6px;
 }
 
+.buttonBrandIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
 .redirectSetRow {
   display: flex;
   align-items: flex-end;

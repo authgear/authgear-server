@@ -30,6 +30,13 @@ const inlineCode = (chunks: React.ReactNode) => (
   <code className={styles.inlineCode}>{chunks}</code>
 );
 
+const renderGitHubIcon = () => (
+  <i
+    className={`ti ti-brand-github ${styles.buttonBrandIcon}`}
+    aria-hidden={true}
+  />
+);
+
 export function StarterKitSection(
   props: StarterKitSectionProps
 ): React.ReactElement {
@@ -114,7 +121,7 @@ export function StarterKitSection(
             text={<FormattedMessage id="StarterKit.step1.download" />}
           />
           <DefaultButton
-            iconProps={{ iconName: "OpenInNewTab" }}
+            onRenderIcon={renderGitHubIcon}
             href={starterKit.repoUrl}
             target="_blank"
             rel="noreferrer"
