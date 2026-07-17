@@ -500,9 +500,36 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 	case StepActionOAuthSetup:
-		output, err := client.SetupOAuth()
+		output, err := client.SetupOAuth(authflowclient.SetupOAuthOptions{
+			ClientID:   step.OAuthSetupClientID,
+			Scope:      step.OAuthSetupScope,
+			SSOEnabled: step.OAuthSetupSSOEnabled,
+		})
 		if err != nil {
 			t.Errorf("failed to setup oauth: %v", err)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: output,
+			Error:  nil,
+		}
+	case StepActionClearCookies:
+		client.ClearCookies(step.ClearCookiesNames...)
+		result = &StepResult{
+			Result: nil,
+			Error:  nil,
+		}
+	case StepActionOAuthApproveConsent:
+		var redirectURI string
+		redirectURI, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthApproveConsentRedirectURI)
+		if !ok {
+			return nil, state, false
+		}
+
+		output, err := client.ApproveConsent(redirectURI)
+		if err != nil {
+			t.Errorf("failed to approve oauth consent: %v", err)
 			return nil, state, false
 		}
 
@@ -523,6 +550,8 @@ func (tc *TestCase) executeStep(
 		output, err := client.OAuthExchangeCode(authflowclient.OAuthExchangeCodeOptions{
 			CodeVerifier: codeVerifier,
 			RedirectURI:  redirectURI,
+			ClientID:     step.OAuthExchangeCodeClientID,
+			ClientSecret: step.OAuthExchangeCodeClientSecret,
 		})
 		if err != nil {
 			t.Errorf("failed to exchange code: %v\n", err)
@@ -1184,6 +1213,15 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 {
 		if !validateHTTPHTML(t, step, httpOutput, response) {
 			ok = false
+		}
+	}
+	if len(httpOutput.LocationNotContains) > 0 {
+		location := response.Header.Get("Location")
+		for _, substr := range httpOutput.LocationNotContains {
+			if strings.Contains(location, substr) {
+				t.Errorf("Location header unexpectedly contains %q in '%s': %s", substr, step.Name, location)
+				ok = false
+			}
 		}
 	}
 	return ok

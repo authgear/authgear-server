@@ -265,13 +265,15 @@ var _ = TestCaseSchema.Add("Step", `
 			"hook_server_query",
 			"smtp_log_query",
 			"oauth_setup",
+			"oauth_approve_consent",
 			"oauth_exchange_code",
 			"admin_api_graphql",
 			"admin_api_user_import_create",
 			"admin_api_user_import_get",
 			"generate_app_session_token",
 			"generate_refresh_token",
-			"generate_pkce"
+			"generate_pkce",
+			"clear_cookies"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -308,8 +310,21 @@ var _ = TestCaseSchema.Add("Step", `
 		"smtp_log_subject": { "type": "string" },
 		"smtp_log_recipient": { "type": "string" },
 		"smtp_log_output": { "$ref": "#/$defs/QueryOutput" },
+		"oauth_setup_client_id": { "type": "string" },
+		"oauth_setup_scope": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"oauth_setup_sso_enabled": { "type": "boolean" },
+		"oauth_approve_consent_redirect_uri": { "type": "string" },
+		"clear_cookies_names": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
+		"oauth_exchange_code_client_id": { "type": "string" },
+		"oauth_exchange_code_client_secret": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
 		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
@@ -443,6 +458,16 @@ var _ = TestCaseSchema.Add("Step", `
 								"smtp_log_recipient",
 								"smtp_log_output"
 							]
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "oauth_approve_consent" }
+						}
+					},
+					"then": {
+						"required": ["oauth_approve_consent_redirect_uri"]
 					}
 				},
 				{
@@ -582,9 +607,22 @@ type Step struct {
 	SMTPLogRecipient string       `json:"smtp_log_recipient"`
 	SMTPLogOutput    *QueryOutput `json:"smtp_log_output"`
 
+	// `action` == "oauth_setup"
+	OAuthSetupClientID   string   `json:"oauth_setup_client_id"`
+	OAuthSetupScope      []string `json:"oauth_setup_scope"`
+	OAuthSetupSSOEnabled bool     `json:"oauth_setup_sso_enabled"`
+
+	// `action` == "oauth_approve_consent"
+	OAuthApproveConsentRedirectURI string `json:"oauth_approve_consent_redirect_uri"`
+
+	// `action` == "clear_cookies"
+	ClearCookiesNames []string `json:"clear_cookies_names"`
+
 	// `action` == "oauth_exchange_code"
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
+	OAuthExchangeCodeClientID     string `json:"oauth_exchange_code_client_id"`
+	OAuthExchangeCodeClientSecret string `json:"oauth_exchange_code_client_secret"`
 
 	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
@@ -627,6 +665,7 @@ const (
 	StepActionHookServerQuery          StepAction = "hook_server_query"
 	StepActionSMTPLogQuery             StepAction = "smtp_log_query"
 	StepActionOAuthSetup               StepAction = "oauth_setup"
+	StepActionOAuthApproveConsent      StepAction = "oauth_approve_consent"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
@@ -634,6 +673,7 @@ const (
 	StepActionGenerateAppSessionToken  StepAction = "generate_app_session_token"
 	StepActionGenerateRefreshToken     StepAction = "generate_refresh_token"
 	StepActionGeneratePKCE             StepAction = "generate_pkce"
+	StepActionClearCookies             StepAction = "clear_cookies"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -680,18 +720,20 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" },
 		"json_body": { "type": "string" },
 		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
-		"html_text_contains": { "type": "array", "items": { "type": "string" } }
+		"html_text_contains": { "type": "array", "items": { "type": "string" } },
+		"location_not_contains": { "type": "array", "items": { "type": "string" } }
 	}
 }
 `)
 
 type HTTPOutput struct {
-	HTTPStatus       *float64          `json:"http_status"`
-	RedirectPath     *string           `json:"redirect_path"`
-	SAMLElement      *OuputSAMLElement `json:"saml_element"`
-	JSONBody         *string           `json:"json_body"`
-	HTMLXPathExists  []string          `json:"html_xpath_exists"`
-	HTMLTextContains []string          `json:"html_text_contains"`
+	HTTPStatus          *float64          `json:"http_status"`
+	RedirectPath        *string           `json:"redirect_path"`
+	SAMLElement         *OuputSAMLElement `json:"saml_element"`
+	JSONBody            *string           `json:"json_body"`
+	LocationNotContains []string          `json:"location_not_contains"`
+	HTMLXPathExists     []string          `json:"html_xpath_exists"`
+	HTMLTextContains    []string          `json:"html_text_contains"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `
