@@ -89,6 +89,29 @@ steps:
     http_output:
       http_status: 303
 
+  # http_status: 303 above only proves the handler *decided* to log out; it
+  # doesn't prove the underlying session/offline grant was actually deleted
+  # from storage. Presenting the offline grant's own refresh_token to a
+  # completely independent code path (the refresh_token grant, which looks
+  # the grant up from storage via ParseRefreshToken) must now fail, since
+  # that grant is in the same SSO group as the session end_session just
+  # logged out and session.Manager.invalidate revokes every session in the
+  # group together.
+  - name: verify_offline_grant_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
+
 ---
 name: First-party client, POST with the same id_token_hint, stash round trip then silent logout
 before:
@@ -179,6 +202,24 @@ steps:
     http_request_follow_redirects: false
     http_output:
       http_status: 303
+
+  # Same independent verification as the GET case above: the offline grant
+  # backing this id_token_hint must actually be gone from storage, not just
+  # observed as a 303 from this one request.
+  - name: verify_offline_grant_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
 
 ---
 name: Third-party client, matching id_token_hint, confirmation page shown, not silent logout
@@ -276,6 +317,23 @@ steps:
       http_status: 200
       redirect_path: /logout
 
+  # Confirmation-page responses (200, redirect_path: /logout above) prove
+  # only that no *silent* logout happened on this one request — not that
+  # nothing was revoked. Independently verify the offline grant behind the
+  # hint is still usable: a bug that logged out anyway (despite the
+  # third-party gate) would surface here as invalid_grant.
+  - name: verify_offline_grant_not_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2ethirdparty
+      client_secret: e2esecret
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+
 ---
 name: sid mismatch shows confirmation page even for a first-party client
 before:
@@ -343,9 +401,20 @@ steps:
     oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup_1.result.code_verifier }}"
     oauth_exchange_code_redirect_uri: "{{ .steps.authenticate_1.result.action.data.finish_redirect_uri }}"
 
-  # User 2 logs in next, in the same browser: this login's session cookie
-  # overwrites user 1's in the shared cookie jar, becoming the session that
-  # will actually receive the end_session call below.
+  # Reset the client's cookie jar (a fresh "browser") before user 2 logs in.
+  # Logging in again while this client's jar still carries user 1's session
+  # cookie would have the server treat it as replacing that same browser's
+  # session: it deletes user 1's IDP session *and* offline grant outright
+  # (session.Manager-adjacent "one login per browser" behavior, unrelated to
+  # end_session). That would make the mismatch case below pass for the wrong
+  # reason — id_token_hint failing to resolve at all, rather than resolving
+  # to a genuinely different SSO group as intended. Clearing the jar first
+  # means the server never sees user 1's cookie again, so user 1's session
+  # and grant stay alive and independently verifiable below.
+  - name: reset_cookies_for_user2
+    action: clear_cookies
+
+  # User 2 logs in next as a new, unrelated browser session.
   - name: oauth_setup_2
     action: oauth_setup
     oauth_setup_sso_enabled: true
@@ -442,6 +511,31 @@ steps:
     http_output:
       http_status: 200
       redirect_path: /logout
+
+  # Independently confirm neither user's offline grant was revoked: a
+  # mismatch must be a strict no-op, not a partial or delayed logout of
+  # either party.
+  - name: verify_user1_offline_grant_not_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code_1.result.refresh_token }}"
+    http_output:
+      http_status: 200
+
+  - name: verify_user2_offline_grant_not_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code_2.result.refresh_token }}"
+    http_output:
+      http_status: 200
 
 ---
 name: Malformed id_token_hint is treated as absent, confirmation page shown, not an error

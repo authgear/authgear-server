@@ -315,6 +315,11 @@ type OAuthExchangeCodeResult struct {
 	// for use as id_token_hint in a later request (IDToken only exposes the
 	// decoded claims, not the string needed for that).
 	RawIDToken string `json:"raw_id_token"`
+	// RefreshToken lets a test independently verify that a logout actually
+	// revoked the underlying offline grant: presenting it again via a
+	// refresh_token grant after logout must fail, since ParseRefreshToken
+	// looks the grant up from storage, not from any in-request state.
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
@@ -407,11 +412,13 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 	}
 
 	accessToken, _ := tokenRespBody["access_token"].(string)
+	refreshToken, _ := tokenRespBody["refresh_token"].(string)
 
 	result = &OAuthExchangeCodeResult{
-		IDToken:     idTokenMap,
-		AccessToken: accessToken,
-		RawIDToken:  idTokenStr,
+		IDToken:      idTokenMap,
+		AccessToken:  accessToken,
+		RawIDToken:   idTokenStr,
+		RefreshToken: refreshToken,
 	}
 	return
 }
