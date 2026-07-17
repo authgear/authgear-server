@@ -95,7 +95,7 @@ export function StarterKitSection(
       </Text>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="1"
         title={<FormattedMessage id="StarterKit.step1.title" />}
       >
@@ -124,7 +124,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="2"
         title={<FormattedMessage id="StarterKit.step2.title" />}
       >
@@ -177,7 +177,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="3"
         title={<FormattedMessage id="StarterKit.step3.title" />}
       >
@@ -199,7 +199,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="4"
         title={<FormattedMessage id="StarterKit.step4.title" />}
       >
@@ -212,7 +212,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="5"
         title={<FormattedMessage id="StarterKit.step5.title" />}
       >
@@ -235,7 +235,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="6"
         title={<FormattedMessage id="StarterKit.step6.title" />}
       >
@@ -253,7 +253,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="7"
         title={<FormattedMessage id="StarterKit.step7.title" />}
       >
@@ -276,7 +276,7 @@ export function StarterKitSection(
       </QuickStartStep>
 
       <QuickStartStep
-        className="mt-6"
+        className="mt-4"
         stepNumber="8"
         title={<FormattedMessage id="StarterKit.step8.title" />}
       >
