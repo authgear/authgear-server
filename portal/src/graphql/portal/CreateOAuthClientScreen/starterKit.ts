@@ -31,6 +31,9 @@ export function buildConfigContent(
       if (config.format === "js") {
         return `const ${v.key} = "${value}";`;
       }
+      if (config.format === "swift") {
+        return `static let ${v.key} = "${value}"`;
+      }
       return `${v.key}=${value}`;
     })
     .join("\n");

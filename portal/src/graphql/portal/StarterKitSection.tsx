@@ -64,10 +64,18 @@ export function StarterKitSection(
     textToCopy: configContent,
   });
 
-  // Mobile/hybrid kits insert "Run on iOS" and "Run on Android" steps after
-  // the web-test step, shifting the trailing step numbers.
   const { mobileRun } = starterKit;
-  const mobileStepCount = mobileRun != null ? 2 : 0;
+  // Step 3 shares copy between source-file kits (js, swift) under one "code" key.
+  const configCategory =
+    starterKit.config.format === "dotenv" ? "dotenv" : "code";
+
+  // Step numbers are derived so optional steps (install, mobile run) shift the
+  // trailing numbers. Steps 1-3 are always present; the install step (4) only
+  // shows when there is an install command; the start step follows it; mobile
+  // run steps follow the start step; then sign-up / next-steps / I'm-ready.
+  const hasInstall = starterKit.installCmd != null;
+  const startNo = hasInstall ? 5 : 4;
+  const signupNo = startNo + (mobileRun != null ? 2 : 0) + 1;
 
   return (
     <>
@@ -158,14 +166,12 @@ export function StarterKitSection(
         className="mt-4"
         stepNumber="3"
         title={
-          <FormattedMessage
-            id={`StarterKit.step3.title.${starterKit.config.format}`}
-          />
+          <FormattedMessage id={`StarterKit.step3.title.${configCategory}`} />
         }
       >
         <Text block={true} className={styles.stepBody}>
           <FormattedMessage
-            id={`StarterKit.step3.body.${starterKit.config.format}`}
+            id={`StarterKit.step3.body.${configCategory}`}
             values={{ code: inlineCode, fileName: starterKit.config.fileName }}
           />
         </Text>
@@ -180,26 +186,28 @@ export function StarterKitSection(
         </div>
       </QuickStartStep>
 
-      <QuickStartStep
-        className="mt-4"
-        stepNumber="4"
-        title={<FormattedMessage id="StarterKit.step4.title" />}
-      >
-        <Text block={true} className={styles.stepBody}>
-          <FormattedMessage
-            id="StarterKit.step4.body"
-            values={{ installCmd: starterKit.installCmd, code: inlineCode }}
-          />
-        </Text>
-      </QuickStartStep>
+      {starterKit.installCmd != null ? (
+        <QuickStartStep
+          className="mt-4"
+          stepNumber="4"
+          title={<FormattedMessage id="StarterKit.step4.title" />}
+        >
+          <Text block={true} className={styles.stepBody}>
+            <FormattedMessage
+              id="StarterKit.step4.body"
+              values={{ installCmd: starterKit.installCmd, code: inlineCode }}
+            />
+          </Text>
+        </QuickStartStep>
+      ) : null}
 
       <QuickStartStep
         className="mt-4"
-        stepNumber="5"
+        stepNumber={String(startNo)}
         title={<FormattedMessage id="StarterKit.step5.title" />}
       >
         <Text block={true} className={styles.stepBody}>
-          {starterKit.homepageUrl != null ? (
+          {starterKit.startCmd != null && starterKit.homepageUrl != null ? (
             <FormattedMessage
               id="StarterKit.step5.body"
               values={{
@@ -214,10 +222,15 @@ export function StarterKitSection(
                 ),
               }}
             />
-          ) : (
+          ) : starterKit.startCmd != null ? (
             <FormattedMessage
               id="StarterKit.step5.body.device"
               values={{ startCmd: starterKit.startCmd, code: inlineCode }}
+            />
+          ) : (
+            <FormattedMessage
+              id="StarterKit.step5.body.ide"
+              values={{ ide: starterKit.ide }}
             />
           )}
         </Text>
@@ -227,7 +240,7 @@ export function StarterKitSection(
         <>
           <QuickStartStep
             className="mt-4"
-            stepNumber="6"
+            stepNumber={String(startNo + 1)}
             title={<FormattedMessage id="StarterKit.mobile.ios.title" />}
           >
             <Text block={true} className={styles.stepBody}>
@@ -245,7 +258,7 @@ export function StarterKitSection(
 
           <QuickStartStep
             className="mt-4"
-            stepNumber="7"
+            stepNumber={String(startNo + 2)}
             title={<FormattedMessage id="StarterKit.mobile.android.title" />}
           >
             <Text block={true} className={styles.stepBody}>
@@ -265,7 +278,7 @@ export function StarterKitSection(
 
       <QuickStartStep
         className="mt-4"
-        stepNumber={String(6 + mobileStepCount)}
+        stepNumber={String(signupNo)}
         title={<FormattedMessage id="StarterKit.step6.title" />}
       >
         <Text block={true} className={styles.stepBody}>
@@ -283,7 +296,7 @@ export function StarterKitSection(
 
       <QuickStartStep
         className="mt-4"
-        stepNumber={String(7 + mobileStepCount)}
+        stepNumber={String(signupNo + 1)}
         title={<FormattedMessage id="StarterKit.step7.title" />}
       >
         <Text block={true} className={styles.stepBody}>
@@ -306,7 +319,7 @@ export function StarterKitSection(
 
       <QuickStartStep
         className="mt-4 mb-16"
-        stepNumber={String(8 + mobileStepCount)}
+        stepNumber={String(signupNo + 2)}
         title={<FormattedMessage id="StarterKit.step8.title" />}
       >
         <div className={styles.stepButtonRow}>

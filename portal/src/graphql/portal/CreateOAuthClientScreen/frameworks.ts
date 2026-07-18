@@ -14,8 +14,9 @@ export type ConfigValueToken =
  * How the starter kit's config values are rendered:
  * - "dotenv": `KEY=value` lines for a `.env` file.
  * - "js": `const KEY = "value";` lines to paste into a source file.
+ * - "swift": `static let key = "value"` lines to paste into a Swift file.
  */
-export type StarterKitConfigFormat = "dotenv" | "js";
+export type StarterKitConfigFormat = "dotenv" | "js" | "swift";
 
 export interface StarterKitConfigVar {
   /** The variable/constant name, e.g. "VITE_AUTHGEAR_CLIENT_ID". */
@@ -60,10 +61,12 @@ export interface StarterKit {
   homepageUrl?: string;
   /** How and where the app is configured. */
   config: StarterKitConfig;
-  /** Install command, e.g. "npm install". */
-  installCmd: string;
-  /** Start command, e.g. "npm run dev". */
-  startCmd: string;
+  /** Install command, e.g. "npm install"; omit for kits with no install step (e.g. SPM). */
+  installCmd?: string;
+  /** Start command, e.g. "npm run dev"; omit for IDE-run kits. */
+  startCmd?: string;
+  /** IDE to open and run the project in (e.g. "Xcode"), for kits with no CLI run command. */
+  ide?: string;
   /** Optional native build/run steps (for mobile/hybrid kits). */
   mobileRun?: StarterKitMobileRun;
   /** "Read <Framework> Guide" target. */
@@ -322,6 +325,24 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
+const IOS_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-ios",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-ios/archive/HEAD.zip",
+  redirectURIs: ["com.example.authgeardemo://host/path"],
+  config: {
+    format: "swift",
+    fileName: "Constants.swift",
+    vars: [
+      { key: "authgearClientId", token: "clientID" },
+      { key: "authgearEndpoint", token: "endpoint" },
+      { key: "authgearRedirectUri", token: "redirectURI" },
+    ],
+  },
+  ide: "Xcode",
+  guideUrl: "https://docs.authgear.com/get-started/native-mobile-app/ios",
+};
+
 const FLUTTER_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-flutter",
   downloadUrl:
@@ -475,7 +496,8 @@ export const frameworks: FrameworkEntry[] = [
     "iOS",
     "Native iOS (Swift)",
     "brand-apple",
-    `${DOCS}/native-mobile-app/ios`
+    `${DOCS}/native-mobile-app/ios`,
+    IOS_STARTER_KIT
   ),
   mobileNative(
     "android",

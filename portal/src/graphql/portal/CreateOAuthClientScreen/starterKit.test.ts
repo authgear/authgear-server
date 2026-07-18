@@ -68,6 +68,30 @@ describe("buildConfigContent", () => {
     );
   });
 
+  it("renders swift format as static let assignments", () => {
+    const kit: StarterKit = {
+      ...JS_KIT,
+      config: {
+        format: "swift",
+        fileName: "Constants.swift",
+        vars: [
+          { key: "authgearClientId", token: "clientID" },
+          { key: "authgearEndpoint", token: "endpoint" },
+        ],
+      },
+    };
+    const result = buildConfigContent(kit, {
+      clientID: "abc123",
+      endpoint: "https://demo.authgear.cloud",
+    });
+    expect(result).toBe(
+      [
+        'static let authgearClientId = "abc123"',
+        'static let authgearEndpoint = "https://demo.authgear.cloud"',
+      ].join("\n")
+    );
+  });
+
   it("renders literal tokens as their static value", () => {
     const kit: StarterKit = {
       ...KIT,
