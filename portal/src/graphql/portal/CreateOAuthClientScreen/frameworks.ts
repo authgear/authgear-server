@@ -56,8 +56,8 @@ export interface StarterKit {
    * The first entry is used for the `redirectURI` config token.
    */
   redirectURIs: string[];
-  /** Local dev homepage to visit after starting the app. */
-  homepageUrl: string;
+  /** Local dev homepage to visit after starting the app; omit for device-only apps. */
+  homepageUrl?: string;
   /** How and where the app is configured. */
   config: StarterKitConfig;
   /** Install command, e.g. "npm install". */
@@ -322,6 +322,25 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
+const FLUTTER_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-flutter",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-flutter/archive/HEAD.zip",
+  redirectURIs: ["com.example.authgeardemo.flutter://host/path"],
+  config: {
+    format: "js",
+    fileName: "lib/constants.dart",
+    vars: [
+      { key: "authgearClientId", token: "clientID" },
+      { key: "authgearEndpoint", token: "endpoint" },
+      { key: "authgearRedirectUri", token: "redirectURI" },
+    ],
+  },
+  installCmd: "flutter pub get",
+  startCmd: "flutter run",
+  guideUrl: "https://docs.authgear.com/get-started/native-mobile-app/flutter",
+};
+
 const IONIC_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-ionic",
   downloadUrl:
@@ -470,7 +489,8 @@ export const frameworks: FrameworkEntry[] = [
     "Flutter",
     "Cross-platform mobile SDK",
     "brand-flutter",
-    `${DOCS}/native-mobile-app/flutter`
+    `${DOCS}/native-mobile-app/flutter`,
+    FLUTTER_STARTER_KIT
   ),
   mobileNative(
     "ionic",

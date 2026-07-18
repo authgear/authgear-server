@@ -199,20 +199,27 @@ export function StarterKitSection(
         title={<FormattedMessage id="StarterKit.step5.title" />}
       >
         <Text block={true} className={styles.stepBody}>
-          <FormattedMessage
-            id="StarterKit.step5.body"
-            values={{
-              startCmd: starterKit.startCmd,
-              homepageUrl: starterKit.homepageUrl,
-              code: inlineCode,
-              // eslint-disable-next-line react/no-unstable-nested-components
-              link: (chunks: React.ReactNode) => (
-                <ExternalLink href={starterKit.homepageUrl}>
-                  {chunks}
-                </ExternalLink>
-              ),
-            }}
-          />
+          {starterKit.homepageUrl != null ? (
+            <FormattedMessage
+              id="StarterKit.step5.body"
+              values={{
+                startCmd: starterKit.startCmd,
+                homepageUrl: starterKit.homepageUrl,
+                code: inlineCode,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                link: (chunks: React.ReactNode) => (
+                  <ExternalLink href={starterKit.homepageUrl}>
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          ) : (
+            <FormattedMessage
+              id="StarterKit.step5.body.device"
+              values={{ startCmd: starterKit.startCmd, code: inlineCode }}
+            />
+          )}
         </Text>
       </QuickStartStep>
 
