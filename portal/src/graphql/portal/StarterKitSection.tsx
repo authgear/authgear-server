@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import cn from "classnames";
 import { IconButton, Text } from "@fluentui/react";
 import { FormattedMessage } from "../../intl";
@@ -22,7 +22,7 @@ export interface StarterKitSectionProps {
   usersPath: string;
   redirectURIIsSet: boolean;
   saving: boolean;
-  onSetRedirectURI: (value: string) => void;
+  onAuthorize: () => void;
   onGoToSettings: () => void;
 }
 
@@ -48,7 +48,7 @@ export function StarterKitSection(
     usersPath,
     redirectURIIsSet,
     saving,
-    onSetRedirectURI,
+    onAuthorize,
     onGoToSettings,
   } = props;
   const configContent = useMemo(
@@ -64,9 +64,10 @@ export function StarterKitSection(
     textToCopy: configContent,
   });
 
-  const onClickAuthorize = useCallback(() => {
-    onSetRedirectURI(starterKit.redirectURI);
-  }, [onSetRedirectURI, starterKit.redirectURI]);
+  // Mobile/hybrid kits insert "Run on iOS" and "Run on Android" steps after
+  // the web-test step, shifting the trailing step numbers.
+  const { mobileRun } = starterKit;
+  const mobileStepCount = mobileRun != null ? 2 : 0;
 
   return (
     <>
@@ -109,12 +110,16 @@ export function StarterKitSection(
         title={<FormattedMessage id="StarterKit.step2.title" />}
       >
         <Text block={true} className={styles.stepBody}>
-          <FormattedMessage id="StarterKit.step2.body" />
+          <FormattedMessage
+            id="StarterKit.step2.body"
+            values={{ count: starterKit.redirectURIs.length }}
+          />
         </Text>
-        <TextFieldWithCopyButton
-          value={starterKit.redirectURI}
-          readOnly={true}
-        />
+        <div className={styles.redirectURIList}>
+          {starterKit.redirectURIs.map((uri) => (
+            <TextFieldWithCopyButton key={uri} value={uri} readOnly={true} />
+          ))}
+        </div>
         <div className={styles.redirectStatusRow}>
           {redirectURIIsSet ? (
             <>
@@ -140,7 +145,7 @@ export function StarterKitSection(
                 <FormattedMessage id="StarterKit.step2.status.unauthorized" />
               </span>
               <PrimaryButton
-                onClick={onClickAuthorize}
+                onClick={onAuthorize}
                 disabled={saving}
                 text={<FormattedMessage id="StarterKit.step2.authorize" />}
               />
@@ -211,9 +216,49 @@ export function StarterKitSection(
         </Text>
       </QuickStartStep>
 
+      {mobileRun != null ? (
+        <>
+          <QuickStartStep
+            className="mt-4"
+            stepNumber="6"
+            title={<FormattedMessage id="StarterKit.mobile.ios.title" />}
+          >
+            <Text block={true} className={styles.stepBody}>
+              <FormattedMessage
+                id="StarterKit.mobile.ios.body"
+                values={{
+                  code: inlineCode,
+                  buildCmd: mobileRun.buildCmd,
+                  syncCmd: mobileRun.syncCmd,
+                  openCmd: mobileRun.iosCmd,
+                }}
+              />
+            </Text>
+          </QuickStartStep>
+
+          <QuickStartStep
+            className="mt-4"
+            stepNumber="7"
+            title={<FormattedMessage id="StarterKit.mobile.android.title" />}
+          >
+            <Text block={true} className={styles.stepBody}>
+              <FormattedMessage
+                id="StarterKit.mobile.android.body"
+                values={{
+                  code: inlineCode,
+                  buildCmd: mobileRun.buildCmd,
+                  syncCmd: mobileRun.syncCmd,
+                  openCmd: mobileRun.androidCmd,
+                }}
+              />
+            </Text>
+          </QuickStartStep>
+        </>
+      ) : null}
+
       <QuickStartStep
         className="mt-4"
-        stepNumber="6"
+        stepNumber={String(6 + mobileStepCount)}
         title={<FormattedMessage id="StarterKit.step6.title" />}
       >
         <Text block={true} className={styles.stepBody}>
@@ -231,7 +276,7 @@ export function StarterKitSection(
 
       <QuickStartStep
         className="mt-4"
-        stepNumber="7"
+        stepNumber={String(7 + mobileStepCount)}
         title={<FormattedMessage id="StarterKit.step7.title" />}
       >
         <Text block={true} className={styles.stepBody}>
@@ -254,7 +299,7 @@ export function StarterKitSection(
 
       <QuickStartStep
         className="mt-4 mb-16"
-        stepNumber="8"
+        stepNumber={String(8 + mobileStepCount)}
         title={<FormattedMessage id="StarterKit.step8.title" />}
       >
         <div className={styles.stepButtonRow}>

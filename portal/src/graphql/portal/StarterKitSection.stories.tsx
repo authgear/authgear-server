@@ -5,7 +5,7 @@ import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
 const KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
   downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
+  redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {
     format: "dotenv",
@@ -25,7 +25,7 @@ const JS_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
     "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
-  redirectURI: "http://localhost:3000/",
+  redirectURIs: ["http://localhost:3000/"],
   homepageUrl: "http://localhost:3000",
   config: {
     format: "js",
@@ -51,7 +51,7 @@ const meta = {
     usersPath: "/project/demo/users",
     redirectURIIsSet: false,
     saving: false,
-    onSetRedirectURI: () => {},
+    onAuthorize: () => {},
     onGoToSettings: () => {},
   },
 } satisfies Meta<typeof StarterKitSection>;
@@ -71,5 +71,20 @@ export const JsConfig: Story = {
   args: {
     starterKit: JS_KIT,
     frameworkDisplayName: "Other SPAs",
+  },
+};
+
+export const MultipleRedirectURIs: Story = {
+  args: {
+    frameworkDisplayName: "Ionic",
+    starterKit: {
+      ...KIT,
+      redirectURIs: [
+        "com.authgear.example.capacitor://host/path",
+        "capacitor://localhost",
+        "http://localhost:8100/oauth-redirect",
+        "https://localhost",
+      ],
+    },
   },
 };

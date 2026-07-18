@@ -35,13 +35,27 @@ export interface StarterKitConfig {
   vars: StarterKitConfigVar[];
 }
 
+export interface StarterKitMobileRun {
+  /** Command to build the web assets, e.g. "npm run build". */
+  buildCmd: string;
+  /** Command to sync assets to native platforms, e.g. "npx cap sync". */
+  syncCmd: string;
+  /** Command to open the iOS project, e.g. "npx cap open ios". */
+  iosCmd: string;
+  /** Command to open the Android project, e.g. "npx cap open android". */
+  androidCmd: string;
+}
+
 export interface StarterKit {
   /** GitHub repo page. */
   repoUrl: string;
   /** Archive zip download URL. */
   downloadUrl: string;
-  /** Fixed local redirect URI the starter kit expects. */
-  redirectURI: string;
+  /**
+   * Redirect URIs the starter kit expects; all are authorized in one click.
+   * The first entry is used for the `redirectURI` config token.
+   */
+  redirectURIs: string[];
   /** Local dev homepage to visit after starting the app. */
   homepageUrl: string;
   /** How and where the app is configured. */
@@ -50,6 +64,8 @@ export interface StarterKit {
   installCmd: string;
   /** Start command, e.g. "npm run dev". */
   startCmd: string;
+  /** Optional native build/run steps (for mobile/hybrid kits). */
+  mobileRun?: StarterKitMobileRun;
   /** "Read <Framework> Guide" target. */
   guideUrl: string;
 }
@@ -194,7 +210,8 @@ const mobileNative = (
   displayName: string,
   helperText: string,
   iconName: string,
-  docLink: string
+  docLink: string,
+  starterKit?: StarterKit
 ): FrameworkEntry => ({
   id,
   displayName,
@@ -205,6 +222,7 @@ const mobileNative = (
   stage2: "none",
   resolveType: () => "native",
   compatibleTypes: ["native"],
+  starterKit,
 });
 
 const DOCS = "https://docs.authgear.com/get-started";
@@ -222,7 +240,7 @@ const VITE_DOTENV_VARS: StarterKitConfig = {
 const REACT_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
   downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
+  redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
   installCmd: "npm i",
@@ -233,7 +251,7 @@ const REACT_STARTER_KIT: StarterKit = {
 const VUE_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-vue",
   downloadUrl: "https://github.com/authgear/authgear-example-vue/archive/HEAD.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
+  redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
   installCmd: "npm install",
@@ -245,7 +263,7 @@ const NEXTJS_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-nextjs",
   downloadUrl:
     "https://github.com/authgear/authgear-example-nextjs/archive/HEAD.zip",
-  redirectURI: "http://localhost:3000/api/auth/callback",
+  redirectURIs: ["http://localhost:3000/api/auth/callback"],
   homepageUrl: "http://localhost:3000",
   config: {
     format: "dotenv",
@@ -270,7 +288,7 @@ const ANGULAR_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-angular",
   downloadUrl:
     "https://github.com/authgear/authgear-example-angular/archive/HEAD.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
+  redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {
     format: "dotenv",
@@ -289,7 +307,7 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
     "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
-  redirectURI: "http://localhost:3000/",
+  redirectURIs: ["http://localhost:3000/"],
   homepageUrl: "http://localhost:3000",
   config: {
     format: "js",
@@ -302,6 +320,36 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   installCmd: "npm install",
   startCmd: "npm run dev",
   guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
+};
+
+const IONIC_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-ionic",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-ionic/archive/HEAD.zip",
+  redirectURIs: [
+    "com.authgear.example.capacitor://host/path",
+    "capacitor://localhost",
+    "http://localhost:8100/oauth-redirect",
+    "https://localhost",
+  ],
+  homepageUrl: "http://localhost:8100",
+  config: {
+    format: "dotenv",
+    fileName: ".env",
+    vars: [
+      { key: "VITE_AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "VITE_AUTHGEAR_ENDPOINT", token: "endpoint" },
+    ],
+  },
+  installCmd: "npm install",
+  startCmd: "ionic serve",
+  mobileRun: {
+    buildCmd: "npm run build",
+    syncCmd: "npx cap sync",
+    iosCmd: "npx cap open ios",
+    androidCmd: "npx cap open android",
+  },
+  guideUrl: "https://docs.authgear.com/get-started/native-mobile-app/ionic",
 };
 
 export const frameworks: FrameworkEntry[] = [
@@ -429,7 +477,8 @@ export const frameworks: FrameworkEntry[] = [
     "Ionic",
     "Cross-platform hybrid SDK",
     "device-mobile",
-    `${DOCS}/native-mobile-app/ionic`
+    `${DOCS}/native-mobile-app/ionic`,
+    IONIC_STARTER_KIT
   ),
 ];
 

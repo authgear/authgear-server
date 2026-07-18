@@ -22,7 +22,7 @@ export function buildConfigContent(
           value = values.endpoint;
           break;
         case "redirectURI":
-          value = starterKit.redirectURI;
+          value = starterKit.redirectURIs[0] ?? "";
           break;
         case "literal":
           value = v.literalValue ?? "";

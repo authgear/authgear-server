@@ -235,6 +235,12 @@
   line-height: 1;
 }
 
+.redirectURIList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .redirectStatusRow {
   display: flex;
   align-items: center;

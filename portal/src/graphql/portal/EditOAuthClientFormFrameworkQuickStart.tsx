@@ -109,33 +109,37 @@ export function EditOAuthClientFormFrameworkQuickStart<
   const { appID } = useParams() as { appID: string };
   const [settingRedirect, setSettingRedirect] = useState(false);
 
-  const onSetRedirectURI = useCallback(
-    (value: string) => {
-      setSettingRedirect(true);
-      const newState = produce(form.state, (draft) => {
-        const target = draft.clients.find(
-          (c) => c.client_id === client.client_id
+  const onAuthorizeRedirectURIs = useCallback(() => {
+    const uris = findFramework(client.x_framework)?.starterKit?.redirectURIs;
+    if (uris == null || uris.length === 0) {
+      return;
+    }
+    setSettingRedirect(true);
+    const appendAll = (existing: string[] | undefined): string[] => {
+      let next = existing ?? [];
+      for (const uri of uris) {
+        next = appendRedirectURI(next, uri);
+      }
+      return next;
+    };
+    const newState = produce(form.state, (draft) => {
+      const target = draft.clients.find(
+        (c) => c.client_id === client.client_id
+      );
+      if (target != null) {
+        target.redirect_uris = appendAll(target.redirect_uris);
+      }
+      if (draft.editedClient?.client_id === client.client_id) {
+        draft.editedClient.redirect_uris = appendAll(
+          draft.editedClient.redirect_uris
         );
-        if (target != null) {
-          target.redirect_uris = appendRedirectURI(
-            target.redirect_uris ?? [],
-            value
-          );
-        }
-        if (draft.editedClient?.client_id === client.client_id) {
-          draft.editedClient.redirect_uris = appendRedirectURI(
-            draft.editedClient.redirect_uris ?? [],
-            value
-          );
-        }
-      });
-      form
-        .saveWithState(newState)
-        .catch(() => {})
-        .finally(() => setSettingRedirect(false));
-    },
-    [client.client_id, form]
-  );
+      }
+    });
+    form
+      .saveWithState(newState)
+      .catch(() => {})
+      .finally(() => setSettingRedirect(false));
+  }, [client.x_framework, client.client_id, form]);
 
   if (framework == null) {
     return (
@@ -265,12 +269,11 @@ export function EditOAuthClientFormFrameworkQuickStart<
           clientID={client.client_id}
           publicOrigin={form.state.publicOrigin}
           usersPath={`/project/${appID}/users`}
-          redirectURIIsSet={
-            client.redirect_uris?.includes(framework.starterKit.redirectURI) ??
-            false
-          }
+          redirectURIIsSet={framework.starterKit.redirectURIs.every((uri) =>
+            (client.redirect_uris ?? []).includes(uri)
+          )}
           saving={settingRedirect}
-          onSetRedirectURI={onSetRedirectURI}
+          onAuthorize={onAuthorizeRedirectURIs}
           onGoToSettings={onGoToSettings ?? (() => {})}
         />
       ) : null}

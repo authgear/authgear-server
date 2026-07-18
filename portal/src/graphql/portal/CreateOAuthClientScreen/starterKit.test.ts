@@ -5,7 +5,7 @@ import type { StarterKit } from "./frameworks";
 const KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
   downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
-  redirectURI: "http://localhost:4000/auth-redirect",
+  redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {
     format: "dotenv",
@@ -25,7 +25,7 @@ const JS_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
     "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
-  redirectURI: "http://localhost:3000/",
+  redirectURIs: ["http://localhost:3000/"],
   homepageUrl: "http://localhost:3000",
   config: {
     format: "js",
@@ -97,7 +97,10 @@ describe("buildConfigContent", () => {
 describe("appendRedirectURI", () => {
   it("appends when absent", () => {
     expect(
-      appendRedirectURI(["http://localhost/after-authentication"], KIT.redirectURI)
+      appendRedirectURI(
+        ["http://localhost/after-authentication"],
+        KIT.redirectURIs[0]
+      )
     ).toEqual([
       "http://localhost/after-authentication",
       "http://localhost:4000/auth-redirect",
@@ -105,8 +108,10 @@ describe("appendRedirectURI", () => {
   });
 
   it("is a no-op when already present", () => {
-    const uris = [KIT.redirectURI];
-    expect(appendRedirectURI(uris, KIT.redirectURI)).toEqual([KIT.redirectURI]);
+    const uris = [KIT.redirectURIs[0]];
+    expect(appendRedirectURI(uris, KIT.redirectURIs[0])).toEqual([
+      KIT.redirectURIs[0],
+    ]);
   });
 
   it("preserves existing URIs", () => {
