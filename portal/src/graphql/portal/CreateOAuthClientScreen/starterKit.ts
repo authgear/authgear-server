@@ -34,6 +34,9 @@ export function buildConfigContent(
       if (config.format === "swift") {
         return `static let ${v.key} = "${value}"`;
       }
+      if (config.format === "kotlin") {
+        return `const val ${v.key} = "${value}"`;
+      }
       return `${v.key}=${value}`;
     })
     .join("\n");

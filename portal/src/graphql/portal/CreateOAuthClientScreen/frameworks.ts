@@ -15,8 +15,9 @@ export type ConfigValueToken =
  * - "dotenv": `KEY=value` lines for a `.env` file.
  * - "js": `const KEY = "value";` lines to paste into a source file.
  * - "swift": `static let key = "value"` lines to paste into a Swift file.
+ * - "kotlin": `const val KEY = "value"` lines to paste into a Kotlin file.
  */
-export type StarterKitConfigFormat = "dotenv" | "js" | "swift";
+export type StarterKitConfigFormat = "dotenv" | "js" | "swift" | "kotlin";
 
 export interface StarterKitConfigVar {
   /** The variable/constant name, e.g. "VITE_AUTHGEAR_CLIENT_ID". */
@@ -325,6 +326,24 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
+const ANDROID_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-android",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-android/archive/HEAD.zip",
+  redirectURIs: ["com.example.authgeardemo://host/path"],
+  config: {
+    format: "kotlin",
+    fileName: "app/src/main/java/com/example/authgeardemo/Constants.kt",
+    vars: [
+      { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+      { key: "AUTHGEAR_REDIRECT_URI", token: "redirectURI" },
+    ],
+  },
+  ide: "Android Studio",
+  guideUrl: "https://docs.authgear.com/get-started/native-mobile-app/android",
+};
+
 const IOS_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-ios",
   downloadUrl:
@@ -504,7 +523,8 @@ export const frameworks: FrameworkEntry[] = [
     "Android",
     "Native Android (Kotlin)",
     "brand-android",
-    `${DOCS}/native-mobile-app/android`
+    `${DOCS}/native-mobile-app/android`,
+    ANDROID_STARTER_KIT
   ),
   mobileNative(
     "flutter",

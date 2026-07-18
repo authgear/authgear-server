@@ -92,6 +92,30 @@ describe("buildConfigContent", () => {
     );
   });
 
+  it("renders kotlin format as const val assignments", () => {
+    const kit: StarterKit = {
+      ...JS_KIT,
+      config: {
+        format: "kotlin",
+        fileName: "Constants.kt",
+        vars: [
+          { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+          { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+        ],
+      },
+    };
+    const result = buildConfigContent(kit, {
+      clientID: "abc123",
+      endpoint: "https://demo.authgear.cloud",
+    });
+    expect(result).toBe(
+      [
+        'const val AUTHGEAR_CLIENT_ID = "abc123"',
+        'const val AUTHGEAR_ENDPOINT = "https://demo.authgear.cloud"',
+      ].join("\n")
+    );
+  });
+
   it("renders literal tokens as their static value", () => {
     const kit: StarterKit = {
       ...KIT,

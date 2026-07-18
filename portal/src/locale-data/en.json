@@ -993,7 +993,7 @@
   "StarterKit.step5.title": "Start Your Project",
   "StarterKit.step5.body": "Run <code>{startCmd}</code>. Then visit the project homepage at <link>{homepageUrl}</link>",
   "StarterKit.step5.body.device": "Run <code>{startCmd}</code> to launch the app on a connected device or emulator.",
-  "StarterKit.step5.body.ide": "Open the project in {ide} and run it on a simulator or device. Dependencies resolve automatically.",
+  "StarterKit.step5.body.ide": "Open the project in {ide} and run it on a simulator, emulator, or device. Dependencies resolve automatically.",
   "StarterKit.mobile.ios.title": "Run on iOS",
   "StarterKit.mobile.ios.body": "Build with <code>{buildCmd}</code>, sync with <code>{syncCmd}</code>, then run <code>{openCmd}</code> and launch from Xcode.",
   "StarterKit.mobile.android.title": "Run on Android",
