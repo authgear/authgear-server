@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 import {
   Icon,
+  IconButton,
   Text,
   useTheme,
   Image,
@@ -27,9 +28,17 @@ import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import EditOAuthClientForm from "./EditOAuthClientForm";
+import EditOAuthClientForm, {
+  getApplicationTypeMessageID,
+} from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
+import { EditOAuthClientFormFrameworkQuickStart } from "./EditOAuthClientFormFrameworkQuickStart";
+import {
+  findFramework,
+  getDisplayIconName,
+} from "./CreateOAuthClientScreen/frameworks";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -149,15 +158,33 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
 
 interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
+  framework?: string;
   showOpenTutorialLabelWhenHover: boolean;
 }
 
 const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
   function QuickStartFrameworkList(props) {
-    const { applicationType, showOpenTutorialLabelWhenHover } = props;
+    const { applicationType, framework, showOpenTutorialLabelWhenHover } =
+      props;
     const { renderToString } = useContext(Context);
 
     const items: FrameworkItem[] = useMemo(() => {
+      // If we know which framework the user chose, link to that one only.
+      const selectedFramework = findFramework(framework);
+      if (selectedFramework != null) {
+        return [
+          {
+            icon: (
+              <i
+                className={cn("ti", `ti-${selectedFramework.iconName}`)}
+                aria-hidden={true}
+              />
+            ),
+            name: selectedFramework.displayName,
+            docLink: selectedFramework.docLink,
+          },
+        ];
+      }
       switch (applicationType) {
         case "spa":
           return [
@@ -293,7 +320,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
         default:
           return [];
       }
-    }, [applicationType, renderToString]);
+    }, [applicationType, framework, renderToString]);
 
     if (applicationType == null) {
       return null;
@@ -312,12 +339,8 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
     );
   };
 
-interface EditOAuthClientNavBreadcrumbProps {
-  clientName: string;
-}
-
-const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps> =
-  function EditOAuthClientNavBreadcrumb(props) {
+const EditOAuthClientNavBreadcrumb: React.VFC =
+  function EditOAuthClientNavBreadcrumb() {
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
@@ -328,13 +351,63 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
         },
         {
           to: ".",
-          label: props.clientName,
+          label: (
+            <FormattedMessage id="EditOAuthClientScreen.breadcrumb.details" />
+          ),
         },
       ];
-    }, [props.clientName]);
+    }, []);
 
     return (
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+    );
+  };
+
+interface OAuthClientHeaderProps {
+  client: OAuthClientConfig;
+}
+
+const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
+  function OAuthClientHeader({ client }) {
+    const iconName = getDisplayIconName(client);
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: client.client_id,
+    });
+    return (
+      <div className={styles.clientHeader}>
+        <div className={styles.clientHeaderIconWrap}>
+          <i
+            className={cn("ti", `ti-${iconName}`, styles.clientHeaderIcon)}
+            aria-hidden={true}
+          />
+        </div>
+        <div className={styles.clientHeaderText}>
+          <Text
+            variant="xLarge"
+            block={true}
+            className={styles.clientHeaderName}
+          >
+            {client.name ?? ""}
+          </Text>
+          <div className={styles.clientHeaderMeta}>
+            <FormattedMessage
+              id={getApplicationTypeMessageID(client.x_application_type)}
+            />
+            <span className={styles.clientHeaderMetaSep}>|</span>
+            <span className={styles.clientHeaderClientIdLabel}>
+              <FormattedMessage id="EditOAuthClientScreen.header.client-id.label" />
+            </span>
+            <code className={styles.clientHeaderClientId}>
+              {client.client_id}
+            </code>
+            <IconButton
+              {...copyButtonProps}
+              className={styles.clientHeaderCopy}
+            />
+            <Feedback />
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -348,6 +421,29 @@ interface EditOAuthClientContentProps {
   app2appEnabled: boolean;
   onGeneratedNewIdpSigningCertificate: () => void;
   clientSecretHook: ClientSecretsHook;
+}
+
+/**
+ * The SAML tab is meaningful only for confidential clients that may be
+ * doing SAML integration. Per-framework OIDC integrations (Express, Flask,
+ * Laravel, Java, ASP.NET) are OIDC-only, so we hide the SAML tab there.
+ * Legacy confidential clients with no framework set keep the tab.
+ */
+const FRAMEWORKS_WITHOUT_SAML: ReadonlySet<string> = new Set([
+  "express",
+  "flask",
+  "laravel",
+  "java",
+  "aspnet",
+]);
+
+function shouldShowSamlTab(
+  client:
+    | { x_application_type?: string; x_framework?: string | null }
+    | undefined
+): boolean {
+  if (client?.x_application_type !== "confidential") return false;
+  return !FRAMEWORKS_WITHOUT_SAML.has(client.x_framework ?? "");
 }
 
 enum FormTab {
@@ -429,13 +525,18 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         <header
           className={cn(styles.widget, styles["widget--wide"], "space-y-5")}
         >
-          <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
+          <EditOAuthClientNavBreadcrumb />
+          <OAuthClientHeader client={client} />
           <AGPivot
             className={styles.widget}
             selectedKey={formTab}
             onLinkClick={onFormTabChange}
           >
-            {client.x_application_type === "m2m" ? (
+            {client.x_application_type === "m2m" ||
+            client.x_application_type === "spa" ||
+            client.x_application_type === "traditional_webapp" ||
+            client.x_application_type === "native" ||
+            client.x_application_type === "confidential" ? (
               <PivotItem
                 itemKey={FormTab.QUICK_START}
                 headerText={renderToString(
@@ -447,7 +548,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
               itemKey={FormTab.SETTINGS}
               headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
             />
-            {client.x_application_type === "confidential" ? (
+            {shouldShowSamlTab(client) ? (
               <PivotItem
                 itemKey={FormTab.SAML2}
                 headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
@@ -463,7 +564,25 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             ) : null}
           </AGPivot>
         </header>
-        {formTab === FormTab.QUICK_START ? (
+        {formTab === FormTab.QUICK_START &&
+        (client.x_application_type === "spa" ||
+          client.x_application_type === "traditional_webapp" ||
+          client.x_application_type === "native" ||
+          client.x_application_type === "confidential") ? (
+          <EditOAuthClientFormFrameworkQuickStart
+            className={cn(styles.widget, styles["widget--wide"])}
+            client={client}
+            applicationType={client.x_application_type}
+            form={props.form}
+            clientSecrets={clientSecret?.keys ?? undefined}
+            onGoToSettings={() => setFormTab(FormTab.SETTINGS)}
+          />
+        ) : null}
+        {formTab === FormTab.QUICK_START &&
+        client.x_application_type !== "spa" &&
+        client.x_application_type !== "traditional_webapp" &&
+        client.x_application_type !== "native" &&
+        client.x_application_type !== "confidential" ? (
           <EditOAuthClientFormQuickStartContent
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
@@ -521,61 +640,19 @@ function OAuthClientSettingsForm({
   onClientConfigChange,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
-  const theme = useTheme();
-  const hideQuickStart = useMemo(
-    () =>
-      (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
-        client.x_application_type
-      ),
-    [client.x_application_type]
-  );
   return (
-    <>
-      <div
-        className={cn(
-          styles.widget,
-          styles.widgetColumn,
-          hideQuickStart ? styles["widget--wide"] : null
-        )}
-      >
-        <EditOAuthClientForm
-          publicOrigin={state.publicOrigin}
-          clientConfig={client}
-          customUIEnabled={customUIEnabled}
-          app2appEnabled={app2appEnabled}
-          onClientConfigChange={onClientConfigChange}
-          clientSecretHook={clientSecretHook}
-        />
-      </div>
-      {!hideQuickStart ? (
-        <div className={styles.quickStartColumn}>
-          <Widget>
-            <div className={styles.quickStartWidget}>
-              <Text className={styles.quickStartWidgetTitle}>
-                <Icon
-                  className={styles.quickStartWidgetTitleIcon}
-                  styles={{ root: { color: theme.palette.themePrimary } }}
-                  iconName="Lightbulb"
-                />
-                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
-              </Text>
-              <Text>
-                <FormattedMessage
-                  id="EditOAuthClientScreen.quick-start-widget.question"
-                  values={{
-                    applicationType: client.x_application_type ?? "",
-                  }}
-                />
-              </Text>
-              <QuickStartFrameworkList
-                applicationType={client.x_application_type}
-                showOpenTutorialLabelWhenHover={false}
-              />
-            </div>
-          </Widget>
-        </div>
-      ) : null}
-    </>
+    <div
+      className={cn(styles.widget, styles.widgetColumn, styles["widget--wide"])}
+    >
+      <EditOAuthClientForm
+        publicOrigin={state.publicOrigin}
+        clientConfig={client}
+        customUIEnabled={customUIEnabled}
+        app2appEnabled={app2appEnabled}
+        onClientConfigChange={onClientConfigChange}
+        clientSecretHook={clientSecretHook}
+      />
+    </div>
   );
 }
 
@@ -725,7 +802,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     return (
       <ScreenLayoutScrollView>
         <ScreenContent>
-          <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
+          <EditOAuthClientNavBreadcrumb />
           <Widget className={styles.widget}>
             <Text variant="xLarge" block={true}>
               <Icon
@@ -745,6 +822,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             </Text>
             <QuickStartFrameworkList
               applicationType={client?.x_application_type}
+              framework={client?.x_framework}
               showOpenTutorialLabelWhenHover={true}
             />
             <div className={styles.quickStartScreenButtons}>
@@ -873,8 +951,14 @@ function FormContainerContent({
       switch (client?.x_application_type) {
         case "m2m":
           return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
+        case "spa":
+        case "traditional_webapp":
+        case "native":
+          return [FormTab.SETTINGS, FormTab.QUICK_START];
         case "confidential":
-          return [FormTab.SETTINGS, FormTab.SAML2];
+          return shouldShowSamlTab(client)
+            ? [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2]
+            : [FormTab.SETTINGS, FormTab.QUICK_START];
         default:
           return [FormTab.SETTINGS];
       }

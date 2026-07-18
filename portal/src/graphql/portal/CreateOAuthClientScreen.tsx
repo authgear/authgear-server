@@ -1,35 +1,17 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  ChoiceGroup,
-  IChoiceGroupOption,
-  IChoiceGroupOptionProps,
-  Text,
-} from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import PortalLink from "../../Link";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
-import { SearchBox } from "@fluentui/react/lib/SearchBox";
-import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
-import {
-  ApplicationResourcesList,
-  ApplicationResourceListItem,
-} from "../../components/api-resources/ApplicationResourcesList";
-import { encodeOffsetToCursor } from "../../util/pagination";
-import { PaginationProps } from "../../PaginationWidget";
-import { useDebounced } from "../../hook/useDebounced";
-import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResourceToClientID.generated";
 
 import ScreenContent from "../../ScreenContent";
-import ShowError from "../../ShowError";
-import { updateClientConfig } from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   OAuthClientConfig,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
+  Framework,
 } from "../../types";
 import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
@@ -40,25 +22,31 @@ import FormTextField from "../../FormTextField";
 import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
-import LinkButton from "../../LinkButton";
-import { useAppContext } from "../../context/AppContext";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { updateClientConfig } from "./EditOAuthClientForm";
+
+import { FrameworkGrid } from "./CreateOAuthClientScreen/FrameworkGrid";
+import { AuthMethodChoiceComponent } from "./CreateOAuthClientScreen/AuthMethodChoice";
+import {
+  findFramework,
+  type AuthMethodChoice as Stage2Choice,
+} from "./CreateOAuthClientScreen/frameworks";
+
+const NGINX_DOCS_HREF =
+  "https://docs.authgear.com/get-started/backend-api/nginx";
 
 interface FormState {
   clients: OAuthClientConfig[];
   newClient: OAuthClientConfig;
-  step: FormStep;
-  authorizeResourceURIs: string[];
-}
-
-enum FormStep {
-  SelectType = "select_type",
-  AuthorizeResource = "authorize_resource",
+  frameworkId: Framework | null;
+  stage2: Stage2Choice | null;
+  m2mSelected: boolean;
 }
 
 function constructFormState(
@@ -68,11 +56,11 @@ function constructFormState(
   return {
     clients: config.oauth?.clients ?? [],
     newClient: {
-      x_application_type: "spa",
       client_id: genRandomHexadecimalString(),
     },
-    step: FormStep.SelectType,
-    authorizeResourceURIs: [],
+    frameworkId: null,
+    stage2: null,
+    m2mSelected: false,
   };
 }
 
@@ -83,16 +71,28 @@ function constructConfig(
   currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  const framework = currentState.frameworkId
+    ? findFramework(currentState.frameworkId)
+    : undefined;
+  if (framework == null) {
+    // Before the user picks a framework, the form is not yet dirty.
+    // Return the input config unchanged.
+    return [config, secretConfig];
+  }
+  if (framework.stage2 === "token-or-cookie" && currentState.stage2 == null) {
+    return [config, secretConfig];
+  }
+  const xType = framework.resolveType(currentState.stage2 ?? undefined);
+
   const [newConfig, _] = produce(
     [config, currentState],
     ([config, currentState]) => {
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
       const draft = createDraft(currentState.newClient);
-      if (draft.x_application_type == null) {
-        throw new Error("unexpected null x_application_type");
-      }
-      switch (draft.x_application_type) {
+      draft.x_application_type = xType;
+      draft.x_framework = framework.id;
+      switch (xType) {
         case "spa":
         case "traditional_webapp":
           draft.redirect_uris = ["http://localhost/after-authentication"];
@@ -116,6 +116,7 @@ function constructConfig(
           draft.issue_jwt_access_token = true;
           break;
         case "m2m":
+          // M2M is handled by CreateM2MClientScreen; not reachable here.
           draft.issue_jwt_access_token = true;
           break;
       }
@@ -131,14 +132,21 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  const framework = currentState.frameworkId
+    ? findFramework(currentState.frameworkId)
+    : undefined;
+  if (framework == null) {
+    return undefined;
+  }
+  if (framework.stage2 === "token-or-cookie" && currentState.stage2 == null) {
+    return undefined;
+  }
+  const xType = framework.resolveType(currentState.stage2 ?? undefined);
   const clientTypesWithSecret: OAuthClientConfig["x_application_type"][] = [
     "confidential",
     "third_party_app",
-    "m2m",
   ];
-  if (
-    clientTypesWithSecret.includes(currentState.newClient.x_application_type)
-  ) {
+  if (clientTypesWithSecret.includes(xType)) {
     return {
       oauthClientSecrets: {
         action: "generate",
@@ -152,334 +160,20 @@ function constructSecretUpdateInstruction(
 }
 
 function constructInitialCurrentState(state: FormState): FormState {
-  return produce(state, (state) => {
-    state.newClient.name = "My App";
-  });
-}
-
-function getNextStep(state: FormState): FormStep | null {
-  if (state.newClient.x_application_type === "m2m") {
-    if (state.step === FormStep.SelectType) {
-      return FormStep.AuthorizeResource;
-    }
-  }
-  return null;
+  return state;
 }
 
 interface CreateOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
-  hasNoAPIResources: boolean;
 }
-
-interface StepSelectApplicationTypeProps {
-  client: OAuthClientConfig;
-  form: AppSecretConfigFormModel<FormState>;
-  onClickSave: () => void;
-  hasNoAPIResources: boolean;
-}
-
-const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
-  function StepSelectApplicationType(props) {
-    const { client, form, onClickSave, hasNoAPIResources } = props;
-    const { appNodeID } = useAppContext();
-    const { state, setState, isDirty, isUpdating } = form;
-    const { renderToString } = useContext(Context);
-
-    const onClientConfigChange = useCallback(
-      (newClient: OAuthClientConfig) => {
-        setState((s) => ({ ...s, newClient }));
-      },
-      [setState]
-    );
-
-    const { onChange: onClientNameChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(client, "name", ensureNonEmptyString(value))
-      );
-    });
-
-    const onRenderLabel = useCallback((description: React.ReactNode) => {
-      return (option?: IChoiceGroupOption | IChoiceGroupOptionProps) => {
-        return (
-          <div className={styles.optionLabel}>
-            <Text className={styles.optionLabelText} block={true}>
-              {option?.text}
-            </Text>
-            <Text className={styles.optionLabelDescription} block={true}>
-              {description}
-            </Text>
-          </div>
-        );
-      };
-    }, []);
-
-    const options: IChoiceGroupOption[] = useMemo(() => {
-      return [
-        {
-          key: "spa",
-          text: renderToString("oauth-client.application-type.spa"),
-          onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.spa"
-            )
-          ),
-        },
-        {
-          key: "traditional_webapp",
-          text: renderToString(
-            "oauth-client.application-type.traditional-webapp"
-          ),
-          onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.traditional-webapp"
-            )
-          ),
-        },
-        {
-          key: "native",
-          text: renderToString("oauth-client.application-type.native"),
-          onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.native"
-            )
-          ),
-        },
-        {
-          key: "confidential",
-          text: renderToString("oauth-client.application-type.confidential"),
-          onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.confidential"
-            )
-          ),
-        },
-        // Do not show this option.
-        //{
-        //  key: "third_party_app",
-        //  text: renderToString("oauth-client.application-type.third-party-app"),
-        //  onRenderLabel: onRenderLabel(
-        //    renderToString(
-        //      "CreateOAuthClientScreen.application-type.description.third-party-app"
-        //    )
-        //  ),
-        //  disabled: true,
-        //},
-        {
-          key: "m2m",
-          text: renderToString("oauth-client.application-type.m2m"),
-          onRenderLabel: onRenderLabel(
-            <FormattedMessage
-              id={
-                hasNoAPIResources
-                  ? "CreateOAuthClientScreen.application-type.description.m2m.disabled"
-                  : "CreateOAuthClientScreen.application-type.description.m2m"
-              }
-              values={{
-                // eslint-disable-next-line react/no-unstable-nested-components
-                reactRouterLink: (chunks: React.ReactNode) => (
-                  <PortalLink
-                    to={`/project/${encodeURIComponent(
-                      appNodeID
-                    )}/api-resources/create`}
-                  >
-                    {chunks}
-                  </PortalLink>
-                ),
-              }}
-            />
-          ),
-          disabled: hasNoAPIResources,
-        },
-      ];
-    }, [renderToString, onRenderLabel, appNodeID, hasNoAPIResources]);
-
-    const onApplicationChange = useCallback(
-      (_e: unknown, option?: IChoiceGroupOption) => {
-        if (option != null) {
-          let issueJwtAccessToken: boolean | undefined;
-          switch (option.key) {
-            case "spa":
-            case "native":
-              issueJwtAccessToken = true;
-              break;
-            case "m2m":
-              issueJwtAccessToken = true;
-              break;
-            default:
-              issueJwtAccessToken = undefined;
-              break;
-          }
-          onClientConfigChange(
-            updateClientConfig(
-              updateClientConfig(
-                client,
-                "x_application_type",
-                option.key as OAuthClientConfig["x_application_type"]
-              ),
-              "issue_jwt_access_token",
-              issueJwtAccessToken
-            )
-          );
-        }
-      },
-      [onClientConfigChange, client]
-    );
-
-    return (
-      <Widget className={cn(styles.widget)}>
-        <FormTextField
-          parentJSONPointer={/\/oauth\/clients\/\d+/}
-          fieldName="name"
-          label={renderToString("CreateOAuthClientScreen.name.label")}
-          description={renderToString(
-            "CreateOAuthClientScreen.name.description"
-          )}
-          value={client.name ?? ""}
-          onChange={onClientNameChange}
-          required={true}
-        />
-        <ChoiceGroup
-          label={renderToString(
-            "CreateOAuthClientScreen.application-type.label"
-          )}
-          options={options}
-          selectedKey={client.x_application_type}
-          onChange={onApplicationChange}
-        />
-        <div className={styles.buttons}>
-          <ButtonWithLoading
-            onClick={onClickSave}
-            loading={isUpdating}
-            disabled={!isDirty}
-            labelId={getNextStep(state) != null ? "next" : "save"}
-          />
-        </div>
-      </Widget>
-    );
-  };
-
-interface StepAuthorizeResourceProps {
-  client: OAuthClientConfig;
-  form: AppSecretConfigFormModel<FormState>;
-  onClickSave: () => void;
-}
-
-const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
-  function StepAuthorizeResource(props) {
-    const { form, onClickSave } = props;
-    const { isDirty, isUpdating } = form;
-    const { renderToString } = useContext(Context);
-    const [searchKeyword, setSearchKeyword] = useState("");
-    const [offset, setOffset] = useState(0);
-
-    const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
-
-    const PAGE_SIZE = 10;
-
-    const { data, loading, error, refetch } = useResourcesQueryQuery({
-      variables: {
-        first: PAGE_SIZE,
-        after: encodeOffsetToCursor(offset),
-        searchKeyword:
-          debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
-      },
-      fetchPolicy: "cache-and-network",
-    });
-
-    const resourceListData: ApplicationResourceListItem[] = useMemo(() => {
-      const resources =
-        data?.resources?.edges
-          ?.map((edge) => edge?.node)
-          .filter((node) => !!node) ?? [];
-      return resources.map((resource) => {
-        const isAuthorized = form.state.authorizeResourceURIs.includes(
-          resource.resourceURI
-        );
-        return {
-          id: resource.id,
-          name: resource.name,
-          resourceURI: resource.resourceURI,
-          isAuthorized: isAuthorized,
-        };
-      });
-    }, [data?.resources?.edges, form.state.authorizeResourceURIs]);
-
-    const handleToggleAuthorization = useCallback(
-      (item: ApplicationResourceListItem, isAuthorized: boolean) => {
-        form.setState((s) => {
-          const uris = new Set(s.authorizeResourceURIs);
-          if (isAuthorized) {
-            uris.add(item.resourceURI);
-          } else {
-            uris.delete(item.resourceURI);
-          }
-          return { ...s, authorizeResourceURIs: Array.from(uris) };
-        });
-      },
-      [form]
-    );
-
-    const onChangeOffset = useCallback((newOffset: number) => {
-      setOffset(newOffset);
-    }, []);
-
-    const pagination: PaginationProps = {
-      offset,
-      pageSize: PAGE_SIZE,
-      totalCount: data?.resources?.totalCount ?? undefined,
-      onChangeOffset,
-    };
-
-    if (error != null) {
-      // eslint-disable-next-line @typescript-eslint/strict-void-return
-      return <ShowError error={error} onRetry={refetch} />;
-    }
-
-    return (
-      <div className={cn(styles.widget, "flex flex-col gap-y-4")}>
-        <Text block={true}>
-          <FormattedMessage id="CreateOAuthClientScreen.authorize-resource.description" />
-        </Text>
-        <SearchBox
-          placeholder={renderToString("search")}
-          styles={{ root: { width: 300 } }}
-          onChange={(_e, newValue) => {
-            setSearchKeyword(newValue ?? "");
-            setOffset(0);
-          }}
-        />
-        <ApplicationResourcesList
-          className="flex-1"
-          resources={resourceListData}
-          loading={loading}
-          pagination={pagination}
-          onToggleAuthorization={handleToggleAuthorization}
-        />
-        <div className={styles.buttons}>
-          <ButtonWithLoading
-            onClick={onClickSave}
-            loading={isUpdating}
-            disabled={!isDirty}
-            labelId="save"
-          />
-          <LinkButton
-            onClick={() => {
-              form.setState((s) => ({ ...s, step: FormStep.SelectType }));
-            }}
-          >
-            <FormattedMessage id="back" />
-          </LinkButton>
-        </div>
-      </div>
-    );
-  };
 
 const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
-    const { form, hasNoAPIResources } = props;
-    const { state, setState, save } = form;
+    const { form } = props;
+    const { state, setState, save, isUpdating } = form;
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
+    const { renderToString } = useContext(Context);
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -497,35 +191,89 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     }, []);
 
     const [clientId] = useState(state.newClient.client_id);
-    const client =
-      state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
+    const client = state.newClient;
+
+    const onClientConfigChange = useCallback(
+      (newClient: OAuthClientConfig) => {
+        setState((s) => ({ ...s, newClient }));
+      },
+      [setState]
+    );
+
+    const { onChange: onClientNameChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(client, "name", ensureNonEmptyString(value))
+      );
+    });
+
+    const framework = state.frameworkId
+      ? findFramework(state.frameworkId)
+      : undefined;
+    const needsStage2 = framework?.stage2 === "token-or-cookie";
+
+    const onSelectFramework = useCallback(
+      (id: Framework) => {
+        const picked = findFramework(id);
+        const defaultStage2: Stage2Choice | null =
+          picked?.stage2 === "token-or-cookie" ? "token" : null;
+        setState((s) => ({
+          ...s,
+          frameworkId: id,
+          stage2: defaultStage2,
+          m2mSelected: false,
+        }));
+      },
+      [setState]
+    );
+
+    const onSelectM2M = useCallback(() => {
+      setState((s) => ({
+        ...s,
+        frameworkId: null,
+        stage2: null,
+        m2mSelected: true,
+      }));
+    }, [setState]);
+
+    const onChangeStage2 = useCallback(
+      (value: Stage2Choice) => {
+        setState((s) => ({ ...s, stage2: value }));
+      },
+      [setState]
+    );
+
+    const nameValid = useMemo(
+      () => Boolean(ensureNonEmptyString(client.name ?? "")),
+      [client.name]
+    );
+
+    const canSubmit = useMemo(() => {
+      if (!nameValid) return false;
+      if (!framework) return false;
+      if (needsStage2 && state.stage2 == null) return false;
+      return true;
+    }, [nameValid, framework, needsStage2, state.stage2]);
+
+    const onClickNext = useCallback(() => {
+      navigate(`/project/${appID}/configuration/apps/add-m2m`, {
+        state: { name: client.name ?? "" },
+      });
+    }, [appID, navigate, client.name]);
+
+    const onClickCancel = useCallback(() => {
+      navigate(`/project/${appID}/configuration/apps`);
+    }, [appID, navigate]);
 
     const onClickSave = useCallback(() => {
-      const nextStep = getNextStep(state);
-      if (nextStep != null) {
-        setState((s) => ({ ...s, step: nextStep }));
-        return;
-      }
+      if (!canSubmit) return;
       save()
         .then(
           () => {
-            const applicationTypesWithQuickStart: OAuthClientConfig["x_application_type"][] =
-              [
-                "confidential",
-                "native",
-                "spa",
-                "third_party_app",
-                "traditional_webapp",
-              ];
             const nextPath = `/project/${appID}/configuration/apps/${encodeURIComponent(
               clientId
             )}/edit`;
             const searchParams = new URLSearchParams();
-            if (
-              applicationTypesWithQuickStart.includes(client.x_application_type)
-            ) {
-              searchParams.set("quickstart", "true");
-            }
+            searchParams.set("tab", "quick-start");
             navigate(
               {
                 pathname: nextPath,
@@ -539,51 +287,60 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [
-      save,
-      appID,
-      clientId,
-      client.x_application_type,
-      navigate,
-      setState,
-      state,
-    ]);
+    }, [canSubmit, save, appID, clientId, navigate]);
 
     return (
       <ScreenContent className="flex-1-0-auto" layout={"list"}>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        {state.step === FormStep.SelectType ? (
-          <StepSelectApplicationType
-            client={client}
-            form={form}
-            onClickSave={onClickSave}
-            hasNoAPIResources={hasNoAPIResources}
+        <Widget className={cn(styles.widget, styles.wizardWidget)}>
+          <FormTextField
+            parentJSONPointer={/\/oauth\/clients\/\d+/}
+            fieldName="name"
+            label={renderToString("CreateOAuthClientScreen.name.label")}
+            description={renderToString(
+              "CreateOAuthClientScreen.name.description"
+            )}
+            value={client.name ?? ""}
+            onChange={onClientNameChange}
+            required={true}
+            autoFocus={true}
           />
-        ) : null}
-        {state.step === FormStep.AuthorizeResource ? (
-          <StepAuthorizeResource
-            client={client}
-            form={form}
-            onClickSave={onClickSave}
+          <FrameworkGrid
+            selectedId={state.frameworkId}
+            m2mSelected={state.m2mSelected}
+            onSelect={onSelectFramework}
+            onSelectM2M={onSelectM2M}
           />
-        ) : null}
+          {needsStage2 ? (
+            <AuthMethodChoiceComponent
+              value={state.stage2}
+              onChange={onChangeStage2}
+              nginxDocsHref={NGINX_DOCS_HREF}
+            />
+          ) : null}
+          <div className={styles.footer}>
+            <ButtonWithLoading
+              onClick={state.m2mSelected ? onClickNext : onClickSave}
+              loading={isUpdating}
+              disabled={state.m2mSelected ? !nameValid : !canSubmit}
+              labelId={
+                state.m2mSelected
+                  ? "CreateOAuthClientScreen.next"
+                  : "CreateOAuthClientScreen.submit"
+              }
+            />
+            <DefaultButton
+              text={renderToString("CreateOAuthClientScreen.cancel")}
+              onClick={onClickCancel}
+            />
+          </div>
+        </Widget>
       </ScreenContent>
     );
   };
 
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
-  const [addResource] = useAddResourceToClientIdMutation();
-
-  const resourceCountQuery = useResourcesQueryQuery({
-    variables: {
-      first: 1,
-    },
-    fetchPolicy: "cache-and-network",
-  });
-
-  const hasNoAPIResources =
-    (resourceCountQuery.data?.resources?.totalCount ?? 0) === 0;
 
   const form = useAppSecretConfigForm({
     appID,
@@ -592,24 +349,6 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     constructConfig,
     constructInitialCurrentState,
     constructSecretUpdateInstruction,
-    postSave: useCallback(
-      async (state: FormState) => {
-        if (state.newClient.x_application_type !== "m2m") {
-          return;
-        }
-        const clientID = state.newClient.client_id;
-        const uris = state.authorizeResourceURIs;
-        for (const resourceURI of uris) {
-          await addResource({
-            variables: {
-              clientID,
-              resourceURI,
-            },
-          });
-        }
-      },
-      [addResource]
-    ),
   });
 
   const errorRules = useMemo(
@@ -627,14 +366,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   );
 
   return useLoadableView({
-    loadables: [
-      form,
-      {
-        isLoading: resourceCountQuery.loading,
-        loadError: resourceCountQuery.error,
-        reload: resourceCountQuery.refetch,
-      },
-    ] as const,
+    loadables: [form] as const,
     render: ([form]) => (
       <FormProvider
         loading={form.isUpdating}
@@ -643,10 +375,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
       >
         <FormErrorMessageBar />
         <div className="flex-1 overflow-y-auto flex flex-col">
-          <CreateOAuthClientContent
-            form={form}
-            hasNoAPIResources={hasNoAPIResources}
-          />
+          <CreateOAuthClientContent form={form} />
         </div>
       </FormProvider>
     ),

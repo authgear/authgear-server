@@ -105,6 +105,9 @@ const ApplicationsConfigurationScreen = lazy(
 const CreateOAuthClientScreen = lazy(
   async () => import("./graphql/portal/CreateOAuthClientScreen")
 );
+const CreateM2MClientScreen = lazy(
+  async () => import("./graphql/portal/CreateM2MClientScreen")
+);
 const EditOAuthClientScreen = lazy(
   async () => import("./graphql/portal/EditOAuthClientScreen")
 );
@@ -758,6 +761,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <CreateOAuthClientScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="add-m2m"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <CreateM2MClientScreen />
                   </Suspense>
                 }
               />

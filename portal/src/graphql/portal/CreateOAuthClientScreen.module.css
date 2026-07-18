@@ -4,23 +4,16 @@
   @apply tablet:col-span-full;
 }
 
-.optionLabel {
-  padding-left: 26px;
-}
-
-.optionLabelText {
-  line-height: 20px;
-  margin-bottom: 4px;
-}
-
-.optionLabelDescription {
-  line-height: 20px;
-  margin-bottom: 12px;
-}
-
-.buttons {
+.wizardWidget {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.footer {
+  display: flex;
   justify-content: flex-start;
-  @apply gap-6;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
 }

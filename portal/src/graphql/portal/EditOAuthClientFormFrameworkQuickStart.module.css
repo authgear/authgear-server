@@ -1,0 +1,294 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.frameworkRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #eef4ff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frameworkIcon {
+  font-size: 26px;
+  line-height: 1;
+  color: #0969da;
+}
+
+.frameworkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.helperText {
+  color: #57606a;
+  font-size: 13px;
+}
+
+.changeButtonInline {
+  flex-shrink: 0;
+}
+
+.sectionHeading {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.tutorialCard {
+  padding: 20px;
+  border-radius: 8px;
+  background: #eef4ff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tutorialHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tutorialIcon {
+  font-size: 20px;
+  color: #0969da;
+}
+
+.tutorialBody {
+  color: #24292f;
+  line-height: 1.5;
+}
+
+.changeButton {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border: 1px dashed #d0d7de;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.emptyIconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: #eef4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyIcon {
+  font-size: 36px;
+  color: #0969da;
+  line-height: 1;
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.emptyBody {
+  color: #57606a;
+  max-width: 420px;
+}
+
+.emptyButton {
+  margin-top: 12px;
+}
+
+.dialogGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+  /* Give the ChoiceButton outline room. */
+  padding: 2px;
+}
+
+@media (max-width: 600px) {
+  .dialogGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.changeFrameworkNote {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  color: #57606a;
+}
+
+.snippetDescription {
+  color: #57606a;
+  margin-top: -16px;
+}
+
+.snippetCard {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f6f8fa;
+}
+
+.snippetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #eaeef2;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.snippetLanguage {
+  font-size: 12px;
+  font-weight: 600;
+  color: #57606a;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.snippetCopyWrap {
+  display: flex;
+  align-items: center;
+}
+
+.snippetCode {
+  margin: 0;
+  padding: 16px;
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #24292f;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.oidcSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oidcDescription {
+  color: #57606a;
+  line-height: 1.5;
+  margin-top: -8px;
+}
+
+.starterKitTitle {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.stepBody {
+  color: #57606a;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.stepButtonRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inlineCode {
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 12.5px;
+  background: #eff1f3;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.buttonBrandIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.redirectURIList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.redirectStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.statusChip i {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.statusChipUnauthorized {
+  background: #fff4ce;
+  color: #8a6d00;
+}
+
+.statusChipAuthorized {
+  background: #dff6dd;
+  color: #0e700e;
+}
+
+.redirectManageLink {
+  font-size: 13px;
+}
+
+.envCard {
+  position: relative;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f6f8fa;
+}
+
+.envCopyWrap {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+}
