@@ -85,6 +85,22 @@
   padding: 4px 0 8px;
 }
 
+.selectedSection {
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--gray-a4);
+}
+
+.selectedSectionTitle {
+  margin: 0;
+  padding: 6px 12px 2px;
+  color: var(--gray-11);
+}
+
+.itemSelectedList {
+  padding-left: 12px;
+}
+
 .group {
   padding-top: 2px;
   margin-top: 2px;

@@ -283,6 +283,15 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
 
     const hasSelection = value.length > 0;
 
+    const selectedOptions = useMemo<ActivityTypeOption[]>(() => {
+      return value
+        .map((activityType) => ({
+          key: activityType,
+          label: renderToString("AuditLogActivityType." + activityType),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    }, [renderToString, value]);
+
     const renderOptions = useCallback(
       (options: ActivityTypeOption[], indentClassName: string) => {
         return options.map((option) => {
@@ -375,6 +384,14 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
               />
             </div>
             <div className={styles.list}>
+              {hasSelection ? (
+                <div className={styles.selectedSection}>
+                  <Text as="p" size="1" weight="medium" className={styles.selectedSectionTitle}>
+                    <FormattedMessage id="AuditLogScreen.activity-types-selected-section" />
+                  </Text>
+                  {renderOptions(selectedOptions, styles.itemSelectedList)}
+                </div>
+              ) : null}
               {groupSections.length === 0 ? (
                 <Text className={styles.emptyView}>
                   <FormattedMessage id="SearchableDropdown.empty" />

@@ -1,13 +1,19 @@
 .root {
-  @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
-  @apply h-11;
+  @apply flex flex-col gap-y-1;
+  @apply tablet:gap-y-2;
 
   /* Align the left/right edges with the screen title and the table below. */
   @apply px-6;
 
+  @apply tablet:px-6;
+}
+
+.filtersRow {
+  @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
+  @apply h-11;
+
   @apply tablet:flex tablet:flex-col;
   @apply tablet:h-auto;
-  @apply tablet:px-6;
 }
 
 .filterContainer {
@@ -82,4 +88,11 @@
      height when the screen wrapper has no definite height. */
   @apply tablet:h-11;
   @apply tablet:w-full;
+}
+
+.selectedActivityTypesSummary {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
