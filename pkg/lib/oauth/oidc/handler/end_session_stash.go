@@ -16,21 +16,25 @@ import (
 // endSessionRefQueryParam carries the sealed, opaque request blob across the
 // POST -> redirect-to-self -> GET round trip. It is safe to appear in the URL
 // because it contains no plaintext PII; only the holder of the matching
-// EndSessionStashCookieDef cookie (set on the same origin, same response) can
-// decrypt it.
+// EndSessionRefKeyCookieDef cookie (set on the same origin, same response)
+// can decrypt it.
 const endSessionRefQueryParam = "x_end_session_ref"
 
-const endSessionStashCookieMaxAge = 300 // 5 minutes; only needs to survive one redirect round trip.
+const endSessionRefKeyCookieMaxAge = 300 // 5 minutes; only needs to survive one redirect round trip.
 
-var EndSessionStashCookieDef = &httputil.CookieDef{
-	NameSuffix: "end_session_stash",
+// EndSessionRefKeyCookieDef holds the AES-256 key that decrypts
+// endSessionRefQueryParam's sealed value; its cookie name mirrors that query
+// param (end_session_ref -> end_session_ref_key) so the two are recognizable
+// as a pair.
+var EndSessionRefKeyCookieDef = &httputil.CookieDef{
+	NameSuffix: "end_session_ref_key",
 	Path:       "/oauth2/end_session",
 	SameSite:   http.SameSiteLaxMode,
-	MaxAge:     endSessionStashCookieMaxAgePtr(),
+	MaxAge:     endSessionRefKeyCookieMaxAgePtr(),
 }
 
-func endSessionStashCookieMaxAgePtr() *int {
-	v := endSessionStashCookieMaxAge
+func endSessionRefKeyCookieMaxAgePtr() *int {
+	v := endSessionRefKeyCookieMaxAge
 	return &v
 }
 
@@ -47,7 +51,7 @@ var ErrEndSessionStashInvalid = errors.New("end_session: invalid or expired stas
 
 // sealEndSessionRequest encrypts req under a freshly generated random 256-bit
 // key using AES-GCM. It returns the key (to be stored in
-// EndSessionStashCookieDef) and the sealed blob nonce||ciphertext||tag, both
+// EndSessionRefKeyCookieDef) and the sealed blob nonce||ciphertext||tag, both
 // base64url-encoded (to be carried in endSessionRefQueryParam).
 func sealEndSessionRequest(req protocol.EndSessionRequest) (key string, sealed string, err error) {
 	keyBytes := make([]byte, 32)

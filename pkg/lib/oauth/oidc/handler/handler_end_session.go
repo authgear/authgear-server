@@ -88,7 +88,7 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 		if err != nil {
 			return err
 		}
-		httputil.UpdateCookie(rw, h.Cookies.ValueCookie(EndSessionStashCookieDef, key))
+		httputil.UpdateCookie(rw, h.Cookies.ValueCookie(EndSessionRefKeyCookieDef, key))
 		selfURL := urlutil.WithQueryParamsAdded(
 			h.Endpoints.EndSessionEndpointURL(),
 			map[string]string{endSessionRefQueryParam: sealed},
@@ -206,10 +206,10 @@ func (h *EndSessionHandler) resumeFromStash(ctx context.Context, r *http.Request
 	// immediately, before GetCookie() below gets a chance to read the
 	// still-live cookie.
 	defer func() {
-		httputil.UpdateCookie(rw, h.Cookies.ClearCookie(EndSessionStashCookieDef))
+		httputil.UpdateCookie(rw, h.Cookies.ClearCookie(EndSessionRefKeyCookieDef))
 	}()
 
-	cookie, err := h.Cookies.GetCookie(r, EndSessionStashCookieDef)
+	cookie, err := h.Cookies.GetCookie(r, EndSessionRefKeyCookieDef)
 	if err != nil {
 		h.logInvalidStash(ctx, err)
 		return protocol.EndSessionRequest{}

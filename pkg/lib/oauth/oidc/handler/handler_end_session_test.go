@@ -550,18 +550,18 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 }
 
 // assertStashCookieCleared checks that a resumed request's response actually
-// clears EndSessionStashCookieDef: both server-side (removed from the fake
+// clears EndSessionRefKeyCookieDef: both server-side (removed from the fake
 // cookie manager's backing store, so it can't be read again) and via the
 // Set-Cookie header a real browser would need to see (negative MaxAge).
 // Without this, a stale x_end_session_ref revisited later (e.g. from browser
 // history) could still pair with a cookie that was never actually deleted.
 func assertStashCookieCleared(cookies *fakeCookieManager, rw *httptest.ResponseRecorder) {
-	_, stillPresent := cookies.values[handler.EndSessionStashCookieDef.NameSuffix]
+	_, stillPresent := cookies.values[handler.EndSessionRefKeyCookieDef.NameSuffix]
 	So(stillPresent, ShouldBeFalse)
 
 	var cleared *http.Cookie
 	for _, c := range rw.Result().Cookies() {
-		if c.Name == handler.EndSessionStashCookieDef.NameSuffix {
+		if c.Name == handler.EndSessionRefKeyCookieDef.NameSuffix {
 			cleared = c
 			break
 		}
