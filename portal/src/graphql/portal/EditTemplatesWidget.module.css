@@ -1,23 +1,35 @@
 .form {
-  margin: 15px 0 0;
+  @apply flex flex-col gap-4;
+  margin: 0;
 }
 
-.boldLabel {
-  margin: 0 8px 5px;
-  font-weight: 700;
+.sectionContent {
+  @apply gap-4;
 }
 
-.label {
-  margin: 0 8px 5px;
+.editorCard {
+  @apply min-w-0 overflow-hidden rounded-xl border border-solid;
+  border-color: var(--gray-a6);
+}
+
+.editorCardHeader {
+  @apply border-b border-solid px-6 py-4;
+  border-color: var(--gray-a6);
+}
+
+.editorCardTitle {
+  margin: 0;
+  color: var(--gray-12);
 }
 
 .codeEditor {
-  height: 300px;
-  border: 1px solid #eee;
-  border-radius: 2px;
-  margin: 0 8px 15px;
+  display: block;
+  height: 70vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
-.textField {
-  margin: 0 8px 15px;
+.codeEditorCompact {
+  height: 16rem;
 }

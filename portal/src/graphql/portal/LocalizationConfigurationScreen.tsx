@@ -1,20 +1,29 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
-import { PivotItem } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { Select, Text } from "@radix-ui/themes";
+import {
+  ChatBubbleIcon,
+  EnvelopeClosedIcon,
+} from "@radix-ui/react-icons";
 import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import ManageLanguageWidget from "./ManageLanguageWidget";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
+import {
+  IconRadioCardOption,
+  IconRadioCards,
+} from "../../components/v2/IconRadioCards/IconRadioCards";
 import { AuthenticatorEmailOTPMode, MessagingFeatureConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
@@ -84,6 +93,15 @@ import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { useScreenBreakpoint } from "../../hook/useScreenBreakpoint";
+
+interface LanguageSelectOption {
+  value: LanguageTag;
+  label: string;
+  disabled: boolean;
+}
 
 interface FormState extends ResourcesFormState {
   supportedLanguages: string[];
@@ -127,20 +145,66 @@ const PIVOT_KEY_WELCOME_MESSAGE = "welcome_message";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
 
-const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_FORGOT_PASSWORD_LINK,
-  PIVOT_KEY_FORGOT_PASSWORD_CODE,
-  PIVOT_KEY_VERIFICATION,
-  PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
-  PIVOT_KEY_PASSWORDLESS_VIA_SMS,
-  PIVOT_KEY_MFA_VIA_EMAIL,
-  PIVOT_KEY_MFA_VIA_SMS,
-  PIVOT_KEY_WELCOME_MESSAGE,
-];
+// Matches v2 IconRadioCards / SMS gateway provider radio icon size.
+const CHANNEL_RADIO_ICON_SIZE = "1.375rem";
+
+type TemplateChannel = "email" | "sms";
+
+interface TabChannels {
+  email: boolean;
+  sms: boolean;
+}
+
+function getTabChannels(
+  tabKey: string,
+  sections: EditTemplatesWidgetSection[]
+): TabChannels {
+  const hasEmailSection = sections.some((section) => section.key === "email");
+  const hasSmsSection = sections.some((section) => section.key === "sms");
+  if (hasEmailSection || hasSmsSection) {
+    return {
+      email: hasEmailSection,
+      sms: hasSmsSection,
+    };
+  }
+  if (
+    tabKey === PIVOT_KEY_PASSWORDLESS_VIA_SMS ||
+    tabKey === PIVOT_KEY_MFA_VIA_SMS
+  ) {
+    return { email: false, sms: true };
+  }
+  return { email: true, sms: false };
+}
+
+function filterSectionsForChannel(
+  tabKey: string,
+  sections: EditTemplatesWidgetSection[],
+  channel: TemplateChannel
+): EditTemplatesWidgetSection[] {
+  const hasChannelSections = sections.some(
+    (section) => section.key === "email" || section.key === "sms"
+  );
+  if (hasChannelSections) {
+    // Card title already shows Email / SMS — hide the section title.
+    return sections
+      .filter((section) => section.key === channel)
+      .map((section) => ({ ...section, title: null }));
+  }
+
+  const channels = getTabChannels(tabKey, sections);
+  if (
+    (channel === "email" && channels.email) ||
+    (channel === "sms" && channels.sms)
+  ) {
+    return sections;
+  }
+  return [];
+}
 
 const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
   function ResourcesConfigurationContent(props) {
-    const { state, setState } = props.form;
+    const { form } = props;
+    const { state, setState } = form;
     const {
       initialSupportedLanguages,
       passwordlessViaEmailEnabled,
@@ -153,6 +217,10 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     } = props;
     const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+    const screenBreakpoint = useScreenBreakpoint();
+    const channelRadioColumns = screenBreakpoint === "mobile" ? 2 : 1;
 
     const isTemplateCustomizationDisabled =
       messagingFeatureConfig?.template_customization_disabled ?? false;
@@ -165,15 +233,44 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     );
 
     const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
-    const onLinkClick = useCallback((item?: PivotItem) => {
-      const itemKey = item?.props.itemKey;
-      if (itemKey != null) {
-        const idx = ALL_PIVOT_KEYS.indexOf(itemKey);
-        if (idx >= 0) {
-          setSelectedKey(itemKey);
+    const [selectedChannel, setSelectedChannel] =
+      useState<TemplateChannel>("email");
+
+    const languageOptions = useMemo((): LanguageSelectOption[] => {
+      const options: LanguageSelectOption[] = [];
+      const combinedLocales = new Set([
+        ...initialSupportedLanguages,
+        ...supportedLanguages,
+      ]);
+
+      for (const locale of combinedLocales) {
+        const isNew = !initialSupportedLanguages.includes(locale);
+        const isRemoved = !supportedLanguages.includes(locale);
+
+        let localeDisplay = renderToString(`Locales.${locale}`);
+        if (isRemoved) {
+          localeDisplay = renderToString("ManageLanguageWidget.option-removed", {
+            LANG: localeDisplay,
+          });
         }
+
+        options.push({
+          value: locale,
+          label: renderToString("ManageLanguageWidget.language-label", {
+            LANG: localeDisplay,
+            IS_FALLBACK: String(state.fallbackLanguage === locale),
+          }),
+          disabled: isRemoved || isNew,
+        });
       }
-    }, []);
+
+      return options;
+    }, [
+      initialSupportedLanguages,
+      supportedLanguages,
+      state.fallbackLanguage,
+      renderToString,
+    ]);
 
     const getValueFromState = useCallback(
       (
@@ -967,114 +1064,225 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
-    return (
-      <ScreenContent>
-        <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
-          <FormattedMessage id="LocalizationConfigurationScreen.title" />
-        </ScreenTitle>
-        <div className={styles.descriptionContainer}>
-          <ScreenDescription className={styles.widget}>
-            <FormattedMessage id="LocalizationConfigurationScreen.description" />
-          </ScreenDescription>
-          <ManageLanguageWidget
-            showLabel={false}
-            existingLanguages={initialSupportedLanguages}
-            supportedLanguages={supportedLanguages}
-            selectedLanguage={state.selectedLanguage}
-            fallbackLanguage={state.fallbackLanguage}
-            onChangeSelectedLanguage={setSelectedLanguage}
+    const visibleTabs = [
+      {
+        key: PIVOT_KEY_FORGOT_PASSWORD_LINK,
+        label: renderToString(
+          "LocalizationConfigurationScreen.forgot-password-link.title"
+        ),
+        sections: sectionsForgotPasswordLink,
+        visible: true,
+      },
+      {
+        key: PIVOT_KEY_FORGOT_PASSWORD_CODE,
+        label: renderToString(
+          "LocalizationConfigurationScreen.forgot-password-code.title"
+        ),
+        sections: sectionsForgotPasswordCode,
+        visible: true,
+      },
+      {
+        key: PIVOT_KEY_VERIFICATION,
+        label: renderToString(
+          "LocalizationConfigurationScreen.verification.title"
+        ),
+        sections: sectionsVerification,
+        visible: verificationEnabled,
+      },
+      {
+        key: PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
+        label: renderToString(
+          "LocalizationConfigurationScreen.passwordless-via-email.title"
+        ),
+        sections: sectionsPasswordlessViaEmail,
+        visible: passwordlessViaEmailEnabled,
+      },
+      {
+        key: PIVOT_KEY_PASSWORDLESS_VIA_SMS,
+        label: renderToString(
+          "LocalizationConfigurationScreen.passwordless-via-sms.title"
+        ),
+        sections: sectionsPasswordlessViaSMS,
+        visible: passwordlessViaSMSEnabled,
+      },
+      {
+        key: PIVOT_KEY_MFA_VIA_EMAIL,
+        label: renderToString(
+          "LocalizationConfigurationScreen.mfa-via-email.title"
+        ),
+        sections: sectionsMFAViaEmail,
+        visible: mfaViaEmailEnabled,
+      },
+      {
+        key: PIVOT_KEY_MFA_VIA_SMS,
+        label: renderToString(
+          "LocalizationConfigurationScreen.mfa-via-sms.title"
+        ),
+        sections: sectionsMFAViaSMS,
+        visible: mfaViaSMSEnabled,
+      },
+      {
+        key: PIVOT_KEY_WELCOME_MESSAGE,
+        label: renderToString(
+          "LocalizationConfigurationScreen.welcome-message.title"
+        ),
+        sections: sectionsWelcomeMessage,
+        visible: true,
+      },
+    ].filter((tab) => tab.visible);
+
+    const effectiveSelectedKey = visibleTabs.some(
+      (tab) => tab.key === selectedKey
+    )
+      ? selectedKey
+      : (visibleTabs[0]?.key ?? PIVOT_KEY_DEFAULT);
+
+    const selectedTabSections =
+      visibleTabs.find((tab) => tab.key === effectiveSelectedKey)?.sections ??
+      [];
+
+    const channelOptions: IconRadioCardOption<TemplateChannel>[] = [
+      {
+        value: "email",
+        icon: (
+          <EnvelopeClosedIcon
+            width={CHANNEL_RADIO_ICON_SIZE}
+            height={CHANNEL_RADIO_ICON_SIZE}
           />
-        </div>
-        {/* Code editors might incorrectly fire change events when changing language
-            Set key to selectedLanguage to ensure code editors always remount */}
-        <Widget className={styles.widget} key={state.selectedLanguage}>
-          <WidgetTitle>
-            <FormattedMessage id="LocalizationConfigurationScreen.template-content-title" />
-          </WidgetTitle>
-          {isTemplateCustomizationDisabled ? (
-            <FeatureDisabledMessageBar messageID="FeatureConfig.edit-template.disabled" />
+        ),
+        title: <FormattedMessage id="EditTemplatesWidget.email" />,
+      },
+      {
+        value: "sms",
+        icon: (
+          <ChatBubbleIcon
+            width={CHANNEL_RADIO_ICON_SIZE}
+            height={CHANNEL_RADIO_ICON_SIZE}
+          />
+        ),
+        title: <FormattedMessage id="EditTemplatesWidget.sms" />,
+      },
+    ];
+
+    const renderTabPanel = (
+      tabKey: string,
+      sections: EditTemplatesWidgetSection[]
+    ): React.ReactElement => {
+      const tabChannels = getTabChannels(tabKey, sections);
+      const effectiveChannel: TemplateChannel =
+        (selectedChannel === "email" && tabChannels.email) ||
+        (selectedChannel === "sms" && tabChannels.sms)
+          ? selectedChannel
+          : tabChannels.email
+            ? "email"
+            : "sms";
+      const channelSections = filterSectionsForChannel(
+        tabKey,
+        sections,
+        effectiveChannel
+      );
+      const showChannelRadios = tabChannels.email && tabChannels.sms;
+
+      return (
+        <div
+          className={cn(
+            styles.channelLayout,
+            isDirty && styles.settingsCardSaveBarClearance
+          )}
+        >
+          {showChannelRadios ? (
+            <div className={styles.channelRadios}>
+              <IconRadioCards
+                size="3"
+                numberOfColumns={channelRadioColumns}
+                itemFillSpaces={true}
+                value={effectiveChannel}
+                onValueChange={setSelectedChannel}
+                options={channelOptions}
+              />
+            </div>
           ) : null}
-          <AGPivot
-            overflowBehavior="menu"
-            onLinkClick={onLinkClick}
-            selectedKey={selectedKey}
-          >
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.forgot-password-link.title"
-              )}
-              itemKey={PIVOT_KEY_FORGOT_PASSWORD_LINK}
+          <div className={styles.channelContent}>
+            <EditTemplatesWidget
+              className={styles.templateCardContent}
+              sections={channelSections}
+            />
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <ScreenContent
+        layout="list"
+        className={cn(isDirty ? styles.contentWithSaveBar : null)}
+      >
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="LocalizationConfigurationScreen.title" />
+          </Text>
+          <div className={styles.headerMeta}>
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.pageDescription}
             >
-              <EditTemplatesWidget sections={sectionsForgotPasswordLink} />
-            </PivotItem>
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.forgot-password-code.title"
-              )}
-              itemKey={PIVOT_KEY_FORGOT_PASSWORD_CODE}
+              <FormattedMessage id="LocalizationConfigurationScreen.description" />
+            </Text>
+            <Select.Root
+              value={state.selectedLanguage}
+              onValueChange={setSelectedLanguage}
             >
-              <EditTemplatesWidget sections={sectionsForgotPasswordCode} />
-            </PivotItem>
-            {verificationEnabled ? (
-              <PivotItem
-                headerText={renderToString(
-                  "LocalizationConfigurationScreen.verification.title"
-                )}
-                itemKey={PIVOT_KEY_VERIFICATION}
+              <Select.Trigger
+                variant="surface"
+                className={styles.languageSelectTrigger}
+              />
+              <Select.Content
+                position="popper"
+                className={styles.languageSelectContent}
               >
-                <EditTemplatesWidget sections={sectionsVerification} />
-              </PivotItem>
-            ) : null}
-            {passwordlessViaEmailEnabled ? (
-              <PivotItem
-                headerText={renderToString(
-                  "LocalizationConfigurationScreen.passwordless-via-email.title"
-                )}
-                itemKey={PIVOT_KEY_PASSWORDLESS_VIA_EMAIL}
-              >
-                <EditTemplatesWidget sections={sectionsPasswordlessViaEmail} />
-              </PivotItem>
-            ) : null}
-            {passwordlessViaSMSEnabled ? (
-              <PivotItem
-                headerText={renderToString(
-                  "LocalizationConfigurationScreen.passwordless-via-sms.title"
-                )}
-                itemKey={PIVOT_KEY_PASSWORDLESS_VIA_SMS}
-              >
-                <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
-              </PivotItem>
-            ) : null}
-            {mfaViaEmailEnabled ? (
-              <PivotItem
-                headerText={renderToString(
-                  "LocalizationConfigurationScreen.mfa-via-email.title"
-                )}
-                itemKey={PIVOT_KEY_MFA_VIA_EMAIL}
-              >
-                <EditTemplatesWidget sections={sectionsMFAViaEmail} />
-              </PivotItem>
-            ) : null}
-            {mfaViaSMSEnabled ? (
-              <PivotItem
-                headerText={renderToString(
-                  "LocalizationConfigurationScreen.mfa-via-sms.title"
-                )}
-                itemKey={PIVOT_KEY_MFA_VIA_SMS}
-              >
-                <EditTemplatesWidget sections={sectionsMFAViaSMS} />
-              </PivotItem>
-            ) : null}
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.welcome-message.title"
-              )}
-              itemKey={PIVOT_KEY_WELCOME_MESSAGE}
-            >
-              <EditTemplatesWidget sections={sectionsWelcomeMessage} />
-            </PivotItem>
-          </AGPivot>
-        </Widget>
+                {languageOptions.map((option) => (
+                  <Select.Item
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
+                  >
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          </div>
+        </div>
+
+        {isTemplateCustomizationDisabled ? (
+          <div className={styles.widget}>
+            <FeatureDisabledMessageBar messageID="FeatureConfig.edit-template.disabled" />
+          </div>
+        ) : null}
+
+        {/* Code editors might incorrectly fire change events when changing language.
+            Set key to selectedLanguage to ensure code editors always remount. */}
+        <div
+          key={state.selectedLanguage}
+          className={cn(styles.widget, styles.tabsRoot)}
+        >
+          <OverflowTabs
+            value={effectiveSelectedKey}
+            onValueChange={setSelectedKey}
+            listClassName={styles.tabsList}
+            tabs={visibleTabs.map((tab) => ({
+              value: tab.key,
+              label: tab.label,
+            }))}
+          />
+          {renderTabPanel(effectiveSelectedKey, selectedTabSections)}
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -1221,7 +1429,7 @@ const LocalizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} canSave={true} stickyFooterComponent={true}>
+      <FormContainer form={form} canSave={true} hideFooterComponent={true}>
         <ResourcesConfigurationContent
           form={form}
           initialSupportedLanguages={initialSupportedLanguages}
