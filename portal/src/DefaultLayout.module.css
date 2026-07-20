@@ -6,6 +6,9 @@
   display: flex;
   flex-direction: column;
   overflow: auto;
+
+  /* Let body to scroll in mobile — same pattern as ScreenLayout / CommandBarContainer */
+  @apply mobile:h-auto mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
 }
 
 .header {
@@ -13,10 +16,12 @@
 
 .contentExpand {
   @apply flex flex-col flex-1 min-h-0;
+  @apply mobile:min-h-min;
 }
 
 .contentExpandNoShrink {
   @apply flex flex-col flex-1 min-h-0;
+  @apply mobile:min-h-min;
 }
 
 .footer {

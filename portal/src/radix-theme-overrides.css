@@ -28,3 +28,8 @@
 .rt-CalloutRoot a {
   font-weight: var(--font-weight-medium);
 }
+
+/* Tooltips portal to document.body; they must sit above dialog overlays. */
+.rt-TooltipContent {
+  z-index: 10001;
+}

@@ -9,4 +9,7 @@
   flex-direction: column;
   min-height: 0;
   min-width: 0;
+
+  /* Let body to scroll in mobile — avoid flex collapse when shell height is auto */
+  @apply mobile:flex-1-0-auto mobile:min-h-min;
 }

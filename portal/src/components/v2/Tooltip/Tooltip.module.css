@@ -1,0 +1,4 @@
+/* Sit above Radix Dialog overlay (see radix-theme-overrides.css: z-index 10000). */
+.tooltip {
+  z-index: 10001;
+}
