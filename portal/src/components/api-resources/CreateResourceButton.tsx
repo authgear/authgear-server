@@ -1,29 +1,30 @@
-import React, { useContext } from "react";
+import React from "react";
+import { PlusIcon } from "@radix-ui/react-icons";
 import { Context } from "../../intl";
-import PrimaryButton from "../../PrimaryButton";
-import { useNavigate, useParams } from "react-router-dom";
+import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 
 interface CreateResourceButtonProps {
   className?: string;
+  onClick: () => void;
 }
 
 export const CreateResourceButton: React.VFC<CreateResourceButtonProps> = ({
   className,
+  onClick,
 }) => {
-  const { renderToString } = useContext(Context);
-  const navigate = useNavigate();
-  const { appID } = useParams<{ appID: string }>();
-  const handleClick = React.useCallback(() => {
-    navigate(
-      `/project/${encodeURIComponent(appID ?? "")}/api-resources/create`
-    );
-  }, [navigate, appID]);
+  const { renderToString } = React.useContext(Context);
   return (
-    <PrimaryButton
-      text={renderToString("CreateResourceButton.label")}
-      iconProps={{ iconName: "Add" }}
-      onClick={handleClick}
-      className={className}
-    />
+    <span className={className}>
+      <PrimaryButton
+        size="2"
+        onClick={onClick}
+        text={
+          <span className="inline-flex items-center gap-1">
+            <PlusIcon width="1rem" height="1rem" />
+            {renderToString("CreateResourceButton.label")}
+          </span>
+        }
+      />
+    </span>
   );
 };

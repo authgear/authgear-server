@@ -1,0 +1,7 @@
+.form {
+  @apply flex flex-col gap-4;
+}
+
+.formError {
+  margin: 0;
+}

@@ -1,12 +1,11 @@
-import React, { useContext, useState } from "react";
-import { Navigate, useLocation, useParams } from "react-router-dom";
+import React, { useContext, useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
 import { FormattedMessage, Context as MessageContext } from "../../intl";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
-import { PivotItem } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { APIResourceDetailsScreenDetailsTab } from "./APIResourceDetailsScreenDetailsTab";
 import { APIResourceDetailsScreenScopesTab } from "./APIResourceDetailsScreenScopesTab";
@@ -17,6 +16,7 @@ import { useAppSecretVisitToken } from "../../graphql/portal/mutations/generateA
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { AppSecretKey } from "../../graphql/portal/globalTypes.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
+import styles from "./APIResourceDetailsScreen.module.css";
 
 export interface LocationState {
   isClientSecretRevealed: boolean;
@@ -31,6 +31,8 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
+const TAB_KEYS = ["details", "scopes", "applications", "test"] as const;
+
 function APIResourceDetailsContent({
   resource,
   effectiveAppConfig,
@@ -40,35 +42,41 @@ function APIResourceDetailsContent({
   effectiveAppConfig: PortalAPIAppConfig;
   secretConfig: PortalAPISecretConfig | null;
 }) {
-  const { selectedKey, onLinkClick } = usePivotNavigation([
-    "details",
-    "scopes",
-    "applications",
-    "test",
-  ]);
+  const { selectedKey, onChangeKey } = usePivotNavigation([...TAB_KEYS]);
   const { renderToString } = useContext(MessageContext);
+
+  const tabs = useMemo(
+    () => [
+      {
+        value: "details",
+        label: renderToString("APIResourceDetailsScreen.tab.details"),
+      },
+      {
+        value: "scopes",
+        label: renderToString("APIResourceDetailsScreen.tab.scopes"),
+      },
+      {
+        value: "applications",
+        label: renderToString("APIResourceDetailsScreen.tab.applications"),
+      },
+      {
+        value: "test",
+        label: renderToString("APIResourceDetailsScreen.tab.test"),
+      },
+    ],
+    [renderToString]
+  );
+
   return (
-    <div className="pt-6 flex flex-col col-span-full">
-      <AGPivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
-        <PivotItem
-          headerText={renderToString("APIResourceDetailsScreen.tab.details")}
-          itemKey="details"
-        />
-        <PivotItem
-          headerText={renderToString("APIResourceDetailsScreen.tab.scopes")}
-          itemKey="scopes"
-        />
-        <PivotItem
-          headerText={renderToString(
-            "APIResourceDetailsScreen.tab.applications"
-          )}
-          itemKey="applications"
-        />
-        <PivotItem
-          headerText={renderToString("APIResourceDetailsScreen.tab.test")}
-          itemKey="test"
-        />
-      </AGPivot>
+    <div className={styles.content}>
+      <OverflowTabs
+        value={selectedKey}
+        onValueChange={(value) => {
+          onChangeKey(value as (typeof TAB_KEYS)[number]);
+        }}
+        listClassName={styles.tabsList}
+        tabs={tabs}
+      />
       {selectedKey === "details" ? (
         <APIResourceDetailsScreenDetailsTab resource={resource} />
       ) : null}
@@ -143,15 +151,11 @@ const APIResourceDetailsScreen: React.VFC =
         const resource =
           data?.node?.__typename === "Resource" ? data.node : null;
         if (!resource) {
-          return (
-            <Navigate
-              to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
-              replace={true}
-            />
-          );
+          return null;
         }
         return (
           <APIResourceScreenLayout
+            layout="auto-rows"
             breadcrumbItems={[
               {
                 to: "~/api-resources",

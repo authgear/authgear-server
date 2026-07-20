@@ -1,16 +1,18 @@
-import React, { useContext, useCallback, useEffect } from "react";
-import FormTextField from "../../FormTextField";
+import React, { useContext, useCallback, useEffect, useId } from "react";
+import { Flex, IconButton, Text, TextField as RadixTextField } from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import cn from "classnames";
 import styles from "./ResourceForm.module.css";
 import { Context, FormattedMessage } from "../../intl";
-import cn from "classnames";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useLoading } from "../../hook/loading";
-import PrimaryButton from "../../PrimaryButton";
-import Tooltip from "../../Tooltip";
-import { Label } from "@fluentui/react";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
+import { TextField } from "../v2/TextField/TextField";
+import { FormField } from "../v2/FormField/FormField";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
+import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
 
 export interface ResourceFormState {
   name: string;
@@ -40,25 +42,26 @@ export function sanitizeFormState(state: ResourceFormState): ResourceFormState {
   };
 }
 
-function isFormIncomplete(state: ResourceFormState): boolean {
+function isFormComplete(state: ResourceFormState): boolean {
   const s = sanitizeFormState(state);
-  const incomplete = !s.name || !s.resourceURI;
-  return !incomplete;
+  return Boolean(s.name && s.resourceURI);
 }
 
 export const ResourceForm: React.VFC<ResourceFormProps> =
   function ResourceForm({ className, state, setState, mode }) {
     const { renderToString } = useContext(Context);
+    const resourceURIId = useId();
     const handleNameChange = useCallback(
-      (_e, value?: string) => setState((s) => ({ ...s, name: value ?? "" })),
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        setState((s) => ({ ...s, name: e.target.value })),
       [setState]
     );
     const handleResourceURIChange = useCallback(
-      (_e, value?: string) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
         setState((s) => {
-          let resourceURI = value ?? "";
+          let resourceURI = e.target.value;
           resourceURI = resourceURI.replace(/^(\s*)https:\/\//, "");
-          return { ...s, resourceURI: resourceURI };
+          return { ...s, resourceURI };
         }),
       [setState]
     );
@@ -72,37 +75,40 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
       setErrors(errors);
     }, [errors, setErrors]);
 
-    const onRenderResourceURILabel = useCallback(() => {
-      return (
-        <span className="flex">
-          <Label required={true}>
-            {<FormattedMessage id="ResourceForm.resourceURI.label" />}
-          </Label>
-          <Tooltip
-            isHidden={false}
-            className="-ml-3"
-            tooltipMessageId="ResourceForm.resourceURI.tooltip"
-          />
-        </span>
-      );
-    }, []);
-
-    const onRenderResourceURIDescription = useCallback(
-      () => (
+    const resourceURILabel = (
+      <Flex display="inline-flex" align="center" gap="1">
         <span>
-          <FormattedMessage id="ResourceForm.resourceURI.description" />
+          <FormattedMessage id="ResourceForm.resourceURI.label" />
         </span>
-      ),
-      []
+        <span className={styles.requiredMark} aria-hidden="true">
+          *
+        </span>
+        <Tooltip
+          content={
+            <FormattedMessage id="ResourceForm.resourceURI.tooltip" />
+          }
+        >
+          <IconButton
+            type="button"
+            variant="ghost"
+            color="gray"
+            size="1"
+            aria-label={renderToString("ResourceForm.resourceURI.tooltip")}
+          >
+            <InfoCircledIcon width="1rem" height="1rem" />
+          </IconButton>
+        </Tooltip>
+      </Flex>
     );
 
     return (
       <form className={cn(styles.root, className)} onSubmit={onSubmit}>
         <div className={styles.formFields}>
-          <FormTextField
+          <TextField
+            size="2"
             required={true}
-            label={renderToString("ResourceForm.name.label")}
-            description={renderToString("ResourceForm.name.description")}
+            label={<FormattedMessage id="ResourceForm.name.label" />}
+            hint={<FormattedMessage id="ResourceForm.name.description" />}
             fieldName="name"
             parentJSONPointer=""
             type="text"
@@ -110,32 +116,52 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
             onChange={handleNameChange}
           />
           {mode === "edit" ? (
-            <TextFieldWithCopyButton
-              label={renderToString("ResourceForm.resourceURI.label")}
+            <TextField
+              size="2"
+              label={<FormattedMessage id="ResourceForm.resourceURI.label" />}
               value={state.resourceURI}
               readOnly={true}
               type="text"
+              suffixPlain={true}
+              suffix={<CopyIconButton textToCopy={state.resourceURI} />}
             />
           ) : (
-            <FormTextField
-              onRenderLabel={onRenderResourceURILabel}
-              onRenderDescription={onRenderResourceURIDescription}
+            <FormField
+              size="2"
+              label={resourceURILabel}
+              htmlFor={resourceURIId}
+              hint={
+                <FormattedMessage id="ResourceForm.resourceURI.description" />
+              }
               fieldName="resourceURI"
               parentJSONPointer=""
-              type="text"
-              prefix="https://"
-              value={state.resourceURI}
-              onChange={handleResourceURIChange}
-            />
+            >
+              <RadixTextField.Root
+                id={resourceURIId}
+                size="2"
+                variant="surface"
+                type="text"
+                value={state.resourceURI}
+                onChange={handleResourceURIChange}
+              >
+                <RadixTextField.Slot side="left">
+                  <Text size="2" color="gray">
+                    https://
+                  </Text>
+                </RadixTextField.Slot>
+              </RadixTextField.Root>
+            </FormField>
           )}
         </div>
-        <PrimaryButton
-          type="submit"
-          text={
-            mode === "edit" ? renderToString("save") : renderToString("create")
-          }
-          disabled={!canSave || !isFormIncomplete(state)}
-        />
+        {mode !== "edit" ? (
+          <PrimaryButton
+            size="2"
+            type="submit"
+            text={renderToString("create")}
+            disabled={!canSave || !isFormComplete(state)}
+            loading={isUpdating}
+          />
+        ) : null}
       </form>
     );
   };

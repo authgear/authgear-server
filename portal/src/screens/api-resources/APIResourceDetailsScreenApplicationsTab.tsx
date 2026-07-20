@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useState, useContext } from "react";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import WidgetTitle from "../../WidgetTitle";
-import { SearchBox, Text } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useAddResourceToClientIdMutation } from "../../graphql/adminapi/mutations/addResourceToClientID.generated";
 import { useRemoveResourceFromClientIdMutation } from "../../graphql/adminapi/mutations/removeResourceFromClientID.generated";
@@ -17,8 +17,13 @@ import {
 } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { parseRawError } from "../../error/parse";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { PortalAPIAppConfig } from "../../types";
+import Link from "../../Link";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
+import styles from "./APIResourceDetailsApplicationsTab.module.css";
 
 export function APIResourceDetailsScreenApplicationsTab({
   resource,
@@ -32,7 +37,6 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [removeResource] = useRemoveResourceFromClientIdMutation();
   const { setErrors } = useErrorMessageBarContext();
   const { renderToString } = useContext(MessageContext);
-  const { themes } = useSystemConfig();
   const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
     string[]
   >([]);
@@ -71,14 +75,15 @@ export function APIResourceDetailsScreenApplicationsTab({
   }, [applications, searchKeyword]);
 
   const onSearchQueryChange = useCallback(
-    (
-      _event: React.ChangeEvent<HTMLInputElement> | undefined,
-      newValue: string | undefined
-    ) => {
-      setSearchKeyword(newValue ?? "");
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.target.value);
     },
     []
   );
+
+  const onClearSearchKeyword = useCallback(() => {
+    setSearchKeyword("");
+  }, []);
 
   const navigate = useNavigate();
 
@@ -203,22 +208,25 @@ export function APIResourceDetailsScreenApplicationsTab({
   const isEmpty = applications.length === 0;
 
   return (
-    <div className="pt-5 flex-1 flex flex-col space-y-4">
-      <header className="space-y-2">
-        <WidgetTitle>
+    <div className={styles.root}>
+      <header className={styles.header}>
+        <Text as="p" size="3" weight="medium" className={styles.title}>
           <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
-        </WidgetTitle>
-        <Text block={true}>
+        </Text>
+        <Text as="p" size="2" color="gray" className={styles.description}>
           <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
         </Text>
         {isEmpty ? (
-          <Text
-            styles={{ root: { color: themes.main.palette.neutralTertiary } }}
-          >
+          <Text as="p" size="2" color="gray" className={styles.description}>
             <FormattedMessage
               id="APIResourceDetailsScreen.applications.empty"
               values={{
-                to: `/project/${appID}/configuration/apps`,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                ReactRouterLink: (chunks: React.ReactNode) => (
+                  <Link to={`/project/${appID}/configuration/apps`}>
+                    {chunks}
+                  </Link>
+                ),
               }}
             />
           </Text>
@@ -227,18 +235,36 @@ export function APIResourceDetailsScreenApplicationsTab({
 
       {isEmpty ? null : (
         <>
-          <SearchBox
-            onChange={onSearchQueryChange}
-            styles={{ root: { width: 300 } }}
-            value={searchKeyword}
-            placeholder={renderToString("search")}
-          />
-          <div className="flex-1 flex flex-col max-w-180">
+          <div className={styles.searchField}>
+            <TextField
+              size="2"
+              type="search"
+              onChange={onSearchQueryChange}
+              value={searchKeyword}
+              placeholder={renderToString("search")}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              suffixPlain={true}
+              suffix={
+                searchKeyword !== "" ? (
+                  <button
+                    type="button"
+                    className={styles.searchClearButton}
+                    aria-label={renderToString(
+                      "APIResourcesScreen.clear-search"
+                    )}
+                    onClick={onClearSearchKeyword}
+                  >
+                    <Cross2Icon className={styles.searchClearIcon} />
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
+          <div className={styles.listContainer}>
             <ApplicationList
               applications={filteredApplications}
-              className="flex-1 min-h-0"
-              loading={false} // The app config query should always be completed
-              // eslint-disable-next-line @typescript-eslint/strict-void-return
+              className={styles.list}
+              loading={false}
               onToggleAuthorized={onToggleAuthorized}
               onManageScopes={onManageScopes}
               disabledToggleClientIDs={disabledToggleClientIDs}
@@ -253,9 +279,7 @@ export function APIResourceDetailsScreenApplicationsTab({
             : null
         }
         onDismiss={handleCloseUnauthorizeDialog}
-        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={handleConfirmUnauthorize}
-        onDismissed={handleCloseUnauthorizeDialog}
       />
     </div>
   );

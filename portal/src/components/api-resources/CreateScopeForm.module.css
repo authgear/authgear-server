@@ -1,0 +1,25 @@
+.root {
+  @apply flex items-end w-full min-w-0 gap-x-4;
+}
+
+.field {
+  @apply flex-1 min-w-0;
+}
+
+.submit {
+  @apply flex-none;
+}
+
+.submitContent {
+  @apply inline-flex items-center gap-1;
+}
+
+@media (max-width: 1080px) {
+  .root {
+    @apply flex-col items-stretch gap-y-4;
+  }
+
+  .submit {
+    @apply self-start;
+  }
+}

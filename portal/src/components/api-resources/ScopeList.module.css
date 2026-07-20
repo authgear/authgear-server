@@ -1,9 +1,92 @@
 .listRoot {
-  @apply flex flex-col min-h-0 overflow-hidden;
+  @apply flex flex-col;
 }
 
-.listWrapper {
-  @apply flex-1 overflow-y-auto h-0 max-h-full;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  min-width: 100%;
+}
+
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.tableHeaderCellScope,
+.tableHeaderCellDescription,
+.tableHeaderCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.tableHeaderCellScope {
+  @apply min-w-0 flex-1;
+  min-width: 10rem;
+}
+
+.tableHeaderCellDescription {
+  @apply min-w-0 flex-[1.5];
+  min-width: 12rem;
+}
+
+.tableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.tableCellScope,
+.tableCellDescription,
+.tableCellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.tableCellScope {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 10rem;
+}
+
+.tableCellDescription {
+  @apply min-w-0 flex-[1.5] overflow-hidden;
+  min-width: 12rem;
+}
+
+.tableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.scopeChip {
+  @apply inline-flex max-w-full truncate rounded px-1.5 py-0.5 text-sm;
+  background-color: var(--gray-a3);
+  color: var(--gray-12);
+}
+
+.description {
+  @apply min-w-0 truncate;
+  margin: 0;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .paginator {
