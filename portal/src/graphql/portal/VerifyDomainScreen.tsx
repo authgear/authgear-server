@@ -1,76 +1,44 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Dialog, Flex, Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
-import {
-  DetailsList,
-  IColumn,
-  IconButton,
-  IDetailsListProps,
-  SelectionMode,
-  Text,
-} from "@fluentui/react";
-
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import NavBreadcrumb from "../../NavBreadcrumb";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import ErrorDialog from "../../error/ErrorDialog";
+import ErrorRenderer from "../../ErrorRenderer";
 import { Domain } from "./globalTypes.generated";
 import { useDomainsQuery } from "./query/domainsQuery";
 import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
-
 import styles from "./VerifyDomainScreen.module.css";
-import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
+import {
+  ErrorParseRule,
+  makeReasonErrorParseRule,
+  parseAPIErrors,
+  parseRawError,
+} from "../../error/parse";
 import ScreenContent from "../../ScreenContent";
-import Widget from "../../Widget";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import Link from "../../Link";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 
 interface VerifyDomainProps {
   domain: Domain;
   nonCustomVerifiedDomain: Domain;
 }
 
-// Supported DNS record types
 type DNSRecordType = "CNAME" | "TXT";
 
 interface DNSRecordListItem {
   recordType: DNSRecordType;
   host: string;
   value: string;
-}
-
-interface DNSRecordListValueCellProps {
-  value: string;
-}
-
-function makeDNSRecordListColumns(
-  renderToString: (messageID: string) => string
-): IColumn[] {
-  return [
-    {
-      key: "recordType",
-      fieldName: "recordType",
-      name: renderToString("VerifyDomainScreen.list.header.record-type"),
-      minWidth: 120,
-      maxWidth: 120,
-      className: styles.dnsRecordListColumn,
-    },
-    {
-      key: "host",
-      fieldName: "host",
-      name: renderToString("VerifyDomainScreen.list.header.host"),
-      minWidth: 100,
-      maxWidth: 400,
-      className: styles.dnsRecordListColumn,
-    },
-    {
-      key: "value",
-      fieldName: "value",
-      name: renderToString("VerifyDomainScreen.list.header.value"),
-      minWidth: 400,
-      className: styles.dnsRecordListColumn,
-    },
-  ];
 }
 
 function makeDNSRecordListItems(
@@ -91,24 +59,36 @@ function makeDNSRecordListItems(
   ];
 }
 
-const DNSRecordListValueCell: React.VFC<DNSRecordListValueCellProps> =
-  function DNSRecordListValueCell(props: DNSRecordListValueCellProps) {
-    const { value } = props;
+interface DNSRecordRowProps {
+  item: DNSRecordListItem;
+}
 
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: value,
-    });
+const DNSRecordRow: React.VFC<DNSRecordRowProps> = function DNSRecordRow(
+  props
+) {
+  const { item } = props;
 
-    return (
-      <>
-        <div className={styles.valueCell}>
-          <span className={styles.valueCellText}>{value}</span>
-          <IconButton {...copyButtonProps} className={styles.copyIconButton} />
+  return (
+    <div className={styles.recordsTableRow}>
+      <div className={styles.recordsTableCellType}>
+        <Text size="2">{item.recordType}</Text>
+      </div>
+      <div className={styles.recordsTableCellHost}>
+        <Text size="2" className={styles.cellText}>
+          {item.host}
+        </Text>
+      </div>
+      <div className={styles.recordsTableCellValue}>
+        <div className={styles.valueCellInner}>
+          <Text size="2" className={styles.cellText}>
+            {item.value}
+          </Text>
+          <CopyIconButton textToCopy={item.value} />
         </div>
-        <Feedback />
-      </>
-    );
-  };
+      </div>
+    </div>
+  );
+};
 
 const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
   props: VerifyDomainProps
@@ -117,46 +97,17 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
   const navigate = useNavigate();
   const { appID } = useParams() as { appID: string };
 
-  const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      {
-        to: `/project/${appID}/branding/custom-domains`,
-        label: <FormattedMessage id="CustomDomainListScreen.title" />,
-      },
-      { to: ".", label: <FormattedMessage id="VerifyDomainScreen.title" /> },
-    ];
-  }, [appID]);
-
   const {
     verifyDomain,
     loading: verifyingDomain,
     error: verifyDomainError,
   } = useVerifyDomainMutation(appID);
 
-  const dnsRecordListColumns = useMemo(() => {
-    return makeDNSRecordListColumns(renderToString);
-  }, [renderToString]);
+  const backURL = `/project/${appID}/branding/custom-domains`;
 
   const dnsRecordListItems = useMemo(() => {
     return makeDNSRecordListItems(domain, nonCustomVerifiedDomain);
   }, [domain, nonCustomVerifiedDomain]);
-
-  const renderDNSRecordListColumn = useCallback<
-    Required<IDetailsListProps>["onRenderItemColumn"]
-  >((item?: DNSRecordListItem, _index?: number, column?: IColumn) => {
-    switch (column?.key) {
-      case "value":
-        return <DNSRecordListValueCell value={item?.value ?? ""} />;
-      default:
-        return (
-          <span>
-            {item ? item[column?.fieldName as keyof DNSRecordListItem] : null}
-          </span>
-        );
-    }
-  }, []);
 
   const onVerifyClick = useCallback(() => {
     verifyDomain(domain.id)
@@ -193,35 +144,99 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
     ];
   }, []);
 
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (verifyDomainError != null) {
+      setErrorDialogOpen(true);
+    }
+  }, [verifyDomainError]);
+
+  const verifyErrors = useMemo(() => {
+    const apiErrors = parseRawError(verifyDomainError);
+    const { topErrors } = parseAPIErrors(apiErrors, [], errorRules);
+    return topErrors;
+  }, [verifyDomainError, errorRules]);
+
   return (
-    <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-      <Widget className={styles.widget}>
-        <Text className={styles.description} block={true}>
-          <FormattedMessage
-            id="VerifyDomainScreen.desc-main"
-            values={{
-              domain: domain.domain,
-              // eslint-disable-next-line react/no-unstable-nested-components
-              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-            }}
-          />
-        </Text>
-        <DetailsList
-          columns={dnsRecordListColumns}
-          items={dnsRecordListItems}
-          selectionMode={SelectionMode.none}
-          onRenderItemColumn={renderDNSRecordListColumn}
-        />
-        <ButtonWithLoading
-          className={styles.verifyButton}
-          labelId="verify"
-          loading={verifyingDomain}
-          onClick={onVerifyClick}
-        />
-        <ErrorDialog error={verifyDomainError} rules={errorRules} />
-      </Widget>
-    </ScreenContent>
+    <ScreenLayoutScrollView>
+      <ScreenContent layout="list">
+        <div className={styles.widget}>
+          <Link to={backURL} className={styles.backLink}>
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="CustomDomainListScreen.title" />
+            </span>
+          </Link>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="VerifyDomainScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage
+              id="VerifyDomainScreen.desc-main"
+              values={{
+                domain: domain.domain,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+              }}
+            />
+          </Text>
+        </div>
+
+        <div className={styles.widget}>
+          <div className={styles.recordsTableWrapper}>
+            <div className={styles.recordsTable}>
+              <div className={styles.recordsTableHeader}>
+                <div className={styles.recordsTableHeaderCellType}>
+                  <FormattedMessage id="VerifyDomainScreen.list.header.record-type" />
+                </div>
+                <div className={styles.recordsTableHeaderCellHost}>
+                  <FormattedMessage id="VerifyDomainScreen.list.header.host" />
+                </div>
+                <div className={styles.recordsTableHeaderCellValue}>
+                  <FormattedMessage id="VerifyDomainScreen.list.header.value" />
+                </div>
+              </div>
+              {dnsRecordListItems.map((item) => (
+                <DNSRecordRow
+                  key={`${item.recordType}:${item.host}`}
+                  item={item}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.verifyButton}>
+            <PrimaryButton
+              size="2"
+              loading={verifyingDomain}
+              onClick={onVerifyClick}
+              text={<FormattedMessage id="verify" />}
+            />
+          </div>
+        </div>
+
+        <Dialog.Root open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+          <Dialog.Content maxWidth="400px" size="3">
+            <Dialog.Title>
+              <FormattedMessage id="error" />
+            </Dialog.Title>
+            <Dialog.Description size="2">
+              <ErrorRenderer errors={verifyErrors} />
+            </Dialog.Description>
+            <Flex gap="3" mt="4" justify="end">
+              <PrimaryButton
+                size="2"
+                onClick={() => {
+                  setErrorDialogOpen(false);
+                }}
+                text={<FormattedMessage id="ok" />}
+              />
+            </Flex>
+          </Dialog.Content>
+        </Dialog.Root>
+      </ScreenContent>
+    </ScreenLayoutScrollView>
   );
 };
 
@@ -252,6 +267,13 @@ const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
     return sortedList.length > 0 ? sortedList[0] : null;
   }, [domains]);
 
+  const domainNotFoundError = useMemo(() => {
+    const errorMessage = renderToString(
+      "VerifyDomainScreen.error.domain-not-found"
+    );
+    return new Error(errorMessage);
+  }, [renderToString]);
+
   const nonCustomVerifiedDomainNotFoundError = useMemo(() => {
     const errorMessage = renderToString(
       "VerifyDomainScreen.error.non-custom-verified-domain-not-found"
@@ -264,19 +286,11 @@ const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
   }
 
   if (error != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   if (domain == null) {
-    // The domain does not exist in this project (e.g. after switching
-    // projects); fall back to the custom domain list.
-    return (
-      <Navigate
-        to={`/project/${appID}/branding/custom-domains`}
-        replace={true}
-      />
-    );
+    return <ShowError error={domainNotFoundError} />;
   }
 
   if (nonCustomVerifiedDomain == null) {

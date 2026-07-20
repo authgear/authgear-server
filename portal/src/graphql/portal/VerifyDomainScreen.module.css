@@ -1,31 +1,126 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 12;
 
   @apply tablet:col-span-full;
 }
 
-.dnsRecordListColumn {
-  display: flex;
+.backLink {
+  display: inline-flex;
   align-items: center;
-  white-space: normal;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  margin-bottom: 8px;
 }
 
-.valueCell {
-  display: flex;
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  margin: 8px 0 0;
+  color: var(--gray-a11);
+}
+
+.recordsTableWrapper {
   width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  padding-right: 30px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @apply rounded-lg border border-solid;
+  border-color: var(--gray-a6);
+  background-color: var(--color-panel-solid);
 }
 
-.valueCellText {
-  white-space: normal;
+.recordsTable {
+  min-width: 40rem;
 }
 
-.copyIconButton {
-  margin-left: 10px;
+.recordsTableHeader {
+  @apply flex w-full items-center;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
+}
+
+.recordsTableHeaderCellType,
+.recordsTableHeaderCellHost,
+.recordsTableHeaderCellValue {
+  @apply flex items-center px-4 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.recordsTableHeaderCellType {
+  width: 7.5rem;
+  flex-shrink: 0;
+}
+
+.recordsTableHeaderCellHost {
+  width: 16rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.recordsTableHeaderCellValue {
+  @apply min-w-0 flex-1;
+}
+
+.recordsTableRow {
+  @apply flex w-full items-center;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.recordsTableCellType,
+.recordsTableCellHost,
+.recordsTableCellValue {
+  @apply flex items-center px-4 py-3;
+  color: var(--gray-12);
+}
+
+.recordsTableCellType {
+  width: 7.5rem;
+  flex-shrink: 0;
+}
+
+.recordsTableCellHost {
+  width: 16rem;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.recordsTableCellValue {
+  @apply min-w-0 flex-1;
+  overflow: hidden;
+}
+
+.valueCellInner {
+  @apply flex w-full min-w-0 items-center gap-2;
+}
+
+.cellText {
+  @apply min-w-0 break-all;
 }
 
 .verifyButton {
-  align-self: flex-start;
+  margin-top: 1.5rem;
+  width: fit-content;
 }

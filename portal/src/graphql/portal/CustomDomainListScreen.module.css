@@ -1,45 +1,164 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 12;
 
   @apply tablet:col-span-full;
 }
 
-.domainListColumn {
-  display: flex;
-  align-items: center;
+.pageHeader {
+  @apply flex flex-col gap-2;
 }
 
-.addDomain {
-  display: flex;
-  background-color: #f8f8f8;
-  padding: 10px;
-  border-bottom: 1px solid #edebe9;
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
 }
 
-.addDomainField {
-  width: 580px;
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.domainsCardTitleBlock {
+  @apply flex flex-col gap-1;
+}
+
+.domainsCardTitleDescription {
+  display: block;
+  font-weight: 400;
+}
+
+.domainsCardContent {
+  gap: 16px;
+}
+
+.domainsTableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1081px) {
+  .domainsTableWrapper {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .domainsTableWrapper::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.domainsTable {
+  min-width: 100%;
+}
+
+.domainsTableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.domainsTableHeaderCellDomain,
+.domainsTableHeaderCellStatus,
+.domainsTableHeaderCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.domainsTableHeaderCellDomain {
+  @apply min-w-0 flex-1;
+}
+
+.domainsTableHeaderCellStatus {
+  width: 10.5rem;
+  min-width: 10.5rem;
+  flex-shrink: 0;
+}
+
+.domainsTableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.domainsTableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.domainsTableCellDomain,
+.domainsTableCellStatus,
+.domainsTableCellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.domainsTableCellDomain {
+  @apply min-w-0 flex-1 items-center overflow-hidden;
+}
+
+.domainName {
+  @apply min-w-0 truncate;
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.domainsTableCellStatus {
+  width: 10.5rem;
+  min-width: 10.5rem;
+  flex-shrink: 0;
+}
+
+.domainsTableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.statusVerified {
+  @apply inline-flex items-center gap-1 text-sm font-medium;
+  color: var(--green-11);
+}
+
+.statusPending {
+  @apply inline-flex items-center gap-1 text-sm font-medium;
+  color: var(--amber-11);
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .addDomainButton {
-  margin-left: 10px;
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+  width: fit-content;
 }
 
-.actionButtonContainer {
-  display: flex;
+.addDomainButton:hover {
+  color: var(--accent-10);
 }
 
-.actionButton {
-  padding: 0;
-  font-size: 13px;
-  display: contents;
+.addDomainForm {
+  @apply flex flex-col;
 }
 
-.divider {
-  height: 15px;
-  background-color: #edebe9;
-  margin: 0 8px;
+.endpointCallout {
+  margin-top: 0;
 }
 
-.activeStatus {
-  @apply text-status-green;
+.endpointCalloutLink,
+.endpointCalloutLink:hover,
+.endpointCalloutLink:active,
+.endpointCalloutLink:visited {
+  color: var(--indigo-12);
 }
