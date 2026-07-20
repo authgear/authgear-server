@@ -1,8 +1,8 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { Dialog, Flex, Switch, Text } from "@radix-ui/themes";
+import { Cross2Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import FormContainer from "../../FormContainer";
@@ -21,9 +21,12 @@ import UserProfileAttributesList, {
 import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
+  UserProfileAttributesAccessControl,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   TextField,
   TextFieldIcon,
@@ -31,6 +34,19 @@ import {
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./StandardAttributesConfigurationScreen.module.css";
 import ExternalLink from "../../ExternalLink";
+
+// Identity attributes are always required and cannot be disabled.
+const REQUIRED_POINTERS = new Set([
+  "/email",
+  "/phone_number",
+  "/preferred_username",
+]);
+
+const DEFAULT_ACCESS_CONTROL: UserProfileAttributesAccessControl = {
+  portal_ui: "readwrite",
+  bearer: "readonly",
+  end_user: "readwrite",
+};
 
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];
@@ -128,6 +144,101 @@ function constructConfig(
   });
 }
 
+interface EditAttributesDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  enabledPointers: Set<string>;
+  onTogglePointer: (pointer: string, enabled: boolean) => void;
+  onApply: () => void;
+  onCancel: () => void;
+}
+
+function EditAttributesDialog({
+  open,
+  onOpenChange,
+  enabledPointers,
+  onTogglePointer,
+  onApply,
+  onCancel,
+}: EditAttributesDialogProps) {
+  const { renderToString } = useContext(Context);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="560px" size="3">
+        <Dialog.Title>
+          <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.title" />
+        </Dialog.Title>
+        <Dialog.Description size="2" mb="4">
+          <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.description" />
+        </Dialog.Description>
+
+        <div className={styles.editDialogTable}>
+          {/* Column header */}
+          <div className={cn(styles.editDialogHeaderRow)}>
+            <Text size="2" weight="medium">
+              <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.column.attribute" />
+            </Text>
+            <Text size="2" weight="medium">
+              <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.column.enabled" />
+            </Text>
+          </div>
+
+          {/* Attribute rows grouped by section */}
+          {standardAttributeSections.map((section) => (
+            <React.Fragment key={section.key}>
+              <div className={styles.editDialogSectionHeader}>
+                <Text size="1" weight="medium" color="gray">
+                  <FormattedMessage id={section.titleMessageId} />
+                </Text>
+              </div>
+              {section.pointers.map((pointer) => {
+                const fieldName = parseJSONPointer(pointer)[0];
+                const required = REQUIRED_POINTERS.has(pointer);
+                const checked = required || enabledPointers.has(pointer);
+                return (
+                  <div key={pointer} className={styles.editDialogRow}>
+                    <div className={styles.editDialogRowLabel}>
+                      <Text as="p" size="2">
+                        {renderToString("standard-attribute." + fieldName)}
+                      </Text>
+                      {required ? (
+                        <Text as="p" size="1" color="gray">
+                          <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.required" />
+                        </Text>
+                      ) : null}
+                    </div>
+                    <Switch
+                      checked={checked}
+                      disabled={required}
+                      onCheckedChange={(c) => onTogglePointer(pointer, c)}
+                    />
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <Flex gap="3" justify="end" mt="4">
+          <SecondaryButton
+            size="2"
+            text={<FormattedMessage id="cancel" />}
+            onClick={onCancel}
+          />
+          <PrimaryButton
+            size="2"
+            text={
+              <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.dialog.apply" />
+            }
+            onClick={onApply}
+          />
+        </Flex>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
 function ItemComponent(
   props: ItemComponentProps<StandardAttributesAccessControlConfig>
 ) {
@@ -173,6 +284,74 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
     const { renderToString } = useContext(Context);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const [searchKeyword, setSearchKeyword] = useState("");
+
+    // Edit Attributes dialog state
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [draftEnabledPointers, setDraftEnabledPointers] = useState<Set<string>>(
+      new Set()
+    );
+
+    const currentEnabledPointers = useMemo(
+      () => new Set(state.standardAttributesItems.map((item) => item.pointer)),
+      [state.standardAttributesItems]
+    );
+
+    const onOpenEditDialog = useCallback(() => {
+      // Seed draft with currently enabled pointers (always include required ones)
+      const draft = new Set(currentEnabledPointers);
+      REQUIRED_POINTERS.forEach((p) => draft.add(p));
+      setDraftEnabledPointers(draft);
+      setEditDialogOpen(true);
+    }, [currentEnabledPointers]);
+
+    const onCloseEditDialog = useCallback(() => {
+      setEditDialogOpen(false);
+    }, []);
+
+    const onEditDialogOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) setEditDialogOpen(false);
+      },
+      []
+    );
+
+    const onToggleDraftPointer = useCallback(
+      (pointer: string, enabled: boolean) => {
+        setDraftEnabledPointers((prev) => {
+          const next = new Set(prev);
+          if (enabled) {
+            next.add(pointer);
+          } else {
+            next.delete(pointer);
+          }
+          return next;
+        });
+      },
+      []
+    );
+
+    const onApplyEditDialog = useCallback(() => {
+      setState((prev) => {
+        const prevByPointer = new Map(
+          prev.standardAttributesItems.map((item) => [item.pointer, item])
+        );
+        const newItems = naturalOrder
+          .filter(
+            (pointer) =>
+              draftEnabledPointers.has(pointer) ||
+              REQUIRED_POINTERS.has(pointer)
+          )
+          .map(
+            (pointer): StandardAttributesAccessControlConfig =>
+              prevByPointer.get(pointer) ?? {
+                pointer,
+                access_control: DEFAULT_ACCESS_CONTROL,
+              }
+          );
+        return { ...prev, standardAttributesItems: newItems };
+      });
+      setEditDialogOpen(false);
+    }, [setState, draftEnabledPointers]);
 
     const onChangeSearchKeyword = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,13 +405,22 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
           isDirty ? styles.contentWithSaveBar : null
         )}
       >
-        <div
-          ref={contentWidthAnchorRef}
-          className={cn(styles.widget, styles.pageHeader)}
-        >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
-          </Text>
+        <div ref={contentWidthAnchorRef} className={styles.widget}>
+          <div className={styles.header}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
+            </Text>
+            <SecondaryButton
+              size="2"
+              text={
+                <span className={styles.editButtonContent}>
+                  <Pencil1Icon width="1rem" height="1rem" />
+                  <FormattedMessage id="StandardAttributesConfigurationScreen.edit-attributes.button" />
+                </span>
+              }
+              onClick={onOpenEditDialog}
+            />
+          </div>
         </div>
         <div className={cn(styles.widget, styles.toolbar)}>
           <div className={styles.searchField}>
@@ -278,6 +466,15 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
           )}
         </div>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+
+        <EditAttributesDialog
+          open={editDialogOpen}
+          onOpenChange={onEditDialogOpenChange}
+          enabledPointers={draftEnabledPointers}
+          onTogglePointer={onToggleDraftPointer}
+          onApply={onApplyEditDialog}
+          onCancel={onCloseEditDialog}
+        />
       </ScreenContent>
     );
   };

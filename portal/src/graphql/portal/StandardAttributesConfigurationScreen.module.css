@@ -20,8 +20,8 @@
   overflow: visible;
 }
 
-.pageHeader {
-  @apply flex flex-col gap-2;
+.header {
+  @apply flex items-center justify-between gap-4;
 }
 
 .pageTitle {
@@ -30,6 +30,10 @@
   line-height: 28px;
   font-weight: 600;
   color: var(--gray-12);
+}
+
+.editButtonContent {
+  @apply inline-flex items-center gap-1;
 }
 
 .toolbar {
@@ -63,4 +67,43 @@
 
 .emptySearch {
   margin: 0;
+}
+
+/* ── Edit Attributes dialog ── */
+
+.editDialogTable {
+  @apply rounded-lg border border-solid overflow-hidden;
+  border-color: var(--gray-5);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.editDialogHeaderRow {
+  @apply flex items-center justify-between px-3 py-2;
+  background-color: var(--gray-2);
+  border-bottom: 1px solid var(--gray-5);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.editDialogSectionHeader {
+  @apply px-3 py-2;
+  background-color: var(--gray-a3);
+  border-bottom: 1px solid var(--gray-5);
+}
+
+.editDialogRow {
+  @apply flex items-center justify-between px-3 py-2;
+  min-height: 44px;
+  border-bottom: 1px solid var(--gray-5);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.editDialogRowLabel {
+  @apply flex flex-col gap-0.5;
+  min-width: 0;
 }
