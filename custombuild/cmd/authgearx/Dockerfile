@@ -15,7 +15,7 @@ COPY Makefile .
 RUN make authui
 
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.26.4-noble AS authgear-stage-1
+FROM quay.io/theauthgear/golang:1.26.5-noble AS authgear-stage-1
 
 # Install build time C dependencies
 RUN set -eux; \
@@ -78,7 +78,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026a\*; \
+            tzdata=2026b\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-stage-1 /src/custombuild/authgear /usr/local/bin/
 # There is no need to run update-ca-certificates

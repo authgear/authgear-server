@@ -22,7 +22,7 @@ COPY Makefile .
 RUN make authui
 
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.26.4-noble AS authgear-stage-1
+FROM quay.io/theauthgear/golang:1.26.5-noble AS authgear-stage-1
 
 # Install build time C dependencies
 RUN set -eux; \
@@ -69,7 +69,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026a\*; \
+            tzdata=2026b\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-stage-1 /src/authgear /usr/local/bin/
 # There is no need to run update-ca-certificates
@@ -128,7 +128,7 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 2: Build the Go binary
-FROM quay.io/theauthgear/golang:1.26.4-noble AS authgear-portal-stage-2
+FROM quay.io/theauthgear/golang:1.26.5-noble AS authgear-portal-stage-2
 
 # Install build time C dependencies
 RUN set -eux; \
@@ -176,7 +176,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026a\*; \
+            tzdata=2026b\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-portal-stage-2 /src/authgear-portal /usr/local/bin/
 # There is no need to run update-ca-certificates
@@ -201,7 +201,7 @@ EXPOSE 13003
 CMD ["authgear-portal", "start"]
 
 
-FROM quay.io/theauthgear/golang:1.26.4-noble AS authgear-once-stage-wrapper
+FROM quay.io/theauthgear/golang:1.26.5-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
