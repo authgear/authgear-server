@@ -1,14 +1,53 @@
-import React, { useCallback, useMemo } from "react";
-import cn from "classnames";
-
-import ButtonToggleGroup, { Option } from "../common/ButtonToggleGroup";
+import React, { useCallback } from "react";
+import { SegmentedControl } from "@radix-ui/themes";
 
 import {
   AllTextDecorations,
   TextDecorationType,
 } from "../../model/themeAuthFlowV2";
 
-import styles from "./TextDecoration.module.css";
+import toggleStyles from "./toggle-group.module.css";
+
+interface TextDecorationIconProps {
+  type: TextDecorationType;
+}
+
+const TextDecorationIcon: React.VFC<TextDecorationIconProps> =
+  function TextDecorationIcon(props) {
+    const { type } = props;
+    const svgProps = {
+      width: 16,
+      height: 16,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      xmlns: "http://www.w3.org/2000/svg",
+      "aria-hidden": true,
+    } as const;
+
+    if (type === "none") {
+      return (
+        <svg {...svgProps}>
+          <path
+            d="M7 12H17"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    }
+    return (
+      <svg {...svgProps}>
+        <path
+          d="M7 5V10C7 11.3261 7.52678 12.5979 8.46447 13.5355C9.40215 14.4732 10.6739 15 12 15C13.3261 15 14.5979 14.4732 15.5355 13.5355C16.4732 12.5979 17 11.3261 17 10V5M5 19H19"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  };
 
 interface TextDecorationProps {
   value: TextDecorationType;
@@ -19,49 +58,29 @@ const TextDecoration: React.VFC<TextDecorationProps> = function TextDecoration(
   props
 ) {
   const { value, onChange } = props;
-  const options = useMemo(
-    () => AllTextDecorations.map((value) => ({ value })),
-    []
-  );
 
-  const onSelectOption = useCallback(
-    (option: Option<TextDecorationType>) => {
-      onChange(option.value);
+  const onValueChange = useCallback(
+    (newValue: string) => {
+      if (AllTextDecorations.includes(newValue as TextDecorationType)) {
+        onChange(newValue as TextDecorationType);
+      }
     },
     [onChange]
   );
 
-  const renderOption = useCallback(
-    (option: Option<TextDecorationType>, selected: boolean) => {
-      return (
-        <span
-          className={cn(
-            styles.icTextDecoration,
-            (() => {
-              switch (option.value) {
-                case "none":
-                  return styles.icTextDecorationNone;
-                case "underline":
-                  return styles.icTextDecorationUnderline;
-                default:
-                  return undefined;
-              }
-            })(),
-            selected && styles.selected
-          )}
-        ></span>
-      );
-    },
-    []
-  );
-
   return (
-    <ButtonToggleGroup
+    <SegmentedControl.Root
+      className={toggleStyles.toggleGroup}
       value={value}
-      options={options}
-      onSelectOption={onSelectOption}
-      renderOption={renderOption}
-    ></ButtonToggleGroup>
+      onValueChange={onValueChange}
+      size="1"
+    >
+      {AllTextDecorations.map((decoration) => (
+        <SegmentedControl.Item key={decoration} value={decoration}>
+          <TextDecorationIcon type={decoration} />
+        </SegmentedControl.Item>
+      ))}
+    </SegmentedControl.Root>
   );
 };
 

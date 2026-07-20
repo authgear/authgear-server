@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from "react";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
-import WidgetSubtitle from "../../WidgetSubtitle";
 import cn from "classnames";
 
 interface ConfigurationProps {
@@ -10,11 +10,11 @@ const Configuration: React.VFC<PropsWithChildren<ConfigurationProps>> =
   function Configuration(props) {
     const { labelKey } = props;
     return (
-      <div>
-        <WidgetSubtitle>
+      <div className={cn("flex", "flex-col", "gap-2")}>
+        <Text as="p" size="2" weight="medium">
           <FormattedMessage id={labelKey} />
-        </WidgetSubtitle>
-        <div className={cn("mt-[0.3125rem]")}>{props.children}</div>
+        </Text>
+        {props.children}
       </div>
     );
   };

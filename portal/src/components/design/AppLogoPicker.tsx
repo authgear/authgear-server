@@ -1,14 +1,14 @@
 import React from "react";
 import { FormattedMessage } from "../../intl";
-import { Image, ImageFit } from "@fluentui/react";
+import { ImageIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 
 import cn from "classnames";
 
 import BaseImagePicker, { ImageFileExtension } from "../common/BaseImagePicker";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
-
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
+import { IconButton, IconButtonIcon } from "../v2/IconButton/IconButton";
+import { SquareIcon } from "../v2/SquareIcon/SquareIcon";
 import { base64EncodedDataToDataURI } from "../../util/uri";
 
 import { AppLogoResource } from "../../graphql/portal/DesignScreen/form";
@@ -17,6 +17,7 @@ import styles from "./ImagePicker.module.css";
 
 interface AppLogoPickerProps {
   logo: AppLogoResource;
+  descriptionKey?: string;
   onChange: (
     image: {
       base64EncodedData: string;
@@ -27,8 +28,11 @@ interface AppLogoPickerProps {
 const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
   props
 ) {
-  const { logo, onChange } = props;
-  const { themes } = useSystemConfig();
+  const {
+    logo,
+    onChange,
+    descriptionKey = "DesignScreen.configuration.logo.description",
+  } = props;
 
   const imagePreviewData =
     logo.base64EncodedData ?? logo.fallbackBase64EncodedData;
@@ -39,68 +43,77 @@ const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
   return (
     <BaseImagePicker
       sizeLimitInBytes={100 * 1000}
-      className={cn("flex", "items-center", "gap-x-6")}
+      className={cn(styles.picker)}
       base64EncodedData={logo.base64EncodedData}
       onChange={onChange}
     >
       {({ showFilePicker, clearImage }) => (
         <>
-          <div
+          <button
+            type="button"
             className={cn(
-              "flex",
-              "items-center",
-              "justify-center",
-              "h-30",
-              "w-30",
-              imagePreviewData != null ? "bg-white" : "bg-neutral-light",
-              "rounded",
-              "border",
-              "border-solid",
-              "border-neutral-tertiaryAlt",
-              "overflow-hidden"
+              styles.preview,
+              imagePreviewData != null && styles.previewFilled
             )}
             onClick={showFilePicker}
           >
             {imagePreviewData == null ? (
-              <span className={styles.icImagePlaceholder}></span>
+              <SquareIcon Icon={ImageIcon} size="7" radius="3" />
             ) : (
-              <Image
+              <img
+                className={cn(
+                  styles.previewImage,
+                  isShowingFallbackImage && styles.previewImageFallback
+                )}
                 src={base64EncodedDataToDataURI(imagePreviewData)}
-                className={cn("h-full", "w-full")}
-                imageFit={ImageFit.centerCover}
-                maximizeFrame={true}
-                styles={{
-                  image: isShowingFallbackImage
-                    ? {
-                        opacity: 0.3,
-                        filter: "grayscale(1)",
-                      }
-                    : null,
-                }}
+                alt=""
               />
             )}
+          </button>
+          <div className={styles.pickerActions}>
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage id={descriptionKey} />
+            </Text>
+            <div className={styles.pickerButtons}>
+              {logo.base64EncodedData != null ? (
+                <>
+                  <SecondaryButton
+                    type="button"
+                    size="2"
+                    text={
+                      <FormattedMessage id="DesignScreen.configuration.imagePicker.upload" />
+                    }
+                    onClick={showFilePicker}
+                  />
+                  <IconButton
+                    type="button"
+                    size="2"
+                    variant="destroy"
+                    icon={IconButtonIcon.Trash}
+                    onClick={clearImage}
+                  />
+                </>
+              ) : logo.fallbackBase64EncodedData != null ? (
+                <SecondaryButton
+                  type="button"
+                  size="2"
+                  text={
+                    <FormattedMessage id="DesignScreen.configuration.appLogoPicker.override" />
+                  }
+                  onClick={showFilePicker}
+                />
+              ) : (
+                <SecondaryButton
+                  type="button"
+                  size="2"
+                  text={
+                    <FormattedMessage id="DesignScreen.configuration.imagePicker.upload" />
+                  }
+                  onClick={showFilePicker}
+                />
+              )}
+            </div>
           </div>
-          {logo.base64EncodedData != null ? (
-            <PrimaryButton
-              theme={themes.destructive}
-              text={<FormattedMessage id={"ImageFilePicker.remove"} />}
-              onClick={clearImage}
-            />
-          ) : logo.fallbackBase64EncodedData != null ? (
-            <DefaultButton
-              text={
-                <FormattedMessage id="DesignScreen.configuration.appLogoPicker.override" />
-              }
-              onClick={showFilePicker}
-            />
-          ) : (
-            <DefaultButton
-              text={
-                <FormattedMessage id="DesignScreen.configuration.imagePicker.upload" />
-              }
-              onClick={showFilePicker}
-            />
-          )}
         </>
       )}
     </BaseImagePicker>

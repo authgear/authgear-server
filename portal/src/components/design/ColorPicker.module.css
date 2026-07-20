@@ -2,10 +2,13 @@
   @apply flex items-center;
   @apply px-2 h-8;
   @apply relative;
-  @apply rounded overflow-hidden border border-solid border-grey-grey110;
+  border-radius: var(--radius-2);
+  border: 1px solid var(--gray-a6);
+  overflow: hidden;
 }
 
 .colorPicker.active {
-  @apply border-theme-primary;
-  @apply outline outline-2 -outline-offset-2 outline-theme-primary;
+  border-color: var(--accent-8);
+  outline: 2px solid var(--accent-8);
+  outline-offset: -2px;
 }

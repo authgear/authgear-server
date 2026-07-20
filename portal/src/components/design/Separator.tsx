@@ -1,4 +1,5 @@
 import React from "react";
+import { Separator as RadixSeparator } from "@radix-ui/themes";
 import cn from "classnames";
 
 interface SeparatorProps {
@@ -6,7 +7,12 @@ interface SeparatorProps {
 }
 const Separator: React.VFC<SeparatorProps> = function Separator(props) {
   const { className } = props;
-  return <div className={cn("h-px", "my-12", "bg-separator", className)}></div>;
+  return (
+    <RadixSeparator
+      size="4"
+      className={cn("w-full", "my-6", className)}
+    />
+  );
 };
 
 export default Separator;
