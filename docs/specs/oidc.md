@@ -255,7 +255,12 @@ The end session endpoint accepts both `GET` and `POST`. Parameters can therefore
 
 ### id_token_hint
 
-If `id_token_hint` is present, and its `sid` matches the current logged in IdP session, AND the client is a [first-party client](#first-party-clients), the session is logged out directly, without asking the end-user to confirm the logout action.
+If `id_token_hint` is present, its `sid` claim is resolved to the IdP session or refresh token grant it names. That session/grant is considered to match the current logged in IdP session if either:
+
+- it is the current IdP session itself; or
+- it is a refresh token grant whose `idp_session_id` names the current IdP session — i.e. the end-user authenticated through this exact browser session when the grant was created — regardless of whether the client requested `x_sso_enabled` (see [Browser Single Sign On](./oidc-sso-browser.md)). Creating a refresh token grant from an existing/created IdP session is itself what makes it part of that session's group; most clients never send `x_sso_enabled` at all, since it is an Authgear-specific extension.
+
+If the `id_token_hint` matches, AND the client is a [first-party client](#first-party-clients), the session — and, if `id_token_hint` named a refresh token grant, that grant as well — is logged out/revoked directly, without asking the end-user to confirm the logout action.
 
 In all other cases (no `id_token_hint`, `id_token_hint` does not match the current session, or the client is a third-party client), the end-user is shown a confirmation page and must explicitly confirm before the session is logged out. This protects against logout CSRF: without proof that the request genuinely came from the end-user (a matching `id_token_hint` from a trusted first-party client), a third party could otherwise force a silent logout by merely getting the end-user's browser to issue a `GET` to this endpoint.
 
