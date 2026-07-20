@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Dialog, Flex, Text } from "@radix-ui/themes";
+import { Button, Dialog, Flex, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
@@ -34,6 +34,10 @@ function gtmContainerIDFormatError(): React.ReactNode {
       values={{ format: "google_tag_manager_container_id" }}
     />
   );
+}
+
+function gtmContainerIDRequiredError(): React.ReactNode {
+  return <FormattedMessage id="errors.validation.required" />;
 }
 
 interface FormState {
@@ -106,6 +110,9 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
     const [draftContainerID, setDraftContainerID] = useState("");
     const [localContainerIDError, setLocalContainerIDError] =
       useState<React.ReactNode>(null);
+    const [pendingGTMAction, setPendingGTMAction] = useState<
+      "save" | "delete" | null
+    >(null);
 
     const gtmContainerIDField = useMemo(
       () => ({
@@ -166,6 +173,7 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
     const onOpenGtmDialog = useCallback(() => {
       reset();
       setLocalContainerIDError(null);
+      setPendingGTMAction(null);
       setDraftContainerID(initialState.googleTagManagerContainerID);
       setGtmDialogOpen(true);
     }, [initialState.googleTagManagerContainerID, reset]);
@@ -174,6 +182,7 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
       if (!isUpdating) {
         setGtmDialogOpen(false);
         setLocalContainerIDError(null);
+        setPendingGTMAction(null);
         reset();
       }
     }, [isUpdating, reset]);
@@ -190,18 +199,27 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
     const onDraftContainerIDChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         setDraftContainerID(e.target.value);
+        setLocalContainerIDError(null);
       },
       []
     );
 
+    const hasSavedGTMConnection =
+      initialState.googleTagManagerContainerID !== "";
+
     const onSaveGTM = useCallback(() => {
       const newID = draftContainerID.trim();
-      if (newID !== "" && !isValidGTMContainerID(newID)) {
+      if (newID === "") {
+        setLocalContainerIDError(gtmContainerIDRequiredError());
+        return;
+      }
+      if (!isValidGTMContainerID(newID)) {
         setLocalContainerIDError(gtmContainerIDFormatError());
         return;
       }
 
       setLocalContainerIDError(null);
+      setPendingGTMAction("save");
       form
         .saveWith((prev) => ({
           ...prev,
@@ -209,9 +227,29 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
         }))
         .then(() => {
           setGtmDialogOpen(false);
+          setPendingGTMAction(null);
         })
-        .catch(() => {});
+        .catch(() => {
+          setPendingGTMAction(null);
+        });
     }, [draftContainerID, form]);
+
+    const onDeleteGTM = useCallback(() => {
+      setLocalContainerIDError(null);
+      setPendingGTMAction("delete");
+      form
+        .saveWith((prev) => ({
+          ...prev,
+          googleTagManagerContainerID: "",
+        }))
+        .then(() => {
+          setGtmDialogOpen(false);
+          setPendingGTMAction(null);
+        })
+        .catch(() => {
+          setPendingGTMAction(null);
+        });
+    }, [form]);
 
     return (
       <ScreenLayoutScrollView>
@@ -292,20 +330,38 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
               onChange={onDraftContainerIDChange}
               error={displayContainerIDError}
             />
-            <Flex gap="3" mt="4" justify="end">
-              <SecondaryButton
-                size="2"
-                text={<FormattedMessage id="cancel" />}
-                onClick={onCloseGtmDialog}
-                disabled={isUpdating}
-              />
-              <PrimaryButton
-                size="2"
-                text={<FormattedMessage id="save" />}
-                onClick={onSaveGTM}
-                loading={isUpdating}
-                disabled={isUpdating}
-              />
+            <Flex
+              gap="3"
+              mt="4"
+              justify={hasSavedGTMConnection ? "between" : "end"}
+            >
+              {hasSavedGTMConnection ? (
+                <Button
+                  size="2"
+                  variant="soft"
+                  color="red"
+                  onClick={onDeleteGTM}
+                  loading={pendingGTMAction === "delete"}
+                  disabled={isUpdating}
+                >
+                  <FormattedMessage id="delete" />
+                </Button>
+              ) : null}
+              <Flex gap="3">
+                <SecondaryButton
+                  size="2"
+                  text={<FormattedMessage id="cancel" />}
+                  onClick={onCloseGtmDialog}
+                  disabled={isUpdating}
+                />
+                <PrimaryButton
+                  size="2"
+                  text={<FormattedMessage id="save" />}
+                  onClick={onSaveGTM}
+                  loading={pendingGTMAction === "save"}
+                  disabled={isUpdating}
+                />
+              </Flex>
             </Flex>
           </Dialog.Content>
         </Dialog.Root>

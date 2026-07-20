@@ -59,7 +59,7 @@
 }
 
 .headerCellStatus {
-  width: 10rem;
+  width: 8rem;
   flex-shrink: 0;
 }
 
@@ -88,7 +88,7 @@
 }
 
 .cellStatus {
-  width: 10rem;
+  width: 8rem;
   flex-shrink: 0;
 }
 
