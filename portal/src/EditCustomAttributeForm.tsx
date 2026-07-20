@@ -36,34 +36,6 @@ export interface EditCustomAttributeFormProps {
 }
 
 // ---------------------------------------------------------------------------
-// FormRow — audit-log table row: label on left, content on right
-// ---------------------------------------------------------------------------
-
-interface FormRowProps {
-  label: React.ReactNode;
-  description?: React.ReactNode;
-  children: React.ReactNode;
-}
-
-function FormRow({ label, description, children }: FormRowProps) {
-  return (
-    <div className={styles.tableRow}>
-      <div className={styles.cellLabel}>
-        <Text as="p" size="2" className={styles.cellLabelText}>
-          {label}
-        </Text>
-        {description != null ? (
-          <Text as="p" size="1" color="gray" className={styles.cellDescription}>
-            {description}
-          </Text>
-        ) : null}
-      </div>
-      <div className={styles.cellValue}>{children}</div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Number option (min / max)
 // ---------------------------------------------------------------------------
 
@@ -193,16 +165,22 @@ function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
   );
 
   return (
-    <FormRow
-      label={<FormattedMessage id="EditCustomAttributeForm.label.options" />}
-    >
+    <div className={styles.fieldBlock}>
+      <Text as="p" size="2" className={styles.fieldLabel}>
+        <FormattedMessage id="EditCustomAttributeForm.label.options" />
+      </Text>
       <div className={styles.enumContainer}>
         {/* Existing enum values */}
         {draft.enum.length > 0 ? (
           <div className={styles.enumList}>
             {draft.enum.map((value, i) => (
               <div key={i} className={styles.enumItem}>
-                <Text as="p" size="2" weight="medium" className={styles.enumValue}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.enumValue}
+                >
                   {value}
                 </Text>
                 <IconButton
@@ -226,20 +204,22 @@ function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
             onChange={onChangeAddValue}
             onKeyDown={onKeyDown}
           />
-          <PrimaryButton
-            size="2"
-            disabled={addValue.trim() === ""}
-            onClick={onClickAdd}
-            text={
-              <span className={styles.addButtonContent}>
-                <PlusIcon />
-                <FormattedMessage id="add" />
-              </span>
-            }
-          />
+          <div className={styles.enumAddActions}>
+            <PrimaryButton
+              size="2"
+              disabled={addValue.trim() === ""}
+              onClick={onClickAdd}
+              text={
+                <span className={styles.addButtonContent}>
+                  <PlusIcon />
+                  <FormattedMessage id="add" />
+                </span>
+              }
+            />
+          </div>
         </div>
       </div>
-    </FormRow>
+    </div>
   );
 }
 
@@ -337,34 +317,34 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
           </div>
         </div>
 
-        <div className={styles.table}>
-          {/* Number / Integer options */}
-          {draft.type === "number" ? (
-            <NumberOption
-              parentJSONPointer={parentJSONPointer}
-              draft={draft}
-              onChangeDraft={onChangeDraft}
-              checkFunction={checkNumberInput}
-            />
-          ) : null}
-          {draft.type === "integer" ? (
-            <NumberOption
-              parentJSONPointer={parentJSONPointer}
-              draft={draft}
-              onChangeDraft={onChangeDraft}
-              checkFunction={checkIntegerInput}
-            />
-          ) : null}
+        {draft.type === "number" || draft.type === "integer" ? (
+          <div className={styles.table}>
+            {draft.type === "number" ? (
+              <NumberOption
+                parentJSONPointer={parentJSONPointer}
+                draft={draft}
+                onChangeDraft={onChangeDraft}
+                checkFunction={checkNumberInput}
+              />
+            ) : null}
+            {draft.type === "integer" ? (
+              <NumberOption
+                parentJSONPointer={parentJSONPointer}
+                draft={draft}
+                onChangeDraft={onChangeDraft}
+                checkFunction={checkIntegerInput}
+              />
+            ) : null}
+          </div>
+        ) : null}
 
-          {/* Enum options */}
-          {draft.type === "enum" ? (
-            <EnumOption
-              parentJSONPointer={parentJSONPointer}
-              draft={draft}
-              onChangeDraft={onChangeDraft}
-            />
-          ) : null}
-        </div>
+        {draft.type === "enum" ? (
+          <EnumOption
+            parentJSONPointer={parentJSONPointer}
+            draft={draft}
+            onChangeDraft={onChangeDraft}
+          />
+        ) : null}
       </div>
     );
   };

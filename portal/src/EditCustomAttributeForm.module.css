@@ -123,13 +123,19 @@
 
 .enumAddRow {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
 }
 
 .enumAddRow > :first-child {
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
+}
+
+.enumAddActions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .addButtonContent {
