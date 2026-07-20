@@ -1,4 +1,4 @@
-name: First-party client, matching id_token_hint, sid matches current session, silent logout
+name: First-party client, matching id_token_hint (same SSO group), silent logout
 before:
   - type: user_import
     user_import: end_session_id_token_hint_users.json
@@ -193,8 +193,8 @@ steps:
         - id_token_hint
 
   # Resuming the stashed request (the browser's next top-level GET) now sees
-  # the Lax session cookie, matches sid + first-party client, and logs out
-  # silently.
+  # the Lax session cookie, matches SSO group + first-party client, and logs
+  # out silently.
   - name: resumed_end_session
     action: http_request
     http_request_method: GET
@@ -335,14 +335,150 @@ steps:
       http_status: 200
 
 ---
-name: sid mismatch shows confirmation page even for a first-party client
+name: User confirms logout on the confirmation page, session and offline grant are revoked
+before:
+  - type: user_import
+    user_import: end_session_id_token_hint_users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_esh_user1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  # No id_token_hint at all this time, so — unlike every case above that
+  # sends one — the SameSiteStrict fast path would fire unconditionally if
+  # that leaked companion cookie were still present, short-circuiting
+  # straight to a silent logout and leaving nothing for a human to confirm.
+  - name: remove_same_site_strict
+    action: clear_cookies
+    clear_cookies_names:
+      - same_site_strict
+
+  # With no id_token_hint and no SameSiteStrict fast path, the end-user must
+  # be shown the /logout confirmation page. http_final_url captures the
+  # rendered page's exact URL (it carries the original request, minus
+  # id_token_hint, in its own redirect_uri query param — see
+  # WithoutIDTokenHint/LogoutURL in handler_end_session.go), which is exactly
+  # what the confirmation form POSTs back to.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      post_logout_redirect_uri: http://localhost:4000/after-logout
+    http_output:
+      http_status: 200
+      redirect_path: /logout
+
+  # Everything up to here only proves the confirmation page was reached —
+  # this is the part every other case stops short of. Simulate the human
+  # actually clicking "Log out": the rendered form
+  # (resources/authgear/templates/en/web/authflowv2/logout.html) POSTs
+  # x_action=logout to its own URL with no other fields, so submitting that
+  # exact URL is what a real browser would do.
+  - name: confirm_logout
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.end_session.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_action: logout
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # LogoutHandler.ServeHTTP's PostAction logs the session out, then redirects
+  # back to the redirect_uri carried on the confirmation page's own URL —
+  # which is the original end_session call, replayed now that the session is
+  # gone. Following it resolves the OIDC response the same way the silent-
+  # logout cases do.
+  - name: resume_end_session_after_confirm
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.confirm_logout.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+  # Same independent proof as the silent-logout cases: the offline grant in
+  # this session's SSO group must actually be gone from storage, not just
+  # that the confirmation flow's responses looked right.
+  - name: verify_offline_grant_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
+
+---
+name: SSO group mismatch shows confirmation page even for a first-party client
 before:
   - type: user_import
     user_import: end_session_id_token_hint_users.json
 steps:
   # User 1 logs in first and obtains an id_token_hint bound to their own
-  # session (sid_1), purely to have a real, verifiable, but mismatched hint
-  # available later.
+  # offline grant, purely to have a real, verifiable hint whose SSO group
+  # won't match user 2's session below.
   - name: oauth_setup_1
     action: oauth_setup
     oauth_setup_sso_enabled: true
@@ -598,8 +734,8 @@ steps:
 
   # id_token_hint is present (even though malformed), so the SameSiteStrict
   # fast path is skipped regardless of that cookie's value: no clear_cookies
-  # step is needed here, unlike the hint-less call in the sid-mismatch case
-  # above.
+  # step is needed here, unlike the hint-less call in the SSO-group-mismatch
+  # case above.
   - name: end_session
     action: http_request
     http_request_method: GET
