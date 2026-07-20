@@ -316,6 +316,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"items": { "type": "string" }
 		},
 		"oauth_setup_sso_enabled": { "type": "boolean" },
+		"oauth_setup_sso_enabled_omitted": { "type": "boolean" },
 		"oauth_approve_consent_redirect_uri": { "type": "string" },
 		"clear_cookies_names": {
 			"type": "array",
@@ -608,9 +609,10 @@ type Step struct {
 	SMTPLogOutput    *QueryOutput `json:"smtp_log_output"`
 
 	// `action` == "oauth_setup"
-	OAuthSetupClientID   string   `json:"oauth_setup_client_id"`
-	OAuthSetupScope      []string `json:"oauth_setup_scope"`
-	OAuthSetupSSOEnabled bool     `json:"oauth_setup_sso_enabled"`
+	OAuthSetupClientID          string   `json:"oauth_setup_client_id"`
+	OAuthSetupScope             []string `json:"oauth_setup_scope"`
+	OAuthSetupSSOEnabled        bool     `json:"oauth_setup_sso_enabled"`
+	OAuthSetupSSOEnabledOmitted bool     `json:"oauth_setup_sso_enabled_omitted"`
 
 	// `action` == "oauth_approve_consent"
 	OAuthApproveConsentRedirectURI string `json:"oauth_approve_consent_redirect_uri"`

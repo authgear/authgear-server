@@ -123,11 +123,15 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 		// confirmation). "Matches" means the same SSO group, not sid string
 		// equality: a first-party client that requested offline_access (the
 		// normal case) gets an id_token bound to its own offline grant, not
-		// directly to the browser's IDP session, but that offline grant and
-		// the IDP session cookie both trace back to the same login when the
-		// grant was issued with SSO enabled
+		// directly to the browser's IDP session cookie, but that offline
+		// grant and the IDP session cookie both trace back to the same login
+		// when the grant was issued with SSO enabled
 		// (session.SessionBase.SSOGroupIDPSessionID), which is exactly what
-		// IsSameSSOGroup checks.
+		// IsSameSSOGroup checks. IssueOfflineGrantOptions.SSOEnabled
+		// (pkg/lib/oauth/handler/handler_token.go) is set whenever the grant
+		// has an IDPSessionID at all, not only when the client explicitly
+		// requested x_sso_enabled=true, so this also covers the common case
+		// of a client that never sends that Authgear-specific extension.
 		if client, sidSession, ok := h.resolveIDTokenHintSession(ctx, idTokenHint); ok &&
 			client.IsFirstParty() && sidSession.IsSameSSOGroup(s) {
 			_, err := h.SessionManager.Logout(ctx, s, rw)

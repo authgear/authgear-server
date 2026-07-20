@@ -239,6 +239,17 @@ type SetupOAuthOptions struct {
 	// test needs a real IDP session cookie to be set (e.g. testing
 	// session-cookie-dependent behavior like RP-initiated logout).
 	SSOEnabled bool
+	// SSOEnabledOmitted, when true, omits x_sso_enabled from the request
+	// entirely (SSOEnabled is then ignored). This models a real OIDC client
+	// that doesn't know about Authgear's x_sso_enabled extension at all --
+	// distinct from explicitly requesting SSOEnabled=false. Per
+	// AuthorizationRequest.SuppressIDPSessionCookie's backward-compatibility
+	// default, an absent x_sso_enabled still gets a real IDP session cookie,
+	// but AuthorizationRequest.SSOEnabled() still defaults to false, so the
+	// resulting offline grant ends up with IDPSessionID set but
+	// SSOEnabled=false -- a real, common combination distinct from either
+	// SSOEnabled: true or SSOEnabled: false above.
+	SSOEnabledOmitted bool
 }
 
 func (c *Client) SetupOAuth(opts SetupOAuthOptions) (output map[string]any, err error) {
@@ -266,10 +277,12 @@ func (c *Client) SetupOAuth(opts SetupOAuthOptions) (output map[string]any, err 
 	codeVerifier := pkce.GenerateS256Verifier()
 	values.Set("code_challenge", codeVerifier.Challenge())
 	values.Set("scope", strings.Join(scope, " "))
-	if opts.SSOEnabled {
-		values.Set("x_sso_enabled", "true")
-	} else {
-		values.Set("x_sso_enabled", "false")
+	if !opts.SSOEnabledOmitted {
+		if opts.SSOEnabled {
+			values.Set("x_sso_enabled", "true")
+		} else {
+			values.Set("x_sso_enabled", "false")
+		}
 	}
 
 	u.RawQuery = values.Encode()

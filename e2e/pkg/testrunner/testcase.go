@@ -501,9 +501,10 @@ func (tc *TestCase) executeStep(
 		}
 	case StepActionOAuthSetup:
 		output, err := client.SetupOAuth(authflowclient.SetupOAuthOptions{
-			ClientID:   step.OAuthSetupClientID,
-			Scope:      step.OAuthSetupScope,
-			SSOEnabled: step.OAuthSetupSSOEnabled,
+			ClientID:          step.OAuthSetupClientID,
+			Scope:             step.OAuthSetupScope,
+			SSOEnabled:        step.OAuthSetupSSOEnabled,
+			SSOEnabledOmitted: step.OAuthSetupSSOEnabledOmitted,
 		})
 		if err != nil {
 			t.Errorf("failed to setup oauth: %v", err)

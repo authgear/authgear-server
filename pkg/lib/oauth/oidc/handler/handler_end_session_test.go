@@ -262,14 +262,43 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 			So(capturedEndSessionURL.Query().Get("id_token_hint"), ShouldEqual, "")
 		})
 
-		Convey("GET, valid id_token_hint bound to an offline grant that is not SSO enabled: confirmation page", func() {
-			// A grant issued without SSO sharing has no SSO group at all
-			// (SSOGroupIDPSessionID is empty), so it can never match,
-			// regardless of which login it happened to come from.
+		Convey("GET, valid id_token_hint bound to an offline grant from the same login but not SSO enabled: silent logout", func() {
+			// IsSameSSOGroup matches on IDPSessionID equality alone,
+			// regardless of this grant's own SSOEnabled: a client that never
+			// requested x_sso_enabled (the common case for any RP unaware of
+			// Authgear's extension) still authenticated through this exact
+			// IDP session, and that alone is what makes it part of this
+			// session's group — creating the grant from that session is
+			// what "SSO" means here, not a separate opt-in the client must
+			// also request.
 			idTokenVerifier.EXPECT().VerifyIDToken("valid-hint").Return(newIDToken(sessOfflineGrantSID, firstPartyClient.ClientID), nil)
 			offlineGrants.EXPECT().GetOfflineGrant(gomock.Any(), "grant-same-login").Return(&oauth.OfflineGrant{
 				ID:           "grant-same-login",
 				IDPSessionID: sess.ID,
+				SSOEnabled:   false,
+			}, nil)
+			sessionManager.EXPECT().Logout(gomock.Any(), sess, gomock.Any()).Return(nil, nil)
+
+			req := protocol.EndSessionRequest{
+				"id_token_hint":            "valid-hint",
+				"post_logout_redirect_uri": "https://rp.example.com/after-logout",
+			}
+			r := httptest.NewRequest(http.MethodGet, "https://app.example.com/oauth2/end_session", nil)
+			rw := httptest.NewRecorder()
+
+			err := h.Handle(context.Background(), sess, req, r, rw)
+			So(err, ShouldBeNil)
+			So(rw.Code, ShouldEqual, http.StatusSeeOther)
+		})
+
+		Convey("GET, valid id_token_hint bound to an offline grant from a different login and not SSO enabled: confirmation page", func() {
+			// IDPSessionID names a different session entirely: this is a
+			// genuinely unrelated grant, not just one that opted out of SSO
+			// sharing.
+			idTokenVerifier.EXPECT().VerifyIDToken("valid-hint").Return(newIDToken(sessOfflineGrantSID, firstPartyClient.ClientID), nil)
+			offlineGrants.EXPECT().GetOfflineGrant(gomock.Any(), "grant-same-login").Return(&oauth.OfflineGrant{
+				ID:           "grant-same-login",
+				IDPSessionID: "some-other-session",
 				SSOEnabled:   false,
 			}, nil)
 
