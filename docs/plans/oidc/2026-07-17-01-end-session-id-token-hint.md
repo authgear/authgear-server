@@ -91,21 +91,27 @@ import (
 // endSessionRefQueryParam carries the sealed, opaque request blob across the
 // POST -> redirect-to-self -> GET round trip. It is safe to appear in the URL
 // because it contains no plaintext PII; only the holder of the matching
-// EndSessionStashCookieDef cookie (set on the same origin, same response) can
+// EndSessionRefKeyCookieDef cookie (set on the same origin, same response) can
 // decrypt it.
 const endSessionRefQueryParam = "x_end_session_ref"
 
-const endSessionStashCookieMaxAge = 300 // 5 minutes; only needs to survive one redirect round trip.
+const endSessionRefKeyCookieMaxAge = 300 // 5 minutes; only needs to survive one redirect round trip.
 
-var EndSessionStashCookieDef = &httputil.CookieDef{
-	NameSuffix: "end_session_stash",
+// EndSessionRefKeyCookieDef's NameSuffix mirrors endSessionRefQueryParam
+// ("x_end_session_ref" -> "end_session_ref_key"), so the two are
+// recognizable as a pair. **Renamed after review** from the original
+// "end_session_stash": the cookie doesn't hold "the stash" (that's the
+// sealed blob in the query string) — it holds the key that decrypts it, and
+// its name should say so and read as belonging with the query param.
+var EndSessionRefKeyCookieDef = &httputil.CookieDef{
+	NameSuffix: "end_session_ref_key",
 	Path:       "/oauth2/end_session",
 	SameSite:   http.SameSiteLaxMode,
-	MaxAge:     endSessionStashCookieMaxAgePtr(),
+	MaxAge:     endSessionRefKeyCookieMaxAgePtr(),
 }
 
-func endSessionStashCookieMaxAgePtr() *int {
-	v := endSessionStashCookieMaxAge
+func endSessionRefKeyCookieMaxAgePtr() *int {
+	v := endSessionRefKeyCookieMaxAge
 	return &v
 }
 
@@ -118,7 +124,7 @@ var ErrEndSessionStashInvalid = errors.New("end_session: invalid or expired stas
 
 // sealEndSessionRequest encrypts req under a freshly generated random 256-bit
 // key using AES-GCM. It returns the key (to be stored in
-// EndSessionStashCookieDef) and the sealed blob nonce||ciphertext||tag,
+// EndSessionRefKeyCookieDef) and the sealed blob nonce||ciphertext||tag,
 // both base64url-encoded (to be carried in endSessionRefQueryParam).
 func sealEndSessionRequest(req protocol.EndSessionRequest) (key string, sealed string, err error) {
 	keyBytes := make([]byte, 32)
@@ -239,6 +245,118 @@ same login as that other session" — this is the same mechanism
 to decide which sessions get invalidated together on logout. So "matches the
 current logged in IdP session" means `sidSession.IsSameSSOGroup(s)`, not
 `sid == oauth.EncodeSID(s)`.
+
+**Revised again, after a live debugging session with real HAR traces.** Pure
+`IsSameSSOGroup` turned out to be too strict for this specific decision. Real
+scenario: an ordinary OIDC client (a generic `openid-client`-based RP, not
+using Authgear's own SDK) logs in — a real IDP session is created (per
+`AuthorizationRequest.SuppressIDPSessionCookie`'s backward-compatibility
+default of *not* suppressing the cookie when `x_sso_enabled` is absent
+entirely) — then exchanges its code for an offline grant with
+`IDPSessionID` set to that exact session, but `SSOEnabled: false` (per
+`AuthorizationRequest.SSOEnabled()`'s strict `== "true"` check, which
+defaults to `false` when the param is simply never sent — a client that has
+never heard of Authgear's `x_sso_enabled` extension can't have sent it).
+When that client then calls `end_session` with its own `id_token_hint`,
+`IsSameSSOGroup` returns `false` (it requires `SSOEnabled`), so the
+confirmation page is shown — even though the offline grant demonstrably came
+from, and only from, this exact browser session. Investigated and confirmed
+via `redis-cli GET app:<app>:offline-grant:<id>` in the live environment
+that `idp_session_id` matched the session cookie's ID exactly, with no
+`sso_enabled` key present in the stored JSON at all (`omitempty` on `false`).
+
+**Three designs were tried for this, in order, before settling on the third:**
+
+1. **A separate `IsCreatedFromSession` check, used only by `end_session`'s
+   own decision.** `IsSameSSOGroup` seemed deliberately strict because it's
+   also the mechanism behind two effects reaching beyond this one decision:
+   `session.Manager.invalidate`'s cascade to *other* sessions/grants sharing
+   the same IDP session, and `OfflineGrantService.GetOfflineGrant` tying a
+   grant's own validity to its IDP session staying alive
+   (`pkg/lib/oauth/grant_offline_service.go:103`). So a new,
+   narrower method was added instead, and `Handle` called both
+   `SessionManager.Logout` on the session *and*, when the match came only
+   from this narrower check, a second explicit `Logout` call on the grant
+   itself (since `invalidate`'s own cascade, keyed on `IsSameSSOGroup`,
+   would never reach it). This worked, but needed real care to avoid a
+   latent panic: calling `Logout` twice on a session already deleted by the
+   first call's cascade hits `Manager.invalidate`'s `provider` staying a nil
+   interface (since `Manager.List` no longer returns it), and
+   `provider.ClearCookie()` on a nil interface panics. Avoiding this required
+   computing, and returning, whether the match came from `IsSameSSOGroup`
+   (cascade already covers it) or only from the new check (cascade won't),
+   and calling the second `Logout` only in the latter case.
+2. **Deriving `SSOEnabled` from `IDPSessionID` at issuance time**, in
+   `doIssueTokensForAuthorizationCode` (`pkg/lib/oauth/handler/handler_token.go`):
+   `SSOEnabled: offlineGrantIDPSessionID != ""` instead of
+   `code.AuthorizationRequest.SSOEnabled()`. This fixes the data at the
+   source instead of special-casing the check, and — since `IsSameSSOGroup`
+   itself is unchanged — automatically makes `session.Manager.invalidate`'s
+   cascade revoke the grant too, for free. Rejected in favor of design 3:
+   changing token issuance is a much larger, harder-to-reason-about surface
+   (every `authorization_code` exchange in the system, not just
+   `end_session`), for no benefit over fixing the comparison directly.
+3. **Changing `OfflineGrant.IsSameSSOGroup` itself** (the design implemented
+   — see below). Simpler than both of the above: no new method, no
+   `Handle`-level double-`Logout` bookkeeping, no token-issuance change. But
+   this method has a *second* consumer — `pkg/lib/sessionlisting/listing.go`
+   uses it to decide whether an offline-grant row should be flagged as the
+   end-user's current device on the settings page — and changing it directly
+   changes that consumer's behavior too. Confirmed this is the desired
+   behavior (not a regression) before implementing: an unrelated existing
+   unit test (`pkg/lib/sessionlisting/listing_test.go`) had a fixture
+   constructing exactly this same "`IDPSessionID` matches, `SSOEnabled:
+   false`" combination and asserting it should *not* flag as current/be
+   grouped; per the same reasoning as this fix, it now should, and the test
+   was updated to match (§16).
+
+**Final design:** `pkg/lib/oauth/grant_offline.go`'s `IsSameSSOGroup` no
+longer gates its own (`g`, the receiver's) side of the comparison on
+`g.SSOEnabled` — only the *argument*'s side keeps using
+`ss.SSOGroupIDPSessionID()` (still gated on the argument's own `SSOEnabled`
+where applicable, e.g. when comparing two offline grants against each other):
+
+```go
+// IsSameSSOGroup returns true when the session argument
+// - is the same offline grant
+// - is the idp session that this offline grant's IDPSessionID names directly
+//   (regardless of this offline grant's own SSOEnabled: creating an offline
+//   grant from an existing/created IDP session is itself what makes it part
+//   of that session's group, whether or not the client that requested it
+//   also asked for cross-client SSO sharing)
+// - is another offline grant in the same sso group (that other grant needs
+//   to be sso enabled, via SSOGroupIDPSessionID, for grant-to-grant sharing
+//   to apply)
+func (g *OfflineGrant) IsSameSSOGroup(ss session.SessionBase) bool {
+	if g.EqualSession(ss) {
+		return true
+	}
+
+	if g.IDPSessionID == "" {
+		return false
+	}
+
+	return g.IDPSessionID == ss.SSOGroupIDPSessionID()
+}
+```
+
+`OfflineGrant.SSOGroupIDPSessionID()` itself is untouched (still gated on
+`SSOEnabled`) — it has its own, correctly-still-strict consumer in
+`pkg/lib/sessionlisting/listing.go` (deciding whether a grant should be
+*combined/folded* into its IDP session's display row at all, a separate
+concern from "is this row the current device"). `IDPSession.IsSameSSOGroup`
+(`pkg/lib/session/idpsession/session.go`) is also untouched: the asymmetry is
+intentional — revoking an IDP session now sweeps every grant created from it
+regardless of that grant's own `SSOEnabled` (§16), but revoking a
+`SSOEnabled: false` grant *directly* still does not sweep its IDP session,
+matching the pre-existing, still-correct semantics for that direction.
+
+`Handle`'s Step 4 (§5) goes back to exactly `sidSession.IsSameSSOGroup(s)` —
+no new method, no second `Logout` call, no wrapper function. Verified live
+(§13.3): `http_status: 303` for the `end_session` call, then `http_status:
+400`/`invalid_grant` (not `200`) when presenting that same refresh token
+afterward — the grant is genuinely revoked now, via `session.Manager.invalidate`'s
+own cascade, automatically.
 
 This also means the hint's `sid` claim alone (a string) isn't enough:
 `IsSameSSOGroup` is a method on the *resolved* session/offline-grant object
@@ -381,7 +499,7 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 		if err != nil {
 			return err
 		}
-		httputil.UpdateCookie(rw, h.Cookies.ValueCookie(EndSessionStashCookieDef, key))
+		httputil.UpdateCookie(rw, h.Cookies.ValueCookie(EndSessionRefKeyCookieDef, key))
 		selfURL := urlutil.WithQueryParamsAdded(
 			h.Endpoints.EndSessionEndpointURL(),
 			map[string]string{endSessionRefQueryParam: sealed},
@@ -408,8 +526,13 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 	} else if s != nil {
 		// Step 4: id_token_hint fast path (spec: sid matches the current
 		// logged in IdP session, and first-party client => direct logout, no
-		// confirmation). "Matches" means the same SSO group
-		// (sidSession.IsSameSSOGroup(s)), not sid string equality — see §4.
+		// confirmation). "Matches" means the same SSO group, not sid string
+		// equality: a first-party client that requested offline_access (the
+		// normal case) gets an id_token bound to its own offline grant, not
+		// directly to the browser's IDP session cookie, but that offline
+		// grant and the IDP session cookie both trace back to the same login
+		// via IDPSessionID, which is exactly what IsSameSSOGroup checks — for
+		// an offline grant, regardless of its own SSOEnabled. See §4.
 		if client, sidSession, ok := h.resolveIDTokenHintSession(ctx, idTokenHint); ok &&
 			client.IsFirstParty() && sidSession.IsSameSSOGroup(s) {
 			_, err := h.SessionManager.Logout(ctx, s, rw)
@@ -619,10 +742,10 @@ func (h *EndSessionHandler) resumeFromStash(ctx context.Context, r *http.Request
 	// only caught because the unit tests below assert on the *result* of the
 	// round trip, not just that no error was returned.)
 	defer func() {
-		httputil.UpdateCookie(rw, h.Cookies.ClearCookie(EndSessionStashCookieDef))
+		httputil.UpdateCookie(rw, h.Cookies.ClearCookie(EndSessionRefKeyCookieDef))
 	}()
 
-	cookie, err := h.Cookies.GetCookie(r, EndSessionStashCookieDef)
+	cookie, err := h.Cookies.GetCookie(r, EndSessionRefKeyCookieDef)
 	if err != nil {
 		h.logInvalidStash(ctx, err)
 		return protocol.EndSessionRequest{}
@@ -684,7 +807,7 @@ caller now, and it never lets the error escape `Handle`.
 
 | File | Change |
 |---|---|
-| `pkg/lib/oauth/oidc/handler/end_session_stash.go` | **New.** `EndSessionStashCookieDef`, `ErrEndSessionStashInvalid`, `sealEndSessionRequest`, `openEndSessionRequest`, `endSessionRefQueryParam`. |
+| `pkg/lib/oauth/oidc/handler/end_session_stash.go` | **New.** `EndSessionRefKeyCookieDef`, `ErrEndSessionStashInvalid`, `sealEndSessionRequest`, `openEndSessionRequest`, `endSessionRefQueryParam`. |
 | `pkg/lib/oauth/oidc/handler/handler_end_session.go` | Add `IDTokenVerifier`, `IDTokenHintSessionProvider`, `IDTokenHintOfflineGrantService` interfaces + fields (`IDTokenVerifier`, `Sessions`, `OfflineGrants`); widen `CookieManager` interface; add `resolveIDTokenHintSession` (resolves the hint's `sid` to a session/offline-grant object and checks `IsSameSSOGroup`, not `sid` string equality — see §4); add `resumeFromStash`/`logInvalidStash` for graceful stash-invalid handling (see §9); rewrite `Handle` per §5. |
 | `pkg/lib/oauth/oidc/protocol/end_session.go` | Add `WithoutIDTokenHint()`. |
 | `pkg/lib/deps/deps_common.go` | Add `wire.Bind(new(oidchandler.IDTokenVerifier), new(*oidc.IDTokenIssuer))`, `wire.Bind(new(oidchandler.IDTokenHintSessionProvider), new(*idpsession.Provider))`, `wire.Bind(new(oidchandler.IDTokenHintOfflineGrantService), new(*oauth.OfflineGrantService))`. |
@@ -759,48 +882,62 @@ is also covered directly.
 4. **GET, `id_token_hint`'s `sid` names an offline grant from a *different*
    login** (`IDPSessionID` set to some other session's ID) → confirmation-page
    redirect (same assertions as case 3).
-5. **GET, `id_token_hint`'s `sid` names an offline grant with `SSOEnabled:
-   false`** → confirmation-page redirect: an offline grant that opted out of
-   SSO is never in the same group as anything, even if it happens to carry a
-   matching `IDPSessionID`.
-6. **GET, no `id_token_hint`, `SameSiteStrict` cookie `"true"`, session
+5. **Added after the `IsSameSSOGroup` fix (§4/§14). GET, `id_token_hint`'s
+   `sid` names an offline grant with `SSOEnabled: false` but `IDPSessionID`
+   matching the current session** → **silent logout**: `IsSameSSOGroup` no
+   longer gates its own (the offline grant's) side of the comparison on
+   `SSOEnabled` — only raw `IDPSessionID` equality is checked — this is the
+   common case for any ordinary OIDC client unaware of `x_sso_enabled`.
+6. **GET, `id_token_hint`'s `sid` names an offline grant with `SSOEnabled:
+   false` *and* `IDPSessionID` naming a different session** →
+   confirmation-page redirect: `IDPSessionID` mismatch alone is enough to
+   fail the match, regardless of `SSOEnabled`; this is a genuinely unrelated
+   grant, not just one that opted out of SSO sharing.
+7. **GET, no `id_token_hint`, `SameSiteStrict` cookie `"true"`, session
    present** → `SessionManager.Logout` called (existing behavior preserved).
-7. **GET, `id_token_hint` given but unresolvable (bad signature),
+8. **GET, `id_token_hint` given but unresolvable (bad signature),
    `SameSiteStrict` cookie `"true"`, session present** → confirmation-page
-   redirect, `SessionManager.Logout` **not** called. **New, added after §5's
-   revision**: proves `SameSiteStrict` is skipped entirely once
-   `id_token_hint` is present at all, even though the same cookie would have
-   triggered an unconditional silent logout in case 6 above. This is the case
-   that would have failed under the original "SameSiteStrict checked first"
-   ordering.
-8. **GET, malformed/unverifiable `id_token_hint` (bad signature), no
+   redirect, `SessionManager.Logout` **not** called. Proves `SameSiteStrict`
+   is skipped entirely once `id_token_hint` is present at all, even though
+   the same cookie would have triggered an unconditional silent logout in
+   case 7 above. This is the case that would have failed under the original
+   "SameSiteStrict checked first" ordering.
+9. **GET, malformed/unverifiable `id_token_hint` (bad signature), no
    `SameSiteStrict` cookie** → treated as no hint: confirmation-page redirect,
    not an error.
-9. **GET, no session (`s == nil`)** → unchanged existing behavior: straight to
-   `post_logout_redirect_uri` / settings redirect, no confirmation, no
-   `Logout` call.
-10. **POST, `id_token_hint` naming a same-SSO-group offline grant, first-party**
+10. **GET, no session (`s == nil`)** → unchanged existing behavior: straight
+    to `post_logout_redirect_uri` / settings redirect, no confirmation, no
+    `Logout` call.
+11. **POST, `id_token_hint` naming a same-SSO-group offline grant, first-party**
     → first response is a `302` to `<end_session_endpoint>?x_end_session_ref=...`
-    with a `Set-Cookie` for `EndSessionStashCookieDef`; assert the `Location`
+    with a `Set-Cookie` for `EndSessionRefKeyCookieDef`; assert the `Location`
     header does **not** contain `id_token_hint` in any form. Feed the recorded
     `Set-Cookie` and the `x_end_session_ref` query value into a second `Handle`
     call (as a fresh `GET`, with `s` now populated, simulating the browser
     reattaching the Lax session cookie on the resumed top-level navigation) →
     `SessionManager.Logout` called once; final response is the
-    `post_logout_redirect_uri` response.
-11. **POST with no `id_token_hint` at all, session present** → same two-step
-    round trip as case 10, ending at the confirmation-page redirect (proves
+    `post_logout_redirect_uri` response. **Also asserts the stash cookie is
+    actually cleared** on this resumed response (`assertStashCookieCleared`:
+    the fake cookie manager's backing store no longer holds it, and the
+    response carries a `Set-Cookie` with a negative `MaxAge`) — a stale
+    `x_end_session_ref` revisited later (e.g. from browser history) must not
+    be able to pair with a cookie that was never actually deleted.
+12. **POST with no `id_token_hint` at all, session present** → same two-step
+    round trip as case 11, ending at the confirmation-page redirect (proves
     the stash round trip runs unconditionally for POST, not only when
     `id_token_hint` is present).
-12. **Resumed GET with `x_end_session_ref` set but the stash cookie missing,
+13. **Resumed GET with `x_end_session_ref` set but the stash cookie missing,
     session present** → `resumeFromStash` logs a warning and treats the
     request as parameterless; since `s != nil` and there's no
     `post_logout_redirect_uri` left to honor, this resolves to the
     confirmation-page redirect, not an error. (Revised from an earlier draft
-    that asserted `ErrEndSessionStashInvalid` — see §9.)
-13. **Resumed GET with `x_end_session_ref` set and a stash cookie present but
+    that asserted `ErrEndSessionStashInvalid` — see §9.) Also asserts the
+    stash cookie is cleared, same as case 11.
+14. **Resumed GET with `x_end_session_ref` set and a stash cookie present but
     not matching (wrong key), session present** → same graceful fallback and
-    assertions as case 12.
+    assertions as case 13, including that the (non-matching) stash cookie
+    the request actually carried is still cleared regardless of why opening
+    it failed.
 
 `pkg/auth/handler/oauth/end_session.go`'s `ServeHTTP` needs no dedicated unit
 test for the invalid-stash case: it never sees `ErrEndSessionStashInvalid` at
@@ -939,8 +1076,8 @@ by running:
    only revoked because it's in the same SSO group as the IDP session
    `end_session` logged out, not because it was the literal session named by
    the request.
-10. **Found via point 9's new check, in the sid-mismatch case:** logging in as
-    user 2 while the client's cookie jar still carried user 1's session
+10. **Found via point 9's new check, in the SSO-group-mismatch case:** logging
+    in as user 2 while the client's cookie jar still carried user 1's session
     cookie caused the server to delete user 1's IDP session *and* offline
     grant outright (visible in the server log as `"delete IDP session"` /
     `"delete offline grant"` fired synchronously during user 2's login) —
@@ -953,6 +1090,34 @@ by running:
     fresh "browser") between user 1's and user 2's logins, so the server
     never sees user 1's cookie again and user 1's session/grant survive,
     independently verifiable by point 9's refresh-token check.
+11. **No case simulated a human actually confirming logout on the
+    confirmation page.** Every case that reached `/logout` only checked that
+    it was reached (`http_status: 200`, `redirect_path: /logout`); the
+    confirmation form's own `PostAction("logout", ...)`
+    (`pkg/auth/handler/webapp/logout.go`) — the code path that actually runs
+    when an end-user clicks "Log out" — had no e2e coverage at all. Fixed by
+    adding case 4 (§13.3): capture the confirmation page's exact URL via the
+    `http_request` action's existing `result.http_final_url` field (already
+    present in `NewResultHTTPResponse`, `e2e/pkg/testrunner/models.go`; no
+    harness change needed), `POST` `x_action: logout` to it (the rendered
+    form's only field — confirmed live that no CSRF token field is required,
+    matching `ApproveConsent`'s identical GET-then-POST-to-final-URL
+    pattern), and follow the resulting redirect chain back through
+    `end_session` to the final OIDC response, with the same refresh-token
+    revocation check as the silent-logout cases.
+12. **No case modeled an OIDC client that never sends `x_sso_enabled` at
+    all** — every existing case used `oauth_setup_sso_enabled: true` or
+    (elsewhere) relied on the historical `false` default, but neither models
+    the real-world client that motivated the `IsSameSSOGroup` fix
+    (§4/§14): one that doesn't know the parameter exists. `SetupOAuth`
+    always sent `x_sso_enabled` explicitly (`"true"` or `"false"`), so there
+    was no way to construct this case at all. Added
+    `SetupOAuthOptions.SSOEnabledOmitted bool` (`e2e/pkg/e2eclient/client.go`):
+    when true, `x_sso_enabled` is omitted from the `/oauth2/authorize`
+    request entirely, regardless of `SSOEnabled`'s value. Wired as
+    `oauth_setup_sso_enabled_omitted` (`e2e/pkg/testrunner/models.go`,
+    `testcase.go`), purely additive like the other `SetupOAuthOptions`
+    fields.
 
 ### 13.2 Harness changes (implemented)
 
@@ -963,10 +1128,12 @@ by running:
      read straight off the token response — see §13.1 point 9 for why this
      was needed (independently verifying that a logout actually revoked the
      offline grant, not just that `end_session` returned the expected status).
-   - `SetupOAuthOptions{ClientID string; Scope []string; SSOEnabled bool}`;
+   - `SetupOAuthOptions{ClientID string; Scope []string; SSOEnabled bool; SSOEnabledOmitted bool}`;
      empty `ClientID` defaults to `"e2e"`, empty `Scope` defaults to the
      historical hardcoded list, `SSOEnabled` defaults to `false`
      (`x_sso_enabled=false`, unchanged for every existing caller).
+     `SSOEnabledOmitted: true` omits `x_sso_enabled` from the request
+     entirely instead — see §13.1 point 12.
    - `OAuthExchangeCodeOptions.ClientID`/`ClientSecret string` (empty
      `ClientID` defaults to `"e2e"`; empty `ClientSecret` omits the token
      request's `client_secret` field exactly as before).
@@ -1015,14 +1182,18 @@ case, which exercise the same shared `SetupOAuth`/`OAuthExchangeCode`/
 (`SetupOAuth`'s default scope already includes `offline_access`), never via
 the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7.
 
-`e2e/tests/oidc/end_session_id_token_hint.test.yaml` (7 cases, sharing
+`e2e/tests/oidc/end_session_id_token_hint.test.yaml` (8 cases, sharing
 `e2e/tests/oidc/end_session_id_token_hint_users.json`, two users:
 `e2e_esh_user1`/`e2e_esh_user2`, same bcrypt fixture hash as
-`oidc/users.json`, password `password`):
+`oidc/users.json`, password `password`). **Case names and comments use "SSO
+group", not "sid"**, to match §4's design — an earlier draft's case titles
+("...sid matches current session...", "sid mismatch...") predated that
+redesign and were corrected once the SSO-group check landed, since `sid` the
+claim and "same SSO group" the actual check are no longer the same thing:
 
-1. **First-party client, matching `id_token_hint` → silent logout.**
-   `oauth_setup` (`oauth_setup_sso_enabled: true`, default client `e2e`) →
-   interactive login (`create`/`input` identify+authenticate) →
+1. **First-party client, matching `id_token_hint` (same SSO group) → silent
+   logout.** `oauth_setup` (`oauth_setup_sso_enabled: true`, default client
+   `e2e`) → interactive login (`create`/`input` identify+authenticate) →
    `oauth_exchange_code` (code verifier + `finish_redirect_uri` from the login
    flow) to obtain `raw_id_token` — its `sid` is bound to the offline grant
    that exchange created, which was issued `SSOEnabled` from this same login,
@@ -1042,7 +1213,26 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    (same SSO group as the session cookie) was actually deleted from storage,
    not just that this one request returned `303`.
 
-2. **First-party client, `POST` with the same kind of `id_token_hint` →
+2. **Added after live debugging with real HAR traces (§13.1 point 12).
+   First-party client that never sends `x_sso_enabled` at all → still gets
+   silent logout, and its own grant is revoked too.** `oauth_setup_sso_enabled_omitted:
+   true` (not `oauth_setup_sso_enabled: false` — this omits the parameter
+   entirely, modeling a generic OIDC client unaware of Authgear's
+   `x_sso_enabled` extension) → login → `oauth_exchange_code` → the
+   resulting offline grant has `IDPSessionID` set (a real IDP session was
+   still created, per `SuppressIDPSessionCookie`'s backward-compatibility
+   default) but `SSOEnabled: false` → `GET /oauth2/end_session` with that
+   `raw_id_token`, `follow_redirects: false` → assert `http_status: 303`
+   (silent logout: `IsSameSSOGroup` matches on raw `IDPSessionID` equality
+   alone, regardless of `SSOEnabled` — this is exactly the case that used to
+   incorrectly show the confirmation page). Then, present the same
+   `refresh_token` to `grant_type=refresh_token` (`client_id: e2e`) and
+   assert `http_status: 400`, `json_body: {"error": "invalid_grant"}` — the
+   grant is genuinely revoked too, via `session.Manager.invalidate`'s own
+   cascade (which reuses this same, now-fixed `IsSameSSOGroup`), with no
+   special-casing needed in `end_session`'s own handler code.
+
+3. **First-party client, `POST` with the same kind of `id_token_hint` →
    stash round trip then silent logout.** Same login/`exchange_code` setup.
    `POST /oauth2/end_session` (form body, `follow_redirects: false`) → assert
    `http_status: 302` and `location_not_contains: [id_token_hint]`. Then `GET`
@@ -1052,7 +1242,7 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    `http_status: 303`. Same refresh-token revocation check as case 1
    afterward.
 
-3. **Third-party client, matching `id_token_hint` → confirmation page, not
+4. **Third-party client, matching `id_token_hint` → confirmation page, not
    silent logout.** `oauth_setup` with `oauth_setup_sso_enabled: true`,
    `oauth_setup_client_id: e2ethirdparty`, `oauth_setup_scope: [openid, offline_access]`
    (third-party clients cannot request `full-access`) → login →
@@ -1070,7 +1260,35 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    e2ethirdparty`/`e2esecret`) and assert `http_status: 200` — proving the
    confirmation-page path is a strict no-op, not a delayed or partial logout.
 
-4. **SSO-group mismatch → confirmation page even for a first-party client.**
+5. **User confirms logout on the confirmation page → session and offline
+   grant are revoked.** **New — closes a real gap**: every other case that
+   reaches the confirmation page only ever checked that it was *reached*
+   (`http_status: 200`, `redirect_path: /logout`); none of them simulated a
+   human actually clicking "Log out" there, so the confirmation flow's own
+   `PostAction("logout", ...)` (`pkg/auth/handler/webapp/logout.go`) had no
+   e2e coverage at all. Same login/`exchange_code` setup as case 1, but no
+   `id_token_hint` at all this time (so the confirmation page is reached via
+   the "no hint" path, after `clear_cookies_names: [same_site_strict]` to
+   stop that leaked cookie from short-circuiting straight to a silent
+   logout) → `GET /oauth2/end_session?post_logout_redirect_uri=...` → assert
+   `http_status: 200`, `redirect_path: /logout`, and capture
+   `result.http_final_url` (the rendered confirmation page's exact URL,
+   carrying the original request minus `id_token_hint` in its own
+   `redirect_uri` query param — see `WithoutIDTokenHint`/`LogoutURL`). Then
+   `POST` that same URL with `x_action: logout` (the confirmation form's only
+   field, per `resources/authgear/templates/en/web/authflowv2/logout.html` —
+   no CSRF token field is needed; `ApproveConsent`'s identical
+   GET-then-POST-to-final-URL pattern already established this works),
+   `follow_redirects: false` → assert `http_status: 302` (the handler logs
+   the session out, then redirects back to that `redirect_uri` — the
+   original `end_session` call, replayed now that the session is gone).
+   `GET` that `Location` → assert `http_status: 303` (the same no-session
+   OIDC response the silent-logout cases reach). Finally, the same
+   refresh-token revocation check as case 1, proving the offline grant was
+   actually deleted, not just that the confirmation page's own redirect
+   chain looked right.
+
+6. **SSO group mismatch → confirmation page even for a first-party client.**
    User 1 logs in and exchanges a code for an `id_token_hint` bound to their
    own offline grant (`exchange_code_1`). **`clear_cookies` (full jar reset,
    no `clear_cookies_names`) before user 2 logs in** — see §13.1 point 10:
@@ -1097,19 +1315,19 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    `refresh_token`s to `grant_type=refresh_token` (`client_id: e2e`) and
    assert `http_status: 200` for both.
 
-5. **Malformed `id_token_hint` (not a JWT at all) → treated as absent,
+7. **Malformed `id_token_hint` (not a JWT at all) → treated as absent,
    confirmation page, not an error.** Login (no need to mint any real hint)
    → `GET /oauth2/end_session?id_token_hint=not-a-valid-jwt&...` → assert
    `http_status: 200`, `redirect_path: /logout`. No `clear_cookies` step
    needed: `id_token_hint` is present (even though malformed), which is
    enough to skip the `SameSiteStrict` fast path.
 
-6. **No session at all with a valid-looking `id_token_hint` → straight to
+8. **No session at all with a valid-looking `id_token_hint` → straight to
    `post_logout_redirect_uri`, no confirmation, no error.** No login at all
    in this case. `GET /oauth2/end_session?id_token_hint=not-a-valid-jwt&...`,
    `follow_redirects: false` → assert `http_status: 303`.
 
-7. **Invalid/expired stash → graceful fallback, not an error.** **Revised**:
+9. **Invalid/expired stash → graceful fallback, not an error.** **Revised**:
    an earlier draft asserted `http_status: 400` here (see §9's first
    revision). The final design treats an unopenable stash as a parameterless
    `end_session` request, not an error. `GET /oauth2/end_session?x_end_session_ref=not-a-real-sealed-value`
@@ -1119,7 +1337,7 @@ the `urn:authgear:params:oauth:grant-type:id-token` grant — see §13.1 point 7
    through to the invalid-redirect-URI branch, which redirects to the
    settings page → assert `http_status: 302`.
 
-All 7 cases pass against a live server; the exact status codes above
+All 9 cases pass against a live server; the exact status codes above
 (`303`/`302`/`200`) are the real, observed values — the client's
 `UseHTTP200()` is `false` for both `e2e` and `e2ethirdparty` (neither sets
 `CustomUIURI`), so the direct-logout path is `oauth.WriteResponseOptions`'s
@@ -1142,16 +1360,32 @@ and `http_status: 200` together assert.
   had already (correctly) failed to match, and it forced e2e tests to strip
   the `SameSiteStrict` cookie before every hint-bearing call to observe the
   hint logic at all (see §13.1 point 6 / the note in §5).
-- **"Matches the current logged in IdP session" means the same SSO group
-  (`sidSession.IsSameSSOGroup(s)`), not `sid` string equality.** Revised after
-  implementation — see §4. A first-party client's normal, `offline_access`-based
-  `id_token` is bound to its own offline grant, not directly to the IDP
-  session cookie; comparing raw `sid` strings would therefore never match for
-  the spec's actual target case. An offline grant issued `SSOEnabled: true`
-  during a login shares that login's `IDPSessionID`, so `IsSameSSOGroup` — the
-  same mechanism `session.Manager.invalidate` already uses for cross-session
-  logout — correctly answers "is this hint's session part of the same login as
-  the current one".
+- **"Matches the current logged in IdP session" means `sidSession.IsSameSSOGroup(s)`,
+  not `sid` string equality — and `OfflineGrant.IsSameSSOGroup` itself no
+  longer requires `SSOEnabled` on its own (receiver) side.** Revised after
+  implementation, then revised twice more after live debugging — see §4 for
+  the full progression (a separate `IsCreatedFromSession` check with a
+  `Handle`-level double-`Logout` call; deriving `SSOEnabled` from
+  `IDPSessionID` at token-issuance time; settling on changing
+  `IsSameSSOGroup` itself, the simplest of the three). A first-party
+  client's normal, `offline_access`-based `id_token` is bound to its own
+  offline grant, not directly to the IDP session cookie; comparing raw `sid`
+  strings would therefore never match for the spec's actual target case.
+  The original `IsSameSSOGroup` (requiring `SSOEnabled: true` on the offline
+  grant) was *also* insufficient: any ordinary OIDC client that never sends
+  `x_sso_enabled` (ordinary in practice — that's an Authgear-specific
+  extension) still gets a real IDP session, but its offline grant's
+  `SSOEnabled` defaults to `false`, so `IsSameSSOGroup` would always deny it
+  — even though `IDPSessionID` demonstrably names that exact session. Fixed
+  by dropping that gate on the offline grant's own side of the comparison
+  (raw `IDPSessionID` equality now suffices); the argument's side
+  (`ss.SSOGroupIDPSessionID()`) is untouched, so grant-to-grant comparisons
+  still correctly require both sides to have opted in. This also means
+  `session.Manager.invalidate`'s cascade (which reuses this exact method)
+  now revokes such a grant when its own IDP session logs out — a
+  deliberate, confirmed widening (§16), not an accidental side effect; see
+  §4 for why this reaches `pkg/lib/sessionlisting/listing.go`'s "current
+  device" flag too, and why that's also correct.
 - An unresolvable `id_token_hint` (bad signature, missing `sid`/`aud` claim,
   unknown client, or a `sid` naming a session/offline grant that no longer
   exists) is treated identically to "no `id_token_hint` given" — falls through
@@ -1371,3 +1605,181 @@ and `http_status: 200` together assert.
       "TestAuthflow/oidc/end_session_id_token_hint"` and the full suite
       (`go test ./pkg/testrunner/ -count 1 -timeout 10m`), then
       `./run.sh teardown`.
+
+15. **`Rename stale sid-based test names to SSO group, and cover interactive logout confirmation`**
+    - Files: `e2e/tests/oidc/end_session_id_token_hint.test.yaml` (case
+      titles/comments referring to "sid matches"/"sid mismatch" renamed to
+      "SSO group", per §4's redesign; new case 4 added — a human confirming
+      logout on the `/logout` page, verified end-to-end including offline
+      grant revocation).
+    - Two review findings, both real gaps: (1) case titles and comments still
+      described the pre-redesign `sid`-equality check even though the
+      production comparison had moved to SSO-group membership; (2) no case
+      exercised `PostAction("logout", ...)` (`pkg/auth/handler/webapp/logout.go`)
+      — the code path that runs when an end-user actually clicks "Log out" on
+      the confirmation page — every other case only checked that the page was
+      *reached*. See §13.1 points 10 (renamed) and 11 (new case).
+    - Verified against a live server: all 8 cases pass, plus the full e2e
+      suite for regression.
+
+16. **`Assert the end_session stash cookie is actually cleared after being consumed`**
+    - Files: `pkg/lib/oauth/oidc/handler/handler_end_session_test.go` (new
+      `assertStashCookieCleared` helper; applied to the successful POST round
+      trip and both graceful-fallback "resumed GET" cases — see §12 cases
+      10, 12, 13).
+    - Both properties this checks — `EndSessionRefKeyCookieDef.MaxAge = 300`
+      (§3) and `resumeFromStash`'s unconditional `defer`-based clear (§9) —
+      already existed in the implementation; this commit only makes them
+      test-verified rather than merely implicit in the response code
+      assertions.
+
+17. **`Rename end_session_stash cookie to end_session_ref_key`**
+    - Files: `pkg/lib/oauth/oidc/handler/end_session_stash.go`
+      (`EndSessionStashCookieDef` → `EndSessionRefKeyCookieDef`,
+      `NameSuffix: "end_session_stash"` → `"end_session_ref_key"`, and the
+      matching `endSessionStashCookieMaxAge*` identifiers),
+      `pkg/lib/oauth/oidc/handler/handler_end_session.go` and
+      `handler_end_session_test.go` (references updated to match).
+    - The actual cookie name a browser sees didn't read as related to
+      `x_end_session_ref`, the query param it pairs with. Renamed so the two
+      are recognizable together: `end_session_ref` (query) /
+      `end_session_ref_key` (cookie holding the key that decrypts it). The
+      `end_session_stash.go` filename, `sealEndSessionRequest`/
+      `resumeFromStash`/`ErrEndSessionStashInvalid` and other "stash"-named
+      identifiers for the round-trip mechanism itself are unchanged — only
+      the cookie's identifier and on-wire name changed.
+    - Verified: unit tests (`go test ./pkg/lib/oauth/oidc/handler/...`) and
+      the full e2e run (`cd e2e && ./run.sh setup`, `go test
+      ./pkg/testrunner/ -count 1 -v -timeout 10m -run
+      "TestAuthflow/oidc/end_session_id_token_hint"`, then
+      `./run.sh teardown`) both pass.
+
+18. **`Match id_token_hint on its own creating session, not SSO group alone`**
+    - Files: `pkg/lib/oauth/grant_offline.go` (new
+      `OfflineGrant.IsCreatedFromSession(ss session.SessionBase) bool`,
+      alongside `IsSameSSOGroup`), `pkg/lib/oauth/oidc/handler/handler_end_session.go`
+      (new `matchesCurrentSession` helper combining `IsSameSSOGroup` and
+      `IsCreatedFromSession`, replacing the bare `sidSession.IsSameSSOGroup(s)`
+      check in `Handle`), `pkg/lib/oauth/oidc/handler/handler_end_session_test.go`
+      (the "not SSO enabled" case rewritten to expect silent logout; a new
+      case added for the genuinely-unrelated-grant-and-not-SSO-enabled
+      combination — see §12 cases 5–6).
+    - Fixes a real bug found via a live HAR trace: an ordinary OIDC client
+      that never sends `x_sso_enabled` (the common case — that's an
+      Authgear-specific extension) still authenticates through a real IDP
+      session, but its offline grant's `SSOEnabled` defaults to `false`, so
+      `IsSameSSOGroup` alone always denied it the silent-logout fast path,
+      even though `IDPSessionID` demonstrably named that exact session.
+      Deliberately scoped to this one decision — `session.Manager.invalidate`'s
+      revocation cascade is untouched, so such a grant still isn't revoked
+      when its own session logs out this way. See §4/§14 for the full
+      reasoning on why widening `IsSameSSOGroup` itself was rejected.
+    - Verified: unit tests (`go test ./pkg/lib/oauth/... ./pkg/lib/oauth/oidc/handler/...`).
+
+19. **`Add e2e coverage for a client that never sends x_sso_enabled`**
+    - Files: `e2e/pkg/e2eclient/client.go` (`SetupOAuthOptions.SSOEnabledOmitted`),
+      `e2e/pkg/testrunner/models.go`/`testcase.go` (`oauth_setup_sso_enabled_omitted`),
+      `e2e/tests/oidc/end_session_id_token_hint.test.yaml` (new case 2 —
+      see §13.3).
+    - `SetupOAuth` always sent `x_sso_enabled` explicitly before this, so
+      there was no way to construct the exact scenario that motivated commit
+      18. Verifies both halves of that fix's scope: the browser session is
+      logged out silently, but the client's own offline grant/refresh token
+      is not revoked by that logout (`session.Manager.invalidate`'s cascade
+      is unchanged).
+    - Verified against a live server: `cd e2e && ./run.sh setup` then
+      `go test ./pkg/testrunner/ -count 1 -v -timeout 10m -run
+      "TestAuthflow/oidc/end_session_id_token_hint"` (all 9 cases pass) and
+      the full suite (`go test ./pkg/testrunner/ -count 1 -timeout 10m`),
+      then `./run.sh teardown`.
+
+20. **Plan doc update** (this document): §4, §5, §12, §13.1–13.3, §14, §16
+    updated to describe the `matchesCurrentSession`/`IsCreatedFromSession`
+    fix and its new e2e coverage.
+
+21. **`spec: Document id_token_hint's session-matching rules for RP-Initiated Logout`**
+    - Files: `docs/specs/oidc.md` (`### id_token_hint` under
+      `## RP-Initiated Logout`).
+    - The spec's original wording ("its `sid` matches the current logged in
+      IdP session") predated both the SSO-group redesign (§4) and the
+      `IsCreatedFromSession` fix (commit 18); it no longer described what
+      the endpoint actually does. Rewritten to spell out the three matching
+      cases (same session directly, created-from-this-session regardless of
+      `x_sso_enabled`, or same SSO group), why the second case exists (most
+      clients never send `x_sso_enabled`), and that a match through the
+      second case alone does not get the grant itself revoked — only the
+      IdP session.
+    - **Superseded by commit 24 below** once the design changed again: the
+      grant *is* now revoked too, and the "three cases" collapsed to two.
+
+22. **`Revert IsCreatedFromSession/matchesCurrentSession in favor of fixing IsSameSSOGroup directly`**
+    - Files: `pkg/lib/oauth/grant_offline.go` (removes
+      `IsCreatedFromSession`; changes `IsSameSSOGroup` itself — see §4's
+      "Final design"), `pkg/lib/oauth/oidc/handler/handler_end_session.go`
+      (removes `matchesCurrentSession`; `Handle`'s Step 4 goes back to the
+      bare `sidSession.IsSameSSOGroup(s)` check),
+      `pkg/lib/oauth/oidc/handler/handler_end_session_test.go` (the "same
+      login but not SSO enabled" case reverts to a single `Logout` call,
+      since `invalidate`'s own cascade now covers the grant automatically).
+    - Prompted by two further rounds of user feedback after commit 18
+      landed: first, that the underlying grant should actually be revoked
+      too (not just the browser session), which commit 18's design
+      deliberately did *not* do; then, having considered deriving
+      `SSOEnabled` from `IDPSessionID` at token-issuance time instead (a
+      valid alternative, discussed and rejected — see §4) in favor of the
+      simplest option: fix `IsSameSSOGroup` itself, and let its two existing
+      consumers (`session.Manager.invalidate`, `pkg/lib/sessionlisting`)
+      both benefit for free.
+    - Must land together: reverting the handler and grant_offline.go changes
+      independently would leave `Handle` calling a helper that no longer
+      exists.
+    - Verified: unit tests (`go test ./pkg/lib/oauth/... ./pkg/lib/oauth/oidc/handler/...`)
+      and a live e2e run (all 9 `end_session_id_token_hint` cases plus the
+      full suite) both pass; confirmed the earlier
+      `verify_offline_grant_not_revoked` (`200`) e2e assertion now correctly
+      needs to flip to `invalid_grant` (`400`) — see commit 23.
+
+23. **`Update e2e test for the grant now being revoked too`**
+    - Files: `e2e/tests/oidc/end_session_id_token_hint.test.yaml` (case 2:
+      renamed, comments updated, `verify_offline_grant_not_revoked` (`200`)
+      → `verify_offline_grant_revoked` (`400`/`invalid_grant`)).
+    - Depends on commit 22. Verified live: `cd e2e && ./run.sh setup`, `go
+      test ./pkg/testrunner/ -count 1 -v -timeout 10m -run
+      "TestAuthflow/oidc/end_session_id_token_hint"` (all 9 cases pass) and
+      the full suite, then `./run.sh teardown`.
+
+24. **`Update sessionlisting_test.go for the IsSameSSOGroup fix`**
+    - Files: `pkg/lib/sessionlisting/listing_test.go`.
+    - Running the full `pkg/...` test suite after commit 22 surfaced a real,
+      concrete consequence: `listing.go` reuses `IsSameSSOGroup` to decide
+      whether an offline-grant row on the settings page should be flagged
+      as the end-user's current device. An existing fixture
+      (`makeOfflineGrant("3", ..., idpSession.ID, "spa-client-id", false)`)
+      constructed exactly the "`IDPSessionID` matches, `SSOEnabled: false`"
+      combination this fix targets, and asserted it should *not* be flagged
+      current — confirmed with the user that, per the same reasoning as the
+      rest of this fix, it now correctly *should* be, and updated the two
+      affected `Convey` blocks' expected output accordingly. The other two
+      `Convey` blocks in the same group (checking the reverse direction —
+      an `IDPSession`'s own `IsSameSSOGroup`, unchanged) needed no changes,
+      confirming the fix's intended asymmetry.
+    - Verified: `go test ./pkg/lib/sessionlisting/...` and the full `go test
+      ./pkg/...` suite, both green.
+
+25. **`spec: Simplify id_token_hint matching rules and document the IsSameSSOGroup fix`**
+    - Files: `docs/specs/oidc.md` (`### id_token_hint`: collapses the three
+      matching cases from commit 21 into two, since — for this endpoint,
+      always comparing against the current IdP session — the "created from
+      this session" and "same SSO group" cases turned out to be identical;
+      removes the now-inaccurate "grant survives" caveat), `docs/specs/oidc-sso-browser.md`
+      (`Logout` → `Revoke IdP session`: now revokes any refresh token whose
+      `idp_session_id` names the session, regardless of that token's own
+      `sso_enabled`, not only `sso_enabled=true` ones; `Session listing` →
+      adds a note that an `sso_enabled=false` grant can still be flagged as
+      the current device while remaining its own separate, uncombined
+      entry).
+
+26. **Plan doc update** (this document): §4, §5, §12, §13.1–13.3, §14, §16
+    updated again to describe the final `IsSameSSOGroup` fix, replacing the
+    superseded `matchesCurrentSession`/`IsCreatedFromSession` design,
+    including the `sessionlisting` consequence and the spec re-simplification.
