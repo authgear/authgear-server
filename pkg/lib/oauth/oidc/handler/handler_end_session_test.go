@@ -402,6 +402,13 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 			loc, parseErr := url.Parse(rwResumed.Header().Get("Location"))
 			So(parseErr, ShouldBeNil)
 			So(loc.Scheme+"://"+loc.Host+loc.Path, ShouldEqual, "https://rp.example.com/after-logout")
+
+			// The stash cookie must not survive being consumed: a resumed
+			// request always clears it (see resumeFromStash's defer), whether
+			// or not the stash opened successfully, so a stale
+			// x_end_session_ref revisited later (e.g. from browser history)
+			// can never be replayed against a live cookie.
+			assertStashCookieCleared(cookies, rwResumed)
 		})
 
 		Convey("POST with no id_token_hint at all, session present: stash round trip still runs, ends at confirmation page", func() {
@@ -458,7 +465,8 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 			// A different handler instance with a fresh (empty) cookie
 			// manager simulates the stash cookie never having arrived
 			// (expired, blocked, or a different browser/tab).
-			hMissingCookie := newHandler(newFakeCookieManager(), sessionManager, urls, idTokenVerifier, sessions, offlineGrants)
+			cookiesMissing := newFakeCookieManager()
+			hMissingCookie := newHandler(cookiesMissing, sessionManager, urls, idTokenVerifier, sessions, offlineGrants)
 
 			var capturedEndSessionURL *url.URL
 			urls.EXPECT().LogoutURL(gomock.Any()).DoAndReturn(func(u *url.URL) *url.URL {
@@ -479,6 +487,9 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 			// must not leak through as if they were genuinely the caller's.
 			So(capturedEndSessionURL.Query().Get("id_token_hint"), ShouldEqual, "")
 			So(capturedEndSessionURL.Query().Get("post_logout_redirect_uri"), ShouldEqual, "")
+			// resumeFromStash's defer clears the stash cookie unconditionally,
+			// even on this graceful-fallback path.
+			assertStashCookieCleared(cookiesMissing, rwResumed)
 		})
 
 		Convey("Resumed GET with x_end_session_ref set and a stash cookie present but not matching: falls back to a no-parameter request, confirmation page shown", func() {
@@ -529,6 +540,32 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 			So(capturedEndSessionURL, ShouldNotBeNil)
 			So(capturedEndSessionURL.Query().Get("id_token_hint"), ShouldEqual, "")
 			So(capturedEndSessionURL.Query().Get("post_logout_redirect_uri"), ShouldEqual, "")
+			// h's own stash cookie (from postReq1) must still be cleared even
+			// though the ref presented here (mismatchedRef) belonged to h2:
+			// resumeFromStash clears whatever stash cookie the request it's
+			// given actually carries, regardless of why opening it failed.
+			assertStashCookieCleared(cookies, rwResumed)
 		})
 	})
+}
+
+// assertStashCookieCleared checks that a resumed request's response actually
+// clears EndSessionStashCookieDef: both server-side (removed from the fake
+// cookie manager's backing store, so it can't be read again) and via the
+// Set-Cookie header a real browser would need to see (negative MaxAge).
+// Without this, a stale x_end_session_ref revisited later (e.g. from browser
+// history) could still pair with a cookie that was never actually deleted.
+func assertStashCookieCleared(cookies *fakeCookieManager, rw *httptest.ResponseRecorder) {
+	_, stillPresent := cookies.values[handler.EndSessionStashCookieDef.NameSuffix]
+	So(stillPresent, ShouldBeFalse)
+
+	var cleared *http.Cookie
+	for _, c := range rw.Result().Cookies() {
+		if c.Name == handler.EndSessionStashCookieDef.NameSuffix {
+			cleared = c
+			break
+		}
+	}
+	So(cleared, ShouldNotBeNil)
+	So(cleared.MaxAge, ShouldBeLessThan, 0)
 }
