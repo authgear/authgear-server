@@ -2,6 +2,7 @@
 
 - [Overview](#overview)
 - [Goals](#goals)
+- [Scope](#scope)
 - [Use Cases](#use-cases)
   - [UC1. Returning to a second app under the same project (browser SSO continuation)](#uc1-returning-to-a-second-app-under-the-same-project-browser-sso-continuation)
   - [UC2. Signing up for a new account while a different session is active](#uc2-signing-up-for-a-new-account-while-a-different-session-is-active)
@@ -21,7 +22,7 @@
 
 ## Overview
 
-This document specifies how a Custom UI presents an account-selection screen when the end-user already has an active Authgear session, letting them continue as that account without re-entering credentials — implemented as a **new identification option, `select_account`**, inside the `identify` step of the `login` and `signup_login` flows (not `signup`, `reauth`, or `account_recovery` — see [Edge cases](#edge-cases)). Like `oauth`/`passkey`, a project can configure it to complete a login without a further `authenticate` step — not because the engine treats any of these specially, but because nothing forces a flow to route a `one_of` entry into an `authenticate` step it wasn't given (see [Config changes](#config-changes)).
+This document specifies how a Custom UI presents an account-selection screen when the end-user already has an active Authgear session, letting them continue as that account without re-entering credentials — implemented as a **new identification option, `select_account`**, inside the `identify` step of the `login` and `signup_login` flows (not `signup`, `reauth`, or `account_recovery` — see [Scope](#scope)). Like `oauth`/`passkey`, a project can configure it to complete a login without a further `authenticate` step — not because the engine treats any of these specially, but because nothing forces a flow to route a `one_of` entry into an `authenticate` step it wasn't given (see [Config changes](#config-changes)).
 
 Continuation happens through the same `POST /api/v1/authentication_flows` / `.../states/input` calls a Custom UI already makes — no new token, no separate endpoint, no dedicated "decline" input (declining is just choosing a different option).
 
@@ -36,6 +37,18 @@ This works because a credentialed `fetch()` from a Custom UI hosted same-site wi
 - Allow the end-user to continue with the existing session without re-entering credentials.
 - Preserve security: an attacker who captures flow state must not be able to complete authentication on behalf of the victim.
 - Do this using the existing Authentication Flow API surface — no new token store, no new endpoints, no new step type, no dedicated "decline" input.
+
+---
+
+## Scope
+
+`select_account` is only ever added to the `identify` step of `login` and `signup_login` flows. The other three authentication flow types don't get it — not from any technical limitation, but because each one's definition rules it out:
+
+- **`signup`**: completing it via `select_account` would create no new user, contradicting what `type: "signup"` represents. Registering a new identity and continuing an existing session's identity aren't variants of the same operation — the second one is a login.
+- **`reauth`**: a `reauth` flow steps up assurance for *this session's own user* — there's no account to choose between, since the flow already targets a specific, known user by definition.
+- **`account_recovery`**: exists precisely for when the user has no usable session — if a usable session existed, they wouldn't be going through account recovery in the first place.
+
+This is a design boundary, not a corner case within a supported flow — genuine edge cases inside `login`/`signup_login` are covered separately in [Edge cases](#edge-cases).
 
 ---
 
@@ -364,7 +377,7 @@ Host: auth.example.com
 
 ### Config changes
 
-Add `select_account` as a new allowed `identification` value inside an `identify` step's `one_of`, in both the `login` and `signup_login` flows. Not added to `signup` (see [Edge cases](#edge-cases)).
+Add `select_account` as a new allowed `identification` value inside an `identify` step's `one_of`, in both the `login` and `signup_login` flows. Not added to `signup`, `reauth`, or `account_recovery` (see [Scope](#scope)).
 
 What happens after it's chosen is controlled by that entry's own optional nested `steps` — same as any other `identification` option. Omit `steps` for immediate completion. There's deliberately no shared top-level `authenticate` step here: any step placed after `identify` is reached regardless of *which* `one_of` entry was chosen, `oauth`/`select_account` included, and whether it then prompts the user depends only on whether they have a matching enrolled authenticator for it — not on how they identified. Giving `email` its own nested `authenticate` step instead avoids routing `oauth`/`select_account` into one they don't need:
 
@@ -484,14 +497,15 @@ This must also apply to the `OPTIONS` preflight `fetch()` triggers first, which 
 
 ### Session and account resolution
 
-The `select_account` option is derived entirely from the request's session cookie — nothing client-supplied influences it. It's omitted, using the same rules as the built-in Auth UI's existing account-selection screen, when:
+The `select_account` option is derived entirely from the request's session cookie and the OIDC authorization parameters already resolved by the time the flow is created — nothing supplied to the flow-creation call itself influences it. It's omitted, using the same rules as the built-in Auth UI's existing account-selection screen, when:
 
 - No session is present.
 - The session was established with "do not persist" semantics (`x_suppress_idp_session_cookie`).
-- `prompt=login` is present.
-- `login_hint` is present and identifies a different user than the session.
+- The resolved `prompt` contains `login` — whether that came directly from the authorization request or was synthesized because the session is older than the request's `max_age` allows (the server folds an expired `max_age` into an implied `prompt=login`; there's no separate `max_age` check).
+- `login_hint` is present and identifies a different user than the session (a *matching* `login_hint` doesn't omit the option).
+- `id_token_hint` is present and its `sub` claim identifies a different user than the session — the same rule as `login_hint`, since both are the caller declaring which identity it expects.
 
-(`prompt=none` is decided earlier, before any flow exists — not applicable here.)
+(`prompt=none` is decided earlier, before any flow exists — not applicable here. `prompt=select_account` and `acr_values` currently have no bearing on this either way — see [Edge cases](#edge-cases).)
 
 ---
 
@@ -584,10 +598,11 @@ Opting in requires updating the Custom UI to recognize the new `identification` 
 
 ## Edge cases
 
-- **`prompt=login`**: option omitted.
+- **`prompt=login`**: option omitted (see [Session and account resolution](#session-and-account-resolution)).
 - **`prompt=none`**: not applicable — decided before any flow exists.
-- **`login_hint` present**: option omitted, regardless of match — the caller already knows which identity it wants.
+- **`prompt=select_account`**: not supported — has no effect, despite sharing its name with this feature's `select_account` identification option (unrelated concepts).
+- **`max_age`**: not a separate rule. An expired `max_age` is folded server-side into a synthesized `prompt=login`, so it's already covered by the `prompt=login` case above.
+- **`id_token_hint`**: option omitted when its `sub` claim identifies a different user than the session — the same rule as a mismatched `login_hint` (see [Session and account resolution](#session-and-account-resolution)).
+- **`acr_values`**: not supported — no interaction with `select_account` today.
+- **`login_hint` matching the session's user**: option is still offered — only a *mismatched* `login_hint` omits it.
 - **Multiple active accounts**: not supported; at most one entry today.
-- **`signup`**: not added — completing it via `select_account` would create no new user, contradicting what `type: "signup"` represents.
-- **`reauth`**: not in scope — targets a specific known user, no account choice to make.
-- **`account_recovery`**: not in scope — exists for when the user has no usable session at all.
