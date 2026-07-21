@@ -15,7 +15,7 @@ before:
 steps:
 # ── Authentication ─────────────────────────────────────────────────────────
 # Generate Bearer access tokens for both the authorized user (user-001, who
-# is a siteadmin collaborator) and the unauthorized user (user-002, who is a
+# is a siteadmin collaborator) and the unauthorized user (user-006, who is a
 # valid auth user but NOT a siteadmin collaborator).
 
 - name: generate_token_authorized
@@ -40,7 +40,7 @@ steps:
 
 - name: generate_token_unauthorized
   action: generate_refresh_token
-  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000002"
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000006"
   generate_refresh_token_client_id: e2e
 
 - name: get_access_token_unauthorized

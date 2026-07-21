@@ -11,9 +11,7 @@
     "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'"
   },
-  "overrides": {
-    "esbuild": "^0.28.1"
-  },
+  "overrides": {},
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
