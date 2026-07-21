@@ -823,5 +823,138 @@ func TestTokenHandler(t *testing.T) {
 				So(body["error_description"], ShouldEqual, "resource URI must not be a prefixed by authgear endpoint")
 			})
 		})
+
+		Convey("client authentication via HTTP Basic auth (client_secret_basic)", func() {
+			clientID := "basic-auth-client"
+			resourceURI := "https://api.example.com/resource"
+			resourceID := "resource-id-1"
+			allowedScopes := []*resourcescope.Scope{
+				{ID: "scope-id-1", ResourceID: resourceID, Scope: "read"},
+			}
+			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
+				ClientID:            clientID,
+				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				AccessTokenLifetime: config.DurationSeconds(3600),
+				IssueJWTAccessToken: true,
+			}
+
+			key, err := jwk.FromRaw([]byte("supersecret"))
+			if err != nil {
+				t.Fatalf("failed to create jwk: %v", err)
+			}
+			keySet := jwk.NewSet()
+			_ = keySet.AddKey(key)
+			h.OAuthClientCredentials = &config.OAuthClientCredentials{
+				Items: []config.OAuthClientCredentialsItem{
+					{
+						ClientID:                     clientID,
+						OAuthClientCredentialsKeySet: config.OAuthClientCredentialsKeySet{Set: keySet},
+					},
+				},
+			}
+
+			resource := &resourcescope.Resource{
+				ID:          resourceID,
+				ResourceURI: resourceURI,
+			}
+
+			expectClientCredentialsRateLimits := func() {
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerIP,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
+				}).Return(nil, nil)
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
+				}).Return(nil, nil)
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
+				}).Return(nil, nil)
+			}
+
+			Convey("success: client_id and client_secret are taken from the Authorization header", func() {
+				expectClientCredentialsRateLimits()
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+
+				accessToken := "access-token-basic-auth"
+				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, opts handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+						resp.AccessToken(accessToken)
+						resp.TokenType("Bearer")
+						resp.ExpiresIn(3600)
+						resp.Scope("read")
+						return nil
+					},
+				)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				req.SetBasicAuth(clientID, "supersecret")
+				r := protocol.TokenRequest{
+					"grant_type": []string{"client_credentials"},
+					"resource":   []string{resourceURI},
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]any
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["access_token"], ShouldEqual, accessToken)
+			})
+
+			Convey("rejects client_secret present in both the Authorization header and the request body", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				req.SetBasicAuth(clientID, "supersecret")
+				r := protocol.TokenRequest{
+					"grant_type":    []string{"client_credentials"},
+					"resource":      []string{resourceURI},
+					"client_secret": []string{"supersecret"},
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]any
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_request")
+			})
+
+			Convey("rejects an invalid client_secret sent via the Authorization header", func() {
+				expectClientCredentialsRateLimits()
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				req.SetBasicAuth(clientID, "wrongsecret")
+				r := protocol.TokenRequest{
+					"grant_type": []string{"client_credentials"},
+					"resource":   []string{resourceURI},
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]any
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_request")
+			})
+		})
 	})
 }

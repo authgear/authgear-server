@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"reflect"
 	"slices"
 	"strings"
@@ -258,6 +259,28 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			resultErr.InternalError = true
 		}
 		return resultErr
+	}
+
+	if username, password, ok := req.BasicAuth(); ok {
+		// RFC 6749 section 2.3: The client MUST NOT use more than one
+		// authentication method in each request.
+		if r.ClientID() != "" || r.ClientSecret() != "" {
+			return errorResult(protocol.NewError("invalid_request", "client authentication must not be presented in both the Authorization header and the request body"))
+		}
+
+		// RFC 6749 Appendix B: client_id and client_secret are encoded with
+		// application/x-www-form-urlencoded before being used in HTTP Basic auth.
+		clientID, err := url.QueryUnescape(username)
+		if err != nil {
+			return errorResult(protocol.NewError("invalid_request", "invalid client_id in Authorization header"))
+		}
+		clientSecret, err := url.QueryUnescape(password)
+		if err != nil {
+			return errorResult(protocol.NewError("invalid_request", "invalid client_secret in Authorization header"))
+		}
+
+		r["client_id"] = []string{clientID}
+		r["client_secret"] = []string{clientSecret}
 	}
 
 	ipRateLimitBucket := NewBucketSpecOAuthTokenPerIP(string(h.RemoteIP))
