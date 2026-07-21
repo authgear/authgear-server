@@ -1,22 +1,23 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
+import cn from "classnames";
 import { produce } from "immer";
-import { Context, FormattedMessage } from "../../intl";
+import { Text } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
 import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import Toggle from "../../Toggle";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.css";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
@@ -72,25 +73,24 @@ interface BiometricConfigurationContentProps {
 const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProps> =
   function BiometricConfigurationContent(props) {
     const { state, setState } = props.form;
-
     const { identityFeatureConfig } = props;
-
-    const { renderToString } = useContext(Context);
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onEnableChange = useCallback(
-      (_event, checked?: boolean) =>
+      (checked: boolean) =>
         setState((state) => ({
           ...state,
-          enabled: checked ?? false,
+          enabled: checked,
         })),
       [setState]
     );
 
     const onListEnabledChange = useCallback(
-      (_event, checked?: boolean) =>
+      (checked: boolean) =>
         setState((state) => ({
           ...state,
-          list_enabled: checked ?? false,
+          list_enabled: checked,
         })),
       [setState]
     );
@@ -100,41 +100,55 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
     }, [identityFeatureConfig]);
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="BiometricConfigurationScreen.title" />
-        </ScreenTitle>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
-          <ScreenDescription className={styles.widget}>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="BiometricConfigurationScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="BiometricConfigurationScreen.description" />
-          </ScreenDescription>
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="BiometricConfigurationScreen.title" />
-            </WidgetTitle>
+          </Text>
+        </div>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <SettingsSectionCard
+            className={cn(
+              styles.widget,
+              isDirty && styles.settingsCardSaveBarClearance
+            )}
+            contentClassName="gap-4"
+            title={
+              <FormattedMessage id="BiometricConfigurationScreen.settings.label" />
+            }
+          >
             {biometricDisabled ? (
               <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
             ) : null}
             <Toggle
               disabled={biometricDisabled}
               checked={state.enabled}
-              onChange={onEnableChange}
-              label={renderToString(
-                "BiometricConfigurationScreen.enable.label"
-              )}
-              inlineLabel={true}
+              onCheckedChange={onEnableChange}
+              textWeight="medium"
+              text={
+                <FormattedMessage id="BiometricConfigurationScreen.enable.label" />
+              }
             />
-            <Toggle
-              disabled={!state.enabled || biometricDisabled}
-              checked={state.list_enabled ?? false}
-              onChange={onListEnabledChange}
-              label={renderToString(
-                "BiometricConfigurationScreen.list-enabled.label"
-              )}
-              inlineLabel={true}
-            />
-          </Widget>
+            {state.enabled ? (
+              <Toggle
+                disabled={biometricDisabled}
+                checked={state.list_enabled ?? false}
+                onCheckedChange={onListEnabledChange}
+                textWeight="medium"
+                text={
+                  <FormattedMessage id="BiometricConfigurationScreen.list-enabled.label" />
+                }
+              />
+            ) : null}
+          </SettingsSectionCard>
         </ShowOnlyIfSIWEIsDisabled>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -169,7 +183,7 @@ const BiometricConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} hideFooterComponent={true}>
         <BiometricConfigurationContent
           form={form}
           identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}
