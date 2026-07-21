@@ -103,7 +103,7 @@ func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string,
 	if err != nil {
 		var oauthErrorResponse *oauthrelyingparty.ErrorResponse
 		if errors.As(err, &oauthErrorResponse) {
-			err = oauthrelyingpartyutil.NewOAuthError(oauthErrorResponse)
+			err = oauthrelyingpartyutil.NewOAuthError(oauthErrorResponse, deps.ProviderConfig.Type())
 			return
 		}
 

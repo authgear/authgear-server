@@ -162,6 +162,7 @@ const BiometricConfigurationScreen: React.VFC =
       return (
         <ShowError
           error={featureConfig.loadError}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onRetry={featureConfig.refetch}
         />
       );

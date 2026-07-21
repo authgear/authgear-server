@@ -706,11 +706,38 @@ export type FraudProtectionOverview = {
   sendSMS: FraudProtectionOverviewSendSms;
 };
 
+export type FraudProtectionOverviewIpLocation = {
+  __typename?: 'FraudProtectionOverviewIPLocation';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
+  geoCountryCode: Scalars['String']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type FraudProtectionOverviewSmsOrigin = {
+  __typename?: 'FraudProtectionOverviewSMSOrigin';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
+  phoneCountryCode: Scalars['String']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type FraudProtectionOverviewSendSms = {
   __typename?: 'FraudProtectionOverviewSendSMS';
   blocked: Scalars['Int']['output'];
   flagged: Scalars['Int']['output'];
+  timeBuckets: Array<FraudProtectionOverviewTimeBucket>;
+  topIPLocations: Array<FraudProtectionOverviewIpLocation>;
+  topSMSOrigins: Array<FraudProtectionOverviewSmsOrigin>;
   topSourceIPs: Array<FraudProtectionOverviewTopSourceIp>;
+  total: Scalars['Int']['output'];
+};
+
+export type FraudProtectionOverviewTimeBucket = {
+  __typename?: 'FraudProtectionOverviewTimeBucket';
+  blocked: Scalars['Int']['output'];
+  flagged: Scalars['Int']['output'];
+  hour: Scalars['DateTime']['output'];
   total: Scalars['Int']['output'];
 };
 
@@ -718,6 +745,7 @@ export type FraudProtectionOverviewTopSourceIp = {
   __typename?: 'FraudProtectionOverviewTopSourceIP';
   blocked: Scalars['Int']['output'];
   flagged: Scalars['Int']['output'];
+  geoCountryCode: Scalars['String']['output'];
   ipAddress: Scalars['String']['output'];
   total: Scalars['Int']['output'];
 };

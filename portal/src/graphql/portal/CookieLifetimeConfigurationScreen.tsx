@@ -69,7 +69,8 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
   function CookieLifetimeConfigurationScreenContent(props) {
     const { form } = props;
     const { state, setState } = form;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const hostname = useMemo(

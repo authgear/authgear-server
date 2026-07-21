@@ -118,6 +118,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   };
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -172,6 +173,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
       <DeleteResourceDialog
         data={deleteDialogData}
         isLoading={isDeleting}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={onConfirmDelete}
         onDismiss={onDismissDeleteDialog}
       />

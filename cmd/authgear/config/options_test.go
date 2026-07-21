@@ -27,7 +27,7 @@ func TestReadOAuthClientConfigsFromConsole(t *testing.T) {
 			So(opts[0].ClientID, ShouldEqual, "portal")
 			So(opts[0].RedirectURI, ShouldEqual, "http://portal.localhost:8000/oauth-redirect")
 			So(opts[0].PostLogoutRedirectURI, ShouldEqual, "http://portal.localhost:8000/")
-			So(opts[0].ApplicationType, ShouldEqual, libconfig.OAuthClientApplicationTypeTraditionalWeb)
+			So(opts[0].ApplicationType, ShouldEqual, libconfig.OAuthClientApplicationTypeSPA)
 			So(opts[1].ClientID, ShouldEqual, "siteadmin")
 			So(opts[1].RedirectURI, ShouldEqual, "http://localhost:3005/oauth-redirect")
 			So(opts[1].PostLogoutRedirectURI, ShouldEqual, "http://localhost:3005/")
@@ -78,6 +78,7 @@ func newOAuthClientConfigCommand() *cobra.Command {
 	}
 	Prompt_PortalOrigin.DefineFlag(cmd)
 	Prompt_PortalClientID.DefineFlag(cmd)
+	Prompt_PortalClientType.DefineFlag(cmd)
 	Prompt_SiteadminClientID.DefineFlag(cmd)
 	Prompt_SiteadminRedirectURI.DefineFlag(cmd)
 	Prompt_SiteadminPostLogoutRedirectURI.DefineFlag(cmd)

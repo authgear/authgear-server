@@ -10,6 +10,7 @@ import (
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
 	authenticator "github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	mfa "github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
@@ -132,6 +133,44 @@ func (m *MockUserInfoMFAService) ListRecoveryCodes(ctx context.Context, userID s
 func (mr *MockUserInfoMFAServiceMockRecorder) ListRecoveryCodes(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRecoveryCodes", reflect.TypeOf((*MockUserInfoMFAService)(nil).ListRecoveryCodes), ctx, userID)
+}
+
+// MockUserInfoIdentityService is a mock of UserInfoIdentityService interface.
+type MockUserInfoIdentityService struct {
+	ctrl     *gomock.Controller
+	recorder *MockUserInfoIdentityServiceMockRecorder
+}
+
+// MockUserInfoIdentityServiceMockRecorder is the mock recorder for MockUserInfoIdentityService.
+type MockUserInfoIdentityServiceMockRecorder struct {
+	mock *MockUserInfoIdentityService
+}
+
+// NewMockUserInfoIdentityService creates a new mock instance.
+func NewMockUserInfoIdentityService(ctrl *gomock.Controller) *MockUserInfoIdentityService {
+	mock := &MockUserInfoIdentityService{ctrl: ctrl}
+	mock.recorder = &MockUserInfoIdentityServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserInfoIdentityService) EXPECT() *MockUserInfoIdentityServiceMockRecorder {
+	return m.recorder
+}
+
+// ListByUser mocks base method.
+func (m *MockUserInfoIdentityService) ListByUser(ctx context.Context, userID string) ([]*identity.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByUser", ctx, userID)
+	ret0, _ := ret[0].([]*identity.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByUser indicates an expected call of ListByUser.
+func (mr *MockUserInfoIdentityServiceMockRecorder) ListByUser(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockUserInfoIdentityService)(nil).ListByUser), ctx, userID)
 }
 
 // MockUserQueries is a mock of UserQueries interface.

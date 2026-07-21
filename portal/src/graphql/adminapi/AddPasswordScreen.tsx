@@ -147,8 +147,6 @@ const AddPasswordScreen: React.VFC = function AddPasswordScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,
@@ -169,10 +167,12 @@ const AddPasswordScreen: React.VFC = function AddPasswordScreen() {
   }
 
   if (configError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={configError} onRetry={refetchConfig} />;
   }
 
   if (userError != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={userError} onRetry={refetchUser} />;
   }
 

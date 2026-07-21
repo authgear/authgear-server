@@ -459,6 +459,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             key: item.urlPrefix,
             name: renderToString(item.textKey),
             url: item.url ?? "",
+            // eslint-disable-next-line react-hooks/immutability
             links: item.children.map((child) => navItem(child)),
           };
         }

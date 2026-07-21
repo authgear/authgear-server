@@ -1,17 +1,70 @@
 name: Site Admin - Authorization
 app_id: e2e-portal
+authgear.yaml:
+  override: |
+    http:
+      public_origin: "http://localhost:4000"
 before:
 - type: custom_sql
   custom_sql:
+    path: fixture/seed_siteadmin_actor.sql
+- type: custom_sql
+  custom_sql:
     path: fixture/insert_collaborator.sql
+
 steps:
+# ── Authentication ─────────────────────────────────────────────────────────
+# Generate Bearer access tokens for both the authorized user (user-001, who
+# is a siteadmin collaborator) and the unauthorized user (user-002, who is a
+# valid auth user but NOT a siteadmin collaborator).
+
+- name: generate_token_authorized
+  action: generate_refresh_token
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000001"
+  generate_refresh_token_client_id: e2e
+
+- name: get_access_token_authorized
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://localhost:4000/oauth2/token
+  http_request_form_urlencoded_body:
+    grant_type: refresh_token
+    refresh_token: "{{ .steps.generate_token_authorized.result.refresh_token }}"
+    client_id: e2e
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "access_token": "[[string]]"
+      }
+
+- name: generate_token_unauthorized
+  action: generate_refresh_token
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000002"
+  generate_refresh_token_client_id: e2e
+
+- name: get_access_token_unauthorized
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://localhost:4000/oauth2/token
+  http_request_form_urlencoded_body:
+    grant_type: refresh_token
+    refresh_token: "{{ .steps.generate_token_unauthorized.result.refresh_token }}"
+    client_id: e2e
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "access_token": "[[string]]"
+      }
+
+# ── Authorization tests ────────────────────────────────────────────────────
 - name: authorized_user
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token_authorized.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -19,15 +72,16 @@ steps:
         "apps": "[[array]]",
         "total_count": "[[number]]"
       }
+
 - name: unauthorized_user
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/apps
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "11111111-1111-1111-1111-111111111111"
+    Authorization: "Bearer {{ .steps.get_access_token_unauthorized.result.http_json_body.access_token }}"
   http_output:
     http_status: 403
+
 - name: unauthenticated_user
   action: http_request
   http_request_method: GET

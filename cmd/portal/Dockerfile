@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 0: Build the static files
-FROM --platform=$BUILDPLATFORM node:20.19.5-bookworm AS authgear-portal-stage-0
+FROM --platform=$BUILDPLATFORM node:24.16.0-bookworm AS authgear-portal-stage-0
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
@@ -15,7 +15,7 @@ COPY Makefile .
 RUN make authui
 
 # Stage 1: Build the portal static files
-FROM --platform=$BUILDPLATFORM node:20.19.5-bookworm AS authgear-portal-stage-1
+FROM --platform=$BUILDPLATFORM node:24.16.0-bookworm AS authgear-portal-stage-1
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
@@ -26,7 +26,7 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 2: Build the Go binary
-FROM quay.io/theauthgear/golang:1.26.3-noble AS authgear-portal-stage-2
+FROM quay.io/theauthgear/golang:1.26.5-noble AS authgear-portal-stage-2
 
 # Install build time C dependencies
 RUN set -eux; \
@@ -74,7 +74,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026a\*; \
+            tzdata=2026b\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-portal-stage-2 /src/authgear-portal /usr/local/bin/
 # There is no need to run update-ca-certificates

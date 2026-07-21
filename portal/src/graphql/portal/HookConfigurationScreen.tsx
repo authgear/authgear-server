@@ -266,7 +266,7 @@ interface FormState extends ConfigFormState {
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -786,8 +786,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const form: FormModel = {
       isLoading: config.isLoading || resources.isLoading,
       isUpdating: config.isUpdating || resources.isUpdating,
-      isDirty:
-        config.isDirty || resources.isDirty || codeEditorState?.value != null,
+      getIsDirty: () =>
+        config.getIsDirty() ||
+        resources.getIsDirty() ||
+        codeEditorState?.value != null,
       loadError: config.loadError ?? resources.loadError,
       updateError: config.updateError ?? resources.updateError,
       state,
@@ -1242,6 +1244,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
               <div className={styles.codeEditorFooter}>
                 <PrimaryButton
                   text="Finish Editing"
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onClickFinishEditing}
                   disabled={isLoading}
                 />

@@ -77,193 +77,51 @@ Run `make vendor`. This installs golangci-lint, runs `go mod download`, `npm ci`
 
 **Verify:** the command exits 0, `resources/authgear/generated/` is non-empty, and `resources/portal/static/` is non-empty.
 
-## Step 4: Environment file and config
+## Steps 4–9: One-shot setup
 
-1. `cp .env.example .env` (only if `.env` does not exist — do not overwrite).
-2. Run the init command to generate `./var/`:
-
-   ```sh
-   go run ./cmd/authgear init \
-     --interactive false \
-     --output-folder ./var \
-     --purpose portal \
-     --app-id accounts \
-     --public-origin 'http://accounts.portal.localhost:3100' \
-     --portal-origin 'http://portal.localhost:8000' \
-     --portal-client-id portal \
-     --siteadmin-client-id siteadmin \
-     --siteadmin-redirect-uri 'http://localhost:8101/oauth2-redirect.html' \
-     --siteadmin-post-logout-redirect-uri 'http://localhost:8101' \
-     --phone-otp-mode sms \
-     --disable-email-verification true \
-     --search-implementation postgresql
-   ```
-
-3. Open `var/authgear.yaml`. Confirm the `oauth.clients` section contains BOTH the `portal` and `siteadmin` clients with the full redirect-URI list from CONTRIBUTING.md. If `init` produced a stub, replace the `oauth:` block with this:
-
-   ```yaml
-   oauth:
-     clients:
-     - client_id: portal
-       issue_jwt_access_token: true
-       name: Portal
-       redirect_uris:
-       - "http://portal.localhost:8000/oauth-redirect"
-       - "http://portal.localhost:8001/oauth-redirect"
-       - "http://portal.localhost:8010/oauth-redirect"
-       - "http://portal.localhost:8011/oauth-redirect"
-       - "com.authgear.example://host/path"
-       - "com.authgear.example.rn://host/path"
-       - com.authgear.exampleapp.flutter://host/path
-       - com.authgear.exampleapp.xamarin://host/path
-       post_logout_redirect_uris:
-       - "http://portal.localhost:8000/"
-       - "http://portal.localhost:8010/"
-       x_application_type: traditional_webapp
-     - client_id: siteadmin
-       issue_jwt_access_token: true
-       name: Site Admin
-       post_logout_redirect_uris:
-       - "http://localhost:8101"
-       redirect_uris:
-       - "http://localhost:8101/oauth2-redirect.html"
-       x_application_type: spa
-   ```
-
-4. Check `/etc/hosts` contains:
-
-   ```
-   127.0.0.1 portal.localhost
-   127.0.0.1 accounts.portal.localhost
-   ```
-
-   If missing, prompt the user to run (sudo is interactive — they must run it):
-
-   ```sh
-   sudo sh -c 'printf "\n127.0.0.1 portal.localhost\n127.0.0.1 accounts.portal.localhost\n" >> /etc/hosts'
-   ```
-
-**Verify:** `var/authgear.yaml` exists and the `oauth.clients` array has at least the two entries above. `getent hosts portal.localhost` (or `dscacheutil -q host -a name portal.localhost` on macOS) resolves to `127.0.0.1`.
-
-## Step 5: Start Postgres
+Run:
 
 ```sh
-docker compose build postgres16
-docker compose up -d postgres16 pgbouncer
+make setup
 ```
 
-**Verify:** `docker compose ps postgres16 pgbouncer` shows both as `running`/healthy. If pgbouncer keeps restarting, postgres is likely not ready yet — wait 5–10 seconds and re-check.
+This runs `scripts/sh/setup-dev.sh`, which is idempotent and safe to re-run. It handles everything in one go:
 
-## Step 6: Apply database migrations
+1. Copies `.env.example` → `.env` (if not present)
+2. Starts `postgres16`, `pgbouncer`, `redis`, `minio` via compose
+3. Generates `./var/authgear.yaml` and `./var/authgear.secrets.yaml`
+4. Runs all DB migrations (authgear, audit, images, search, portal)
+5. Creates the portal config-source row
+6. Creates MinIO buckets (`images`, `userexport`)
+7. Creates the bootstrap admin account and grants it `owner` on the `accounts` app
 
-Run in this order:
+**Prerequisites:** `docker` or `podman` on `$PATH`, and `jq`. Auto-detects `podman` if `docker` is not found; override with `COMPOSE_CMD="podman compose"`.
+
+Default credentials are `user@example.com` / `password`. Override with:
 
 ```sh
-go run ./cmd/authgear database migrate up
-go run ./cmd/authgear audit database migrate up
-go run ./cmd/authgear images database migrate up
-go run ./cmd/authgear search database migrate up
-go run ./cmd/portal database migrate up
+ADMIN_EMAIL=dev@example.com ADMIN_PASSWORD=s3cr3t make setup
 ```
 
-Then create the initial portal config-source row in the DB:
+**Verify:** the script prints `Setup complete!` and the credentials. If it fails, read the error — the script stops on the first failure.
 
-```sh
-go run ./cmd/portal internal configsource create ./var
-```
-
-**Verify:** re-run any one of the migrate commands; it should report no migrations to apply. `configsource create` should succeed without "duplicate key" — if it fails because the row already exists, that is fine, move on.
-
-## Step 7: MinIO and buckets
-
-```sh
-docker compose up -d minio
-```
-
-The `mc` bucket setup requires an interactive shell inside the container with the env vars from `.env`. Prompt the user to run:
-
-```sh
-docker compose exec -it minio bash
-# Inside the container:
-mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-mc mb local/images
-mc mb local/userexport
-exit
-```
-
-**Verify:** ask the user to confirm both `mc mb` commands printed "Bucket created successfully".
-
-## Step 8: Bring up everything else and start the servers
-
-```sh
-docker compose up -d
-```
-
-This starts the remaining services: redis, elasticsearch, minio (already up), the OTel collector, loki, tempo, prometheus, and the nginx proxy.
-
-Then start the three long-running dev servers in the background, in three separate shells (use `run_in_background` for each), following the "Start local dev" recipe in `AGENTS.md`:
-
-1. `make start` — main auth server.
-2. `make start-portal` — portal backend.
-3. `cd portal && npm start` — portal frontend (Vite).
-
-**Verify:** poll each log file with an `until grep -q ... ; do sleep 2; done` loop until you see:
-
-- `make start` log: a `serving request` or `open database` debug line.
-- `make start-portal` log: an `open database` debug line.
-- portal Vite log: `ready in <N> ms`.
-
-If a server exits early, read its log file and report the error — do not auto-retry.
-
-## Step 9: Create the bootstrap account and grant portal owner
-
-With all servers running, create a user. Defaults match CONTRIBUTING.md (`user@example.com` / `password`); ask the user if they want to override before running.
-
-```sh
-go run ./cmd/authgear internal admin-api invoke \
-  --app-id accounts \
-  --endpoint "http://localhost:3002" \
-  --host "accounts.portal.localhost:3100" \
-  --query '
-    mutation createUser($email: String!, $password: String!) {
-      createUser(input: {
-        definition: {
-          loginID: {
-            key: "email"
-            value: $email
-          }
-        }
-        password: $password
-      }) {
-        user {
-          id
-        }
-      }
-    }
-  ' \
-  --variables-json "$(jq -cn --arg email "user@example.com" --arg password "password" '{email: $email, password: $password}')" | tee ./query_output
-```
-
-Then grant the user `owner` on the `accounts` project:
-
-```sh
-decoded_node_id="$(jq <./query_output --raw-output '.data.createUser.user.id' | basenc --base64url --decode)"
-raw_id="${decoded_node_id#User:}"
-go run ./cmd/portal internal collaborator add \
-   --app-id accounts \
-   --user-id "$raw_id" \
-   --role owner
-```
-
-**Verify:** `query_output` contains a `data.createUser.user.id`. The `collaborator add` command exits 0.
+**Known gotcha — `go run` stray child process:** `go run` compiles to a temp binary child process. If the script is interrupted with `kill -9`, clean up manually: `pkill -f 'authgear start'`.
 
 ## Step 10: Done
 
+Start the three long-running dev servers, each in its own terminal:
+
+```sh
+make start            # main auth server
+make start-portal     # portal backend
+cd portal && npm start  # portal frontend (Vite)
+```
+
 Print a summary:
 
-- Portal: http://portal.localhost:8000
-- Bootstrap credentials: the email/password from Step 9
-- Background server task IDs (so the user can stop them later)
+- Portal: http://localhost:8000
+- Auth UI: http://localhost:3100
+- Bootstrap credentials: printed at the end of `make setup`
 
 Then point the user at the post-setup topics in CONTRIBUTING.md when they need them:
 

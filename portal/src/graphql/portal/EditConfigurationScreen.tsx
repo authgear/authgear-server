@@ -29,7 +29,7 @@ import { useFormContainerBaseContext } from "../../FormContainerBase";
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -63,7 +63,8 @@ const EditConfigurationContent: React.VFC<EditConfigurationContentProps> =
       onDismissWarning,
       onCancelWarning,
     } = props;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     return (

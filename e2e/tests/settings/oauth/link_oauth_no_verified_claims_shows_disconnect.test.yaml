@@ -1,0 +1,88 @@
+name: settings page shows Disconnect for provider linked without verified claims
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+      primary_authenticators:
+        - password
+    identity:
+      login_id:
+        keys:
+          - key: email
+            type: email
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: false
+        phone_number:
+          enabled: true
+          required: false
+
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: add_google_oauth.sql
+
+steps:
+  # Get user_id for generating tokens
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}' AND l.login_id = 'link-oauth@example.com'
+
+  - name: generate_refresh_token
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token.result.refresh_token }}'
+
+  # Exchange the app_session_token for an app_session cookie via the authorize endpoint.
+  # This matches what the JS SDK does: response_type=none with login_hint=app_session_token.
+  # The handler detects the login_hint before processing the response type, calls
+  # AppSessionTokenService.Handle() which sets the app_session cookie and returns 302.
+  # The app_session cookie is resolved by AccessTokenSessionResolver (oauth.Resolver),
+  # which satisfies RequireAuthenticatedMiddleware on the settings page.
+  - name: exchange_app_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: none
+      client_id: e2e
+      redirect_uri: "http://localhost:4000"
+      scope: "openid https://authgear.com/scopes/full-access offline_access"
+      prompt: none
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Access the regular settings page directly.
+  # The Google identity was pre-created in the DB with empty claims (no email_verified).
+  # This reproduces the bug: the old template used $.Verifications (claim verification status)
+  # to determine linked/unlinked state. Since Google returned no email_verified, Verifications
+  # showed Verified=false, causing "Connect" to appear for an already-linked provider.
+  # The fix: use identity_id (non-empty = linked) to determine state.
+  - name: settings_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/settings/identity/oauth
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "Disconnect"

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import {
   DetailsList,
@@ -252,13 +252,6 @@ const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
     return sortedList.length > 0 ? sortedList[0] : null;
   }, [domains]);
 
-  const domainNotFoundError = useMemo(() => {
-    const errorMessage = renderToString(
-      "VerifyDomainScreen.error.domain-not-found"
-    );
-    return new Error(errorMessage);
-  }, [renderToString]);
-
   const nonCustomVerifiedDomainNotFoundError = useMemo(() => {
     const errorMessage = renderToString(
       "VerifyDomainScreen.error.non-custom-verified-domain-not-found"
@@ -271,11 +264,19 @@ const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
   }
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   if (domain == null) {
-    return <ShowError error={domainNotFoundError} />;
+    // The domain does not exist in this project (e.g. after switching
+    // projects); fall back to the custom domain list.
+    return (
+      <Navigate
+        to={`/project/${appID}/branding/custom-domains`}
+        replace={true}
+      />
+    );
   }
 
   if (nonCustomVerifiedDomain == null) {

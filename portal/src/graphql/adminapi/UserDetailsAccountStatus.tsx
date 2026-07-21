@@ -941,40 +941,33 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     );
 
     return (
-      <div>
-        <Label>
-          <Text variant="xLarge">
-            <FormattedMessage id="UserDetailsAccountStatus.title" />
-          </Text>
-        </Label>
-        <div className="-mt-3">
-          <DisableUserCell
-            data={data}
-            onClickDisable={onClickDisable}
-            onClickReenable={onClickReenable}
-          />
-          <AccountValidPeriodCell
-            data={data}
-            onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
-            onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
-          />
-          <AccountLockoutCell
-            data={data}
-            onClickResetAccountLockout={onClickResetAccountLockout}
-          />
-          <AnonymizeUserCell
-            data={data}
-            onClickAnonymizeImmediately={onClickAnonymizeImmediately}
-            onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
-            onClickCancelAnonymization={onClickCancelAnonymization}
-          />
-          <RemoveUserCell
-            data={data}
-            onClickCancelDeletion={onClickCancelDeletion}
-            onClickDeleteImmediately={onClickDeleteImmediately}
-            onClickDeleteOrSchedule={onClickDeleteOrSchedule}
-          />
-        </div>
+      <div className={styles.root}>
+        <DisableUserCell
+          data={data}
+          onClickDisable={onClickDisable}
+          onClickReenable={onClickReenable}
+        />
+        <AccountValidPeriodCell
+          data={data}
+          onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
+          onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
+        />
+        <AccountLockoutCell
+          data={data}
+          onClickResetAccountLockout={onClickResetAccountLockout}
+        />
+        <AnonymizeUserCell
+          data={data}
+          onClickAnonymizeImmediately={onClickAnonymizeImmediately}
+          onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
+          onClickCancelAnonymization={onClickCancelAnonymization}
+        />
+        <RemoveUserCell
+          data={data}
+          onClickCancelDeletion={onClickCancelDeletion}
+          onClickDeleteImmediately={onClickDeleteImmediately}
+          onClickDeleteOrSchedule={onClickDeleteOrSchedule}
+        />
         <AccountStatusDialog
           key={String(dialogKey)}
           accountStatus={data}
@@ -1474,6 +1467,7 @@ export function AccountStatusDialog(
         <PrimaryButton
           theme={themes.main}
           disabled={loading}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={onClickUnscheduleDeletion}
           text={
             <FormattedMessage id="AccountStatusDialog.cancel-deletion.action.cancel-deletion" />
@@ -1495,6 +1489,7 @@ export function AccountStatusDialog(
         <PrimaryButton
           theme={themes.main}
           disabled={loading}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={onClickUnscheduleAnonymization}
           text={
             <FormattedMessage id="AccountStatusDialog.cancel-anonymization.action.cancel-anonymization" />
@@ -1518,6 +1513,7 @@ export function AccountStatusDialog(
         <PrimaryButton
           theme={themes.main}
           disabled={loading}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={onClickReenable}
           text={
             <FormattedMessage id="AccountStatusDialog.reenable-user.action.reenable" />
@@ -1542,6 +1538,7 @@ export function AccountStatusDialog(
         <PrimaryButton
           theme={themes.destructive}
           disabled={loading}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={onClickDisable}
           text={
             <FormattedMessage id="AccountStatusDialog.disable-user.action.disable" />
@@ -1567,6 +1564,7 @@ export function AccountStatusDialog(
           text={
             <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
           }
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onClick={onClickSetAccountValidPeriod}
         />
       );
@@ -1597,6 +1595,7 @@ export function AccountStatusDialog(
             text={
               <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
             }
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickSetAccountValidPeriod}
           />
         );
@@ -1618,6 +1617,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.main}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickScheduleAnonymization}
             text={
               <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
@@ -1628,6 +1628,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.destructive}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickAnonymize}
             text={
               <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
@@ -1652,6 +1653,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.destructive}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickAnonymize}
             text={
               <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
@@ -1672,6 +1674,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.main}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickScheduleDeletion}
             text={
               <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
@@ -1682,6 +1685,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.destructive}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickDelete}
             text={
               <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
@@ -1705,6 +1709,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.destructive}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickDelete}
             text={
               <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
@@ -1726,6 +1731,7 @@ export function AccountStatusDialog(
           <PrimaryButton
             theme={themes.main}
             disabled={loading}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onClickResetAccountLockout}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />

@@ -24,12 +24,19 @@ export interface ResourceFormProps {
   setState: (fn: (state: ResourceFormState) => ResourceFormState) => void;
 }
 
+const URI_SCHEME_RE = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
+
 export function sanitizeFormState(state: ResourceFormState): ResourceFormState {
   const resourceURI = state.resourceURI.trim();
+  const hasScheme = URI_SCHEME_RE.test(resourceURI);
 
   return {
     name: state.name.trim(),
-    resourceURI: resourceURI ? `https://${resourceURI}` : "",
+    resourceURI: resourceURI
+      ? hasScheme
+        ? resourceURI
+        : `https://${resourceURI}`
+      : "",
   };
 }
 

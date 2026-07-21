@@ -1,0 +1,50 @@
+.root {
+  /* The pivot item wrapper (.flex-1) is display: block, so stretch with
+     height: 100% like the Roles/Groups tabs do (h-full). */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(80px * 8 + 20px * 8);
+  margin-left: 10px;
+  padding-top: 16px;
+  row-gap: 12px;
+}
+
+.filterBar {
+  /* The bar already provides its own left padding; align it with the table. */
+  padding-left: 0;
+}
+
+/* Mirror the RefreshButton wrapper so the View button stretches to the bar
+   height and its hover background matches Refresh exactly. */
+.viewAllWrap {
+  display: flex;
+  height: 100%;
+}
+
+.tableArea {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.listWrapper {
+  overflow-y: auto;
+  /* Grow to fill the tab area so the pagination is pinned at the bottom,
+     matching the Audit Log screen and the Roles/Groups tabs. */
+  flex: 1 1 auto;
+  min-height: 8rem;
+}
+
+.pagination {
+  align-self: flex-end;
+  margin: 8px 16px 0;
+}
+
+.cell {
+  line-height: 18px;
+}
+
+.emptyMessageBar {
+  margin-top: 16px;
+}

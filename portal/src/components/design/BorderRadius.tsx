@@ -45,6 +45,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   const valueRadiusValue = value.type === "rounded" ? value.radius : undefined;
   useEffect(() => {
     if (valueRadiusValue == null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRadiusValue(DEFAULT_BORDER_RADIUS);
     } else {
       setRadiusValue(valueRadiusValue);

@@ -134,6 +134,7 @@ export function useCapture(): (
 
   const dispatch = useDispatch();
   const callback = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     (
       event: AuthgearGTMEventTypeV2,
       data?: AuthgearGTMEventDataV2,

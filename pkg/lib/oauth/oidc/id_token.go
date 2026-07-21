@@ -296,6 +296,9 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 	if isClaimAllowed(string(model.ClaimAuthenticators)) {
 		out[string(model.ClaimAuthenticators)] = userInfo.Authenticators
 	}
+	if isClaimAllowed(string(model.ClaimIdentities)) {
+		out[string(model.ClaimIdentities)] = userInfo.Identities
+	}
 	if isClaimAllowed(string(model.ClaimRecoveryCodeEnabled)) {
 		out[string(model.ClaimRecoveryCodeEnabled)] = userInfo.RecoveryCodeEnabled
 	}

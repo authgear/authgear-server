@@ -1,8 +1,15 @@
 import React, { useContext, useMemo } from "react";
+import cn from "classnames";
 import styles from "./Logo.module.css";
 import { Context } from "../../intl";
 
-export function Logo({ inverted }: { inverted?: boolean }): React.ReactElement {
+export function Logo({
+  inverted,
+  containerClassName,
+}: {
+  inverted?: boolean;
+  containerClassName?: string;
+}): React.ReactElement {
   const { renderToString } = useContext(Context);
   const src = useMemo(() => {
     if ((import.meta as any).env.DEV) {
@@ -17,7 +24,7 @@ export function Logo({ inverted }: { inverted?: boolean }): React.ReactElement {
   }, [inverted, renderToString]);
 
   return (
-    <div className={styles.logo__container}>
+    <div className={cn(styles.logo__container, containerClassName)}>
       <img
         className={styles.logo__img}
         alt={renderToString("system.name")}

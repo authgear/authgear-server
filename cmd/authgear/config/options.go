@@ -37,6 +37,18 @@ var Prompt_PortalClientID = cliutil.PromptString{
 	NonInteractiveFlagName:      "portal-client-id",
 }
 
+var Prompt_PortalClientType = cliutil.PromptString{
+	Title:                       "Portal client type (spa, traditional_webapp)",
+	InteractiveDefaultUserInput: "spa",
+	NonInteractiveFlagName:      "portal-client-type",
+	Validate: func(ctx context.Context, value string) error {
+		if value == "spa" || value == "traditional_webapp" {
+			return nil
+		}
+		return errors.New("must enter 'spa' or 'traditional_webapp'")
+	},
+}
+
 var Prompt_SiteadminClientID = cliutil.PromptString{
 	Title:                       "The client ID of siteadmin. If left empty, do not generate the siteadmin client.",
 	InteractiveDefaultUserInput: "",
@@ -214,6 +226,19 @@ func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) 
 		return nil, err
 	}
 
+	portalClientType, err := Prompt_PortalClientType.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var portalApplicationType config.OAuthClientApplicationType
+	switch portalClientType {
+	case "spa":
+		portalApplicationType = config.OAuthClientApplicationTypeSPA
+	default:
+		portalApplicationType = config.OAuthClientApplicationTypeTraditionalWeb
+	}
+
 	siteadminClientID, err := Prompt_SiteadminClientID.Prompt(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -236,7 +261,7 @@ func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) 
 		ClientID:              portalClientID,
 		RedirectURI:           portalRedirectURI,
 		PostLogoutRedirectURI: portalPostLogoutRedirectURI,
-		ApplicationType:       config.OAuthClientApplicationTypeTraditionalWeb,
+		ApplicationType:       portalApplicationType,
 	})
 
 	// Siteadmin is opt-in because many deployments do not need it.

@@ -6,10 +6,35 @@
   @apply flex flex-col;
 }
 
+/* Spans full 12-column grid so the pivot tab bar + border-bottom fill the content area.
+   Tab content is constrained back to 8 columns via itemContainer maxWidth in TSX. */
+.detailsRoot {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
+
+  @apply flex flex-col;
+}
+
+/* Constrains summary block to the original 8-column width (8×80px + 7×16px gaps = 752px). */
+.summarySection {
+  max-width: 752px;
+}
+
 .screenContent {
   @apply flex-1-0-auto;
 
   grid-template-rows: min-content minmax(min-content, 1fr);
+}
+
+/* Override ScreenContent's default fixed 80px columns so the 12-col detailsRoot
+   fills the full container width on large screens (making the pivot tab bar
+   full-bleed). Content width is constrained via summarySection / itemContainer
+   maxWidth. minmax(0, 1fr) avoids forcing a minimum width that would cause
+   horizontal scrolling on narrower viewports. The doubled selector raises
+   specificity above ScreenContent.module.css's .autoRows. */
+.screenContent.screenContent {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .pivot {

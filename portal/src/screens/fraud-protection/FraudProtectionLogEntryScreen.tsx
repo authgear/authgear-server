@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { Context, FormattedMessage } from "../../intl";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -58,6 +58,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
 
     const messageBar = useMemo(() => {
       if (error != null) {
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         return <ShowError error={error} onRetry={refetch} />;
       }
       return null;
@@ -68,8 +69,10 @@ const FraudProtectionLogEntryScreen: React.VFC =
         ? data.node
         : null;
 
-    const createdAt =
-      node != null ? formatDatetime(locale, node.createdAt) ?? "—" : "—";
+    const createdAt = useMemo(() => {
+      return node != null ? formatDatetime(locale, node.createdAt) ?? "—" : "—";
+    }, [locale, node]);
+
     const action = (() => {
       if (node == null) {
         return "—";
@@ -78,23 +81,28 @@ const FraudProtectionLogEntryScreen: React.VFC =
         "FraudProtectionConfigurationScreen.logs.action.smsotp"
       );
     })();
+
+    const triggeredWarnings: readonly string[] = node?.triggeredWarnings ?? [];
+    const decision: FraudProtectionDecision | null = node?.decision ?? null;
+
     const verdict = (() => {
-      if (node == null) {
-        return "—";
-      }
-      return renderToString(
-        getResultMessageID(node.decision, node.triggeredWarnings)
-      );
+      if (decision == null) return "—";
+      return renderToString(getResultMessageID(decision, triggeredWarnings));
     })();
+
     const verdictClassName = (() => {
-      if (node?.decision === FraudProtectionDecision.Blocked) {
+      if (decision === FraudProtectionDecision.Blocked) {
         return styles.summaryBadgeBlocked;
       }
-      if ((node?.triggeredWarnings.length ?? 0) > 0) {
+      if (triggeredWarnings.length > 0) {
         return styles.summaryBadgeFlagged;
       }
       return styles.summaryBadgeAllowed;
     })();
+
+    const ipAddress = node?.ipAddress || "—";
+    const geoLocationCode = node?.geoLocationCode || "—";
+    const userAgent = node?.userAgent || "—";
 
     const phoneNumber = (() => {
       switch (node?.actionDetail.__typename) {
@@ -112,12 +120,20 @@ const FraudProtectionLogEntryScreen: React.VFC =
           return "—";
       }
     })();
+
     const rawEventLog = useMemo(() => {
-      if (node?.data == null) {
-        return "{}";
-      }
+      if (node?.data == null) return "{}";
       return JSON.stringify(node.data, null, 2);
-    }, [node?.data]);
+    }, [node]);
+
+    if (!loading && error == null && node == null) {
+      return (
+        <Navigate
+          to={`/project/${appID}/attack-protection/fraud-protection#logs`}
+          replace={true}
+        />
+      );
+    }
 
     return (
       <CommandBarContainer
@@ -153,17 +169,13 @@ const FraudProtectionLogEntryScreen: React.VFC =
                 <span className={styles.summaryLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.ip" />
                 </span>
-                <span className={styles.summaryValue}>
-                  {node?.ipAddress || "—"}
-                </span>
+                <span className={styles.summaryValue}>{ipAddress}</span>
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.summaryLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.geoLocation" />
                 </span>
-                <span className={styles.summaryValue}>
-                  {node?.geoLocationCode || "—"}
-                </span>
+                <span className={styles.summaryValue}>{geoLocationCode}</span>
               </div>
             </div>
           </section>
@@ -177,9 +189,7 @@ const FraudProtectionLogEntryScreen: React.VFC =
                 <span className={styles.detailLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.userAgent" />
                 </span>
-                <span className={styles.detailValueMonospace}>
-                  {node?.userAgent || "—"}
-                </span>
+                <span className={styles.detailValueMonospace}>{userAgent}</span>
               </div>
             </section>
 
@@ -211,9 +221,9 @@ const FraudProtectionLogEntryScreen: React.VFC =
                 <span className={styles.detailLabel}>
                   <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.reasonCodes" />
                 </span>
-                {node != null && node.triggeredWarnings.length > 0 ? (
+                {triggeredWarnings.length > 0 ? (
                   <div className={styles.reasonCodes}>
-                    {node.triggeredWarnings.map((code) => (
+                    {triggeredWarnings.map((code) => (
                       <span key={code} className={styles.reasonCodeTag}>
                         {code}
                       </span>

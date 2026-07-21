@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
@@ -33,7 +33,8 @@ function EditSAMLCertificateContent({
   certificates: SAMLIdpSigningCertificate[];
   generateNewCertificate: () => Promise<void>;
 }) {
-  const { isDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -129,6 +130,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
   } = useAppAndSecretConfigQuery(appID);
 
   if (error) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -147,6 +149,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
     return (
       <AutoGenerateFirstCertificate
         appID={appID}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onComplete={refetch}
         rawAppConfig={rawAppConfig}
         certificates={certificates}

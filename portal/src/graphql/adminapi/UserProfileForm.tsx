@@ -14,7 +14,6 @@ import {
   Text,
   ITextProps,
   ITheme,
-  Label,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "../../intl";
 import FormTextField from "../../FormTextField";
@@ -827,12 +826,10 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     );
 
     return (
-      <>
-        <Label className={styles.standardAttributesTitle}>
-          <Text variant="xLarge">
-            <FormattedMessage id="UserProfileForm.standard-attributes.title" />
-          </Text>
-        </Label>
+      <div className={styles.section}>
+        <Text as="h2" block={true} className={styles.sectionTitle}>
+          <FormattedMessage id="UserProfileForm.standard-attributes.title" />
+        </Text>
         <Div className={styles.nameGroup}>
           {isReadable("name") ? (
             <StandardAttributeTextField
@@ -1031,7 +1028,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
             />
           </Div>
         ) : null}
-      </>
+      </div>
     );
   };
 
@@ -1050,12 +1047,10 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
     } = props;
 
     return (
-      <>
-        <Label className={styles.standardAttributesTitle}>
-          <Text variant="xLarge">
-            <FormattedMessage id="UserProfileForm.custom-attributes.title" />
-          </Text>
-        </Label>
+      <div className={styles.section}>
+        <Text as="h2" block={true} className={styles.sectionTitle}>
+          <FormattedMessage id="UserProfileForm.custom-attributes.title" />
+        </Text>
         <div className={styles.customAttributesForm}>
           {customAttributesConfig.map((c) => {
             return (
@@ -1068,7 +1063,7 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
             );
           })}
         </div>
-      </>
+      </div>
     );
   };
 
@@ -1103,7 +1098,9 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
           onChangeStandardAttributes={onChangeStandardAttributes}
           standardAttributeAccessControl={standardAttributeAccessControl}
         />
-        <HorizontalDivider />
+        <div className={styles.sectionDivider}>
+          <HorizontalDivider />
+        </div>
         <CustomAttributesForm
           customAttributes={customAttributes}
           onChangeCustomAttributes={onChangeCustomAttributes}

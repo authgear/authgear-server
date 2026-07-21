@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Dialog,
   DialogFooter,
@@ -388,6 +388,10 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
   };
 
+// Access to this screen is gated at the route level by RequireAppFeature (see
+// AppRoot), which redirects to getting started when the project lacks fraud
+// protection. The screen therefore assumes the feature is available and is free
+// to use usePivotNavigation for its tabs without racing the redirect.
 const FraudProtectionConfigurationScreen: React.VFC =
   function FraudProtectionConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -447,10 +451,6 @@ const FraudProtectionConfigurationScreen: React.VFC =
     const isModifiable =
       featureConfig.effectiveFeatureConfig?.fraud_protection?.is_modifiable ??
       false;
-
-    if (!isModifiable) {
-      return <Navigate to="../bot-protection" replace={true} />;
-    }
 
     return (
       <FormContainer

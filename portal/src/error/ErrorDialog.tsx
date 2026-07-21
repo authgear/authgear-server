@@ -40,6 +40,7 @@ const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
 
   useEffect(() => {
     if (error != null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(true);
     }
   }, [error]);

@@ -17,10 +17,6 @@
   @apply mb-2;
 }
 
-.advancedSection {
-  @apply mt-2;
-}
-
 .cardContainer {
   @apply p-4;
   @apply border border-solid border-border-primary;
@@ -65,12 +61,13 @@
 }
 
 .rowContainer {
-  @apply flex items-center gap-x-3;
-  @apply p-3;
+  @apply grid items-center gap-x-4;
+  @apply px-4 py-3;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
 .rowColumn {
-  @apply flex flex-1 gap-3 items-center;
+  @apply flex gap-3 items-center min-w-0;
 }
 
 .rowIcon {
@@ -97,4 +94,24 @@
 
 .rowHeader {
   @apply font-semibold;
+}
+
+.rowAlias {
+  @apply font-mono truncate;
+}
+
+.aliasField {
+  @apply flex flex-col;
+}
+
+.aliasRow {
+  @apply flex items-start gap-x-3;
+}
+
+.aliasInput {
+  @apply flex-1;
+}
+
+.aliasDescription {
+  @apply mt-2 text-sm;
 }

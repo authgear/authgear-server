@@ -60,6 +60,12 @@ import {
   TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT,
+  RESOURCE_SETUP_SECONDARY_LOGIN_LINK_HTML,
+  RESOURCE_SETUP_SECONDARY_LOGIN_LINK_TXT,
+  RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_HTML,
+  RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_TXT,
+  TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_LOGIN_LINK_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_LOGIN_LINK_SUBJECT,
 } from "../../resources";
 import {
   LanguageTag,
@@ -88,7 +94,7 @@ interface FormState extends ResourcesFormState {
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -728,6 +734,38 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
+    // email_otp_mode is a single shared config; the same value that drives the
+    // primary (Passwordless) tab also drives the secondary (MFA) tab.
+    const mfaViaEmailOTPMode = passwordlessViaEmailOTPMode;
+
+    const mfaViaEmailTemplates = {
+      code: {
+        setupHtml: RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML,
+        setupPlainText: RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT,
+        authenticateHtml: RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML,
+        authenticatePlainText: RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT,
+      },
+      login_link: {
+        setupHtml: RESOURCE_SETUP_SECONDARY_LOGIN_LINK_HTML,
+        setupPlainText: RESOURCE_SETUP_SECONDARY_LOGIN_LINK_TXT,
+        authenticateHtml: RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_HTML,
+        authenticatePlainText: RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_TXT,
+      },
+    }[mfaViaEmailOTPMode];
+
+    const mfaViaEmailSubject = {
+      code: {
+        setup: TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT,
+        authenticate:
+          TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT,
+      },
+      login_link: {
+        setup: TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_LOGIN_LINK_SUBJECT,
+        authenticate:
+          TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_LOGIN_LINK_SUBJECT,
+      },
+    }[mfaViaEmailOTPMode];
+
     const sectionsMFAViaEmail: EditTemplatesWidgetSection[] = [
       {
         key: "setup",
@@ -737,12 +775,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "email-subject",
             title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
             language: "plaintext",
-            value: getTranslationValue(
-              TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT
-            ),
-            onChange: getTranslationOnChange(
-              TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT
-            ),
+            value: getTranslationValue(mfaViaEmailSubject.setup),
+            onChange: getTranslationOnChange(mfaViaEmailSubject.setup),
             editor: "textfield",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -750,8 +784,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
-            value: getValue(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML),
-            onChange: getOnChange(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_HTML),
+            value: getValue(mfaViaEmailTemplates.setupHtml),
+            onChange: getOnChange(mfaViaEmailTemplates.setupHtml),
             editor: "code",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -761,8 +795,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
             ),
             language: "plaintext",
-            value: getValue(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT),
-            onChange: getOnChange(RESOURCE_SETUP_SECONDARY_OOB_EMAIL_TXT),
+            value: getValue(mfaViaEmailTemplates.setupPlainText),
+            onChange: getOnChange(mfaViaEmailTemplates.setupPlainText),
             editor: "code",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -778,12 +812,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "email-subject",
             title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
             language: "plaintext",
-            value: getTranslationValue(
-              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT
-            ),
-            onChange: getTranslationOnChange(
-              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT
-            ),
+            value: getTranslationValue(mfaViaEmailSubject.authenticate),
+            onChange: getTranslationOnChange(mfaViaEmailSubject.authenticate),
             editor: "textfield",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -791,10 +821,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
-            value: getValue(RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML),
-            onChange: getOnChange(
-              RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_HTML
-            ),
+            value: getValue(mfaViaEmailTemplates.authenticateHtml),
+            onChange: getOnChange(mfaViaEmailTemplates.authenticateHtml),
             editor: "code",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -804,10 +832,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
             ),
             language: "plaintext",
-            value: getValue(RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT),
-            onChange: getOnChange(
-              RESOURCE_AUTHENTICATE_SECONDARY_OOB_EMAIL_TXT
-            ),
+            value: getValue(mfaViaEmailTemplates.authenticatePlainText),
+            onChange: getOnChange(mfaViaEmailTemplates.authenticatePlainText),
             editor: "code",
             readOnly: isTemplateCustomizationDisabled,
           },
@@ -1157,7 +1183,7 @@ const LocalizationConfigurationScreen: React.VFC =
       () => ({
         isLoading: config.isLoading || resources.isLoading,
         isUpdating: resources.isUpdating,
-        isDirty: resources.isDirty,
+        getIsDirty: resources.getIsDirty,
         loadError: config.loadError ?? resources.loadError,
         updateError: resources.updateError,
         state,

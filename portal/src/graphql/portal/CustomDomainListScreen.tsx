@@ -479,7 +479,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       appConfigForm: {
         state,
         setState,
-        isDirty,
+        getIsDirty,
         isUpdating,
         save,
         reset,
@@ -487,6 +487,8 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       },
       featureConfig,
     } = props;
+
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
     const { renderToString } = useContext(Context);
 
@@ -520,9 +522,11 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
         savedPublicOriginRef.current = state.publicOrigin;
       }
     }, [isDirty, state]);
+    // eslint-disable-next-line react-hooks/refs
     const prevSavedPublicOrigin = savedPublicOriginRef.current;
 
     const domainListItems: DomainListItem[] = useMemo(() => {
+      // eslint-disable-next-line react-hooks/refs
       const list: DomainListItem[] = domains.map((domain) => {
         const urlOrigin = getOriginFromDomain(domain.domain);
         const isPublicOrigin = urlOrigin === prevSavedPublicOrigin;

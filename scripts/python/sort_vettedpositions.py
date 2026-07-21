@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 import dataclasses
 import functools
 
@@ -31,8 +32,19 @@ class Line:
     return (self.path, self.line, self.column, self.contents) == (other.path, other.line, other.column, other.contents)
 
 
+def resolve_safe_path(path_to_file: str) -> str:
+  base_dir = os.getcwd()
+  resolved = os.path.realpath(os.path.join(base_dir, path_to_file))
+  if os.path.commonpath([base_dir, resolved]) != base_dir:
+    raise ValueError(f"path escapes the current working directory: {path_to_file}")
+  return resolved
+
+
 def main():
-  path_to_file = sys.argv[1]
+  if len(sys.argv) != 2:
+    print("usage: sort_vettedpositions.py <path>", file=sys.stderr)
+    sys.exit(1)
+  path_to_file = resolve_safe_path(sys.argv[1])
   lines = []
   with open(path_to_file) as f:
     for line in f:

@@ -4,13 +4,20 @@ import { useNavigate, useBlocker } from "react-router-dom";
 import BlockerDialog from "./BlockerDialog";
 
 interface NavigationBlockerDialogProps {
-  blockNavigation: boolean;
+  // Always-fresh dirty check (see useSyncFormStates), called at the
+  // exact moment a navigation is attempted. A plain boolean prop would
+  // only be as fresh as the last render -- a form's save() can clear
+  // dirtiness and then immediately navigate away (e.g. via
+  // FormContainerBase's afterSave) before React has re-rendered this
+  // component with the updated value, causing this dialog to show
+  // spuriously right after a successful save.
+  getIsDirty: () => boolean;
   onConfirmNavigation?: () => void;
 }
 
 const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
   function NavigationBlockerDialog(props: NavigationBlockerDialogProps) {
-    const { blockNavigation, onConfirmNavigation } = props;
+    const { getIsDirty, onConfirmNavigation } = props;
 
     const navigate = useNavigate();
 
@@ -22,12 +29,23 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
     const blocker = useBlocker(
       useCallback(
         ({
+          currentLocation,
           nextLocation,
         }: {
           currentLocation: Location;
           nextLocation: Location;
         }) => {
-          if (blockNavigation && !navigationBlockerDialog.visible) {
+          // A navigation that stays on the same path (e.g. a hash-only
+          // change from Pivot, a search-param update, or an internal
+          // replace navigation like useLocationEffect popping location
+          // state) does not navigate the user away from this page, so it
+          // must never trigger the confirmation dialog.
+          const isSamePath = currentLocation.pathname === nextLocation.pathname;
+          if (isSamePath) {
+            return false;
+          }
+
+          if (getIsDirty() && !navigationBlockerDialog.visible) {
             setNavigationBlockerDialog({
               visible: true,
               destination: nextLocation,
@@ -36,7 +54,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
           }
           return false; // Do not block navigation
         },
-        [blockNavigation, navigationBlockerDialog.visible]
+        [getIsDirty, navigationBlockerDialog.visible]
       )
     );
 
@@ -48,8 +66,14 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
     }, [blocker]);
 
     const onDialogDismiss = useCallback(() => {
+      // Release the router's blocked transition. Otherwise the navigation
+      // stays blocked even after this dialog is hidden, and the very next
+      // navigation attempt can find the router still stuck mid-transition.
+      if (blocker.state === "blocked") {
+        blocker.reset();
+      }
       setNavigationBlockerDialog({ visible: false });
-    }, []);
+    }, [blocker]);
 
     const onDialogConfirm = useCallback(() => {
       const { destination } = navigationBlockerDialog;

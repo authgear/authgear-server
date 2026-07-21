@@ -66,6 +66,7 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	// This route is intentionally simple.
 	// This does not check Host and allow any origin.
 	generatedStaticChain := httproute.Chain(
+		p.RootMiddleware(newOtelMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(middleware.CORSStar),

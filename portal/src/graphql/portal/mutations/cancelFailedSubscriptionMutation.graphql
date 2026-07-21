@@ -1,11 +1,5 @@
-mutation cancelFailedSubscriptionMutation(
-  $appID: ID!
-) {
-  cancelFailedSubscription(
-    input: {
-      appID: $appID
-    }
-  ) {
+mutation cancelFailedSubscriptionMutation($appID: ID!) {
+  cancelFailedSubscription(input: { appID: $appID }) {
     app {
       id
       isProcessingSubscription

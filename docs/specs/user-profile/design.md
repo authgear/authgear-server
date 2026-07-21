@@ -491,6 +491,22 @@ A boolean. True if the user can perform reauthentication.
 
 A list of authenticators owned by the user. See [this doc](../sdk-settings-actions.md).
 
+#### https://authgear.com/claims/user/identities
+
+A list of identities linked to the user. See [this doc](../sdk-settings-actions.md).
+
+Each element in the array has the following fields:
+
+- `type` (string): The identity type. One of `login_id`, `oauth`, `anonymous`, `biometric`, `passkey`, `siwe`, `ldap`.
+- `created_at` (string): RFC 3339 timestamp of when the identity was created.
+- `updated_at` (string): RFC 3339 timestamp of when the identity was last updated.
+- `login_id_key` (string, optional): The configured key name of the login ID (e.g. `"email"`, `"phone"`, `"username"`). Present only when `type` is `login_id`.
+- `login_id_type` (string, optional): The type of login ID. One of `"email"`, `"phone"`, `"username"`. Present only when `type` is `login_id`.
+- `oauth_provider_type` (string, optional): The type of the OAuth provider (e.g. `"google"`, `"facebook"`). Present only when `type` is `oauth`.
+- `oauth_provider_alias` (string, optional): The configured alias of the OAuth provider. Present only when `type` is `oauth`.
+
+> **Design note:** Fields inside each identity element use plain keys (e.g. `provider_alias`) rather than the namespaced form (`https://authgear.com/claims/oauth/provider_alias`). Namespaced keys at the top level of the userinfo response are an OIDC convention to avoid collisions with standard claims; they are not used inside nested objects — the OIDC standard itself follows this pattern (e.g. the `address` claim uses plain keys like `street_address` and `country`). The Admin API GraphQL exposes identity claims as a raw `IdentityClaims` scalar that includes the namespaced keys, but that is a different surface reflecting the full internal claims map rather than a curated view.
+
 #### https://authgear.com/claims/user/recovery_code_enabled
 
 A boolean. See [this doc](../sdk-settings-actions.md).

@@ -36,9 +36,11 @@ interface AuditLogFilterBarProps {
   onRemoveAllFilters: () => void;
   onRefresh: () => void;
   searchBoxProps?: ISearchBoxProps;
+  hideSearchBox?: boolean;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
   lastUpdatedAt: Date;
+  trailingActions?: React.ReactNode;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -49,9 +51,11 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     onRemoveAllFilters,
     onRefresh,
     searchBoxProps,
+    hideSearchBox = false,
     dateRange,
     availableActivityTypes,
     lastUpdatedAt,
+    trailingActions,
   }) {
     const onChangeSearchKeyword = useCallback(
       (e?: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,13 +95,15 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
             onChange={onChangeActivityType}
             availableActivityTypes={availableActivityTypes}
           />
-          <SearchBox
-            className={styles.searchBox}
-            value={filters.searchKeyword}
-            onChange={onChangeSearchKeyword}
-            onClear={onClearSearchKeyword}
-            {...searchBoxProps}
-          />
+          {hideSearchBox ? null : (
+            <SearchBox
+              className={styles.searchBox}
+              value={filters.searchKeyword}
+              onChange={onChangeSearchKeyword}
+              onClear={onClearSearchKeyword}
+              {...searchBoxProps}
+            />
+          )}
         </div>
         <div className={styles.filterActionContainer}>
           <div className={styles.clearAllButtonContainer}>
@@ -107,6 +113,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
             />
           </div>
           <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
+          {trailingActions}
         </div>
       </div>
     );

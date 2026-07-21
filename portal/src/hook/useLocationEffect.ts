@@ -11,11 +11,25 @@ export function useLocationEffect<S>(
   const navigate = useNavigate();
   useEffect(() => {
     if (state != null) {
-      effectFunction(state);
-      navigate(location, {
-        replace: true,
-      });
+      // navigate() is async, so we must await it before running
+      // effectFunction. Otherwise, if effectFunction triggers its own
+      // re-render (e.g. via a form's setState) before navigate() has
+      // actually cleared location.state, that render still observes the
+      // old, non-null state, and this effect runs again.
+      Promise.resolve(
+        navigate(location, {
+          replace: true,
+        })
+      )
+        .then(() => {
+          effectFunction(state);
+        })
+        .catch((e: unknown) => {
+          console.error(e);
+        });
     }
-  }, [effectFunction, navigate, location, state]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return state;
 }

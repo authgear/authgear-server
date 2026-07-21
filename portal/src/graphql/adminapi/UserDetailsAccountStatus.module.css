@@ -1,3 +1,8 @@
+.root {
+  margin-left: 10px;
+  padding-top: 16px;
+}
+
 .actionCell {
   grid-template:
     "plabel         paction"
@@ -6,7 +11,11 @@
     / auto min-content min-content;
   @apply grid;
   @apply gap-x-2 gap-y-1;
-  @apply py-6;
+  @apply pb-6;
+}
+
+.actionCell + .actionCell {
+  @apply pt-6;
 }
 
 .actionCell:last-child {

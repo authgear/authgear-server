@@ -79,7 +79,7 @@ steps:
         {"action": {"type": "verify"}}
 
   # Flow 4: SG number matching regex ^\+6591\d+$ — always_allow by regex.
-  # Bypasses fraud protection entirely, even though the threshold has been reached.
+  # Buckets are still filled, but the decision is forced to allowed.
 
   - name: flow 4 - create (SG matching regex, always_allow)
     action: create
@@ -103,8 +103,8 @@ steps:
       result: |
         {"action": {"type": "verify"}}
 
-  # Flow 5: US number — does not match the regex. This is the 4th distinct non-always-allowed
-  # country from this IP, which exceeds the threshold and is blocked.
+  # Flow 5: US number — does not match the regex. Blocked because distinct unverified
+  # countries from this IP now exceeds the threshold of 3.
 
   - name: flow 5 - create (US, does not match regex)
     action: create
@@ -132,22 +132,25 @@ steps:
           "code": 429
         }
 
-  # Audit log should have exactly 4 entries: 3 allowed (HK, MY, JP) + 1 blocked (US).
-  # The SG flow 4 produces NO audit entry because always_allow returns before any recording.
+  # Audit log has 5 entries: HK/MY/JP (allowed), SG (allowed with allow_reason=always_allow_phone),
+  # US (blocked). Always_allow no longer skips audit recording.
 
   - name: check audit log
     action: audit_query
     audit_query: |
-      SELECT activity_type, data->'payload'->'record'->>'decision' AS decision
+      SELECT
+        data->'payload'->'record'->>'decision' AS decision,
+        data->'payload'->'record'->>'allow_reason' AS allow_reason
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}'
         AND activity_type = 'fraud_protection.decision_recorded'
-      ORDER BY decision, created_at
+      ORDER BY decision, allow_reason, created_at
     audit_query_output:
       rows: |
         [
-          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
-          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
-          {"activity_type": "fraud_protection.decision_recorded", "decision": "allowed"},
-          {"activity_type": "fraud_protection.decision_recorded", "decision": "blocked"}
+          {"decision": "allowed", "allow_reason": "always_allow_phone"},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "allowed", "allow_reason": null},
+          {"decision": "blocked", "allow_reason": null}
         ]

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
@@ -58,7 +58,8 @@ const AccountAnonymizationConfigurationContent: React.VFC<AccountAnonymizationCo
     const { form } = props;
     const { state, setState } = form;
     const { grace_period_days } = state;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeGracePeriod = useCallback(

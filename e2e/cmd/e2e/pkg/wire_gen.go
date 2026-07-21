@@ -523,6 +523,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
@@ -624,6 +625,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Clock:           clockClock,
 		Database:        handle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

@@ -87,6 +87,7 @@ export function useAppSecretVisitToken(
       isMounted = false;
     };
     if (secrets.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(null);
       return cleanupFn;
     }

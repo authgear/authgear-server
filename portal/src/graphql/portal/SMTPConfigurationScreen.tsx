@@ -272,6 +272,7 @@ const ERROR_RULES: ErrorParseRule[] = [
     if (apiError.reason === "SMTPTestFailed") {
       return {
         parsedAPIErrors: [
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           { message: (apiError as APISMTPTestFailedError).message },
         ],
         fullyHandled: true,
@@ -305,7 +306,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     const [showPassword, setShowPassword] = useState(false);
     const { viewer } = useViewerQuery();
     const { renderToString } = useContext(Context);
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeProviderType = useCallback(
@@ -886,6 +888,7 @@ const SMTPConfigurationScreen1: React.VFC<{
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const state = useMemo<FormState>(() => {
     return {
       ...configForm.state,
@@ -920,7 +923,7 @@ const SMTPConfigurationScreen1: React.VFC<{
     isLoading:
       configQuery.isLoading || configForm.isLoading || featureConfig.isLoading,
     isUpdating: configForm.isUpdating,
-    isDirty: configForm.isDirty,
+    getIsDirty: configForm.getIsDirty,
     loadError:
       configQuery.loadError ??
       (configForm.loadError || featureConfig.loadError),

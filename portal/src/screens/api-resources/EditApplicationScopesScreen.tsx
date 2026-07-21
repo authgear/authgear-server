@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormattedMessage } from "../../intl";
 import {
   GetClientResourceScopesDocument,
@@ -11,7 +11,7 @@ import {
   ResourceScopesQueryQuery,
 } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
 import { useReplaceScopesOfClientIdMutation } from "../../graphql/adminapi/mutations/replaceScopesOfClientID.generated";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import {
   EditApplicationScopesList,
   EditApplicationScopesListItem,
@@ -67,7 +67,7 @@ export function EditApplicationScopesScreenContent({
     [remoteClientScopes]
   );
 
-  const form = useSimpleForm<FormState>({
+  const form = useFormWithExternalInitialState<FormState>({
     defaultState: initialState,
     submit: async () => {
       await replaceScopesOfClientIdMutation({
@@ -79,8 +79,8 @@ export function EditApplicationScopesScreenContent({
         awaitRefetchQueries: true,
         refetchQueries: [GetClientResourceScopesDocument],
       });
+      return { result: undefined };
     },
-    stateMode: "UpdateInitialStateWithUseEffect",
   });
 
   const assignedScopes = useMemo((): Set<string> => {
@@ -204,7 +204,12 @@ const EditApplicationScopesScreen: React.VFC =
           scopesQueryData == null ||
           clientScopesQueryData == null
         ) {
-          return null;
+          return (
+            <Navigate
+              to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
+              replace={true}
+            />
+          );
         }
 
         return (

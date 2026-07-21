@@ -253,6 +253,10 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 						Kind:      model.AuthenticatorKindPrimary,
 					},
 				},
+				Identities: []model.UserInfoIdentity{
+					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
+					{CreatedAt: createdAt, UpdatedAt: updatedAt, Type: model.IdentityTypeLoginID, LoginIDKey: "email", LoginIDType: model.LoginIDKeyTypeEmail},
+				},
 			},
 			nil,
 		)
@@ -265,7 +269,7 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 			ClientID:        "client-id",
 			ApplicationType: config.OAuthClientApplicationTypeSPA,
 		}
-		client := oauth.ClientClientLike(clientConfig, []string{"openid", "email", oauth.FullUserInfoScope, string(model.ClaimAuthenticators), string(model.ClaimPhoneNumber), string(model.ClaimEmail)})
+		client := oauth.ClientClientLike(clientConfig, []string{"openid", "email", oauth.FullUserInfoScope, string(model.ClaimAuthenticators), string(model.ClaimIdentities), string(model.ClaimPhoneNumber), string(model.ClaimEmail)})
 		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", client)
 		So(err, ShouldBeNil)
 
@@ -298,6 +302,22 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
     }
   ],
   "https://authgear.com/claims/user/can_reauthenticate": true,
+  "https://authgear.com/claims/user/identities": [
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "oauth",
+      "oauth_provider_type": "google",
+      "oauth_provider_alias": "google"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "login_id",
+      "login_id_key": "email",
+      "login_id_type": "email"
+    }
+  ],
   "https://authgear.com/claims/user/is_anonymous": false,
   "https://authgear.com/claims/user/is_verified": true,
   "https://authgear.com/claims/user/recovery_code_enabled": true,
@@ -340,6 +360,9 @@ func TestGetUserInfo(t *testing.T) {
 						Kind: model.AuthenticatorKindPrimary,
 					},
 				},
+				Identities: []model.UserInfoIdentity{
+					{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
+				},
 				RecoveryCodeEnabled: true,
 			},
 			nil,
@@ -353,7 +376,7 @@ func TestGetUserInfo(t *testing.T) {
 		client := &config.OAuthClientConfig{
 			ClientID: "client-id",
 		}
-		scopes := []string{"openid", "email", "https://authgear.com/scopes/full-userinfo"}
+		scopes := []string{"openid", "email", "https://authgear.com/scopes/full-userinfo", string(model.ClaimIdentities)}
 
 		clientLike := oauth.ClientClientLike(client, scopes)
 		clientLike.PIIAllowedInIDToken = true
@@ -373,6 +396,9 @@ func TestGetUserInfo(t *testing.T) {
 				Type: model.AuthenticatorTypePassword,
 				Kind: model.AuthenticatorKindPrimary,
 			},
+		})
+		So(userInfo[string(model.ClaimIdentities)], ShouldResemble, []model.UserInfoIdentity{
+			{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
 		})
 	})
 }

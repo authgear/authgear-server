@@ -1,5 +1,11 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   useLocation,
   useNavigate,
@@ -372,11 +378,20 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       clientSecretHook,
     } = props;
     const { renderToString } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
 
     const { formTab, setFormTab } = useContext(FormTabContext);
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
+    useEffect(() => {
+      if (client != null) {
+        return;
+      }
+      navigate(`/project/${appID}/configuration/apps`, { replace: true });
+    }, [appID, client, navigate]);
 
     const clientSecret = useMemo(() => {
       return client?.client_id
@@ -403,14 +418,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     );
 
     if (client == null) {
-      return (
-        <Text>
-          <FormattedMessage
-            id="EditOAuthClientScreen.client-not-found"
-            values={{ clientID }}
-          />
-        </Text>
-      );
+      return null;
     }
 
     return (
@@ -826,6 +834,7 @@ const EditOAuthClientScreen1: React.VFC<{
           samlIdpSigningCertificates={samlIdPSigningCertificates}
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
+          // eslint-disable-next-line @typescript-eslint/strict-void-return
           refetchAppAndSecretConfig={refetchAppAndSecretConfig}
           clientSecretHook={generateClientSecretHook}
         />

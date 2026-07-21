@@ -25,6 +25,7 @@ export interface UseTooltipTargetElementResult {
 }
 
 export function useTooltipTargetElement(): UseTooltipTargetElementResult {
+  // eslint-disable-next-line react-hooks/purity
   const { current: id } = useRef(String(Math.random()));
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const setRef = useCallback(
@@ -37,7 +38,9 @@ export function useTooltipTargetElement(): UseTooltipTargetElementResult {
     },
     [id, setTargetElement]
   );
+  // eslint-disable-next-line react-hooks/refs
   return {
+    // eslint-disable-next-line react-hooks/refs
     id,
     setRef,
     targetElement: targetElement ?? undefined,

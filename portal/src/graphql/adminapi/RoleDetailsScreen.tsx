@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useRef,
@@ -21,7 +22,8 @@ import { RoleQueryNodeFragment } from "./query/roleQuery.generated";
 import { validateRole } from "../../model/role";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
-import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
@@ -190,6 +192,7 @@ function RoleDetailsScreenSettingsFormContainer({
         name: sanitizedRole.name,
         description: sanitizedRole.description,
       });
+      return { result: undefined };
     },
     [role.id, updateRole]
   );
@@ -202,8 +205,7 @@ function RoleDetailsScreenSettingsFormContainer({
     };
   }, [role]);
 
-  const form = useSimpleForm({
-    stateMode: "UpdateInitialStateWithUseEffect",
+  const form = useFormWithExternalInitialState({
     defaultState,
     submit,
     validate,
@@ -319,6 +321,7 @@ function RoleDetailsScreenGroupListContainer({
   }, [role.groups?.edges]);
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -414,12 +417,27 @@ const RoleDetailsScreenLoaded: React.VFC<{
 };
 
 const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
-  const { roleID } = useParams() as { roleID: string };
+  const { appID, roleID } = useParams() as { appID: string; roleID: string };
+  const navigate = useNavigate();
   const { role, loading, error, refetch } = useRoleQuery(roleID, {
     fetchPolicy: "network-only",
   });
 
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    if (error != null) {
+      return;
+    }
+    if (role != null) {
+      return;
+    }
+    navigate(`/project/${appID}/user-management/roles`, { replace: true });
+  }, [appID, error, loading, navigate, role]);
+
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 

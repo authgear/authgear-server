@@ -11,11 +11,13 @@ var InvalidConfiguration = apierrors.InternalError.WithReason("InvalidConfigurat
 var OAuthProtocolError = apierrors.BadRequest.WithReason("OAuthProtocolError")
 var OAuthError = apierrors.BadRequest.WithReason("OAuthError")
 
-func NewOAuthError(errResp *oauthrelyingparty.ErrorResponse) error {
+func NewOAuthError(errResp *oauthrelyingparty.ErrorResponse, providerType string) error {
 	return OAuthError.NewWithInfo(errResp.Error(), apierrors.Details{
 		"error":             errResp.Error_,
 		"error_description": errResp.ErrorDescription,
 		"error_uri":         errResp.ErrorURI,
+		"provider_type":     providerType,
+		"error_category":    string(errResp.Category),
 	})
 }
 

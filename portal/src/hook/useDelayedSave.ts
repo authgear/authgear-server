@@ -13,6 +13,7 @@ export function useDelayedSave(form: FormModel): () => void {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDelaySave(false);
 
     void form.save();

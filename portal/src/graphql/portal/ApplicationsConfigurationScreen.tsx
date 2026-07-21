@@ -422,6 +422,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
               "ApplicationsConfigurationScreen.add-client-button"
             )}
             iconProps={{ iconName: "Add" }}
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
             onClick={onAddClientButtonClick}
             disabled={hardLimitReached}
           />

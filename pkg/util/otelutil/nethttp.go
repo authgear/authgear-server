@@ -8,6 +8,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric/noop"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
@@ -127,7 +128,8 @@ func WithHTTPRoute(httpRoute string) func(http.Handler) http.Handler {
 
 func WithOtelContext(httpRoute string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		otelHandler := otelhttp.NewHandler(next, httpRoute)
+		// Disable http metric here because it is handled in HTTPInstrumentationMiddleware
+		otelHandler := otelhttp.NewHandler(next, httpRoute, otelhttp.WithMeterProvider(noop.NewMeterProvider()))
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Extract trace context from query parameters if not present in headers.
 			// This allows trace propagation through redirects or links.

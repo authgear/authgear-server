@@ -320,7 +320,8 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
   function EndpointDirectAccessContent(props) {
     const { form } = props;
     const { public_origin: publicOrigin } = form.state;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeBrandPageURL = useCallback(
@@ -495,6 +496,7 @@ const EndpointDirectAccessScreen: React.VFC =
       return <ShowLoading />;
     }
     if (error) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
 

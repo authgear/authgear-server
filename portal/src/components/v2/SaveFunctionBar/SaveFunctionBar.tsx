@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
@@ -22,8 +22,12 @@ export function SaveFunctionBar({
   className,
   anchorRef,
 }: SaveFunctionBarProps): React.ReactElement | null {
-  const { canReset, canSave, isDirty, isUpdating, onReset, onSave } =
+  const { canReset, canSave, getIsDirty, isUpdating, onReset, onSave } =
     useFormContainerBaseContext();
+  // getIsDirty's identity changes exactly when the underlying dirtiness
+  // does (see useSyncFormStates' useLiveState), so this memo recomputes
+  // only when it needs to.
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const alignStyle = useSaveFunctionBarAlignment(anchorRef);
 
   const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
@@ -46,9 +50,14 @@ export function SaveFunctionBar({
   // Keep the bar mounted across the exit animation: `rendered` controls
   // mounting; the in/out keyframes play via the rootIn/rootOut classes.
   const [rendered, setRendered] = useState(isDirty);
+  // Mount immediately when the form becomes dirty. Adjusting state during
+  // render (rather than in an effect) is the recommended pattern and avoids
+  // a cascading render.
+  if (isDirty && !rendered) {
+    setRendered(true);
+  }
   useEffect(() => {
     if (isDirty) {
-      setRendered(true);
       return;
     }
     const timer = setTimeout(() => setRendered(false), TRANSITION_MS);

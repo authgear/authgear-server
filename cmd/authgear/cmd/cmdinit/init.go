@@ -197,6 +197,7 @@ func init() {
 	config.Prompt_PublicOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalClientID.DefineFlag(cmdInit)
+	config.Prompt_PortalClientType.DefineFlag(cmdInit)
 	config.Prompt_SiteadminClientID.DefineFlag(cmdInit)
 	config.Prompt_SiteadminRedirectURI.DefineFlag(cmdInit)
 	config.Prompt_SiteadminPostLogoutRedirectURI.DefineFlag(cmdInit)

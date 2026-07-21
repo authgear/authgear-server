@@ -73,8 +73,11 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
       errorContextRef.current;
     const { fieldErrors, topErrors, conflictErrors } = parseAPIErrors(
       apiErrors,
+      // eslint-disable-next-line react-hooks/refs
       fields,
+      // eslint-disable-next-line react-hooks/refs
       topRules,
+      // eslint-disable-next-line react-hooks/refs
       fallbackErrorMessageID
     );
     return {

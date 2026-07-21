@@ -58,6 +58,7 @@ export function APIResourceDetailsScreenTestTab({
   }, [effectiveAppConfig, selectedClientId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAccessToken(null);
   }, [selectedClient]);
 
@@ -226,6 +227,7 @@ export function APIResourceDetailsScreenTestTab({
               <div className="mt-4 flex space-x-4">
                 <ButtonWithLoading
                   labelId="APIResourceDetailsScreen.test.generateButton.text"
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onGenerate}
                   disabled={isGenerating}
                   loading={isRevealing || isGenerating}

@@ -16,6 +16,7 @@ import { UserGroupsListItem, UserGroupsList } from "./UserGroupsList";
 import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
 import { AddUserGroupsDialog } from "../dialog/AddUserGroupsDialog";
+import styles from "./UserDetailsRolesAndGroupsTab.module.css";
 
 const pageSize = 10;
 
@@ -115,6 +116,7 @@ function UserDetailsScreenGroupListContainer({
   }, [user.groups?.edges]);
 
   if (error != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -125,13 +127,17 @@ function UserDetailsScreenGroupListContainer({
   const totalCount = groupsQueryData?.groups?.totalCount ?? 0;
 
   if (totalCount === 0) {
-    return <GroupsEmptyView />;
+    return (
+      <div className={styles.root}>
+        <GroupsEmptyView />
+      </div>
+    );
   }
 
   return (
     <>
-      <section className={cn("flex flex-col h-full", className)}>
-        <header className="flex flex-row items-center justify-between mb-8">
+      <section className={cn(styles.root, "flex flex-col h-full", className)}>
+        <header className="flex flex-row items-center justify-between">
           <SearchBox
             className="max-w-[300px] min-w-0 flex-1 mr-2"
             placeholder={renderToString("search")}

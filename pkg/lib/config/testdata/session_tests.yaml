@@ -1,0 +1,25 @@
+part: SessionConfig
+name: empty
+error: null
+value: {}
+---
+part: SessionConfig
+name: use-session-cookie-true
+error: null
+value:
+  use_session_cookie: true
+---
+part: SessionConfig
+name: use-session-cookie-false
+error: null
+value:
+  use_session_cookie: false
+---
+part: SessionConfig
+name: use-session-cookie-invalid-type
+error: |-
+  invalid value:
+  /use_session_cookie: type
+    map[actual:[string] expected:[boolean]]
+value:
+  use_session_cookie: "true"

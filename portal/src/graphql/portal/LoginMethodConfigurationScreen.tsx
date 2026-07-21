@@ -533,7 +533,7 @@ interface FormState
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -1831,6 +1831,7 @@ export function LoginMethodSelectLoginMethodsSection(
       if (opt === "oauth" || opt === "custom") {
         onChangeLoginMethod(opt);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         onChangeLoginMethod(`password-${opt}` as LoginMethod);
       }
     },
@@ -2543,6 +2544,7 @@ function EmailSettings(props: EmailSettingsProps) {
 }
 
 interface PhoneSettingsProps {
+  appID: string;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
   phoneInputFeatureConfig?: PhoneInputFeatureConfig;
@@ -2551,6 +2553,7 @@ interface PhoneSettingsProps {
 
 function PhoneSettings(props: PhoneSettingsProps) {
   const {
+    appID,
     phoneInputConfig,
     loginIDKeyConfigsControl,
     phoneInputFeatureConfig,
@@ -2670,10 +2673,14 @@ function PhoneSettings(props: PhoneSettingsProps) {
                 id="FeatureConfig.phone-input.allowlist.restricted"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
-                  externalLink: (chunks: React.ReactNode) => (
+                  applicationLink: (chunks: React.ReactNode) => (
                     <ExternalLink href="https://go.authgear.com/portal-support">
                       {chunks}
                     </ExternalLink>
+                  ),
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  billingLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appID}/billing`}>{chunks}</Link>
                   ),
                 }}
               />
@@ -3792,6 +3799,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 itemKey="phone"
               >
                 <PhoneSettings
+                  appID={appID}
                   loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                   phoneInputConfig={phoneInputConfig}
                   phoneInputFeatureConfig={state.phoneInputFeatureConfig}
@@ -3977,7 +3985,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         featureConfig.isLoading ||
         secretConfig.isLoading,
       isUpdating: configForm.isUpdating || resourceForm.isUpdating,
-      isDirty: configForm.isDirty || resourceForm.isDirty,
+      getIsDirty: () => configForm.getIsDirty() || resourceForm.getIsDirty(),
       loadError:
         configForm.loadError ??
         resourceForm.loadError ??

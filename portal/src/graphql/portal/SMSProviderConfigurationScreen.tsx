@@ -753,6 +753,7 @@ function SMSProviderConfigurationScreen1({
 
   const [localError, setLocalError] = useState<APIError | null>(null);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const state = useMemo<FormState>(() => {
     return {
       ...configForm.state,
@@ -795,7 +796,7 @@ function SMSProviderConfigurationScreen1({
   const form: FormModel = {
     isLoading: configForm.isLoading || resources.isLoading,
     isUpdating: configForm.isUpdating || resources.isUpdating,
-    isDirty: configForm.isDirty || resources.isDirty,
+    getIsDirty: () => configForm.getIsDirty() || resources.getIsDirty(),
     loadError: configForm.loadError ?? resources.loadError,
     updateError: configForm.updateError ?? resources.updateError,
     state,
@@ -911,7 +912,8 @@ function SMSProviderConfigurationContent(props: {
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { isSMSRequiredForSomeEnabledFeatures, smsProviderConfigured } = state;
-  const { isDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const navigate = useNavigate();
   const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -1179,6 +1181,7 @@ function SMSProviderConfigurationContent(props: {
               <div>
                 <SecondaryButton
                   size="2"
+                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onTestSMS}
                   disabled={testConfig == null || checkDenoHookLoading}
                   text={

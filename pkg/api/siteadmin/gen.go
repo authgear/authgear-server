@@ -31,10 +31,29 @@ func (e CollaboratorRole) Valid() bool {
 	}
 }
 
+// Defines values for OrderDirection.
+const (
+	Asc  OrderDirection = "asc"
+	Desc OrderDirection = "desc"
+)
+
+// Valid indicates whether the value is a known member of the OrderDirection enum.
+func (e OrderDirection) Valid() bool {
+	switch e {
+	case Asc:
+		return true
+	case Desc:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListAppsParamsSort.
 const (
 	CreatedAt ListAppsParamsSort = "created_at"
 	Mau       ListAppsParamsSort = "mau"
+	Relevance ListAppsParamsSort = "relevance"
 )
 
 // Valid indicates whether the value is a known member of the ListAppsParamsSort enum.
@@ -44,23 +63,7 @@ func (e ListAppsParamsSort) Valid() bool {
 		return true
 	case Mau:
 		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ListAppsParamsOrder.
-const (
-	Asc  ListAppsParamsOrder = "asc"
-	Desc ListAppsParamsOrder = "desc"
-)
-
-// Valid indicates whether the value is a known member of the ListAppsParamsOrder enum.
-func (e ListAppsParamsOrder) Valid() bool {
-	switch e {
-	case Asc:
-		return true
-	case Desc:
+	case Relevance:
 		return true
 	default:
 		return false
@@ -119,13 +122,16 @@ type AppDetail struct {
 type AppsListResponse struct {
 	Apps []App `json:"apps"`
 
+	// CollaboratorSearchTruncated True when the `collaborator_search` keyword matched more than 20 portal users and results are limited to the top 20 matches. `total_count` is a lower bound in this case. Always `false` when `collaborator_search` is not provided.
+	CollaboratorSearchTruncated bool `json:"collaborator_search_truncated"`
+
 	// Page Current page number.
 	Page uint64 `json:"page"`
 
 	// PageSize Number of apps per page.
 	PageSize uint64 `json:"page_size"`
 
-	// TotalCount Total number of apps matching the query.
+	// TotalCount Total number of apps matching the query. When `collaborator_search_truncated` is `true`, this is a lower bound — apps whose collaborators are beyond the 20-match cap are not counted.
 	TotalCount int `json:"total_count"`
 }
 
@@ -204,6 +210,9 @@ type MonthlyActiveUsersUsage struct {
 	Counts []MonthlyActiveUsersCount `json:"counts"`
 }
 
+// OrderDirection Sort direction.
+type OrderDirection string
+
 // Plan defines model for Plan.
 type Plan struct {
 	// Name The plan name
@@ -213,6 +222,71 @@ type Plan struct {
 // PlansListResponse defines model for PlansListResponse.
 type PlansListResponse struct {
 	Plans []Plan `json:"plans"`
+}
+
+// SiteAdminAuditLog defines model for SiteAdminAuditLog.
+type SiteAdminAuditLog struct {
+	// ActivityType The site admin activity type (e.g. site_admin.app.plan.updated).
+	ActivityType string `json:"activity_type"`
+
+	// ActorUserId Portal user ID of the site admin who performed the action, extracted from audit_context.actor_user_id.
+	ActorUserId *string `json:"actor_user_id,omitempty"`
+
+	// AffectedAppId ID of the app that was acted on, extracted from data.payload.app_id.
+	AffectedAppId *string `json:"affected_app_id,omitempty"`
+
+	// CreatedAt When the event occurred, in RFC 3339 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Audit log entry ID (hex-encoded sequence number).
+	Id string `json:"id"`
+
+	// IpAddress IP address of the actor.
+	IpAddress *string `json:"ip_address,omitempty"`
+
+	// UserAgent User agent string of the actor's browser.
+	UserAgent *string `json:"user_agent,omitempty"`
+}
+
+// SiteAdminAuditLogDetail defines model for SiteAdminAuditLogDetail.
+type SiteAdminAuditLogDetail struct {
+	// ActivityType The site admin activity type (e.g. site_admin.app.plan.updated).
+	ActivityType string `json:"activity_type"`
+
+	// ActorUserId Portal user ID of the site admin who performed the action, extracted from audit_context.actor_user_id.
+	ActorUserId *string `json:"actor_user_id,omitempty"`
+
+	// AffectedAppId ID of the app that was acted on, extracted from data.payload.app_id.
+	AffectedAppId *string `json:"affected_app_id,omitempty"`
+
+	// CreatedAt When the event occurred, in RFC 3339 format.
+	CreatedAt time.Time `json:"created_at"`
+
+	// Data Raw audit log data — the full event JSON stored in the _audit_log.data column, including context and payload.
+	Data map[string]interface{} `json:"data"`
+
+	// Id Audit log entry ID (hex-encoded sequence number).
+	Id string `json:"id"`
+
+	// IpAddress IP address of the actor.
+	IpAddress *string `json:"ip_address,omitempty"`
+
+	// UserAgent User agent string of the actor's browser.
+	UserAgent *string `json:"user_agent,omitempty"`
+}
+
+// SiteAdminAuditLogsListResponse defines model for SiteAdminAuditLogsListResponse.
+type SiteAdminAuditLogsListResponse struct {
+	AuditLogs []SiteAdminAuditLog `json:"audit_logs"`
+
+	// Page Current page number.
+	Page uint64 `json:"page"`
+
+	// PageSize Number of entries per page.
+	PageSize uint64 `json:"page_size"`
+
+	// TotalCount Total number of entries matching the query.
+	TotalCount int `json:"total_count"`
 }
 
 // BadRequest Error response envelope matching the api.Response struct.
@@ -232,27 +306,24 @@ type ListAppsParams struct {
 	// PageSize Number of apps per page. Defaults to 20, maximum 20.
 	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
 
-	// AppId Filter by app ID.
+	// AppId Filter by app ID prefix. Returns all apps whose ID starts with the given value.
 	AppId *string `form:"app_id,omitempty" json:"app_id,omitempty"`
 
-	// OwnerEmail Filter by owner email address.
-	OwnerEmail *string `form:"owner_email,omitempty" json:"owner_email,omitempty"`
+	// CollaboratorSearch Filter by collaborator keyword. Searches the portal user database by partial email, name, or other attributes. Returns apps that have any collaborator (owner or editor) whose profile matches the keyword. When provided and `sort` is omitted, defaults to `sort=relevance`. At most 20 matching users are considered; if more than 20 users match, `collaborator_search_truncated` is set to `true` in the response and `total_count` is a lower bound.
+	CollaboratorSearch *string `form:"collaborator_search,omitempty" json:"collaborator_search,omitempty"`
 
 	// Plan Filter by plan name.
 	Plan *string `form:"plan,omitempty" json:"plan,omitempty"`
 
-	// Sort Field to sort by. Defaults to `created_at`.
+	// Sort Field to sort by. Defaults to `created_at`, or `relevance` when `collaborator_search` is provided. `relevance` sorts by how well the app's best-matching collaborator matches the `collaborator_search` keyword and requires `collaborator_search` to be set; using `relevance` without `collaborator_search` returns 400.
 	Sort *ListAppsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
-	// Order Sort direction. Defaults to `desc`.
-	Order *ListAppsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
+	// Order Sort direction. Defaults to `desc`. Ignored when `sort=relevance` (relevance is always highest-match first).
+	Order *OrderDirection `form:"order,omitempty" json:"order,omitempty"`
 }
 
 // ListAppsParamsSort defines parameters for ListApps.
 type ListAppsParamsSort string
-
-// ListAppsParamsOrder defines parameters for ListApps.
-type ListAppsParamsOrder string
 
 // GetAppMessagingUsageParams defines parameters for GetAppMessagingUsage.
 type GetAppMessagingUsageParams struct {
@@ -276,6 +347,21 @@ type GetAppMonthlyActiveUsersParams struct {
 
 	// EndMonth The end month, inclusive (1-12).
 	EndMonth int `form:"end_month" json:"end_month"`
+}
+
+// ListAuditLogsParams defines parameters for ListAuditLogs.
+type ListAuditLogsParams struct {
+	// Page Page number, 1-based. Defaults to 1.
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// PageSize Number of entries per page. Defaults to 20, maximum 100.
+	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+
+	// AffectedAppId Filter by the app that was acted on. When provided, only entries whose payload.app_id matches this value are returned.
+	AffectedAppId *string `form:"affected_app_id,omitempty" json:"affected_app_id,omitempty"`
+
+	// Order Sort direction for created_at. Defaults to `desc` (newest first).
+	Order *OrderDirection `form:"order,omitempty" json:"order,omitempty"`
 }
 
 // AddAppCollaboratorJSONRequestBody defines body for AddAppCollaborator for application/json ContentType.

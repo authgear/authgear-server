@@ -223,12 +223,14 @@ export function EditSAMLCertificateForm({
         formDisabled={formDisabled}
         onDownload={onClickDownloadCert}
         onRemove={onRemoveCert}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onActivate={onChangeActiveKey}
       />
 
       <button
         type="button"
         className={cn(styles.generateKeyButton, "mt-4")}
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onClick={generateNewCert}
         disabled={certificates.length >= 2 || isGenerating || formDisabled}
       >

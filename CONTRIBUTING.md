@@ -2,6 +2,7 @@
   * [Install dependencies](#install-dependencies)
     * [Install dependencies with asdf and homebrew](#install-dependencies-with-asdf-and-homebrew)
     * [Install dependencies with Nix Flakes](#install-dependencies-with-nix-flakes)
+  * [Quick setup](#quick-setup)
   * [Set up environment](#set-up-environment)
   * [Set up the database](#set-up-the-database)
   * [Set up MinIO](#set-up-minio)
@@ -161,7 +162,38 @@ use flake
 
 2. Run `make build-frontend`.
 
+## Quick setup
+
+Once dependencies are installed, the fastest way to get a working local environment is:
+
+```sh
+make setup
+```
+
+`make setup` runs `make vendor` followed by `./scripts/sh/setup-dev.sh`, an idempotent one-shot script (safe to re-run) that:
+
+1. Copies `.env.example` → `.env` (if `.env` does not exist).
+2. Starts the container services it needs (`postgres16`, `pgbouncer`, `redis`, `minio`).
+3. Generates `./var/authgear.yaml` and `./var/authgear.secrets.yaml` via `cmd/authgear init`.
+4. Runs all database migrations (authgear, audit, images, search, portal).
+5. Creates the portal config-source row.
+6. Registers `localhost` as a custom domain for the `accounts` app.
+7. Creates the MinIO buckets (`images`, `userexport`).
+8. Creates a bootstrap admin account and grants it `owner` on the `accounts` app.
+
+**Prerequisites:** `docker` (or `podman`) and `jq` on your `PATH`. If `docker` is not found the script auto-detects `podman`; override with `COMPOSE_CMD="podman compose" make setup`.
+
+The bootstrap account defaults to `user@example.com` / `password`. Override with:
+
+```sh
+ADMIN_EMAIL=dev@example.com ADMIN_PASSWORD=s3cr3t make setup
+```
+
+When it finishes, jump straight to [Run](#run). The sections below ([Set up environment](#set-up-environment), [Set up the database](#set-up-the-database), [Set up MinIO](#set-up-minio), [Create an account…](#create-an-account-for-yourselves-and-grant-you-access-to-the-portal)) are the manual equivalent of what `make setup` does — follow them only if you need to understand or customize a step.
+
 ## Set up environment
+
+> If you ran `make setup`, this is already done — skip to [Run](#run).
 
 1. Set up environment variables
 
@@ -177,8 +209,8 @@ use flake
      --output-folder ./var \
      --purpose portal \
      --app-id accounts \
-     --public-origin 'http://accounts.portal.localhost:3100' \
-     --portal-origin 'http://portal.localhost:8000' \
+     --public-origin 'http://localhost:3100' \
+     --portal-origin 'http://localhost:8000' \
      --portal-client-id portal \
      --siteadmin-client-id siteadmin \
      --siteadmin-redirect-uri 'http://localhost:8101/oauth2-redirect.html' \
@@ -200,10 +232,10 @@ use flake
        name: Portal
        redirect_uris:
        # See nginx.conf for the difference between 8000, 8001, 8010, and 8011
-       - "http://portal.localhost:8000/oauth-redirect"
-       - "http://portal.localhost:8001/oauth-redirect"
-       - "http://portal.localhost:8010/oauth-redirect"
-       - "http://portal.localhost:8011/oauth-redirect"
+       - "http://localhost:8000/oauth-redirect"
+       - "http://localhost:8001/oauth-redirect"
+       - "http://localhost:8010/oauth-redirect"
+       - "http://localhost:8011/oauth-redirect"
        # This redirect URI is used by the iOS and Android demo app.
        - "com.authgear.example://host/path"
        # This redirect URI is used by the React Native demo app.
@@ -214,9 +246,9 @@ use flake
        - com.authgear.exampleapp.xamarin://host/path
        post_logout_redirect_uris:
        # This redirect URI is used by the portal development server.
-       - "http://portal.localhost:8000/"
+       - "http://localhost:8000/"
        # This redirect URI is used by the portal production build.
-       - "http://portal.localhost:8010/"
+       - "http://localhost:8010/"
        x_application_type: traditional_webapp
      - client_id: siteadmin
        issue_jwt_access_token: true
@@ -228,21 +260,14 @@ use flake
        x_application_type: spa
    ```
 
-3. Set up `.localhost`
+3. Hostnames
 
-   For cookie to work properly, you need to use
+   The default local configuration uses plain `localhost`:
 
-   - `portal.localhost:8000` to access the portal.
-   - `accounts.portal.localhost:3100` to access the main server.
+   - `localhost:8000` to access the portal.
+   - `localhost:3100` to access the main server.
 
-   You can either do this by editing `/etc/hosts` or using `dnsmasq`.
-
-   Example `/etc/hosts` entries:
-
-   ```text
-   127.0.0.1 portal.localhost
-   127.0.0.1 accounts.portal.localhost
-   ```
+   Because `localhost` always resolves to `127.0.0.1`, no `/etc/hosts` editing or `dnsmasq` is required.
 
 ## Set up the database
 
@@ -296,6 +321,8 @@ mc mb local/userexport
 
 ## Create an account for yourselves and grant you access to the portal
 
+> If you ran `make setup`, the bootstrap account is already created and made owner of `accounts` — skip this section.
+
 1. Create an account
 
    The following command assumes everything is running, as it invokes the Admin API server to create an account!
@@ -304,7 +331,7 @@ mc mb local/userexport
    go run ./cmd/authgear internal admin-api invoke \
      --app-id accounts \
      --endpoint "http://localhost:3002" \
-     --host "accounts.portal.localhost:3100" \
+     --host "localhost:3100" \
      --query '
        mutation createUser($email: String!, $password: String!) {
          createUser(input: {
@@ -336,7 +363,7 @@ mc mb local/userexport
       --role owner
    ```
 
-3. Now you can navigate to your project in the [portal](http://portal.localhost:8000)
+3. Now you can navigate to your project in the [portal](http://localhost:8000)
 
 ## Known issues
 
@@ -586,8 +613,6 @@ go run ./cmd/portal internal configsource create ./var
 ```sh
 # This allows portal to access the admin api with accounts.localhost
 go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
-# This allows using accounts.portal.localhost:3100
-go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
 # This allows using localhost:3100
 go run ./cmd/portal internal domain create-custom accounts --apex-domain="localhost" --domain="localhost"
 ```

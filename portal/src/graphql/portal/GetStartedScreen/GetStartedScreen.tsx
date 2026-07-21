@@ -223,6 +223,7 @@ export default function GetStartedScreen(): React.ReactElement {
   }
 
   if (loadError) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={loadError} onRetry={refetch} />;
   }
 

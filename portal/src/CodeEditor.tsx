@@ -97,7 +97,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
   );
 
   const handleEditorMount = useCallback<OnMount>(
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
     async (editor, monaco) => {
       monacoRef.current = monaco;
 
@@ -120,7 +120,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
   );
 
   const handleEditorChange = useCallback<OnChange>(
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
     async (value, ev) => {
       void resolveImports(value);
 

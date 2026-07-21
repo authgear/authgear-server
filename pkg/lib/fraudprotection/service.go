@@ -32,6 +32,10 @@ type DatabaseHandle interface {
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
 
+type VerifiedClaimChecker interface {
+	ExistsByClaimNameAndValue(ctx context.Context, claimName, claimValue string) (bool, error)
+}
+
 var ServiceLogger = slogutil.NewLogger("fraudprotection")
 
 var ErrBlockedByFraudProtection = apierrors.TooManyRequest.WithReason("BlockedByFraudProtection").New("request blocked by fraud protection")
@@ -77,6 +81,7 @@ type Service struct {
 	Clock           clock.Clock
 	Database        DatabaseHandle
 	EventService    EventService
+	VerifiedClaims  VerifiedClaimChecker
 }
 
 // CheckAndRecord is the main entry point called BEFORE sending an SMS.
@@ -95,10 +100,6 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		return nil
 	}
 	phoneCountry := parsedPhone.Alpha2[0]
-
-	if s.isAlwaysAllowed(s.Config, ip, phoneNumber, phoneCountry) {
-		return nil
-	}
 
 	thresholds, err := s.ComputeThresholds(ctx, ip, phoneCountry)
 	if err != nil {
@@ -131,9 +132,23 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 		}
 	}
 
+	alwaysAllowReason := s.alwaysAllowReason(s.Config, ip, phoneNumber, phoneCountry)
+
+	isVerifiedClaim, err := s.checkVerifiedClaim(ctx, phoneNumber)
+	if err != nil {
+		return err
+	}
+
+	var allowReason model.FraudProtectionAllowReason
 	decision := model.FraudProtectionDecisionAllowed
 	action := s.Config.Decision.Action
-	if action == config.FraudProtectionDecisionActionDenyIfAnyWarning && len(warnings) > 0 {
+	if alwaysAllowReason != "" {
+		allowReason = alwaysAllowReason
+	} else if isVerifiedClaim && len(warnings) > 0 {
+		allowReason = model.FraudProtectionAllowReasonVerifiedClaim
+	} else if action == config.FraudProtectionDecisionActionRecordOnly && len(warnings) > 0 {
+		allowReason = model.FraudProtectionAllowReasonRecordOnly
+	} else if action == config.FraudProtectionDecisionActionDenyIfAnyWarning && len(warnings) > 0 {
 		decision = model.FraudProtectionDecisionBlocked
 	}
 
@@ -154,9 +169,10 @@ func (s *Service) CheckAndRecord(ctx context.Context, phoneNumber, messageType s
 
 	payload := &nonblocking.FraudProtectionDecisionRecordedEventPayload{
 		Record: model.FraudProtectionDecisionRecord{
-			Timestamp: s.Clock.NowUTC(),
-			Decision:  decision,
-			Action:    model.FraudProtectionActionSendSMS,
+			Timestamp:   s.Clock.NowUTC(),
+			Decision:    decision,
+			AllowReason: allowReason,
+			Action:      model.FraudProtectionActionSendSMS,
 			ActionDetail: model.FraudProtectionDecisionActionDetail{
 				Recipient:              phoneNumber,
 				Type:                   messageType,
@@ -363,14 +379,20 @@ func (s *Service) evaluateWarnings(cfg *config.FraudProtectionConfig, triggered 
 	return warnings
 }
 
-// isAlwaysAllowed checks IP CIDRs, IP geo codes, phone geo codes, and phone regex.
-func (s *Service) isAlwaysAllowed(cfg *config.FraudProtectionConfig, ip, phoneNumber, phoneCountry string) bool {
+// alwaysAllowReason checks IP CIDRs, IP geo codes, phone geo codes, and phone regex,
+// returning the specific allow reason or empty string if no rule matched.
+func (s *Service) alwaysAllowReason(cfg *config.FraudProtectionConfig, ip, phoneNumber, phoneCountry string) model.FraudProtectionAllowReason {
 	if cfg.Decision == nil || cfg.Decision.AlwaysAllow == nil {
-		return false
+		return ""
 	}
 	alwaysAllow := cfg.Decision.AlwaysAllow
-	return isIPAlwaysAllowed(alwaysAllow.IPAddress, ip) ||
-		isPhoneAlwaysAllowed(alwaysAllow.PhoneNumber, phoneNumber, phoneCountry)
+	if isIPAlwaysAllowed(alwaysAllow.IPAddress, ip) {
+		return model.FraudProtectionAllowReasonAlwaysAllowIP
+	}
+	if isPhoneAlwaysAllowed(alwaysAllow.PhoneNumber, phoneNumber, phoneCountry) {
+		return model.FraudProtectionAllowReasonAlwaysAllowPhone
+	}
+	return ""
 }
 
 func isIPAlwaysAllowed(ipAllow *config.FraudProtectionIPAlwaysAllow, ip string) bool {
@@ -433,4 +455,19 @@ func (s *Service) dispatchEventImmediately(ctx context.Context, payload event.No
 	return s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		return s.EventService.DispatchEventImmediately(ctx, payload)
 	})
+}
+
+// checkVerifiedClaim queries the verified-claim store, opening a read-only
+// transaction if the caller is not already inside one.
+func (s *Service) checkVerifiedClaim(ctx context.Context, phoneNumber string) (bool, error) {
+	if s.Database.IsInTx(ctx) {
+		return s.VerifiedClaims.ExistsByClaimNameAndValue(ctx, string(model.ClaimPhoneNumber), phoneNumber)
+	}
+	var result bool
+	err := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		var checkErr error
+		result, checkErr = s.VerifiedClaims.ExistsByClaimNameAndValue(ctx, string(model.ClaimPhoneNumber), phoneNumber)
+		return checkErr
+	})
+	return result, err
 }

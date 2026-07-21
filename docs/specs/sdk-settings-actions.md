@@ -5,6 +5,7 @@ This document specifies the API design of settings actions.
 - [Add / Change / Remove Email](#add--change--remove-email)
 - [Add / Change / Remove Phone](#add--change--remove-phone)
 - [Add / Change / Remove Username](#add--change--remove-username)
+- [Link / Unlink OAuth](#link--unlink-oauth)
 - [Setup / Change Password](#setup--change-password)
 - [Manage MFA](#manage-mfa)
 - [Setup / Change / Remove MFA Phone](#setup--change--remove-MFA-phone)
@@ -12,6 +13,7 @@ This document specifies the API design of settings actions.
 - [Setup / Change / Remove MFA Password](#setup--change--remove-MFA-password)
 - [Setup / Manage MFA TOTP](#setup--manage-mfa-totp)
 - [Setup / View Recovery Code](#setup--view-recovery-code)
+- [Display Linked OAuth Providers](#display-linked-oauth-providers)
 
 ---
 
@@ -105,6 +107,34 @@ await authgear.changeUsername("example", {
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
 const username = userInfo.preferredUsername;
+```
+
+## Link / Unlink OAuth
+
+### Intention
+
+App developers might want to offer custom buttons to trigger the UI in native App which manages the user's OAuth connections (e.g., Sign in with Google).
+
+`oauthProviderAlias` is the alias of the OAuth provider as configured in Authgear Portal under Social / Enterprise Login. It is **required** for both link and unlink.
+
+### SDK Design
+
+- Link OAuth
+
+```typescript
+await authgear.linkOAuth({
+  oauthProviderAlias: "google",
+  redirectURI: "com.example://complete",
+});
+```
+
+- Unlink OAuth
+
+```typescript
+await authgear.unlinkOAuth({
+  oauthProviderAlias: "google",
+  redirectURI: "com.example://complete",
+});
 ```
 
 ## Setup / Change Password
@@ -324,6 +354,32 @@ await authgear.setupRecoveryCode({ redirectURI: "com.example://complete" });
 await authgear.viewRecoveryCode({ redirectURI: "com.example://complete" });
 ```
 
+## Display Linked OAuth Providers
+
+### Intention
+
+App developers might want to know which OAuth providers the user has linked to their account, for example to show a "Connected accounts" screen or gate features behind a specific provider being linked.
+
+### SDK Design
+
+- Display Linked OAuth Providers
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const linkedOAuthProviders = userInfo.identities
+  .filter((i) => i.type === "oauth")
+  .map((i) => i.oauthProviderAlias);
+```
+
+- Check whether a specific provider is linked
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const isGoogleLinked = userInfo.identities.some(
+  (i) => i.type === "oauth" && i.oauthProviderAlias === "google"
+);
+```
+
 ## Full UserInfo Design
 
 - SDK Object
@@ -332,8 +388,20 @@ await authgear.viewRecoveryCode({ redirectURI: "com.example://complete" });
 interface Authenticator {
   kind: "primary" | "secondary";
   type: "password" | "passkey" | "totp" | "oob_otp_email" | "oob_otp_sms";
+  createdAt: Date;
+  updatedAt: Date;
   email?: string;
   phoneNumber?: string;
+}
+
+interface Identity {
+  type: "login_id" | "oauth" | "anonymous" | "biometric" | "passkey" | "siwe" | "ldap";
+  createdAt: Date;
+  updatedAt: Date;
+  loginIDKey?: string; // Present when type is "login_id", e.g. "email", "phone", "username"
+  loginIDType?: "email" | "phone" | "username"; // Present when type is "login_id"
+  oauthProviderType?: string; // Present when type is "oauth", e.g. "google", "facebook"
+  oauthProviderAlias?: string; // Present when type is "oauth"
 }
 
 interface UserInfo {
@@ -342,6 +410,7 @@ interface UserInfo {
   phoneNumber: string;
   preferredUsername: string;
   authenticators: []Authenticator;
+  identities: []Identity;
   recoveryCodeEnabled: boolean;
 }
 ```
@@ -357,21 +426,45 @@ interface UserInfo {
   "https://authgear.com/claims/user/authenticators": [
     {
       "kind": "primary",
-      "type": "password"
+      "type": "password",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
     },
     {
       "kind": "secondary",
       "type": "oob_otp_email",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
       "email": "oob_otp_email@example.com"
     },
     {
       "kind": "secondary",
       "type": "oob_otp_sms",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
       "phone_number": "+85212345678"
     },
     {
       "kind": "secondary",
-      "type": "totp"
+      "type": "totp",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "https://authgear.com/claims/user/identities": [
+    {
+      "type": "oauth",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "oauth_provider_type": "google",
+      "oauth_provider_alias": "google"
+    },
+    {
+      "type": "login_id",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "login_id_key": "email",
+      "login_id_type": "email"
     }
   ],
   "https://authgear.com/claims/user/recovery_code_enabled": true
@@ -381,4 +474,5 @@ interface UserInfo {
 ## Security Considerations
 
 - We will expose user's password status together with MFA emails and phone numbers in userinfo endpoint, therefore client apps will be able to know them. If the client app is malicious, they may use the information to attack an authgear user.
+- We expose which identity types and OAuth provider aliases are linked via `https://authgear.com/claims/user/identities`. A malicious client app could use this to infer which providers a user has accounts with.
 - We can hide these fields in Third-Party Clients (by checking scope `https://authgear.com/scopes/full-access`) to mitigate the risk.

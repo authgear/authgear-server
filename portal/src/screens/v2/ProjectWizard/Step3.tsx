@@ -121,7 +121,6 @@ export function Step3(): React.ReactElement {
           size="3"
           text={<FormattedMessage id="ProjectWizardScreen.actions.done" />}
           loading={form.isUpdating}
-          onClick={form.save}
           disabled={!form.canSave}
         />
       </div>

@@ -580,6 +580,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
@@ -693,6 +694,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:           clockClock,
 		Database:        handle,
 		EventService:    eventService,
+		VerifiedClaims:  storePQ,
 	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{

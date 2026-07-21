@@ -18,11 +18,17 @@
 
 .contentItem {
   @apply col-span-full;
-  @apply border-x-0 border-t border-b border-solid border-separator;
+  @apply border-x-0 border-t-0 border-b border-solid border-separator;
+  @apply transition-colors;
+}
+
+.contentItem:hover {
+  @apply bg-neutral-lighter;
 }
 
 .contentHeader {
   @apply col-span-full;
+  @apply border-x-0 border-t-0 border-b border-solid border-separator;
 }
 
 .emptyMessage {

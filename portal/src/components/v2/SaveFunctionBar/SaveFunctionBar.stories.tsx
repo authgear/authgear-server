@@ -32,8 +32,10 @@ function SaveFunctionBarStoryHarness({
     setSavedValue(value);
   }, [value]);
 
+  const getIsDirty = useCallback(() => isDirty, [isDirty]);
+
   const form: FormContainerBaseProps["form"] = {
-    isDirty,
+    getIsDirty,
     isUpdating: false,
     updateError: null,
     reset,

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Callout, Text } from "@radix-ui/themes";
@@ -68,7 +68,8 @@ const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfiguratio
     const { form } = props;
     const { state, setState } = form;
     const { scheduled_by_end_user_enabled, grace_period_days } = state;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeGracePeriod = useCallback(

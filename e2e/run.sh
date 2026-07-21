@@ -1,8 +1,22 @@
 #!/bin/bash -e
 
+# Detect container runtime (docker or podman).
+if command -v docker &>/dev/null; then
+    CONTAINER_RUNTIME=docker
+elif command -v podman &>/dev/null; then
+    CONTAINER_RUNTIME=podman
+else
+    echo "Error: neither docker nor podman found." >&2
+    exit 1
+fi
+
+function kill_port {
+    kill -9 $(lsof -ti:"$1") > /dev/null 2>&1 || true
+}
+
 function setup {( set -e
     echo "[ ] Starting services..."
-    docker compose up -d
+    $CONTAINER_RUNTIME compose up -d
     sleep 3
 
     echo "[ ] Building authgear..."
@@ -85,13 +99,13 @@ function setup {( set -e
 
 function teardown {( set -e
     echo "[ ] Teardown..."
-    kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:4001) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:4002) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:4003) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
-    kill -9 $(lsof -ti:2525) > /dev/null 2>&1 || true
-    docker compose down
+    kill_port 4000
+    kill_port 4001
+    kill_port 4002
+    kill_port 4003
+    kill_port 8080
+    kill_port 2525
+    $CONTAINER_RUNTIME compose down
 )}
 
 function tests {( set -e

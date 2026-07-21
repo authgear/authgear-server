@@ -12,6 +12,7 @@ import ExternalLink from "../../ExternalLink";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
 import { AppListItem, Viewer } from "./globalTypes.generated";
+import { isProjectQuotaReached } from "../../util/projectQuota";
 import styles from "./AppsScreen.module.css";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
@@ -51,20 +52,6 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
     </Link>
   );
 };
-
-function isProjectQuotaReached(viewer: Viewer | null): boolean {
-  if (viewer == null) {
-    return false;
-  }
-  const { projectQuota, projectOwnerCount } = viewer;
-  // The viewer does not have quota.
-  if (projectQuota == null) {
-    return false;
-  }
-
-  const reached = projectOwnerCount >= projectQuota;
-  return reached;
-}
 
 interface ProjectQuotaMessageBarProps {
   viewer: Viewer | null;
@@ -214,10 +201,12 @@ const AppsScreen: React.VFC = function AppsScreen() {
   }
 
   if (errorViewer != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={errorViewer} onRetry={refetchViewer} />;
   }
 
   if (errorAppList != null) {
+    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={errorAppList} onRetry={refetchAppList} />;
   }
 

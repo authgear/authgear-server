@@ -126,6 +126,34 @@ export const RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT: ResourceDefinition =
     fallback: FALLBACK_EFFECTIVE_DATA,
   };
 
+export const RESOURCE_SETUP_SECONDARY_LOGIN_LINK_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_secondary_login_link.html`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_SETUP_SECONDARY_LOGIN_LINK_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_secondary_login_link.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
+export const RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_secondary_login_link.html`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_TXT: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_secondary_login_link.txt`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+
 export const RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.html`,
   type: "text",
@@ -273,6 +301,12 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
 
+  RESOURCE_SETUP_SECONDARY_LOGIN_LINK_HTML,
+  RESOURCE_SETUP_SECONDARY_LOGIN_LINK_TXT,
+
+  RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_HTML,
+  RESOURCE_AUTHENTICATE_SECONDARY_LOGIN_LINK_TXT,
+
   RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT,
@@ -361,8 +395,12 @@ export const TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_OOB_SUBJECT =
   "email.setup-secondary-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT =
   "email.setup-primary-login-link.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SETUP_SECONDARY_LOGIN_LINK_SUBJECT =
+  "email.setup-secondary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT =
   "email.authenticate-primary-login-link.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_LOGIN_LINK_SUBJECT =
+  "email.authenticate-secondary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
   "email.authenticate-primary-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_SECONDARY_OOB_SUBJECT =

@@ -187,6 +187,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
 
   const messageBar = useMemo(() => {
     if (error != null) {
+      // eslint-disable-next-line @typescript-eslint/strict-void-return
       return <ShowError error={error} onRetry={refetch} />;
     }
     return null;
@@ -228,6 +229,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
             <PrimaryButton
               text={renderToString("UsersScreen.add-user")}
               iconProps={useMemo(() => ({ iconName: "Add" }), [])}
+              // eslint-disable-next-line @typescript-eslint/strict-void-return
               onClick={useCallback(
                 async () => navigate("./add-user"),
                 [navigate]

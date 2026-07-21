@@ -153,6 +153,7 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
 
     return (
       <div className={className}>
+        {/* eslint-disable-next-line react-hooks/refs */}
         {props.children?.({
           showFilePicker,
           clearImage,

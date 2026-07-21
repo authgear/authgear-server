@@ -10,7 +10,9 @@ type OAuthProviderStatus = config.OAuthProviderStatus
 
 type OAuthData struct {
 	TypedData
+	// Alias is kept for backwards compatibility; use OAuthProviderAlias.
 	Alias                 string              `json:"alias,omitempty"`
+	OAuthProviderAlias    string              `json:"oauth_provider_alias,omitempty"`
 	OAuthProviderType     string              `json:"oauth_provider_type,omitempty"`
 	OAuthAuthorizationURL string              `json:"oauth_authorization_url,omitempty"`
 	WechatAppType         wechat.AppType      `json:"wechat_app_type,omitempty"`

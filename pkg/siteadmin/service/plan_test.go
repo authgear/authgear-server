@@ -10,12 +10,23 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/siteadmin"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/config/plan"
+	siteadminauditlog "github.com/authgear/authgear-server/pkg/siteadmin/auditlog"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+type fakeAuditService struct {
+	logged []event.NonBlockingPayload
+}
+
+func (f *fakeAuditService) LogEvent(_ context.Context, _ string, p event.NonBlockingPayload) error {
+	f.logged = append(f.logged, p)
+	return nil
+}
 
 // ---- Fakes -------------------------------------------------------------------
 
@@ -189,6 +200,35 @@ func TestPlanService_ChangeAppPlan(t *testing.T) {
 			app, err := svc.ChangeAppPlan(ctxWithSession(), "app1", "enterprise")
 			So(err, ShouldBeNil)
 			So(app.OwnerEmail, ShouldEqual, "owner@example.com")
+			So(app.Plan, ShouldEqual, "enterprise")
+		})
+
+		Convey("emits audit log with old and new plan", func() {
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := makeService(svr, planStore, csStore, &fakePlanOwnerStore{})
+			svc.AuditService = audit
+
+			_, err := svc.ChangeAppPlan(ctxWithSession(), "app1", "enterprise")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppPlanUpdatedPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.AppID, ShouldEqual, "app1")
+			So(payload.OldPlan, ShouldEqual, "free")
+			So(payload.NewPlan, ShouldEqual, "enterprise")
+		})
+
+		Convey("audit failure does not affect mutation result", func() {
+			svr := adminAPIServer(getNodesResponse())
+			defer svr.Close()
+
+			svc := makeService(svr, planStore, csStore, &fakePlanOwnerStore{})
+			// AuditService is nil — mutation must still succeed.
+			app, err := svc.ChangeAppPlan(ctxWithSession(), "app1", "enterprise")
+			So(err, ShouldBeNil)
 			So(app.Plan, ShouldEqual, "enterprise")
 		})
 	})

@@ -34,15 +34,20 @@ paths:
             maximum: 20
         - name: app_id
           in: query
-          description: Filter by app ID.
+          description: Filter by app ID prefix. Returns all apps whose ID starts with the given value.
           schema:
             type: string
-        - name: owner_email
+        - name: collaborator_search
           in: query
-          description: Filter by owner email address.
+          description: >
+            Filter by collaborator keyword. Searches the portal user database by partial
+            email, name, or other attributes. Returns apps that have any collaborator
+            (owner or editor) whose profile matches the keyword. When provided and `sort`
+            is omitted, defaults to `sort=relevance`. At most 20 matching users are
+            considered; if more than 20 users match, `collaborator_search_truncated` is
+            set to `true` in the response and `total_count` is a lower bound.
           schema:
             type: string
-            format: email
         - name: plan
           in: query
           description: Filter by plan name.
@@ -50,22 +55,26 @@ paths:
             type: string
         - name: sort
           in: query
-          description: Field to sort by. Defaults to `created_at`.
+          description: >
+            Field to sort by. Defaults to `created_at`, or `relevance` when
+            `collaborator_search` is provided. `relevance` sorts by how well the
+            app's best-matching collaborator matches the `collaborator_search`
+            keyword and requires `collaborator_search` to be set; using `relevance`
+            without `collaborator_search` returns 400.
           schema:
             type: string
             enum:
               - created_at
               - mau
+              - relevance
             default: created_at
         - name: order
           in: query
-          description: Sort direction. Defaults to `desc`.
+          description: >
+            Sort direction. Defaults to `desc`. Ignored when `sort=relevance`
+            (relevance is always highest-match first).
           schema:
-            type: string
-            enum:
-              - asc
-              - desc
-            default: desc
+            $ref: "#/components/schemas/OrderDirection"
       responses:
         "200":
           description: A list of apps
@@ -77,6 +86,77 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  /api/v1/audit-logs:
+    get:
+      operationId: listAuditLogs
+      summary: List site admin audit log entries
+      description: >
+        Returns audit log entries for actions performed by site admins
+        (e.g. plan changes, collaborator mutations). These are distinct from
+        per-app user-event logs, which will be available at
+        /api/v1/apps/{app_id}/audit-logs in the future.
+      parameters:
+        - name: page
+          in: query
+          description: Page number, 1-based. Defaults to 1.
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          description: Number of entries per page. Defaults to 20, maximum 100.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: affected_app_id
+          in: query
+          description: >
+            Filter by the app that was acted on. When provided, only entries
+            whose payload.app_id matches this value are returned.
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Sort direction for created_at. Defaults to `desc` (newest first).
+          schema:
+            $ref: "#/components/schemas/OrderDirection"
+      responses:
+        "200":
+          description: A list of site admin audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteAdminAuditLogsListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/audit-logs/{id}:
+    get:
+      operationId: getAuditLog
+      summary: Get a site admin audit log entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Site admin audit log entry with raw data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteAdminAuditLogDetail"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/v1/plans:
     get:
@@ -552,6 +632,7 @@ components:
         - total_count
         - page
         - page_size
+        - collaborator_search_truncated
       properties:
         apps:
           type: array
@@ -559,7 +640,10 @@ components:
             $ref: "#/components/schemas/App"
         total_count:
           type: integer
-          description: Total number of apps matching the query.
+          description: >
+            Total number of apps matching the query. When `collaborator_search_truncated`
+            is `true`, this is a lower bound — apps whose collaborators are beyond the
+            20-match cap are not counted.
         page:
           type: integer
           format: uint64
@@ -568,6 +652,13 @@ components:
           type: integer
           format: uint64
           description: Number of apps per page.
+        collaborator_search_truncated:
+          type: boolean
+          description: >
+            True when the `collaborator_search` keyword matched more than 20 portal
+            users and results are limited to the top 20 matches. `total_count` is a
+            lower bound in this case. Always `false` when `collaborator_search` is
+            not provided.
 
     App:
       type: object
@@ -624,6 +715,13 @@ components:
           type: string
           description: The plan to assign to the app
 
+    OrderDirection:
+      type: string
+      description: Sort direction.
+      enum:
+        - asc
+        - desc
+
     AppDetail:
       allOf:
         - $ref: "#/components/schemas/App"
@@ -634,3 +732,75 @@ components:
             user_count:
               type: integer
               description: Number of users in the app
+
+    SiteAdminAuditLogsListResponse:
+      type: object
+      required:
+        - audit_logs
+        - total_count
+        - page
+        - page_size
+      properties:
+        audit_logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SiteAdminAuditLog"
+        total_count:
+          type: integer
+          description: Total number of entries matching the query.
+        page:
+          type: integer
+          format: uint64
+          description: Current page number.
+        page_size:
+          type: integer
+          format: uint64
+          description: Number of entries per page.
+
+    SiteAdminAuditLog:
+      type: object
+      required:
+        - id
+        - created_at
+        - activity_type
+      properties:
+        id:
+          type: string
+          description: Audit log entry ID (hex-encoded sequence number).
+        created_at:
+          type: string
+          format: date-time
+          description: When the event occurred, in RFC 3339 format.
+        activity_type:
+          type: string
+          description: The site admin activity type (e.g. site_admin.app.plan.updated).
+        ip_address:
+          type: string
+          description: IP address of the actor.
+        user_agent:
+          type: string
+          description: User agent string of the actor's browser.
+        actor_user_id:
+          type: string
+          description: >
+            Portal user ID of the site admin who performed the action,
+            extracted from audit_context.actor_user_id.
+        affected_app_id:
+          type: string
+          description: >
+            ID of the app that was acted on, extracted from
+            data.payload.app_id.
+
+    SiteAdminAuditLogDetail:
+      allOf:
+        - $ref: "#/components/schemas/SiteAdminAuditLog"
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              description: >
+                Raw audit log data — the full event JSON stored in the
+                _audit_log.data column, including context and payload.
+              additionalProperties: true

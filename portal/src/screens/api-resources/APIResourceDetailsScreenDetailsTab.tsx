@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormContainerBase } from "../../FormContainerBase";
 import WidgetTitle from "../../WidgetTitle";
 import { FormattedMessage } from "../../intl";
@@ -18,12 +18,12 @@ export function APIResourceDetailsScreenDetailsTab({
 }): JSX.Element {
   const [updateResource] = useUpdateResourceMutationMutation();
 
-  const [initialState, setInitialState] = useState<ResourceFormState>({
+  const [initialState] = useState<ResourceFormState>({
     name: resource.name ?? "",
     resourceURI: resource.resourceURI,
   });
 
-  const form = useSimpleForm<ResourceFormState, null>({
+  const form = useFormWithExternalInitialState<ResourceFormState, null>({
     defaultState: initialState,
     submit: async (s) => {
       const state = sanitizeFormState(s);
@@ -38,10 +38,8 @@ export function APIResourceDetailsScreenDetailsTab({
       if (result.data == null) {
         throw new Error("unexpected null data");
       }
-      setInitialState(state);
-      return null;
+      return { result: null, nextInitialState: state };
     },
-    stateMode: "UpdateInitialStateWithUseEffect",
   });
   return (
     <FormContainerBase form={form}>

@@ -7,3 +7,8 @@
 .logo__container {
   @apply px-6 py-3;
 }
+
+/* Header nav: smaller right padding (overrides px-6 from .logo__container). */
+.logo__container.logo__containerHeader {
+  padding-right: 0.5rem;
+}
