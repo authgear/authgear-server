@@ -21,6 +21,7 @@ export interface AuditLogFilter {
 
 export interface AuditLogFilterBarPropsDateRange {
   value: DateRangeFilterDropdownOptionKey;
+  customRangeLabel?: string;
   onClickAllDateRange: (
     e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
   ) => void;
@@ -84,8 +85,13 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
       <div className={cn(styles.root, className)}>
         <div className={styles.filterContainer}>
           <DateRangeFilterDropdown
-            className={styles.dateRangeFilter}
+            className={cn(
+              styles.dateRangeFilter,
+              dateRange.customRangeLabel != null &&
+                styles.dateRangeFilterCustom
+            )}
             value={dateRange.value}
+            customRangeLabel={dateRange.customRangeLabel}
             onClickAllDateRange={dateRange.onClickAllDateRange}
             onClickCustomDateRange={dateRange.onClickCustomDateRange}
           />

@@ -7,14 +7,13 @@ import {
   SelectionMode,
   ShimmeredDetailsList,
 } from "@fluentui/react";
-import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import Link from "../../Link";
 import CommandBarButton from "../../CommandBarButton";
 import PaginationWidget from "../../PaginationWidget";
 import ShowError from "../../ShowError";
 import DateRangeDialog from "../portal/DateRangeDialog";
-import { formatDatetime } from "../../util/formatDatetime";
+import { formatDatetime, formatCustomDateRangeLabel } from "../../util/formatDatetime";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { extractRawID } from "../../util/graphql";
 import useTransactionalState from "../../hook/useTransactionalState";
@@ -133,10 +132,7 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
 
     const queryRangeTo = useMemo(() => {
       if (rangeTo != null) {
-        return DateTime.fromJSDate(rangeTo)
-          .plus({ days: 1 })
-          .toJSDate()
-          .toISOString();
+        return rangeTo.toISOString();
       }
       return lastUpdatedAt.toISOString();
     }, [rangeTo, lastUpdatedAt]);
@@ -166,6 +162,14 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
 
     const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
+    const customDateRangeLabel = useMemo(
+      () =>
+        isCustomDateRange
+          ? formatCustomDateRangeLabel(locale, rangeFrom, rangeTo)
+          : undefined,
+      [isCustomDateRange, locale, rangeFrom, rangeTo]
+    );
+
     const onClickAllDateRange = useCallback(
       (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
         e?.stopPropagation();
@@ -187,10 +191,16 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
     const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
       return {
         value: isCustomDateRange ? "customDateRange" : "allDateRange",
+        customRangeLabel: customDateRangeLabel,
         onClickAllDateRange,
         onClickCustomDateRange,
       };
-    }, [isCustomDateRange, onClickAllDateRange, onClickCustomDateRange]);
+    }, [
+      isCustomDateRange,
+      customDateRangeLabel,
+      onClickAllDateRange,
+      onClickCustomDateRange,
+    ]);
 
     const onFilterChange = useCallback(
       (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
@@ -409,14 +419,13 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
           )}
           rangeFrom={uncommittedRangeFrom ?? undefined}
           rangeTo={uncommittedRangeTo ?? undefined}
-          fromDatePickerMinDate={datePickerMinDate}
           fromDatePickerMaxDate={lastUpdatedAt}
-          toDatePickerMinDate={datePickerMinDate}
           toDatePickerMaxDate={lastUpdatedAt}
           onSelectRangeFrom={onSelectRangeFrom}
           onSelectRangeTo={onSelectRangeTo}
           onCommitDateRange={commitDateRange}
           onDismiss={onDismissDateRangeDialog}
+          showTimePicker={true}
         />
       </div>
     );
