@@ -30,9 +30,6 @@
     },
     "eslint-plugin-sonarjs": {
       "minimatch": "^10.2.4"
-    },
-    "@istanbuljs/load-nyc-config": {
-      "js-yaml": "^3.15.0"
     }
   },
   "devDependencies": {
