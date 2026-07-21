@@ -10,7 +10,7 @@ All data is in PostHog; no manual SQL against the audit DB is needed.
 | `createApplication.viewed` | portal (GTM) | `wizard_version` |
 | `createApplication.selected-type` | portal (GTM) | `application_type`, `wizard_version` |
 | `createApplication.created` | portal (GTM) | `client_id`, `application_type`, `wizard_version` |
-| `application.first_auth` | `portal analytic posthog first-auth` batch job | `client_id`, `app_id` |
+| `application.first_auth` | auth server (real-time event sink) | `client_id`, `app_id` |
 
 ## Insight A — Wizard completion / drop-off (person funnel)
 
@@ -54,16 +54,16 @@ GROUP BY created.wizard_version;
 
 ## Caveats
 
-- **Freshness lag, not accuracy loss.** `application.first_auth` is forwarded by a batch job, so
-  it appears up to one cron interval late. But its `timestamp` is the real audit auth time, so
-  time-to-integration and the 14-day window are never inflated by the delay.
-- **90-day audit retention + lookback.** The forwarder scans a 35-day window (must exceed the cron
-  interval; ≤ 90-day retention). Baseline accrues forward from PR-1 ship — no retroactive analysis.
+- **Emitted in real time.** `application.first_auth` is sent by an auth-server event sink the moment
+  a client first authenticates (`user.authenticated` / `m2m.token.created`), so there is no cron lag.
+  Its `timestamp` is the real auth time, so time-to-integration and the 14-day window are accurate.
+  Baseline accrues forward from PR-1 ship — no retroactive analysis.
 - **M2M defines "auth" differently** (`m2m.token.created`, a client-credentials grant). Keep it on
   its own line via `application_type`; never blend it into the interactive number.
 - **Internal/test apps** inflate creation and deflate activation — exclude known internal `app_id`s.
 - **Not an A/B test.** Legacy vs framework_first is time-separated; results are directional.
-- **Raw first_auth counts vs. min().** The forwarder re-emits `application.first_auth` on a
-  35-day sliding window, so a client active beyond that window can produce a second event
-  (same uuid, later timestamp). Always aggregate with `min(timestamp)` / funnel first-match
-  (as Insight B does) — never a naïve `count()` of raw `application.first_auth` events.
+- **Raw first_auth counts vs. min().** The sink dedups per client with a Redis key
+  (`app:<app_id>:posthog-first-auth:<client_id>`, 90-day TTL); a re-emit is only possible if that
+  key is lost within the window, and the deterministic uuid still collapses it in PostHog. Always
+  aggregate with `min(timestamp)` / funnel first-match (as Insight B does) — never a naïve `count()`
+  of raw `application.first_auth` events.
