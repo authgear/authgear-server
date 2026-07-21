@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/lib/pq"
-
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -35,36 +33,6 @@ func (s *AuditDBReadStore) GetCountByActivityType(ctx context.Context, appID str
 		return 0, err
 	}
 	return count, nil
-}
-
-// GetFirstAuthTimeByClientID returns, per client_id, the earliest created_at of any
-// row whose activity_type is in activityTypes, considering only rows at or after `since`.
-// This derives "first successful auth per client" from existing audit data.
-func (s *AuditDBReadStore) GetFirstAuthTimeByClientID(ctx context.Context, appID string, activityTypes []string, since time.Time) (map[string]time.Time, error) {
-	builder := s.SQLBuilder.WithAppID(appID).
-		Select("client_id", "MIN(created_at)").
-		From(s.SQLBuilder.TableName("_audit_log")).
-		Where("activity_type = ANY (?)", pq.Array(activityTypes)).
-		Where("client_id IS NOT NULL AND client_id <> ''").
-		Where("created_at >= ?", since).
-		GroupBy("client_id")
-
-	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make(map[string]time.Time)
-	for rows.Next() {
-		var clientID string
-		var firstAuthAt time.Time
-		if err := rows.Scan(&clientID, &firstAuthAt); err != nil {
-			return nil, err
-		}
-		result[clientID] = firstAuthAt
-	}
-	return result, nil
 }
 
 // QueryPage is copied from pkg/lib/audit/read_store.go

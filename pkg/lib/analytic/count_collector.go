@@ -25,7 +25,6 @@ import (
 type MeterAuditDBReadStore interface {
 	GetCountByActivityType(ctx context.Context, appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
 	QueryPage(ctx context.Context, appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
-	GetFirstAuthTimeByClientID(ctx context.Context, appID string, activityTypes []string, since time.Time) (map[string]time.Time, error)
 }
 
 type SignupCountResult struct {
