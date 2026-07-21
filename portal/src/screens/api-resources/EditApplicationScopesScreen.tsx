@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormattedMessage } from "../../intl";
 import {
   GetClientResourceScopesDocument,
@@ -67,7 +67,7 @@ export function EditApplicationScopesScreenContent({
     [remoteClientScopes]
   );
 
-  const form = useSimpleForm<FormState>({
+  const form = useFormWithExternalInitialState<FormState>({
     defaultState: initialState,
     submit: async () => {
       await replaceScopesOfClientIdMutation({
@@ -79,8 +79,8 @@ export function EditApplicationScopesScreenContent({
         awaitRefetchQueries: true,
         refetchQueries: [GetClientResourceScopesDocument],
       });
+      return { result: undefined };
     },
-    stateMode: "UpdateInitialStateWithUseEffect",
   });
 
   const assignedScopes = useMemo((): Set<string> => {

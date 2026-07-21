@@ -101,8 +101,6 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   );
 
   const rawForm = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

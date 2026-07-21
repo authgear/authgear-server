@@ -135,7 +135,7 @@ interface FormState
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -773,7 +773,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       isLoading:
         config.isLoading || resources.isLoading || featureConfig.isLoading,
       isUpdating: config.isUpdating || resources.isUpdating,
-      isDirty: config.isDirty || resources.isDirty,
+      getIsDirty: () => config.getIsDirty() || resources.getIsDirty(),
       loadError:
         config.loadError ?? resources.loadError ?? featureConfig.loadError,
       updateError: config.updateError ?? resources.updateError,

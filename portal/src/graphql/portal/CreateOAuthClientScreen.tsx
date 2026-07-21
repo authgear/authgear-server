@@ -182,7 +182,8 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
   function StepSelectApplicationType(props) {
     const { client, form, onClickSave, hasNoAPIResources } = props;
     const { appNodeID } = useAppContext();
-    const { state, setState, isDirty, isUpdating } = form;
+    const { state, setState, getIsDirty, isUpdating } = form;
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
 
     const onClientConfigChange = useCallback(
@@ -367,7 +368,8 @@ interface StepAuthorizeResourceProps {
 const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
   function StepAuthorizeResource(props) {
     const { form, onClickSave } = props;
-    const { isDirty, isUpdating } = form;
+    const { getIsDirty, isUpdating } = form;
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [offset, setOffset] = useState(0);

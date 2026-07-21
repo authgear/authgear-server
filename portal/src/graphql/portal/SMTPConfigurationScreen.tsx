@@ -863,7 +863,7 @@ const SMTPConfigurationScreen1: React.VFC<{
     isLoading:
       configQuery.isLoading || configForm.isLoading || featureConfig.isLoading,
     isUpdating: configForm.isUpdating,
-    isDirty: configForm.isDirty,
+    getIsDirty: configForm.getIsDirty,
     loadError:
       configQuery.loadError ??
       (configForm.loadError || featureConfig.loadError),

@@ -255,8 +255,6 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
   );
 
   const rawForm = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

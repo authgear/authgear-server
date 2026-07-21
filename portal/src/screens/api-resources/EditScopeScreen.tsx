@@ -71,8 +71,6 @@ function EditScopeScreenContent({
       }
       return result.data.updateScope.scope;
     },
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   useEffect(() => {

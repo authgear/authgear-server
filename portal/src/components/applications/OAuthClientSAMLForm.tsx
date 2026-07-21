@@ -222,7 +222,8 @@ export function OAuthClientSAMLForm({
   onGeneratedNewIdpSigningCertificate,
 }: OAuthClientSAMLFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageFormatContext);
-  const { isDirty: isFormDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isFormDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const { appID } = useParams() as { appID: string };
   const { themes } = useSystemConfig();
 
