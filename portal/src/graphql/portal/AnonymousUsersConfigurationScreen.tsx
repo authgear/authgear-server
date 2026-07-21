@@ -1,20 +1,20 @@
-/* global JSX */
-import React, { useCallback, useContext, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useCallback, useContext, useMemo, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import cn from "classnames";
 import { produce } from "immer";
-import { Context, FormattedMessage } from "../../intl";
 import {
-  Dropdown,
-  IDropdownOption,
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Select,
+  Separator,
   Text,
-  DetailsList,
-  SelectionMode,
-  IColumn,
-  IDetailsHeaderProps,
-  DetailsHeader,
-  IRenderFunction,
-  IDetailsColumnRenderTooltipProps,
-} from "@fluentui/react";
+} from "@radix-ui/themes";
+import {
+  DotsVerticalIcon,
+  InfoCircledIcon,
+  Pencil1Icon,
+} from "@radix-ui/react-icons";
+import { Context, FormattedMessage } from "../../intl";
 import {
   isPromotionConflictBehaviour,
   PortalAPIAppConfig,
@@ -26,36 +26,27 @@ import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import Tooltip from "../../Tooltip";
-import Toggle from "../../Toggle";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { FormField } from "../../components/v2/FormField/FormField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
-import {
-  FormContainerBase,
-  useFormContainerBaseContext,
-} from "../../FormContainerBase";
-import PrimaryButton from "../../PrimaryButton";
-import HorizontalDivider from "../../HorizontalDivider";
+import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import Link from "../../Link";
 import { formatSeconds } from "../../util/formatDuration";
-
-const dropDownStyles = {
-  dropdown: {
-    maxWidth: "300px",
-  },
-};
 
 interface FormState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
   oauthClients: OAuthClientConfig[];
+  sessionPersistentCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   sessionIdleTimeoutEnabled: boolean;
   sessionIdleTimeoutSeconds: number | undefined;
@@ -71,6 +62,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     enabled,
     promotionConflictBehaviour,
     oauthClients,
+    sessionPersistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     sessionIdleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     sessionIdleTimeoutSeconds: config.session?.idle_timeout_seconds,
@@ -117,56 +109,52 @@ const conflictBehaviourMessageId: Record<PromotionConflictBehaviour, string> = {
 };
 
 interface OAuthClientListItem {
+  clientID: string;
   name: string;
   refreshTokenIdleTimeout: string;
   refreshTokenLifetime: string;
 }
 
+function LabelWithTooltip(props: {
+  labelId: string;
+  tooltipId: string;
+}): React.ReactElement {
+  const { labelId, tooltipId } = props;
+  return (
+    <div className={styles.tooltipLabel}>
+      <Text as="span" size="2">
+        <FormattedMessage id={labelId} />
+      </Text>
+      <Tooltip content={<FormattedMessage id={tooltipId} />}>
+        <InfoCircledIcon className={styles.infoIcon} />
+      </Tooltip>
+    </div>
+  );
+}
+
 interface AnonymousUserLifeTimeDescriptionProps {
   form: AppConfigFormModel<FormState>;
+  className?: string;
 }
 
 const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescriptionProps> =
   function AnonymousUserLifeTimeDescription(props) {
-    const { renderToString, locale } = useContext(Context);
+    const { form, className } = props;
+    const { locale, renderToString } = useContext(Context);
     const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
     const {
       sessionIdleTimeoutEnabled,
       sessionIdleTimeoutSeconds,
       sessionLifetimeSeconds,
+      sessionPersistentCookie,
       oauthClients,
-    } = props.form.state;
-
-    const columns: IColumn[] = useMemo(
-      () => [
-        {
-          key: "name",
-          name: renderToString(
-            "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name"
-          ),
-          minWidth: 200,
-          maxWidth: 200,
-          isMultiline: true,
-        },
-        {
-          key: "refresh-token-idle-timeout",
-          name: "",
-          minWidth: 170,
-          maxWidth: 170,
-        },
-        {
-          key: "refresh-token-lifetime",
-          name: "",
-          minWidth: 170,
-          maxWidth: 170,
-        },
-      ],
-      [renderToString]
-    );
+    } = form.state;
 
     const items: OAuthClientListItem[] = useMemo(() => {
       return oauthClients.map((client) => {
         return {
+          clientID: client.client_id,
           name: client.name ?? "",
           refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
             ? client.refresh_token_idle_timeout_seconds != null
@@ -185,90 +173,26 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
       });
     }, [locale, oauthClients]);
 
-    const onRenderItemColumn = useCallback(
-      (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
-        if (item == null) {
-          return null;
-        }
-        switch (column?.key) {
-          case "name":
-            return item.name;
-          case "refresh-token-idle-timeout":
-            return item.refreshTokenIdleTimeout;
-          case "refresh-token-lifetime":
-            return item.refreshTokenLifetime;
-          default:
-            return null;
-        }
-      },
-      []
-    );
-
-    const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
-      useCallback(
-        (
-          props?: IDetailsColumnRenderTooltipProps,
-          defaultRender?: (
-            props: IDetailsColumnRenderTooltipProps
-          ) => JSX.Element | null
-        ) => {
-          if (props == null || defaultRender == null || props.column == null) {
-            return null;
-          }
-          if (
-            props.column.key === "refresh-token-idle-timeout" ||
-            props.column.key === "refresh-token-lifetime"
-          ) {
-            return (
-              <span className={styles.tooltipHeader}>
-                <Text variant="medium" className={styles.bold}>
-                  <FormattedMessage
-                    id={
-                      "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label." +
-                      props.column.key
-                    }
-                  />
-                </Text>
-                <Tooltip
-                  tooltipMessageId={
-                    "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip." +
-                    props.column.key
-                  }
-                />
-              </span>
-            );
-          }
-          return defaultRender(props);
-        },
-        []
-      );
-
-    const onRenderDetailsHeader = useCallback(
-      (props?: IDetailsHeaderProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <DetailsHeader
-            {...props}
-            className={styles.detailsHeader}
-            onRenderColumnHeaderTooltip={onRenderColumnHeaderTooltip}
-          />
+    const onEditApplication = useCallback(
+      (clientID: string) => {
+        navigate(
+          `/project/${appID}/configuration/apps/${encodeURIComponent(
+            clientID
+          )}/edit`
         );
       },
-      [onRenderColumnHeaderTooltip]
+      [appID, navigate]
     );
 
     return (
-      <Widget className={styles.widget}>
-        <WidgetTitle>
+      <SettingsSectionCard
+        className={cn(styles.widget, className)}
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.title" />
-        </WidgetTitle>
-        <Text
-          variant="medium"
-          block={true}
-          className={styles.widgetDescription}
-        >
+        }
+      >
+        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.description"
             values={{
@@ -277,20 +201,18 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
             }}
           />
         </Text>
-        <div>
-          <Text className={styles.title} variant="medium" block={true}>
+        <div className={styles.lifetimeSection}>
+          <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
           </Text>
           <div className={styles.sessionInfo}>
             {sessionIdleTimeoutEnabled ? (
               <>
-                <div className={styles.tooltipLabel}>
-                  <Text variant="medium">
-                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
-                  </Text>
-                  <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout" />
-                </div>
-                <Text variant="medium">
+                <LabelWithTooltip
+                  labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout"
+                  tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout"
+                />
+                <Text as="span" size="2">
                   <FormattedMessage
                     id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                     values={{
@@ -304,13 +226,11 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                 </Text>
               </>
             ) : null}
-            <div className={styles.tooltipLabel}>
-              <Text variant="medium">
-                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
-              </Text>
-              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime" />
-            </div>
-            <Text variant="medium">
+            <LabelWithTooltip
+              labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime"
+              tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime"
+            />
+            <Text as="span" size="2">
               <FormattedMessage
                 id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                 values={{
@@ -321,21 +241,106 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                 }}
               />
             </Text>
+            <LabelWithTooltip
+              labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie"
+              tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie"
+            />
+            <Text as="span" size="2">
+              <FormattedMessage
+                id={sessionPersistentCookie ? "enabled" : "disabled"}
+              />
+            </Text>
           </div>
         </div>
-        <div>
-          <Text className={styles.title} variant="medium" block={true}>
+
+        <Separator size="4" className={styles.sectionSeparator} />
+
+        <div className={styles.lifetimeSection}>
+          <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.token.title" />
           </Text>
-          <DetailsList
-            columns={columns}
-            items={items}
-            selectionMode={SelectionMode.none}
-            onRenderItemColumn={onRenderItemColumn}
-            onRenderDetailsHeader={onRenderDetailsHeader}
-          />
+          <div className={styles.tableWrapper}>
+            <div className={styles.table}>
+              <div className={styles.tableHeader}>
+                <div className={styles.headerCellName}>
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name" />
+                </div>
+                <div className={styles.headerCellIdleTimeout}>
+                  <div className={styles.tooltipLabel}>
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-idle-timeout" />
+                    <Tooltip
+                      content={
+                        <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout" />
+                      }
+                    >
+                      <InfoCircledIcon className={styles.infoIcon} />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className={styles.headerCellLifetime}>
+                  <div className={styles.tooltipLabel}>
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-lifetime" />
+                    <Tooltip
+                      content={
+                        <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime" />
+                      }
+                    >
+                      <InfoCircledIcon className={styles.infoIcon} />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div
+                  className={styles.headerCellActions}
+                  aria-hidden={true}
+                />
+              </div>
+              {items.map((item) => (
+                <div key={item.clientID} className={styles.tableRow}>
+                  <div className={styles.cellName}>
+                    <Text size="2" className={styles.cellNameText}>
+                      {item.name}
+                    </Text>
+                  </div>
+                  <div className={styles.cellIdleTimeout}>
+                    <Text size="2">{item.refreshTokenIdleTimeout}</Text>
+                  </div>
+                  <div className={styles.cellLifetime}>
+                    <Text size="2">{item.refreshTokenLifetime}</Text>
+                  </div>
+                  <div className={styles.cellActions}>
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger>
+                        <RadixIconButton
+                          className={styles.rowActionsButton}
+                          variant="soft"
+                          color="gray"
+                          size="2"
+                          aria-label={renderToString(
+                            "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.row-actions"
+                          )}
+                        >
+                          <DotsVerticalIcon width="1rem" height="1rem" />
+                        </RadixIconButton>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Content align="end">
+                        <DropdownMenu.Item
+                          onSelect={() => {
+                            onEditApplication(item.clientID);
+                          }}
+                        >
+                          <Pencil1Icon />
+                          <FormattedMessage id="edit" />
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Root>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <Text variant="medium" block={true}>
+
+        <Text as="p" size="2" color="gray" className={styles.applicationsLink}>
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
@@ -348,7 +353,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
             }}
           />
         </Text>
-      </Widget>
+      </SettingsSectionCard>
     );
   };
 
@@ -361,37 +366,33 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
     const { state, setState } = props.form;
 
     const { renderToString } = useContext(Context);
-    const { canSave, onSave } = useFormContainerBaseContext();
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const conflictBehaviourOptions = useMemo(
       () =>
-        promotionConflictBehaviours.map((behaviour) => {
-          const selectedBehaviour = state.promotionConflictBehaviour;
-          return {
-            key: behaviour,
-            text: renderToString(conflictBehaviourMessageId[behaviour]),
-            isSelected: selectedBehaviour === behaviour,
-          };
-        }),
-      [state, renderToString]
+        promotionConflictBehaviours.map((behaviour) => ({
+          value: behaviour,
+          label: renderToString(conflictBehaviourMessageId[behaviour]),
+        })),
+      [renderToString]
     );
 
     const onEnableChange = useCallback(
-      (_event, checked?: boolean) =>
+      (checked: boolean) =>
         setState((state) => ({
           ...state,
-          enabled: checked ?? false,
+          enabled: checked,
         })),
       [setState]
     );
 
     const onConflictOptionChange = useCallback(
-      (_event, option?: IDropdownOption) => {
-        const key = option?.key;
-        if (key && isPromotionConflictBehaviour(key)) {
+      (value: string) => {
+        if (isPromotionConflictBehaviour(value)) {
           setState((state) => ({
             ...state,
-            promotionConflictBehaviour: key,
+            promotionConflictBehaviour: value,
           }));
         }
       },
@@ -399,47 +400,69 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
     );
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-        </ScreenTitle>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
-          <ScreenDescription className={styles.widget}>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
-          </ScreenDescription>
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-            </WidgetTitle>
+          </Text>
+        </div>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
+              <FormattedMessage id="AnonymousUsersConfigurationScreen.settings.label" />
+            }
+          >
             <Toggle
               checked={state.enabled}
-              onChange={onEnableChange}
-              label={renderToString(
-                "AnonymousUsersConfigurationScreen.enable.label"
-              )}
-              inlineLabel={false}
+              onCheckedChange={onEnableChange}
+              textWeight="medium"
+              text={
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.enable.label" />
+              }
             />
-            <Dropdown
-              styles={dropDownStyles}
-              label={renderToString(
-                "AnonymousUsersConfigurationScreen.conflict-droplist.label"
-              )}
-              disabled={!state.enabled}
-              options={conflictBehaviourOptions}
-              selectedKey={state.promotionConflictBehaviour}
-              onChange={onConflictOptionChange}
-            />
-          </Widget>
-          <div className={styles.controls}>
-            <PrimaryButton
-              text={renderToString("save")}
-              disabled={!canSave}
-              onClick={onSave}
-            />
-          </div>
-          <HorizontalDivider className={styles.separator} />
-          <AnonymousUserLifeTimeDescription form={props.form} />
+            {state.enabled ? (
+              <FormField
+                size="2"
+                labelSize="2"
+                labelSpace="1"
+                label={
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.conflict-droplist.label" />
+                }
+              >
+                <Select.Root
+                  value={state.promotionConflictBehaviour}
+                  onValueChange={onConflictOptionChange}
+                  size="2"
+                >
+                  <Select.Trigger
+                    variant="surface"
+                    className={styles.conflictSelectTrigger}
+                  />
+                  <Select.Content>
+                    {conflictBehaviourOptions.map((opt) => (
+                      <Select.Item key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              </FormField>
+            ) : null}
+          </SettingsSectionCard>
+          <AnonymousUserLifeTimeDescription
+            form={props.form}
+            className={isDirty ? styles.settingsCardSaveBarClearance : undefined}
+          />
         </ShowOnlyIfSIWEIsDisabled>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -462,9 +485,9 @@ const AnonymousUserConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainerBase form={form}>
+      <FormContainer form={form} hideFooterComponent={true}>
         <AnonymousUserConfigurationContent form={form} />
-      </FormContainerBase>
+      </FormContainer>
     );
   };
 
