@@ -234,6 +234,40 @@ Present only if authorized scopes contain `offline_access`.
 It is always present.
 It is the actual scope granted to the client on `aud` on behalf of `sub`.
 
+## RP-Initiated Logout
+
+Authgear supports [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) through the end session endpoint.
+
+```
+<endpoint>/oauth2/end_session
+```
+
+### HTTP method
+
+The end session endpoint accepts both `GET` and `POST`. Parameters can therefore be supplied either as a query string (`GET`) or as an `application/x-www-form-urlencoded` request body (`POST`).
+
+### Parameters
+
+- `id_token_hint`: The ID token previously issued to the end-user. See [id_token_hint](#id_token_hint-2) below for its effect.
+- `post_logout_redirect_uri`: Where the user agent is redirected to after logout. It MUST exactly match one of the client's registered `post_logout_redirect_uris`, otherwise it is treated as absent, and the user agent is redirected to the end-user's Settings page instead.
+  - This silent fallback, instead of returning an error, is API debt: an invalid or unregistered `post_logout_redirect_uri` should ideally be rejected with an error, as most other OP implementations do. It is kept as-is to avoid a breaking change for existing clients relying on the fallback.
+- `state`: Opaque value round-tripped back to `post_logout_redirect_uri` unchanged.
+
+### id_token_hint
+
+If `id_token_hint` is present, and its `sid` matches the current logged in IdP session, AND the client is a [first-party client](#first-party-clients), the session is logged out directly, without asking the end-user to confirm the logout action.
+
+In all other cases (no `id_token_hint`, `id_token_hint` does not match the current session, or the client is a third-party client), the end-user is shown a confirmation page and must explicitly confirm before the session is logged out. This protects against logout CSRF: without proof that the request genuinely came from the end-user (a matching `id_token_hint` from a trusted first-party client), a third party could otherwise force a silent logout by merely getting the end-user's browser to issue a `GET` to this endpoint.
+
+### PII in the URL
+
+Per [OIDC RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html), when the request is a `GET` request, `id_token_hint` is included in the URL query string. Because ID tokens can contain PII (see [Clients](#clients)), this PII would then be exposed to browser history, and to any server or proxy access log that records the full request line.
+
+If this must be avoided, developers can:
+
+- Use the [`oidc.id_token.pre_create`](./event.md#oidcid_tokenpre_create) blocking event to remove PII claims from the ID token before it is issued, so the ID token carried in `id_token_hint` has no PII to leak; or
+- Use `POST` instead of `GET` when calling the end session endpoint, so `id_token_hint` is carried in the request body instead of the URL.
+
 ## The metadata endpoint
 
 [OpenID Connect Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
@@ -265,6 +299,10 @@ The value is `<endpoint>/oauth2/userinfo`.
 ### revocation_endpoint
 
 The value is `<endpoint>/oauth2/revoke`.
+
+### end_session_endpoint
+
+The value is `<endpoint>/oauth2/end_session`. See [RP-Initiated Logout](#rp-initiated-logout).
 
 ### jwks_uri
 
