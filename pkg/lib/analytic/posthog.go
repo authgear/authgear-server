@@ -327,27 +327,35 @@ func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessa
 	return events, nil
 }
 
+// buildFirstAuthEvent builds a single application.first_auth PostHog event.
+// The uuid is a deterministic UUIDv5 of (app_id, client_id) so that re-sends
+// (e.g. after a dedup-key loss) collapse to one event in PostHog. Shared by the
+// real-time FirstAuthSink and any batch caller.
+func buildFirstAuthEvent(appID string, clientID string, firstAuthAt time.Time) (json.RawMessage, error) {
+	eventUUID := uuid.NewSHA1(firstAuthUUIDNamespace, []byte(appID+":"+clientID)).String()
+	event := map[string]any{
+		"event":       "application.first_auth",
+		"distinct_id": clientID,
+		"uuid":        eventUUID,
+		"timestamp":   firstAuthAt.UTC().Format(time.RFC3339),
+		"properties": map[string]any{
+			"client_id":               clientID,
+			"app_id":                  appID,
+			"$geoip_disable":          true,
+			"$process_person_profile": false,
+		},
+	}
+	return json.Marshal(event)
+}
+
 func (p *PosthogIntegration) makeFirstAuthEvents(appID string, firstAuthByClient map[string]time.Time) ([]json.RawMessage, error) {
 	var events []json.RawMessage
 	for clientID, firstAuthAt := range firstAuthByClient {
-		eventUUID := uuid.NewSHA1(firstAuthUUIDNamespace, []byte(appID+":"+clientID)).String()
-		event := map[string]any{
-			"event":       "application.first_auth",
-			"distinct_id": clientID,
-			"uuid":        eventUUID,
-			"timestamp":   firstAuthAt.UTC().Format(time.RFC3339),
-			"properties": map[string]any{
-				"client_id":               clientID,
-				"app_id":                  appID,
-				"$geoip_disable":          true,
-				"$process_person_profile": false,
-			},
-		}
-		b, err := json.Marshal(event)
+		b, err := buildFirstAuthEvent(appID, clientID, firstAuthAt)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, json.RawMessage(b))
+		events = append(events, b)
 	}
 	return events, nil
 }
