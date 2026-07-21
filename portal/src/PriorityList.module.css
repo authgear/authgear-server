@@ -1,6 +1,73 @@
-.cell {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  min-width: 100%;
+}
+
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.headerCellChecked,
+.headerCellKey,
+.headerCellOrder {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.headerCellChecked {
+  width: 5rem;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.headerCellKey {
+  @apply min-w-0 flex-1;
+}
+
+.headerCellOrder {
+  width: 5.5rem;
+  min-width: 5.5rem;
+  flex-shrink: 0;
+  @apply justify-center;
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.cellChecked,
+.cellKey,
+.cellOrder {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.cellChecked {
+  width: 5rem;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.cellKey {
+  @apply min-w-0 flex-1 overflow-hidden;
+}
+
+.cellOrder {
+  width: 5.5rem;
+  min-width: 5.5rem;
+  flex-shrink: 0;
+  @apply justify-center;
 }

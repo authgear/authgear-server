@@ -1,19 +1,7 @@
-import React, {
-  useMemo,
-  useContext,
-  useCallback,
-  ReactElement,
-  ReactNode,
-} from "react";
-import {
-  DetailsList,
-  SelectionMode,
-  Checkbox,
-  IColumn,
-  IRenderFunction,
-  IDetailsHeaderProps,
-} from "@fluentui/react";
-import { Context } from "./intl";
+import React, { useCallback, ReactElement, ReactNode } from "react";
+import cn from "classnames";
+import { Checkbox } from "@radix-ui/themes";
+import { FormattedMessage } from "./intl";
 import styles from "./PriorityList.module.css";
 import OrderButtons from "./OrderButtons";
 
@@ -41,9 +29,12 @@ interface LocalCheckboxProps {
 function LocalCheckbox(props: LocalCheckboxProps): ReactElement {
   const { item, onChangeChecked } = props;
 
-  const onChange = useCallback(
-    (_event, checked?: boolean) => {
-      onChangeChecked(item.key, checked ?? false);
+  const onCheckedChange = useCallback(
+    (checked: boolean | "indeterminate") => {
+      if (checked === "indeterminate") {
+        return;
+      }
+      onChangeChecked(item.key, checked);
     },
     [item.key, onChangeChecked]
   );
@@ -51,7 +42,7 @@ function LocalCheckbox(props: LocalCheckboxProps): ReactElement {
   return (
     <Checkbox
       checked={item.checked}
-      onChange={onChange}
+      onCheckedChange={onCheckedChange}
       disabled={Boolean(item.disabled && !item.checked)}
     />
   );
@@ -66,94 +57,35 @@ function PriorityList(props: PriorityListProps): ReactElement {
     onChangeChecked,
     onSwap,
   } = props;
-  const { renderToString } = useContext(Context);
-
-  const columns: IColumn[] = useMemo(() => {
-    return [
-      {
-        key: "checked",
-        fieldName: "checked",
-        name: checkedColumnLabel,
-        className: styles.cell,
-        minWidth: 64,
-        maxWidth: 64,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: PriorityListItem) => {
-          return (
-            <LocalCheckbox item={item} onChangeChecked={onChangeChecked} />
-          );
-        },
-      },
-      {
-        key: "key",
-        fieldName: "key",
-        name: keyColumnLabel,
-        className: styles.cell,
-        minWidth: 0,
-
-        onRender: (item: PriorityListItem) => {
-          return item.content;
-        },
-      },
-      {
-        key: "order",
-        name: renderToString("PriorityList.order"),
-        className: styles.cell,
-        // The intrinsic width of OrderButtons is 64px.
-        minWidth: 64,
-        maxWidth: 64,
-        styles: {
-          cellTitle: {
-            // To align the column title with the order button visually.
-            marginLeft: "6px",
-          },
-        },
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: PriorityListItem, index?: number) => {
-          return (
-            <OrderButtons
-              disabled={item.disabled}
-              index={index}
-              itemCount={items.length}
-              onSwapClicked={onSwap}
-            />
-          );
-        },
-      },
-    ];
-  }, [
-    checkedColumnLabel,
-    keyColumnLabel,
-    renderToString,
-    items.length,
-    onChangeChecked,
-    onSwap,
-  ]);
-
-  const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> =
-    useCallback((props, defaultRender) => {
-      if (props == null || defaultRender == null) {
-        return null;
-      }
-      return defaultRender({
-        ...props,
-        styles: {
-          root: {
-            // By default there is unwanted 16px padding top.
-            paddingTop: "0",
-          },
-        },
-      });
-    }, []);
 
   return (
-    <DetailsList
-      className={className}
-      items={items}
-      columns={columns}
-      selectionMode={SelectionMode.none}
-      onRenderDetailsHeader={onRenderDetailsHeader}
-    />
+    <div className={cn(styles.tableWrapper, className)}>
+      <div className={styles.table}>
+        <div className={styles.tableHeader}>
+          <div className={styles.headerCellChecked}>{checkedColumnLabel}</div>
+          <div className={styles.headerCellKey}>{keyColumnLabel}</div>
+          <div className={styles.headerCellOrder}>
+            <FormattedMessage id="PriorityList.order" />
+          </div>
+        </div>
+        {items.map((item, index) => (
+          <div key={item.key} className={styles.tableRow}>
+            <div className={styles.cellChecked}>
+              <LocalCheckbox item={item} onChangeChecked={onChangeChecked} />
+            </div>
+            <div className={styles.cellKey}>{item.content}</div>
+            <div className={styles.cellOrder}>
+              <OrderButtons
+                disabled={item.disabled}
+                index={index}
+                itemCount={items.length}
+                onSwapClicked={onSwap}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
