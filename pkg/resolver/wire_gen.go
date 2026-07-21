@@ -8,6 +8,7 @@ package resolver
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -623,7 +624,19 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,

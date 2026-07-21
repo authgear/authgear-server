@@ -3,6 +3,7 @@ package event
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -34,6 +35,7 @@ func NewService(
 	auditSink *audit.Sink,
 	searchSink *reindex.Sink,
 	userInfoSink *userinfo.Sink,
+	firstAuthSink *analytic.FirstAuthSink,
 ) *Service {
 	return &Service{
 		AppID:           appID,
@@ -50,6 +52,7 @@ func NewService(
 			auditSink,
 			searchSink,
 			userInfoSink,
+			firstAuthSink,
 		},
 	}
 }

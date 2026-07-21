@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -195,6 +196,11 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		audit.DependencySet,
+	),
+
+	wire.NewSet(
+		analytic.FirstAuthSinkDependencySet,
+		ProvideAnalyticConfig,
 	),
 
 	wire.NewSet(
