@@ -30,6 +30,19 @@ type PosthogCredentials struct {
 	APIKey   string
 }
 
+// NewPosthogCredentials returns PostHog credentials from the analytic config,
+// or nil when either the endpoint or API key is unset. A nil result makes any
+// consumer (e.g. PosthogService.Batch, FirstAuthSink) a graceful no-op.
+func NewPosthogCredentials(c *config.AnalyticConfig) *PosthogCredentials {
+	if c.PosthogEndpoint != "" && c.PosthogAPIKey != "" {
+		return &PosthogCredentials{
+			Endpoint: c.PosthogEndpoint,
+			APIKey:   c.PosthogAPIKey,
+		}
+	}
+	return nil
+}
+
 var PosthogLogger = slogutil.NewLogger("posthog-integration")
 
 // firstAuthUUIDNamespace is a fixed namespace so that the UUIDv5 for a given
