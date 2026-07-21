@@ -49,6 +49,7 @@ import {
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import { TranslationKey } from "../../../model/translations";
+import { escapeMessageFormatText } from "../../../util/messageFormat";
 import { deriveColors } from "../../../util/theme";
 import { ImageValue } from "../../../components/v2/ImageInput/ImageInput";
 import { usePortalClient } from "../../../graphql/portal/apollo";
@@ -675,7 +676,7 @@ function useProjectWizardResourceForm(
             if (value === "") {
               delete jsonValue[key];
             } else {
-              jsonValue[key] = value;
+              jsonValue[key] = escapeMessageFormatText(value);
             }
             draft.resources[specifierId(specifier)] = {
               specifier: specifier,

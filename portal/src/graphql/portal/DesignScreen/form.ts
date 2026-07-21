@@ -48,6 +48,10 @@ import { nonNullable } from "../../../util/types";
 import { nullishCoalesce, or_ } from "../../../util/operators";
 import { deriveColors } from "../../../util/theme";
 import {
+  escapeMessageFormatText,
+  unescapeMessageFormatText,
+} from "../../../util/messageFormat";
+import {
   APIValidationError,
   LocalValidationError,
   makeLocalValidationError,
@@ -339,7 +343,8 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         return "";
       }
       const jsonValue = JSON.parse(translationResource.nullableValue);
-      return jsonValue[key] ?? "";
+      const value = jsonValue[key];
+      return typeof value === "string" ? unescapeMessageFormatText(value) : "";
     };
 
     const getValueFromImageResource = (
@@ -446,7 +451,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             if (value === "") {
               delete jsonValue[key];
             } else {
-              jsonValue[key] = value;
+              jsonValue[key] = escapeMessageFormatText(value);
             }
             draft.resources[specifierId(specifier)] = {
               specifier: specifier,
