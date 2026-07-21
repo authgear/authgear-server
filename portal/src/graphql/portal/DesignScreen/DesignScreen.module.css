@@ -186,11 +186,23 @@
 }
 
 .saveBarAnchor {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col;
 }
 
-.appearanceRow {
-  max-width: 20rem;
+.configColumn {
+  @apply flex flex-col gap-4;
+  @apply desktop:w-96;
+}
+
+.appearancePanel {
+  @apply border border-solid rounded-xl;
+  border-color: var(--gray-a6);
+  padding: 24px;
+}
+
+.configPanel {
+  @apply border border-solid rounded-xl overflow-hidden;
+  border-color: var(--gray-a6);
 }
 
 .appearanceSelect {

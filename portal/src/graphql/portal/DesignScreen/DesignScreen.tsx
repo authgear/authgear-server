@@ -1017,9 +1017,6 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
                   </Tooltip>
                 </div>
               </div>
-              <div className={styles.appearanceRow}>
-                <AppearanceConfiguration designForm={form} />
-              </div>
             </div>
           </div>
           <div
@@ -1033,17 +1030,13 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
             )}
           >
             <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
-              <div
-                className={cn(
-                  "desktop:w-96",
-                  "border",
-                  "border-solid",
-                  "border-gray-a6",
-                  "rounded-xl",
-                  "overflow-hidden"
-                )}
-              >
-                <ConfigurationPanel appID={appID} designForm={form} />
+              <div className={styles.configColumn}>
+                <div className={styles.appearancePanel}>
+                  <AppearanceConfiguration designForm={form} />
+                </div>
+                <div className={styles.configPanel}>
+                  <ConfigurationPanel appID={appID} designForm={form} />
+                </div>
               </div>
             </div>
             <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
