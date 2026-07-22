@@ -136,6 +136,12 @@ export function EditSAMLCertificateForm({
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [activatingKeyID, setActivatingKeyID] = useState<string | null>(null);
+  // Kept out of form state so that opening the confirmation dialog does not
+  // dirty the form (which would show the unsaved-changes bar); the keyID is
+  // merged into the form state only at save time, like onChangeActiveKey.
+  const [removingCertificateKeyID, setRemovingCertificateKeyID] = useState<
+    string | null
+  >(null);
 
   const generateNewCert = useCallback(async () => {
     setIsGenerating(true);
@@ -160,15 +166,9 @@ export function EditSAMLCertificateForm({
     [configAppID]
   );
 
-  const onRemoveCert = useCallback(
-    (cert: SAMLIdpSigningCertificate) => {
-      form.setState((prevState) => ({
-        ...prevState,
-        removingCertificateKeyID: cert.keyID,
-      }));
-    },
-    [form]
-  );
+  const onRemoveCert = useCallback((cert: SAMLIdpSigningCertificate) => {
+    setRemovingCertificateKeyID(cert.keyID);
+  }, []);
 
   const onChangeActiveKey = useCallback(
     async (cert: SAMLIdpSigningCertificate) => {
@@ -190,14 +190,11 @@ export function EditSAMLCertificateForm({
   );
 
   const dismissRemoveCertificateDialog = useCallback(() => {
-    form.setState((state) => ({
-      ...state,
-      removingCertificateKeyID: null,
-    }));
-  }, [form]);
+    setRemovingCertificateKeyID(null);
+  }, []);
 
   const onConfirmRemoveCertificate = useCallback(() => {
-    form.save().then(
+    form.saveWithState({ ...form.state, removingCertificateKeyID }).then(
       () => {
         dismissRemoveCertificateDialog();
         form.reload();
@@ -206,10 +203,9 @@ export function EditSAMLCertificateForm({
         dismissRemoveCertificateDialog();
       }
     );
-  }, [form, dismissRemoveCertificateDialog]);
+  }, [form, removingCertificateKeyID, dismissRemoveCertificateDialog]);
 
-  const isRemoveCertificateDialogOpen =
-    form.state.removingCertificateKeyID != null;
+  const isRemoveCertificateDialogOpen = removingCertificateKeyID != null;
 
   const formDisabled =
     form.isLoading || form.isUpdating || activatingKeyID != null;
