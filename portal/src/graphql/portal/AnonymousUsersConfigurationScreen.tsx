@@ -4,8 +4,9 @@ import cn from "classnames";
 import { produce } from "immer";
 import {
   DropdownMenu,
+  Flex,
   IconButton as RadixIconButton,
-  Select,
+  RadioGroup,
   Separator,
   Text,
 } from "@radix-ui/themes";
@@ -365,7 +366,6 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
   function AnonymousUserConfigurationContent(props) {
     const { state, setState } = props.form;
 
-    const { renderToString } = useContext(Context);
     const { isDirty } = useFormContainerBaseContext();
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -373,9 +373,9 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
       () =>
         promotionConflictBehaviours.map((behaviour) => ({
           value: behaviour,
-          label: renderToString(conflictBehaviourMessageId[behaviour]),
+          labelId: conflictBehaviourMessageId[behaviour],
         })),
-      [renderToString]
+      []
     );
 
     const onEnableChange = useCallback(
@@ -437,23 +437,21 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
                   <FormattedMessage id="AnonymousUsersConfigurationScreen.conflict-droplist.label" />
                 }
               >
-                <Select.Root
+                <RadioGroup.Root
                   value={state.promotionConflictBehaviour}
                   onValueChange={onConflictOptionChange}
-                  size="2"
                 >
-                  <Select.Trigger
-                    variant="surface"
-                    className={styles.conflictSelectTrigger}
-                  />
-                  <Select.Content>
+                  <Flex direction="column" gap="2">
                     {conflictBehaviourOptions.map((opt) => (
-                      <Select.Item key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </Select.Item>
+                      <Text as="label" size="2" key={opt.value}>
+                        <Flex gap="2" align="center">
+                          <RadioGroup.Item value={opt.value} />
+                          <FormattedMessage id={opt.labelId} />
+                        </Flex>
+                      </Text>
                     ))}
-                  </Select.Content>
-                </Select.Root>
+                  </Flex>
+                </RadioGroup.Root>
               </FormField>
             ) : null}
           </SettingsSectionCard>

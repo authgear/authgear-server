@@ -28,11 +28,6 @@
   margin-bottom: 5.5rem;
 }
 
-.conflictSelectTrigger {
-  width: 100%;
-  max-width: 18.75rem;
-}
-
 .lifetimeSection {
   @apply flex flex-col gap-2;
 }
