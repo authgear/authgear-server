@@ -664,6 +664,7 @@
   "SingleSignOnConfigurationScreen.edit": "Edit",
   "SingleSignOnConfigurationScreen.disable": "Disable",
   "SingleSignOnConfigurationScreen.delete": "Delete",
+  "SingleSignOnConfigurationScreen.row-actions": "Connection actions",
   "SingleSignOnConfigurationScreen.description": "Add social or enterprise identity providers to enable frictionless sign-in for your users. Read the <docLink>integration guide</docLink> if you need help.",
   "SingleSignOnConfigurationScreen.empty-message": "No Social or Enterprise Integration",
   "SingleSignOnConfigurationScreen.add-connection": "Add Connection",

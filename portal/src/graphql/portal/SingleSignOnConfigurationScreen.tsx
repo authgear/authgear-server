@@ -1,13 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Dialog,
-  DialogFooter,
-  Label,
-  Spinner,
-  SpinnerSize,
-  Text,
-} from "@fluentui/react";
+import { Flex, Text } from "@radix-ui/themes";
+import { PlusIcon } from "@radix-ui/react-icons";
 import { Context as IntlContext, FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
 import {
@@ -17,8 +11,6 @@ import {
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
@@ -32,17 +24,15 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
-import PrimaryButton from "../../PrimaryButton";
 import cn from "classnames";
-import ScreenContentHeader from "../../ScreenContentHeader";
-import DefaultButton from "../../DefaultButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -71,7 +61,6 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       form,
       effectiveSecretConfig,
     } = props;
-    const { renderToString } = useContext(IntlContext);
 
     const limitReached = form.state.providers.length >= oauthClientsMaximum;
 
@@ -126,90 +115,93 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
     }, [effectiveSecretConfig?.oauthSSOProviderDemoSecrets]);
 
     return (
-      <ScreenContent
-        layout="list"
-        header={
-          <ScreenContentHeader
-            title={
-              <ScreenTitle className={cn(styles.widget, styles.screenTitle)}>
-                <span>
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-                </span>
-                <PrimaryButton
-                  text={renderToString(
-                    "SingleSignOnConfigurationScreen.add-connection"
-                  )}
-                  iconProps={{ iconName: "Add" }}
-                  onClick={onAddConnection}
-                  disabled={limitReached}
-                />
-              </ScreenTitle>
-            }
-            description={
-              <ScreenDescription className={styles.widget}>
-                <Text>
-                  <FormattedMessage
-                    id="SingleSignOnConfigurationScreen.description"
-                    values={{
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      docLink: (chunks: React.ReactNode) => (
-                        <ExternalLink href="https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers">
-                          {chunks}
-                        </ExternalLink>
-                      ),
-                    }}
-                  />
-                </Text>
-                {oauthClientsMaximum < 99 ? (
-                  <FeatureDisabledMessageBar
-                    messageID="FeatureConfig.sso.maximum"
-                    messageValues={{
-                      maximum: oauthClientsMaximum,
-                    }}
-                  />
-                ) : null}
-              </ScreenDescription>
-            }
-          />
-        }
-      >
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+      <ScreenContent layout="list">
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <div className={styles.pageTitleRow}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+            </Text>
+            {form.state.providers.length > 0 ? (
+              <PrimaryButton
+                size="2"
+                disabled={limitReached}
+                onClick={onAddConnection}
+                text={
+                  <Flex align="center" gap="2">
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="SingleSignOnConfigurationScreen.add-connection" />
+                  </Flex>
+                }
+              />
+            ) : null}
+          </div>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage
+              id="SingleSignOnConfigurationScreen.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                docLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/authentication-and-access/social-enterprise-login-providers">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          </Text>
+          {oauthClientsMaximum < 99 ? (
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.sso.maximum"
+              messageValues={{
+                maximum: oauthClientsMaximum,
+              }}
+            />
+          ) : null}
+        </div>
+        <ShowOnlyIfSIWEIsDisabled>
           <div className={styles.content}>
             {form.state.providers.length > 0 ? (
-              form.state.providers.map((provider, idx) => (
-                <React.Fragment
-                  key={`${provider.config.type}/${provider.config.alias}`}
-                >
-                  {idx === 0 ? (
-                    <OAuthClientRowHeader className={styles.contentHeader} />
-                  ) : null}
-                  <OAuthClientRow
-                    className={styles.contentItem}
-                    showAlias={providerKeysWithDuplications.has(
-                      createOAuthSSOProviderItemKey(
-                        provider.config.type,
-                        provider.config.app_type
-                      )
-                    )}
-                    providerConfig={provider.config}
-                    providersWithDemoCredentials={providersWithDemoCredentials}
-                    onEditClick={onEditConnection}
-                    onDeleteClick={onDeleteConnection}
-                  />
-                </React.Fragment>
-              ))
+              <div className={styles.list}>
+                <div className={styles.tableWrapper}>
+                  <div className={styles.table}>
+                    <OAuthClientRowHeader />
+                    {form.state.providers.map((provider) => (
+                      <OAuthClientRow
+                        key={`${provider.config.type}/${provider.config.alias}`}
+                        showAlias={providerKeysWithDuplications.has(
+                          createOAuthSSOProviderItemKey(
+                            provider.config.type,
+                            provider.config.app_type
+                          )
+                        )}
+                        providerConfig={provider.config}
+                        providersWithDemoCredentials={
+                          providersWithDemoCredentials
+                        }
+                        onEditClick={onEditConnection}
+                        onDeleteClick={onDeleteConnection}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className={styles.emptyMessage}>
-                <Label>
+                <Text as="p" size="4" weight="bold" className={styles.emptyTitle}>
                   <FormattedMessage id="SingleSignOnConfigurationScreen.empty-message" />
-                </Label>
-                <PrimaryButton
-                  text={renderToString(
-                    "SingleSignOnConfigurationScreen.add-connection"
-                  )}
-                  onClick={onAddConnection}
-                  disabled={limitReached}
-                />
+                </Text>
+                <div className={styles.emptyButton}>
+                  <PrimaryButton
+                    size="2"
+                    disabled={limitReached}
+                    onClick={onAddConnection}
+                    text={
+                      <Flex align="center" gap="2">
+                        <PlusIcon width="1rem" height="1rem" />
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.add-connection" />
+                      </Flex>
+                    }
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -223,7 +215,6 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   secretVisitToken: string | null;
 }> = function SingleSignOnConfigurationScreen1({ appID, secretVisitToken }) {
   const { renderToString } = useContext(IntlContext);
-  const { themes } = useSystemConfig();
   const form = useOAuthProviderForm(appID, secretVisitToken);
   const featureConfigQuery = useAppFeatureConfigQuery(appID);
 
@@ -260,6 +251,15 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     setPendingDelete(null);
   }, []);
 
+  const onDeleteDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        onDismissDeleteDialog();
+      }
+    },
+    [onDismissDeleteDialog]
+  );
+
   const deleteConnection = useCallback(() => {
     if (pendingDelete == null) {
       return;
@@ -287,17 +287,6 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     );
   }, [form, pendingDelete]);
 
-  const deleteDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.title" />
-      ),
-      subText: renderToString(
-        "SingleSignOnConfigurationScreen.delete-confirm-dialog.description"
-      ),
-    };
-  }, [renderToString]);
-
   return useLoadableView({
     loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
     render: ([form, _, effectiveSecretConfigQuery]) => {
@@ -311,34 +300,24 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
               effectiveSecretConfigQuery.effectiveSecretConfig
             }
           />
-          <Dialog
-            hidden={!isDeleteDialogVisible}
-            dialogContentProps={deleteDialogContentProps}
-            modalProps={{ isBlocking: !form.isUpdating }}
-            onDismiss={onDismissDeleteDialog}
-          >
-            <DialogFooter>
-              <PrimaryButton
-                text={
-                  <div className={styles.deleteButton}>
-                    {form.isUpdating ? (
-                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
-                    ) : null}
-                    <span>
-                      <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.delete" />
-                    </span>
-                  </div>
-                }
-                theme={themes.destructive}
-                disabled={form.isUpdating}
-                onClick={deleteConnection}
-              />
-              <DefaultButton
-                onClick={onDismissDeleteDialog}
-                text={<FormattedMessage id="cancel" />}
-              />
-            </DialogFooter>
-          </Dialog>
+          <ConfirmationDialog
+            open={isDeleteDialogVisible}
+            onOpenChange={onDeleteDialogOpenChange}
+            title={
+              <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.title" />
+            }
+            description={renderToString(
+              "SingleSignOnConfigurationScreen.delete-confirm-dialog.description"
+            )}
+            confirmText={
+              <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.delete" />
+            }
+            cancelText={<FormattedMessage id="cancel" />}
+            confirmColor="red"
+            loading={form.isUpdating}
+            onConfirm={deleteConnection}
+            onCancel={onDismissDeleteDialog}
+          />
         </FormContainer>
       );
     },

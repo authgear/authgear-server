@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
+import cn from "classnames";
 import SingleSignOnConfigurationWidget, {
   useSingleSignOnConfigurationWidget,
 } from "./SingleSignOnConfigurationWidget";
@@ -17,21 +18,21 @@ import {
   oauthSSOProviderItemKeys,
   parseOAuthSSOProviderItemKey,
 } from "../../types";
-import styles from "./SingleSignOnConfigurationScreen.module.css";
+import styles from "./EditSingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
-import cn from "classnames";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import ScreenContentHeader from "../../ScreenContentHeader";
 import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -98,6 +99,8 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       effectiveSecretConfig,
       publicOrigin,
     } = props;
+    const { isDirty } = useFormContainerBaseContext();
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const navBreadcrumbItems = useMemo(() => {
       return [
@@ -118,18 +121,15 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
 
     return (
       <ScreenContent
-        header={
-          <ScreenContentHeader
-            title={
-              <NavBreadcrumb
-                className={cn(styles.widget, styles.breadcrumb)}
-                items={navBreadcrumbItems}
-              />
-            }
-          />
-        }
+        className={cn(isDirty ? styles.contentWithSaveBar : null)}
       >
-        <ShowOnlyIfSIWEIsDisabled>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <NavBreadcrumb items={navBreadcrumbItems} />
+        </div>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           <OAuthClientItem
             initialAlias={alias}
             providerItemKey={providerItemKey}
@@ -139,6 +139,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             publicOrigin={publicOrigin}
           />
         </ShowOnlyIfSIWEIsDisabled>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -236,7 +237,7 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
         effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
         "";
       return (
-        <FormContainer form={form} afterSave={onSaveSuccess}>
+        <FormContainer form={form} afterSave={onSaveSuccess} hideFooterComponent={true}>
           <EditSingleSignOnConfigurationContent
             form={form}
             alias={alias}

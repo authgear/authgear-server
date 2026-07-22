@@ -1,0 +1,13 @@
+.widget {
+  grid-column: 1 / span 9;
+
+  @apply tablet:col-span-full;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
