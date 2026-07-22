@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -26,7 +27,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		logger := RequestMiddlewareLogger.GetLogger(ctx)
 		logger.Debug(ctx, "serving request",
 			slog.String("request.host", r.Host),
-			slog.String("request.url", r.URL.String()),
+			slog.String("request.url", httputil.RedactedURLString(r.URL)),
 			slog.String("request.header.host", r.Header.Get("Host")),
 			slog.String("request.header.x-forwarded-host", r.Header.Get("X-Forwarded-Host")),
 			slog.String("request.header.x-original-host", r.Header.Get("X-Original-Host")),

@@ -80,6 +80,7 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		// Avoid the rare case of the handler modifying r.Method, r.URL, or r.Header.
 		method := r.Method
 		path := r.URL.Path
+		query := httputil.RedactedRawQuery(r.URL.RawQuery)
 		host := r.Host
 		labeler.Add(otelutil.HTTPRequestMethod(r))
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
@@ -118,6 +119,7 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 			logger.LogAttrs(ctx, slog.LevelInfo, "access",
 				slog.String("http.method", method),
 				slog.String("http.path", path),
+				slog.String("http.query", query),
 				slog.String("http.route", httpRoute),
 				slog.String("url.scheme", scheme),
 				slog.String("server.address", host),
