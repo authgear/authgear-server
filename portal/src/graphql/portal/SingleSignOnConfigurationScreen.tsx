@@ -92,22 +92,6 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       [onDeleteProvider]
     );
 
-    const providerKeysWithDuplications = useMemo(() => {
-      const set = new Set<OAuthSSOProviderItemKey>();
-      const keysWithDuplication = new Set<OAuthSSOProviderItemKey>();
-      for (const p of form.state.providers) {
-        const key = createOAuthSSOProviderItemKey(
-          p.config.type,
-          p.config.app_type
-        );
-        if (set.has(key)) {
-          keysWithDuplication.add(key);
-        }
-        set.add(key);
-      }
-      return keysWithDuplication;
-    }, [form.state.providers]);
-
     const providersWithDemoCredentials = useMemo(() => {
       return new Set(
         effectiveSecretConfig?.oauthSSOProviderDemoSecrets?.map((it) => it.type)
@@ -167,12 +151,6 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
                     {form.state.providers.map((provider) => (
                       <OAuthClientRow
                         key={`${provider.config.type}/${provider.config.alias}`}
-                        showAlias={providerKeysWithDuplications.has(
-                          createOAuthSSOProviderItemKey(
-                            provider.config.type,
-                            provider.config.app_type
-                          )
-                        )}
                         providerConfig={provider.config}
                         providersWithDemoCredentials={
                           providersWithDemoCredentials

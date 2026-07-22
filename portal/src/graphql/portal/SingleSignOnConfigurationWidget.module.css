@@ -11,6 +11,19 @@
   @apply w-6 h-6;
 }
 
+.contentHeader {
+  @apply flex flex-col gap-1;
+}
+
+.contentTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.contentDescription {
+  margin: 0;
+}
+
 .cardContent {
   @apply gap-4;
 }
@@ -19,21 +32,47 @@
   min-height: 160px;
 }
 
+.checkboxGroup {
+  @apply flex flex-col gap-2;
+}
+
+.policySection {
+  @apply flex flex-col gap-3;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
 .checkboxRow {
   @apply flex items-center gap-2 cursor-pointer;
 }
 
 .advancedSection {
-  @apply flex flex-col gap-3;
+  @apply mt-4 flex flex-col gap-3;
 }
 
 .advancedToggle {
   @apply flex items-center gap-2;
   @apply bg-transparent border-none cursor-pointer p-0;
+  color: var(--accent-9);
 }
 
 .advancedToggle:disabled {
   @apply cursor-not-allowed opacity-50;
+}
+
+.advancedToggleIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--accent-9);
+  transition: transform 150ms ease;
+}
+
+.advancedToggleIconOpen {
+  transform: rotate(180deg);
 }
 
 .tooltipLabel {
@@ -65,8 +104,8 @@
 }
 
 .cardContainer {
-  @apply p-4;
-  @apply border border-solid border-border-primary;
+  @apply rounded-lg border border-solid bg-white p-4;
+  border-color: var(--gray-5);
 }
 
 .cardHeader {
@@ -118,6 +157,7 @@
 }
 
 .tableHeaderCellProvider,
+.tableHeaderCellAlias,
 .tableHeaderCellConfiguration,
 .tableHeaderCellActions {
   @apply flex items-center px-3 py-3 text-sm font-semibold;
@@ -127,6 +167,11 @@
 .tableHeaderCellProvider {
   @apply min-w-0 flex-[1.5];
   min-width: 14rem;
+}
+
+.tableHeaderCellAlias {
+  @apply min-w-0 flex-1;
+  min-width: 8rem;
 }
 
 .tableHeaderCellConfiguration {
@@ -153,6 +198,7 @@
 }
 
 .tableCellProvider,
+.tableCellAlias,
 .tableCellConfiguration,
 .tableCellActions {
   @apply flex items-center px-3 py-3 text-sm;
@@ -162,6 +208,11 @@
 .tableCellProvider {
   @apply min-w-0 flex-[1.5] overflow-hidden gap-3;
   min-width: 14rem;
+}
+
+.tableCellAlias {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 8rem;
 }
 
 .tableCellConfiguration {
@@ -187,6 +238,11 @@
 
 .rowTitle {
   @apply min-w-0 truncate;
+  margin: 0;
+}
+
+.rowAlias {
+  @apply min-w-0 truncate font-mono;
   margin: 0;
 }
 

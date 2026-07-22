@@ -6,11 +6,12 @@ import {
 } from "@radix-ui/themes";
 import {
   ChevronDownIcon,
-  ChevronUpIcon,
   DotsVerticalIcon,
   InfoCircledIcon,
+  ListBulletIcon,
   Pencil1Icon,
   PlusIcon,
+  StarFilledIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
@@ -19,7 +20,11 @@ import { produce } from "immer";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { TextArea } from "../../components/v2/TextArea/TextArea";
-import { RadioCards } from "../../components/v2/RadioCards/RadioCards";
+import {
+  IconRadioCards,
+  IconRadioCardOption,
+} from "../../components/v2/IconRadioCards/IconRadioCards";
+import { SquareIcon } from "../../components/v2/SquareIcon/SquareIcon";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
@@ -768,10 +773,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       [handleDemoCredentialSelectedChange]
     );
 
-    const demoCredentialOptions = useMemo(
+    const demoCredentialOptions = useMemo<
+      IconRadioCardOption<DemoCredentialOptionValue>[]
+    >(
       () => [
         {
-          value: "custom" as const,
+          value: "custom",
+          icon: (
+            <SquareIcon
+              className="text-[var(--accent-9)]"
+              Icon={ListBulletIcon}
+              size="7"
+              radius="4"
+              iconSize="1.375rem"
+            />
+          ),
           title: renderToString(
             "SingleSignOnConfigurationWidget.credentialStatusButton.custom.text"
           ),
@@ -780,7 +796,16 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           ),
         },
         {
-          value: "demo" as const,
+          value: "demo",
+          icon: (
+            <SquareIcon
+              className="text-[var(--accent-9)]"
+              Icon={StarFilledIcon}
+              size="7"
+              radius="4"
+              iconSize="1.375rem"
+            />
+          ),
           title: renderToString(
             "SingleSignOnConfigurationWidget.credentialStatusButton.demo.text"
           ),
@@ -801,30 +826,38 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         className={className}
         contentClassName={styles.cardContent}
         title={
-          <span className={styles.widgetHeader}>
+          <FormattedMessage id="SingleSignOnConfigurationWidget.settings.label" />
+        }
+      >
+        <div className={styles.contentHeader}>
+          <div className={styles.widgetHeader}>
             <span className={styles.widgetHeaderIcon}>
               <OAuthClientIcon providerItemKey={providerItemKey} />
             </span>
-            <span>{renderToString(messageID)}</span>
-          </span>
-        }
-        description={
-          <FormattedMessage
-            id="SingleSignOnConfigurationWidget.setupGuide"
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              docLink: (chunks: React.ReactNode) => (
-                <ExternalLink href={docUrl}>{chunks}</ExternalLink>
-              ),
-            }}
-          />
-        }
-      >
+            <Text as="p" size="3" weight="medium" className={styles.contentTitle}>
+              {renderToString(messageID)}
+            </Text>
+          </div>
+          <Text as="p" size="2" color="gray" className={styles.contentDescription}>
+            <FormattedMessage
+              id="SingleSignOnConfigurationWidget.setupGuide"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                docLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href={docUrl}>{chunks}</ExternalLink>
+                ),
+              }}
+            />
+          </Text>
+        </div>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="SingleSignOnConfigurationWidget.credentials.label" />
+        </Text>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
         {isDemoCredentialAvailable ? (
-          <RadioCards
+          <IconRadioCards
             size="2"
             value={
               isDemoCredentialSelected
@@ -1104,35 +1137,51 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 </div>
               </FormField>
             ) : null}
-            {visibleFields.has("email_required") ? (
-              <WidgetCheckbox
-                label={
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.email-required" />
-                }
-                checked={config.claims?.email?.required ?? true}
-                onCheckedChange={onEmailRequiredChange}
-                disabled={noneditable}
-              />
-            ) : null}
-            {visibleFields.has("create_disabled") ? (
-              <WidgetCheckbox
-                label={
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.create-disabled" />
-                }
-                checked={config.create_disabled ?? false}
-                onCheckedChange={onCreateDisabledChange}
-                disabled={noneditable}
-              />
-            ) : null}
-            {visibleFields.has("delete_disabled") ? (
-              <WidgetCheckbox
-                label={
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.delete-disabled" />
-                }
-                checked={config.delete_disabled ?? false}
-                onCheckedChange={onDeleteDisabledChange}
-                disabled={noneditable}
-              />
+            {visibleFields.has("email_required") ||
+            visibleFields.has("create_disabled") ||
+            visibleFields.has("delete_disabled") ? (
+              <div className={styles.policySection}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.sectionTitle}
+                >
+                  <FormattedMessage id="SingleSignOnConfigurationWidget.signInPolicy.label" />
+                </Text>
+                <div className={styles.checkboxGroup}>
+                  {visibleFields.has("email_required") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.email-required" />
+                      }
+                      checked={config.claims?.email?.required ?? true}
+                      onCheckedChange={onEmailRequiredChange}
+                      disabled={noneditable}
+                    />
+                  ) : null}
+                  {visibleFields.has("create_disabled") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.create-disabled" />
+                      }
+                      checked={config.create_disabled ?? false}
+                      onCheckedChange={onCreateDisabledChange}
+                      disabled={noneditable}
+                    />
+                  ) : null}
+                  {visibleFields.has("delete_disabled") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.delete-disabled" />
+                      }
+                      checked={config.delete_disabled ?? false}
+                      onCheckedChange={onDeleteDisabledChange}
+                      disabled={noneditable}
+                    />
+                  ) : null}
+                </div>
+              </div>
             ) : null}
             {visibleFields.has("alias") ? (
               <div className={styles.advancedSection}>
@@ -1141,14 +1190,16 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                   className={styles.advancedToggle}
                   onClick={onToggleAdvancedFolded}
                 >
-                  <Text size="2" weight="medium" color="indigo">
+                  <Text size="2" weight="medium">
                     <FormattedMessage id="SingleSignOnConfigurationWidget.advancedOptions" />
                   </Text>
-                  {advancedFolded ? (
-                    <ChevronDownIcon width="1rem" height="1rem" />
-                  ) : (
-                    <ChevronUpIcon width="1rem" height="1rem" />
-                  )}
+                  <ChevronDownIcon
+                    className={cn(
+                      styles.advancedToggleIcon,
+                      !advancedFolded ? styles.advancedToggleIconOpen : null
+                    )}
+                    aria-hidden
+                  />
                 </button>
                 {advancedFolded ? null : (
                   <TextField
@@ -1261,7 +1312,6 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
 interface OAuthClientRowProps {
   className?: string;
   providerConfig: OAuthSSOProviderConfig;
-  showAlias: boolean;
   providersWithDemoCredentials: Set<string>;
   onEditClick?: (provider: OAuthSSOProviderConfig) => void;
   onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
@@ -1272,7 +1322,6 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
     const {
       className,
       providerConfig,
-      showAlias,
       providersWithDemoCredentials,
       onEditClick,
       onDeleteClick,
@@ -1326,12 +1375,16 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
               {`${renderToString(titleId)}${
                 subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
               }`}
-              {showAlias ? ` - ${providerConfig.alias}` : null}
             </Text>
             <Text as="p" size="1" color="gray" className={styles.rowDescription}>
               <FormattedMessage id={descriptionId} />
             </Text>
           </div>
+        </div>
+        <div className={styles.tableCellAlias}>
+          <Text as="p" size="2" className={styles.rowAlias}>
+            {providerConfig.alias}
+          </Text>
         </div>
         <div className={styles.tableCellConfiguration}>
           <ProviderStatus
@@ -1381,6 +1434,9 @@ export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
     <div className={cn(styles.tableHeader, className)}>
       <div className={styles.tableHeaderCellProvider}>
         <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
+      </div>
+      <div className={styles.tableHeaderCellAlias}>
+        <FormattedMessage id="SingleSignOnConfigurationScreen.header.alias" />
       </div>
       <div className={styles.tableHeaderCellConfiguration}>
         <FormattedMessage id="SingleSignOnConfigurationScreen.header.configuration" />
