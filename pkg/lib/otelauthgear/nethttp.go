@@ -82,6 +82,9 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		path := r.URL.Path
 		query := httputil.RedactedRawQuery(r.URL.RawQuery)
 		host := r.Host
+		headerHost := r.Header.Get("Host")
+		headerXForwardedHost := r.Header.Get("X-Forwarded-Host")
+		headerXOriginalHost := r.Header.Get("X-Original-Host")
 		labeler.Add(otelutil.HTTPRequestMethod(r))
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
 		labeler.Add(otelutil.HTTPURLScheme(scheme))
@@ -114,15 +117,18 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram.Inst(), seconds, options...)
 			}
 
-			// Log the access log.
+			// Log the single access/request log for this request.
 			logger := slogutil.GetContextLogger(ctx)
-			logger.LogAttrs(ctx, slog.LevelInfo, "access",
+			logger.LogAttrs(ctx, slog.LevelInfo, "serving http request",
 				slog.String("http.method", method),
 				slog.String("http.path", path),
 				slog.String("http.query", query),
 				slog.String("http.route", httpRoute),
 				slog.String("url.scheme", scheme),
 				slog.String("server.address", host),
+				slog.String("http.request.header.host", headerHost),
+				slog.String("http.request.header.x_forwarded_host", headerXForwardedHost),
+				slog.String("http.request.header.x_original_host", headerXOriginalHost),
 				slog.Int("http.status_code", statusCode),
 				slog.Int64("duration_ms", requestDuration.Milliseconds()),
 			)

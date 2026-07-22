@@ -39,16 +39,3 @@ func RedactedRawQuery(rawQuery string) string {
 
 	return query.Encode()
 }
-
-// RedactedURLString returns u.String() with the values of SensitiveQueryParams
-// replaced, so it is safe to write to logs.
-func RedactedURLString(u *url.URL) string {
-	redactedRawQuery := RedactedRawQuery(u.RawQuery)
-	if redactedRawQuery == u.RawQuery {
-		return u.String()
-	}
-
-	redactedURL := *u
-	redactedURL.RawQuery = redactedRawQuery
-	return redactedURL.String()
-}
