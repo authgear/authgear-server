@@ -11,6 +11,9 @@ export interface ConfirmationDialogProps {
   confirmText: React.ReactNode;
   cancelText: React.ReactNode;
   onConfirm: () => void;
+  // Called only when the Cancel button is clicked. Escape and overlay
+  // dismissal go through onOpenChange(false) instead, so any cancel
+  // side-effect must live in (or be shared with) onOpenChange.
   onCancel: () => void;
   loading?: boolean;
   confirmColor?: "red" | "indigo";

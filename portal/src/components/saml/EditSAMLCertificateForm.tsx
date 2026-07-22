@@ -242,7 +242,7 @@ export function EditSAMLCertificateForm({
       <ConfirmationDialog
         open={isRemoveCertificateDialogOpen}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !form.isUpdating) {
             dismissRemoveCertificateDialog();
           }
         }}
