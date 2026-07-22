@@ -230,14 +230,14 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
-  const { renderToString, locale } = useContext(Context);
+  const { renderToString } = useContext(Context);
 
   const customDateRangeLabel = useMemo(
     () =>
       isCustomDateRange
-        ? formatCustomDateRangeLabel(locale, rangeFrom, rangeTo)
+        ? formatCustomDateRangeLabel(rangeFrom, rangeTo)
         : undefined,
-    [isCustomDateRange, locale, rangeFrom, rangeTo]
+    [isCustomDateRange, rangeFrom, rangeTo]
   );
 
   const onClickAllDateRange = useCallback(

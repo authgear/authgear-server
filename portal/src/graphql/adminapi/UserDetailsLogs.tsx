@@ -165,9 +165,9 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
     const customDateRangeLabel = useMemo(
       () =>
         isCustomDateRange
-          ? formatCustomDateRangeLabel(locale, rangeFrom, rangeTo)
+          ? formatCustomDateRangeLabel(rangeFrom, rangeTo)
           : undefined,
-      [isCustomDateRange, locale, rangeFrom, rangeTo]
+      [isCustomDateRange, rangeFrom, rangeTo]
     );
 
     const onClickAllDateRange = useCallback(
