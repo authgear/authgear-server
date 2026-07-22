@@ -293,8 +293,11 @@ export default function DateTimePicker(
   );
 
   const onFormatDate = useCallback((date: Date) => {
-    return DateTime.fromJSDate(date).toFormat("HH:mm", {
-      locale: "en-US",
+    // Match Authgear datetime display (e.g. "2:30 PM").
+    return DateTime.fromJSDate(date).setLocale("en-US").toLocaleString({
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   }, []);
 
@@ -302,9 +305,16 @@ export default function DateTimePicker(
     (timeStr: string) => {
       const check: () => boolean = () => {
         try {
-          const timeOnly = DateTime.fromFormat(timeStr, "HH:mm", {
+          // Accept both "2:30 PM" and "02:30 PM".
+          let timeOnly = DateTime.fromFormat(timeStr.trim(), "h:mm a", {
             locale: "en-US",
           });
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (!timeOnly.isValid) {
+            timeOnly = DateTime.fromFormat(timeStr.trim(), "hh:mm a", {
+              locale: "en-US",
+            });
+          }
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (timeOnly.isValid) {
             const anchor =
@@ -387,7 +397,7 @@ export default function DateTimePicker(
           timeRange={timeRange}
           allowFreeform={true}
           showSeconds={false}
-          useHour12={false}
+          useHour12={true}
           dateAnchor={pickedDateTime ?? undefined}
           value={pickedDateTime ?? undefined}
           onChange={onChange}
