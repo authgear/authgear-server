@@ -1891,8 +1891,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				panic(fmt.Errorf("unknown session type: %v", typ))
 			}
 		}
-	} else if client.IsConfidential() {
-		// allow issuing access tokens if scopes don't contain offline_access and the client is confidential
+	} else {
+		// allow issuing access tokens if scopes don't contain offline_access
 		// fill the response with nil for not returning the refresh token
 		offlineGrant, _, err := h.issueOfflineGrant(
 			ctx,

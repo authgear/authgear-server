@@ -14,6 +14,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -25,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 )
 
 func TestTokenHandler(t *testing.T) {
@@ -47,6 +49,8 @@ func TestTokenHandler(t *testing.T) {
 		).AnyTimes()
 
 		offlineGrants := NewMockTokenHandlerOfflineGrantStore(ctrl)
+		codeGrants := NewMockTokenHandlerCodeGrantStore(ctrl)
+		uiInfoResolver := NewMockUIInfoResolver(ctrl)
 
 		authorizations := NewMockAuthorizationService(ctrl)
 		codeGrantService := NewMockTokenHandlerCodeGrantService(ctrl)
@@ -84,6 +88,8 @@ func TestTokenHandler(t *testing.T) {
 			AccessTokenEncoding:             accessTokenEncoding,
 			ClientResolver:                  clientResolver,
 			Authorizations:                  authorizations,
+			CodeGrants:                      codeGrants,
+			UIInfoResolver:                  uiInfoResolver,
 			OfflineGrants:                   offlineGrants,
 			OfflineGrantService:             offlineGrantService,
 			IDTokenIssuer:                   idTokenIssuer,
@@ -344,6 +350,111 @@ func TestTokenHandler(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "x_rate_limited")
 				So(body["error_description"], ShouldEqual, "rate limit exceeded, please try again later.")
+			})
+		})
+
+		Convey("handle authorization_code", func() {
+			Convey("issues an access token without a refresh token when offline_access is not requested", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID:        "app-id",
+					ApplicationType: config.OAuthClientApplicationTypeSPA,
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+
+				verifier := pkce.GenerateS256Verifier()
+
+				authzRequest := protocol.AuthorizationRequest{
+					"client_id":             "app-id",
+					"redirect_uri":          "https://example.com/",
+					"scope":                 "some_scope",
+					"code_challenge":        verifier.Challenge(),
+					"code_challenge_method": "S256",
+				}
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI:          "https://example.com/",
+					AuthorizationRequest: authzRequest,
+					ExpireAt:             clock.NowUTC().Add(time.Hour),
+				}
+				codeHash := oauth.HashToken("the-code")
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
+				codeGrants.EXPECT().DeleteCodeGrant(gomock.Any(), codeGrant).Return(nil)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(&oidc.UIInfo{}, nil, nil)
+
+				authz := &oauth.Authorization{
+					ID:       "authz-id",
+					ClientID: "app-id",
+					UserID:   "user-id",
+					Scopes:   []string{"some_scope"},
+				}
+				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerIP,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
+				}).Return(nil, nil)
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerUser,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerUser,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"user-id"},
+					Period:         time.Minute,
+					Burst:          60,
+					Enabled:        true,
+				}).Return(nil, nil)
+
+				issuedOfflineGrant := &oauth.OfflineGrant{
+					ID:    "offline-grant-id",
+					Attrs: *session.NewAttrs("user-id"),
+				}
+				tokenService.EXPECT().IssueOfflineGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(issuedOfflineGrant, "", nil)
+
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						return &handler.PrepareUserAccessGrantByRefreshTokenResult{
+							// The value is unimportant.
+							PreparationResult: nil,
+						}, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+					}, nil
+				})
+
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"app-id"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://example.com/"}
+				r["code_verifier"] = []string{verifier.CodeVerifier}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["access_token"], ShouldEqual, "access-token")
+				So(body, ShouldNotContainKey, "refresh_token")
 			})
 		})
 
