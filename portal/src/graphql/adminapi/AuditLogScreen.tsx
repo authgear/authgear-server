@@ -56,14 +56,24 @@ import { formatCustomDateRangeLabel } from "../../util/formatDatetime";
 
 const pageSize = 100;
 
-function parseDateRangeSearchParam(value: string | null): Date | null {
+function parseDateRangeSearchParam(
+  value: string | null,
+  bound: "from" | "to"
+): Date | null {
   if (value == null || value === "") {
     return null;
   }
-  // Legacy bookmarks used yyyy-MM-dd; interpret as local start of day.
+  // Legacy bookmarks used yyyy-MM-dd. Backend rangeTo is exclusive
+  // (created_at < rangeTo), so `from` is start of day and `to` is end of day
+  // to keep the selected calendar day inclusive.
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const dt = DateTime.fromISO(value);
-    return dt.isValid ? dt.startOf("day").toJSDate() : null;
+    if (!dt.isValid) {
+      return null;
+    }
+    return bound === "to"
+      ? dt.endOf("day").toJSDate()
+      : dt.startOf("day").toJSDate();
   }
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -162,7 +172,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setCommittedValue: setRangeFromImmediately,
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
-  } = useTransactionalState<Date | null>(parseDateRangeSearchParam(queryFrom));
+  } = useTransactionalState<Date | null>(
+    parseDateRangeSearchParam(queryFrom, "from")
+  );
 
   const {
     committedValue: rangeTo,
@@ -171,7 +183,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setCommittedValue: setRangeToImmediately,
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
-  } = useTransactionalState<Date | null>(parseDateRangeSearchParam(queryTo));
+  } = useTransactionalState<Date | null>(
+    parseDateRangeSearchParam(queryTo, "to")
+  );
 
   const { appID } = useParams() as { appID: string };
   const featureConfig = useAppFeatureConfigQuery(appID);

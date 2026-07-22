@@ -20,6 +20,9 @@ export interface DateTimePickerProps {
   minDateTime: "now" | null;
   // Optional upper bound. When set, the picker rejects dates/times after this value.
   maxDateTime?: Date | null;
+  // When there is no previously picked time, selecting a calendar date uses
+  // start of day (default) or end of day. Useful for exclusive rangeTo bounds.
+  defaultTimeOfDay?: "startOfDay" | "endOfDay";
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
 }
@@ -81,6 +84,7 @@ export default function DateTimePicker(
     pickedDateTime,
     minDateTime,
     maxDateTime = null,
+    defaultTimeOfDay = "startOfDay",
     onPickDateTime,
     showClearButton,
   } = props;
@@ -161,18 +165,25 @@ export default function DateTimePicker(
       } else {
         const datetime =
           pickedDateTime != null ? DateTime.fromJSDate(pickedDateTime) : null;
-        let candidate = DateTime.fromJSDate(date).set({
-          hour: datetime?.hour ?? 0,
-          minute: datetime?.minute ?? 0,
-          second: 0,
-          millisecond: 0,
-        });
+        let candidate: DateTime;
+        if (datetime != null) {
+          candidate = DateTime.fromJSDate(date).set({
+            hour: datetime.hour,
+            minute: datetime.minute,
+            second: 0,
+            millisecond: 0,
+          });
+        } else if (defaultTimeOfDay === "endOfDay") {
+          candidate = DateTime.fromJSDate(date).endOf("day");
+        } else {
+          candidate = DateTime.fromJSDate(date).startOf("day");
+        }
         candidate = clampToMax(candidate, maxDateTime);
         onPickDateTime(candidate.toJSDate());
       }
       setTimePickerKey((prev) => prev + 1);
     },
-    [maxDateTime, onPickDateTime, pickedDateTime]
+    [defaultTimeOfDay, maxDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onSelectDate_withMinDate = useCallback(

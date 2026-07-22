@@ -106,6 +106,7 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
               pickedDateTime={rangeTo ?? null}
               minDateTime={null}
               maxDateTime={toDatePickerMaxDate ?? null}
+              defaultTimeOfDay="endOfDay"
               onPickDateTime={onSelectRangeTo ?? (() => {})}
               showClearButton={false}
             />
