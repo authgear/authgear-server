@@ -2,12 +2,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import SingleSignOnConfigurationWidget, {
   useSingleSignOnConfigurationWidget,
 } from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
+import Link from "../../Link";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
 import {
@@ -24,7 +27,6 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
-import NavBreadcrumb from "../../NavBreadcrumb";
 import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
@@ -101,23 +103,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
     } = props;
     const { isDirty } = useFormContainerBaseContext();
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
-
-    const navBreadcrumbItems = useMemo(() => {
-      return [
-        {
-          to: "..",
-          label: (
-            <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
-          ),
-        },
-      ];
-    }, []);
+    const { appID } = useParams() as { appID: string };
 
     return (
       <ScreenContent
@@ -127,7 +113,18 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <NavBreadcrumb items={navBreadcrumbItems} />
+          <Link
+            to={`/project/${appID}/configuration/authentication/external-oauth`}
+            className={styles.backLink}
+          >
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+            </span>
+          </Link>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
+          </Text>
         </div>
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           <OAuthClientItem
