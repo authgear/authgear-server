@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cn from "classnames";
 import {
   ChoiceGroup,
@@ -47,6 +54,7 @@ import {
 } from "../../hook/useAppSecretConfigForm";
 import LinkButton from "../../LinkButton";
 import { useAppContext } from "../../context/AppContext";
+import { useCapture } from "../../gtm_v2";
 import { useLoadableView } from "../../hook/useLoadableView";
 
 interface FormState {
@@ -185,6 +193,7 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
     const { state, setState, getIsDirty, isUpdating } = form;
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
+    const capture = useCapture();
 
     const onClientConfigChange = useCallback(
       (newClient: OAuthClientConfig) => {
@@ -297,6 +306,10 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
     const onApplicationChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
         if (option != null) {
+          capture("createApplication.selected-type", {
+            application_type: option.key,
+            wizard_version: "legacy",
+          });
           let issueJwtAccessToken: boolean | undefined;
           switch (option.key) {
             case "spa":
@@ -323,7 +336,7 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
           );
         }
       },
-      [onClientConfigChange, client]
+      [onClientConfigChange, client, capture]
     );
 
     return (
@@ -482,6 +495,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     const { state, setState, save } = form;
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
+    const capture = useCapture();
+    const viewedRef = useRef(false);
+    useEffect(() => {
+      if (viewedRef.current) {
+        return;
+      }
+      viewedRef.current = true;
+      capture("createApplication.viewed", { wizard_version: "legacy" });
+    }, [capture]);
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -511,6 +533,11 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       save()
         .then(
           () => {
+            capture("createApplication.created", {
+              client_id: clientId,
+              application_type: client.x_application_type,
+              wizard_version: "legacy",
+            });
             const applicationTypesWithQuickStart: OAuthClientConfig["x_application_type"][] =
               [
                 "confidential",
@@ -549,6 +576,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       navigate,
       setState,
       state,
+      capture,
     ]);
 
     return (
