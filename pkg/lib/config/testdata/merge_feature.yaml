@@ -64,6 +64,11 @@ configs:
   - hook:
       non_blocking_handler:
         maximum: 7
+  - ui:
+      phone_input:
+        allowlist:
+          - US
+          - CA
 result:
   hook:
     blocking_handler:
@@ -83,6 +88,10 @@ result:
   ui:
     white_labeling:
       disabled: true
+    phone_input:
+      allowlist:
+        - US
+        - CA
   custom_domain:
     disabled: true
   oauth:

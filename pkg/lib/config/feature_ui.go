@@ -24,7 +24,20 @@ func (c *UIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
 	if layer.UI == nil {
 		return c
 	}
-	return layer.UI
+
+	merged := c
+	if merged == nil {
+		merged = &UIFeatureConfig{}
+	}
+
+	if layer.UI.WhiteLabeling != nil {
+		merged.WhiteLabeling = layer.UI.WhiteLabeling
+	}
+	if layer.UI.PhoneInput != nil {
+		merged.PhoneInput = layer.UI.PhoneInput
+	}
+
+	return merged
 }
 
 var _ = FeatureConfigSchema.Add("WhiteLabelingFeatureConfig", `
