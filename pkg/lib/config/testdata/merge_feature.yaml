@@ -69,7 +69,42 @@ configs:
         allowlist:
           - US
           - CA
+  - identity:
+      oauth:
+        providers:
+          apple:
+            disabled: true
+  - identity:
+      oauth:
+        maximum_providers: 150
+  - identity:
+      oauth:
+        providers:
+          wechat:
+            disabled: true
+  - identity:
+      login_id:
+        types:
+          phone:
+            disabled: true
+  - identity:
+      biometric:
+        disabled: true
 result:
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+    oauth:
+      maximum_providers: 150
+      providers:
+        apple:
+          disabled: true
+        wechat:
+          disabled: true
+    biometric:
+      disabled: true
   hook:
     blocking_handler:
       maximum: 5
