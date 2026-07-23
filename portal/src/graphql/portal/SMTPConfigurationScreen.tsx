@@ -39,7 +39,7 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { FeatureDisabledCallout } from "../../components/v2/FeatureDisabledCallout/FeatureDisabledCallout";
 import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError, APISMTPTestFailedError } from "../../error/error";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -613,7 +613,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           </Text>
         </div>
         {isCustomSMTPDisabled ? (
-          <FeatureDisabledMessageBar
+          <FeatureDisabledCallout
             className={styles.widget}
             messageID="FeatureConfig.custom-smtp.disabled"
           />

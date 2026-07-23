@@ -56,7 +56,7 @@ import { genRandomHexadecimalString } from "../../util/random";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
-import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { FeatureDisabledCallout } from "../../components/v2/FeatureDisabledCallout/FeatureDisabledCallout";
 import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
 import { APIError, LocalError } from "../../error/error";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
@@ -1126,7 +1126,7 @@ function SMSProviderConfigurationContent(props: {
           </Text>
         </div>
         {isCustomSMSProviderDisabled ? (
-          <FeatureDisabledMessageBar
+          <FeatureDisabledCallout
             className={styles.widget}
             messageID="FeatureConfig.custom-sms-provider.disabled"
           />
