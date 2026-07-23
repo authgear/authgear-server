@@ -22,3 +22,9 @@
 .rt-BaseDialogOverlay {
   z-index: 10000;
 }
+
+/* Links inside callouts (upgrade-plan, external references) need more weight
+   to stand out from the surrounding message text. */
+.rt-CalloutRoot a {
+  font-weight: var(--font-weight-medium);
+}
