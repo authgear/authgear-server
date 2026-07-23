@@ -919,22 +919,40 @@ func TestTokenHandler(t *testing.T) {
 				So(body["access_token"], ShouldEqual, accessToken)
 			})
 
-			Convey("rejects client_secret present in both the Authorization header and the request body", func() {
+			Convey("prefers client_secret in the request body over Authorization header", func() {
+				// e.g. a reverse proxy protecting a staging environment with its
+				// own HTTP Basic auth, unrelated to OAuth client authentication.
+				expectClientCredentialsRateLimits()
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+
+				accessToken := "access-token-body-preferred"
+				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, opts handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+						resp.AccessToken(accessToken)
+						resp.TokenType("Bearer")
+						resp.ExpiresIn(3600)
+						resp.Scope("read")
+						return nil
+					},
+				)
+
 				req, _ := http.NewRequest("POST", "/token", nil)
-				req.SetBasicAuth(clientID, "supersecret")
+				req.SetBasicAuth("proxy-user", "proxy-password")
 				r := protocol.TokenRequest{
 					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
 					"resource":      []string{resourceURI},
 					"client_secret": []string{"supersecret"},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
 
-				So(resp.Result().StatusCode, ShouldEqual, 400)
+				So(resp.Result().StatusCode, ShouldEqual, 200)
 				var body map[string]any
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
-				So(body["error"], ShouldEqual, "invalid_request")
+				So(body["access_token"], ShouldEqual, accessToken)
 			})
 
 			Convey("rejects an invalid client_secret sent via the Authorization header", func() {
