@@ -36,6 +36,7 @@
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
     + [identification: id_token](#identification-id_token)
+    + [identification: select_account](#identification-select_account)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
     + [Bot protection](#bot-protection-2)
     + [authentication: primary_password](#authentication-primary_password-1)
@@ -1318,6 +1319,47 @@ The corresponding input is
 }
 ```
 
+### identification: select_account
+
+Only available in `login` and `signup_login` flows, when a Custom UI hosted same-site with Authgear has an eligible existing session. See [Custom UI: Select Account](./custom-ui-select-account.md) for eligibility rules, CORS requirements, and security analysis.
+
+```json
+{
+  "identification": "select_account",
+  "display_name": "user@example.com"
+}
+```
+
+- `display_name`: The identifier of the account bound to the caller's session (e.g. email, phone number, or username), returned unmasked — the browser already implicitly has it via the session cookie.
+
+Absent entirely when there's no eligible session; no client-supplied input can force its presence.
+
+The corresponding input is
+
+```json
+{
+  "identification": "select_account",
+  "index": 0
+}
+```
+
+- `index`: The position of this option within the full `options` array (same pattern as `primary_oob_otp_email`'s `index`).
+
+An `index` that is out of bounds or doesn't refer to a `select_account` option is rejected by standard input validation, same as any other option's `index`.
+
+If the session cookie no longer resolves to the same user recorded when the option was computed (e.g. the user signed out or switched accounts between seeing the option and submitting it):
+
+```json
+{
+  "error": {
+    "name": "Unauthorized",
+    "reason": "SelectAccountSessionChanged",
+    "message": "session no longer matches the selected account",
+    "code": 401
+  }
+}
+```
+
 ## type: login; action.type: authenticate
 
 When you are in this step, you will see a response like the following if you are performing primary authentication.
@@ -1804,6 +1846,8 @@ See [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-p
 ## type: signup_login; action.type: identify
 
 See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`.
+
+`select_account` is also available here — see [identification: select_account](#identification-select_account).
 
 ## type: account_recovery; action.type: identify
 
