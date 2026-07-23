@@ -555,9 +555,9 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
   const customDateRangeLabel = useMemo(
     () =>
       isCustomDateRange
-        ? formatCustomDateRangeLabel(locale, rangeFrom, rangeTo)
+        ? formatCustomDateRangeLabel(rangeFrom, rangeTo)
         : undefined,
-    [isCustomDateRange, locale, rangeFrom, rangeTo]
+    [isCustomDateRange, rangeFrom, rangeTo]
   );
 
   const cursor = useMemo(() => encodeOffsetToCursor(offset), [offset]);

@@ -20,6 +20,13 @@ export interface DateTimePickerProps {
   minDateTime: "now" | null;
   // Optional upper bound. When set, the picker rejects dates/times after this value.
   maxDateTime?: Date | null;
+  // When there is no previously picked time, selecting a calendar date uses
+  // start of day (default) or end of day. Useful for exclusive rangeTo bounds.
+  defaultTimeOfDay?: "startOfDay" | "endOfDay";
+  // When set, selecting a calendar date without a previously picked time will
+  // copy the hour/minute from this date instead of using defaultTimeOfDay.
+  // Useful for mirroring the counterpart picker's selected time.
+  defaultTime?: Date | null;
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
 }
@@ -81,6 +88,8 @@ export default function DateTimePicker(
     pickedDateTime,
     minDateTime,
     maxDateTime = null,
+    defaultTimeOfDay = "startOfDay",
+    defaultTime = null,
     onPickDateTime,
     showClearButton,
   } = props;
@@ -161,18 +170,54 @@ export default function DateTimePicker(
       } else {
         const datetime =
           pickedDateTime != null ? DateTime.fromJSDate(pickedDateTime) : null;
-        let candidate = DateTime.fromJSDate(date).set({
-          hour: datetime?.hour ?? 0,
-          minute: datetime?.minute ?? 0,
-          second: 0,
-          millisecond: 0,
-        });
-        candidate = clampToMax(candidate, maxDateTime);
+        let candidate: DateTime;
+        if (datetime != null) {
+          // User already had a time; preserve it exactly (clamped if needed).
+          candidate = DateTime.fromJSDate(date).set({
+            hour: datetime.hour,
+            minute: datetime.minute,
+            second: 0,
+            millisecond: 0,
+          });
+          candidate = clampToMax(candidate, maxDateTime);
+        } else {
+          // Compute the default time from a reference or policy.
+          let defaultCandidate: DateTime;
+          if (defaultTime != null) {
+            // Mirror the counterpart picker's time (e.g. rangeFrom → rangeTo).
+            const ref = DateTime.fromJSDate(defaultTime);
+            defaultCandidate = DateTime.fromJSDate(date).set({
+              hour: ref.hour,
+              minute: ref.minute,
+              second: 0,
+              millisecond: 0,
+            });
+          } else if (defaultTimeOfDay === "endOfDay") {
+            // 11:00 PM — nearest round hour that appears in the TimePicker
+            // dropdown without going to 23:59 which is not a selectable option.
+            defaultCandidate = DateTime.fromJSDate(date).set({
+              hour: 23,
+              minute: 0,
+              second: 0,
+              millisecond: 0,
+            });
+          } else {
+            defaultCandidate = DateTime.fromJSDate(date).startOf("day");
+          }
+          candidate = clampToMax(defaultCandidate, maxDateTime);
+          // If clamping moved the time, round down to the nearest dropdown
+          // increment so the result is always a selectable option.
+          if (candidate.valueOf() < defaultCandidate.valueOf()) {
+            const minute =
+              Math.floor(candidate.minute / increments) * increments;
+            candidate = candidate.set({ minute, second: 0, millisecond: 0 });
+          }
+        }
         onPickDateTime(candidate.toJSDate());
       }
       setTimePickerKey((prev) => prev + 1);
     },
-    [maxDateTime, onPickDateTime, pickedDateTime]
+    [defaultTime, defaultTimeOfDay, maxDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onSelectDate_withMinDate = useCallback(
@@ -282,18 +327,29 @@ export default function DateTimePicker(
   );
 
   const onFormatDate = useCallback((date: Date) => {
-    return DateTime.fromJSDate(date).toFormat("HH:mm", {
-      locale: "en-US",
-    });
+    // Build "h:mm AM/PM" manually to avoid Intl locale producing "上午"/"下午"
+    // on Chinese-locale systems regardless of setLocale("en-US").
+    const dt = DateTime.fromJSDate(date);
+    const hour12 = dt.hour % 12 || 12;
+    const minute = String(dt.minute).padStart(2, "0");
+    const period = dt.hour < 12 ? "AM" : "PM";
+    return `${hour12}:${minute} ${period}`;
   }, []);
 
   const onValidateUserInput = useCallback(
     (timeStr: string) => {
       const check: () => boolean = () => {
         try {
-          const timeOnly = DateTime.fromFormat(timeStr, "HH:mm", {
+          // Accept both "2:30 PM" and "02:30 PM".
+          let timeOnly = DateTime.fromFormat(timeStr.trim(), "h:mm a", {
             locale: "en-US",
           });
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (!timeOnly.isValid) {
+            timeOnly = DateTime.fromFormat(timeStr.trim(), "hh:mm a", {
+              locale: "en-US",
+            });
+          }
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (timeOnly.isValid) {
             const anchor =
@@ -376,7 +432,7 @@ export default function DateTimePicker(
           timeRange={timeRange}
           allowFreeform={true}
           showSeconds={false}
-          useHour12={false}
+          useHour12={true}
           dateAnchor={pickedDateTime ?? undefined}
           value={pickedDateTime ?? undefined}
           onChange={onChange}

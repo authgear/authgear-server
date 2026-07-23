@@ -33,6 +33,19 @@
   @apply h-full tablet:h-11;
 }
 
+.dateRangeFilterCustom {
+  @apply h-auto min-h-full self-center;
+  max-width: min(100%, 520px);
+
+  @apply tablet:h-auto tablet:min-h-11 tablet:max-w-none;
+}
+
+.dateRangeFilterCustom :global(.ms-Button-label) {
+  white-space: normal;
+  text-align: left;
+  line-height: 1.25;
+}
+
 .activityTypeFilter {
   @apply h-full tablet:h-11;
   @apply flex items-center tablet:block;

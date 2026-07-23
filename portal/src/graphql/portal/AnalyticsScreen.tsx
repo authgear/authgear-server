@@ -347,9 +347,11 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
         hidden={dateRangeDialogHidden}
         title={renderToString("AnalyticsScreen.date-range.dialog-title")}
         fromDatePickerLabel={renderToString(
-          "AuditLogScreen.date-range.start-date"
+          "AnalyticsScreen.date-range.start-date"
         )}
-        toDatePickerLabel={renderToString("AuditLogScreen.date-range.end-date")}
+        toDatePickerLabel={renderToString(
+          "AnalyticsScreen.date-range.end-date"
+        )}
         rangeFrom={uncommittedRangeFrom ?? undefined}
         rangeTo={uncommittedRangeTo ?? undefined}
         fromDatePickerMinDate={minDate}
