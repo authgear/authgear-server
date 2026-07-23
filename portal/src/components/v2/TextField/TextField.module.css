@@ -12,3 +12,8 @@
   border-left: 1px solid var(--gray-a6);
   color: var(--gray-a11);
 }
+
+.textField__suffix--plain {
+  background-color: transparent;
+  border-left: none;
+}

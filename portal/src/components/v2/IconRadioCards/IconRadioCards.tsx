@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { RadioCards as RadixRadioCards, Text } from "@radix-ui/themes";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import styles from "./IconRadioCards.module.css";
 import { Tooltip } from "../Tooltip/Tooltip";
 
@@ -33,29 +33,23 @@ export function IconRadioCards<T extends string>({
   options,
   ...rootProps
 }: IconRadioCardsProps<T>): React.ReactElement {
-  const onToggleCallbacks = useMemo(() => {
-    return options.map((option) => {
-      const fn = () => {
-        if (value === option.value) {
-          return;
-        }
-        onValueChange(option.value);
-      };
-      return fn;
-    });
-  }, [onValueChange, options, value]);
+  // The checked visual of RadixRadioCards.Item is derived solely from
+  // Root's value === Item's value, so the Root must be controlled; a
+  // `checked` prop on Item is ignored by the Radix primitive.
+  const handleValueChange = useCallback(
+    (newValue: string) => {
+      if (newValue === value) {
+        return;
+      }
+      onValueChange(newValue as T);
+    },
+    [onValueChange, value]
+  );
 
   return (
-    <Root {...rootProps}>
-      {options.map((option, idx) => {
-        return (
-          <OptionItem
-            key={option.value}
-            option={option}
-            checked={value === option.value}
-            onToggle={onToggleCallbacks[idx]}
-          />
-        );
+    <Root {...rootProps} value={value ?? ""} onValueChange={handleValueChange}>
+      {options.map((option) => {
+        return <OptionItem key={option.value} option={option} />;
       })}
     </Root>
   );
@@ -111,6 +105,8 @@ interface RootProps {
   itemMinWidth?: number;
   itemFillSpaces?: boolean;
   numberOfColumns?: number;
+  value?: string;
+  onValueChange?: (newValue: string) => void;
   children?: React.ReactNode;
 }
 
@@ -119,6 +115,8 @@ function Root({
   itemMinWidth = 160,
   itemFillSpaces = false,
   numberOfColumns,
+  value,
+  onValueChange,
   children,
 }: RootProps) {
   return (
@@ -127,6 +125,8 @@ function Root({
       size={size}
       variant="surface"
       color="indigo"
+      value={value}
+      onValueChange={onValueChange}
       columns={`repeat(${gridColumnRepeat(
         numberOfColumns
       )}, minmax(${itemMinWidth}px, ${itemMaxSize(itemFillSpaces)}))`}
@@ -157,7 +157,13 @@ function OptionItem<T extends string>({
           checked={checked}
           onClick={onToggle}
         >
-          <div className={styles.iconRadioCards__itemContainer}>
+          <div
+            className={cn(
+              styles.iconRadioCards__itemContainer,
+              option.subtitle == null &&
+                styles["iconRadioCards__itemContainer--center"]
+            )}
+          >
             <div className={styles.iconRadioCards__iconContainer}>
               {option.icon}
             </div>
