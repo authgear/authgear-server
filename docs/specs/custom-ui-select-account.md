@@ -18,6 +18,7 @@
 - [Security analysis](#security-analysis)
 - [Backward compatibility](#backward-compatibility)
 - [Edge cases](#edge-cases)
+- [Research: Behavior of other idp on select_account](#research-behavior-of-other-idp-on-select_account)
 ---
 
 ## Overview
@@ -606,3 +607,24 @@ Opting in requires updating the Custom UI to recognize the new `identification` 
 - **`acr_values`**: not supported — no interaction with `select_account` today.
 - **`login_hint` matching the session's user**: option is still offered — only a *mismatched* `login_hint` omits it.
 - **Multiple active accounts**: not supported; at most one entry today.
+
+---
+
+## Research: Behavior of other idp on select_account
+
+How `prompt=select_account`, `login_hint`, and `id_token_hint` behave in other IdPs, checked to sanity-check the design decisions above (especially [`prompt=select_account` having no effect](#edge-cases) and the [mismatched-hint session-discard rule](#session-and-account-resolution)).
+
+| Dimension | Google | Azure AD / Entra | Auth0 | Keycloak |
+|---|---|---|---|---|
+| **`prompt=select_account` natively acted on?** | Yes — real multi-account chooser | Yes — real multi-account chooser | No — no distinct chooser UI | No — never read at all |
+| **No session + `prompt=select_account`** | Plain empty sign-in form, no error | Plain empty sign-in form, no error | Same as no `prompt` at all — plain login form | Plain login form; no distinct handling |
+| **`account_selection_required` error (OIDC spec: MUST be returned if no account selection can be obtained)** | Falls back to a plain sign-in form instead | Falls back to a plain sign-in form instead | Falls back to a plain sign-in form instead | Not possible — parameter isn't read at all |
+| **`login_hint` prefill, hint matches no real account** | Pre-fills the email box regardless (per [docs](https://developers.google.com/identity/openid-connect/openid-connect#login-hint)) | Not a plain prefilled field — shown as a chooser tile instead (see next row) | Blindly prefilled, no existence check | Blindly prefilled, no existence check |
+| **`login_hint` + `prompt=select_account`, no session** | No chooser (hint suppresses it) | Renders a "Pick an account" chooser with one synthetic tile for the hint, plus "Use another account" | No chooser; same blind prefill | No chooser; same blind prefill |
+| **Existing SSO session + mismatched `login_hint`/`id_token_hint`** | Per [docs](https://developers.google.com/identity/openid-connect/openid-connect#login-hint), a `login_hint` always suppresses the account chooser entirely — it either pre-fills the sign-in form or selects the matching session, so a mismatched hint never shows the existing session as a choosable option | Both are offered as separate tiles — the real signed-in account and one for the `login_hint`. Picking the hint tile errors if it doesn't correspond to any real account; if it's a real account you're just not currently signed into, it instead prompts for that account's password | Not documented | No chooser (unsupported) and no mismatch check — the SSO session is authenticated as-is, silently returning tokens for whoever's cookie is active even when the hint names a different user |
+| **`id_token_hint` support at `/authorize`, given a genuine, correctly-signed token** | Pre-fills the identifier field with the token's real email — same effect as a matching `login_hint` | Not supported — no visible effect | Not supported — no visible effect | Not implemented — the parameter is never read |
+
+**Takeaways:**
+
+1. `prompt=select_account` never actually produces the OIDC-spec-mandated `account_selection_required` error in practice. Even the vendors that implement a real chooser (Google, Azure) just fall back to a plain sign-in form when there's no session to select from, and Keycloak never wired the parameter up at all.
+2. `login_hint` and `id_token_hint` rarely act as a hard constraint on login — across all four providers, their main observed effect is prefilling or suggesting an identity, not restricting who can actually sign in. Azure's chooser-tile behavior is the closest thing to an exception, but even there, picking a mismatched tile just leads to a normal "account not found" or password prompt outcome, not a rejection caused by the hint itself.
