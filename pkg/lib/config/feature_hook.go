@@ -22,7 +22,16 @@ func (c *HookFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
 	if layer.Hook == nil {
 		return c
 	}
-	return layer.Hook
+
+	merged := c
+	if merged == nil {
+		merged = &HookFeatureConfig{}
+	}
+
+	merged.BlockingHandler = merged.BlockingHandler.Merge(layer.Hook.BlockingHandler)
+	merged.NonBlockingHandler = merged.NonBlockingHandler.Merge(layer.Hook.NonBlockingHandler)
+
+	return merged
 }
 
 var _ = FeatureConfigSchema.Add("BlockingHandlerFeatureConfig", `
@@ -45,6 +54,22 @@ func (c *BlockingHandlerFeatureConfig) SetDefaults() {
 	}
 }
 
+func (c *BlockingHandlerFeatureConfig) Merge(layer *BlockingHandlerFeatureConfig) *BlockingHandlerFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	if layer.Maximum != nil {
+		c.Maximum = layer.Maximum
+	}
+	return c
+}
+
 var _ = FeatureConfigSchema.Add("NonBlockingHandlerFeatureConfig", `
 {
 	"type": "object",
@@ -63,4 +88,20 @@ func (c *NonBlockingHandlerFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = new(99)
 	}
+}
+
+func (c *NonBlockingHandlerFeatureConfig) Merge(layer *NonBlockingHandlerFeatureConfig) *NonBlockingHandlerFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	if layer.Maximum != nil {
+		c.Maximum = layer.Maximum
+	}
+	return c
 }

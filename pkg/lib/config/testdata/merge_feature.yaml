@@ -58,7 +58,18 @@ configs:
         quota: 2
   - admin_api:
       create_session_enabled: true
+  - hook:
+      blocking_handler:
+        maximum: 5
+  - hook:
+      non_blocking_handler:
+        maximum: 7
 result:
+  hook:
+    blocking_handler:
+      maximum: 5
+    non_blocking_handler:
+      maximum: 7
   admin_api:
     create_session_enabled: true
     user_import_usage:
