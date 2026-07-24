@@ -29,6 +29,12 @@ type IntentSignupLoginFlowStepIdentify struct {
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 	StepName      string                 `json:"step_name,omitempty"`
 	Options       []IdentificationOption `json:"options"`
+
+	// SelectAccountUserIDs maps a position in Options (the same position the
+	// client echoes back as the identify input's "index" field) to the user
+	// ID resolved for that select_account entry when the option was
+	// constructed. See IntentLoginFlowStepIdentify.SelectAccountUserIDs.
+	SelectAccountUserIDs map[int]string `json:"select_account_user_ids,omitempty"`
 }
 
 var _ authflow.Intent = &IntentSignupLoginFlowStepIdentify{}
@@ -79,6 +85,18 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 			var botProtection *config.AuthenticationFlowBotProtection = nil
 			c := NewIdentificationOptionIDToken(flows, b.Identification, botProtection, deps.Config.BotProtection)
 			options = append(options, c)
+		case model.AuthenticationFlowIdentificationSelectAccount:
+			selectAccountOptions, selectAccountUserIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, flows, b.BotProtection, deps.Config.BotProtection)
+			if err != nil {
+				return nil, err
+			}
+			for idx, opt := range selectAccountOptions {
+				if i.SelectAccountUserIDs == nil {
+					i.SelectAccountUserIDs = map[int]string{}
+				}
+				i.SelectAccountUserIDs[len(options)] = selectAccountUserIDs[idx]
+				options = append(options, opt)
+			}
 		}
 	}
 
@@ -162,6 +180,28 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 					SyntheticInput: syntheticInput,
+				}), nil
+			case model.AuthenticationFlowIdentificationSelectAccount:
+				var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
+				if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+				optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
+				expectedUserID, ok := i.SelectAccountUserIDs[optionsIndex]
+				if !ok {
+					return nil, authflow.ErrIncompatibleInput
+				}
+
+				// select_account's synthetic input must also carry Index, so
+				// the target login_flow's own identify step can re-validate
+				// it against its own select_account option's Const(index).
+				syntheticInput.Index = optionsIndex
+
+				return authflow.NewSubFlow(&IntentLookupIdentitySelectAccount{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					SyntheticInput: syntheticInput,
+					ExpectedUserID: expectedUserID,
 				}), nil
 			}
 		}
