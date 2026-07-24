@@ -455,22 +455,43 @@ func (*IntentUseIdentitySelectAccount) MilestoneFlowUseIdentity(flows authflow.F
 }
 ```
 
-`CanReactTo`: **must** check `authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)` first and
-return `(nil, authflow.ErrEOF)` if already satisfied — exactly like
-`IntentIdentifyWithIDToken.CanReactTo` does — before building the schema. Omitting
-this check is a real bug, not a hypothetical one: once `NodeDoUseIdentitySelectAccount`
-(and then `NodePostIdentified`) finish reacting, `FindInputReactorForFlow` falls
-through to asking `IntentUseIdentitySelectAccount.CanReactTo` again; without the
-guard it happily returns the same schema again, `ReactTo` fires again, and the
-`doAccept` loop only stops at `MAX_LOOP=100` by panicking — which then gets
-retried indefinitely by the caller, hanging the request. Confirmed by
-implementation: this exact omission caused every e2e test touching this code
-path to hang the server in a tight loop until fixed.
+`CanReactTo`: **must** check `len(flows.Nearest.Nodes) > 0` first and return
+`(nil, authflow.ErrEOF)` if so, before building the schema. Omitting this
+check is a real bug, not a hypothetical one: once `NodeDoUseIdentitySelectAccount`
+(and then `NodePostIdentified`) finish reacting, `FindInputReactorForFlow`
+falls through to asking `IntentUseIdentitySelectAccount.CanReactTo` again;
+without the guard it happily returns the same schema again, `ReactTo` fires
+again, and the `doAccept` loop only stops at `MAX_LOOP=100` by panicking —
+which then gets retried indefinitely by the caller, hanging the request.
+Confirmed by implementation: this exact omission caused every e2e test
+touching this code path to hang the server in a tight loop until fixed.
+
+The first version of this fix checked `authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)`
+instead (mirroring `IntentIdentifyWithIDToken.CanReactTo`, which uses that
+same check). That also works, but `len(flows.Nearest.Nodes) > 0` is the
+better guard here and was substituted after review: `flows.Nearest` for this
+intent's own `CanReactTo` call is *this intent's own subflow* (established by
+`NewSubFlow`/`Flows.Replace` — never an ancestor or sibling flow), and
+`ReactTo` (below) always produces exactly one child node on success and
+never a partial/multi-stage progression, so "have I already reacted" is
+*exactly* "does my own subflow already have a node" — a plain node-count
+check that doesn't depend on which milestone type happens to be attached to
+that node. `IntentIdentifyWithIDToken`'s milestone-based version isn't wrong
+for *that* intent (same one-node-only shape applies there too), but the
+node-count form is the more direct, harder-to-get-wrong idiom for an intent
+whose `ReactTo` only ever adds one thing — and it's also the same idiom
+`IntentLoginFlowStepIdentify.CanReactTo`'s own first case already uses
+(`case len(flows.Nearest.Nodes) == 0:`) for exactly this "have I started yet"
+question, just inverted here to "have I finished yet" since this intent has
+only one step, not several distinguishable ones (contrast with
+`IntentLoginFlowStepIdentify`, which genuinely needs milestone checks,
+because it progresses through several *different* additions — the
+identification subflow, then a login-hint-check node, then a nested-steps
+subflow — that a bare node count can't distinguish between).
 
 ```go
 func (n *IntentUseIdentitySelectAccount) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
-	if userIdentified {
+	if len(flows.Nearest.Nodes) > 0 {
 		return nil, authflow.ErrEOF
 	}
 

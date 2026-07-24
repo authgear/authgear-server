@@ -46,8 +46,13 @@ func (*IntentUseIdentitySelectAccount) MilestoneFlowUseIdentity(flows authflow.F
 }
 
 func (n *IntentUseIdentitySelectAccount) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
-	if userIdentified {
+	// ReactTo (below) always produces exactly one child node on success and
+	// never a partial/multi-stage progression, so "have I already reacted"
+	// is exactly "does my own subflow already have a node" — flows.Nearest
+	// here is this intent's own subflow (see NewSubFlow/Flows.Replace), not
+	// any ancestor or sibling, so this cannot be satisfied by an unrelated
+	// node elsewhere in the flow.
+	if len(flows.Nearest.Nodes) > 0 {
 		return nil, authflow.ErrEOF
 	}
 
