@@ -19,7 +19,6 @@ func init() {
 type IntentLookupIdentitySelectAccount struct {
 	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
 	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 	ExpectedUserID string                                 `json:"expected_user_id,omitempty"`
 }
 
@@ -75,18 +74,26 @@ func (n *IntentLookupIdentitySelectAccount) ReactTo(ctx context.Context, deps *a
 			return nil, err
 		}
 
-		if _, err := resolveSelectAccountSession(ctx, n.ExpectedUserID); err != nil {
+		userID, err := resolveSelectAccountSession(ctx, n.ExpectedUserID)
+		if err != nil {
 			return nil, err
 		}
 
 		// select_account never switches to signup: it can only ever
-		// continue an existing login.
+		// continue an existing login. The synthetic input carries the
+		// already-verified user ID directly, not this flow's option index —
+		// the target login_flow computes its own, independent option
+		// positions, so an index carried across the switch would be
+		// meaningless there (see SyntheticInputSelectAccount).
 		return nil, errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: oneOf.LoginFlow,
 			},
-			SyntheticInput: n.SyntheticInput,
+			SyntheticInput: &SyntheticInputSelectAccount{
+				Identification: n.Identification,
+				UserID:         userID,
+			},
 		})
 	}
 

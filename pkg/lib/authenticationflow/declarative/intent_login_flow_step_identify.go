@@ -224,14 +224,25 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					Identification: identification,
 				}), nil
 			case model.AuthenticationFlowIdentificationSelectAccount:
-				var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
-				if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
-					return nil, authflow.ErrIncompatibleInput
-				}
-				optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
-				expectedUserID, ok := i.SelectAccountUserIDs[optionsIndex]
-				if !ok {
-					return nil, authflow.ErrIncompatibleInput
+				var expectedUserID string
+				var inputTakeSelectAccountUserID inputTakeSelectAccountUserID
+				if authflow.AsInput(input, &inputTakeSelectAccountUserID) {
+					// Replayed via a signup_login switch: the source flow
+					// already resolved and verified this exact user ID
+					// (see SyntheticInputSelectAccount) — this flow's own
+					// option positions never come into it.
+					expectedUserID = inputTakeSelectAccountUserID.GetSelectAccountUserID()
+				} else {
+					var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
+					if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
+						return nil, authflow.ErrIncompatibleInput
+					}
+					optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
+					var ok bool
+					expectedUserID, ok = i.SelectAccountUserIDs[optionsIndex]
+					if !ok {
+						return nil, authflow.ErrIncompatibleInput
+					}
 				}
 				return authflow.NewSubFlow(&IntentUseIdentitySelectAccount{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),

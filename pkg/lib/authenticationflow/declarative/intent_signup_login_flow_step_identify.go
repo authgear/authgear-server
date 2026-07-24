@@ -192,15 +192,9 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 					return nil, authflow.ErrIncompatibleInput
 				}
 
-				// select_account's synthetic input must also carry Index, so
-				// the target login_flow's own identify step can re-validate
-				// it against its own select_account option's Const(index).
-				syntheticInput.Index = optionsIndex
-
 				return authflow.NewSubFlow(&IntentLookupIdentitySelectAccount{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
-					SyntheticInput: syntheticInput,
 					ExpectedUserID: expectedUserID,
 				}), nil
 			}

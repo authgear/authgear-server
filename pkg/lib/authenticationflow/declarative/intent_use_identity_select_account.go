@@ -69,8 +69,16 @@ func (n *IntentUseIdentitySelectAccount) CanReactTo(ctx context.Context, deps *a
 }
 
 func (n *IntentUseIdentitySelectAccount) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
+	// input is either a real client input carrying "index" (a direct call
+	// against this login flow's own identify step), or a
+	// SyntheticInputSelectAccount replayed from a signup_login switch,
+	// carrying the user ID directly instead. n.ExpectedUserID is already
+	// resolved by the caller either way — this check only gates that some
+	// select_account-shaped input arrived, it doesn't need to extract
+	// anything from it.
 	var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
-	if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
+	var inputTakeSelectAccountUserID inputTakeSelectAccountUserID
+	if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) && !authflow.AsInput(input, &inputTakeSelectAccountUserID) {
 		return nil, authflow.ErrIncompatibleInput
 	}
 

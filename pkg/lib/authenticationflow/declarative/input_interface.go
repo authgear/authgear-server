@@ -25,6 +25,10 @@ type inputTakeAccountRecoveryDestinationOptionIndex interface {
 	GetAccountRecoveryDestinationOptionIndex() int
 }
 
+type inputTakeSelectAccountUserID interface {
+	GetSelectAccountUserID() string
+}
+
 type inputTakeIdentificationOptionIndex interface {
 	GetIdentificationOptionIndex() int
 }
