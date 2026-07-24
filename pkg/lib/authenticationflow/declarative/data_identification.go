@@ -1,11 +1,16 @@
 package declarative
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type IdentificationData struct {
@@ -44,6 +49,11 @@ type IdentificationOption struct {
 
 	// Server is specific to LDAP
 	ServerName string `json:"server_name,omitempty"`
+
+	// DisplayName is specific to SelectAccount. Unmasked: it identifies the
+	// account already bound to the caller's own session cookie, not an
+	// as-yet-unauthenticated identity, so there is nothing to mask.
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 func NewIdentificationOptionIDToken(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
@@ -100,6 +110,109 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 		})
 	}
 	return output
+}
+
+// NewIdentificationOptionsSelectAccount returns the select_account options
+// (and the user ID recorded for each, for the later session-freshness
+// re-check) derived from the current IDP session cookie. It returns
+// parallel slices rather than a single option so that supporting multiple
+// concurrent accounts later only requires enumerating more than one entry
+// here — every caller of this function stays unchanged.
+//
+// Today it omits the option (returning nil, nil, nil) when:
+//   - there is no IDP session,
+//   - the session was established with "do not persist" semantics
+//     (x_suppress_idp_session_cookie), or
+//   - the resolved prompt contains "login" (including when an expired
+//     max_age was folded into an implied prompt=login upstream).
+//
+// login_hint/id_token_hint eligibility filtering is intentionally not
+// implemented yet — the option is offered whenever a usable session exists,
+// regardless of any hint.
+func NewIdentificationOptionsSelectAccount(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	authflowCfg *config.AuthenticationFlowBotProtection,
+	appCfg *config.BotProtectionConfig,
+) (options []IdentificationOption, userIDs []string, err error) {
+	sess := session.GetSession(ctx)
+	if sess == nil {
+		return nil, nil, nil
+	}
+	if authflow.GetSuppressIDPSessionCookie(ctx) {
+		return nil, nil, nil
+	}
+	if slice.ContainsString(authflow.GetSession(ctx).Prompt, "login") {
+		return nil, nil, nil
+	}
+
+	userID := sess.GetAuthenticationInfo().UserID
+
+	identities, err := deps.Identities.ListByUser(ctx, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	displayName := selectAccountDisplayName(identities)
+
+	return []IdentificationOption{
+		{
+			Identification: model.AuthenticationFlowIdentificationSelectAccount,
+			BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
+			DisplayName:    displayName,
+		},
+	}, []string{userID}, nil
+}
+
+// selectAccountDisplayNamePriorities indicates which identity type will be
+// shown as the select_account option's display_name.
+// This mirrors pkg/auth/handler/webapp.identitiesDisplayNamePriorities;
+// duplicated rather than imported because this package cannot import
+// pkg/auth/handler/webapp (that package already imports this one).
+var selectAccountDisplayNamePriorities = map[model.IdentityType]int{
+	model.IdentityTypeLoginID: 2,
+	model.IdentityTypeOAuth:   1,
+}
+
+func selectAccountDisplayName(identities []*identity.Info) string {
+	level := 0
+	var i *identity.Info
+	for _, perIdentity := range identities {
+		l := selectAccountDisplayNamePriorities[perIdentity.Type]
+		if l >= level {
+			level = l
+			i = perIdentity
+		}
+	}
+
+	if i == nil {
+		return ""
+	}
+
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		return i.DisplayID()
+	case model.IdentityTypeOAuth:
+		providerType := i.OAuth.ProviderID.Type
+		displayID := i.DisplayID()
+		if displayID != "" {
+			return fmt.Sprintf("%s:%s", providerType, displayID)
+		}
+		return providerType
+	case model.IdentityTypeAnonymous:
+		return "anonymous"
+	case model.IdentityTypeBiometric:
+		return "biometric"
+	case model.IdentityTypePasskey:
+		return "passkey"
+	case model.IdentityTypeSIWE:
+		return "siwe"
+	case model.IdentityTypeLDAP:
+		return "ldap"
+	default:
+		return ""
+	}
 }
 
 func (i *IdentificationOption) isBotProtectionRequired() bool {
