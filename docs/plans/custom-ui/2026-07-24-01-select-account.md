@@ -1139,6 +1139,27 @@ then a `session_cookie` on the `create`/`input` step (§7) to present it.
    "email", "login_id": "new-account@example.com"}` instead (not
    `select_account`) → switches to `signup` as normal, unaffected by
    `select_account`'s presence.
+8. **`login_index_offset.test.yaml`**: `select_account` placed *after*
+   another identification in `one_of` — confirms `index` reflects position
+   in the full `options` array, not position among `select_account` entries
+   specifically.
+9. **`signup_login_switch_index_mismatch.test.yaml`**: `select_account` sits
+   at a different `one_of` position in the `signup_login` source flow than
+   in the target `login_flow` — regression test for the index-across-a-switch
+   bug (§3.8's revision note); would fail without `SyntheticInputSelectAccount`.
+10. **`login_bot_protection.test.yaml`** (3 cases: missing input, verification
+    fail, verification success): a `select_account` `one_of` entry with its
+    own `bot_protection: { mode: always }` — confirms bot protection is a
+    real, working, per-one_of-configurable control for `select_account`
+    (§9's "does support the generic `bot_protection` config field" decision),
+    not just wired but untested. Note: the project-level
+    `bot_protection.requirements.signup_or_login` shortcut does **not** apply
+    here or to any other identification kind in a hand-authored flow config —
+    that shortcut only gets baked in by the *generator* for the default
+    flow (`generate_config_bot_protection.go`); a custom `login_flows`
+    override (like this whole plan's examples) must set `bot_protection` on
+    the specific `one_of` entry directly, same as every other identification
+    kind.
 
 ### 8.3 Manual/local verification before marking complete
 
