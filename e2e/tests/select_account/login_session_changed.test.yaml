@@ -1,0 +1,76 @@
+name: select_account fails when the session changed since the option was shown
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: select_account
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-select-account-session-a
+      token: e2eselectaccountsessiontokena
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_select_account';
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-select-account-session-b
+      token: e2eselectaccountsessiontokenb
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_select_account_2';
+steps:
+  - action: "create"
+    session_cookie:
+      idp_session_id: e2e-select-account-session-a
+      idp_session_token: e2eselectaccountsessiontokena
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                {
+                  "identification": "select_account",
+                  "display_name": "e2e_select_account"
+                }
+              ]
+            }
+          }
+        }
+
+  - action: input
+    session_cookie:
+      idp_session_id: e2e-select-account-session-b
+      idp_session_token: e2eselectaccountsessiontokenb
+    input: |
+      {
+        "identification": "select_account",
+        "index": 0
+      }
+    output:
+      error: |
+        {
+          "reason": "SelectAccountSessionChanged",
+          "code": 401
+        }
