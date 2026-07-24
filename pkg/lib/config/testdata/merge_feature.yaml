@@ -90,7 +90,24 @@ configs:
   - identity:
       biometric:
         disabled: true
+  - authenticator:
+      password:
+        policy:
+          history:
+            disabled: true
+  - authenticator:
+      password:
+        policy:
+          minimum_guessable_level:
+            disabled: true
 result:
+  authenticator:
+    password:
+      policy:
+        history:
+          disabled: true
+        minimum_guessable_level:
+          disabled: true
   identity:
     login_id:
       types:
