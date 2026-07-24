@@ -466,10 +466,48 @@ func (*IntentUseIdentitySelectAccount) MilestoneFlowUseIdentity(flows authflow.F
 }
 ```
 
-`CanReactTo`: returns
-`&InputSchemaTakeIdentificationOptionIndex{FlowRootObject: ..., JSONPointer: n.JSONPointer, IsBotProtectionRequired: <via IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)>, BotProtectionCfg: deps.Config.BotProtection}`
-(new schema type, [§3.7](#37-new-shared-input-schema-inputschematakeidentificationoptionindex)) — mirrors
-`IntentLookupIdentityLoginID.CanReactTo`'s structure.
+`CanReactTo`: **must** check `authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)` first and
+return `(nil, authflow.ErrEOF)` if already satisfied — exactly like
+`IntentIdentifyWithIDToken.CanReactTo` does — before building the schema. Omitting
+this check is a real bug, not a hypothetical one: once `NodeDoUseIdentitySelectAccount`
+(and then `NodePostIdentified`) finish reacting, `FindInputReactorForFlow` falls
+through to asking `IntentUseIdentitySelectAccount.CanReactTo` again; without the
+guard it happily returns the same schema again, `ReactTo` fires again, and the
+`doAccept` loop only stops at `MAX_LOOP=100` by panicking — which then gets
+retried indefinitely by the caller, hanging the request. Confirmed by
+implementation: this exact omission caused every e2e test touching this code
+path to hang the server in a tight loop until fixed.
+
+```go
+func (n *IntentUseIdentitySelectAccount) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
+	if userIdentified {
+		return nil, authflow.ErrEOF
+	}
+
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
+	if err != nil {
+		return nil, err
+	}
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InputSchemaTakeIdentificationOptionIndex{
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
+	}, nil
+}
+```
+
+`IntentLookupIdentitySelectAccount` (signup_login flow, [§3.8](#38-signup_login-flow-intentlookupidentityselectaccount))
+does **not** need this guard — its `ReactTo` always ends in either an error
+(`ErrIncompatibleInput`) or `errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{...})`,
+never in a normal completed node, so it can never be found and re-entered the
+way `IntentUseIdentitySelectAccount` can.
 
 `ReactTo`:
 ```go

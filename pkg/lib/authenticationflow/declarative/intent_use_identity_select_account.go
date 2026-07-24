@@ -46,6 +46,11 @@ func (*IntentUseIdentitySelectAccount) MilestoneFlowUseIdentity(flows authflow.F
 }
 
 func (n *IntentUseIdentitySelectAccount) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
+	if userIdentified {
+		return nil, authflow.ErrEOF
+	}
+
 	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
