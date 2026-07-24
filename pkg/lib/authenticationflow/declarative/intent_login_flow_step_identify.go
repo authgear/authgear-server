@@ -35,6 +35,15 @@ type IntentLoginFlowStepIdentify struct {
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 	StepName      string                 `json:"step_name,omitempty"`
 	Options       []IdentificationOption `json:"options"`
+
+	// SelectAccountUserIDs maps a position in Options (the same position the
+	// client echoes back as the identify input's "index" field) to the user
+	// ID resolved for that select_account entry when the option was
+	// constructed. Never serialized to the API response (OutputData only
+	// marshals i.Options, not the whole intent) — looked up again at
+	// dispatch time and re-checked against the current session on
+	// submission to detect a session change (see resolveSelectAccountSession).
+	SelectAccountUserIDs map[int]string `json:"select_account_user_ids,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepIdentify{}
@@ -110,6 +119,18 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			var botProtection *config.AuthenticationFlowBotProtection = nil
 			c := NewIdentificationOptionIDToken(flows, b.Identification, botProtection, deps.Config.BotProtection)
 			options = append(options, c)
+		case model.AuthenticationFlowIdentificationSelectAccount:
+			selectAccountOptions, selectAccountUserIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, flows, b.BotProtection, deps.Config.BotProtection)
+			if err != nil {
+				return nil, err
+			}
+			for idx, opt := range selectAccountOptions {
+				if i.SelectAccountUserIDs == nil {
+					i.SelectAccountUserIDs = map[int]string{}
+				}
+				i.SelectAccountUserIDs[len(options)] = selectAccountUserIDs[idx]
+				options = append(options, opt)
+			}
 		}
 	}
 
@@ -201,6 +222,21 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 				return authflow.NewSubFlow(&IntentIdentifyWithIDToken{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
+				}), nil
+			case model.AuthenticationFlowIdentificationSelectAccount:
+				var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
+				if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+				optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
+				expectedUserID, ok := i.SelectAccountUserIDs[optionsIndex]
+				if !ok {
+					return nil, authflow.ErrIncompatibleInput
+				}
+				return authflow.NewSubFlow(&IntentUseIdentitySelectAccount{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					ExpectedUserID: expectedUserID,
 				}), nil
 			}
 		}
