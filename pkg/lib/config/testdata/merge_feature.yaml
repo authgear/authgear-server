@@ -114,7 +114,20 @@ configs:
           enabled: true
           period: 1h
           burst: 9
+  - test_mode:
+      fixed_oob_otp:
+        enabled: true
+        code: "123456"
+  - test_mode:
+      sms:
+        suppressed: true
 result:
+  test_mode:
+    fixed_oob_otp:
+      enabled: true
+      code: "123456"
+    sms:
+      suppressed: true
   authenticator:
     password:
       policy:
