@@ -102,6 +102,18 @@ configs:
             disabled: true
   - collaborator:
       soft_maximum: 40
+  - messaging:
+      rate_limits:
+        sms:
+          enabled: true
+          period: 30s
+          burst: 3
+  - messaging:
+      rate_limits:
+        email:
+          enabled: true
+          period: 1h
+          burst: 9
 result:
   authenticator:
     password:
@@ -158,6 +170,15 @@ result:
     maximum: 3
     soft_maximum: 40
   messaging:
+    rate_limits:
+      sms:
+        enabled: true
+        period: 30s
+        burst: 3
+      email:
+        enabled: true
+        period: 1h
+        burst: 9
     whatsapp_usage_count_disabled: true
     custom_sms_provider_disabled: true
     sms_usage:
