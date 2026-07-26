@@ -100,6 +100,8 @@ configs:
         policy:
           minimum_guessable_level:
             disabled: true
+  - collaborator:
+      soft_maximum: 40
 result:
   authenticator:
     password:
@@ -154,7 +156,7 @@ result:
       app2app_enabled: false
   collaborator:
     maximum: 3
-    soft_maximum: 30
+    soft_maximum: 40
   messaging:
     whatsapp_usage_count_disabled: true
     custom_sms_provider_disabled: true

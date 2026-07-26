@@ -22,5 +22,18 @@ func (c *CollaboratorFeatureConfig) Merge(layer *FeatureConfig) MergeableFeature
 	if layer.Collaborator == nil {
 		return c
 	}
-	return layer.Collaborator
+
+	merged := c
+	if merged == nil {
+		merged = &CollaboratorFeatureConfig{}
+	}
+
+	if layer.Collaborator.Maximum != nil {
+		merged.Maximum = layer.Collaborator.Maximum
+	}
+	if layer.Collaborator.SoftMaximum != nil {
+		merged.SoftMaximum = layer.Collaborator.SoftMaximum
+	}
+
+	return merged
 }
