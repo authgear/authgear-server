@@ -6212,6 +6212,359 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	serviceReadOnlyService := service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	testModeConfig := appConfig.TestMode
+	testModeFeatureConfig := featureConfig.TestMode
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Database:     handle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
+	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              appredisHandle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := deps.ProvideHTTPReferer(request)
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        handle,
+		EventService:    eventService,
+		VerifiedClaims:  storePQ,
+	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	otpService := &otp.Service{
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
+	}
+	rateLimits := service2.RateLimits{
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
+	}
+	authenticationLockoutConfig := authenticationConfig.Lockout
+	lockoutStorageRedis := &lockout.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	lockoutService := &lockout.Service{
+		Storage: lockoutStorageRedis,
+	}
+	serviceLockout := service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	service3 := &service2.Service{
+		ReadOnlyService: serviceReadOnlyService,
+		Store:           store3,
+		Config:          appConfig,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
+	}
+	readOnlyService2 := mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		ReadOnlyService: readOnlyService2,
+		IP:              remoteIP,
+		DeviceTokens:    storeDeviceTokenRedis,
+		RecoveryCodes:   storeRecoveryCodePQ,
+		Clock:           clockClock,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		EnvConfig:       rateLimitsEnvironmentConfig,
+		RateLimiter:     limiter,
+		Lockout:         mfaLockout,
+	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
+	usageLimiter := &usage.Limiter{
+		Clock:                  clockClock,
+		Database:               handle,
+		AppID:                  appID,
+		Redis:                  appredisHandle,
+		EffectiveConfig:        config,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
+	}
+	limits := messaging.Limits{
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	smsProvider := messagingConfig.Deprecated_SMSProvider
+	smsGatewayConfig := messagingConfig.SMSGateway
+	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
+	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
+	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
+	smsGatewayEnvironmentConfig := &environmentConfig.SMSGatewayConfig
+	smsGatewayEnvironmentDefaultConfig := &smsGatewayEnvironmentConfig.Default
+	smsGatewayEnvironmentDefaultProvider := smsGatewayEnvironmentDefaultConfig.Provider
+	smsGatewayEnvironmentDefaultUseConfigFrom := smsGatewayEnvironmentDefaultConfig.UseConfigFrom
+	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
+	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
+	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
+	hookDenoHook := &hook.DenoHook{
+		ResourceManager: resourceManager,
+	}
+	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
+	smsDenoHook := custom.SMSDenoHook{
+		DenoHook: hookDenoHook,
+		Client:   hookDenoClient,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
+	smsWebHook := custom.SMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+	}
+	clientResolver := &sms.ClientResolver{
+		AuthgearYAMLSMSProvider:                    smsProvider,
+		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
+		AuthgearSecretsYAMLNexmoCredentials:        nexmoCredentials,
+		AuthgearSecretsYAMLTwilioCredentials:       twilioCredentials,
+		AuthgearSecretsYAMLCustomSMSProviderConfig: customSMSProviderConfig,
+		EnvironmentDefaultProvider:                 smsGatewayEnvironmentDefaultProvider,
+		EnvironmentDefaultUseConfigFrom:            smsGatewayEnvironmentDefaultUseConfigFrom,
+		EnvironmentNexmoCredentials:                smsGatewayEnvironmentNexmoCredentials,
+		EnvironmentTwilioCredentials:               smsGatewayEnvironmentTwilioCredentials,
+		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
+		SMSDenoHook:                                smsDenoHook,
+		SMSWebHook:                                 smsWebHook,
+	}
+	smsSender := &sms.Sender{
+		ClientResolver: clientResolver,
+	}
+	messagingFeatureConfig := featureConfig.Messaging
+	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
+	testModeEmailConfig := testModeConfig.Email
+	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
+	testModeSMSConfig := testModeConfig.SMS
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
+	messagingSender := &messaging.Sender{
+		Limits:                            limits,
+		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
+		MailSender:                        sender,
+		SMSSender:                         smsSender,
+		WhatsappSender:                    whatsappService,
+		Database:                          handle,
+		DevMode:                           devMode,
+		MessagingFeatureConfig:            messagingFeatureConfig,
+		FeatureTestModeEmailSuppressed:    featureTestModeEmailSuppressed,
+		TestModeEmailConfig:               testModeEmailConfig,
+		FeatureTestModeSMSSuppressed:      featureTestModeSMSSuppressed,
+		TestModeSMSConfig:                 testModeSMSConfig,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+	}
+	forgotpasswordSender := &forgotpassword.Sender{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      messagingSender,
+		Translation: translationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store: userStore,
+		Clock: clockClock,
+	}
+	userCommands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     queries,
+	}
+	stdattrsService := &stdattrs2.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         userStore,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
+	passwordRand := password.NewRandSource()
+	generator := &password.Generator{
+		MaxTrials:      maxTrials,
+		Checker:        passwordChecker,
+		Rand:           passwordRand,
+		PasswordConfig: authenticatorPasswordConfig,
+	}
+	coordinator := &facade.Coordinator{
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		SendPassword:               forgotpasswordSender,
+		UserCommands:               userCommands,
+		UserQueries:                userQueries,
+		RolesGroupsCommands:        commands,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                manager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		AuthenticationConfig:       authenticationConfig,
+		Clock:                      clockClock,
+		PasswordGenerator:          generator,
+	}
+	identityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets:         oAuthKeyMaterials,
+		BaseURL:         endpointsEndpoints,
+		UserInfoService: userInfoService,
+		Events:          eventService,
+		Identities:      identityFacade,
+		Clock:           clockClock,
+	}
+	oauthOfflineGrantService := &oauth.OfflineGrantService{
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     provider,
+		ClientResolver:  resolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   store,
+	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:           oAuthConfig,
 		Endpoints:        endpointsEndpoints,
@@ -6219,6 +6572,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:   manager2,
 		SessionCookieDef: cookieDef,
 		Cookies:          cookieManager,
+		IDTokenVerifier:  idTokenIssuer,
+		Sessions:         provider,
+		OfflineGrants:    oauthOfflineGrantService,
 	}
 	oauthEndSessionHandler := &oauth3.EndSessionHandler{
 		Database:          handle,
