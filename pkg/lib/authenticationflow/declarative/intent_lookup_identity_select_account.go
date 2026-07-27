@@ -74,7 +74,7 @@ func (n *IntentLookupIdentitySelectAccount) ReactTo(ctx context.Context, deps *a
 			return nil, err
 		}
 
-		userID, err := resolveSelectAccountSession(ctx, n.ExpectedUserID)
+		userID, _, _, err := resolveSelectAccountSession(ctx, n.ExpectedUserID)
 		if err != nil {
 			return nil, err
 		}

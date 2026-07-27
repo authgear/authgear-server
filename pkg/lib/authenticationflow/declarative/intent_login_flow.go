@@ -74,11 +74,17 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		if err != nil {
 			return nil, err
 		}
-		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
+		existingSessionType, existingSessionID, reuseExistingSession := getExistingSessionToReuse(flows)
+		nodeDoCreateSession := &NodeDoCreateSession{
 			UserID:       userID,
 			CreateReason: session.CreateReasonLogin,
-			SkipCreate:   authflow.GetSuppressIDPSessionCookie(ctx),
-		})
+			SkipCreate:   reuseExistingSession || authflow.GetSuppressIDPSessionCookie(ctx),
+		}
+		if reuseExistingSession {
+			nodeDoCreateSession.ContinueFromSessionType = existingSessionType
+			nodeDoCreateSession.ContinueFromSessionID = existingSessionID
+		}
+		n, err := NewNodeDoCreateSession(ctx, deps, flows, nodeDoCreateSession)
 		if err != nil {
 			return nil, err
 		}

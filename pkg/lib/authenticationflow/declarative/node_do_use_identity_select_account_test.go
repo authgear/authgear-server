@@ -25,23 +25,29 @@ func TestResolveSelectAccountSession(t *testing.T) {
 
 		Convey("nil session: SelectAccountSessionChanged", func() {
 			ctx := makeCtx(nil)
-			userID, err := resolveSelectAccountSession(ctx, "user-1")
+			userID, sessionID, sessionType, err := resolveSelectAccountSession(ctx, "user-1")
 			So(userID, ShouldEqual, "")
+			So(sessionID, ShouldEqual, "")
+			So(sessionType, ShouldEqual, session.Type(""))
 			So(err, ShouldEqual, ErrSelectAccountSessionChanged)
 		})
 
 		Convey("mismatched user: SelectAccountSessionChanged", func() {
 			ctx := makeCtx(&fakeResolvedSessionForSelectAccount{UserID: "user-2"})
-			userID, err := resolveSelectAccountSession(ctx, "user-1")
+			userID, sessionID, sessionType, err := resolveSelectAccountSession(ctx, "user-1")
 			So(userID, ShouldEqual, "")
+			So(sessionID, ShouldEqual, "")
+			So(sessionType, ShouldEqual, session.Type(""))
 			So(err, ShouldEqual, ErrSelectAccountSessionChanged)
 		})
 
 		Convey("matching user: no error", func() {
 			ctx := makeCtx(&fakeResolvedSessionForSelectAccount{UserID: "user-1"})
-			userID, err := resolveSelectAccountSession(ctx, "user-1")
+			userID, sessionID, sessionType, err := resolveSelectAccountSession(ctx, "user-1")
 			So(err, ShouldBeNil)
 			So(userID, ShouldEqual, "user-1")
+			So(sessionID, ShouldEqual, "session-id")
+			So(sessionType, ShouldEqual, session.TypeIdentityProvider)
 		})
 	})
 }

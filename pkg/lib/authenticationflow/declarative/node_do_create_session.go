@@ -19,6 +19,14 @@ type NodeDoCreateSession struct {
 	CreateReason session.CreateReason `json:"create_reason"`
 	SkipCreate   bool                 `json:"skip_create"`
 
+	// ContinueFromSessionType and ContinueFromSessionID identify the
+	// existing session that was reused instead of creating a new one (see
+	// MilestoneDoUseExistingSession) — populated by the caller only when
+	// SkipCreate is true because of that milestone, not merely because
+	// x_suppress_idp_session_cookie was requested.
+	ContinueFromSessionType session.Type `json:"continue_from_session_type,omitempty"`
+	ContinueFromSessionID   string       `json:"continue_from_session_id,omitempty"`
+
 	Session                 *idpsession.IDPSession    `json:"session,omitempty"`
 	SessionCookie           *http.Cookie              `json:"session_cookie,omitempty"`
 	AuthenticationInfoEntry *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
@@ -49,6 +57,10 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 	var sessionCookie *http.Cookie = nil
 
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
+	if n.ContinueFromSessionID != "" {
+		authnInfo.ContinueFromSessionType = string(n.ContinueFromSessionType)
+		authnInfo.ContinueFromSessionID = n.ContinueFromSessionID
+	}
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
 		deps.SessionCookie.SameSiteStrictDef,
