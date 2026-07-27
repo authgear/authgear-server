@@ -624,16 +624,16 @@ New unexported function, placed in `node_do_use_identity_select_account.go`
 (only two call sites, both introduced by this plan — see [§3.8](#38-signup_login-flow-intentlookupidentityselectaccount)):
 
 ```go
-func resolveSelectAccountSession(ctx context.Context, expectedUserID string) (userID string, err error) {
+func resolveSelectAccountSession(ctx context.Context, expectedUserID string) (userID string, sessionID string, sessionType session.Type, err error) {
 	sess := session.GetSession(ctx)
 	if sess == nil {
-		return "", ErrSelectAccountSessionChanged
+		return "", "", "", ErrSelectAccountSessionChanged
 	}
 	userID = sess.GetAuthenticationInfo().UserID
 	if userID != expectedUserID {
-		return "", ErrSelectAccountSessionChanged
+		return "", "", "", ErrSelectAccountSessionChanged
 	}
-	return userID, nil
+	return userID, sess.SessionID(), sess.SessionType(), nil
 }
 ```
 
@@ -644,6 +644,77 @@ against the `expectedUserID` resolved from that flow's own
 `Options[index].SelectAccountUserID` (§3.4) — when `signup_login` is about to switch
 into the target `login_flow` (redundant-but-harmless double check within the
 same HTTP request when nothing changed in between; see [§3.8](#38-signup_login-flow-intentlookupidentityselectaccount)).
+The `signup_login`-switch call site only needs `userID` from this and
+discards `sessionID`/`sessionType` — the target `login_flow` re-resolves
+those independently once it actually completes (§3.6.1).
+
+#### 3.6.1 The existing session must be reused as-is, not rotated
+
+**Corrective note, not part of the original design** — the first
+implementation resolved only a bare `userID` here and passed it to
+`NodeDoUseIdentitySelectAccount`/`NodeDoCreateSession` exactly like every
+other identification kind. Since `IntentLoginFlow.ReactTo` unconditionally
+constructs `NodeDoCreateSession` with `SkipCreate` governed only by
+`x_suppress_idp_session_cookie` (`intent_login_flow.go`), that meant a normal
+`select_account` completion:
+
+1. minted a **brand-new** IDP session (`AuthenticatedBySessionID` pointing at
+   that new session, not the one the user selected), and
+2. `NodeDoCreateSession`'s commit effect then **revoked** the original
+   session — the "Clean up unreachable IdP session" step, which is correct
+   for a genuinely new login but wrong here, since that "unreachable"
+   session is exactly the one `select_account` was continuing.
+
+This directly contradicts the spec's [Completing identification with the
+existing session](../specs/custom-ui-select-account.md#completing-identification-with-the-existing-session):
+"The existing session itself is reused as-is — not rotated or renewed —
+matching the built-in Auth UI's current account-selection screen." The
+existing webapp handler (`pkg/auth/handler/webapp/authflowv2/select_account.go`)
+already does this correctly — it never creates a new session, calls
+`session.CreateNewAuthenticationInfoByThisSession()` on the *existing*
+session, and sets `ContinueFromSessionType`/`ContinueFromSessionID` +
+`ShouldFireAuthenticatedEventWhenIssueOfflineGrant = true` so a later
+offline-grant/refresh-token issuance still fires `user.authenticated`
+correctly (`pkg/lib/oauth/handler/handler_token.go`'s
+`ShouldFireAuthenticatedEventWhenIssueOfflineGrant` branch). The engine path
+had no equivalent plumbing at all.
+
+Fix, mirroring that existing mechanism through the flow's milestone system
+instead of a direct function call:
+
+- New milestone in `milestone.go`:
+  ```go
+  type MilestoneDoUseExistingSession interface {
+  	authflow.Milestone
+  	MilestoneDoUseExistingSession() (sessionType session.Type, sessionID string)
+  }
+  ```
+  plus `getExistingSessionToReuse(flows) (sessionType session.Type, sessionID string, ok bool)`,
+  a full-tree traversal (`flows.Root`, same shape as `collectIdentitySpecs`/
+  `getUserID`) that finds this milestone anywhere in the flow.
+- `NodeDoUseIdentitySelectAccount` gains `SessionID`/`SessionType` fields
+  (populated from `resolveSelectAccountSession`'s now-4-value return) and
+  implements `MilestoneDoUseExistingSession()`.
+- `NodeDoCreateSession` gains `ContinueFromSessionType session.Type` /
+  `ContinueFromSessionID string` fields; when `ContinueFromSessionID != ""`,
+  they're copied onto the constructed `authenticationinfo.T`.
+- `IntentLoginFlow.ReactTo`'s final step now calls
+  `getExistingSessionToReuse(flows)` before constructing
+  `NodeDoCreateSession`: when found, `SkipCreate` is forced `true`
+  (regardless of `x_suppress_idp_session_cookie`) and
+  `ContinueFromSessionType`/`ID` are set from the resolved values — which
+  also means `n.Session == nil`, so `NodeDoCreateSession`'s revoke-old-session
+  effect never runs (it's gated on `n.Session != nil`), and
+  `ShouldFireAuthenticatedEventWhenIssueOfflineGrant` naturally becomes
+  `true` (already `n.SkipCreate && n.CreateReason == session.CreateReasonLogin`),
+  with no separate flag needed.
+
+Caught by e2e-testing session identity across a `select_account` completion
+(not by static reading) — see `e2e/tests/select_account/login_session_reused.test.yaml`,
+which queries the user's sessions via the admin GraphQL API and asserts
+`totalCount == 1` with the *same* session ID injected by the test's
+`create_session` hook; confirmed to fail (a different, freshly-minted
+session ID) before this fix and pass after.
 
 ### 3.7 New shared input schema: `InputSchemaTakeIdentificationOptionIndex`
 
@@ -1039,8 +1110,11 @@ identification values that would need updating (repo search found none).
 | `pkg/lib/authenticationflow/declarative/intent_login_flow_step_identify.go` | Retype `Options` to `[]InternalIdentificationOption`; wrap every option-building case's result accordingly; add select_account option-construction case; `OutputData`/`CanReactTo` map via `slice.Map(i.Options, InternalIdentificationOption.ToIdentificationOption)`; add `ReactTo` dispatch case doing a direct, bounds-checked `i.Options[index]` lookup, accepting either a real index-carrying input or a synthetic user-ID-carrying input |
 | `pkg/lib/authenticationflow/declarative/intent_signup_login_flow_step_identify.go` | Same `[]InternalIdentificationOption` retyping and `slice.Map` output as above; add select_account option-construction case; add direct `i.Options[index]`-lookup `ReactTo` dispatch case (index is only ever used within this flow, never carried onward) |
 | `pkg/lib/authenticationflow/declarative/intent_use_identity_select_account.go` | **New.** `IntentUseIdentitySelectAccount` (login flow) |
-| `pkg/lib/authenticationflow/declarative/node_do_use_identity_select_account.go` | **New.** `NodeDoUseIdentitySelectAccount`, `NewNodeDoUseIdentitySelectAccount`, `resolveSelectAccountSession` |
+| `pkg/lib/authenticationflow/declarative/node_do_use_identity_select_account.go` | **New.** `NodeDoUseIdentitySelectAccount` (now also carrying `SessionID`/`SessionType` and implementing `MilestoneDoUseExistingSession`, §3.6.1), `NewNodeDoUseIdentitySelectAccount`, `resolveSelectAccountSession` (4-value return) |
 | `pkg/lib/authenticationflow/declarative/intent_lookup_identity_select_account.go` | **New.** `IntentLookupIdentitySelectAccount` (signup_login flow) — builds `SyntheticInputSelectAccount` for the flow switch |
+| `pkg/lib/authenticationflow/declarative/milestone.go` | Add `MilestoneDoUseExistingSession` + `getExistingSessionToReuse` full-tree traversal helper (§3.6.1) |
+| `pkg/lib/authenticationflow/declarative/node_do_create_session.go` | Add `ContinueFromSessionType`/`ContinueFromSessionID` fields, copied onto the constructed `authenticationinfo.T` (§3.6.1) |
+| `pkg/lib/authenticationflow/declarative/intent_login_flow.go` | Look up `getExistingSessionToReuse` before constructing `NodeDoCreateSession`; force `SkipCreate` and set `ContinueFrom*` when found (§3.6.1) |
 | `pkg/lib/authenticationflow/declarative/error.go` | Add `ErrSelectAccountSessionChanged` |
 | `e2e/pkg/testrunner/models.go` | Add `session_cookie` property/field to the `Step` schema/struct (§7) |
 | `e2e/pkg/testrunner/testcase.go` | Call `client.InjectSession(...)` in `StepActionCreate` and `StepActionInput` when `step.SessionCookie != nil` (§7) |
@@ -1195,6 +1269,13 @@ then a `session_cookie` on the `create`/`input` step (§7) to present it.
     override (like this whole plan's examples) must set `bot_protection` on
     the specific `one_of` entry directly, same as every other identification
     kind.
+11. **`login_session_reused.test.yaml`** (§3.6.1 regression test): queries the
+    user's sessions via the admin GraphQL API (`node(id) { ... on User {
+    sessions { totalCount edges { node { id } } } } }`) after completing
+    `select_account`, asserting `totalCount == 1` and that the single
+    session's `id` is the *same* one injected by the test's `create_session`
+    hook — proves the session was reused as-is, not rotated. Confirmed to
+    fail (a different, freshly-minted session ID) before the §3.6.1 fix.
 
 ### 8.3 Manual/local verification before marking complete
 
@@ -1235,6 +1316,15 @@ questions.)
   independently, each against its own flow instance's own recorded
   `Options[index].SelectAccountUserID` entry. This is intentional redundancy,
   not a bug — see §3.8's rationale.
+- Completing `select_account` **never** creates, rotates, or renews an IDP
+  session — the existing session is reused as-is, exactly as the spec
+  requires and exactly as the existing webapp select_account handler already
+  does via `CreateNewAuthenticationInfoByThisSession()`. This is enforced via
+  `MilestoneDoUseExistingSession` (§3.6.1), not by special-casing
+  `select_account`'s identification value anywhere in `IntentLoginFlow` — any
+  future identification kind with the same "continue an existing session"
+  shape can implement the same milestone and get the same treatment for
+  free.
 - No config-load-time validation is added for "does the referenced
   `login_flow` actually declare a matching `select_account` entry" — consistent
   with how every other identification kind's flow references are (not)
