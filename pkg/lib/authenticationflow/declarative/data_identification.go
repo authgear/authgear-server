@@ -113,13 +113,14 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 }
 
 // NewIdentificationOptionsSelectAccount returns the select_account options
-// (and the user ID recorded for each, for the later session-freshness
-// re-check) derived from the current IDP session cookie. It returns
-// parallel slices rather than a single option so that supporting multiple
-// concurrent accounts later only requires enumerating more than one entry
-// here — every caller of this function stays unchanged.
+// derived from the current IDP session cookie, each already paired with the
+// user ID recorded for it (see InternalIdentificationOption) for the later
+// session-freshness re-check. It returns a slice rather than a single option
+// so that supporting multiple concurrent accounts later only requires
+// enumerating more than one entry here — every caller of this function
+// stays unchanged.
 //
-// Today it omits the option (returning nil, nil, nil) when:
+// Today it omits the option (returning nil, nil) when:
 //   - there is no IDP session,
 //   - the session was established with "do not persist" semantics
 //     (x_suppress_idp_session_cookie), or
@@ -135,34 +136,37 @@ func NewIdentificationOptionsSelectAccount(
 	flows authflow.Flows,
 	authflowCfg *config.AuthenticationFlowBotProtection,
 	appCfg *config.BotProtectionConfig,
-) (options []IdentificationOption, userIDs []string, err error) {
+) (options []InternalIdentificationOption, err error) {
 	sess := session.GetSession(ctx)
 	if sess == nil {
-		return nil, nil, nil
+		return nil, nil
 	}
 	if authflow.GetSuppressIDPSessionCookie(ctx) {
-		return nil, nil, nil
+		return nil, nil
 	}
 	if slice.ContainsString(authflow.GetSession(ctx).Prompt, "login") {
-		return nil, nil, nil
+		return nil, nil
 	}
 
 	userID := sess.GetAuthenticationInfo().UserID
 
 	identities, err := deps.Identities.ListByUser(ctx, userID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	displayName := selectAccountDisplayName(identities)
 
-	return []IdentificationOption{
+	return []InternalIdentificationOption{
 		{
-			Identification: model.AuthenticationFlowIdentificationSelectAccount,
-			BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
-			DisplayName:    displayName,
+			Option: IdentificationOption{
+				Identification: model.AuthenticationFlowIdentificationSelectAccount,
+				BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
+				DisplayName:    displayName,
+			},
+			SelectAccountUserID: userID,
 		},
-	}, []string{userID}, nil
+	}, nil
 }
 
 // selectAccountDisplayNamePriorities indicates which identity type will be
@@ -213,6 +217,28 @@ func selectAccountDisplayName(identities []*identity.Info) string {
 	default:
 		return ""
 	}
+}
+
+// InternalIdentificationOption wraps an IdentificationOption with
+// server-only fields that must never reach the API response. An
+// IntentLoginFlowStepIdentify/IntentSignupLoginFlowStepIdentify's Options
+// slice is stored as []InternalIdentificationOption precisely so that a
+// client-supplied "index" can look up both the public option and its
+// private data with a single, direct slice index — see OutputData (which
+// maps this down to []IdentificationOption via slice.Map) and each intent's
+// select_account dispatch case.
+type InternalIdentificationOption struct {
+	Option IdentificationOption
+
+	// SelectAccountUserID is the user ID recorded when this select_account
+	// option was constructed, re-checked against the current session on
+	// submission to detect a session change (see resolveSelectAccountSession).
+	// Zero value for every other identification kind.
+	SelectAccountUserID string
+}
+
+func (i InternalIdentificationOption) ToIdentificationOption() IdentificationOption {
+	return i.Option
 }
 
 func (i *IdentificationOption) isBotProtectionRequired() bool {

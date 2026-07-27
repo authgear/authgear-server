@@ -209,26 +209,48 @@ stated otherwise.
 
 ### 3.1 Session eligibility — shared option constructor
 
-New function in `data_identification.go`, returning **parallel slices** rather
-than a single option, even though at most one entry is produced today — this
-is the forward-compatible shape the user asked for: when multiple concurrent
-accounts are supported later, only this function's *body* grows a real
-enumeration loop; its signature, and every caller of it, stay unchanged:
+New function in `data_identification.go`, returning a slice of a new wrapper
+type, `InternalIdentificationOption`, rather than a single option, even
+though at most one entry is produced today — this is the forward-compatible
+shape the user asked for: when multiple concurrent accounts are supported
+later, only this function's *body* grows a real enumeration loop; its
+signature, and every caller of it, stay unchanged:
 
 ```go
+// InternalIdentificationOption wraps an IdentificationOption with
+// server-only fields that must never reach the API response. An intent's
+// Options slice is stored as []InternalIdentificationOption precisely so
+// that a client-supplied "index" can look up both the public option and its
+// private data with a single, direct slice index.
+type InternalIdentificationOption struct {
+	Option IdentificationOption
+
+	// SelectAccountUserID is the user ID recorded when this select_account
+	// option was constructed, re-checked against the current session on
+	// submission to detect a session change. Zero value for every other
+	// identification kind.
+	SelectAccountUserID string
+}
+
+func (i InternalIdentificationOption) ToIdentificationOption() IdentificationOption {
+	return i.Option
+}
+
 func NewIdentificationOptionsSelectAccount(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	authflowCfg *config.AuthenticationFlowBotProtection,
 	appCfg *config.BotProtectionConfig,
-) (options []IdentificationOption, userIDs []string, err error)
+) (options []InternalIdentificationOption, err error)
 ```
 
-`options[i]` and `userIDs[i]` always refer to the same account —
-`options[i]` is what's returned to the client, `userIDs[i]` is the
-server-only value recorded for the session-freshness re-check ([§3.6](#36-shared-session-freshness-check)).
-Today, `len(options) == len(userIDs)` is always `0` or `1`.
+Each `InternalIdentificationOption` pairs the public `Option` (what's
+returned to the client, via `OutputData`'s `slice.Map(..., InternalIdentificationOption.ToIdentificationOption)`,
+[§3.2](#32-option-construction-call-sites)) with `SelectAccountUserID`, the
+server-only value recorded for the session-freshness re-check
+([§3.6](#36-shared-session-freshness-check)). Today this function always
+returns `0` or `1` entries.
 
 Call sequence (mirrors the eligibility rules already implemented for the
 built-in Auth UI's account-selection screen,
@@ -243,16 +265,16 @@ inside `apiChain` before the handler, per `pkg/auth/routes.go`):
 1. `sess := session.GetSession(ctx)` (import `"github.com/authgear/authgear-server/pkg/lib/session"`,
    unaliased — this package's exported name is `session`; do not confuse with
    `authflow.GetSession(ctx)`, a different type from `pkg/lib/authenticationflow`).
-   If `sess == nil` → return `(nil, nil, nil)`.
-2. If `authflow.GetSuppressIDPSessionCookie(ctx)` → return `(nil, nil, nil)`.
+   If `sess == nil` → return `(nil, nil)`.
+2. If `authflow.GetSuppressIDPSessionCookie(ctx)` → return `(nil, nil)`.
 3. If `slice.ContainsString(authflow.GetSession(ctx).Prompt, "login")` → return
-   `(nil, nil, nil)`. (`authflow.GetSession(ctx).Prompt` already has
+   `(nil, nil)`. (`authflow.GetSession(ctx).Prompt` already has
    `max_age`-implied `"login"` folded in server-side by
    `oauth.PromptResolver.ResolvePrompt` well before the flow is created — no
    separate `max_age` check needed here, matching the spec's edge case table.)
 4. `userID := sess.GetAuthenticationInfo().UserID`.
 5. `identities, err := deps.Identities.ListByUser(ctx, userID)` (if `err != nil`,
-   return `(nil, nil, err)`).
+   return `(nil, err)`).
 6. `displayName := selectAccountDisplayName(identities)` — new unexported
    helper in `data_identification.go`, functionally identical to
    `pkg/auth/handler/webapp.IdentitiesDisplayName` (same
@@ -262,12 +284,12 @@ inside `apiChain` before the handler, per `pkg/auth/routes.go`):
    `pkg/auth/handler/webapp` (that package already imports
    `pkg/lib/authenticationflow`; importing it back would cycle).
 7. Return
-   `([]IdentificationOption{{Identification:
+   `([]InternalIdentificationOption{{Option: IdentificationOption{Identification:
    model.AuthenticationFlowIdentificationSelectAccount, BotProtection:
-   GetBotProtectionData(flows, authflowCfg, appCfg), DisplayName: displayName}},
-   []string{userID}, nil)` — one-element slices; this single `return` statement
-   is the only place that would grow into a real loop if multiple concurrent
-   accounts are ever supported.
+   GetBotProtectionData(flows, authflowCfg, appCfg), DisplayName: displayName},
+   SelectAccountUserID: userID}}, nil)` — a one-element slice; this single
+   `return` statement is the only place that would grow into a real loop if
+   multiple concurrent accounts are ever supported.
 
 **Deliberate deviation from the spec, scoped for this plan**: the spec's
 [Session and account resolution](../specs/custom-ui-select-account.md#session-and-account-resolution)
@@ -300,49 +322,62 @@ client, matching the spec's HTTP API section exactly.
 
 ### 3.2 Option construction call sites
 
-Both `NewIntentLoginFlowStepIdentify` (`intent_login_flow_step_identify.go`)
-and `NewIntentSignupLoginFlowStepIdentify` (`intent_signup_login_flow_step_identify.go`)
+**Revised from the original design below** — rather than building a plain
+`[]IdentificationOption` alongside a parallel `map[int]string` of recorded
+user IDs, both `IntentLoginFlowStepIdentify.Options` and
+`IntentSignupLoginFlowStepIdentify.Options` are typed
+`[]InternalIdentificationOption` ([§3.1](#31-session-eligibility--shared-option-constructor))
+directly. Every identification kind's option-building case wraps its
+`IdentificationOption`(s) in `InternalIdentificationOption{Option: c}` before
+appending — not just `select_account` — so that a client-supplied `index` is
+always a direct, single slice index into `i.Options`, with no separate map
+lookup needed. The struct field itself carries this:
+
+```go
+type IntentLoginFlowStepIdentify struct {
+    FlowReference authflow.FlowReference         `json:"flow_reference,omitempty"`
+    JSONPointer   jsonpointer.T                  `json:"json_pointer,omitempty"`
+    StepName      string                         `json:"step_name,omitempty"`
+    Options       []InternalIdentificationOption `json:"options"`
+}
+```
+
+(identical shape for `IntentSignupLoginFlowStepIdentify`). Both
+`NewIntentLoginFlowStepIdentify` (`intent_login_flow_step_identify.go`) and
+`NewIntentSignupLoginFlowStepIdentify` (`intent_signup_login_flow_step_identify.go`)
 gain, in their `switch b.Identification` option-building loop:
 
 ```go
+case model.AuthenticationFlowIdentificationEmail:
+    fallthrough
+// ... other non-select_account cases ...
+    c := NewIdentificationOptionLoginID(...)
+    options = append(options, InternalIdentificationOption{Option: c})
 case model.AuthenticationFlowIdentificationSelectAccount:
-    selectAccountOptions, selectAccountUserIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, flows, b.BotProtection, deps.Config.BotProtection)
+    selectAccountOptions, err := NewIdentificationOptionsSelectAccount(ctx, deps, flows, b.BotProtection, deps.Config.BotProtection)
     if err != nil {
         return nil, err
     }
-    for idx, opt := range selectAccountOptions {
-        if i.SelectAccountUserIDs == nil {
-            i.SelectAccountUserIDs = map[int]string{}
-        }
-        // Keyed by this option's position in the full `options` slice being
-        // built (the same position the client will later echo back as
-        // "index" — see §3.3), not by its position within
-        // selectAccountOptions. This is what the client's "index" input
-        // actually looks up at dispatch time (§3.4).
-        i.SelectAccountUserIDs[len(options)] = selectAccountUserIDs[idx]
-        options = append(options, opt)
-    }
+    options = append(options, selectAccountOptions...)
 ```
 
-Both `IntentLoginFlowStepIdentify` and `IntentSignupLoginFlowStepIdentify`
-structs gain one new field:
+`select_account`'s case needs no per-entry wrapping loop at all —
+`NewIdentificationOptionsSelectAccount` already returns
+`[]InternalIdentificationOption` directly ([§3.1](#31-session-eligibility--shared-option-constructor)),
+so its results are simply appended.
+
+Every `OutputData` method (and `CanReactTo`'s schema-building call) maps this
+internal slice down to the public `[]IdentificationOption` shape via
+`pkg/util/slice`'s generic `Map`:
 
 ```go
-// SelectAccountUserIDs maps a position in this intent's Options slice (the
-// same position the client echoes back as the identify input's "index"
-// field, §3.3) to the user ID resolved for that select_account entry when
-// the option was constructed. Never serialized to the API response
-// (OutputData only marshals i.Options, not the whole intent) — looked up
-// again at dispatch time (§3.4) and re-checked against the current session
-// on submission to detect a session change between option-construction and
-// input (see resolveSelectAccountSession, §3.6).
-//
-// Keyed by index (not a single field) precisely so that if multiple
-// concurrent accounts are supported later, only NewIdentificationOptionsSelectAccount's
-// body needs to enumerate more than one entry — the dispatch/lookup code in
-// §3.4/§3.9/§3.10 already handles an arbitrary number of entries today.
-SelectAccountUserIDs map[int]string `json:"select_account_user_ids,omitempty"`
+Options: slice.Map(i.Options, InternalIdentificationOption.ToIdentificationOption),
 ```
+
+(`InternalIdentificationOption.ToIdentificationOption` used directly as the
+mapper — a method value, not a closure.) This is what actually keeps
+`InternalIdentificationOption.SelectAccountUserID` from ever reaching the API
+response: only `.Option` survives the map.
 
 ### 3.3 Input schema: `index` field on the identify step (§ HTTP API changes)
 
@@ -393,11 +428,12 @@ for it (unlike `oauth`, where multiple *options* can share
 disambiguate).
 
 `index`, however, **is** used — to resolve *which recorded user ID* a
-`select_account` submission refers to, via `i.SelectAccountUserIDs` (§3.2), but
+`select_account` submission refers to, via a direct, bounds-checked index
+into `i.Options` (`i.Options[optionsIndex].SelectAccountUserID`, §3.2), but
 **only within the flow whose own identify step produced that index**.
 `IntentSignupLoginFlowStepIdentify.ReactTo` (§3.9) uses it exactly this way —
 a real client call is always dispatched against the same flow instance that
-built the map, so the index is unambiguous there. `IntentLoginFlowStepIdentify.ReactTo`
+built the slice, so the index is unambiguous there. `IntentLoginFlowStepIdentify.ReactTo`
 (§3.10) does the same for a **direct** real client call, but must also accept
 a **second** input shape: a `SyntheticInputSelectAccount` replayed from a
 `signup_login` switch, which carries the already-verified user ID directly
@@ -416,11 +452,11 @@ different questions that happen to coincide (always resolve to the same
 single config branch) only because there's exactly one `select_account`
 config entry per `identify` step. Multiple *options* from that one entry
 (future) would still resolve to the *same* config branch via
-`checkIdentificationMethod`, disambiguated only by `index`/`SelectAccountUserIDs`
-— exactly parallel to how `oauth`'s multiple provider options resolve to the
-same-or-different config branches disambiguated by `alias` instead. This
-per-flow scoping is exactly why a *cross-flow* index (§3.8) never made sense
-in the first place — `index` was never meant to be a globally meaningful
+`checkIdentificationMethod`, disambiguated only by the direct `i.Options[index]`
+lookup — exactly parallel to how `oauth`'s multiple provider options resolve
+to the same-or-different config branches disambiguated by `alias` instead.
+This per-flow scoping is exactly why a *cross-flow* index (§3.8) never made
+sense in the first place — `index` was never meant to be a globally meaningful
 identifier, only a same-flow-instance one.
 
 ### 3.5 Login flow: `IntentUseIdentitySelectAccount` + `NodeDoUseIdentitySelectAccount`
@@ -605,7 +641,7 @@ This implements the spec's "the session cookie must still resolve to the same
 user recorded when the option was computed" check. It is called both when
 `select_account` completes directly in a `login` flow, and — independently,
 against the `expectedUserID` resolved from that flow's own
-`SelectAccountUserIDs[index]` (§3.4) — when `signup_login` is about to switch
+`Options[index].SelectAccountUserID` (§3.4) — when `signup_login` is about to switch
 into the target `login_flow` (redundant-but-harmless double check within the
 same HTTP request when nothing changed in between; see [§3.8](#38-signup_login-flow-intentlookupidentityselectaccount)).
 
@@ -695,7 +731,7 @@ no second round trip is introduced.
 **Revised from the original design below** — the first implementation carried
 the client's array-position `index` unchanged into the target `login_flow`'s
 synthetic input. This is wrong: the target flow computes its **own**,
-independent `Options`/`SelectAccountUserIDs` from its **own** `one_of` config,
+independent `Options` (each entry's `SelectAccountUserID`) from its **own** `one_of` config,
 so `select_account` can legitimately sit at a different position there than
 in the source `signup_login` flow's options (different identification lists,
 different provider/server counts before it, etc.). `AcceptSyntheticInput`
@@ -852,11 +888,11 @@ documented 401.
 
 ### 3.9 Wiring into `IntentSignupLoginFlowStepIdentify.ReactTo`
 
-The client-supplied `index` (§3.3/§3.4) is used **only** to look up
-`i.SelectAccountUserIDs` in *this* (source) flow — it never travels any
-further. `idx` (the existing `checkIdentificationMethod`-resolved **config**
-`one_of` position) is still used for `JSONPointerForOneOf`, unchanged. In the
-existing dispatch switch:
+The client-supplied `index` (§3.3/§3.4) is used **only** to index directly
+into `i.Options` (bounds-checked) in *this* (source) flow — it never travels
+any further. `idx` (the existing `checkIdentificationMethod`-resolved
+**config** `one_of` position) is still used for `JSONPointerForOneOf`,
+unchanged. In the existing dispatch switch:
 
 ```go
 case model.AuthenticationFlowIdentificationSelectAccount:
@@ -865,10 +901,10 @@ case model.AuthenticationFlowIdentificationSelectAccount:
         return nil, authflow.ErrIncompatibleInput
     }
     optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
-    expectedUserID, ok := i.SelectAccountUserIDs[optionsIndex]
-    if !ok {
+    if optionsIndex < 0 || optionsIndex >= len(i.Options) {
         return nil, authflow.ErrIncompatibleInput
     }
+    expectedUserID := i.Options[optionsIndex].SelectAccountUserID
 
     return authflow.NewSubFlow(&IntentLookupIdentitySelectAccount{
         JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
@@ -905,11 +941,10 @@ case model.AuthenticationFlowIdentificationSelectAccount:
             return nil, authflow.ErrIncompatibleInput
         }
         optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
-        var ok bool
-        expectedUserID, ok = i.SelectAccountUserIDs[optionsIndex]
-        if !ok {
+        if optionsIndex < 0 || optionsIndex >= len(i.Options) {
             return nil, authflow.ErrIncompatibleInput
         }
+        expectedUserID = i.Options[optionsIndex].SelectAccountUserID
     }
 
     return authflow.NewSubFlow(&IntentUseIdentitySelectAccount{
@@ -996,13 +1031,13 @@ identification values that would need updating (repo search found none).
 |---|---|
 | `pkg/api/model/identification.go` | Add `AuthenticationFlowIdentificationSelectAccount` const; add case to `PrimaryAuthentications()`/`SecondaryAuthentications()` |
 | `pkg/lib/config/authentication_flow.go` | Add `"select_account"` to `AuthenticationFlowLoginFlowIdentify` and `AuthenticationFlowSignupLoginFlowIdentify` enums; restructure `AuthenticationFlowSignupLoginFlowIdentify`'s `required` into a conditional `allOf` (§2.4) |
-| `pkg/lib/authenticationflow/declarative/data_identification.go` | Add `DisplayName` field to `IdentificationOption`; add `NewIdentificationOptionsSelectAccount` (slice-returning); add unexported `selectAccountDisplayName` helper |
+| `pkg/lib/authenticationflow/declarative/data_identification.go` | Add `DisplayName` field to `IdentificationOption`; add `InternalIdentificationOption` wrapper type + `ToIdentificationOption()`; add `NewIdentificationOptionsSelectAccount` (returns `[]InternalIdentificationOption`); add unexported `selectAccountDisplayName` helper |
 | `pkg/lib/authenticationflow/declarative/input_step_identify.go` | Loop-index capture; add `select_account` case to `SchemaBuilder()`; add `Index` field + `GetIdentificationOptionIndex()` to `InputStepIdentify` |
 | `pkg/lib/authenticationflow/declarative/input_take_identification_option_index.go` | **New.** `InputSchemaTakeIdentificationOptionIndex` / `InputTakeIdentificationOptionIndex` |
 | `pkg/lib/authenticationflow/declarative/input_interface.go` | Add `inputTakeIdentificationOptionIndex` and `inputTakeSelectAccountUserID` interfaces |
 | `pkg/lib/authenticationflow/declarative/synthetic_input_select_account.go` | **New.** `SyntheticInputSelectAccount` — carries the verified user ID (not an index) across a signup_login switch, mirroring `SyntheticInputPasskey`/`SyntheticInputOAuth` (§3.8) |
-| `pkg/lib/authenticationflow/declarative/intent_login_flow_step_identify.go` | Add option-construction case; add `SelectAccountUserIDs map[int]string` field; add `ReactTo` dispatch case accepting either a real index-carrying input or a synthetic user-ID-carrying input |
-| `pkg/lib/authenticationflow/declarative/intent_signup_login_flow_step_identify.go` | Add option-construction case; add `SelectAccountUserIDs map[int]string` field; add index-lookup `ReactTo` dispatch case (index is only ever used within this flow, never carried onward) |
+| `pkg/lib/authenticationflow/declarative/intent_login_flow_step_identify.go` | Retype `Options` to `[]InternalIdentificationOption`; wrap every option-building case's result accordingly; add select_account option-construction case; `OutputData`/`CanReactTo` map via `slice.Map(i.Options, InternalIdentificationOption.ToIdentificationOption)`; add `ReactTo` dispatch case doing a direct, bounds-checked `i.Options[index]` lookup, accepting either a real index-carrying input or a synthetic user-ID-carrying input |
+| `pkg/lib/authenticationflow/declarative/intent_signup_login_flow_step_identify.go` | Same `[]InternalIdentificationOption` retyping and `slice.Map` output as above; add select_account option-construction case; add direct `i.Options[index]`-lookup `ReactTo` dispatch case (index is only ever used within this flow, never carried onward) |
 | `pkg/lib/authenticationflow/declarative/intent_use_identity_select_account.go` | **New.** `IntentUseIdentitySelectAccount` (login flow) |
 | `pkg/lib/authenticationflow/declarative/node_do_use_identity_select_account.go` | **New.** `NodeDoUseIdentitySelectAccount`, `NewNodeDoUseIdentitySelectAccount`, `resolveSelectAccountSession` |
 | `pkg/lib/authenticationflow/declarative/intent_lookup_identity_select_account.go` | **New.** `IntentLookupIdentitySelectAccount` (signup_login flow) — builds `SyntheticInputSelectAccount` for the flow switch |
@@ -1198,20 +1233,21 @@ questions.)
 - The session re-check (`resolveSelectAccountSession`) runs at **both** the
   `signup_login` switch point and the final `login`-flow resolution point,
   independently, each against its own flow instance's own recorded
-  `SelectAccountUserIDs` entry. This is intentional redundancy, not a bug —
-  see §3.8's rationale.
+  `Options[index].SelectAccountUserID` entry. This is intentional redundancy,
+  not a bug — see §3.8's rationale.
 - No config-load-time validation is added for "does the referenced
   `login_flow` actually declare a matching `select_account` entry" — consistent
   with how every other identification kind's flow references are (not)
   validated today.
-- `index` in the input **is** used for server-side dispatch (§3.4) — it looks
-  up `i.SelectAccountUserIDs[index]` to resolve which recorded user ID a
-  submission refers to, but **only within the flow that produced that
-  index**. `index` is never carried across a `signup_login` → `login_flow`
-  switch — `IntentLookupIdentitySelectAccount` resolves the user ID itself
-  (already verified by `resolveSelectAccountSession`) and passes it onward via
-  `SyntheticInputSelectAccount.UserID`, not via `index` (§3.8). This is
-  deliberately real, working lookup code, not a validated-but-ignored
+- `index` in the input **is** used for server-side dispatch (§3.4) — it's a
+  direct, bounds-checked index into `i.Options` (a `[]InternalIdentificationOption`,
+  §3.1/§3.2), used to resolve which recorded user ID a submission refers to
+  (`i.Options[index].SelectAccountUserID`), but **only within the flow that
+  produced that index**. `index` is never carried across a `signup_login` →
+  `login_flow` switch — `IntentLookupIdentitySelectAccount` resolves the user
+  ID itself (already verified by `resolveSelectAccountSession`) and passes it
+  onward via `SyntheticInputSelectAccount.UserID`, not via `index` (§3.8).
+  This is deliberately real, working lookup code, not a validated-but-ignored
   placeholder, specifically so that supporting multiple concurrent accounts
   later requires no changes to the *within-one-flow* dispatch/`ReactTo` code —
   only `NewIdentificationOptionsSelectAccount`'s enumeration body would need

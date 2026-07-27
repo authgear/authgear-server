@@ -110,10 +110,9 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 
 		Convey("no session: option omitted", func() {
 			ctx := makeCtx(nil, nil, deps)
-			options, userIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldBeEmpty)
-			So(userIDs, ShouldBeEmpty)
 		})
 
 		Convey("suppress_idp_session_cookie: option omitted", func() {
@@ -122,10 +121,9 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 				&authflow.Session{FlowID: "flow-1", SuppressIDPSessionCookie: true},
 				deps,
 			)
-			options, userIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldBeEmpty)
-			So(userIDs, ShouldBeEmpty)
 		})
 
 		Convey("prompt=login: option omitted", func() {
@@ -134,10 +132,9 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 				&authflow.Session{FlowID: "flow-1", Prompt: []string{"login"}},
 				deps,
 			)
-			options, userIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldBeEmpty)
-			So(userIDs, ShouldBeEmpty)
 		})
 
 		Convey("usable session: option offered with display name and recorded user ID", func() {
@@ -146,12 +143,12 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 				&authflow.Session{FlowID: "flow-1"},
 				deps,
 			)
-			options, userIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldHaveLength, 1)
-			So(userIDs, ShouldResemble, []string{"user-1"})
-			So(options[0].Identification, ShouldEqual, model.AuthenticationFlowIdentificationSelectAccount)
-			So(options[0].DisplayName, ShouldEqual, "user@example.com")
+			So(options[0].SelectAccountUserID, ShouldEqual, "user-1")
+			So(options[0].Option.Identification, ShouldEqual, model.AuthenticationFlowIdentificationSelectAccount)
+			So(options[0].Option.DisplayName, ShouldEqual, "user@example.com")
 		})
 
 		Convey("usable session with mismatched login_hint/id_token_hint: option still offered (deferred, not implemented yet)", func() {
@@ -164,10 +161,10 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 				},
 				deps,
 			)
-			options, userIDs, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldHaveLength, 1)
-			So(userIDs, ShouldResemble, []string{"user-1"})
+			So(options[0].SelectAccountUserID, ShouldEqual, "user-1")
 		})
 	})
 }
