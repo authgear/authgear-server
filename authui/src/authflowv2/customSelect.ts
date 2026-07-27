@@ -351,6 +351,7 @@ export class CustomSelectController extends Controller {
   renderTrigger() {
     const option =
       this.optionsValue.find((option) => option.value === this.value) ??
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- optionsValue[0] is undefined when the array is empty; TS cannot see this without noUncheckedIndexedAccess
       (this.optionsValue[0] as SearchSelectOption | undefined);
 
     if (!option) {
