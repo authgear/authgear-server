@@ -8,6 +8,11 @@ export interface SettingsSectionCardProps {
   title: React.ReactNode;
   /** Optional supporting text shown under the title. */
   description?: React.ReactNode;
+  /**
+   * `columns` (default): title on the left, content on the right (stacks on
+   * tablet). `stacked`: title above content in a single column.
+   */
+  layout?: "columns" | "stacked";
   /** Extra classes for the outer card (e.g. grid placement, save-bar clearance). */
   className?: string;
   /** Extra classes for the content column (e.g. the gap between fields). */
@@ -16,19 +21,32 @@ export interface SettingsSectionCardProps {
 }
 
 /**
- * A bordered settings card laid out as a label column on the left and a content
- * column on the right, stacking vertically on narrow (tablet) viewports.
+ * A bordered settings card. Default layout is a label column on the left and a
+ * content column on the right (stacks on narrow viewports). Use `layout="stacked"`
+ * to keep title and content in one vertical column.
  */
 export function SettingsSectionCard({
   title,
   description,
+  layout = "columns",
   className,
   contentClassName,
   children,
 }: SettingsSectionCardProps): React.ReactElement {
   return (
-    <div className={cn(styles.card, className)}>
-      <div className={styles.titleColumn}>
+    <div
+      className={cn(
+        styles.card,
+        layout === "stacked" && styles["card--stacked"],
+        className
+      )}
+    >
+      <div
+        className={cn(
+          styles.titleColumn,
+          layout === "stacked" && styles["titleColumn--stacked"]
+        )}
+      >
         <Text as="p" size="3" weight="medium" className={styles.title}>
           {title}
         </Text>

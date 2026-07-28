@@ -5,9 +5,17 @@
   @apply tablet:flex-col tablet:items-stretch tablet:gap-4;
 }
 
+.card--stacked {
+  @apply flex-col items-stretch gap-4;
+}
+
 .titleColumn {
   @apply flex shrink-0 flex-col gap-1;
   width: 200px;
+}
+
+.titleColumn--stacked {
+  width: auto;
 }
 
 .title {
