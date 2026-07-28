@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { SearchableDropdown } from "../common/SearchableDropdown";
 import { Context as MessageContext } from "../../intl";
 import { useQuery } from "@apollo/client";
 import {
@@ -7,8 +6,11 @@ import {
   GroupsListQueryQuery,
   GroupsListQueryQueryVariables,
 } from "../../graphql/adminapi/query/groupsListQuery.generated";
-import { IDropdownOption } from "@fluentui/react";
 import { Group } from "../../graphql/adminapi/globalTypes.generated";
+import {
+  UsersFilterDropdown,
+  UsersFilterDropdownOption,
+} from "./UsersFilterDropdown";
 
 interface GroupsFilterDropdownProps {
   className?: string;
@@ -19,7 +21,7 @@ interface GroupsFilterDropdownProps {
 
 const MAX_OPTIONS = 100;
 
-export interface GroupsFilterDropdownOption extends IDropdownOption {
+export interface GroupsFilterDropdownOption extends UsersFilterDropdownOption {
   group: Pick<Group, "id" | "key" | "name">;
 }
 
@@ -60,16 +62,14 @@ export const GroupsFilterDropdown: React.VFC<GroupsFilterDropdownProps> =
     }, [data?.groups?.edges]);
 
     const onChange = useCallback(
-      (_: unknown, option?: IDropdownOption) => {
-        propsOnChange(
-          (option as GroupsFilterDropdownOption | undefined) ?? null
-        );
+      (option: GroupsFilterDropdownOption) => {
+        propsOnChange(option);
       },
       [propsOnChange]
     );
 
     return (
-      <SearchableDropdown
+      <UsersFilterDropdown
         className={className}
         placeholder={renderToString("UsersScreen.filters.groups.placeholder")}
         isLoadingOptions={loading}
