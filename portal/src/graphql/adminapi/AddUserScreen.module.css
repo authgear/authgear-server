@@ -8,30 +8,135 @@
   @apply mobile:max-w-none;
 }
 
-.identityOptionLabel {
-  padding: 0 0 10px;
-}
-
 .widget {
   grid-column: 1 / span 8;
   @apply tablet:col-span-full;
 }
 
-.checkbox {
-  @apply mt-3;
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  margin-bottom: 8px;
 }
 
-.choiceGroupOptionContent {
-  padding-left: 26px;
-  @apply pt-1 pb-4;
-  @apply flex flex-col gap-1;
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.fieldLabel {
+  margin: 0 0 10px;
+  color: var(--gray-12);
+}
+
+.loginIdRadioGroup {
+  width: 100%;
+}
+
+.radioOptionLabel {
+  cursor: pointer;
+}
+
+.passwordRadioGroup {
+  width: 100%;
+}
+
+.passwordRadioBlock {
+  @apply flex flex-col gap-2;
+}
+
+.passwordRadioItem {
+  @apply shrink-0;
+  margin-top: 0.125rem;
+}
+
+.passwordRadioContent {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.passwordRadioContent p {
+  margin: 0;
+}
+
+.passwordOptionExtra {
+  padding-left: calc(var(--space-4) + var(--space-2));
+}
+
+.manualPasswordFields {
+  @apply flex flex-col gap-3;
+}
+
+.checkboxRow {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.advancedSection {
+  width: 100%;
+}
+
+.advancedTrigger {
+  @apply flex w-full items-center gap-2;
+  @apply bg-transparent border-0 p-0;
+  @apply cursor-pointer text-left;
+  color: var(--accent-11);
+}
+
+.advancedTrigger:focus-visible {
+  outline: 2px solid var(--accent-9);
+  outline-offset: 2px;
+}
+
+.advancedChevron {
+  @apply shrink-0 w-4 h-4;
+  transition: transform 150ms ease;
+}
+
+.advancedTrigger[data-state="open"] .advancedChevron {
+  transform: rotate(180deg);
+}
+
+.advancedContent {
+  @apply pt-4;
 }
 
 .accountValidPeriodSection {
-  @apply flex flex-col gap-2 py-2;
+  @apply flex flex-col gap-2;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--gray-a11);
 }
 
 .accountValidPeriodForm {
   @apply mt-4;
   @apply max-w-120;
+}
+
+.saveButtonRow {
+  @apply pt-7;
 }
