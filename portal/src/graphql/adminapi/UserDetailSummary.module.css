@@ -1,75 +1,73 @@
 .root {
-  max-width: 600px;
-  font-size: 13px;
-  font-weight: 300;
-  margin-bottom: 20px;
-  display: grid;
-  row-gap: 4px;
-  column-gap: 26px;
-  grid-template-columns: min-content auto;
-  grid-template-rows: auto;
-}
-
-.cameraLink {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backLink {
+  display: inline-flex;
   align-items: center;
-  border-radius: 100%;
-  background-color: rgb(0 0 0 / 0.5);
-  opacity: 0;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
 }
 
-.cameraLink:hover {
-  opacity: initial;
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
 }
 
-.cameraIcon {
-  color: white;
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
 }
 
-.profilePic {
-  grid-column: 1 / span 1;
-  grid-row: 1 / span 1;
-  place-self: center;
-  position: relative;
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
-.lines {
-  grid-column: 2 / span 2;
-  grid-row: 1 / span 1;
-  display: grid;
-  grid-template-columns: auto;
-  grid-auto-rows: auto;
-  row-gap: 4px;
-  column-gap: 26px;
+.avatar {
+  flex-shrink: 0;
 }
 
-.explorerURL {
-  color: inherit;
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
 }
 
-.formattedName {
-  color: #000000;
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.anonymousUserLabel {
-  font-style: italic;
+.displayName {
+  margin: 0;
+  color: var(--gray-12);
 }
 
-.anonymizedUserLabel {
-  font-style: italic;
+.userIdPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--gray-a3);
+  border-radius: 4px;
+  padding-left: 8px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
-.inlineGridItem {
-  display: inline-block;
-  align-self: start;
-  justify-self: start;
+.userIdContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

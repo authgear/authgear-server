@@ -1,5 +1,4 @@
 import { useQuery } from "@apollo/client";
-import { SearchBox } from "@fluentui/react";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import ShowError from "../../../ShowError";
@@ -13,10 +12,15 @@ import { UserQueryNodeFragment } from "../../../graphql/adminapi/query/userQuery
 import { searchGroups } from "../../../model/group";
 import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
 import { UserGroupsListItem, UserGroupsList } from "./UserGroupsList";
-import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
 import { AddUserGroupsDialog } from "../dialog/AddUserGroupsDialog";
-import styles from "./UserDetailsRolesAndGroupsTab.module.css";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../v2/TextField/TextField";
+import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
+import { Callout as RadixCallout } from "@radix-ui/themes";
+import { InfoCircledIcon, PlusIcon } from "@radix-ui/react-icons";
 
 const pageSize = 10;
 
@@ -53,10 +57,7 @@ function UserDetailsScreenGroupListContainer({
   }, []);
 
   const onChangeSearchKeyword = useCallback(
-    (e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (e === undefined) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.currentTarget.value;
       setSearchKeyword(value);
       // Reset offset when search keyword was changed.
@@ -64,10 +65,6 @@ function UserDetailsScreenGroupListContainer({
     },
     []
   );
-  const onClearSearchKeyword = useCallback(() => {
-    setSearchKeyword("");
-  }, []);
-
   const [isAddRoleDialogHidden, setIsAddRoleDialogHidden] = useState(true);
   const showAddRoleDialog = useCallback(
     () => setIsAddRoleDialogHidden(false),
@@ -116,7 +113,6 @@ function UserDetailsScreenGroupListContainer({
   }, [user.groups?.edges]);
 
   if (error != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -127,39 +123,55 @@ function UserDetailsScreenGroupListContainer({
   const totalCount = groupsQueryData?.groups?.totalCount ?? 0;
 
   if (totalCount === 0) {
-    return (
-      <div className={styles.root}>
-        <GroupsEmptyView />
-      </div>
-    );
+    return <GroupsEmptyView />;
   }
 
   return (
     <>
-      <section className={cn(styles.root, "flex flex-col h-full", className)}>
-        <header className="flex flex-row items-center justify-between">
-          <SearchBox
-            className="max-w-[300px] min-w-0 flex-1 mr-2"
-            placeholder={renderToString("search")}
-            value={searchKeyword}
-            onChange={onChangeSearchKeyword}
-            onClear={onClearSearchKeyword}
-          />
+      <section className={cn("flex flex-col h-full", className)}>
+        <header className="flex flex-row items-center justify-between mb-5">
+          <div className="max-w-[300px] min-w-0 flex-1 mr-2">
+            <TextField
+              size="2"
+              type="search"
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              placeholder={renderToString("search")}
+              value={searchKeyword}
+              onChange={onChangeSearchKeyword}
+            />
+          </div>
           <PrimaryButton
-            text={<FormattedMessage id="UserDetailsScreen.groups.add" />}
+            size="2"
+            text={
+              <>
+                <PlusIcon width="1rem" height="1rem" />
+                <FormattedMessage id="UserDetailsScreen.groups.add" />
+              </>
+            }
             onClick={showAddRoleDialog}
           />
         </header>
-        <UserGroupsList
-          className="flex-1-0-auto min-h-[200px]"
-          user={user}
-          groups={filteredUserGroups}
-          isSearch={isSearch}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={userGroups.length}
-          onChangeOffset={onChangeOffset}
-        />
+        {userGroups.length === 0 ? (
+          <RadixCallout.Root color="gray" size="2" variant="surface">
+            <RadixCallout.Icon>
+              <InfoCircledIcon width="1rem" height="1rem" />
+            </RadixCallout.Icon>
+            <RadixCallout.Text>
+              <FormattedMessage id="UserDetailsScreen.groups.empty" />
+            </RadixCallout.Text>
+          </RadixCallout.Root>
+        ) : (
+          <UserGroupsList
+            className="flex-1-0-auto min-h-[200px]"
+            user={user}
+            groups={filteredUserGroups}
+            isSearch={isSearch}
+            offset={offset}
+            pageSize={pageSize}
+            totalCount={userGroups.length}
+            onChangeOffset={onChangeOffset}
+          />
+        )}
       </section>
       <AddUserGroupsDialog
         userID={user.id}

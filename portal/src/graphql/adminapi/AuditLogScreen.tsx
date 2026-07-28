@@ -176,7 +176,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [availableActivityTypes, queryActivityType]);
 
   const [filters, setFilters] = useState<AuditLogFilter>({
-    searchKeyword: "",
+    searchKeyword: queryString,
     activityTypes: defaultActivityTypes,
   });
 
@@ -297,6 +297,28 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   ]);
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
+
+  // Keep local state in sync when the URL changes (e.g. browser back/forward,
+  // or navigating from User Details "View in Audit Logs").
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFilters((prev) => {
+      const next = {
+        searchKeyword: queryString,
+        activityTypes: defaultActivityTypes,
+      };
+      if (
+        prev.searchKeyword === next.searchKeyword &&
+        prev.activityTypes.length === next.activityTypes.length &&
+        prev.activityTypes.every(
+          (activityType, index) => activityType === next.activityTypes[index]
+        )
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [queryString, defaultActivityTypes]);
 
   // Reset page to zero on search
   useEffect(() => {

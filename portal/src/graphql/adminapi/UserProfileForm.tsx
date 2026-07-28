@@ -5,21 +5,10 @@ import React, {
   useState,
   Children,
 } from "react";
-import {
-  Dropdown,
-  IDropdownOption,
-  DatePicker,
-  DayOfWeek,
-  FirstWeekOfYear,
-  Text,
-  ITextProps,
-  ITheme,
-} from "@fluentui/react";
+import type { IDropdownOption } from "@fluentui/react";
+import { Select, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
-import FormTextField from "../../FormTextField";
-import FormDropdown from "../../FormDropdown";
 import FormPhoneTextField from "../../FormPhoneTextField";
-import TextLink from "../../TextLink";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -32,14 +21,14 @@ import {
 } from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
 import { useMakeAlpha2Options } from "../../util/alpha2";
-import { formatDatetime } from "../../util/formatDatetime";
 import { generateLabel } from "../../util/label";
 import { checkNumberInput, checkIntegerInput } from "../../util/input";
 import {
   jsonPointerToString,
   parseJSONPointerIntoParentChild,
 } from "../../util/jsonpointer";
-import TextField from "../../TextField";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { FormField } from "../../components/v2/FormField/FormField";
 
 import styles from "./UserProfileForm.module.css";
 import PrimaryButton from "../../PrimaryButton";
@@ -99,39 +88,10 @@ function getInitialGenderVariant(gender: string | undefined): GenderVariant {
   return "other";
 }
 
-function formatDate(date?: Date): string {
-  if (date == null) {
-    return "";
-  }
-  return toBirthdate(date) ?? "";
-}
-
 function parseDateFromString(str: string): Date | null {
   return parseBirthdate(str) ?? null;
 }
 
-function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
-  return {
-    root: {
-      color: theme.semanticColors.inputPlaceholderText,
-      borderBottom: `1px solid ${theme.palette.neutralTertiaryAlt}`,
-      padding: "8px 0",
-    },
-  };
-}
-
-function HorizontalDivider() {
-  const { themes } = useSystemConfig();
-  const theme = themes.main;
-  return (
-    <div
-      style={{
-        backgroundColor: theme.palette.neutralTertiaryAlt,
-        height: "1px",
-      }}
-    />
-  );
-}
 
 interface DivProps {
   className?: string;
@@ -146,6 +106,76 @@ function Div(props: DivProps) {
     return null;
   }
   return <div className={className}>{children}</div>;
+}
+
+const EMPTY_SELECT_VALUE = "__empty__";
+
+interface ProfileSelectFieldProps {
+  className?: string;
+  label: React.ReactNode;
+  value: string;
+  options: IDropdownOption[];
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  parentJSONPointer?: string;
+  fieldName?: string;
+}
+
+function ProfileSelectField({
+  className,
+  label,
+  value,
+  options,
+  onValueChange,
+  disabled,
+  parentJSONPointer,
+  fieldName,
+}: ProfileSelectFieldProps): React.ReactElement {
+  return (
+    <div className={className}>
+      <FormField
+        size="2"
+        labelSize="2"
+        label={label}
+        labelSpace="1"
+        parentJSONPointer={parentJSONPointer}
+        fieldName={fieldName}
+      >
+        <Select.Root
+          value={value === "" ? EMPTY_SELECT_VALUE : value}
+          onValueChange={(newValue) => {
+            onValueChange(
+              newValue === EMPTY_SELECT_VALUE ? "" : newValue
+            );
+          }}
+          disabled={disabled}
+        >
+          <Select.Trigger
+            variant="surface"
+            className={styles.selectTrigger}
+          />
+          <Select.Content>
+            {options.map((option) => {
+              const optionValue = String(option.key);
+              return (
+                <Select.Item
+                  key={optionValue}
+                  className={
+                    option.hidden ? styles.hiddenSelectItem : undefined
+                  }
+                  value={
+                    optionValue === "" ? EMPTY_SELECT_VALUE : optionValue
+                  }
+                >
+                  {option.text || "\u00a0"}
+                </Select.Item>
+              );
+            })}
+          </Select.Content>
+        </Select.Root>
+      </FormField>
+    </div>
+  );
 }
 
 interface StandardAttributeTextFieldProps {
@@ -180,16 +210,21 @@ function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
   const value = (standardAttributes as any)[fieldName];
   const label = "standard-attribute." + fieldName;
   return (
-    <FormTextField
-      className={className}
-      value={value}
-      onChange={onChange}
-      parentJSONPointer=""
-      fieldName={fieldName}
-      label={renderToString(label)}
-      placeholder={placeholder}
-      disabled={disabled}
-    />
+    <div className={className}>
+      <TextField
+        size="2"
+        type="text"
+        value={value ?? ""}
+        onChange={(event) => {
+          onChange(event, event.target.value);
+        }}
+        parentJSONPointer=""
+        fieldName={fieldName}
+        label={renderToString(label)}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
+    </div>
   );
 }
 
@@ -205,11 +240,16 @@ function StandardAttributeLabel(props: StandardAttributeLabelProps) {
   const value = (standardAttributes as any)[fieldName];
   const label = "standard-attribute." + fieldName;
   return (
-    <TextLink
-      className={className}
-      value={value}
-      label={renderToString(label)}
-    />
+    <div className={className}>
+      <TextField
+        size="2"
+        type="url"
+        value={value ?? ""}
+        label={renderToString(label)}
+        disabled={true}
+        readOnly={true}
+      />
+    </div>
   );
 }
 
@@ -300,18 +340,14 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
   );
 
   const onChangeDropdown = useCallback(
-    (_: React.FormEvent<unknown>, option?: IDropdownOption) => {
-      if (option == null || onChangeCustomAttributes == null) {
+    (newValue: string) => {
+      if (onChangeCustomAttributes == null) {
         return;
       }
-
-      const { key } = option;
-      if (typeof key === "string") {
-        onChangeCustomAttributes({
-          ...customAttributes,
-          [pointer]: key,
-        });
-      }
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
     },
     [customAttributes, onChangeCustomAttributes, pointer]
   );
@@ -363,46 +399,61 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
   switch (typ) {
     case "string":
       return (
-        <FormTextField
-          className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
-          parentJSONPointer={parent}
-          fieldName={fieldName}
-          label={label}
-          disabled={disabled}
-        />
+        <div className={styles.customAttributeControl}>
+          <TextField
+            size="2"
+            type="text"
+            value={value}
+            onChange={(event) => {
+              onChange(event, event.target.value);
+            }}
+            parentJSONPointer={parent}
+            fieldName={fieldName}
+            label={label}
+            disabled={disabled}
+          />
+        </div>
       );
     case "number":
       return (
-        <FormTextField
-          className={styles.customAttributeControl}
-          value={value}
-          onChange={onChangeNumber}
-          parentJSONPointer={parent}
-          fieldName={fieldName}
-          label={label}
-          disabled={disabled}
-        />
+        <div className={styles.customAttributeControl}>
+          <TextField
+            size="2"
+            type="text"
+            value={value}
+            onChange={(event) => {
+              onChangeNumber(event, event.target.value);
+            }}
+            parentJSONPointer={parent}
+            fieldName={fieldName}
+            label={label}
+            disabled={disabled}
+          />
+        </div>
       );
     case "integer":
       return (
-        <FormTextField
-          className={styles.customAttributeControl}
-          value={value}
-          onChange={onChangeInteger}
-          parentJSONPointer={parent}
-          fieldName={fieldName}
-          label={label}
-          disabled={disabled}
-        />
+        <div className={styles.customAttributeControl}>
+          <TextField
+            size="2"
+            type="text"
+            value={value}
+            onChange={(event) => {
+              onChangeInteger(event, event.target.value);
+            }}
+            parentJSONPointer={parent}
+            fieldName={fieldName}
+            label={label}
+            disabled={disabled}
+          />
+        </div>
       );
     case "enum":
       return (
-        <FormDropdown
+        <ProfileSelectField
           className={styles.customAttributeControl}
-          selectedKey={value}
-          onChange={onChangeDropdown}
+          value={value}
+          onValueChange={onChangeDropdown}
           options={enumOptions}
           parentJSONPointer={parent}
           fieldName={fieldName}
@@ -424,34 +475,44 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
       );
     case "email":
       return (
-        <FormTextField
-          className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
-          parentJSONPointer={parent}
-          fieldName={fieldName}
-          label={label}
-          disabled={disabled}
-        />
+        <div className={styles.customAttributeControl}>
+          <TextField
+            size="2"
+            type="email"
+            value={value}
+            onChange={(event) => {
+              onChange(event, event.target.value);
+            }}
+            parentJSONPointer={parent}
+            fieldName={fieldName}
+            label={label}
+            disabled={disabled}
+          />
+        </div>
       );
     case "url":
       return (
-        <FormTextField
-          className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
-          parentJSONPointer={parent}
-          fieldName={fieldName}
-          label={label}
-          disabled={disabled}
-        />
+        <div className={styles.customAttributeControl}>
+          <TextField
+            size="2"
+            type="url"
+            value={value}
+            onChange={(event) => {
+              onChange(event, event.target.value);
+            }}
+            parentJSONPointer={parent}
+            fieldName={fieldName}
+            label={label}
+            disabled={disabled}
+          />
+        </div>
       );
     case "country_code":
       return (
-        <FormDropdown
+        <ProfileSelectField
           className={styles.customAttributeControl}
-          selectedKey={value}
-          onChange={onChangeDropdown}
+          value={value}
+          onValueChange={onChangeDropdown}
           options={alpha2Options}
           parentJSONPointer={parent}
           fieldName={fieldName}
@@ -536,18 +597,12 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
 
     const makeOnChangeDropdown = useCallback(
       (fieldName: keyof StandardAttributes) => {
-        return (
-          _e: React.FormEvent<unknown>,
-          option?: IDropdownOption,
-          _index?: number
-        ) => {
-          if (option != null) {
-            if (onChangeStandardAttributes != null) {
-              onChangeStandardAttributes({
-                ...standardAttributes,
-                [fieldName]: option.key,
-              });
-            }
+        return (newValue: string) => {
+          if (onChangeStandardAttributes != null) {
+            onChangeStandardAttributes({
+              ...standardAttributes,
+              [fieldName]: newValue,
+            });
           }
         };
       },
@@ -664,49 +719,14 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
       return options;
     }, [renderToString]);
     const onChangeGenderVariant = useCallback(
-      (
-        _e: React.FormEvent<unknown>,
-        option?: IDropdownOption,
-        _index?: number,
-        _value?: string
-      ) => {
-        if (option != null && typeof option.key === "string") {
-          // @ts-expect-error
-          setGenderVariant(option.key);
-          switch (option.key) {
-            case "":
-              if (onChangeStandardAttributes != null) {
-                onChangeStandardAttributes({
-                  ...standardAttributes,
-                  gender: "",
-                });
-              }
-              break;
-            case "male":
-              if (onChangeStandardAttributes != null) {
-                onChangeStandardAttributes({
-                  ...standardAttributes,
-                  gender: "male",
-                });
-              }
-              break;
-            case "female":
-              if (onChangeStandardAttributes != null) {
-                onChangeStandardAttributes({
-                  ...standardAttributes,
-                  gender: "female",
-                });
-              }
-              break;
-            case "other":
-              if (onChangeStandardAttributes != null) {
-                onChangeStandardAttributes({
-                  ...standardAttributes,
-                  gender: genderString,
-                });
-              }
-              break;
-          }
+      (newValue: string) => {
+        const variant = newValue as GenderVariant;
+        setGenderVariant(variant);
+        if (onChangeStandardAttributes != null) {
+          onChangeStandardAttributes({
+            ...standardAttributes,
+            gender: variant === "other" ? genderString : variant,
+          });
         }
       },
       [standardAttributes, onChangeStandardAttributes, genderString]
@@ -729,13 +749,6 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     );
 
     const birthdate = standardAttributes.birthdate;
-    const birthdateValue = useMemo(() => {
-      if (birthdate == null) {
-        return undefined;
-      }
-      const jsDate = parseBirthdate(birthdate);
-      return jsDate;
-    }, [birthdate]);
     const onSelectBirthdate = useCallback(
       (date: Date | null | undefined) => {
         if (onChangeStandardAttributes == null) {
@@ -805,230 +818,262 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     const alpha2Options = useMemo(() => [{ key: "", text: "" }, ...o], [o]);
 
     const onChangeCountry = useCallback(
-      (
-        _e: React.FormEvent<unknown>,
-        option?: IDropdownOption,
-        _index?: number
-      ) => {
-        if (option != null && typeof option.key === "string") {
-          if (onChangeStandardAttributes != null) {
-            onChangeStandardAttributes({
-              ...standardAttributes,
-              address: {
-                ...standardAttributes.address,
-                country: option.key,
-              },
-            });
-          }
+      (newValue: string) => {
+        if (onChangeStandardAttributes != null) {
+          onChangeStandardAttributes({
+            ...standardAttributes,
+            address: {
+              ...standardAttributes.address,
+              country: newValue,
+            },
+          });
         }
       },
       [standardAttributes, onChangeStandardAttributes]
     );
 
     return (
-      <div className={styles.section}>
-        <Text as="h2" block={true} className={styles.sectionTitle}>
-          <FormattedMessage id="UserProfileForm.standard-attributes.title" />
-        </Text>
-        <Div className={styles.nameGroup}>
-          {isReadable("name") ? (
-            <StandardAttributeTextField
-              fieldName="name"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-            />
-          ) : null}
-          {isReadable("nickname") ? (
-            <StandardAttributeTextField
-              fieldName="nickname"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-            />
-          ) : null}
-          {isReadable("given_name") ? (
-            <StandardAttributeTextField
-              fieldName="given_name"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-            />
-          ) : null}
-          {isReadable("middle_name") ? (
-            <StandardAttributeTextField
-              fieldName="middle_name"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-            />
-          ) : null}
-          {isReadable("family_name") ? (
-            <StandardAttributeTextField
-              fieldName="family_name"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-            />
-          ) : null}
-        </Div>
-        {isReadable("picture") ? (
-          <StandardAttributeLabel
-            fieldName="picture"
-            standardAttributes={standardAttributes}
-          />
-        ) : null}
-        <Div className={styles.singleColumnGroup}>
-          {isReadable("profile") ? (
-            <StandardAttributeTextField
-              fieldName="profile"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-              placeholder={renderToString(
-                "UserProfileForm.profile.placeholder"
-              )}
-            />
-          ) : null}
-          {isReadable("website") ? (
-            <StandardAttributeTextField
-              fieldName="website"
-              standardAttributes={standardAttributes}
-              makeOnChangeText={makeOnChangeText}
-              isDisabled={isDisabled}
-              placeholder={renderToString(
-                "UserProfileForm.website.placeholder"
-              )}
-            />
-          ) : null}
-        </Div>
-        <Div className={styles.twoColumnGroup}>
-          <Dropdown
-            label={renderToString("standard-attribute.email")}
-            selectedKey={standardAttributes.email}
-            onChange={onChangeEmail}
-            options={emailOptions}
-            disabled={emailOptions.length <= 0}
-          />
-          <Dropdown
-            label={renderToString("standard-attribute.phone_number")}
-            selectedKey={standardAttributes.phone_number}
-            onChange={onChangePhoneNumber}
-            options={phoneNumberOptions}
-            disabled={phoneNumberOptions.length <= 0}
-          />
-          <Dropdown
-            label={renderToString("standard-attribute.preferred_username")}
-            selectedKey={standardAttributes.preferred_username}
-            onChange={onChangePreferredUsername}
-            options={preferredUsernameOptions}
-            disabled={preferredUsernameOptions.length <= 0}
-          />
-        </Div>
-        {isReadable("gender") ? (
-          <Div className={styles.twoColumnGroup}>
-            <Dropdown
-              label={renderToString("standard-attribute.gender")}
-              selectedKey={genderVariant}
-              options={genderOptions}
-              onChange={onChangeGenderVariant}
-              disabled={isDisabled("gender")}
-            />
-            <TextField
-              value={genderVariant === "other" ? genderString : ""}
-              onChange={onChangeGenderString}
-              disabled={isDisabled("gender") || genderVariant !== "other"}
-              label={
-                /* Show a non-breaking space so that the label is still rendered */ "\u00a0"
-              }
-            />
-          </Div>
-        ) : null}
-        {isReadable("birthdate") ? (
-          <DatePicker
-            label={renderToString("standard-attribute.birthdate")}
-            firstDayOfWeek={DayOfWeek.Monday}
-            firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
-            showGoToToday={false}
-            allowTextInput={true}
-            value={birthdateValue}
-            formatDate={formatDate}
-            onSelectDate={onSelectBirthdate}
-            parseDateFromString={parseDateFromString}
-            placeholder="yyyy-MM-dd"
-            disabled={isDisabled("birthdate")}
-          />
-        ) : null}
-        <Div className={styles.twoColumnGroup}>
-          {isReadable("zoneinfo") ? (
-            <Dropdown
-              label={renderToString("standard-attribute.zoneinfo")}
-              selectedKey={zoneinfo}
-              options={zoneinfoOptions}
-              onChange={onChangeZoneinfo}
-              disabled={isDisabled("zoneinfo")}
-            />
-          ) : null}
-          {isReadable("locale") ? (
-            <Dropdown
-              label={renderToString("standard-attribute.locale")}
-              selectedKey={locale}
-              options={localeOptions}
-              onChange={onChangeLocale}
-              disabled={isDisabled("locale")}
-            />
-          ) : null}
-        </Div>
+      <>
+        {/* Personal Information card */}
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <Text as="p" size="3" weight="medium">
+              <FormattedMessage id="UserProfileForm.personal-information.title" />
+            </Text>
+          </div>
+          <div className={styles.sectionFields}>
+            <Div className={styles.twoColumnGroup}>
+              {isReadable("given_name") ? (
+                <StandardAttributeTextField
+                  fieldName="given_name"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                />
+              ) : null}
+              {isReadable("family_name") ? (
+                <StandardAttributeTextField
+                  fieldName="family_name"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                />
+              ) : null}
+            </Div>
+            <Div className={styles.nameGroup}>
+              {isReadable("name") ? (
+                <StandardAttributeTextField
+                  fieldName="name"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                />
+              ) : null}
+              {isReadable("nickname") ? (
+                <StandardAttributeTextField
+                  fieldName="nickname"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                />
+              ) : null}
+              {isReadable("middle_name") ? (
+                <StandardAttributeTextField
+                  fieldName="middle_name"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                />
+              ) : null}
+            </Div>
+            <Div className={styles.twoColumnGroup}>
+              {isReadable("birthdate") ? (
+                <TextField
+                  size="2"
+                  type="date"
+                  label={renderToString("standard-attribute.birthdate")}
+                  value={birthdate ?? ""}
+                  onChange={(event) => {
+                    onSelectBirthdate(parseDateFromString(event.target.value));
+                  }}
+                  disabled={isDisabled("birthdate")}
+                />
+              ) : null}
+              {isReadable("gender") ? (
+                <ProfileSelectField
+                  label={renderToString("standard-attribute.gender")}
+                  value={genderVariant}
+                  options={genderOptions}
+                  onValueChange={onChangeGenderVariant}
+                  disabled={isDisabled("gender")}
+                />
+              ) : null}
+            </Div>
+            {isReadable("gender") && genderVariant === "other" ? (
+              <TextField
+                size="2"
+                type="text"
+                value={genderString}
+                onChange={(event) => {
+                  onChangeGenderString(event, event.target.value);
+                }}
+                disabled={isDisabled("gender")}
+                label={renderToString("standard-attribute.gender") + " (custom)"}
+              />
+            ) : null}
+            <Div className={styles.twoColumnGroup}>
+              {isReadable("zoneinfo") ? (
+                <ProfileSelectField
+                  label={renderToString("standard-attribute.zoneinfo")}
+                  value={zoneinfo}
+                  options={zoneinfoOptions}
+                  onValueChange={onChangeZoneinfo}
+                  disabled={isDisabled("zoneinfo")}
+                />
+              ) : null}
+              {isReadable("locale") ? (
+                <ProfileSelectField
+                  label={renderToString("standard-attribute.locale")}
+                  value={locale}
+                  options={localeOptions}
+                  onValueChange={onChangeLocale}
+                  disabled={isDisabled("locale")}
+                />
+              ) : null}
+            </Div>
+            {isReadable("picture") ? (
+              <StandardAttributeLabel
+                fieldName="picture"
+                standardAttributes={standardAttributes}
+              />
+            ) : null}
+            <Div className={styles.singleColumnGroup}>
+              {isReadable("profile") ? (
+                <StandardAttributeTextField
+                  fieldName="profile"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                  placeholder={renderToString(
+                    "UserProfileForm.profile.placeholder"
+                  )}
+                />
+              ) : null}
+              {isReadable("website") ? (
+                <StandardAttributeTextField
+                  fieldName="website"
+                  standardAttributes={standardAttributes}
+                  makeOnChangeText={makeOnChangeText}
+                  isDisabled={isDisabled}
+                  placeholder={renderToString(
+                    "UserProfileForm.website.placeholder"
+                  )}
+                />
+              ) : null}
+            </Div>
+            <Div className={styles.twoColumnGroup}>
+              <ProfileSelectField
+                label={renderToString("standard-attribute.email")}
+                value={standardAttributes.email}
+                onValueChange={onChangeEmail}
+                options={emailOptions}
+                disabled={emailOptions.length <= 0}
+              />
+              <ProfileSelectField
+                label={renderToString("standard-attribute.phone_number")}
+                value={standardAttributes.phone_number}
+                onValueChange={onChangePhoneNumber}
+                options={phoneNumberOptions}
+                disabled={phoneNumberOptions.length <= 0}
+              />
+            </Div>
+            <Div className={styles.singleColumnGroup}>
+              <ProfileSelectField
+                label={renderToString("standard-attribute.preferred_username")}
+                value={standardAttributes.preferred_username}
+                onValueChange={onChangePreferredUsername}
+                options={preferredUsernameOptions}
+                disabled={preferredUsernameOptions.length <= 0}
+              />
+            </Div>
+          </div>
+        </div>
+
+        {/* Contact & Address card */}
         {isReadable("address") ? (
-          <Div className={styles.addressGroup}>
-            <FormTextField
-              className={styles.gridAreaStreet}
-              value={standardAttributes.address.street_address}
-              onChange={onChangeStreetAddress}
-              multiline={true}
-              parentJSONPointer="/address"
-              fieldName="street_address"
-              label={renderToString("standard-attribute.street_address")}
-              disabled={isDisabled("address")}
-            />
-            <FormTextField
-              className={styles.gridAreaCity}
-              value={standardAttributes.address.locality}
-              onChange={onChangeLocality}
-              parentJSONPointer="/address"
-              fieldName="locality"
-              label={renderToString("standard-attribute.locality")}
-              disabled={isDisabled("address")}
-            />
-            <FormTextField
-              className={styles.gridAreaPostalCode}
-              value={standardAttributes.address.postal_code}
-              onChange={onChangePostalCode}
-              parentJSONPointer="/address"
-              fieldName="postal_code"
-              label={renderToString("standard-attribute.postal_code")}
-              disabled={isDisabled("address")}
-            />
-            <FormTextField
-              className={styles.gridAreaState}
-              value={standardAttributes.address.region}
-              onChange={onChangeRegion}
-              parentJSONPointer="/address"
-              fieldName="region"
-              label={renderToString("standard-attribute.region")}
-              disabled={isDisabled("address")}
-            />
-            <Dropdown
-              className={styles.gridAreaCountry}
-              label={renderToString("standard-attribute.country")}
-              selectedKey={standardAttributes.address.country}
-              options={alpha2Options}
-              onChange={onChangeCountry}
-              disabled={isDisabled("address")}
-            />
-          </Div>
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <Text as="p" size="3" weight="medium">
+                <FormattedMessage id="UserProfileForm.contact-address.title" />
+              </Text>
+            </div>
+            <div className={styles.sectionFields}>
+              <Div className={styles.addressGroup}>
+                <TextField
+                  size="2"
+                  type="text"
+                  inputClassName={styles.gridAreaStreet}
+                  value={standardAttributes.address.street_address}
+                  onChange={(event) => {
+                    onChangeStreetAddress(event, event.target.value);
+                  }}
+                  parentJSONPointer="/address"
+                  fieldName="street_address"
+                  label={renderToString("standard-attribute.street_address")}
+                  disabled={isDisabled("address")}
+                />
+                <Div className={styles.twoColumnGroupInline}>
+                  <TextField
+                    size="2"
+                    type="text"
+                    value={standardAttributes.address.locality}
+                    onChange={(event) => {
+                      onChangeLocality(event, event.target.value);
+                    }}
+                    parentJSONPointer="/address"
+                    fieldName="locality"
+                    label={renderToString("standard-attribute.locality")}
+                    disabled={isDisabled("address")}
+                  />
+                  <TextField
+                    size="2"
+                    type="text"
+                    value={standardAttributes.address.region}
+                    onChange={(event) => {
+                      onChangeRegion(event, event.target.value);
+                    }}
+                    parentJSONPointer="/address"
+                    fieldName="region"
+                    label={renderToString("standard-attribute.region")}
+                    disabled={isDisabled("address")}
+                  />
+                </Div>
+                <Div className={styles.twoColumnGroupInline}>
+                  <TextField
+                    size="2"
+                    type="text"
+                    value={standardAttributes.address.postal_code}
+                    onChange={(event) => {
+                      onChangePostalCode(event, event.target.value);
+                    }}
+                    parentJSONPointer="/address"
+                    fieldName="postal_code"
+                    label={renderToString("standard-attribute.postal_code")}
+                    disabled={isDisabled("address")}
+                  />
+                  <ProfileSelectField
+                    label={renderToString("standard-attribute.country")}
+                    value={standardAttributes.address.country}
+                    options={alpha2Options}
+                    onValueChange={onChangeCountry}
+                    disabled={isDisabled("address")}
+                  />
+                </Div>
+              </Div>
+            </div>
+          </div>
         ) : null}
-      </div>
+      </>
     );
   };
 
@@ -1047,21 +1092,25 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
     } = props;
 
     return (
-      <div className={styles.section}>
-        <Text as="h2" block={true} className={styles.sectionTitle}>
-          <FormattedMessage id="UserProfileForm.custom-attributes.title" />
-        </Text>
-        <div className={styles.customAttributesForm}>
-          {customAttributesConfig.map((c) => {
-            return (
-              <CustomAttributeControl
-                key={c.id}
-                attributeConfig={c}
-                customAttributes={customAttributes}
-                onChangeCustomAttributes={onChangeCustomAttributes}
-              />
-            );
-          })}
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <Text as="p" size="3" weight="medium">
+            <FormattedMessage id="UserProfileForm.custom-attributes.title" />
+          </Text>
+        </div>
+        <div className={styles.sectionFields}>
+          <div className={styles.customAttributesForm}>
+            {customAttributesConfig.map((c) => {
+              return (
+                <CustomAttributeControl
+                  key={c.id}
+                  attributeConfig={c}
+                  customAttributes={customAttributes}
+                  onChangeCustomAttributes={onChangeCustomAttributes}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -1078,17 +1127,8 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
       onChangeCustomAttributes,
       customAttributesConfig,
     } = props;
-    const { locale: appLocale, renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
     const { canSave, onSave } = useFormContainerBaseContext();
-
-    const updatedAt = standardAttributes.updated_at;
-    const updatedAtFormatted: string | undefined | null = useMemo(() => {
-      if (updatedAt == null) {
-        return undefined;
-      }
-
-      return formatDatetime(appLocale, new Date(updatedAt * 1000));
-    }, [appLocale, updatedAt]);
 
     return (
       <div className={styles.root}>
@@ -1098,23 +1138,12 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
           onChangeStandardAttributes={onChangeStandardAttributes}
           standardAttributeAccessControl={standardAttributeAccessControl}
         />
-        <div className={styles.sectionDivider}>
-          <HorizontalDivider />
-        </div>
-        <CustomAttributesForm
-          customAttributes={customAttributes}
-          onChangeCustomAttributes={onChangeCustomAttributes}
-          customAttributesConfig={customAttributesConfig}
-        />
-        {updatedAtFormatted != null ? (
-          <Text variant="small" styles={UPDATED_AT_STYLES}>
-            <FormattedMessage
-              id="standard-attribute.updated_at"
-              values={{
-                datetime: updatedAtFormatted,
-              }}
-            />
-          </Text>
+        {customAttributesConfig.length > 0 ? (
+          <CustomAttributesForm
+            customAttributes={customAttributes}
+            onChangeCustomAttributes={onChangeCustomAttributes}
+            customAttributesConfig={customAttributesConfig}
+          />
         ) : null}
         <div>
           <PrimaryButton

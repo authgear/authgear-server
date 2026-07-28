@@ -1,51 +1,145 @@
 .root {
-  margin-left: 10px;
-  padding-top: 16px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
 }
 
 .headerSection {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  min-width: 0;
 }
 
 .header {
-  font-weight: 600;
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.description {
+  margin: 8px 0 0;
+}
+
+.content {
+  min-width: 0;
 }
 
 .identityLists {
   display: flex;
   flex-direction: column;
-  row-gap: 4px;
+  gap: 24px;
+}
+
+.loginIdentityGroupTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.loginIdentityTable {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.loginIdentityTableHeader {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 12px;
+}
+
+.loginIdentityCell {
+  display: grid;
+  grid-template-areas: "value date action";
+  grid-template-columns: minmax(0, 1fr) max-content 32px;
+  gap: 16px;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 12px;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.loginIdentityValue {
+  grid-area: value;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.verificationStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.verifiedStatus {
+  color: var(--green-11);
+}
+
+.unverifiedStatus {
+  color: var(--amber-11);
+}
+
+.verificationIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.loginIdentityDate {
+  grid-area: date;
+  white-space: nowrap;
+}
+
+.loginIdentityCell .actionButton {
+  grid-area: action;
+  justify-self: end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.addIdentityButton {
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  align-self: flex-start;
+  margin-top: 16px;
+  color: var(--accent-9);
+}
+
+.addIdentityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.addIdentityDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .subHeader {
   display: flex;
-  margin: 12px 0;
-  font-weight: 600;
+  margin: 16px 0 8px;
+  color: var(--gray-12);
 }
 
 .cellContainer {
   grid-template-areas:
     "       icon           name          .           button-group"
     "       .              desc          .           button-group";
-  grid-template-columns: min-content auto 1fr 330px;
-  display: grid;
-  column-gap: 8px;
-  row-gap: 8px;
-  margin-top: 16px;
-}
+  grid-template-columns: min-content auto minmax(0, 1fr) max-content;
 
-.cellContainer.ldap {
-  grid-template-areas:
-    "       icon           name          .              button-group"
-    "       .              info          info           button-group"
-    "       .              desc          .              button-group";
-}
-
-@media screen and (max-width: 1080px) {
-  .cellContainer {
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
     grid-template-areas:
       "        icon           name           name        "
       "        .              desc           desc        "
@@ -53,13 +147,27 @@
     grid-template-columns: min-content auto auto;
   }
 
-  .cellContainer.ldap {
+  &.ldap {
     grid-template-areas:
-      "        icon           name           name        "
-      "        .              info           info        "
-      "        .              desc           desc        "
-      "        button-group   button-group   button-group";
+      "       icon           name          .              button-group"
+      "       .              info          info           button-group"
+      "       .              desc          .              button-group";
+
+    /* stylelint-disable-next-line media-query-no-invalid */
+    @media screen(tablet) {
+      grid-template-areas:
+        "        icon           name           name        "
+        "        .              info           info        "
+        "        .              desc           desc        "
+        "        button-group   button-group   button-group";
+    }
   }
+
+  display: grid;
+  column-gap: 8px;
+  row-gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--gray-5);
 }
 
 .cellIcon {
@@ -81,16 +189,11 @@
 }
 
 .cellDescUnverified {
-  color: #e0aa1a;
   white-space: nowrap;
 }
 
-.cellDescVerified {
-  color: #10b070;
-}
-
 .cellDescSeparator {
-  color: #888888;
+  color: var(--gray-a9);
   margin: 0 8px;
 }
 
@@ -99,7 +202,6 @@
 }
 
 .cellDesc {
-  color: #888888;
   grid-area: desc;
   display: flex;
   flex-direction: row;
@@ -107,9 +209,8 @@
 
 .buttonGroup {
   grid-area: button-group;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .actionButton {
@@ -118,19 +219,9 @@
 }
 
 .controlButton {
-  border: 1px solid #d8d8d8;
-  font-weight: 600;
   white-space: nowrap;
 }
 
 .removeButton {
-  grid-column: 2 / span 1;
-}
-
-.verifyButton {
-  grid-column: span 1 / span 1;
-}
-
-.unverifyButton {
-  grid-column: span 1 / span 1;
+  flex-shrink: 0;
 }

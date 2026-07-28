@@ -1,6 +1,86 @@
 .root {
-  margin-left: 10px;
-  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.statusCard {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
+}
+
+.dangerZoneCard {
+  border-color: var(--red-7);
+  background-color: var(--red-a2);
+}
+
+.dangerZoneCard .actionCell {
+  border-bottom-color: var(--gray-5);
+}
+
+.dangerZoneCard .cellLabel {
+  color: var(--red-12);
+}
+
+.dangerZoneCard .cellBody {
+  color: var(--red-11);
+}
+
+.title {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.title.dangerZoneTitle {
+  color: var(--red-12);
+}
+
+.statusContent {
+  min-width: 0;
+}
+
+.statusContent > :first-child {
+  padding-top: 0;
+}
+
+.statusContent > :last-child {
+  padding-bottom: 0;
+}
+
+.cellLabel {
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.cellBody {
+  line-height: 20px;
+  max-width: 500px;
+  color: var(--gray-12);
+}
+
+.cellMeta {
+  line-height: 20px;
+  color: var(--gray-12);
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.disablePeriodOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .actionCell {
@@ -8,14 +88,11 @@
     "plabel         paction"
     "pbody          paction"
     "pdescription   paction"
-    / auto min-content min-content;
+    / minmax(0, 1fr) max-content;
   @apply grid;
-  @apply gap-x-2 gap-y-1;
-  @apply pb-6;
-}
-
-.actionCell + .actionCell {
-  @apply pt-6;
+  @apply gap-x-6 gap-y-1;
+  @apply py-6;
+  border-bottom: 1px solid var(--gray-5);
 }
 
 .actionCell:last-child {
@@ -38,6 +115,10 @@
 .actionCellActionButtonContainer {
   @apply flex flex-col place-self-center justify-between items-end gap-4;
   grid-area: paction;
+}
+
+.statusActionButton {
+  white-space: nowrap;
 }
 
 .actionCellActionButton {

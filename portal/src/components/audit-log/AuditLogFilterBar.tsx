@@ -34,6 +34,7 @@ interface AuditLogFilterBarProps {
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
   onRefresh: () => void;
   searchBoxProps?: ISearchBoxProps;
+  hideSearchBox?: boolean;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
   lastUpdatedAt: Date;
@@ -47,6 +48,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     onFilterChange,
     onRefresh,
     searchBoxProps,
+    hideSearchBox = false,
     dateRange,
     availableActivityTypes,
     lastUpdatedAt,
@@ -105,30 +107,32 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
               availableActivityTypes={availableActivityTypes}
               wideContent={wideActivityTypeDropdown}
             />
-            <RadixTextField.Root
-              className={styles.searchBox}
-              size="2"
-              type="search"
-              value={filters.searchKeyword}
-              placeholder={searchBoxProps?.placeholder}
-              onChange={onChangeSearchKeyword}
-            >
-              <RadixTextField.Slot side="left">
-                <MagnifyingGlassIcon className={styles.searchIcon} />
-              </RadixTextField.Slot>
-              {filters.searchKeyword !== "" ? (
-                <RadixTextField.Slot side="right">
-                  <button
-                    type="button"
-                    className={styles.searchClearButton}
-                    aria-label={renderToString("AuditLogScreen.clear-search")}
-                    onClick={onClearSearchKeyword}
-                  >
-                    <Cross2Icon className={styles.searchClearIcon} />
-                  </button>
+            {hideSearchBox ? null : (
+              <RadixTextField.Root
+                className={styles.searchBox}
+                size="2"
+                type="search"
+                value={filters.searchKeyword}
+                placeholder={searchBoxProps?.placeholder}
+                onChange={onChangeSearchKeyword}
+              >
+                <RadixTextField.Slot side="left">
+                  <MagnifyingGlassIcon className={styles.searchIcon} />
                 </RadixTextField.Slot>
-              ) : null}
-            </RadixTextField.Root>
+                {filters.searchKeyword !== "" ? (
+                  <RadixTextField.Slot side="right">
+                    <button
+                      type="button"
+                      className={styles.searchClearButton}
+                      aria-label={renderToString("AuditLogScreen.clear-search")}
+                      onClick={onClearSearchKeyword}
+                    >
+                      <Cross2Icon className={styles.searchClearIcon} />
+                    </button>
+                  </RadixTextField.Slot>
+                ) : null}
+              </RadixTextField.Root>
+            )}
           </div>
           <div className={styles.filterActionContainer}>
             <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />

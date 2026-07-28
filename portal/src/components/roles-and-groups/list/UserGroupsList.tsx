@@ -1,14 +1,9 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  ColumnActionsMode,
-  DetailsRow,
-  IColumn,
-  IDetailsRowProps,
-  Text,
-} from "@fluentui/react";
+import { ColumnActionsMode, IColumn } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { Context as MessageContext } from "../../../intl";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./UserGroupsList.module.css";
 import {
@@ -16,7 +11,6 @@ import {
   Role,
   User,
 } from "../../../graphql/adminapi/globalTypes.generated";
-import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
@@ -24,6 +18,7 @@ import DeleteUserGroupDialog, {
   DeleteUserGroupDialogData,
 } from "../dialog/DeleteUserGroupDialog";
 import BaseCell from "./common/BaseCell";
+import { TrashIcon } from "@radix-ui/react-icons";
 
 export interface UserGroupsListItem extends Pick<Group, "id" | "name" | "key"> {
   roles: {
@@ -65,6 +60,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
     onChangeOffset,
   }) {
     const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
     const { renderToString } = useContext(MessageContext);
 
     const [deleteDialogData, setDeleteDialogData] =
@@ -121,31 +117,21 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
         {
           key: UserGroupsListColumnKey.Action,
           fieldName: "action",
-          name: renderToString("UserGroupsList.column.action"),
-          minWidth: 67,
-          maxWidth: 67,
+          name: "",
+          minWidth: 56,
+          maxWidth: 56,
           columnActionsMode: ColumnActionsMode.disabled,
         },
       ];
     }, [renderToString]);
 
-    const onRenderRow = React.useCallback(
-      (props?: IDetailsRowProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <Link
-            className="contents"
-            to={`/project/${appID}/user-management/groups/${
-              (props.item as UserGroupsListItem).id
-            }/details`}
-          >
-            <DetailsRow {...props} />
-          </Link>
+    const onItemClick = useCallback(
+      (item: UserGroupsListItem) => {
+        navigate(
+          `/project/${appID}/user-management/groups/${item.id}/details`
         );
       },
-      [appID]
+      [appID, navigate]
     );
 
     const onRenderItemColumn = useCallback(
@@ -154,8 +140,8 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           case UserGroupsListColumnKey.Action: {
             return (
               <ActionButtonCell
-                variant="destructive"
-                text={renderToString("UserGroupsList.actions.remove")}
+                icon={<TrashIcon width="1rem" height="1rem" />}
+                ariaLabel={renderToString("UserGroupsList.actions.remove")}
                 onClick={(e) => {
                   onClickDeleteGroup(e, item);
                 }}
@@ -209,7 +195,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
         <div className={cn(styles.root, className)}>
           <RolesAndGroupsBaseList
             emptyText={listEmptyText}
-            onRenderRow={onRenderRow}
+            onItemClick={onItemClick}
             onRenderItemColumn={onRenderItemColumn}
             items={groups}
             columns={columns}
