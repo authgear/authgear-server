@@ -126,6 +126,7 @@ authgear.yaml:
           - name: identify
             type: identify
             one_of:
+            - identification: select_account
             - identification: username
 before:
   - type: user_import
