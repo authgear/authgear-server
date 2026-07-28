@@ -108,6 +108,7 @@ func (f *CookieManager) GetCookie(r *http.Request, def *CookieDef) (*http.Cookie
 
 // ValueCookie generates a cookie that when set, the cookie is set to the specified value.
 func (f *CookieManager) ValueCookie(def *CookieDef, value string) *http.Cookie {
+	// #nosec G124 -- Secure and SameSite are set below via field assignment, since they depend on f.secure().
 	cookie := &http.Cookie{
 		Name:     f.CookieName(def),
 		Path:     def.Path,
@@ -133,6 +134,7 @@ func (f *CookieManager) ValueCookie(def *CookieDef, value string) *http.Cookie {
 // ClearCookie generates a cookie that when set, the cookie is clear.
 func (f *CookieManager) ClearCookie(def *CookieDef) *http.Cookie {
 	emptyValue := ""
+	// #nosec G124 -- ValueCookie already sets Secure, HttpOnly, and SameSite on the returned cookie.
 	cookie := f.ValueCookie(def, emptyValue)
 
 	// Suppress the MaxAge attribute written by ValueCookie

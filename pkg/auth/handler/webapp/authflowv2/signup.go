@@ -23,6 +23,7 @@ func (h *AuthflowV2SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if h.AuthenticationConfig.PublicSignupDisabled {
 		path := "/login"
 		u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
+		// #nosec G710 -- webapp.MakeRelativeURL only ever sets Path and RawQuery, never Scheme/Host, so u is always relative to the current origin.
 		http.Redirect(w, r, u.String(), http.StatusFound)
 		return
 	}
