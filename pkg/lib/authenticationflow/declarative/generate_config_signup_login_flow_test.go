@@ -52,6 +52,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     signup_flow: default
     login_flow: default
@@ -74,6 +76,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: phone
     signup_flow: default
     login_flow: default
@@ -96,6 +100,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: username
     signup_flow: default
     login_flow: default
@@ -121,6 +127,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     signup_flow: default
     login_flow: default
@@ -145,6 +153,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: oauth
     signup_flow: default
     login_flow: default
@@ -169,6 +179,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     signup_flow: default
     login_flow: default
@@ -191,6 +203,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: ldap
     signup_flow: default
     login_flow: default
@@ -233,6 +247,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     signup_flow: default
     login_flow: default
@@ -276,6 +292,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     bot_protection:
       mode: always
@@ -323,6 +341,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     bot_protection:
       mode: always
@@ -374,6 +394,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: email
     bot_protection:
       mode: always
@@ -409,6 +431,8 @@ steps:
 - name: signup_login_identify
   type: identify
   one_of:
+  - identification: select_account
+    login_flow: default
   - identification: phone
     bot_protection:
       mode: always
