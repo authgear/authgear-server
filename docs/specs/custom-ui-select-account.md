@@ -120,7 +120,7 @@ Because the request is same-site with credentials included, the session cookie i
       "data": {
         "type": "identification_data",
         "options": [
-          { "identification": "select_account", "display_name": "user@example.com" },
+          { "identification": "select_account", "display_name": "user@example.com", "user_id": "user_01J..." },
           { "identification": "email" }
         ]
       }
@@ -216,7 +216,7 @@ Origin: https://ui.example.com
       "data": {
         "type": "identification_data",
         "options": [
-          { "identification": "select_account", "display_name": "existing@example.com" },
+          { "identification": "select_account", "display_name": "existing@example.com", "user_id": "user_01J..." },
           { "identification": "email" }
         ]
       }
@@ -456,7 +456,7 @@ No new endpoints, step types, or `action.type`. The `identify` step's response g
       "data": {
         "type": "identification_data",
         "options": [
-          { "identification": "select_account", "display_name": "user@example.com" },
+          { "identification": "select_account", "display_name": "user@example.com", "user_id": "user_01J..." },
           { "identification": "email" }
         ]
       }
@@ -465,7 +465,9 @@ No new endpoints, step types, or `action.type`. The `identify` step's response g
 }
 ```
 
-`display_name` is the only `select_account`-specific field. No user identifier is included — the server resolves identity internally from the input's `index` (below). Absent when there's no eligible session — the response then looks exactly as it did before this feature.
+`display_name` and `user_id` are the `select_account`-specific fields. Absent when there's no eligible session — the response then looks exactly as it did before this feature.
+
+`user_id` identifies the account this option would select if submitted — a Custom UI needing to apply its own eligibility policy on top of the server's (e.g. checking it against a `login_hint`/`id_token_hint` it resolved itself — see [Session and account resolution](#session-and-account-resolution)) compares against this field, rather than needing a separate lookup. Submitting `select_account` is still by `index` only (below): `user_id` is informational, read-only, and never accepted as input — the server always re-resolves and re-checks identity from its own session at submission time (see [Completing identification](#completing-identification-with-the-existing-session)), so a forged or stale `user_id` value can never be fed back in to select a different account.
 
 Unlike `masked_display_name` elsewhere in this API, `display_name` here is returned **unmasked**: it identifies the account already bound to the caller's own session cookie, not an as-yet-unauthenticated identity, so there's nothing to mask.
 
@@ -498,13 +500,14 @@ This must also apply to the `OPTIONS` preflight `fetch()` triggers first, which 
 
 ### Session and account resolution
 
-The `select_account` option is derived entirely from the request's session cookie and the OIDC authorization parameters already resolved by the time the flow is created — nothing supplied to the flow-creation call itself influences it. It's omitted, using the same rules as the built-in Auth UI's existing account-selection screen, when:
+The `select_account` option is derived entirely from the request's session cookie and the OIDC authorization parameters already resolved by the time the flow is created — nothing supplied to the flow-creation call itself influences it. The flow itself omits the option when:
 
 - No session is present.
+- The session is neither an IDP session nor carries the `https://authgear.com/scopes/pre-authenticated-url` scope.
 - The session was established with "do not persist" semantics (`x_suppress_idp_session_cookie`).
 - The resolved `prompt` contains `login` — whether that came directly from the authorization request or was synthesized because the session is older than the request's `max_age` allows (the server folds an expired `max_age` into an implied `prompt=login`; there's no separate `max_age` check).
-- `login_hint` is present and identifies a different user than the session (a *matching* `login_hint` doesn't omit the option).
-- `id_token_hint` is present and its `sub` claim identifies a different user than the session — the same rule as `login_hint`, since both are the caller declaring which identity it expects.
+
+**The flow deliberately does *not* check `login_hint`/`id_token_hint` itself** — an option is offered whenever a usable session exists, regardless of any hint. This is why the option exposes `user_id` (see [HTTP API changes](#http-api-changes)): a caller wanting to enforce "only offer this if it matches the hint I resolved" — which is what the built-in Auth UI's own account-selection screen does — applies that check itself, comparing `user_id` against its own resolution of `login_hint`/`id_token_hint`, and treats a mismatch as if the option weren't present at all (falling through to whatever it would otherwise do with no eligible session). A Custom UI that doesn't care about this distinction can simply ignore `user_id` and always offer the option as-is.
 
 (`prompt=none` is decided earlier, before any flow exists — not applicable here. `prompt=select_account` and `acr_values` currently have no bearing on this either way — see [Edge cases](#edge-cases).)
 
@@ -515,10 +518,10 @@ The `select_account` option is derived entirely from the request's session cooki
 - **`login`:** whether anything further is asked is controlled by `select_account`'s own nested `steps` (see [Config changes](#config-changes)) — omitted, the flow completes immediately; with a nested `authenticate` step, that must be satisfied first.
 - **`signup_login`:** switches into the declared `login_flow`, replaying the same `identify` input into that flow — the switch itself carries no proof of authentication, only the input. Whether anything further is asked is controlled by the *target* flow's own `select_account` `one_of` entry and its nested `steps`, exactly as in the `login` case above; any steps configured after `identify` in that flow still run regardless.
 
-Before completing, two checks must pass:
+Before completing, these checks must pass:
 
 - `index` must be in bounds and point to a `select_account` entry — enforced the same way as any other option's `index`, by standard input schema validation, no `select_account`-specific error.
-- The session cookie must still resolve to the same user recorded when the option was computed — guards against the session changing between the two calls — else:
+- The session cookie must still resolve to the same user recorded when the option was computed, and still be an IDP session or carry the `https://authgear.com/scopes/pre-authenticated-url` scope (see [Session and account resolution](#session-and-account-resolution)) — both guard against the session changing (or losing eligibility) between the two calls — else:
   ```json
   { "error": { "name": "Unauthorized", "reason": "SelectAccountSessionChanged", "message": "session no longer matches the selected account", "code": 401 } }
   ```
@@ -603,16 +606,16 @@ Opting in requires updating the Custom UI to recognize the new `identification` 
 - **`prompt=none`**: not applicable — decided before any flow exists.
 - **`prompt=select_account`**: not supported — has no effect, despite sharing its name with this feature's `select_account` identification option (unrelated concepts).
 - **`max_age`**: not a separate rule. An expired `max_age` is folded server-side into a synthesized `prompt=login`, so it's already covered by the `prompt=login` case above.
-- **`id_token_hint`**: option omitted when its `sub` claim identifies a different user than the session — the same rule as a mismatched `login_hint` (see [Session and account resolution](#session-and-account-resolution)).
+- **`id_token_hint`**: the flow itself never omits the option based on this — same as `login_hint` (see [Session and account resolution](#session-and-account-resolution)); a caller enforcing it compares the option's `user_id` against the token's `sub` claim itself.
 - **`acr_values`**: not supported — no interaction with `select_account` today.
-- **`login_hint` matching the session's user**: option is still offered — only a *mismatched* `login_hint` omits it.
+- **`login_hint`**: the flow always offers the option regardless of whether it matches the session's user — enforcing a match (or mismatch) against `login_hint` is left entirely to the caller, using the exposed `user_id` (see [Session and account resolution](#session-and-account-resolution)).
 - **Multiple active accounts**: not supported; at most one entry today.
 
 ---
 
 ## Research: Behavior of other idp on select_account
 
-How `prompt=select_account`, `login_hint`, and `id_token_hint` behave in other IdPs, checked to sanity-check the design decisions above (especially [`prompt=select_account` having no effect](#edge-cases) and the [mismatched-hint session-discard rule](#session-and-account-resolution)).
+How `prompt=select_account`, `login_hint`, and `id_token_hint` behave in other IdPs, checked to sanity-check the design decisions above (especially [`prompt=select_account` having no effect](#edge-cases) and [leaving hint enforcement to the caller](#session-and-account-resolution)).
 
 | Dimension | Google | Azure AD / Entra | Auth0 | Keycloak |
 |---|---|---|---|---|
