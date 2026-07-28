@@ -12648,26 +12648,217 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
+	customattrsService := &customattrs.Service{
+		Config:         userProfileConfig,
+		ServiceNoEvent: customattrsServiceNoEvent,
+		Events:         eventService,
+	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	accountmigrationHookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, accountMigrationHookConfig)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   accountmigrationHookDenoClient,
+	}
+	accountmigrationHookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  accountmigrationHookHTTPClient,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
+	captchaConfig := appConfig.Captcha
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	captchaHTTPClient := captcha.NewHTTPClient()
+	cloudflareClient := captcha.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials, captchaHTTPClient)
+	captchaProvider := &captcha2.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		CloudflareClient: cloudflareClient,
+	}
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection.NewCloudflareClient(botProtectionProviderCredentials, environmentConfig)
+	recaptchaV2Client := botprotection.NewRecaptchaV2Client(botProtectionProviderCredentials, environmentConfig)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+		Events:            eventService,
+	}
+	requestOptionsService := &passkey2.RequestOptionsService{
+		ConfigService:   configService,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	creationOptionsService := &passkey2.CreationOptionsService{
+		ConfigService:   configService,
+		UserService:     userQueries,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	externalJWTConfig := appConfig.ExternalJWT
+	cache := rootProvider.JWKCache
+	externaljwtService := &externaljwt.Service{
+		ExternalJWTConfig: externalJWTConfig,
+		JWKSCache:         cache,
+		Clock:             clockClock,
+	}
+	ldapConfig := identityConfig.LDAP
+	ldapServerUserCredentials := deps.ProvideLDAPServerUserCredentials(secretConfig)
+	clientFactory := &ldap2.ClientFactory{
+		Config:       ldapConfig,
+		SecretConfig: ldapServerUserCredentials,
+	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
 		Clock:        clockClock,
 		Coordinator:  coordinator,
 	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets:         oAuthKeyMaterials,
+		BaseURL:         endpointsEndpoints,
+		UserInfoService: userInfoService,
+		Events:          eventService,
+		Identities:      facadeIdentityFacade,
+		Clock:           clockClock,
+	}
+	dependencies := &authenticationflow.Dependencies{
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
+		SSOOAuthDemoCredentials:         ssooAuthDemoCredentials,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		ExternalJWT:                     externaljwtService,
+		LoginIDs:                        provider,
+		LDAP:                            ldapProvider,
+		LDAPClientFactory:               clientFactory,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef2,
+		MFADeviceTokenCookie:            cookieDef,
+		UserFacade:                      userFacade,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		OfflineGrants:                   store,
+		IDTokens:                        idTokenIssuer,
+	}
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	authenticationflowService := &authenticationflow.Service{
+		Deps:                dependencies,
+		Store:               authenticationflowStoreImpl,
+		Database:            handle,
+		UIConfig:            uiConfig,
+		UIInfoResolver:      uiService,
+		OAuthClientResolver: resolver,
+		OAuthSessionStore:   oauthsessionStoreRedis,
+	}
+	samlsessionStoreRedis := &samlsession.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	promptResolver := &oauth.PromptResolver{
+		Clock: clockClock,
+	}
+	oauthOfflineGrantService := &oauth.OfflineGrantService{
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  resolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   store,
+	}
+	idTokenHintResolver := &oidc.IDTokenHintResolver{
+		Issuer:              idTokenIssuer,
+		Sessions:            idpsessionProvider,
+		OfflineGrantService: oauthOfflineGrantService,
+	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		Config:              oAuthConfig,
+		EndpointsProvider:   endpointsEndpoints,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clockClock,
+		Cookies:             cookieManager,
+		ClientResolver:      resolver,
+	}
+	authflowController := &webapp.AuthflowController{
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
+		Clock:                   clockClock,
+		Cookies:                 cookieManager,
+		Sessions:                sessionStoreRedis,
+		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
+		Endpoints:               endpointsEndpoints,
+		Authflows:               authenticationflowService,
+		OAuthSessions:           oauthsessionStoreRedis,
+		SAMLSessions:            samlsessionStoreRedis,
+		UIInfoResolver:          uiInfoResolver,
+		UIConfig:                uiConfig,
+		OAuthClientResolver:     resolver,
+		Navigator:               authflowV2Navigator,
+		ErrorRenderer:           errorRenderer,
+	}
 	authflowV2SelectAccountHandler := &authflowv2.AuthflowV2SelectAccountHandler{
-		ControllerFactory:         controllerFactory,
-		BaseViewModel:             baseViewModeler,
-		Renderer:                  responseRenderer,
-		AuthenticationConfig:      authenticationConfig,
-		SignedUpCookie:            signedUpCookieDef,
-		Users:                     userQueries,
-		UserFacade:                userFacade,
-		Identities:                serviceService,
-		AuthenticationInfoService: authenticationinfoStoreRedis,
-		UIInfoResolver:            uiService,
-		Cookies:                   cookieManager,
-		OAuthConfig:               oAuthConfig,
-		UIConfig:                  uiConfig,
-		OAuthClientResolver:       resolver,
+		NonAuthflowControllerFactory: controllerFactory,
+		Controller:                   authflowController,
+		BaseViewModel:                baseViewModeler,
+		Renderer:                     responseRenderer,
+		AuthenticationConfig:         authenticationConfig,
+		SignedUpCookie:               signedUpCookieDef,
+		Users:                        userQueries,
+		UserFacade:                   userFacade,
+		Identities:                   serviceService,
+		AuthenticationInfoService:    authenticationinfoStoreRedis,
+		UIInfoResolver:               uiService,
+		Cookies:                      cookieManager,
+		OAuthConfig:                  oAuthConfig,
+		UIConfig:                     uiConfig,
+		OAuthClientResolver:          resolver,
 	}
 	return authflowV2SelectAccountHandler
 }

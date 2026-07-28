@@ -8,6 +8,8 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -57,20 +59,21 @@ type SelectAccountViewModel struct {
 }
 
 type AuthflowV2SelectAccountHandler struct {
-	ControllerFactory         handlerwebapp.ControllerFactory
-	BaseViewModel             *viewmodels.BaseViewModeler
-	Renderer                  handlerwebapp.Renderer
-	AuthenticationConfig      *config.AuthenticationConfig
-	SignedUpCookie            webapp.SignedUpCookieDef
-	Users                     SelectAccountUserService
-	UserFacade                SelectAccountUserFacade
-	Identities                SelectAccountIdentityService
-	AuthenticationInfoService SelectAccountAuthenticationInfoService
-	UIInfoResolver            SelectAccountUIInfoResolver
-	Cookies                   handlerwebapp.CookieManager
-	OAuthConfig               *config.OAuthConfig
-	UIConfig                  *config.UIConfig
-	OAuthClientResolver       handlerwebapp.WebappOAuthClientResolver
+	NonAuthflowControllerFactory handlerwebapp.ControllerFactory
+	Controller                   *handlerwebapp.AuthflowController
+	BaseViewModel                *viewmodels.BaseViewModeler
+	Renderer                     handlerwebapp.Renderer
+	AuthenticationConfig         *config.AuthenticationConfig
+	SignedUpCookie               webapp.SignedUpCookieDef
+	Users                        SelectAccountUserService
+	UserFacade                   SelectAccountUserFacade
+	Identities                   SelectAccountIdentityService
+	AuthenticationInfoService    SelectAccountAuthenticationInfoService
+	UIInfoResolver               SelectAccountUIInfoResolver
+	Cookies                      handlerwebapp.CookieManager
+	OAuthConfig                  *config.OAuthConfig
+	UIConfig                     *config.UIConfig
+	OAuthClientResolver          handlerwebapp.WebappOAuthClientResolver
 }
 
 func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, userID string) (map[string]any, error) {
@@ -102,7 +105,7 @@ func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Re
 
 // nolint: gocognit
 func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctrl, err := h.ControllerFactory.New(r, w)
+	ctrl, err := h.NonAuthflowControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -168,7 +171,16 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return nil
 	})
 
-	continueWithCurrentAccount := func(ctx context.Context) error {
+	// continueWithCurrentAccountLegacy mints a session/authentication-info
+	// entry directly, bypassing the authentication flow engine entirely.
+	// Only called by the userIDHint continue-without-interaction branch
+	// below: user_id_hint targets a specific already-known user, so there is
+	// nothing to "select", and this predates the account-chooser UI this
+	// file's other refactored branches now use. If a resolved login flow
+	// does not declare a select_account entry, that project simply does not
+	// support account continuation — the identify/continue branches below
+	// redirect to signup/login in that case, they do not fall back here.
+	continueWithCurrentAccountLegacy := func(ctx context.Context) error {
 		redirectURI := ""
 
 		// Complete the web session and redirect to web session's RedirectURI
@@ -267,7 +279,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				// 2. IDP session present and the same as UserIDHint
 				// 3. prompt!=login
 
-				err := continueWithCurrentAccount(ctx)
+				err := continueWithCurrentAccountLegacy(ctx)
 				if err != nil {
 					return err
 				}
@@ -282,30 +294,101 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		// the end-user does not need to select anything.
 		// - If x_oauth_provider_alisa is provided via authorization endpoint
 		// - The request is not from the authorization endpoint, e.g. /
-		// - There is no session, so nothing to select.
-		// - prompt=login, in this case, the end-user cannot select existing account.
 		if oauthProviderAlias != "" {
 			gotoLogin()
 			return nil
 		}
 
 		fromAuthzEndpoint := oauthSessionID != "" || samlSessionID != ""
-		if !fromAuthzEndpoint || session == nil || loginPrompt {
+		if !fromAuthzEndpoint {
 			gotoSignupOrLogin()
 			return nil
 		}
 
-		data, err := h.GetData(ctx, r, w, session.GetAuthenticationInfo().UserID)
-		if err != nil {
-			return err
+		// session == nil / loginPrompt reflect webapp-specific reasons to
+		// distrust the session (suppressed, out-of-scope, or a mismatched
+		// login_hint — the latter is deliberately NOT checked by
+		// NewIdentificationOptionsSelectAccount, see Part 1's spec) that the
+		// resolved login flow does not know about, so they must gate here,
+		// before a flow is even created — never deferred to the flow's own
+		// answer.
+		if session == nil || loginPrompt {
+			gotoSignupOrLogin()
+			return nil
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSelectAccountHTML, data)
+		// The resolved login flow is created here so the POST "continue"
+		// action below can advance the same flow instance. Whether to
+		// actually render "Continue as X" is read directly off that flow's
+		// identify-step response — if it doesn't declare select_account,
+		// this project simply does not support account continuation, same
+		// as a Custom UI would see.
+		var getHandlers handlerwebapp.AuthflowControllerHandlers
+		getHandlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+			if _, _, ok := selectAccountOptionFromScreen(screen); !ok {
+				gotoSignupOrLogin()
+				return nil
+			}
+
+			data, err := h.GetData(ctx, r, w, session.GetAuthenticationInfo().UserID)
+			if err != nil {
+				return err
+			}
+			h.Renderer.RenderHTML(w, r, TemplateWebSelectAccountHTML, data)
+			return nil
+		})
+
+		opts := webapp.SessionOptions{
+			OAuthSessionID: oauthSessionID,
+			SAMLSessionID:  samlSessionID,
+		}
+		h.Controller.HandleStartOfFlow(ctx, w, r.WithContext(ctx), opts, authflow.FlowTypeLogin, &getHandlers, nil)
 		return nil
 	})
 
 	ctrl.PostAction("continue", func(ctx context.Context) error {
-		return continueWithCurrentAccount(ctx)
+		var postHandlers handlerwebapp.AuthflowControllerHandlers
+		postHandlers.PostAction("continue", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+			// The resolved login flow's identify step may not declare a
+			// select_account entry at all (a customized, non-generated flow
+			// that predates this feature, e.g. one whose identify step only
+			// has `identification: username`) — that project simply does
+			// not support account continuation, so redirect the same way
+			// the GET branch does rather than falling back to legacy
+			// completion. Feeding {"identification":"select_account"} to
+			// such a flow would be rejected by the input's JSON schema
+			// (built only from the options this flow actually declares)
+			// BEFORE the flow engine's ReactTo ever runs, surfacing a
+			// *validation.AggregatedError, NOT authflow.ErrIncompatibleInput
+			// — check upfront instead of relying on error matching.
+			//
+			// index is this option's actual position in the flow's one_of
+			// list, not assumed to be 0: a hand-authored flow may declare
+			// select_account anywhere, unlike the generated default flow,
+			// which always prepends it first.
+			_, index, ok := selectAccountOptionFromScreen(screen)
+			if !ok {
+				gotoSignupOrLogin()
+				return nil
+			}
+
+			result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]any{
+				"identification": "select_account",
+				"index":          index,
+			}, nil)
+			if err != nil {
+				return err
+			}
+			result.WriteResponse(w, r)
+			return nil
+		})
+
+		opts := webapp.SessionOptions{
+			OAuthSessionID: oauthSessionID,
+			SAMLSessionID:  samlSessionID,
+		}
+		h.Controller.HandleStartOfFlow(ctx, w, r.WithContext(ctx), opts, authflow.FlowTypeLogin, &postHandlers, nil)
+		return nil
 	})
 
 	ctrl.PostAction("login", func(ctx context.Context) error {
@@ -319,4 +402,27 @@ func (h *AuthflowV2SelectAccountHandler) continueFlow(w http.ResponseWriter, r *
 	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
 	// #nosec G710 -- webapp.MakeRelativeURL only ever sets Path and RawQuery, never Scheme/Host, so u is always relative to the current origin.
 	http.Redirect(w, r, u.String(), http.StatusFound)
+}
+
+// selectAccountOptionFromScreen reports whether the login flow's current
+// identify-step response offers a select_account option, and returns it
+// (with its position in the options array, needed to submit a matching
+// "index" — a hand-authored flow may declare select_account anywhere in its
+// one_of list, not necessarily first, unlike the generated default flow)
+// if so. Mirrors the read pattern already used by every other
+// AuthflowController-backed screen (e.g. reset_password.go's
+// declarative.NewPasswordData type assertion) — returns ok == false for any
+// other action type, not just a missing select_account entry, since a
+// customized flow's identify step may not even be the current action.
+func selectAccountOptionFromScreen(screen *webapp.AuthflowScreenWithFlowResponse) (option declarative.IdentificationOption, index int, ok bool) {
+	data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IdentificationData)
+	if !ok {
+		return declarative.IdentificationOption{}, 0, false
+	}
+	for i, o := range data.Options {
+		if o.Identification == model.AuthenticationFlowIdentificationSelectAccount {
+			return o, i, true
+		}
+	}
+	return declarative.IdentificationOption{}, 0, false
 }
