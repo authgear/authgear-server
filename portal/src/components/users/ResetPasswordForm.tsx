@@ -5,7 +5,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { SimpleFormModel } from "../../hook/useSimpleForm";
 import { PortalAPIAppConfig } from "../../types";
 import { Checkbox, ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
-import { useCheckbox, useTextField } from "../../hook/useInput";
+import { useCheckbox } from "../../hook/useInput";
 import styles from "./ResetPasswordForm.module.css";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import TextField from "../../TextField";
@@ -78,9 +78,12 @@ export const ResetPasswordForm: React.VFC<ResetPasswordFormProps> = function (
     [setState]
   );
 
-  const { onChange: onNewPasswordChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, newPassword: value }));
-  });
+  const onNewPasswordChange = useCallback(
+    (value: string) => {
+      setState((prev) => ({ ...prev, newPassword: value }));
+    },
+    [setState]
+  );
   const { onChange: onChangeSendPassword } = useCheckbox((value) => {
     setState((prev) => ({ ...prev, sendPassword: value }));
   });

@@ -128,13 +128,6 @@ function PaswordField(props: {
   const { renderToString } = useContext(MessageContext);
   const { effectiveAppConfig } = useContext(FieldContext);
 
-  const onFieldChange = useCallback(
-    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      onChange(e.currentTarget.value);
-    },
-    [onChange]
-  );
-
   const passwordPolicy = useMemo(() => {
     return effectiveAppConfig?.authenticator?.password?.policy ?? {};
   }, [effectiveAppConfig]);
@@ -145,7 +138,7 @@ function PaswordField(props: {
       passwordPolicy={passwordPolicy}
       label={renderToString("Add2FAScreen.password.label")}
       value={value}
-      onChange={onFieldChange}
+      onChange={onChange}
       parentJSONPointer=""
       fieldName="password"
     />

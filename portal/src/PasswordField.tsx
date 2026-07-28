@@ -1,30 +1,33 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  IStyleFunctionOrObject,
-  ITextFieldStyleProps,
-  ITextFieldStyles,
-  Text,
-} from "@fluentui/react";
+import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { Context, FormattedMessage, Values } from "./intl";
 
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";
-import FormTextField, { FormTextFieldProps } from "./FormTextField";
 import { checkPasswordPolicy } from "./error/password";
-
-import styles from "./PasswordField.module.css";
-import DefaultButton from "./DefaultButton";
+import { TextField } from "./components/v2/TextField/TextField";
+import { ErrorParseRule } from "./error/parse";
 import { GuessableLevel, zxcvbnGuessableLevel } from "./util/zxcvbn";
 import { generatePassword } from "./util/passwordGenerator";
 
+import styles from "./PasswordField.module.css";
+
 export type GuessableLevelNames = Record<GuessableLevel, string>;
 
-interface PasswordFieldProps extends FormTextFieldProps {
+interface PasswordFieldProps {
   className?: string;
-  textFieldClassName?: string;
+  label?: React.ReactNode;
+  disabled?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
   passwordPolicy: PasswordPolicyConfig;
   canGeneratePassword?: boolean;
+  canRevealPassword?: boolean;
+  parentJSONPointer: string | RegExp;
+  fieldName: string;
+  errorRules?: ErrorParseRule[];
 }
 
 interface PasswordPolicyData {
@@ -126,15 +129,19 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
 ) {
   const {
     className,
-    textFieldClassName,
+    label,
+    disabled,
     value: password,
+    onChange,
     passwordPolicy,
     canGeneratePassword,
     canRevealPassword,
-    onChange,
-    ...rest
+    parentJSONPointer,
+    fieldName,
+    errorRules,
   } = props;
   const { renderToString } = useContext(Context);
+  const [showPassword, setShowPassword] = useState(false);
 
   const guessableLevelNames = useMemo(
     () => renderGuessableLevelNames(renderToString),
@@ -157,51 +164,68 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
     [password, passwordPolicy, guessableLevel]
   );
 
+  const onPasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e.currentTarget.value);
+    },
+    [onChange]
+  );
+
   const onClickGeneratePassword = useCallback(() => {
     const newPassword = generatePassword(passwordPolicy);
     if (newPassword != null) {
-      onChange?.({} as React.FormEvent<HTMLInputElement>, newPassword);
+      onChange?.(newPassword);
     }
   }, [passwordPolicy, onChange]);
 
-  const textFieldStyles: IStyleFunctionOrObject<
-    ITextFieldStyleProps,
-    ITextFieldStyles
-  > = useMemo(() => {
-    return {
-      suffix: {
-        "background-color": "transparent",
-        padding: 0,
-      },
-    };
+  const onToggleShowPassword = useCallback(() => {
+    setShowPassword((prev) => !prev);
   }, []);
 
-  const renderSuffix = useMemo(() => {
-    if (!canGeneratePassword) {
-      return undefined;
-    }
-
-    return () => (
-      <DefaultButton
-        className={styles.generatePasswordButton}
-        disabled={rest.disabled}
-        onClick={onClickGeneratePassword}
-        text={<FormattedMessage id="PasswordField.generate-password" />}
-      />
-    );
-  }, [canGeneratePassword, onClickGeneratePassword, rest.disabled]);
+  const suffix =
+    canGeneratePassword || canRevealPassword ? (
+      <div className={styles.suffixActions}>
+        {canRevealPassword && !disabled ? (
+          <button
+            type="button"
+            onClick={onToggleShowPassword}
+            className={styles.revealPasswordButton}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <EyeNoneIcon width="1rem" height="1rem" />
+            ) : (
+              <EyeOpenIcon width="1rem" height="1rem" />
+            )}
+          </button>
+        ) : null}
+        {canGeneratePassword ? (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={onClickGeneratePassword}
+            className={styles.generatePasswordButton}
+          >
+            <FormattedMessage id="PasswordField.generate-password" />
+          </button>
+        ) : null}
+      </div>
+    ) : undefined;
 
   return (
     <div className={className}>
-      <FormTextField
-        {...rest}
-        onChange={onChange}
-        canRevealPassword={!rest.disabled ? canRevealPassword : false}
+      <TextField
+        size="2"
+        label={label}
+        disabled={disabled}
         value={password}
-        className={textFieldClassName}
-        type="password"
-        styles={textFieldStyles}
-        onRenderSuffix={renderSuffix}
+        onChange={onPasswordChange}
+        type={showPassword ? "text" : "password"}
+        parentJSONPointer={parentJSONPointer}
+        fieldName={fieldName}
+        errorRules={errorRules}
+        suffixPlain={true}
+        suffix={suffix}
       />
       <PasswordStrengthMeter
         level={guessableLevel}
@@ -215,7 +239,7 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
               [styles.policySatisfied]: isPasswordPolicySatisfied[policy.key],
             })}
           >
-            <Text>
+            <Text as="span" size="2">
               <FormattedMessage
                 id={policy.messageId}
                 values={policy.messageValues}
