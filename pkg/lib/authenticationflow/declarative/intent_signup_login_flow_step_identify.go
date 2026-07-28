@@ -183,7 +183,7 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 				if optionsIndex < 0 || optionsIndex >= len(i.Options) {
 					return nil, authflow.ErrIncompatibleInput
 				}
-				expectedUserID := i.Options[optionsIndex].SelectAccountUserID
+				expectedUserID := i.Options[optionsIndex].Option.UserID
 
 				return authflow.NewSubFlow(&IntentLookupIdentitySelectAccount{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),

@@ -173,7 +173,7 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldHaveLength, 1)
-			So(options[0].SelectAccountUserID, ShouldEqual, "user-1")
+			So(options[0].Option.UserID, ShouldEqual, "user-1")
 			So(options[0].Option.Identification, ShouldEqual, model.AuthenticationFlowIdentificationSelectAccount)
 			So(options[0].Option.DisplayName, ShouldEqual, "user@example.com")
 		})
@@ -191,7 +191,7 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldHaveLength, 1)
-			So(options[0].SelectAccountUserID, ShouldEqual, "user-1")
+			So(options[0].Option.UserID, ShouldEqual, "user-1")
 		})
 	})
 }

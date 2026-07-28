@@ -55,6 +55,13 @@ type IdentificationOption struct {
 	// account already bound to the caller's own session cookie, not an
 	// as-yet-unauthenticated identity, so there is nothing to mask.
 	DisplayName string `json:"display_name,omitempty"`
+
+	// UserID is specific to SelectAccount. Exposed so a UI (Custom or
+	// built-in) can apply its own eligibility policy — e.g. checking this
+	// option's user against login_hint/id_token_hint — using only this API's
+	// data, since the flow itself deliberately does not implement that
+	// filtering (see NewIdentificationOptionsSelectAccount).
+	UserID string `json:"user_id,omitempty"`
 }
 
 func NewIdentificationOptionIDToken(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
@@ -114,12 +121,13 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 }
 
 // NewIdentificationOptionsSelectAccount returns the select_account options
-// derived from the current IDP session cookie, each already paired with the
-// user ID recorded for it (see InternalIdentificationOption) for the later
-// session-freshness re-check. It returns a slice rather than a single option
-// so that supporting multiple concurrent accounts later only requires
-// enumerating more than one entry here — every caller of this function
-// stays unchanged.
+// derived from the current IDP session cookie. Each option's UserID is both
+// exposed to the API response (so a UI can apply its own policy, e.g.
+// login_hint matching) and used server-side for the later session-freshness
+// re-check (see resolveSelectAccountSession). It returns a slice rather than
+// a single option so that supporting multiple concurrent accounts later only
+// requires enumerating more than one entry here — every caller of this
+// function stays unchanged.
 //
 // Today it omits the option (returning nil, nil) when:
 //   - there is no IDP session,
@@ -177,8 +185,8 @@ func NewIdentificationOptionsSelectAccount(
 				Identification: model.AuthenticationFlowIdentificationSelectAccount,
 				BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 				DisplayName:    displayName,
+				UserID:         userID,
 			},
-			SelectAccountUserID: userID,
 		},
 	}, nil
 }
@@ -233,22 +241,17 @@ func selectAccountDisplayName(identities []*identity.Info) string {
 	}
 }
 
-// InternalIdentificationOption wraps an IdentificationOption with
-// server-only fields that must never reach the API response. An
+// InternalIdentificationOption wraps an IdentificationOption. An
 // IntentLoginFlowStepIdentify/IntentSignupLoginFlowStepIdentify's Options
 // slice is stored as []InternalIdentificationOption precisely so that a
-// client-supplied "index" can look up both the public option and its
-// private data with a single, direct slice index — see OutputData (which
-// maps this down to []IdentificationOption via slice.Map) and each intent's
-// select_account dispatch case.
+// client-supplied "index" can look up the same option a client-facing
+// response was built from with a single, direct slice index — see
+// OutputData (which maps this down to []IdentificationOption via slice.Map)
+// and each intent's select_account dispatch case, which reads
+// Option.UserID back out by index to re-check against the current session
+// on submission (see resolveSelectAccountSession).
 type InternalIdentificationOption struct {
 	Option IdentificationOption
-
-	// SelectAccountUserID is the user ID recorded when this select_account
-	// option was constructed, re-checked against the current session on
-	// submission to detect a session change (see resolveSelectAccountSession).
-	// Zero value for every other identification kind.
-	SelectAccountUserID string
 }
 
 func (i InternalIdentificationOption) ToIdentificationOption() IdentificationOption {

@@ -10,11 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -41,10 +39,6 @@ type SelectAccountUserFacade interface {
 	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
-type SelectAccountIdentityService interface {
-	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
-}
-
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
 	UserProfile         handlerwebapp.UserProfile
@@ -58,32 +52,38 @@ type AuthflowV2SelectAccountHandler struct {
 	SignedUpCookie       webapp.SignedUpCookieDef
 	Users                SelectAccountUserService
 	UserFacade           SelectAccountUserFacade
-	Identities           SelectAccountIdentityService
 	Cookies              handlerwebapp.CookieManager
 	OAuthConfig          *config.OAuthConfig
 	Database             *appdb.Handle
 }
 
-func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, userID string) (map[string]any, error) {
+// GetData builds the render data for the select_account page using only the
+// select_account option already read off the resolved login flow's
+// identify-step response — display_name and user_id are exposed by the
+// authentication-flow API precisely so this default UI can be implemented
+// the same way a Custom UI would be, with no separate session lookup of its
+// own. h.Users.Get is the one remaining direct dependency, since the API
+// does not expose full profile data (avatar etc.), only display_name.
+func (h *AuthflowV2SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, option declarative.IdentificationOption) (map[string]any, error) {
 	data := make(map[string]any)
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	identities, err := h.Identities.ListByUser(ctx, userID)
+	var userProfile handlerwebapp.UserProfile
+	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+		user, err := h.Users.Get(ctx, option.UserID, accesscontrol.RoleGreatest)
+		if err != nil {
+			return err
+		}
+		userProfile = handlerwebapp.GetUserProfile(user)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	user, err := h.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
-	if err != nil {
-		return nil, err
-	}
-
-	userProfile := handlerwebapp.GetUserProfile(user)
-	displayID := handlerwebapp.IdentitiesDisplayName(identities)
 
 	selectAccountViewModel := SelectAccountViewModel{
-		IdentityDisplayName: displayID,
+		IdentityDisplayName: option.DisplayName,
 		UserProfile:         userProfile,
 	}
 	viewmodels.Embed(data, selectAccountViewModel)
@@ -197,35 +197,7 @@ func (h *AuthflowV2SelectAccountHandler) get(
 	gotoLogin func(),
 	gotoReauth func(),
 ) error {
-	idpSession := session.GetSession(ctx)
-
-	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
-	if s.SuppressIDPSessionCookie {
-		idpSession = nil
-	}
-	// Ignore any session that is not allow to be used here
-	if !oauth.ContainsAllScopes(oauth.SessionScopes(idpSession), []string{oauth.PreAuthenticatedURLScope}) {
-		idpSession = nil
-	}
-
 	loginHint, hasLoginHint := parseLoginHint(s)
-
-	// Ignore any session that does not match login_hint
-	if hasLoginHint && idpSession != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
-		var hintUserIDs []string
-		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			var err error
-			hintUserIDs, err = h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
-			return err
-		})
-		if err != nil {
-			return err
-		}
-		hintUserIDsSet := setutil.NewSetFromSlice(hintUserIDs, setutil.Identity[string])
-		if !hintUserIDsSet.Has(idpSession.GetAuthenticationInfo().UserID) {
-			idpSession = nil
-		}
-	}
 
 	// When promote anonymous user, the end-user should not see this page.
 	if hasLoginHint && loginHint.Type == oauth.LoginHintTypeAnonymous {
@@ -240,10 +212,12 @@ func (h *AuthflowV2SelectAccountHandler) get(
 	if s.UserIDHint != "" {
 		if loginPrompt && s.CanUseIntentReauthenticate {
 			gotoReauth()
-		} else if !loginPrompt && idpSession != nil && idpSession.GetAuthenticationInfo().UserID == s.UserIDHint {
+		} else if !loginPrompt {
 			// Continue without user interaction:
 			// 1. UserIDHint present
-			// 2. IDP session present and the same as UserIDHint
+			// 2. The resolved login flow offers select_account for exactly
+			//    this user (which already implies a usable, matching IDP
+			//    session — see NewIdentificationOptionsSelectAccount)
 			// 3. prompt!=login
 			//
 			// Resolved the same way as a normal "Continue as X" click —
@@ -252,8 +226,11 @@ func (h *AuthflowV2SelectAccountHandler) get(
 			// declare select_account, this project simply doesn't
 			// support account continuation, so fall through to a
 			// normal login instead of any engine-bypassing fallback.
-			_, index, ok := selectAccountOptionFromScreen(screen)
-			if !ok {
+			option, index, ok, err := h.resolveSelectAccountOption(ctx, screen, loginHint, hasLoginHint)
+			if err != nil {
+				return err
+			}
+			if !ok || option.UserID != s.UserIDHint {
 				gotoLogin()
 				return nil
 			}
@@ -288,37 +265,67 @@ func (h *AuthflowV2SelectAccountHandler) get(
 		return nil
 	}
 
-	// idpSession == nil / loginPrompt reflect webapp-specific reasons to
-	// distrust the session (suppressed, out-of-scope, or a mismatched
-	// login_hint — the latter is deliberately NOT checked by
-	// NewIdentificationOptionsSelectAccount, see Part 1's spec) that the
-	// resolved login flow does not know about, so they must gate here
-	// rather than being deferred to the flow's own answer.
-	if idpSession == nil || loginPrompt {
-		gotoSignupOrLogin(s)
-		return nil
-	}
-
-	// Whether to actually render "Continue as X" is read directly off
-	// the already-created login flow's identify-step response — if it
-	// doesn't declare select_account, this project simply does not
-	// support account continuation, same as a Custom UI would see.
-	if _, _, ok := selectAccountOptionFromScreen(screen); !ok {
-		gotoSignupOrLogin(s)
-		return nil
-	}
-
-	var data map[string]any
-	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-		var err error
-		data, err = h.GetData(ctx, r, w, idpSession.GetAuthenticationInfo().UserID)
+	// Whether to actually render "Continue as X" is read directly off the
+	// already-created login flow's identify-step response, with login_hint
+	// enforcement applied on top (the flow deliberately does not check
+	// login_hint itself, see NewIdentificationOptionsSelectAccount) — if
+	// select_account isn't offered, or the offered account doesn't match
+	// login_hint, this project simply does not support account
+	// continuation here, same as a Custom UI would see.
+	option, _, ok, err := h.resolveSelectAccountOption(ctx, screen, loginHint, hasLoginHint)
+	if err != nil {
 		return err
-	})
+	}
+	if !ok {
+		gotoSignupOrLogin(s)
+		return nil
+	}
+
+	data, err := h.GetData(ctx, r, w, option)
 	if err != nil {
 		return err
 	}
 	h.Renderer.RenderHTML(w, r, TemplateWebSelectAccountHTML, data)
 	return nil
+}
+
+// resolveSelectAccountOption reads the select_account option off the
+// resolved login flow's identify-step response — the same data a Custom UI
+// would see — and, if present, additionally enforces login_hint matching:
+// the one piece of eligibility NewIdentificationOptionsSelectAccount
+// deliberately does not implement itself. This is the only remaining
+// select_account-specific policy layered on top of the flow's own answer;
+// everything else (session validity, suppression, scope, prompt=login) is
+// read straight from whether the flow offered the option at all, using only
+// the option's exposed UserID — never this handler's own session lookup.
+func (h *AuthflowV2SelectAccountHandler) resolveSelectAccountOption(
+	ctx context.Context,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	loginHint *oauth.LoginHint,
+	hasLoginHint bool,
+) (option declarative.IdentificationOption, index int, ok bool, err error) {
+	option, index, ok = selectAccountOptionFromScreen(screen)
+	if !ok {
+		return declarative.IdentificationOption{}, 0, false, nil
+	}
+
+	if hasLoginHint && loginHint.Type == oauth.LoginHintTypeLoginID {
+		var hintUserIDs []string
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			var err error
+			hintUserIDs, err = h.UserFacade.GetUserIDsByLoginIDLoginHint(ctx, loginHint)
+			return err
+		})
+		if err != nil {
+			return declarative.IdentificationOption{}, 0, false, err
+		}
+		hintUserIDsSet := setutil.NewSetFromSlice(hintUserIDs, setutil.Identity[string])
+		if !hintUserIDsSet.Has(option.UserID) {
+			return declarative.IdentificationOption{}, 0, false, nil
+		}
+	}
+
+	return option, index, true, nil
 }
 
 // parseLoginHint parses s.LoginHint, reporting ok == false if it is absent

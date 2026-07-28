@@ -12761,7 +12761,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SignedUpCookie:       signedUpCookieDef,
 		Users:                userQueries,
 		UserFacade:           userFacade,
-		Identities:           serviceService,
 		Cookies:              cookieManager,
 		OAuthConfig:          oAuthConfig,
 		Database:             appdbHandle,
