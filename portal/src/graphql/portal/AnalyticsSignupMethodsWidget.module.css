@@ -1,3 +1,7 @@
+.content {
+  gap: 16px;
+}
+
 .loadingWrapper {
   min-height: 290px;
   display: flex;
@@ -20,6 +24,11 @@
   text-align: center;
 }
 
+.emptyLabel {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
 .legend {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -36,6 +45,13 @@
   text-align: left;
 }
 
+.legendLabel {
+  margin: 0;
+  color: var(--gray-12);
+}
+
 .bold {
+  margin: 0;
   font-weight: 600;
+  color: var(--gray-12);
 }

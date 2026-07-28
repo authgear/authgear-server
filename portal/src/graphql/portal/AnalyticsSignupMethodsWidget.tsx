@@ -1,13 +1,11 @@
 import React, { useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { Pie } from "react-chartjs-2";
-import { Text } from "@fluentui/react";
+import { Spinner, Text } from "@radix-ui/themes";
 
 import { DataPoint } from "./globalTypes.generated";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import ShowLoading from "../../ShowLoading";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import styles from "./AnalyticsSignupMethodsWidget.module.css";
 
 const NoDataPlaceholderColor = "#EAEAEA";
@@ -99,7 +97,7 @@ const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
         <Pie data={data} options={options} />
         {noDataAvailable ? (
           <div className={styles.noDataAvailableLabel}>
-            <Text variant="medium">
+            <Text as="p" size="2" className={styles.emptyLabel}>
               <FormattedMessage
                 id={`AnalyticsSignupMethodsWidget.no-data-available.label`}
               />
@@ -137,7 +135,7 @@ const AnalyticsSignupMethodsWidgetContent: React.VFC<AnalyticsSignupMethodsWidge
     if (loading) {
       return (
         <div className={styles.loadingWrapper}>
-          <ShowLoading />
+          <Spinner size="3" />
         </div>
       );
     }
@@ -153,8 +151,10 @@ const AnalyticsSignupMethodsWidgetContent: React.VFC<AnalyticsSignupMethodsWidge
                 className={styles.legendItem}
                 style={{ borderColor: getColorCodeByMethod(pt.label) }}
               >
-                <Text variant="smallPlus">{methodLabels[i]}</Text>
-                <Text variant="medium" className={styles.bold}>
+                <Text as="p" size="1" className={styles.legendLabel}>
+                  {methodLabels[i]}
+                </Text>
+                <Text as="p" size="2" weight="medium" className={styles.bold}>
                   {pt.data}
                 </Text>
               </div>
@@ -174,12 +174,14 @@ interface AnalyticsSignupMethodsWidgetProps {
 const AnalyticsSignupMethodsWidget: React.VFC<AnalyticsSignupMethodsWidgetProps> =
   function AnalyticsSignupMethodsWidget(props) {
     return (
-      <Widget className={props.className}>
-        <WidgetTitle>
-          <FormattedMessage id="AnalyticsSignupMethodsWidget.title" />
-        </WidgetTitle>
+      <SettingsSectionCard
+        className={props.className}
+        layout="stacked"
+        title={<FormattedMessage id="AnalyticsSignupMethodsWidget.title" />}
+        contentClassName={styles.content}
+      >
         <AnalyticsSignupMethodsWidgetContent {...props} />
-      </Widget>
+      </SettingsSectionCard>
     );
   };
 export default AnalyticsSignupMethodsWidget;

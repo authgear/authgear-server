@@ -4,6 +4,41 @@
   @apply tablet:col-span-full;
 }
 
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.dateButtonLabel {
+  color: var(--gray-12);
+}
+
+.dateButtonValue {
+  color: var(--gray-a11);
+}
+
+.loadingSpinner {
+  margin-left: 4px;
+}
+
 .activityWidget {
   grid-column: 1 / span 12;
 
@@ -18,21 +53,4 @@
 
 .signupMethodsWidget {
   @apply col-span-6 col-start-7 tablet:col-span-full;
-}
-
-.commandBarButtonLabelValue .label {
-  margin: 0 4px;
-}
-
-.commandBarButtonLabelValue .value {
-  margin: 0 4px;
-}
-
-.commandBarButtonTo {
-  display: flex;
-  height: 100%;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  margin: 0 4px;
 }
