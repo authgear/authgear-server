@@ -383,6 +383,10 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 	case model.AuthenticationFlowIdentificationLDAP:
 		// Not expected to trigger this case
 		panic(fmt.Errorf("not expected to trigger: %v", identification))
+	case model.AuthenticationFlowIdentificationSelectAccount:
+		// Resume on the select-account page itself — there is no dedicated
+		// per-identification screen for it, unlike oauth/passkey.
+		n.NavigateSelectAccount(result)
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
