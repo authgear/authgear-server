@@ -8,8 +8,7 @@ import React, {
 import { Button } from "@radix-ui/themes";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
-import { SimpleFormModel } from "../../../hook/useSimpleForm";
-import { useFormWithExternalInitialState } from "../../../hook/useFormWithExternalInitialState";
+import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsVeriticalFormLayout,
@@ -18,26 +17,26 @@ import { TextField } from "../../v2/TextField/TextField";
 import { TextArea } from "../../v2/TextArea/TextArea";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUpdateGroupMutation } from "../../../graphql/adminapi/mutations/updateGroupMutation";
+import { useUpdateRoleMutation } from "../../../graphql/adminapi/mutations/updateRoleMutation";
 import { APIError } from "../../../error/error";
-import { generateGroupKeyFromName, validateGroup } from "../../../model/group";
+import { generateRoleKeyFromName, validateRole } from "../../../model/role";
 import { makeLocalValidationError } from "../../../error/validation";
-import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
-import DeleteGroupDialog, {
-  DeleteGroupDialogData,
-} from "../dialog/DeleteGroupDialog";
+import { RoleQueryNodeFragment } from "../../../graphql/adminapi/query/roleQuery.generated";
+import DeleteRoleDialog, {
+  DeleteRoleDialogData,
+} from "../dialog/DeleteRoleDialog";
 import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
 
 interface FormState {
-  groupKey: string;
-  groupName: string;
-  groupDescription: string;
+  roleKey: string;
+  roleName: string;
+  roleDescription: string;
 }
 
-function GroupDetailsSettingsFormContent({
-  onClickDeleteGroup,
+function RoleDetailsSettingsFormContent({
+  onClickDeleteRole,
 }: {
-  onClickDeleteGroup: () => void;
+  onClickDeleteRole: () => void;
 }) {
   const { renderToString } = useContext(MessageContext);
 
@@ -59,9 +58,9 @@ function GroupDetailsSettingsFormContent({
       };
     };
     return {
-      groupKey: createCallback("groupKey"),
-      groupName: createCallback("groupName"),
-      groupDescription: createCallback("groupDescription"),
+      roleKey: createCallback("roleKey"),
+      roleName: createCallback("roleName"),
+      roleDescription: createCallback("roleDescription"),
     };
   }, [setFormState]);
 
@@ -74,12 +73,10 @@ function GroupDetailsSettingsFormContent({
           fieldName="name"
           parentJSONPointer=""
           type="text"
-          label={renderToString("GroupDetailsSettingsForm.groupName.title")}
-          hint={
-            <FormattedMessage id="GroupDetailsSettingsForm.groupName.description" />
-          }
-          value={formState.groupName}
-          onChange={onFormStateChangeCallbacks.groupName}
+          label={renderToString("AddRoleScreen.roleName.title")}
+          hint={<FormattedMessage id="AddRoleScreen.roleName.description" />}
+          value={formState.roleName}
+          onChange={onFormStateChangeCallbacks.roleName}
         />
         <TextField
           size="2"
@@ -87,23 +84,19 @@ function GroupDetailsSettingsFormContent({
           fieldName="key"
           parentJSONPointer=""
           type="text"
-          label={renderToString("GroupDetailsSettingsForm.groupKey.title")}
-          hint={
-            <FormattedMessage id="GroupDetailsSettingsForm.groupKey.description" />
-          }
-          placeholder={generateGroupKeyFromName(formState.groupName)}
-          value={formState.groupKey}
-          onChange={onFormStateChangeCallbacks.groupKey}
+          label={renderToString("AddRoleScreen.roleKey.title")}
+          hint={<FormattedMessage id="AddRoleScreen.roleKey.description" />}
+          placeholder={generateRoleKeyFromName(formState.roleName)}
+          value={formState.roleKey}
+          onChange={onFormStateChangeCallbacks.roleKey}
         />
         <TextArea
           size="2"
           fieldName="description"
           parentJSONPointer=""
-          label={renderToString(
-            "GroupDetailsSettingsForm.groupDescription.title"
-          )}
-          value={formState.groupDescription}
-          onChange={onFormStateChangeCallbacks.groupDescription}
+          label={renderToString("AddRoleScreen.roleDescription.title")}
+          value={formState.roleDescription}
+          onChange={onFormStateChangeCallbacks.roleDescription}
         />
       </RoleAndGroupsVeriticalFormLayout>
 
@@ -120,29 +113,29 @@ function GroupDetailsSettingsFormContent({
           color="red"
           disabled={isUpdating}
           type="button"
-          onClick={onClickDeleteGroup}
+          onClick={onClickDeleteRole}
         >
-          <FormattedMessage id="GroupDetailsSettingsForm.button.deleteGroup" />
+          <FormattedMessage id="RoleDetailsScreen.button.deleteRole" />
         </Button>
       </RoleAndGroupsFormFooter>
     </div>
   );
 }
 
-export const GroupDetailsSettingsForm: React.VFC<{
-  group: GroupQueryNodeFragment;
-}> = function GroupDetailsSettingsForm({ group }) {
+export const RoleDetailsSettingsForm: React.VFC<{
+  role: RoleQueryNodeFragment;
+}> = function RoleDetailsSettingsForm({ role }) {
   const { appID } = useParams() as { appID: string };
-  const { updateGroup } = useUpdateGroupMutation();
+  const { updateRole } = useUpdateRoleMutation();
   const navigate = useNavigate();
 
   const isDeletedRef = useRef(false);
 
   const validate = useCallback((rawState: FormState): APIError | null => {
-    const [_, errors] = validateGroup({
-      key: rawState.groupKey,
-      name: rawState.groupName,
-      description: rawState.groupDescription,
+    const [_, errors] = validateRole({
+      key: rawState.roleKey,
+      name: rawState.roleName,
+      description: rawState.roleDescription,
     });
     if (errors.length > 0) {
       return makeLocalValidationError(errors);
@@ -152,76 +145,76 @@ export const GroupDetailsSettingsForm: React.VFC<{
 
   const submit = useCallback(
     async (rawState: FormState) => {
-      const [sanitizedGroup, errors] = validateGroup({
-        key: rawState.groupKey,
-        name: rawState.groupName,
-        description: rawState.groupDescription,
+      const [sanitizedRole, errors] = validateRole({
+        key: rawState.roleKey,
+        name: rawState.roleName,
+        description: rawState.roleDescription,
       });
       if (errors.length > 0) {
         throw new Error("unexpected validation errors");
       }
-      await updateGroup({
-        id: group.id,
-        key: sanitizedGroup.key,
-        name: sanitizedGroup.name,
-        description: sanitizedGroup.description,
+      await updateRole({
+        id: role.id,
+        key: sanitizedRole.key,
+        name: sanitizedRole.name,
+        description: sanitizedRole.description,
       });
-      return { result: undefined };
     },
-    [group.id, updateGroup]
+    [role.id, updateRole]
   );
 
   const defaultState = useMemo((): FormState => {
     return {
-      groupKey: group.key,
-      groupName: group.name ?? "",
-      groupDescription: group.description ?? "",
+      roleKey: role.key,
+      roleName: role.name ?? "",
+      roleDescription: role.description ?? "",
     };
-  }, [group]);
+  }, [role]);
 
-  const form = useFormWithExternalInitialState({
+  const form = useSimpleForm({
+    stateMode: "UpdateInitialStateWithUseEffect",
     defaultState,
     submit,
     validate,
   });
 
   const canSave = useMemo(
-    () => form.state.groupName !== "",
-    [form.state.groupName]
+    () => form.state.roleName !== "",
+    [form.state.roleName]
   );
 
-  const [deleteGroupDialogData, setDeleteGroupDialogData] =
-    useState<DeleteGroupDialogData | null>(null);
-  const onClickDeleteGroup = useCallback(() => {
-    setDeleteGroupDialogData({
-      groupID: group.id,
-      groupKey: group.key,
-      groupName: group.name ?? null,
+  const [deleteRoleDialogData, setDeleteRoleDialogData] =
+    useState<DeleteRoleDialogData | null>(null);
+  const onClickDeleteRole = useCallback(() => {
+    setDeleteRoleDialogData({
+      roleID: role.id,
+      roleKey: role.key,
+      roleName: role.name ?? null,
     });
-  }, [group]);
+  }, [role]);
   const dismissDeleteRoleDialog = useCallback((isDeleted: boolean) => {
-    setDeleteGroupDialogData(null);
+    setDeleteRoleDialogData(null);
     isDeletedRef.current = isDeleted;
   }, []);
 
   const exitIfDeleted = useCallback(() => {
     if (isDeletedRef.current) {
-      navigate(`/project/${appID}/user-management/groups`, { replace: true });
+      navigate(`/project/${appID}/user-management/roles`, { replace: true });
     }
   }, [navigate, appID]);
 
   return (
     <>
       <RoleAndGroupsFormContainer form={form} canSave={canSave}>
-        <GroupDetailsSettingsFormContent
-          onClickDeleteGroup={onClickDeleteGroup}
+        <RoleDetailsSettingsFormContent
+          onClickDeleteRole={onClickDeleteRole}
         />
       </RoleAndGroupsFormContainer>
 
-      <DeleteGroupDialog
+      <DeleteRoleDialog
         onDismiss={dismissDeleteRoleDialog}
         onDismissed={exitIfDeleted}
-        data={deleteGroupDialogData}
+        data={deleteRoleDialogData}
       />
     </>
   );

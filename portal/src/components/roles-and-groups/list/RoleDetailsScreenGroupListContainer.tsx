@@ -1,43 +1,43 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
+import { RoleQueryNodeFragment } from "../../../graphql/adminapi/query/roleQuery.generated";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useQuery } from "@apollo/client";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
-import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import {
   TextField,
   TextFieldIcon,
 } from "../../v2/TextField/TextField";
 import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "../../../graphql/adminapi/query/rolesListQuery.generated";
-import { RolesEmptyView } from "../empty-view/RolesEmptyView";
-import { GroupRolesList } from "../list/GroupRolesList";
-import { AddGroupRolesDialog } from "../dialog/AddGroupRolesDialog";
-import { searchRoles } from "../../../model/role";
+  GroupsListQueryDocument,
+  GroupsListQueryQuery,
+  GroupsListQueryQueryVariables,
+} from "../../../graphql/adminapi/query/groupsListQuery.generated";
+import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
+import {
+  RoleGroupsList,
+  RoleGroupsListItem,
+} from "../list/RoleGroupsList";
+import { AddRoleGroupsDialog } from "../dialog/AddRoleGroupsDialog";
+import { searchGroups } from "../../../model/group";
 
-export interface GroupRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
-
-interface GroupDetailsScreenRoleListContainerProps {
-  group: GroupQueryNodeFragment;
+interface RoleDetailsScreenGroupListContainerProps {
+  role: RoleQueryNodeFragment;
 }
 
-const GroupDetailsScreenRoleListContainer: React.VFC<
-  GroupDetailsScreenRoleListContainerProps
-> = ({ group }) => {
+const RoleDetailsScreenGroupListContainer: React.VFC<
+  RoleDetailsScreenGroupListContainerProps
+> = ({ role }) => {
   const { renderToString } = useContext(MessageContext);
   const {
-    data: rolesQueryData,
+    data: groupsQueryData,
     loading,
     error,
     refetch,
-  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
-    RolesListQueryDocument,
+  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
+    GroupsListQueryDocument,
     {
       variables: {
         pageSize: 0,
@@ -58,40 +58,39 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
     setSearchKeyword("");
   }, []);
 
-  const [isAddRoleDialogHidden, setIsAddRoleDialogHidden] = useState(true);
-  const showAddRoleDialog = useCallback(
-    () => setIsAddRoleDialogHidden(false),
+  const [isAddGroupDialogHidden, setIsAddGroupDialogHidden] = useState(true);
+  const showAddGroupDialog = useCallback(
+    () => setIsAddGroupDialogHidden(false),
     []
   );
-  const hideAddRoleDialog = useCallback(
-    () => setIsAddRoleDialogHidden(true),
+  const hideAddGroupDialog = useCallback(
+    () => setIsAddGroupDialogHidden(true),
     []
   );
 
-  const filteredGroupRoles = useMemo(() => {
-    const groupRoles =
-      group.roles?.edges?.flatMap<GroupRolesListItem>((edge) => {
+  const filteredRoleGroups = useMemo(() => {
+    const roleGroups =
+      role.groups?.edges?.flatMap<RoleGroupsListItem>((edge) => {
         if (edge?.node != null) {
           return [edge.node];
         }
         return [];
       }) ?? [];
-    return searchRoles(groupRoles, searchKeyword);
-  }, [group.roles?.edges, searchKeyword]);
+    return searchGroups(roleGroups, searchKeyword);
+  }, [role.groups?.edges, searchKeyword]);
 
-  const groupRoles = useMemo(() => {
+  const roleGroups = useMemo(() => {
     return (
-      group.roles?.edges?.flatMap((e) => {
+      role.groups?.edges?.flatMap((e) => {
         if (e?.node) {
           return [e.node];
         }
         return [];
       }) ?? []
     );
-  }, [group.roles?.edges]);
+  }, [role.groups?.edges]);
 
   if (error != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
@@ -99,10 +98,10 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
     return <ShowLoading />;
   }
 
-  const totalCount = rolesQueryData?.roles?.totalCount ?? 0;
+  const totalCount = groupsQueryData?.groups?.totalCount ?? 0;
 
   if (totalCount === 0) {
-    return <RolesEmptyView />;
+    return <GroupsEmptyView />;
   }
 
   return (
@@ -134,31 +133,31 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
           </div>
           <PrimaryButton
             size="2"
-            onClick={showAddRoleDialog}
+            onClick={showAddGroupDialog}
             text={
               <span className="inline-flex items-center gap-1">
                 <PlusIcon width="1rem" height="1rem" />
-                <FormattedMessage id="GroupDetailsScreen.roles.add" />
+                <FormattedMessage id="RoleDetailsScreen.groups.add" />
               </span>
             }
           />
         </header>
-        <GroupRolesList
+        <RoleGroupsList
           className="flex-1 min-h-0"
-          group={group}
-          roles={filteredGroupRoles}
+          role={role}
+          groups={filteredRoleGroups}
         />
       </section>
-      <AddGroupRolesDialog
-        groupID={group.id}
-        groupKey={group.key}
-        groupName={group.name ?? null}
-        groupRoles={groupRoles}
-        isHidden={isAddRoleDialogHidden}
-        onDismiss={hideAddRoleDialog}
+      <AddRoleGroupsDialog
+        roleID={role.id}
+        roleKey={role.key}
+        roleName={role.name ?? null}
+        roleGroups={roleGroups}
+        isHidden={isAddGroupDialogHidden}
+        onDismiss={hideAddGroupDialog}
       />
     </>
   );
 };
 
-export default GroupDetailsScreenRoleListContainer;
+export default RoleDetailsScreenGroupListContainer;

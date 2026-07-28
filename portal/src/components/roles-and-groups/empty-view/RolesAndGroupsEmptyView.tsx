@@ -1,8 +1,9 @@
 import React, { MouseEventHandler } from "react";
 import cn from "classnames";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { PlusIcon } from "@radix-ui/react-icons";
 import styles from "./RolesAndGroupsEmptyView.module.css";
-import PrimaryButton from "../../../PrimaryButton";
+import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 
 function CreateButton(props: {
   className?: string;
@@ -10,15 +11,20 @@ function CreateButton(props: {
   onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   text: React.ReactNode;
 }) {
-  const { className, href, onClick, text } = props;
+  const { className, onClick, text } = props;
   return (
-    <PrimaryButton
-      href={href}
-      onClick={onClick}
-      className={className}
-      text={text}
-      iconProps={{ iconName: "Add" }}
-    />
+    <span className={className}>
+      <PrimaryButton
+        size="2"
+        onClick={onClick}
+        text={
+          <span className="inline-flex items-center gap-2">
+            <PlusIcon width="1rem" height="1rem" />
+            {text}
+          </span>
+        }
+      />
+    </span>
   );
 }
 
@@ -37,9 +43,15 @@ const RolesAndGroupsEmptyView_: React.VFC<{
 }) {
   return (
     <div className={cn(className, styles.container)}>
-      <div className={styles.icon}>{icon}</div>
-      <Text className={styles.title}>{title}</Text>
-      <Text className={styles.description}>{description}</Text>
+      <div className={styles.content}>
+        <div className={styles.icon}>{icon}</div>
+        <Text as="p" size="3" weight="bold" className={styles.title}>
+          {title}
+        </Text>
+        <Text as="p" size="2" className={styles.description}>
+          {description}
+        </Text>
+      </div>
       <div className={styles.button}>{button}</div>
     </div>
   );

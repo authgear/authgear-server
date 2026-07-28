@@ -3,7 +3,8 @@ import { Context } from "../../../intl";
 import { useGroupQuery } from "../../../graphql/adminapi/query/groupQuery";
 import { useRemoveGroupFromRolesMutation } from "../../../graphql/adminapi/mutations/removeGroupFromRoles";
 import { useSnapshotData } from "../../../hook/useSnapshotData";
-import RolesAndGroupsBaseDeleteDialog from "./common/RolesAndGroupsBaseDeleteDialog";
+import { ConfirmationDialog } from "../../v2/ConfirmationDialog/ConfirmationDialog";
+import ErrorDialog from "../../../error/ErrorDialog";
 
 export interface DeleteGroupRoleDialogData {
   roleID: string;
@@ -32,13 +33,31 @@ const DeleteGroupRoleDialog: React.VFC<DeleteGroupRoleDialogProps> =
     const { removeGroupFromRoles, loading, error } =
       useRemoveGroupFromRolesMutation();
 
+    // Keep the latest non-null data, because the dialog has transition animation before dismiss.
+    // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
     const title = renderToString("DeleteGroupRoleDialog.title");
-    const subText = renderToString("DeleteGroupRoleDialog.description", {
+    const description = renderToString("DeleteGroupRoleDialog.description", {
       groupName: snapshot?.groupName ?? snapshot?.groupKey ?? "Unknown",
       roleName: snapshot?.roleName ?? snapshot?.roleKey ?? "Unknown",
     });
-    const buttonText = renderToString("remove");
+    const confirmText = renderToString("remove");
+
+    const onCancel = useCallback(() => {
+      if (loading || isHidden) {
+        return;
+      }
+      onDismiss(false);
+    }, [loading, isHidden, onDismiss]);
+
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onCancel();
+        }
+      },
+      [onCancel]
+    );
 
     const onConfirm = useCallback(() => {
       if (loading || isHidden) {
@@ -50,7 +69,10 @@ const DeleteGroupRoleDialog: React.VFC<DeleteGroupRoleDialogProps> =
           return refetchGroup({ groupID: data.groupID });
         })
         .then(
-          () => onDismiss(true),
+          () => {
+            onDismiss(true);
+            onDismissed?.();
+          },
           (e: unknown) => {
             onDismiss(false);
             throw e;
@@ -63,22 +85,25 @@ const DeleteGroupRoleDialog: React.VFC<DeleteGroupRoleDialogProps> =
       removeGroupFromRoles,
       data,
       onDismiss,
+      onDismissed,
     ]);
 
     return (
-      <RolesAndGroupsBaseDeleteDialog
-        data={snapshot}
-        loading={loading}
-        error={error}
-        title={title}
-        // eslint-disable-next-line react/forbid-component-props
-        subText={subText}
-        buttonText={buttonText}
-        isHidden={isHidden}
-        onDismiss={onDismiss}
-        onDismissed={onDismissed}
-        onConfirm={onConfirm}
-      />
+      <>
+        <ConfirmationDialog
+          open={!isHidden}
+          onOpenChange={onOpenChange}
+          title={title}
+          description={description}
+          confirmText={confirmText}
+          cancelText={renderToString("cancel")}
+          onConfirm={onConfirm}
+          onCancel={onCancel}
+          loading={loading}
+          confirmColor="red"
+        />
+        <ErrorDialog error={error} />
+      </>
     );
   };
 
