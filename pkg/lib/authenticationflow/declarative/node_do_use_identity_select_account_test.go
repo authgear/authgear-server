@@ -41,6 +41,15 @@ func TestResolveSelectAccountSession(t *testing.T) {
 			So(err, ShouldEqual, ErrSelectAccountSessionChanged)
 		})
 
+		Convey("matching user but session lacks pre-authenticated-url scope: SelectAccountSessionChanged", func() {
+			ctx := makeCtx(fakeOfflineGrantSessionWithoutScope("user-1"))
+			userID, sessionID, sessionType, err := resolveSelectAccountSession(ctx, "user-1")
+			So(userID, ShouldEqual, "")
+			So(sessionID, ShouldEqual, "")
+			So(sessionType, ShouldEqual, session.Type(""))
+			So(err, ShouldEqual, ErrSelectAccountSessionChanged)
+		})
+
 		Convey("matching user: no error", func() {
 			ctx := makeCtx(&fakeResolvedSessionForSelectAccount{UserID: "user-1"})
 			userID, sessionID, sessionType, err := resolveSelectAccountSession(ctx, "user-1")

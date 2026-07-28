@@ -13,9 +13,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )
+
+// fakeOfflineGrantSessionWithoutScope builds a real *oauth.OfflineGrantSession
+// (not a mock) because oauth.SessionScopes type-asserts session.ResolvedSession
+// to *oauth.OfflineGrantSession for the session.TypeOfflineGrant case — a fake
+// implementation of the interface that merely reports that SessionType would
+// panic there.
+func fakeOfflineGrantSessionWithoutScope(userID string) *oauth.OfflineGrantSession {
+	return &oauth.OfflineGrantSession{
+		OfflineGrant: &oauth.OfflineGrant{
+			ID:    "offline-grant-id",
+			Attrs: session.Attrs{UserID: userID},
+		},
+		Scopes: []string{oauth.FullAccessScope},
+	}
+}
 
 type fakeResolvedSessionForSelectAccount struct {
 	UserID string
@@ -110,6 +126,17 @@ func TestNewIdentificationOptionsSelectAccount(t *testing.T) {
 
 		Convey("no session: option omitted", func() {
 			ctx := makeCtx(nil, nil, deps)
+			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
+			So(err, ShouldBeNil)
+			So(options, ShouldBeEmpty)
+		})
+
+		Convey("offline grant session without pre-authenticated-url scope: option omitted", func() {
+			ctx := makeCtx(
+				fakeOfflineGrantSessionWithoutScope("user-1"),
+				&authflow.Session{FlowID: "flow-1"},
+				deps,
+			)
 			options, err := NewIdentificationOptionsSelectAccount(ctx, deps, authflow.Flows{}, nil, nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldBeEmpty)

@@ -8,6 +8,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -122,10 +123,20 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 //
 // Today it omits the option (returning nil, nil) when:
 //   - there is no IDP session,
+//   - the session does not carry the pre-authenticated-url scope (every
+//     ordinary identity-provider cookie session carries it implicitly, see
+//     oauth.SessionScopes — this only actually excludes an offline-grant-
+//     derived session that was not granted it),
 //   - the session was established with "do not persist" semantics
 //     (x_suppress_idp_session_cookie), or
 //   - the resolved prompt contains "login" (including when an expired
 //     max_age was folded into an implied prompt=login upstream).
+//
+// This scope check is the authoritative gate: it must live here, not only
+// in the built-in Auth UI's webapp handler, because this function (and
+// resolveSelectAccountSession's matching re-check) is reachable directly
+// via the JSON authentication-flow API by a Custom UI, which never goes
+// through the webapp handler at all.
 //
 // login_hint/id_token_hint eligibility filtering is intentionally not
 // implemented yet — the option is offered whenever a usable session exists,
@@ -139,6 +150,9 @@ func NewIdentificationOptionsSelectAccount(
 ) (options []InternalIdentificationOption, err error) {
 	sess := session.GetSession(ctx)
 	if sess == nil {
+		return nil, nil
+	}
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(sess), []string{oauth.PreAuthenticatedURLScope}) {
 		return nil, nil
 	}
 	if authflow.GetSuppressIDPSessionCookie(ctx) {

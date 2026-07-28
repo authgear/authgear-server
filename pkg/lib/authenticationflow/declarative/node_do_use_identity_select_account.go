@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
@@ -76,9 +77,18 @@ func (n *NodeDoUseIdentitySelectAccount) MilestoneDoUseExistingSession() (sessio
 // latter only needs the userID for its own re-check, the session's
 // ID/type are re-resolved independently once the target login_flow
 // actually completes.
+//
+// The scope re-check mirrors NewIdentificationOptionsSelectAccount's own
+// gate: the session resolved here comes from the current request context at
+// input-submission time, which is not necessarily the same request that
+// listed the options, so an insufficient-scope session must be rejected
+// again here, not just when the option was first offered.
 func resolveSelectAccountSession(ctx context.Context, expectedUserID string) (userID string, sessionID string, sessionType session.Type, err error) {
 	sess := session.GetSession(ctx)
 	if sess == nil {
+		return "", "", "", ErrSelectAccountSessionChanged
+	}
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(sess), []string{oauth.PreAuthenticatedURLScope}) {
 		return "", "", "", ErrSelectAccountSessionChanged
 	}
 	userID = sess.GetAuthenticationInfo().UserID
