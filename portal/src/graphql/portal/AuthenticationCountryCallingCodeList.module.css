@@ -1,47 +1,164 @@
 .root {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col gap-3;
 }
 
-.searchBox {
-  width: 300px;
-  margin: 7px 0px;
+.toolbar {
+  @apply flex items-center justify-between gap-4;
+  @apply tablet:flex-col tablet:items-stretch;
+}
 
-  @apply self-start tablet:self-auto tablet:w-auto;
+.toolbarTitle {
+  margin: 0;
+  color: var(--gray-12);
+  flex-shrink: 0;
+}
+
+.searchField {
+  width: 18.75rem;
+  max-width: 100%;
+  flex-shrink: 0;
+
+  @apply tablet:w-full;
+}
+
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .listWrapper {
-  position: relative;
+  /* Fixed viewport height so long country lists scroll inside the card. */
   height: 300px;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-a6);
 }
 
-.countryNameCell {
-  line-height: 16px;
+.table {
+  min-width: 100%;
+  width: 100%;
 }
 
-.callingCodeListColumnAlignLeft {
-  justify-content: flex-start;
-  align-items: center;
+.tableHeader {
   display: flex;
-}
-
-.callingCodeListColumnAlignCenter {
-  justify-content: center;
   align-items: center;
-  display: flex;
+  min-width: 100%;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
+
+  /* Keep the header visible while the table body scrolls. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
-.callingCodeListRow {
-  border: 0;
+.tableRow {
+  display: flex;
+  align-items: center;
+  min-width: 100%;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a2);
 }
 
 .lastPinnedCallingCode {
-  border-bottom: 1px solid #c4c4c4;
+  border-bottom: 1px solid var(--gray-a8);
 }
 
-/* Fix horizontal scrollbar appears on windows browser */
-.detailsList {
-  overflow-x: hidden;
+.cellSelected,
+.headerCellCountry,
+.headerCellCode,
+.headerCellOrder,
+.headerCellPinned,
+.cellCountry,
+.cellCode,
+.cellOrder,
+.cellPinned {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
 
-  @apply mobile:overflow-auto;
+.headerCellCountry,
+.headerCellCode,
+.headerCellOrder,
+.headerCellPinned {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.cellSelected {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  flex-shrink: 0;
+  padding: 12px 16px;
+}
+
+.headerCellCountry,
+.cellCountry {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.cellCountry {
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.headerCellCode,
+.cellCode {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.cellCode {
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.headerCellOrder,
+.cellOrder {
+  width: 5.5rem;
+  min-width: 5.5rem;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.headerCellPinned,
+.cellPinned {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+.pinButton:not(:hover):not(:focus-visible):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.pinIcon {
+  color: var(--gray-a11);
+}
+
+.pinIconPinned {
+  color: var(--accent-9);
 }

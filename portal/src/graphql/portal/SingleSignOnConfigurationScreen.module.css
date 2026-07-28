@@ -37,10 +37,13 @@
   min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-3);
 }
 
 .table {
   min-width: 100%;
+  width: 100%;
 }
 
 .emptyMessage {

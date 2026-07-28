@@ -154,13 +154,16 @@
   @apply flex w-full items-center;
   min-width: 100%;
   min-height: 2.75rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
 }
 
 .tableHeaderCellProvider,
 .tableHeaderCellAlias,
 .tableHeaderCellConfiguration,
 .tableHeaderCellActions {
-  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  @apply flex items-center px-4 py-3 text-sm font-semibold;
   color: var(--gray-12);
 }
 
@@ -188,20 +191,19 @@
 .tableRow {
   @apply flex w-full items-center cursor-pointer;
   min-width: 100%;
-  min-height: 2.75rem;
+  min-height: 3.25rem;
   border-top: 1px solid var(--gray-a6);
-  background-color: var(--gray-a2);
 }
 
 .tableRow:hover {
-  background-color: var(--gray-a3);
+  background-color: var(--gray-a2);
 }
 
 .tableCellProvider,
 .tableCellAlias,
 .tableCellConfiguration,
 .tableCellActions {
-  @apply flex items-center px-3 py-3 text-sm;
+  @apply flex items-center px-4 py-3 text-sm;
   color: var(--gray-12);
 }
 
