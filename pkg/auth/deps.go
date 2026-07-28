@@ -110,7 +110,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountSuccessUIInfoResolver), new(*authenticationinfo.UIService)),
 
 	wire.Bind(new(handlerwebapp.ControllerAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
-	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountSuccessAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
