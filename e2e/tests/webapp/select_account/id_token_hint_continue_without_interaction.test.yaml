@@ -100,18 +100,24 @@ steps:
   # the same AdvanceWithInput call the button-driven "continue" action uses,
   # just triggered automatically instead of by a user click.
   #
-  # The default http_request_follow_redirects (true) is deliberate here: it
-  # lets the client walk the whole redirect chain (authorize -> webapp entry
-  # -> select_account -> finish -> client redirect_uri) in one step, exactly
-  # like a real browser would. If select_account rendered "Continue as X"
-  # instead of auto-continuing, this chain would stop there at a 200 page
-  # under /authflow/v2/select_account, not land on redirect_uri's own host
-  # with a code - so asserting the final landed path proves no page was
-  # shown, not just that *some* 200 was eventually reached.
+  # We follow the redirect chain manually (http_request_follow_redirects:
+  # false at every hop) instead of letting a single request auto-follow it
+  # to completion. Auto-following would walk all the way through consent to
+  # the client's own redirect_uri (http://localhost:4000, chosen to share
+  # this server's host:port for convenience) and then actually fetch it,
+  # landing on a benign-but-confusing 404 (nothing is routed at "/" there)
+  # - a real client/browser would stop and read `code` off that URL instead
+  # of requesting it, which is exactly what oauth_exchange_code_2 below
+  # does with the final hop's Location instead of ever calling it. If
+  # select_account had rendered "Continue as X" instead of auto-continuing,
+  # this chain would have stopped early at a 200 page under
+  # /authflow/v2/select_account instead of reaching consent - so completing
+  # this chain down to a real authorization code proves no page was shown.
   - name: authorize_2
     action: http_request
     http_request_method: GET
     http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
     http_request_query:
       response_type: code
       client_id: e2e
@@ -121,13 +127,61 @@ steps:
       scope: "openid offline_access https://authgear.com/scopes/full-access"
       id_token_hint: "{{ .steps.oauth_exchange_code_1.result.raw_id_token }}"
     http_output:
-      http_status: 200
-      redirect_path: /login
+      http_status: 302
+
+  # /oauth2/authorize redirects to the webapp's own entrypoint, which
+  # resolves the OAuth session and (a couple of internal hops later, none of
+  # them specific to select_account) lands on select_account's resolved
+  # login flow auto-continuing straight through to /oauth2/consent, already
+  # carrying the authorization code since consent was previously granted.
+  - name: webapp_entrypoint
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authorize_2.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: webapp_entrypoint_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ (urlParse .steps.authorize_2.result.http_response_headers.location).host }}{{ .steps.webapp_entrypoint.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: webapp_entrypoint_3
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ (urlParse .steps.authorize_2.result.http_response_headers.location).host }}{{ .steps.webapp_entrypoint_2.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: webapp_entrypoint_4
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ (urlParse .steps.authorize_2.result.http_response_headers.location).host }}{{ .steps.webapp_entrypoint_3.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # This lands on /oauth2/consent, already carrying the authorization code
+  # (consent was auto-approved since it was granted in the first login).
+  # Its own redirect (303) is the client's real redirect_uri with the code -
+  # capture it below without ever fetching it.
+  - name: consent
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.webapp_entrypoint_4.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
 
   - name: oauth_exchange_code_2
     action: oauth_exchange_code
     oauth_exchange_code_code_verifier: "H8ZPD~2mS4BtiJwzd6fudpzZktJxod.3WA1Oz9l0~uccW9Gjux4FiRitWlhX_PEU"
-    oauth_exchange_code_redirect_uri: "{{ .steps.authorize_2.result.http_final_url }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.consent.result.http_response_headers.location }}"
     output:
       result: |
         {
