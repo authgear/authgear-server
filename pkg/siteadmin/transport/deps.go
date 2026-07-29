@@ -15,5 +15,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AppPlanChangeHandler), "*"),
 	wire.Struct(new(AuditLogsListHandler), "*"),
 	wire.Struct(new(AuditLogGetHandler), "*"),
+	wire.Struct(new(AppFeatureConfigGetHandler), "*"),
+	wire.Struct(new(AppFeatureConfigUpdateHandler), "*"),
+	wire.Struct(new(AppFeatureConfigPreviewHandler), "*"),
 	wire.Struct(new(AuthzMiddleware), "*"),
 )
