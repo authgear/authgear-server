@@ -66,6 +66,22 @@ regression would silently produce the "right" value by accident and the test
 wouldn't catch it. See the existing `hook`/`collaborator`/`identity` cases in
 that file for the pattern.
 
+## Schema/runtime consistency
+
+Before adding a JSON schema constraint on a feature config field
+(`minItems`, `minLength`, `enum`, `required`, etc. in the
+`FeatureConfigSchema.Add(...)` block), check what the field's actual
+*consumer* code does with edge-case values (nil, empty, zero) — grep for
+where the field is read at runtime. A constraint that's stricter than the
+runtime semantics can silently make a legitimately meaningful value
+unreachable. Concrete case: `PhoneInputFeatureConfig.allowlist` had
+`"minItems": 1`, but `IntersectAllowlist` (`pkg/lib/config/utils.go`) already
+treated an empty allowlist as "no restriction" — the schema blocked the one
+input (`allowlist: []`) that would have cleanly expressed "clear this
+override," forcing an awkward, undiscoverable workaround
+(`phone_input: {}` with the field omitted) instead. Don't add a schema
+constraint "for safety" without confirming the runtime already needs it.
+
 ## References
 
 - `pkg/lib/config/feature.go` — top-level `FeatureConfig.Merge` dispatcher
