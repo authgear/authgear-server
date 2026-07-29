@@ -38,6 +38,12 @@ steps:
       code_challenge_method: S256
       code_challenge: lSo1Ui9pr2_uxxYYJeX3kYmXFqc2xEg5-t7JYLY_K_4
       scope: "openid offline_access https://authgear.com/scopes/full-access"
+      # x_sso_enabled=true so the offline grant produced by the second
+      # authorization below is SSO-enabled, matching how a real SSO-enabled
+      # client drives this flow, and so the userinfo check
+      # below actually exercises the SSO-enabled + continued-session
+      # combination.
+      x_sso_enabled: "true"
     http_output:
       http_status: 302
   - name: get_login_page
@@ -108,6 +114,7 @@ steps:
       code_challenge_method: S256
       code_challenge: _KHfZq_nzdUr8mdstm_JWKdzbxQIeCW-pKjxf9IJEnc
       scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "true"
     http_output:
       http_status: 200
       redirect_path: /authflow/v2/select_account
@@ -146,6 +153,34 @@ steps:
           "id_token": {
             "sub": "[[string]]"
           }
+        }
+
+  # Drop the still-valid IDP session cookie from the jar before the next
+  # request. Otherwise the userinfo call below would authenticate via that
+  # cookie instead of the Authorization header, silently passing even if the
+  # access token itself is broken - defeating the point of this check (see
+  # Client.ClearCookies's doc comment on this exact cookie-jar-leak pitfall).
+  - name: clear_cookies_before_userinfo
+    action: clear_cookies
+
+  # The offline grant backing this access token is SSO-enabled (x_sso_enabled
+  # above) and was issued by continuing the existing session rather than
+  # minting a new one. Calling userinfo with it confirms the continued
+  # session's IDP session id was actually recorded on the offline grant -
+  # otherwise resolving this token later fails with invalid_grant because an
+  # SSO-enabled offline grant with no idp_session_id can never be resolved
+  # (see accessOfflineGrant in pkg/lib/oauth/resolver.go).
+  - name: userinfo_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.oauth_exchange_code_2.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
         }
 
   # user.authenticated should fire once per login (twice total), with the

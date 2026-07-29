@@ -34,46 +34,58 @@ type NodeDoCreateSession struct {
 }
 
 func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
-	attrs := session.NewAttrs(n.UserID)
-
-	amr, err := CollectAMR(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	attrs.SetAMR(amr)
-
 	identitySpecs, err := collectIdentitySpecs(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	authnInfo := authenticationinfo.T{
-		UserID:          n.UserID,
-		AuthenticatedAt: deps.Clock.NowUTC(),
-		AMR:             amr,
-		IdentitySpecs:   identitySpecs,
-	}
+	var authnInfo authenticationinfo.T
 	var newSession *idpsession.IDPSession = nil
 	var sessionCookie *http.Cookie = nil
 
-	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
 	if n.ContinueFromSessionID != "" {
+		// The session being continued was already re-verified against the
+		// current request by resolveSelectAccountSession, but it may have
+		// been resolved in an earlier request than this one, so check again
+		// here that it is still the same session before reusing its
+		// authentication details as-is.
+		sess := session.GetSession(ctx)
+		if sess == nil || sess.SessionID() != n.ContinueFromSessionID || sess.SessionType() != n.ContinueFromSessionType {
+			return nil, ErrSelectAccountSessionChanged
+		}
+		authnInfo = sess.CreateNewAuthenticationInfoByThisSession()
+		authnInfo.IdentitySpecs = identitySpecs
 		authnInfo.ContinueFromSessionType = string(n.ContinueFromSessionType)
 		authnInfo.ContinueFromSessionID = n.ContinueFromSessionID
+	} else {
+		amr, err := CollectAMR(ctx, deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		authnInfo = authenticationinfo.T{
+			UserID:          n.UserID,
+			AuthenticatedAt: deps.Clock.NowUTC(),
+			AMR:             amr,
+			IdentitySpecs:   identitySpecs,
+		}
+
+		if !n.SkipCreate {
+			attrs := session.NewAttrs(n.UserID)
+			attrs.SetAMR(amr)
+			s, token := deps.IDPSessions.MakeSession(attrs)
+			newSession = s
+			sessionCookie = deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
+			authnInfo.AuthenticatedBySessionID = newSession.SessionID()
+			authnInfo.AuthenticatedBySessionType = string(newSession.SessionType())
+		}
 	}
+
+	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
 		deps.SessionCookie.SameSiteStrictDef,
 		"true",
 	)
-
-	if !n.SkipCreate {
-		s, token := deps.IDPSessions.MakeSession(attrs)
-		newSession = s
-		sessionCookie = deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
-		authnInfo.AuthenticatedBySessionID = newSession.SessionID()
-		authnInfo.AuthenticatedBySessionType = string(newSession.SessionType())
-	}
 
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo,
 		authflow.GetOAuthSessionID(ctx),
