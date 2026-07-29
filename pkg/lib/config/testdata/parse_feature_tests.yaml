@@ -64,6 +64,13 @@ config:
     white_labeling:
       disabled: true
 ---
+name: phone-input-allowlist-empty-means-allow-all
+error: null
+config:
+  ui:
+    phone_input:
+      allowlist: []
+---
 name: limit-number-of-applications
 error: null
 config:
