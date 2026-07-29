@@ -42,6 +42,7 @@ func (m *PublicOriginMiddleware) Handle(next http.Handler) http.Handler {
 		newURL.Host = publicOrigin.Host
 
 		logger.Debug(ctx, "redirect to the configured public origin", slog.String("new_url", newURL.String()))
+		// #nosec G710 -- newURL.Scheme and newURL.Host are set from the server-configured PublicOrigin, not user input.
 		http.Redirect(w, r, newURL.String(), http.StatusTemporaryRedirect)
 	})
 }

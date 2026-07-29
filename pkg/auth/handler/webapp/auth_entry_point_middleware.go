@@ -50,6 +50,7 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 			defaultRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, m.OAuthClientResolver, m.UIConfig)
 			redirectURI := webapp.GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
+			// #nosec G710 -- webapp.GetRedirectURI enforces same-origin via httputil.parseRedirectURI, or falls back to defaultRedirectURI.
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 		} else if userID == nil && !fromAuthzEndpoint && directAccessDisabled {
 			logger := AuthEntryPointMiddlewareLogger.GetLogger(ctx)

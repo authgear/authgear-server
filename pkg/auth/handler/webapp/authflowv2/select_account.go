@@ -197,6 +197,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			redirectURI = h.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, entry)
 		}
 
+		// #nosec G710 -- redirectURI is either webSession.RedirectURI (set from an allow-listed/same-origin redirect_uri when the web session was created) or webapp.DerivePostLoginRedirectURIFromRequest, which allow-lists against the OAuth client's registered RedirectURIs.
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	}
@@ -316,5 +317,6 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 func (h *AuthflowV2SelectAccountHandler) continueFlow(w http.ResponseWriter, r *http.Request, path string) {
 	// preserve query only when continuing the login flow
 	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
+	// #nosec G710 -- webapp.MakeRelativeURL only ever sets Path and RawQuery, never Scheme/Host, so u is always relative to the current origin.
 	http.Redirect(w, r, u.String(), http.StatusFound)
 }

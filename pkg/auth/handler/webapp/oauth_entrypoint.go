@@ -28,5 +28,6 @@ func (h *OAuthEntrypointHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		h.Endpoints.SelectAccountEndpointURL().Path,
 		webapp.PreserveQuery(r.URL.Query()),
 	)
+	// #nosec G710 -- webapp.MakeRelativeURL only ever sets Path and RawQuery, never Scheme/Host, so u is always relative to the current origin.
 	http.Redirect(w, r, u.String(), http.StatusFound)
 }
