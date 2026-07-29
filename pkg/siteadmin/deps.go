@@ -104,6 +104,12 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(siteadminservice.PlanServiceAuditService), new(*siteadminservice.SiteAdminAuditService)),
 	wire.Bind(new(siteadminservice.CollaboratorServiceAuditService), new(*siteadminservice.SiteAdminAuditService)),
 
+	// FeatureConfigService bindings
+	wire.Bind(new(siteadminservice.FeatureConfigServiceGlobalDatabase), new(*globaldb.Handle)),
+	wire.Bind(new(siteadminservice.FeatureConfigServicePlanStore), new(*plan.Store)),
+	wire.Bind(new(siteadminservice.FeatureConfigServiceConfigSourceStore), new(*configsource.Store)),
+	wire.Bind(new(siteadminservice.FeatureConfigServiceAuditService), new(*siteadminservice.SiteAdminAuditService)),
+
 	// transport bindings
 	wire.Bind(new(transport.AppsListService), new(*siteadminservice.AppService)),
 	wire.Bind(new(transport.AppGetService), new(*siteadminservice.AppService)),
@@ -115,6 +121,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.PlansListService), new(*siteadminservice.PlanService)),
 	wire.Bind(new(transport.AppPlanChangeService), new(*siteadminservice.PlanService)),
 	wire.Bind(new(transport.CollaboratorPromoteService), new(*siteadminservice.CollaboratorService)),
+	wire.Bind(new(transport.AppFeatureConfigGetService), new(*siteadminservice.FeatureConfigService)),
+	wire.Bind(new(transport.AppFeatureConfigUpdateService), new(*siteadminservice.FeatureConfigService)),
+	wire.Bind(new(transport.AppFeatureConfigPreviewService), new(*siteadminservice.FeatureConfigService)),
 
 	// audit log read service transport bindings
 	wire.Bind(new(transport.AuditLogsListService), new(*siteadminservice.SiteAdminAuditReadService)),

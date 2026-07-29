@@ -146,6 +146,27 @@ func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newAppFeatureConfigGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AppFeatureConfigGetHandler)),
+	))
+}
+
+func newAppFeatureConfigUpdateHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AppFeatureConfigUpdateHandler)),
+	))
+}
+
+func newAppFeatureConfigPreviewHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.AppFeatureConfigPreviewHandler)),
+	))
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
