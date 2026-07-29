@@ -202,6 +202,153 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v1/apps/{app_id}/feature-config:
+    get:
+      operationId: getAppFeatureConfig
+      summary: Get the feature config layers of an app
+      description: >
+        Returns three layers of the app's feature config, all fully populated
+        with server defaults so the client never has to reason about what is
+        "unset": the effective **plan** config (defaults ← plan, i.e. what the
+        app would get with no app-specific override — display this as the
+        read-only "Plan" column/panel), the app-specific override YAML
+        document as stored (verbatim, sparse — only the fields this app
+        overrides), and the effective config for the app as it actually runs
+        today (defaults ← plan ← app override). The server merges every
+        section field-by-field (see `pkg/lib/config/feature_*.go` — every
+        section's `Merge` is field-level, so setting one field never resets an
+        unrelated sibling field back to a default); clients MUST NOT
+        reimplement this merge — always use `effective_plan_feature_config`
+        and `effective_app_feature_config` from this response for display, and the
+        preview endpoint for live feedback while editing.
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The feature config layers of the app
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppFeatureConfigResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateAppFeatureConfig
+      summary: Replace the app-specific feature config override
+      description: >
+        Replaces the entire app-specific feature config override with the
+        given YAML document. This is a full replacement, not a patch: any
+        field previously overridden but omitted from the new document reverts
+        to inheriting from the plan. The document is stored verbatim,
+        preserving comments and key order. Pass an empty string (or a
+        whitespace-only string) to clear all app-specific overrides. The
+        document is validated against the feature config JSON schema before
+        being stored; on failure, responds 400 with reason `ValidationFailed`
+        and `info.causes` populated per
+        [ValidationErrorCause](#/components/schemas/ValidationErrorCause) —
+        each cause's `location` is an RFC 6901 JSON pointer into the submitted
+        document (e.g. `/identity/oauth/providers/apple/disabled`), letting the
+        client map every failure directly to the corresponding row in a table
+        view without any custom error-parsing logic. The plan config itself is
+        never modified by this endpoint. A site admin audit log entry
+        (`site_admin.app.feature_config.updated`) is recorded.
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAppFeatureConfigRequest"
+      responses:
+        "200":
+          description: >
+            The feature config layers after the update, including the newly
+            computed effective config.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppFeatureConfigResponse"
+        "400":
+          description: >
+            Invalid request. When `reason` is `ValidationFailed`,
+            `info.causes` is an array of ValidationErrorCause objects, one per
+            failing field — see the `ValidationErrorCause` schema and the
+            description above for the exact shape and an example.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/apps/{app_id}/feature-config/preview:
+    post:
+      operationId: previewAppFeatureConfig
+      summary: Preview the effective feature config for a candidate override
+      description: >
+        Computes the effective feature config that would result from the given
+        app-specific override, without persisting anything. Merging uses the
+        app's current plan and the exact same server-side merge as the GET and
+        PUT endpoints. This is the mechanism that keeps merge logic out of the
+        client entirely: call this endpoint (debounced) on every edit to
+        refresh a live "Effective" view — never compute it from
+        `effective_plan_feature_config` and the edited YAML locally. The
+        candidate override is validated against the feature config JSON
+        schema exactly as PUT does; validation failures use the same 400
+        `ValidationFailed` / `info.causes` shape described on PUT, so the same
+        client-side error-highlighting code handles both endpoints.
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreviewAppFeatureConfigRequest"
+      responses:
+        "200":
+          description: >
+            The feature config layers as they would be if the candidate
+            override were saved. Nothing is persisted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppFeatureConfigResponse"
+        "400":
+          description: >
+            Invalid request. When `reason` is `ValidationFailed`,
+            `info.causes` is an array of ValidationErrorCause objects, one per
+            failing field — see the `ValidationErrorCause` schema and the
+            description on PUT for the exact shape and an example.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v1/apps/{app_id}/usage/messaging:
     get:
       operationId: getAppMessagingUsage
@@ -507,7 +654,13 @@ components:
           description: Opaque ID for correlating errors in logs
         info:
           type: object
-          description: Additional structured details about the error
+          description: >
+            Additional structured details about the error. Shape depends on
+            `reason`. Notably, for `reason: ValidationFailed` (JSON-schema
+            validation failures — this is the server-wide convention, not
+            specific to any one endpoint), `info.causes` is an array of
+            [ValidationErrorCause](#/components/schemas/ValidationErrorCause)
+            objects, one per failing field.
           additionalProperties: true
 
     MessagingUsage:
@@ -804,3 +957,137 @@ components:
                 Raw audit log data — the full event JSON stored in the
                 _audit_log.data column, including context and payload.
               additionalProperties: true
+
+    ValidationErrorCause:
+      description: >
+        One JSON-schema validation failure. Matches the server's
+        `validation.Error` struct (`pkg/util/validation/error.go`) — this is
+        the server-wide shape for every `ValidationFailed` error in this API,
+        not something specific to feature config. Emitted as one entry per
+        failing leaf value; a client can group/sort by `location` to render
+        multiple errors against the same document.
+      type: object
+      required:
+        - location
+        - kind
+      properties:
+        location:
+          type: string
+          description: >
+            RFC 6901 JSON pointer to the failing value in the submitted
+            document, e.g. `/identity/oauth/providers/apple/disabled` or
+            `/oauth/client/maximum`. Empty string means the failure applies to
+            the document root. Clients use this to look up the corresponding
+            field in a declarative field registry and highlight that row.
+        kind:
+          type: string
+          description: >
+            The JSON schema keyword that failed, e.g. `type`, `required`,
+            `enum`, `minimum`, `additionalProperties`. Use `details` and/or a
+            generic per-kind message for display; do not assume every kind
+            listed here is exhaustive — new keywords can appear as the schema
+            evolves.
+        details:
+          type: object
+          description: >
+            Keyword-specific detail payload, e.g. `{"actual": "string",
+            "expected": "boolean"}` for a `type` failure, or `{"missing":
+            ["client_id"]}` for a `required` failure. Shape varies by `kind`;
+            treat as opaque beyond displaying it or using known keys
+            defensively.
+          additionalProperties: true
+
+    FeatureConfig:
+      x-go-type: config.FeatureConfig
+      x-go-type-import:
+        name: config
+        path: github.com/authgear/authgear-server/pkg/lib/config
+      description: >
+        An Authgear feature config object (the JSON form of
+        authgear.features.yaml). The authoritative schema is the server's
+        feature config JSON schema (FeatureConfigSchema in
+        pkg/lib/config); it is not duplicated here. Top-level sections
+        include identity, authentication, authenticator, custom_domain, ui,
+        oauth, hook, audit_log, google_tag_manager, rate_limits, messaging,
+        usage, collaborator, admin_api, test_mode, and fraud_protection. Every
+        section merges field-by-field across layers (code defaults ← cluster
+        ← plan ← app override) — an app-specific override only ever affects
+        the exact fields it sets; every other field simply inherits from the
+        plan.
+      type: object
+      additionalProperties: true
+
+    AppFeatureConfigResponse:
+      type: object
+      required:
+        - plan_name
+        - effective_plan_feature_config
+        - app_feature_config_yaml
+        - effective_app_feature_config
+      properties:
+        plan_name:
+          type: string
+          description: The plan the app is currently on.
+        effective_plan_feature_config:
+          allOf:
+            - $ref: "#/components/schemas/FeatureConfig"
+          description: >
+            The **effective** feature config of the plan alone — server
+            defaults merged with the plan's config, fully populated. This is
+            what the app would get if it had no app-specific override at all;
+            display this as the read-only "Plan" column/panel. It is
+            deliberately not the raw/sparse plan document: since merge is
+            field-level everywhere, the effective value is always well-defined
+            and there is no ambiguity between "the plan set this" and "this is
+            a code default" for the client to worry about — every value shown
+            here is simply what the app would actually run with under this
+            plan.
+        app_feature_config_yaml:
+          type: string
+          description: >
+            The stored app-specific override YAML document, verbatim —
+            including comments and key order. Empty string when the app has
+            no override. Sparse: only fields explicitly overridden for this
+            app are present. Clients parse this to render structured views
+            (e.g. a table); any field absent from this document simply
+            inherits from `effective_plan_feature_config`.
+        effective_app_feature_config:
+          allOf:
+            - $ref: "#/components/schemas/FeatureConfig"
+          description: >
+            The effective feature config computed by the server by merging
+            defaults ← plan ← app override, fully populated. This is what the
+            app actually runs with; use it for the "Effective" display. Always
+            re-fetch this (via GET after save, or via the preview endpoint
+            while editing) rather than deriving it from
+            `effective_plan_feature_config` and `app_feature_config_yaml`
+            locally.
+
+    UpdateAppFeatureConfigRequest:
+      type: object
+      required:
+        - app_feature_config_yaml
+      properties:
+        app_feature_config_yaml:
+          type: string
+          description: >
+            The new app-specific feature config override as a YAML document.
+            Replaces the existing override entirely and is stored verbatim,
+            preserving comments and key order. Pass an empty string (or a
+            whitespace-only string) to clear all overrides. Validated against
+            the feature config JSON schema; see the `ValidationErrorCause`
+            schema for the shape of validation failures. Since YAML is a
+            superset of JSON, automation may pass a JSON document here.
+
+    PreviewAppFeatureConfigRequest:
+      type: object
+      required:
+        - app_feature_config_yaml
+      properties:
+        app_feature_config_yaml:
+          type: string
+          description: >
+            The candidate app-specific feature config override as a YAML
+            document. Not persisted. Validated against the feature config
+            JSON schema exactly as PUT does; see the `ValidationErrorCause`
+            schema for the shape of validation failures.
