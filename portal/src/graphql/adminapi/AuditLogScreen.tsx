@@ -341,6 +341,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   // Sync state to searchParams.
+  // The searchParams are a mirror of the state, so they must be replaced
+  // instead of pushed. Otherwise pressing back restores an out-of-sync URL,
+  // which this effect immediately pushes forward again, trapping the user
+  // on this screen.
 
   useEffect(() => {
     const page = offset / pageSize + 1;
@@ -396,7 +400,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
 
     if (callSet) {
-      setSearchParams(params);
+      setSearchParams(params, { replace: true });
     }
   }, [
     queryFrom,
