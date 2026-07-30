@@ -12,6 +12,13 @@ var _ = FeatureConfigSchema.Add("CollaboratorFeatureConfig", `
 `)
 
 type CollaboratorFeatureConfig struct {
+	// Maximum and SoftMaximum are deliberately left without a SetDefaults():
+	// nil means "unlimited" and is the current, intended behavior. Both
+	// pkg/portal/service/collaborator.go (checkQuotaInSend/checkQuotaInAccept)
+	// and portal/src/graphql/portal/PortalAdminsSettings.tsx skip
+	// quota enforcement/warnings entirely when these are nil/undefined. Giving
+	// either field a concrete default would start enforcing a collaborator
+	// cap (or showing a quota warning) that does not exist today.
 	Maximum     *int `json:"maximum,omitempty"`
 	SoftMaximum *int `json:"soft_maximum,omitempty"`
 }
