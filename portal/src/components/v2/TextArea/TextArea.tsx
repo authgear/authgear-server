@@ -73,12 +73,9 @@ export function TextArea({
       label={label}
       optional={optional}
       required={required}
-      error={error}
+      error={error ?? fieldProps.errorMessage}
       hint={hint}
       labelSpace="1"
-      parentJSONPointer={parentJSONPointer}
-      fieldName={fieldName}
-      errorRules={errorRules}
     >
       <RadixTextArea
         className={cn(

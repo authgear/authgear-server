@@ -16,6 +16,8 @@ export type CalloutType = "error" | "success" | "warning" | "info";
 export interface CalloutProps {
   className?: string;
   type: CalloutType;
+  color?: React.ComponentProps<typeof RadixCallout.Root>["color"];
+  size?: "1" | "2" | "3";
   text?: React.ReactNode;
   showCloseButton?: boolean;
 }
@@ -49,6 +51,8 @@ function CalloutIcon({ color }: { color: CalloutType }) {
 export function Callout({
   className,
   type,
+  color,
+  size = "2",
   text,
   showCloseButton = true,
 }: CalloutProps): React.ReactElement {
@@ -61,8 +65,8 @@ export function Callout({
   return (
     <RadixCallout.Root
       className={cn(styles.calloutRoot, className)}
-      color={typeToColor(type)}
-      size="2"
+      color={color ?? typeToColor(type)}
+      size={size}
       variant="surface"
     >
       <RadixCallout.Icon className={styles.calloutIcon}>
