@@ -48,6 +48,24 @@ const DEFAULT_ACCESS_CONTROL: UserProfileAttributesAccessControl = {
   end_user: "readwrite",
 };
 
+// The config has no on/off flag for a standard attribute, so a disabled
+// attribute is stored as hidden from every party.
+const DISABLED_ACCESS_CONTROL: UserProfileAttributesAccessControl = {
+  portal_ui: "hidden",
+  bearer: "hidden",
+  end_user: "hidden",
+};
+
+function isDisabled(
+  accessControl: UserProfileAttributesAccessControl
+): boolean {
+  return (
+    accessControl.portal_ui === "hidden" &&
+    accessControl.bearer === "hidden" &&
+    accessControl.end_user === "hidden"
+  );
+}
+
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];
 }
@@ -102,7 +120,11 @@ const naturalOrder = standardAttributeSections.flatMap(
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   const items = config.user_profile?.standard_attributes?.access_control ?? [];
-  const listedItems = items.filter((a) => naturalOrder.indexOf(a.pointer) >= 0);
+  const listedItems = items.filter(
+    (a) =>
+      naturalOrder.indexOf(a.pointer) >= 0 &&
+      (REQUIRED_POINTERS.has(a.pointer) || !isDisabled(a.access_control))
+  );
   listedItems.sort((a, b) => {
     const ia = naturalOrder.indexOf(a.pointer);
     const ib = naturalOrder.indexOf(b.pointer);
@@ -124,12 +146,16 @@ function constructConfig(
     (effectiveConfig) => {
       effectiveConfig.user_profile ??= {};
       effectiveConfig.user_profile.standard_attributes ??= {};
+      const itemByPointer = new Map(
+        currentState.standardAttributesItems.map((item) => [item.pointer, item])
+      );
       for (const accessControl of effectiveConfig.user_profile
         .standard_attributes.access_control ?? []) {
-        for (const item of currentState.standardAttributesItems) {
-          if (accessControl.pointer === item.pointer) {
-            accessControl.access_control = item.access_control;
-          }
+        const item = itemByPointer.get(accessControl.pointer);
+        if (item != null) {
+          accessControl.access_control = item.access_control;
+        } else if (naturalOrder.indexOf(accessControl.pointer) >= 0) {
+          accessControl.access_control = DISABLED_ACCESS_CONTROL;
         }
       }
     }
