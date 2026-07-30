@@ -77,6 +77,17 @@
   margin-top: 16px;
 }
 
+.disableForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.accountValidPeriodDialogForm {
+  margin-top: 16px;
+}
+
 .disablePeriodOptions {
   display: flex;
   flex-direction: column;

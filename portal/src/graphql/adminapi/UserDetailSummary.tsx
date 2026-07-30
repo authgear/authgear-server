@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import cn from "classnames";
 import { Avatar, Badge, Text } from "@radix-ui/themes";
-import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import { CameraIcon, ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import Link from "../../Link";
 import { FormattedMessage, Context } from "../../intl";
@@ -75,6 +75,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       formattedName,
       endUserAccountIdentifier,
       profileImageURL,
+      profileImageEditable,
       className,
       accountStatus,
     } = props;
@@ -117,13 +118,24 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           <FormattedMessage id="UsersScreen.title" />
         </Link>
         <div className={styles.headerRow}>
-          <Avatar
-            className={styles.avatar}
-            src={profileImageURL}
-            fallback={initials}
-            size="5"
-            radius="full"
-          />
+          <div className={styles.profilePic}>
+            <Avatar
+              className={styles.avatar}
+              src={profileImageURL}
+              fallback={initials}
+              size="5"
+              radius="full"
+            />
+            {profileImageEditable ? (
+              <Link
+                to="./edit-picture"
+                className={styles.cameraLink}
+                aria-label={renderToString("EditPictureScreen.title")}
+              >
+                <CameraIcon className={styles.cameraIcon} />
+              </Link>
+            ) : null}
+          </div>
           <div className={styles.headerInfo}>
             <div className={styles.nameRow}>
               <Text as="p" size="6" weight="bold" className={styles.displayName}>

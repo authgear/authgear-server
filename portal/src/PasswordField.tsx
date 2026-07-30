@@ -1,6 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import {
+  CheckIcon,
+  Cross2Icon,
+  EyeNoneIcon,
+  EyeOpenIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 import { Text } from "@radix-ui/themes";
 import { Context, FormattedMessage, Values } from "./intl";
 
@@ -231,23 +237,57 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
         level={guessableLevel}
         guessableLevelNames={guessableLevelNames}
       />
-      <ul className={styles.passwordPolicy}>
-        {passwordPolicyData.map((policy) => (
-          <li
-            key={policy.messageId}
-            className={cn({
-              [styles.policySatisfied]: isPasswordPolicySatisfied[policy.key],
-            })}
-          >
-            <Text as="span" size="2">
-              <FormattedMessage
-                id={policy.messageId}
-                values={policy.messageValues}
-              />
+      {passwordPolicyData.length > 0 ? (
+        <div className={styles.passwordPolicyBox}>
+          <div className={styles.passwordPolicyHeader}>
+            <InfoCircledIcon
+              className={styles.passwordPolicyHeaderIcon}
+              width="1rem"
+              height="1rem"
+            />
+            <Text as="span" size="2" weight="medium">
+              <FormattedMessage id="PasswordField.password-requirements" />
             </Text>
-          </li>
-        ))}
-      </ul>
+          </div>
+          <ul className={styles.passwordPolicy}>
+            {passwordPolicyData.map((policy) => {
+              const satisfied =
+                isPasswordPolicySatisfied[policy.key] === true;
+              return (
+                <li
+                  key={policy.messageId}
+                  className={cn(styles.passwordPolicyItem, {
+                    [styles.policySatisfied]: satisfied,
+                    [styles.policyUnsatisfied]: !satisfied,
+                  })}
+                >
+                  {satisfied ? (
+                    <CheckIcon
+                      className={styles.passwordPolicyIcon}
+                      width="1rem"
+                      height="1rem"
+                      aria-hidden={true}
+                    />
+                  ) : (
+                    <Cross2Icon
+                      className={styles.passwordPolicyIcon}
+                      width="1rem"
+                      height="1rem"
+                      aria-hidden={true}
+                    />
+                  )}
+                  <Text as="span" size="2">
+                    <FormattedMessage
+                      id={policy.messageId}
+                      values={policy.messageValues}
+                    />
+                  </Text>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 };

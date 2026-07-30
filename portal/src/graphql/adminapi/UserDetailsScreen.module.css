@@ -41,19 +41,17 @@
 }
 
 .profileTabContent {
-  display: grid;
-  grid-template-columns: minmax(0, 848px) 220px;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   width: 100%;
   padding-top: 8px;
-
-  @apply tablet:grid-cols-1;
 }
 
 .profileTabMain {
-  grid-column: 1;
-  grid-row: 1;
+  order: 1;
   width: 100%;
+  max-width: 848px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -61,15 +59,13 @@
 }
 
 .profileTabSidebar {
-  grid-column: 2;
-  grid-row: 1;
+  order: 2;
   align-self: flex-start;
-  width: 220px;
+  width: 100%;
+  max-width: 848px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  @apply tablet:col-start-1 tablet:row-start-2 tablet:w-full;
 }
 
 .dateItem {

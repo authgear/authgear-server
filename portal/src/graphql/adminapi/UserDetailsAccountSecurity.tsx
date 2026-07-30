@@ -41,6 +41,8 @@ import {
 import { useSetMFAGracePeriodMutation } from "./mutations/setMFAGracePeriodMutation";
 import { useRemoveMFAGracePeriodMutation } from "./mutations/removeMFAGracePeriodMutation";
 import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CancelMFAGracePeriodConfirmationDialog";
+import { Add2FAPhoneDialog } from "../../components/users/Add2FAPhoneDialog";
+import { Add2FAEmailDialog } from "../../components/users/Add2FAEmailDialog";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
 
@@ -52,6 +54,9 @@ interface UserDetailsAccountSecurityProps {
   authenticatorConfig: PortalAPIAppConfig["authenticator"];
   identities: Identity[];
   authenticators: Authenticator[];
+  phoneInputAllowlist?: string[];
+  phoneInputPinnedList?: string[];
+  onAuthenticatorCreated?: () => unknown;
 }
 
 interface PasskeyIdentityData {
@@ -786,9 +791,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       authenticatorConfig,
       identities,
       authenticators,
+      phoneInputAllowlist,
+      phoneInputPinnedList,
+      onAuthenticatorCreated,
     } = props;
     const { locale, renderToString } = useContext(Context);
     const navigate = useNavigate();
+    const [add2FAPhoneDialogOpen, setAdd2FAPhoneDialogOpen] = useState(false);
+    const [add2FAEmailDialogOpen, setAdd2FAEmailDialogOpen] = useState(false);
 
     const { user } = useUserQuery(userID);
 
@@ -1149,14 +1159,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           key: "oob_otp_email",
           text: renderToString("AuthenticatorType.secondary.oob-otp-email"),
           onSelect: () => {
-            void navigate("./add-2fa-email");
+            setAdd2FAEmailDialogOpen(true);
           },
         },
         {
           key: "oob_otp_sms",
           text: renderToString("AuthenticatorType.secondary.oob-otp-phone"),
           onSelect: () => {
-            void navigate("./add-2fa-phone");
+            setAdd2FAPhoneDialogOpen(true);
           },
         },
       ];
@@ -1552,6 +1562,20 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         <CancelMFAGracePeriodConfirmationDialog
           store={cancelMFAGracePeriodConfirmationDialog}
           onConfirm={onConfirmRemoveMFAGracePeriod}
+        />
+        <Add2FAPhoneDialog
+          open={add2FAPhoneDialogOpen}
+          userID={userID}
+          phoneInputAllowlist={phoneInputAllowlist}
+          phoneInputPinnedList={phoneInputPinnedList}
+          onOpenChange={setAdd2FAPhoneDialogOpen}
+          onCreated={onAuthenticatorCreated}
+        />
+        <Add2FAEmailDialog
+          open={add2FAEmailDialogOpen}
+          userID={userID}
+          onOpenChange={setAdd2FAEmailDialogOpen}
+          onCreated={onAuthenticatorCreated}
         />
       </div>
     );

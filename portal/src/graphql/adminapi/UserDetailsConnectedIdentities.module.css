@@ -59,7 +59,12 @@
   min-height: 2.75rem;
   padding: 12px;
   border-top: 1px solid var(--gray-a6);
+  border-bottom: 0;
   background-color: var(--gray-a2);
+}
+
+.loginIdentityCell:last-child {
+  border-bottom: 1px solid var(--gray-a6);
 }
 
 .loginIdentityValue {

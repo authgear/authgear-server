@@ -147,8 +147,19 @@
 .userInfoDisplayName {
   grid-column: 2 / span 1;
   grid-row: 1 / span 1;
-  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.userInfoDisplayNameText {
   @apply truncate;
+  min-width: 0;
+}
+
+.disabledBadge {
+  flex-shrink: 0;
 }
 
 .userInfoRawID {

@@ -315,6 +315,8 @@ function getButtonStates(data: AccountStatus): ButtonStates {
 
 export interface AccountValidPeriodFormProps {
   className?: string;
+  calloutColor?: "gray";
+  calloutSize?: "1" | "2" | "3";
   accountValidFrom: Date | null;
   onPickAccountValidFrom: (date: Date | null) => void;
   accountValidUntil: Date | null;
@@ -326,6 +328,8 @@ export function AccountValidPeriodForm(
 ): React.ReactElement {
   const {
     className,
+    calloutColor,
+    calloutSize = "2",
     accountValidFrom,
     accountValidUntil,
     onPickAccountValidFrom,
@@ -344,6 +348,8 @@ export function AccountValidPeriodForm(
     <div className={cn(className, "flex flex-col gap-2")}>
       <Callout
         type="info"
+        color={calloutColor}
+        size={calloutSize}
         showCloseButton={false}
         text={
           <FormattedMessage
@@ -389,6 +395,8 @@ export function AccountValidPeriodForm(
       {showEndAtWarning ? (
         <Callout
           type="warning"
+          color={calloutColor}
+          size={calloutSize}
           showCloseButton={false}
           text={<FormattedMessage id="AccountValidPeriodForm.end-at-warning" />}
         />
@@ -1015,7 +1023,7 @@ export function AccountStatusDialog(
   const disableForm = useMemo(() => {
     const formattedZone = formatSystemZone(new Date(), locale);
     return (
-      <div className="flex flex-col gap-4">
+      <div className={styles.disableForm}>
         <div className="flex flex-col gap-2">
           <Text as="label" size="2" weight="medium">
             <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.label" />
@@ -1038,6 +1046,8 @@ export function AccountStatusDialog(
             <div className="flex flex-col gap-2">
               <Callout
                 type="info"
+                color="gray"
+                size="1"
                 showCloseButton={false}
                 text={
                   <FormattedMessage
@@ -1084,6 +1094,9 @@ export function AccountStatusDialog(
   const accountValidPeriodForm = useMemo(() => {
     return (
       <AccountValidPeriodForm
+        className={styles.accountValidPeriodDialogForm}
+        calloutColor="gray"
+        calloutSize="1"
         accountValidFrom={accountValidFrom}
         accountValidUntil={accountValidUntil}
         onPickAccountValidFrom={onPickAccountValidFrom}

@@ -524,6 +524,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           lastLoginAtISO={data.lastLoginAt ?? null}
           accountStatus={data}
         />
+        <AccountStatusMessageBar accountStatus={data} />
         <MessageBar messageBarType={MessageBarType.info}>
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
         </MessageBar>
@@ -557,6 +558,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data.lastLoginAt ?? null}
         accountStatus={data}
       />
+      <AccountStatusMessageBar accountStatus={data} />
       <OverflowTabs
         className={styles.tabs}
         value={selectedKey}
@@ -599,13 +601,18 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
       ) : null}
 
       {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
-        <div className={styles.tabContent}>
+        <div
+          className={`${styles.tabContent} ${styles.fullWidthTabContent}`}
+        >
           <UserDetailsAccountSecurity
             userID={data.id}
             authenticationConfig={appConfig.authentication}
             authenticatorConfig={appConfig.authenticator}
             identities={identities}
             authenticators={authenticators}
+            phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
+            phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
+            onAuthenticatorCreated={refreshUser}
           />
         </div>
       ) : null}
@@ -741,11 +748,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
             errorRules={ERROR_RULES}
             form={form}
             hideFooterComponent={true}
-            messageBar={
-              <>
-                <AccountStatusMessageBar accountStatus={user} />
-              </>
-            }
           >
             <div className={styles.screenContent}>
               <UserDetails

@@ -1,7 +1,8 @@
 import React, { createRef } from "react";
 import cn from "classnames";
 import Cropperjs from "cropperjs";
-import { Image, ImageFit, FontIcon } from "@fluentui/react";
+import { PersonIcon } from "@radix-ui/react-icons";
+import { FormattedMessage } from "./intl";
 
 import styles from "./ReactCropperjs.module.css";
 
@@ -89,18 +90,18 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
         />
         {editSrc == null ? (
           displaySrc == null ? (
-            <FontIcon
-              role="button"
+            <button
+              type="button"
               className={styles.placeholder}
-              iconName="Contact"
               onClick={onClickSelectImage}
-            />
+            >
+              <span className={styles.visuallyHidden}>
+                <FormattedMessage id="EditPictureScreen.upload-new-picture.label" />
+              </span>
+              <PersonIcon className={styles.placeholderIcon} aria-hidden={true} />
+            </button>
           ) : (
-            <Image
-              className={styles.preview}
-              src={displaySrc}
-              imageFit={ImageFit.contain}
-            />
+            <img className={styles.preview} src={displaySrc} alt="" />
           )
         ) : null}
       </div>

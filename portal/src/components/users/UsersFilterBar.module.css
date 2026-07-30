@@ -1,5 +1,6 @@
+/* No overflow clipping here: the Radix focus ring is drawn with a negative
+   outline-offset, so part of it falls outside the field and would be cut off. */
 .root {
-  @apply overflow-hidden;
   @apply flex gap-4 flex-wrap;
   @apply mobile:flex-col mobile:flex-nowrap;
 }
@@ -10,7 +11,7 @@
 }
 
 .filterContainer {
-  @apply flex gap-x-4 overflow-hidden;
+  @apply flex gap-x-4 min-w-0;
 }
 
 .filter {

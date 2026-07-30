@@ -30,6 +30,16 @@
   width: 100%;
 }
 
+.birthdateInput :global(.rt-TextFieldInput) {
+  position: relative;
+}
+
+.birthdateInput
+  :global(.rt-TextFieldInput::-webkit-calendar-picker-indicator) {
+  position: absolute;
+  right: var(--space-2);
+}
+
 .hiddenSelectItem {
   display: none;
 }

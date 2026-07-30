@@ -1,14 +1,13 @@
 import cn from "classnames";
-import { Context as MessageContext, FormattedMessage } from "../../intl";
-import PrimaryButton from "../../PrimaryButton";
-import React, { useCallback, useContext, useMemo } from "react";
+import { FormattedMessage } from "../../intl";
+import React, { useCallback } from "react";
 import { SimpleFormModel } from "../../hook/useSimpleForm";
 import { PortalAPIAppConfig } from "../../types";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
-import { useCheckbox } from "../../hook/useInput";
+import { Checkbox, Flex, RadioGroup, Text } from "@radix-ui/themes";
 import styles from "./ResetPasswordForm.module.css";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
-import TextField from "../../TextField";
+import { TextField } from "../v2/TextField/TextField";
+import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import PasswordField from "../../PasswordField";
 
 export enum PasswordCreationType {
@@ -41,39 +40,23 @@ export const ResetPasswordForm: React.VFC<ResetPasswordFormProps> = function (
     firstEmail,
     submitMessageID,
   } = props;
-  const { renderToString } = useContext(MessageContext);
-
   const { canSave, isUpdating, onSubmit } =
     useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
 
-  const passwordCreateionTypeOptions = useMemo(() => {
-    return [
-      {
-        key: PasswordCreationType.ManualEntry,
-        text: renderToString("ResetPasswordForm.password-creation-type.manual"),
-      },
-      {
-        key: PasswordCreationType.AutoGenerate,
-        text: renderToString("ResetPasswordForm.password-creation-type.auto"),
-      },
-    ];
-  }, [renderToString]);
-
   const onChangePasswordCreationType = useCallback(
-    (_e, option: IChoiceGroupOption | undefined) => {
-      if (option != null) {
-        setState((prev) => ({
-          ...prev,
-          newPassword:
-            option.key === PasswordCreationType.AutoGenerate
-              ? ""
-              : prev.newPassword,
-          passwordCreationType: option.key as PasswordCreationType,
-          sendPassword:
-            prev.sendPassword ||
-            option.key === PasswordCreationType.AutoGenerate,
-        }));
-      }
+    (value: string) => {
+      const passwordCreationType = value as PasswordCreationType;
+      setState((prev) => ({
+        ...prev,
+        newPassword:
+          passwordCreationType === PasswordCreationType.AutoGenerate
+            ? ""
+            : prev.newPassword,
+        passwordCreationType,
+        sendPassword:
+          prev.sendPassword ||
+          passwordCreationType === PasswordCreationType.AutoGenerate,
+      }));
     },
     [setState]
   );
@@ -84,12 +67,24 @@ export const ResetPasswordForm: React.VFC<ResetPasswordFormProps> = function (
     },
     [setState]
   );
-  const { onChange: onChangeSendPassword } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, sendPassword: value }));
-  });
-  const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, setPasswordExpired: value }));
-  });
+  const onChangeSendPassword = useCallback(
+    (checked: boolean | "indeterminate") => {
+      setState((prev) => ({
+        ...prev,
+        sendPassword: checked === true,
+      }));
+    },
+    [setState]
+  );
+  const onChangeForceChangeOnLogin = useCallback(
+    (checked: boolean | "indeterminate") => {
+      setState((prev) => ({
+        ...prev,
+        setPasswordExpired: checked === true,
+      }));
+    },
+    [setState]
+  );
 
   return (
     <form
@@ -98,23 +93,38 @@ export const ResetPasswordForm: React.VFC<ResetPasswordFormProps> = function (
       noValidate={true}
     >
       {firstEmail != null ? (
-        <div>
+        <div className={styles.section}>
           <TextField
-            label={renderToString("ResetPasswordForm.email")}
+            size="2"
+            label={<FormattedMessage id="ResetPasswordForm.email" />}
             type="email"
             value={firstEmail}
             disabled={true}
           />
-          <ChoiceGroup
-            selectedKey={state.passwordCreationType}
-            options={passwordCreateionTypeOptions}
-            onChange={onChangePasswordCreationType}
-          />
+          <RadioGroup.Root
+            value={state.passwordCreationType}
+            onValueChange={onChangePasswordCreationType}
+          >
+            <Flex direction="column" gap="3">
+              <Text as="label" size="2" className={styles.optionLabel}>
+                <Flex align="center" gap="2">
+                  <RadioGroup.Item value={PasswordCreationType.ManualEntry} />
+                  <FormattedMessage id="ResetPasswordForm.password-creation-type.manual" />
+                </Flex>
+              </Text>
+              <Text as="label" size="2" className={styles.optionLabel}>
+                <Flex align="center" gap="2">
+                  <RadioGroup.Item value={PasswordCreationType.AutoGenerate} />
+                  <FormattedMessage id="ResetPasswordForm.password-creation-type.auto" />
+                </Flex>
+              </Text>
+            </Flex>
+          </RadioGroup.Root>
         </div>
       ) : null}
-      <div>
+      <div className={styles.section}>
         <PasswordField
-          label={renderToString("ResetPasswordForm.new-password")}
+          label={<FormattedMessage id="ResetPasswordForm.new-password" />}
           value={state.newPassword}
           onChange={onNewPasswordChange}
           passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
@@ -126,26 +136,34 @@ export const ResetPasswordForm: React.VFC<ResetPasswordFormProps> = function (
             state.passwordCreationType === PasswordCreationType.AutoGenerate
           }
         />
-        <Checkbox
-          className={styles.checkbox}
-          label={renderToString("ResetPasswordForm.send-password")}
-          checked={state.sendPassword}
-          onChange={onChangeSendPassword}
-          disabled={
-            firstEmail == null ||
-            state.passwordCreationType === PasswordCreationType.AutoGenerate
-          }
-        />
-        <Checkbox
-          className={styles.checkbox}
-          label={renderToString("ResetPasswordForm.force-change-on-login")}
-          checked={state.setPasswordExpired}
-          onChange={onChangeForceChangeOnLogin}
-        />
+        <label className={styles.checkboxRow}>
+          <Checkbox
+            checked={state.sendPassword}
+            onCheckedChange={onChangeSendPassword}
+            disabled={
+              firstEmail == null ||
+              state.passwordCreationType === PasswordCreationType.AutoGenerate
+            }
+          />
+          <Text size="2">
+            <FormattedMessage id="ResetPasswordForm.send-password" />
+          </Text>
+        </label>
+        <label className={styles.checkboxRow}>
+          <Checkbox
+            checked={state.setPasswordExpired}
+            onCheckedChange={onChangeForceChangeOnLogin}
+          />
+          <Text size="2">
+            <FormattedMessage id="ResetPasswordForm.force-change-on-login" />
+          </Text>
+        </label>
       </div>
-      <div>
+      <div className={styles.actions}>
         <PrimaryButton
           disabled={!canSave || isUpdating}
+          loading={isUpdating}
+          size="2"
           type="submit"
           text={<FormattedMessage id={submitMessageID} />}
         />

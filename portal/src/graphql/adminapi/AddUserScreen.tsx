@@ -224,7 +224,7 @@ const PhoneField: React.VFC<PhoneFieldProps> = function PhoneField(props) {
     <FormPhoneTextField
       className={className}
       parentJSONPointer=""
-      fieldName="phone"
+      fieldName="login_id"
       errorRules={errorRules}
       allowlist={allowlist}
       pinnedList={pinnedList}
@@ -488,7 +488,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                   value={username}
                   onChange={onUsernameChange}
                   parentJSONPointer=""
-                  fieldName="username"
+                  fieldName="login_id"
                   errorRules={errorRules}
                 />
               </div>
@@ -502,7 +502,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                   value={email}
                   onChange={onEmailChange}
                   parentJSONPointer=""
-                  fieldName="email"
+                  fieldName="login_id"
                   errorRules={errorRules}
                 />
               </div>

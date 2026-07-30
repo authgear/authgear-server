@@ -31,8 +31,39 @@
   gap: 24px;
 }
 
+.profilePic {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  line-height: 0;
+}
+
 .avatar {
   flex-shrink: 0;
+}
+
+.cameraLink {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgb(0 0 0 / 0.5);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.cameraLink:hover,
+.cameraLink:focus-visible {
+  opacity: 1;
+}
+
+.cameraIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
 }
 
 .headerInfo {

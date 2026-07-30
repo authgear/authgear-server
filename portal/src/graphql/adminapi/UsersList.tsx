@@ -2,6 +2,7 @@ import React, { useMemo, useContext, useState, useCallback } from "react";
 import cn from "classnames";
 import {
   Avatar,
+  Badge,
   DropdownMenu,
   IconButton as RadixIconButton,
   Text,
@@ -111,6 +112,7 @@ function UserInfo(props: UserInfoProps) {
       rawID,
       isAnonymous,
       isAnonymized,
+      isDisabled,
     },
   } = props;
   const displayName = isAnonymous ? (
@@ -137,9 +139,16 @@ function UserInfo(props: UserInfoProps) {
         src={profilePictureURL ?? undefined}
         fallback={fallback}
       />
-      <Text size="2" weight="medium" className={styles.userInfoDisplayName}>
-        {displayName}
-      </Text>
+      <div className={styles.userInfoDisplayName}>
+        <Text size="2" weight="medium" className={styles.userInfoDisplayNameText}>
+          {displayName}
+        </Text>
+        {isDisabled && !isAnonymized ? (
+          <Badge color="red" size="1" radius="small" className={styles.disabledBadge}>
+            <FormattedMessage id="AccountStatusBadge.disabled" />
+          </Badge>
+        ) : null}
+      </div>
       <Text size="1" color="gray" className={styles.userInfoRawID}>
         {rawID}
       </Text>

@@ -891,6 +891,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
                 <TextField
                   size="2"
                   type="date"
+                  inputClassName={styles.birthdateInput}
                   label={renderToString("standard-attribute.birthdate")}
                   value={birthdate ?? ""}
                   onChange={(event) => {

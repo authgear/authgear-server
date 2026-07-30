@@ -7,7 +7,38 @@
   display: none;
 }
 
-.saveButton {
-  @apply flex items-center justify-center;
-  @apply space-x-2;
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  color: var(--accent-9);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--gray-12);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.buttonContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
