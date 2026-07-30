@@ -8,7 +8,8 @@ import React, {
 import { Button } from "@radix-ui/themes";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
-import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../../hook/useFormWithExternalInitialState";
 import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsVeriticalFormLayout,
@@ -159,6 +160,7 @@ export const RoleDetailsSettingsForm: React.VFC<{
         name: sanitizedRole.name,
         description: sanitizedRole.description,
       });
+      return { result: undefined };
     },
     [role.id, updateRole]
   );
@@ -171,8 +173,7 @@ export const RoleDetailsSettingsForm: React.VFC<{
     };
   }, [role]);
 
-  const form = useSimpleForm({
-    stateMode: "UpdateInitialStateWithUseEffect",
+  const form = useFormWithExternalInitialState({
     defaultState,
     submit,
     validate,

@@ -217,7 +217,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     } = props;
     const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const screenBreakpoint = useScreenBreakpoint();
     const channelRadioColumns = screenBreakpoint === "mobile" ? 2 : 1;

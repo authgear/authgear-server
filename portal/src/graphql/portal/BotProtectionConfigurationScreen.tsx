@@ -1026,7 +1026,8 @@ export interface BotProtectionConfigurationContentProps {
 const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
   function BotProtectionConfigurationContent({ form }) {
     const { state, setState } = form;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeEnabled = useCallback(

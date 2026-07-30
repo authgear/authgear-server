@@ -558,7 +558,8 @@ const LanguagesConfigurationContent: React.VFC<LanguagesConfigurationContentProp
   function LanguagesConfigurationContent(props) {
     const { form, availableLanguages, builtinLanguages } = props;
     const { state, setState } = form;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangePrimaryLanguage = useCallback(

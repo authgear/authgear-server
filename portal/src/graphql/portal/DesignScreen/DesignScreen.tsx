@@ -973,7 +973,8 @@ interface DesignScreenContentProps {
 const DesignScreenContent: React.VFC<DesignScreenContentProps> =
   function DesignScreenContent(props) {
     const { appID, effectiveAppConfig, form } = props;
-    const { canSave, isDirty } = useFormContainerBaseContext();
+    const { canSave, getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const { triggerTester: onTry, isLoading: isTryLoading } = useTester(
       appID,

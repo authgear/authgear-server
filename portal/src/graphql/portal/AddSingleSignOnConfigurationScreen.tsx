@@ -139,7 +139,8 @@ const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFo
       newAlias,
       onMenuSelect,
     } = props;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const { appID } = useParams() as { appID: string };
 

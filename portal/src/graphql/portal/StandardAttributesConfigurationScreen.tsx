@@ -306,7 +306,8 @@ function ItemComponent(
 const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributesConfigurationScreenContentProps> =
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const [searchKeyword, setSearchKeyword] = useState("");

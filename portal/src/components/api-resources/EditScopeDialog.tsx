@@ -59,9 +59,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
           throw new Error("unexpected null data");
         }
         return result.data.updateScope.scope;
-      },
-      stateMode:
-        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
+      }
     });
 
     const {

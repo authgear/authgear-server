@@ -11,6 +11,8 @@ export interface DateTimePickerProps {
   hint?: React.ReactElement | null;
   pickedDateTime: Date | null;
   minDateTime: "now" | null;
+  // Optional upper bound. When set, the picker rejects dates/times after this value.
+  maxDateTime?: Date | null;
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
 }
@@ -40,7 +42,38 @@ function formatTime(date: Date | null): string {
   return DateTime.fromJSDate(date).toFormat("HH:mm");
 }
 
-function buildTimeOptions(minTime: string | undefined): string[] {
+function clampToMax(
+  candidate: DateTime,
+  maxDateTime: Date | null | undefined
+): DateTime {
+  if (maxDateTime == null) {
+    return candidate;
+  }
+  const max = DateTime.fromJSDate(maxDateTime);
+  if (candidate.valueOf() > max.valueOf()) {
+    return max;
+  }
+  return candidate;
+}
+
+function clampToMin(
+  candidate: DateTime,
+  minDateTime: "now" | null
+): DateTime {
+  if (minDateTime !== "now") {
+    return candidate;
+  }
+  const min = getNowWithSecondsStripped();
+  if (candidate < min) {
+    return min;
+  }
+  return candidate;
+}
+
+function buildTimeOptions(
+  minTime: string | undefined,
+  maxTime: string | undefined
+): string[] {
   const options: string[] = [];
   for (
     let minutes = 0;
@@ -53,9 +86,13 @@ function buildTimeOptions(minTime: string | undefined): string[] {
       2,
       "0"
     )}`;
-    if (minTime == null || value >= minTime) {
-      options.push(value);
+    if (minTime != null && value < minTime) {
+      continue;
     }
+    if (maxTime != null && value > maxTime) {
+      continue;
+    }
+    options.push(value);
   }
   return options;
 }
@@ -69,6 +106,7 @@ export default function DateTimePicker(
     hint,
     pickedDateTime,
     minDateTime,
+    maxDateTime = null,
     onPickDateTime,
     showClearButton,
   } = props;
@@ -88,6 +126,13 @@ export default function DateTimePicker(
         : undefined,
     [minDateTime]
   );
+  const maxDate = useMemo(
+    () =>
+      maxDateTime != null
+        ? DateTime.fromJSDate(maxDateTime).toFormat("yyyy-LL-dd")
+        : undefined,
+    [maxDateTime]
+  );
   const minTime = useMemo(() => {
     if (minDateTime !== "now" || pickedDateTime == null) {
       return undefined;
@@ -96,15 +141,23 @@ export default function DateTimePicker(
     const picked = DateTime.fromJSDate(pickedDateTime);
     return picked.hasSame(min, "day") ? min.toFormat("HH:mm") : undefined;
   }, [minDateTime, pickedDateTime]);
+  const maxTime = useMemo(() => {
+    if (maxDateTime == null || pickedDateTime == null) {
+      return undefined;
+    }
+    const max = DateTime.fromJSDate(maxDateTime);
+    const picked = DateTime.fromJSDate(pickedDateTime);
+    return picked.hasSame(max, "day") ? max.toFormat("HH:mm") : undefined;
+  }, [maxDateTime, pickedDateTime]);
 
   const timeOptions = useMemo(() => {
-    const options = buildTimeOptions(minTime);
+    const options = buildTimeOptions(minTime, maxTime);
     // Keep the currently selected value visible even if it is not on an increment.
     if (timeValue !== "" && !options.includes(timeValue)) {
       return [timeValue, ...options].sort();
     }
     return options;
-  }, [minTime, timeValue]);
+  }, [maxTime, minTime, timeValue]);
 
   const onChangeDate = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,15 +182,11 @@ export default function DateTimePicker(
         second: 0,
         millisecond: 0,
       });
-      if (minDateTime === "now") {
-        const min = getNowWithSecondsStripped();
-        if (candidate < min) {
-          candidate = min;
-        }
-      }
+      candidate = clampToMin(candidate, minDateTime);
+      candidate = clampToMax(candidate, maxDateTime);
       onPickDateTime(candidate.toJSDate());
     },
-    [minDateTime, onPickDateTime, pickedDateTime]
+    [maxDateTime, minDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onChangeTime = useCallback(
@@ -158,15 +207,11 @@ export default function DateTimePicker(
         second: 0,
         millisecond: 0,
       });
-      if (minDateTime === "now") {
-        const min = getNowWithSecondsStripped();
-        if (candidate < min) {
-          candidate = min;
-        }
-      }
+      candidate = clampToMin(candidate, minDateTime);
+      candidate = clampToMax(candidate, maxDateTime);
       onPickDateTime(candidate.toJSDate());
     },
-    [minDateTime, onPickDateTime, pickedDateTime]
+    [maxDateTime, minDateTime, onPickDateTime, pickedDateTime]
   );
 
   const onClickClear = useCallback(() => {
@@ -183,6 +228,7 @@ export default function DateTimePicker(
           type="date"
           value={dateValue}
           min={minDate}
+          max={maxDate}
           onChange={onChangeDate}
         />
         <Select.Root

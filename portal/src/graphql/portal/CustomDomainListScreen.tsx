@@ -560,7 +560,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       appConfigForm: {
         state,
         setState,
-        isDirty,
+        getIsDirty,
         isUpdating,
         save,
         reset,
@@ -580,6 +580,8 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       useState(false);
     const [deleteDomainDialogData, setDeleteDomainDialogData] =
       useState<DeleteDomainDialogData>({ domainID: "", domain: "" });
+
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
     const savedPublicOriginRef = useRef<string>(state.publicOrigin);
     useEffect(() => {

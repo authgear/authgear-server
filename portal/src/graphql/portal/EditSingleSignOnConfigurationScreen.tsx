@@ -101,7 +101,8 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       effectiveSecretConfig,
       publicOrigin,
     } = props;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const { appID } = useParams() as { appID: string };
 

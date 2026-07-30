@@ -47,7 +47,6 @@ interface FormState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
   oauthClients: OAuthClientConfig[];
-  sessionPersistentCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   sessionIdleTimeoutEnabled: boolean;
   sessionIdleTimeoutSeconds: number | undefined;
@@ -63,7 +62,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     enabled,
     promotionConflictBehaviour,
     oauthClients,
-    sessionPersistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     sessionIdleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     sessionIdleTimeoutSeconds: config.session?.idle_timeout_seconds,
@@ -148,7 +146,6 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
       sessionIdleTimeoutEnabled,
       sessionIdleTimeoutSeconds,
       sessionLifetimeSeconds,
-      sessionPersistentCookie,
       oauthClients,
     } = form.state;
 
@@ -240,15 +237,6 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                       ? formatSeconds(locale, sessionLifetimeSeconds) ?? ""
                       : "",
                 }}
-              />
-            </Text>
-            <LabelWithTooltip
-              labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie"
-              tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie"
-            />
-            <Text as="span" size="2">
-              <FormattedMessage
-                id={sessionPersistentCookie ? "enabled" : "disabled"}
               />
             </Text>
           </div>
@@ -366,7 +354,8 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
   function AnonymousUserConfigurationContent(props) {
     const { state, setState } = props.form;
 
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const conflictBehaviourOptions = useMemo(

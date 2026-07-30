@@ -523,7 +523,7 @@ const ThemePreviewWidget: React.VFC<Props> = forwardRef(
         /* @ts-expect-error */
         ref={ref}
         className={cn(className, styles.root, isDarkMode && styles.dark)}
-        style={rootStyle}
+        style={rootStyle as React.CSSProperties}
       >
         <div className={styles.page}>
           <div className={styles.content}>

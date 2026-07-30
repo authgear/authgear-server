@@ -74,7 +74,8 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
   function BiometricConfigurationContent(props) {
     const { state, setState } = props.form;
     const { identityFeatureConfig } = props;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onEnableChange = useCallback(

@@ -83,7 +83,8 @@ const CustomTextConfigurationContent: React.VFC<CustomTextConfigurationContentPr
       gitCommitHash,
       translationSheetLanguage,
     } = props;
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     return (

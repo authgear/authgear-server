@@ -47,8 +47,6 @@ const InviteAdminDialog: React.VFC<InviteAdminDialogProps> =
     );
 
     const form = useSimpleForm({
-      stateMode:
-        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
       defaultState,
       submit,
     });

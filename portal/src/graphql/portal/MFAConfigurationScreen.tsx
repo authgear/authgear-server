@@ -353,7 +353,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       smtpConfigured,
     } = state;
     const { renderToString } = useContext(Context);
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const onChangeMFAMode = useCallback(

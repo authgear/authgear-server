@@ -76,9 +76,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
           throw new Error("unexpected null data");
         }
         return result.data.createResource.resource.id;
-      },
-      stateMode:
-        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
+      }
     });
 
     const {

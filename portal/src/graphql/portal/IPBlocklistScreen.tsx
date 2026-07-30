@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef, useMemo} from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
@@ -108,7 +108,8 @@ interface IPBlocklistScreenContentProps {
 
 const IPBlocklistScreenContent: React.VFC<IPBlocklistScreenContentProps> =
   function IPBlocklistScreenContent({ form, appID, setCheckIPError }) {
-    const { isDirty } = useFormContainerBaseContext();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     const {
