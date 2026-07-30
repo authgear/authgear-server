@@ -1,3 +1,7 @@
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
 .widget {
   grid-column: 1 / span 8;
   @apply tablet:col-span-full;

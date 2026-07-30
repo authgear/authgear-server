@@ -1,5 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import cn from "classnames";
 import { FormattedMessage } from "../../intl";
 import { Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
@@ -18,6 +19,8 @@ import styles from "./EditCustomAttributeScreen.module.css";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
 } from "../../EditCustomAttributeForm";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 type FormState = CustomAttributeDraft;
 
@@ -104,6 +107,8 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const { index, form } = props;
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
+  const { isDirty } = useFormContainerBaseContext();
+  const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
@@ -112,8 +117,11 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   };
 
   return (
-    <ScreenContent layout="list">
-      <div className={styles.widget}>
+    <ScreenContent
+      layout="list"
+      className={cn(isDirty ? styles.contentWithSaveBar : null)}
+    >
+      <div ref={contentWidthAnchorRef} className={styles.widget}>
         <Link to={backURL} className={styles.backLink}>
           <ChevronLeftIcon className={styles.backLinkIcon} />
           <span>
@@ -131,6 +139,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
         draft={state}
         onChangeDraft={onChangeDraft}
       />
+      <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
     </ScreenContent>
   );
 }
@@ -168,7 +177,11 @@ const EditCustomAttributeScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} afterSave={afterSave}>
+      <FormContainer
+        form={form}
+        afterSave={afterSave}
+        hideFooterComponent={true}
+      >
         <EditCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );
