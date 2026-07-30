@@ -2,3 +2,14 @@
 .tooltip {
   z-index: 10001;
 }
+
+.tooltip :global(.ms-Link) {
+  color: var(--blue-8);
+  text-decoration: none;
+}
+
+.tooltip :global(.ms-Link:hover),
+.tooltip :global(.ms-Link:focus) {
+  color: var(--blue-7);
+  text-decoration: none;
+}
