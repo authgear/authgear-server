@@ -65,7 +65,17 @@ var _ = FeatureConfigSchema.Add("PhoneInputFeatureConfig", `
 `)
 
 type PhoneInputFeatureConfig struct {
-	AllowList []string `json:"allowlist,omitempty"`
+	// omitzero, not omitempty: nil (unset, inherit from plan) and an
+	// explicit empty slice (allow all countries) are semantically distinct
+	// here (see ApplyFeatureConfigConstraints/IntersectAllowlist). omitempty
+	// treats both as "empty" and drops the field either way, which loses
+	// the explicit-empty signal when this struct is re-marshaled during the
+	// merge fold's final yaml.Marshal step (configsource/resources.go's
+	// viewEffectiveResource) -- turning an explicit "allow all" override
+	// back into an absent field, indistinguishable from "not set", once
+	// re-parsed. omitzero only omits the true zero value (nil), preserving
+	// AllowList: []string{} through that round trip.
+	AllowList []string `json:"allowlist,omitzero"`
 }
 
 var _ = FeatureConfigSchema.Add("ISO31661Alpha2", phone.JSONSchemaString)

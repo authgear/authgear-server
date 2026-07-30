@@ -172,3 +172,86 @@ func TestFeatureConfigMigrate(t *testing.T) {
 		}})
 	})
 }
+
+// This mirrors configsource/resources.go's viewEffectiveResource exactly
+// (fold layers via Merge, then yaml.Marshal, then re-parse) rather than the
+// "merge feature config" Convey block above, which stops at
+// SetFieldDefaults/Migrate on the in-memory merged struct and so never
+// exercises the yaml.Marshal step -- the one place a field tagged
+// `omitempty` (as opposed to `omitzero`) can silently turn an explicit
+// empty slice back into an absent/nil field once re-parsed.
+func TestFeatureConfigEffectiveResourceRoundTrip(t *testing.T) {
+	Convey("an explicit empty phone_input.allowlist override survives the merge fold's marshal-and-reparse round trip", t, func() {
+		ctx := context.Background()
+
+		planYAML := []byte(`
+ui:
+  phone_input:
+    allowlist:
+      - US
+      - GB
+`)
+		appYAML := []byte(`
+ui:
+  phone_input:
+    allowlist: []
+`)
+
+		planCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, planYAML)
+		So(err, ShouldBeNil)
+		appCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, appYAML)
+		So(err, ShouldBeNil)
+
+		mergedConfig := &config.FeatureConfig{}
+		mergedConfig = mergedConfig.Merge(planCfg)
+		mergedConfig = mergedConfig.Merge(appCfg)
+
+		mergedYAML, err := yaml.Marshal(mergedConfig)
+		So(err, ShouldBeNil)
+
+		effective, err := config.ParseFeatureConfig(ctx, mergedYAML)
+		So(err, ShouldBeNil)
+
+		So(effective.UI, ShouldNotBeNil)
+		So(effective.UI.PhoneInput, ShouldNotBeNil)
+		So(effective.UI.PhoneInput.AllowList, ShouldResemble, []string{})
+	})
+
+	Convey("an app override that doesn't touch phone_input.allowlist inherits the plan's list", t, func() {
+		ctx := context.Background()
+
+		planYAML := []byte(`
+ui:
+  phone_input:
+    allowlist:
+      - US
+      - GB
+`)
+		// The app layer is present and non-empty, but never mentions
+		// phone_input -- this is the "not set" case, distinct from the
+		// explicit-empty case above, and must inherit the plan's list.
+		appYAML := []byte(`
+collaborator:
+  maximum: 5
+`)
+
+		planCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, planYAML)
+		So(err, ShouldBeNil)
+		appCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, appYAML)
+		So(err, ShouldBeNil)
+
+		mergedConfig := &config.FeatureConfig{}
+		mergedConfig = mergedConfig.Merge(planCfg)
+		mergedConfig = mergedConfig.Merge(appCfg)
+
+		mergedYAML, err := yaml.Marshal(mergedConfig)
+		So(err, ShouldBeNil)
+
+		effective, err := config.ParseFeatureConfig(ctx, mergedYAML)
+		So(err, ShouldBeNil)
+
+		So(effective.UI, ShouldNotBeNil)
+		So(effective.UI.PhoneInput, ShouldNotBeNil)
+		So(effective.UI.PhoneInput.AllowList, ShouldResemble, []string{"US", "GB"})
+	})
+}
