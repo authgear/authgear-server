@@ -58,7 +58,102 @@ configs:
         quota: 2
   - admin_api:
       create_session_enabled: true
+  - hook:
+      blocking_handler:
+        maximum: 5
+  - hook:
+      non_blocking_handler:
+        maximum: 7
+  - ui:
+      phone_input:
+        allowlist:
+          - US
+          - CA
+  - identity:
+      oauth:
+        providers:
+          apple:
+            disabled: true
+  - identity:
+      oauth:
+        maximum_providers: 150
+  - identity:
+      oauth:
+        providers:
+          wechat:
+            disabled: true
+  - identity:
+      login_id:
+        types:
+          phone:
+            disabled: true
+  - identity:
+      biometric:
+        disabled: true
+  - authenticator:
+      password:
+        policy:
+          history:
+            disabled: true
+  - authenticator:
+      password:
+        policy:
+          minimum_guessable_level:
+            disabled: true
+  - collaborator:
+      soft_maximum: 40
+  - messaging:
+      rate_limits:
+        sms:
+          enabled: true
+          period: 30s
+          burst: 3
+  - messaging:
+      rate_limits:
+        email:
+          enabled: true
+          period: 1h
+          burst: 9
+  - test_mode:
+      fixed_oob_otp:
+        enabled: true
+        code: "123456"
+  - test_mode:
+      sms:
+        suppressed: true
 result:
+  test_mode:
+    fixed_oob_otp:
+      enabled: true
+      code: "123456"
+    sms:
+      suppressed: true
+  authenticator:
+    password:
+      policy:
+        history:
+          disabled: true
+        minimum_guessable_level:
+          disabled: true
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+    oauth:
+      maximum_providers: 150
+      providers:
+        apple:
+          disabled: true
+        wechat:
+          disabled: true
+    biometric:
+      disabled: true
+  hook:
+    blocking_handler:
+      maximum: 5
+    non_blocking_handler:
+      maximum: 7
   admin_api:
     create_session_enabled: true
     user_import_usage:
@@ -72,6 +167,10 @@ result:
   ui:
     white_labeling:
       disabled: true
+    phone_input:
+      allowlist:
+        - US
+        - CA
   custom_domain:
     disabled: true
   oauth:
@@ -82,8 +181,17 @@ result:
       app2app_enabled: false
   collaborator:
     maximum: 3
-    soft_maximum: 30
+    soft_maximum: 40
   messaging:
+    rate_limits:
+      sms:
+        enabled: true
+        period: 30s
+        burst: 3
+      email:
+        enabled: true
+        period: 1h
+        burst: 9
     whatsapp_usage_count_disabled: true
     custom_sms_provider_disabled: true
     sms_usage:

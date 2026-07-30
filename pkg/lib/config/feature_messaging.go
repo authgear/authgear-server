@@ -44,9 +44,7 @@ func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureCon
 	if merged == nil {
 		merged = &MessagingFeatureConfig{}
 	}
-	if layer.Messaging.RateLimits != nil {
-		merged.RateLimits = layer.Messaging.RateLimits
-	}
+	merged.RateLimits = merged.RateLimits.Merge(layer.Messaging.RateLimits)
 	if layer.Messaging.SMSUsage != nil {
 		merged.SMSUsage = layer.Messaging.SMSUsage
 	}
@@ -131,6 +129,37 @@ type MessagingRateLimitsFeatureConfig struct {
 	Email          *RateLimitConfig `json:"email,omitempty"`
 	EmailPerIP     *RateLimitConfig `json:"email_per_ip,omitempty"`
 	EmailPerTarget *RateLimitConfig `json:"email_per_target,omitempty"`
+}
+
+func (c *MessagingRateLimitsFeatureConfig) Merge(layer *MessagingRateLimitsFeatureConfig) *MessagingRateLimitsFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	if layer.SMS != nil {
+		c.SMS = layer.SMS
+	}
+	if layer.SMSPerIP != nil {
+		c.SMSPerIP = layer.SMSPerIP
+	}
+	if layer.SMSPerTarget != nil {
+		c.SMSPerTarget = layer.SMSPerTarget
+	}
+	if layer.Email != nil {
+		c.Email = layer.Email
+	}
+	if layer.EmailPerIP != nil {
+		c.EmailPerIP = layer.EmailPerIP
+	}
+	if layer.EmailPerTarget != nil {
+		c.EmailPerTarget = layer.EmailPerTarget
+	}
+	return c
 }
 
 func (c *MessagingRateLimitsFeatureConfig) SetDefaults() {
