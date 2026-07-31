@@ -1,6 +1,5 @@
-import React, { useCallback, useRef, useMemo} from "react";
+import React, { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import cn from "classnames";
 import { FormattedMessage } from "../../intl";
 import { Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
@@ -22,7 +21,8 @@ import {
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
 } from "../../EditCustomAttributeForm";
-import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./CreateCustomAttributeScreen.module.css";
 
@@ -83,9 +83,8 @@ function CreateCustomAttributeContent(
   const { index, form } = props;
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
-  const { getIsDirty } = useFormContainerBaseContext();
-    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
-  const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+  const { canSave, isUpdating } = useFormContainerBaseContext();
+  const navigate = useNavigate();
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
@@ -98,15 +97,13 @@ function CreateCustomAttributeContent(
     });
   };
 
+  const onCancel = useCallback(() => {
+    navigate(backURL);
+  }, [backURL, navigate]);
+
   return (
-    <ScreenContent
-      layout="list"
-      className={cn(isDirty ? styles.contentWithSaveBar : null)}
-    >
-      <div
-        ref={contentWidthAnchorRef}
-        className={styles.widget}
-      >
+    <ScreenContent layout="list">
+      <div className={styles.widget}>
         <Link to={backURL} className={styles.backLink}>
           <ChevronLeftIcon className={styles.backLinkIcon} />
           <span>
@@ -124,7 +121,22 @@ function CreateCustomAttributeContent(
         draft={state}
         onChangeDraft={onChangeDraft}
       />
-      <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      <div className={styles.actions}>
+        <PrimaryButton
+          size="2"
+          disabled={!canSave || isUpdating}
+          loading={isUpdating}
+          type="submit"
+          text={<FormattedMessage id="create" />}
+        />
+        <SecondaryButton
+          size="2"
+          disabled={isUpdating}
+          type="button"
+          onClick={onCancel}
+          text={<FormattedMessage id="cancel" />}
+        />
+      </div>
     </ScreenContent>
   );
 }
