@@ -395,7 +395,7 @@ export function AccountValidPeriodForm(
       {showEndAtWarning ? (
         <Callout
           type="warning"
-          color={calloutColor}
+          color="yellow"
           size={calloutSize}
           showCloseButton={false}
           text={<FormattedMessage id="AccountValidPeriodForm.end-at-warning" />}
@@ -441,7 +441,12 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
 
             {buttonStates.toggleDisable.temporarilyDisabledUntil != null ? (
               <>
-                <Text as="p" size="2" weight="medium" className={styles.cellLabel}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cellLabel}
+                >
                   <FormattedMessage
                     id="UserDetailsAccountStatus.disable-user.until"
                     values={{
@@ -568,14 +573,12 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
           }
         >
           <CalendarIcon />
-          {
-            buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
-              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
-            ) : (
-              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
-            )
-          }
+          {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
+          buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+            <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
+          ) : (
+            <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
+          )}
         </StatusActionButton>
       </ListCellLayout>
     );
@@ -592,10 +595,19 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
     const buttonStates = getButtonStates(data);
     return (
       <ListCellLayout className={styles.actionCell}>
-        <Text as="p" size="2" weight="medium" className={cn(styles.actionCellLabel, styles.cellLabel)}>
+        <Text
+          as="p"
+          size="2"
+          weight="medium"
+          className={cn(styles.actionCellLabel, styles.cellLabel)}
+        >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.title" />
         </Text>
-        <Text as="p" size="2" className={cn(styles.actionCellBody, styles.cellBody)}>
+        <Text
+          as="p"
+          size="2"
+          className={cn(styles.actionCellBody, styles.cellBody)}
+        >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.body" />
         </Text>
         {buttonStates.anonymize.anonymizeAt != null ? (
@@ -644,10 +656,19 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   const buttonStates = getButtonStates(data);
   return (
     <ListCellLayout className={styles.actionCell}>
-      <Text as="p" size="2" weight="medium" className={cn(styles.actionCellLabel, styles.cellLabel)}>
+      <Text
+        as="p"
+        size="2"
+        weight="medium"
+        className={cn(styles.actionCellLabel, styles.cellLabel)}
+      >
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.title" />
       </Text>
-      <Text as="p" size="2" className={cn(styles.actionCellBody, styles.cellBody)}>
+      <Text
+        as="p"
+        size="2"
+        className={cn(styles.actionCellBody, styles.cellBody)}
+      >
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.body" />
       </Text>
       {buttonStates.delete.deleteAt != null ? (
@@ -1480,14 +1501,14 @@ export function AccountStatusDialog(
         body = accountValidPeriodForm;
         button1 = (
           <Button
-          size="2"
-          color="indigo"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickSetAccountValidPeriod}
-        >
-          <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
-        </Button>
+            size="2"
+            color="indigo"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickSetAccountValidPeriod}
+          >
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
+          </Button>
         );
         break;
       case "edit-account-valid-period":
@@ -1505,25 +1526,25 @@ export function AccountStatusDialog(
         );
         button1 = (
           <Button
-          size="2"
-          color="indigo"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickScheduleAnonymization}
-        >
-          <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
-        </Button>
+            size="2"
+            color="indigo"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickScheduleAnonymization}
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
+          </Button>
         );
         button2 = (
           <Button
-          size="2"
-          color="red"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickAnonymize}
-        >
-          <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
-        </Button>
+            size="2"
+            color="red"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickAnonymize}
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+          </Button>
         );
         break;
       case "cancel-anonymization":
@@ -1541,14 +1562,14 @@ export function AccountStatusDialog(
         );
         button1 = (
           <Button
-          size="2"
-          color="red"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickAnonymize}
-        >
-          <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
-        </Button>
+            size="2"
+            color="red"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickAnonymize}
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+          </Button>
         );
         break;
 
@@ -1562,25 +1583,25 @@ export function AccountStatusDialog(
         );
         button1 = (
           <Button
-          size="2"
-          color="indigo"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickScheduleDeletion}
-        >
-          <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
-        </Button>
+            size="2"
+            color="indigo"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickScheduleDeletion}
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
+          </Button>
         );
         button2 = (
           <Button
-          size="2"
-          color="red"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickDelete}
-        >
-          <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
-        </Button>
+            size="2"
+            color="red"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickDelete}
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+          </Button>
         );
         break;
       case "cancel-deletion":
@@ -1597,14 +1618,14 @@ export function AccountStatusDialog(
         );
         button1 = (
           <Button
-          size="2"
-          color="red"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickDelete}
-        >
-          <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
-        </Button>
+            size="2"
+            color="red"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickDelete}
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+          </Button>
         );
         break;
       case "reset-account-lockout":
@@ -1619,14 +1640,14 @@ export function AccountStatusDialog(
         );
         button1 = (
           <Button
-          size="2"
-          color="indigo"
-          disabled={loading}
-          loading={loading}
-          onClick={onClickResetAccountLockout}
-        >
-          <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
-        </Button>
+            size="2"
+            color="indigo"
+            disabled={loading}
+            loading={loading}
+            onClick={onClickResetAccountLockout}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
+          </Button>
         );
         break;
       case "auto": {
@@ -1699,7 +1720,8 @@ export function AccountStatusDialog(
           <Dialog.Title>
             {dialogContentPropsAndDialogSlots.dialogContentProps.title}
           </Dialog.Title>
-          {dialogContentPropsAndDialogSlots.dialogContentProps.subText != null ? (
+          {dialogContentPropsAndDialogSlots.dialogContentProps.subText !=
+          null ? (
             <Dialog.Description size="2">
               {dialogContentPropsAndDialogSlots.dialogContentProps.subText}
             </Dialog.Description>
@@ -1851,9 +1873,7 @@ export function AccountStatusMessageBar(
     return null;
   }
 
-  return (
-    <Callout type="warning" text={message} showCloseButton={false} />
-  );
+  return <Callout type="warning" text={message} showCloseButton={false} />;
 }
 
 export default UserDetailsAccountStatus;

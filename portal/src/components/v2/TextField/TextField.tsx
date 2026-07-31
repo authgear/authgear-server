@@ -48,6 +48,7 @@ export interface TextInputProps {
 
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onClick?: React.MouseEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
@@ -165,6 +166,7 @@ function Input({
   error,
   value,
   onChange,
+  onClick,
   onBlur,
   onFocus,
   inputClassName,
@@ -189,6 +191,7 @@ function Input({
       required={required}
       value={value}
       onChange={onChange}
+      onClick={onClick}
       onBlur={onBlur}
       onFocus={onFocus}
     >

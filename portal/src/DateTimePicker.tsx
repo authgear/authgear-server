@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 import cn from "classnames";
-import { Button, Select, TextField } from "@radix-ui/themes";
+import { Button, Select } from "@radix-ui/themes";
 import { FormattedMessage } from "./intl";
 import { DateTime } from "luxon";
+import { DateField } from "./components/v2/DateField/DateField";
 import styles from "./DateTimePicker.module.css";
 
 export interface DateTimePickerProps {
@@ -20,12 +21,10 @@ export interface DateTimePickerProps {
 const TIME_INCREMENT_MINUTES = 60;
 
 function getNowWithSecondsStripped(): DateTime {
-  return DateTime.now()
-    .plus({ minute: 1 })
-    .set({
-      second: 0,
-      millisecond: 0,
-    });
+  return DateTime.now().plus({ minute: 1 }).set({
+    second: 0,
+    millisecond: 0,
+  });
 }
 
 function formatDate(date: Date | null): string {
@@ -56,10 +55,7 @@ function clampToMax(
   return candidate;
 }
 
-function clampToMin(
-  candidate: DateTime,
-  minDateTime: "now" | null
-): DateTime {
+function clampToMin(candidate: DateTime, minDateTime: "now" | null): DateTime {
   if (minDateTime !== "now") {
     return candidate;
   }
@@ -75,11 +71,7 @@ function buildTimeOptions(
   maxTime: string | undefined
 ): string[] {
   const options: string[] = [];
-  for (
-    let minutes = 0;
-    minutes < 24 * 60;
-    minutes += TIME_INCREMENT_MINUTES
-  ) {
+  for (let minutes = 0; minutes < 24 * 60; minutes += TIME_INCREMENT_MINUTES) {
     const hour = Math.floor(minutes / 60);
     const minute = minutes % 60;
     const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(
@@ -111,14 +103,8 @@ export default function DateTimePicker(
     showClearButton,
   } = props;
 
-  const dateValue = useMemo(
-    () => formatDate(pickedDateTime),
-    [pickedDateTime]
-  );
-  const timeValue = useMemo(
-    () => formatTime(pickedDateTime),
-    [pickedDateTime]
-  );
+  const dateValue = useMemo(() => formatDate(pickedDateTime), [pickedDateTime]);
+  const timeValue = useMemo(() => formatTime(pickedDateTime), [pickedDateTime]);
   const minDate = useMemo(
     () =>
       minDateTime === "now"
@@ -160,13 +146,13 @@ export default function DateTimePicker(
   }, [maxTime, minTime, timeValue]);
 
   const onChangeDate = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (event.currentTarget.value === "") {
+    (value: string) => {
+      if (value === "") {
         onPickDateTime(null);
         return;
       }
 
-      const selectedDate = DateTime.fromISO(event.currentTarget.value);
+      const selectedDate = DateTime.fromISO(value);
       if (!selectedDate.isValid) {
         return;
       }
@@ -222,34 +208,37 @@ export default function DateTimePicker(
     <div className={cn(className, styles.root)}>
       {label != null ? label : null}
       <div className={styles.inputRow}>
-        <TextField.Root
-          className={styles.input}
-          size="2"
-          type="date"
-          value={dateValue}
-          min={minDate}
-          max={maxDate}
-          onChange={onChangeDate}
-        />
-        <Select.Root
-          size="2"
-          value={timeValue === "" ? undefined : timeValue}
-          onValueChange={onChangeTime}
-          disabled={pickedDateTime == null}
-        >
-          <Select.Trigger
-            className={styles.timeSelectTrigger}
-            variant="surface"
-            placeholder="--"
+        <div className={styles.input}>
+          <DateField
+            size="2"
+            value={dateValue}
+            min={minDate}
+            max={maxDate}
+            onChange={onChangeDate}
+            placeholder=""
           />
-          <Select.Content position="popper">
-            {timeOptions.map((option) => (
-              <Select.Item key={option} value={option}>
-                {option}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+        </div>
+        <div className={styles.timeInput}>
+          <Select.Root
+            size="2"
+            value={timeValue === "" ? undefined : timeValue}
+            onValueChange={onChangeTime}
+            disabled={pickedDateTime == null}
+          >
+            <Select.Trigger
+              className={styles.timeSelectTrigger}
+              variant="surface"
+              placeholder="--"
+            />
+            <Select.Content position="popper">
+              {timeOptions.map((option) => (
+                <Select.Item key={option} value={option}>
+                  {option}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </div>
         {showClearButton ? (
           <Button
             type="button"

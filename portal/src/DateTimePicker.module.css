@@ -15,18 +15,12 @@
   min-width: 0;
 }
 
-.input :global(.rt-TextFieldInput) {
-  position: relative;
-}
-
-.input :global(.rt-TextFieldInput::-webkit-calendar-picker-indicator) {
-  position: absolute;
-  right: var(--space-2);
+.timeInput {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .timeSelectTrigger {
-  flex: 1 1 0;
-  min-width: 0;
   width: 100%;
 }
 
@@ -36,6 +30,7 @@
   }
 
   .input,
+  .timeInput,
   .timeSelectTrigger {
     width: 100%;
   }

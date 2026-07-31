@@ -3,14 +3,16 @@ import React, {
   useMemo,
   useCallback,
   useState,
+  useRef,
   Children,
 } from "react";
 import type { IDropdownOption } from "@fluentui/react";
 import { Select, Text } from "@radix-ui/themes";
+import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { parseBirthdate, toBirthdate } from "../../util/birthdate";
+import { parseBirthdate } from "../../util/birthdate";
 import {
   StandardAttributes,
   StandardAttributesAddress,
@@ -31,8 +33,6 @@ import { TextField } from "../../components/v2/TextField/TextField";
 import { FormField } from "../../components/v2/FormField/FormField";
 
 import styles from "./UserProfileForm.module.css";
-import PrimaryButton from "../../PrimaryButton";
-import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 export interface StandardAttributesAddressState {
   street_address: string;
@@ -88,11 +88,6 @@ function getInitialGenderVariant(gender: string | undefined): GenderVariant {
   return "other";
 }
 
-function parseDateFromString(str: string): Date | null {
-  return parseBirthdate(str) ?? null;
-}
-
-
 interface DivProps {
   className?: string;
   children?: React.ReactNode;
@@ -144,16 +139,11 @@ function ProfileSelectField({
         <Select.Root
           value={value === "" ? EMPTY_SELECT_VALUE : value}
           onValueChange={(newValue) => {
-            onValueChange(
-              newValue === EMPTY_SELECT_VALUE ? "" : newValue
-            );
+            onValueChange(newValue === EMPTY_SELECT_VALUE ? "" : newValue);
           }}
           disabled={disabled}
         >
-          <Select.Trigger
-            variant="surface"
-            className={styles.selectTrigger}
-          />
+          <Select.Trigger variant="surface" className={styles.selectTrigger} />
           <Select.Content>
             {options.map((option) => {
               const optionValue = String(option.key);
@@ -163,9 +153,7 @@ function ProfileSelectField({
                   className={
                     option.hidden ? styles.hiddenSelectItem : undefined
                   }
-                  value={
-                    optionValue === "" ? EMPTY_SELECT_VALUE : optionValue
-                  }
+                  value={optionValue === "" ? EMPTY_SELECT_VALUE : optionValue}
                 >
                   {option.text || "\u00a0"}
                 </Select.Item>
@@ -749,26 +737,59 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     );
 
     const birthdate = standardAttributes.birthdate;
-    const onSelectBirthdate = useCallback(
-      (date: Date | null | undefined) => {
+    const birthdatePickerRef = useRef<HTMLInputElement>(null);
+    // Native date inputs only accept a valid yyyy-MM-dd value.
+    const birthdatePickerValue = useMemo(() => {
+      if (birthdate == null || birthdate === "") {
+        return "";
+      }
+      return parseBirthdate(birthdate) != null ? birthdate : "";
+    }, [birthdate]);
+    const onChangeBirthdate = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
         if (onChangeStandardAttributes == null) {
           return;
         }
-
-        if (date == null || isNaN(date.getTime())) {
-          onChangeStandardAttributes({
-            ...standardAttributes,
-            birthdate: undefined,
-          });
-        } else {
-          onChangeStandardAttributes({
-            ...standardAttributes,
-            birthdate: toBirthdate(date),
-          });
-        }
+        const value = event.target.value;
+        onChangeStandardAttributes({
+          ...standardAttributes,
+          birthdate: value === "" ? undefined : value,
+        });
       },
       [standardAttributes, onChangeStandardAttributes]
     );
+    const onPickBirthdate = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (onChangeStandardAttributes == null) {
+          return;
+        }
+        const value = event.target.value;
+        onChangeStandardAttributes({
+          ...standardAttributes,
+          // input[type=date] always yields yyyy-MM-dd (or "").
+          birthdate: value === "" ? undefined : value,
+        });
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
+    const openBirthdatePicker = useCallback(() => {
+      if (isDisabled("birthdate")) {
+        return;
+      }
+      const input = birthdatePickerRef.current;
+      if (input == null) {
+        return;
+      }
+      try {
+        if (typeof input.showPicker === "function") {
+          input.showPicker();
+        } else {
+          input.click();
+        }
+      } catch {
+        input.click();
+      }
+    }, [isDisabled]);
 
     const zoneinfo = standardAttributes.zoneinfo;
     const zoneinfoOptions = useMemo(
@@ -890,14 +911,40 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
               {isReadable("birthdate") ? (
                 <TextField
                   size="2"
-                  type="date"
-                  inputClassName={styles.birthdateInput}
+                  type="text"
                   label={renderToString("standard-attribute.birthdate")}
                   value={birthdate ?? ""}
-                  onChange={(event) => {
-                    onSelectBirthdate(parseDateFromString(event.target.value));
-                  }}
+                  placeholder="yyyy-MM-dd"
+                  onChange={onChangeBirthdate}
+                  onClick={openBirthdatePicker}
                   disabled={isDisabled("birthdate")}
+                  inputClassName={styles.birthdateTextField}
+                  suffixPlain={true}
+                  suffix={
+                    <span
+                      className={styles.birthdatePickerWrap}
+                      onClick={openBirthdatePicker}
+                    >
+                      <CalendarIcon
+                        className={styles.birthdatePickerIcon}
+                        width="1rem"
+                        height="1rem"
+                        aria-hidden={true}
+                      />
+                      <input
+                        ref={birthdatePickerRef}
+                        type="date"
+                        className={styles.birthdateNativePicker}
+                        value={birthdatePickerValue}
+                        onChange={onPickBirthdate}
+                        disabled={isDisabled("birthdate")}
+                        tabIndex={-1}
+                        aria-label={renderToString(
+                          "standard-attribute.birthdate"
+                        )}
+                      />
+                    </span>
+                  }
                 />
               ) : null}
               {isReadable("gender") ? (
@@ -919,7 +966,9 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
                   onChangeGenderString(event, event.target.value);
                 }}
                 disabled={isDisabled("gender")}
-                label={renderToString("standard-attribute.gender") + " (custom)"}
+                label={
+                  renderToString("standard-attribute.gender") + " (custom)"
+                }
               />
             ) : null}
             <Div className={styles.twoColumnGroup}>
@@ -1128,8 +1177,6 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
       onChangeCustomAttributes,
       customAttributesConfig,
     } = props;
-    const { renderToString } = useContext(Context);
-    const { canSave, onSave } = useFormContainerBaseContext();
 
     return (
       <div className={styles.root}>
@@ -1146,13 +1193,6 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
             customAttributesConfig={customAttributesConfig}
           />
         ) : null}
-        <div>
-          <PrimaryButton
-            text={renderToString("save")}
-            disabled={!canSave}
-            onClick={onSave}
-          />
-        </div>
       </div>
     );
   };
