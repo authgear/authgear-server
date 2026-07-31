@@ -1182,6 +1182,7 @@
   "NavigationBlockerDialog.confirm": "Discard and leave",
   "SwitchTabBlockerDialog.title": "Discard all changes?",
   "SwitchTabBlockerDialog.content": "Are you sure you want to discard all changes made and leave this tab?",
+  "SwitchTabBlockerDialog.confirm": "Discard and leave",
   "PasswordField.min-length": "Minimum {minLength} characters",
   "PasswordField.lowercase-required": "At least 1 lowercase character",
   "PasswordField.uppercase-required": "At least 1 uppercase character",

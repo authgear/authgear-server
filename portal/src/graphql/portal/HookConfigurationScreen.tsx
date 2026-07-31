@@ -25,6 +25,7 @@ import {
   Tooltip as RadixTooltip,
 } from "@radix-ui/themes";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import BlockerDialog from "../../BlockerDialog";
 import ScreenContent from "../../ScreenContent";
 import { PrimaryButton as RadixPrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
@@ -1274,6 +1275,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
     const [activeTab, setActiveTab] = useState("blocking-events");
+    const [pendingTab, setPendingTab] = useState<string | null>(null);
     const [blockingTableEditing, setBlockingTableEditing] = useState(false);
     const [nonBlockingTableEditing, setNonBlockingTableEditing] = useState(false);
     const hookTableEditing = blockingTableEditing || nonBlockingTableEditing;
@@ -1773,6 +1775,33 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       }
     }, [form.isDirty]);
 
+    const onTabValueChange = useCallback(
+      (nextTab: string) => {
+        if (nextTab === activeTab) {
+          return;
+        }
+        if (form.isDirty) {
+          setPendingTab(nextTab);
+          return;
+        }
+        setActiveTab(nextTab);
+      },
+      [activeTab, form.isDirty]
+    );
+
+    const onDiscardTabSwitchDismiss = useCallback(() => {
+      setPendingTab(null);
+    }, []);
+
+    const onDiscardTabSwitchConfirm = useCallback(() => {
+      if (pendingTab != null) {
+        form.reset();
+        setCodeEditorState(null);
+        setActiveTab(pendingTab);
+      }
+      setPendingTab(null);
+    }, [form, pendingTab]);
+
     const contentWidthAnchorRef = React.useRef<HTMLDivElement>(null);
 
     return (
@@ -1868,7 +1897,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
               <Tabs.Root
                 className={styles.tabsRoot}
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={onTabValueChange}
               >
                 <Tabs.List className={styles.tabsList}>
                   <Tabs.Trigger value="blocking-events">
@@ -2093,6 +2122,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
             </>
           )}
         </HookScreenWithSaveBar>
+        <BlockerDialog
+          open={pendingTab != null}
+          contentTitleId="SwitchTabBlockerDialog.title"
+          contentSubTextId="SwitchTabBlockerDialog.content"
+          contentConfirmId="SwitchTabBlockerDialog.confirm"
+          onDialogConfirm={onDiscardTabSwitchConfirm}
+          onDialogDismiss={onDiscardTabSwitchDismiss}
+        />
       </FormContainer>
     );
   };
