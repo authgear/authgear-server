@@ -1,5 +1,12 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
@@ -346,16 +353,22 @@ const MASKED_SECRET = "***************";
 
 const WEBHOOK_SIGNATURE_ID = "webhook-signature";
 
+const EMPTY_ENDPOINT_ERROR_INDICES: ReadonlySet<number> = new Set();
+
+function isBlockingEvent(event: string): event is BlockingEvent {
+  return (BLOCK_EVENT_TYPES as readonly string[]).includes(event);
+}
+
 function BlockingEventInfoIcon({
   event,
 }: {
   event: string;
 }): React.ReactElement | null {
-  const messageID =
-    BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS[event as BlockingEvent];
-  if (messageID == null) {
+  if (!isBlockingEvent(event)) {
     return null;
   }
+
+  const messageID = BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS[event];
 
   return (
     <RadixTooltip content={<FormattedMessage id={messageID} />}>
@@ -363,7 +376,7 @@ function BlockingEventInfoIcon({
         className={styles.hookEventInfoIcon}
         width="1rem"
         height="1rem"
-        aria-hidden
+        aria-hidden={true}
       />
     </RadixTooltip>
   );
@@ -392,9 +405,7 @@ function CopyIconButton({
   return (
     <RadixTooltip
       content={
-        copied
-          ? renderToString("copied-to-clipboard")
-          : renderToString("copy")
+        copied ? renderToString("copied-to-clipboard") : renderToString("copy")
       }
       open={copied ? true : undefined}
     >
@@ -436,7 +447,6 @@ function RevealIconButton({
     </RadixTooltip>
   );
 }
-
 
 function constructConfigFormState(
   config: PortalAPIAppConfig,
@@ -702,7 +712,7 @@ function BlockingHooksTable({
     if (expandedIndex == null || !endpointErrorIndices.has(expandedIndex)) {
       return null;
     }
-    if (draft == null || draft.kind !== "webhook") {
+    if (draft?.kind !== "webhook") {
       return null;
     }
     return (
@@ -768,11 +778,18 @@ function BlockingHooksTable({
                     onClick={() => onClickEdit(index)}
                     aria-expanded={isOpen}
                   >
-                    <RadixText size="2" weight="medium" className={styles.hookCellTruncate}>
+                    <RadixText
+                      size="2"
+                      weight="medium"
+                      className={styles.hookCellTruncate}
+                    >
                       {handler.event}
                     </RadixText>
                     {handler.isDirty ? (
-                      <span className={styles.hookDirtyDot} aria-hidden={true} />
+                      <span
+                        className={styles.hookDirtyDot}
+                        aria-hidden={true}
+                      />
                     ) : null}
                   </button>
                   <RadixIconButton
@@ -805,7 +822,12 @@ function BlockingHooksTable({
                 {isOpen && draft != null ? (
                   <div className={styles.hookAccordionBody}>
                     <div className={styles.hookAccordionField}>
-                      <RadixText as="label" size="1" weight="medium" color="gray">
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
                         <FormattedMessage id="HookConfigurationScreen.header.type.label" />
                       </RadixText>
                       <Select.Root
@@ -834,7 +856,11 @@ function BlockingHooksTable({
                       >
                         <Flex direction="column" gap="3">
                           {BLOCK_EVENT_CATEGORIES.map((category) => (
-                            <Flex key={category.labelId} direction="column" gap="2">
+                            <Flex
+                              key={category.labelId}
+                              direction="column"
+                              gap="2"
+                            >
                               <RadixText
                                 as="p"
                                 size="1"
@@ -879,7 +905,12 @@ function BlockingHooksTable({
                     ) : null}
                     {draft.kind === "denohook" ? (
                       <div className={styles.hookAccordionField}>
-                        <RadixText as="label" size="1" weight="medium" color="gray">
+                        <RadixText
+                          as="label"
+                          size="1"
+                          weight="medium"
+                          color="gray"
+                        >
                           <FormattedMessage id="HookConfigurationScreen.action.script.label" />
                         </RadixText>
                         <button
@@ -914,7 +945,6 @@ function BlockingHooksTable({
     </>
   );
 }
-
 
 interface NonBlockingHooksTableProps {
   handlers: NonBlockingEventHandler[];
@@ -1073,7 +1103,7 @@ function NonBlockingHooksTable({
     if (!showEndpointErrors) {
       return null;
     }
-    if (draft == null || draft.kind !== "webhook") {
+    if (draft?.kind !== "webhook") {
       return null;
     }
     if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
@@ -1136,7 +1166,10 @@ function NonBlockingHooksTable({
                       {headerLabel}
                     </RadixText>
                     {handler.isDirty ? (
-                      <span className={styles.hookDirtyDot} aria-hidden={true} />
+                      <span
+                        className={styles.hookDirtyDot}
+                        aria-hidden={true}
+                      />
                     ) : null}
                   </button>
                   <RadixIconButton
@@ -1168,20 +1201,32 @@ function NonBlockingHooksTable({
                 {isOpen && draft != null ? (
                   <div className={styles.hookAccordionBody}>
                     <div className={styles.hookAccordionField}>
-                      <RadixText as="label" size="1" weight="medium" color="gray">
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
                         <FormattedMessage id="HookConfigurationScreen.non-blocking-handler.name.label" />
                       </RadixText>
                       <RadixTextField.Input
                         size="2"
                         value={draft.name}
                         onChange={onDraftNameChange}
-                        placeholder={renderToString("HookConfigurationScreen.non-blocking-handler.name.placeholder")}
+                        placeholder={renderToString(
+                          "HookConfigurationScreen.non-blocking-handler.name.placeholder"
+                        )}
                       >
                         {null}
                       </RadixTextField.Input>
                     </div>
                     <div className={styles.hookAccordionField}>
-                      <RadixText as="label" size="1" weight="medium" color="gray">
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
                         <FormattedMessage id="HookConfigurationScreen.header.type.label" />
                       </RadixText>
                       <Select.Root
@@ -1221,7 +1266,12 @@ function NonBlockingHooksTable({
                     ) : null}
                     {draft.kind === "denohook" ? (
                       <div className={styles.hookAccordionField}>
-                        <RadixText as="label" size="1" weight="medium" color="gray">
+                        <RadixText
+                          as="label"
+                          size="1"
+                          weight="medium"
+                          color="gray"
+                        >
                           <FormattedMessage id="HookConfigurationScreen.action.script.label" />
                         </RadixText>
                         <button
@@ -1269,7 +1319,11 @@ function HookScreenWithSaveBar({
   const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   return (
     <ScreenContent
-      className={isDirty && codeEditorState == null ? styles.contentWithSaveBar : undefined}
+      className={
+        isDirty && codeEditorState == null
+          ? styles.contentWithSaveBar
+          : undefined
+      }
     >
       {children}
       {codeEditorState == null ? (
@@ -1346,37 +1400,48 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         config.getIsDirty() ||
         resources.getIsDirty() ||
         codeEditorState?.value != null,
+      // getIsDirty identities are stable (see useLiveState); listing the
+      // whole form model objects would recreate this callback every render.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [config.getIsDirty, resources.getIsDirty, codeEditorState?.value]
     );
 
-    const form: FormModel = {
-      isLoading: config.isLoading || resources.isLoading,
-      isUpdating: config.isUpdating || resources.isUpdating,
-      getIsDirty: getHasUnsavedChanges,
-      loadError: config.loadError ?? resources.loadError,
-      updateError: config.updateError ?? resources.updateError,
-      state,
-      setState: (fn) => {
-        const newState = fn(state);
-        const { resources: newResources, ...configState } = newState;
-        config.setState(() => ({
-          ...configState,
-        }));
-        resources.setState(() => newResources);
-      },
-      reload: () => {
-        resources.reload();
-        config.reload();
-      },
-      reset: () => {
-        resources.reset();
-        config.reset();
-      },
-      save: async (ignoreConflict: boolean = false) => {
-        await resources.save(ignoreConflict);
-        await config.save(ignoreConflict);
-      },
-    };
+    const hasUnsavedChanges = useMemo(
+      () => getHasUnsavedChanges(),
+      [getHasUnsavedChanges]
+    );
+
+    const form: FormModel = useMemo(
+      () => ({
+        isLoading: config.isLoading || resources.isLoading,
+        isUpdating: config.isUpdating || resources.isUpdating,
+        getIsDirty: getHasUnsavedChanges,
+        loadError: config.loadError ?? resources.loadError,
+        updateError: config.updateError ?? resources.updateError,
+        state,
+        setState: (fn) => {
+          const newState = fn(state);
+          const { resources: newResources, ...configState } = newState;
+          config.setState(() => ({
+            ...configState,
+          }));
+          resources.setState(() => newResources);
+        },
+        reload: () => {
+          resources.reload();
+          config.reload();
+        },
+        reset: () => {
+          resources.reset();
+          config.reset();
+        },
+        save: async (ignoreConflict: boolean = false) => {
+          await resources.save(ignoreConflict);
+          await config.save(ignoreConflict);
+        },
+      }),
+      [config, resources, state, getHasUnsavedChanges]
+    );
 
     const { setState } = form;
 
@@ -1482,9 +1547,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const onTimeoutChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
-          timeout: parseIntegerAllowLeadingZeros(e.target.value),
+          timeout: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -1492,9 +1558,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const onTotalTimeoutChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
-          totalTimeout: parseIntegerAllowLeadingZeros(e.target.value),
+          totalTimeout: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -1693,7 +1760,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     }, [navigate, state.secret]);
 
     const isSecretMasked = !revealed || state.secret == null;
-    const secretKeyValue = isSecretMasked ? MASKED_SECRET : (state.secret ?? "");
+    const secretKeyValue = isSecretMasked ? MASKED_SECRET : state.secret ?? "";
 
     const blockingHandlerMax = useMemo(() => {
       return hookFeatureConfig?.blocking_handler?.maximum ?? 99;
@@ -1843,11 +1910,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     ]);
 
     useEffect(() => {
-      if (!getHasUnsavedChanges()) {
-        setShowEndpointErrors(false);
-        setBlockingEndpointErrorIndices(new Set());
+      if (hasUnsavedChanges) {
+        return;
       }
-    }, [getHasUnsavedChanges]);
+      setShowEndpointErrors(false);
+      setBlockingEndpointErrorIndices((prev) =>
+        prev.size === 0 ? prev : EMPTY_ENDPOINT_ERROR_INDICES
+      );
+    }, [hasUnsavedChanges]);
 
     const onTabValueChange = useCallback(
       (nextTab: string) => {
@@ -1891,9 +1961,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           {codeEditorState != null ? (
             <div className={cn(styles.codeEditorContainer)}>
               <div className={cn(styles.widget, styles.pageHeader)}>
-                <h1 className={styles.pageTitle}>
+                <RadixText
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  className={styles.pageTitle}
+                >
                   <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                </h1>
+                </RadixText>
                 <RadixText
                   as="p"
                   size="2"
@@ -1955,9 +2030,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 ref={contentWidthAnchorRef}
                 className={cn(styles.widget, styles.pageHeader)}
               >
-                <h1 className={styles.pageTitle}>
+                <RadixText
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  className={styles.pageTitle}
+                >
                   <FormattedMessage id="HookConfigurationScreen.title" />
-                </h1>
+                </RadixText>
                 <RadixText
                   as="p"
                   size="2"
@@ -1988,7 +2068,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   </Tabs.Trigger>
                 </Tabs.List>
 
-                <Tabs.Content value="blocking-events" className={styles.tabContent}>
+                <Tabs.Content
+                  value="blocking-events"
+                  className={styles.tabContent}
+                >
                   <section className={styles.section}>
                     <div className={styles.sectionInner}>
                       <RadixText
@@ -2034,7 +2117,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                           <BlockingHooksTable
                             handlers={blockingHandlers}
                             onHandlersChange={onBlockingHandlersChange}
-                            onHandlerItemChange={onBlockingHandlersChangeItemChange}
+                            onHandlerItemChange={
+                              onBlockingHandlersChangeItemChange
+                            }
                             makeDefaultHandler={makeDefaultHandler}
                             onEditDeno={onEditBlocking}
                             addDisabled={blockingHandlerLimitReached}
@@ -2048,7 +2133,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   </section>
                 </Tabs.Content>
 
-                <Tabs.Content value="non-blocking-events" className={styles.tabContent}>
+                <Tabs.Content
+                  value="non-blocking-events"
+                  className={styles.tabContent}
+                >
                   <section className={styles.section}>
                     <div className={styles.sectionInner}>
                       <RadixText
@@ -2094,7 +2182,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                           <NonBlockingHooksTable
                             handlers={nonBlockingHandlers}
                             onHandlersChange={onNonBlockingHandlersChange}
-                            onHandlerItemChange={onNonBlockingHandlersChangeItemChange}
+                            onHandlerItemChange={
+                              onNonBlockingHandlersChangeItemChange
+                            }
                             makeDefaultHandler={makeDefaultNonBlockingHandler}
                             onEditDeno={onEditNonBlocking}
                             addDisabled={nonBlockingHandlerLimitReached}
@@ -2145,7 +2235,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   </section>
                 </Tabs.Content>
 
-                <Tabs.Content value="signing-secret" className={styles.tabContent}>
+                <Tabs.Content
+                  value="signing-secret"
+                  className={styles.tabContent}
+                >
                   <section className={styles.section}>
                     <div className={styles.sectionInner}>
                       <RadixText

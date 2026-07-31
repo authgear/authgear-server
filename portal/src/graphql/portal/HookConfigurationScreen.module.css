@@ -84,7 +84,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-
 .hookListHeaderLabel {
   @apply flex items-center px-3 py-3 text-sm font-semibold;
   color: var(--gray-12);
@@ -247,7 +246,6 @@
   background-color: var(--gray-a2);
 }
 
-
 .hookCellTruncate {
   @apply truncate;
   min-width: 0;
@@ -347,7 +345,9 @@
   background-color: var(--gray-a2);
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
 .hookAccordionHeader:has(.hookAccordionToggle:hover),
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
 .hookAccordionHeader:has(.hookAccordionChevronButton:hover) {
   background-color: var(--gray-a3);
 }
@@ -366,6 +366,7 @@
   text-align: left;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
 .hookAccordionToggle:focus-visible {
   outline: 2px solid var(--accent-8);
   outline-offset: -2px;
@@ -384,6 +385,7 @@
   cursor: pointer;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
 .hookAccordionChevronButton:focus-visible {
   outline: 2px solid var(--accent-8);
   outline-offset: -2px;
@@ -440,4 +442,3 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-

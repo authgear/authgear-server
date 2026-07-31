@@ -11,7 +11,9 @@ describe("isValidWebhookHookURI", () => {
     expect(isValidWebhookHookURI("http://example.com/")).toBe(true);
     expect(isValidWebhookHookURI("http://example.com/a")).toBe(true);
     expect(isValidWebhookHookURI("http://example.com/a/")).toBe(true);
-    expect(isValidWebhookHookURI("https://example.com/callback?a=b")).toBe(true);
+    expect(isValidWebhookHookURI("https://example.com/callback?a=b")).toBe(
+      true
+    );
   });
 
   it("rejects invalid URLs", () => {

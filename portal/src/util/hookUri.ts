@@ -33,7 +33,9 @@ function isValidAbsoluteURLPath(pathname: string): boolean {
   }
 
   const hasTrailingSlash = pathname.endsWith("/");
-  const parts = pathname.split("/").filter((part) => part !== "" && part !== ".");
+  const parts = pathname
+    .split("/")
+    .filter((part) => part !== "" && part !== ".");
   const resolved: string[] = [];
   for (const part of parts) {
     if (part === "..") {
