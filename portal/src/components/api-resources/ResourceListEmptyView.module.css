@@ -1,12 +1,20 @@
 .container {
-  @apply flex flex-col items-center text-center;
-  @apply py-14;
+  @apply flex flex-col items-center justify-start text-center;
+  @apply flex-1 min-h-0 w-full;
+  padding: 1.5rem;
 }
 
 .title {
-  @apply mb-2;
+  margin: 0 0 0.5rem;
+  color: var(--gray-12);
 }
 
 .description {
-  @apply mb-4;
+  margin: 0;
+  max-width: 30rem;
+  color: var(--gray-11);
+}
+
+.button {
+  @apply mt-4;
 }

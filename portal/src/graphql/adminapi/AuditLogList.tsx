@@ -1,13 +1,12 @@
 import React, { useContext, useMemo, useCallback, useEffect } from "react";
 import cn from "classnames";
 import {
-  IColumn,
-  ColumnActionsMode,
-  SelectionMode,
-  DetailsListLayoutMode,
-  ShimmeredDetailsList,
-  MessageBar,
-} from "@fluentui/react";
+  CaretSortIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  ChevronRightIcon,
+} from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { Context, FormattedMessage, Values } from "../../intl";
 import Link from "../../Link";
 import PaginationWidget from "../../PaginationWidget";
@@ -24,6 +23,7 @@ import styles from "./AuditLogList.module.css";
 import { useParams } from "react-router-dom";
 
 const PLACEHOLDER = "-";
+const SHIMMER_ROW_COUNT = 5;
 
 export interface AuditLogListProps {
   className?: string;
@@ -43,28 +43,75 @@ interface AuditLogListItem {
   activityType: string;
   createdAt: string;
   userID: string | null;
-  rawUserID: string | null;
+  userPrimary: string;
+  userSecondary: string | null;
 }
 
-function getRawUserIDFromAuditLog(
+function getUserDisplayFromAuditLog(
   renderToString: (id: string, values: Values | undefined) => string,
   node: AuditLogEdgesNodeFragment
-): string | null {
-  // The simple case is just use the user.id.
-  const userID = node.user?.id ?? null;
-  if (userID != null) {
-    return extractRawID(userID);
+): { primary: string; secondary: string | null } {
+  const user = node.user;
+  if (user != null) {
+    const attrs = (user.standardAttributes ?? {}) as {
+      email?: string;
+      phone_number?: string;
+      preferred_username?: string;
+    };
+    const email = attrs.email?.trim() || null;
+    const phone = attrs.phone_number?.trim() || null;
+    const username = attrs.preferred_username?.trim() || null;
+    const name = user.formattedName?.trim() || null;
+
+    if (email != null && name != null) {
+      return { primary: email, secondary: name };
+    }
+    if (email != null) {
+      return { primary: email, secondary: null };
+    }
+    if (phone != null) {
+      return { primary: phone, secondary: name };
+    }
+    if (username != null && name != null) {
+      return { primary: username, secondary: name };
+    }
+    if (username != null) {
+      return { primary: username, secondary: null };
+    }
+
+    const fallback = name ?? user.endUserAccountID ?? extractRawID(user.id);
+    return { primary: fallback, secondary: null };
   }
 
-  // Otherwise use the user ID in the payload.
+  // No linked user record; fall back to the raw id from the event payload.
   const rawUserID = node.data?.payload?.user?.id;
   if (rawUserID != null) {
-    return renderToString("AuditLogList.label.user-id", {
-      id: rawUserID,
-    });
+    return {
+      primary: renderToString("AuditLogList.label.user-id", { id: rawUserID }),
+      secondary: null,
+    };
   }
 
-  return null;
+  return { primary: PLACEHOLDER, secondary: null };
+}
+
+function UserCellContent(props: {
+  primary: string;
+  secondary: string | null;
+}): React.ReactElement {
+  const { primary, secondary } = props;
+  return (
+    <div className={styles.userCell}>
+      <Text size="2" className={cn(styles.cellText, styles.userPrimary)}>
+        {primary}
+      </Text>
+      {secondary != null ? (
+        <Text size="2" className={cn(styles.cellText, styles.userSecondary)}>
+          {secondary}
+        </Text>
+      ) : null}
+    </div>
+  );
 }
 
 const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
@@ -89,38 +136,6 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
 
   const { renderToString, locale } = useContext(Context);
 
-  const columns: IColumn[] = useMemo(
-    () => [
-      {
-        key: "activityType",
-        fieldName: "activityType",
-        name: renderToString("AuditLogList.column.activity-type"),
-        maxWidth: 300,
-        minWidth: 300,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "createdAt",
-        fieldName: "createdAt",
-        name: renderToString("AuditLogList.column.created-at"),
-        maxWidth: 220,
-        minWidth: 220,
-        isSorted: true,
-        isSortedDescending: sortDirection === SortDirection.Desc,
-        iconName: "SortLines",
-        iconClassName: styles.sortIcon,
-      },
-      {
-        key: "rawUserID",
-        fieldName: "rawUserID",
-        name: renderToString("AuditLogList.column.user-id"),
-        minWidth: 430,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-    ],
-    [renderToString, sortDirection]
-  );
-
   const items: AuditLogListItem[] = useMemo(() => {
     const items: AuditLogListItem[] = [];
     if (edges != null) {
@@ -128,11 +143,12 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
         const node = edge?.node;
         if (node != null) {
           const userID = node.user?.id ?? null;
-          const rawUserID = getRawUserIDFromAuditLog(renderToString, node);
+          const userDisplay = getUserDisplayFromAuditLog(renderToString, node);
           items.push({
             id: node.id,
             userID,
-            rawUserID,
+            userPrimary: userDisplay.primary,
+            userSecondary: userDisplay.secondary,
             createdAt: formatDatetime(locale, node.createdAt)!,
             activityType: renderToString(
               "AuditLogActivityType." + node.activityType
@@ -144,92 +160,151 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
     return items;
   }, [edges, locale, renderToString]);
 
-  // Reset scroll position when items change.
   const listWrapperRef = React.useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     listWrapperRef.current?.scrollTo(0, 0);
   }, [items]);
 
-  const onRenderItemColumn = useCallback(
-    (item: AuditLogListItem, _index?: number, column?: IColumn) => {
-      const text = item[column?.key as keyof AuditLogListItem] ?? PLACEHOLDER;
-
-      let href: string | null = null;
-      const state: any = {};
-      switch (column?.key) {
-        case "activityType":
-          href = `/project/${appID}/audit-log/${item.id}/details`;
-          state["searchParams"] = searchParams;
-          break;
-        case "rawUserID":
-          if (item.userID != null) {
-            href = `/project/${appID}/users/${item.userID}/details`;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (href != null) {
-        return (
-          <Link to={href} state={state}>
-            {text}
-          </Link>
-        );
-      }
-      return <span>{text}</span>;
-    },
-    [appID, searchParams]
-  );
-
-  const onColumnHeaderClick = useCallback(
-    (_e, column) => {
-      if (column != null) {
-        if (column.key === "createdAt") {
-          onToggleSortDirection?.();
-          onChangeOffset?.(0);
-        }
-      }
+  const onClickSortHeader = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      onToggleSortDirection?.();
+      onChangeOffset?.(0);
     },
     [onToggleSortDirection, onChangeOffset]
   );
 
   const isEmpty = !loading && items.length === 0;
 
+  const SortIcon =
+    sortDirection === SortDirection.Asc
+      ? CaretUpIcon
+      : sortDirection === SortDirection.Desc
+        ? CaretDownIcon
+        : CaretSortIcon;
+
   return (
-    <>
-      <div className={cn(styles.root, className)}>
-        <div
-          ref={listWrapperRef}
-          className={cn(styles.listWrapper, isEmpty && styles.empty)}
-          data-is-scrollable="true"
-        >
-          <ShimmeredDetailsList
-            className={styles.list}
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            onColumnHeaderClick={onColumnHeaderClick}
-            onRenderItemColumn={onRenderItemColumn}
-            columns={columns}
-            items={items}
-          />
+    <div className={cn(styles.root, className)}>
+      <div
+        ref={listWrapperRef}
+        className={styles.tableWrapper}
+        data-is-scrollable="true"
+      >
+        <div className={styles.table}>
+          {/* Header */}
+          <div className={styles.tableHeader}>
+            <div className={styles.headerCellUser}>
+              <FormattedMessage id="AuditLogList.column.user-id" />
+            </div>
+            <div className={styles.headerCellActivityType}>
+              <FormattedMessage id="AuditLogList.column.activity-type" />
+            </div>
+            <div className={styles.headerCellCreatedAt}>
+              <button
+                className={styles.sortButton}
+                onClick={onClickSortHeader}
+                type="button"
+              >
+                <FormattedMessage id="AuditLogList.column.created-at" />
+                <SortIcon className={styles.sortIcon} />
+              </button>
+            </div>
+            <div className={styles.headerCellChevron} aria-hidden={true} />
+          </div>
+
+          {/* Shimmer rows while loading */}
+          {loading
+            ? Array.from({ length: SHIMMER_ROW_COUNT }).map((_, i) => (
+                <div key={i} className={styles.shimmerRow}>
+                  <div className={cn(styles.shimmerCell, styles.shimmerUser)} />
+                  <div
+                    className={cn(
+                      styles.shimmerCell,
+                      styles.shimmerActivityType
+                    )}
+                  />
+                  <div
+                    className={cn(styles.shimmerCell, styles.shimmerCreatedAt)}
+                  />
+                  <div
+                    className={cn(styles.shimmerCell, styles.shimmerChevron)}
+                  />
+                </div>
+              ))
+            : items.map((item) => {
+                const detailHref = `/project/${appID}/audit-log/${item.id}/details`;
+                const detailState: any = { searchParams };
+                const userHref =
+                  item.userID != null
+                    ? `/project/${appID}/users/${item.userID}/details`
+                    : null;
+
+                return (
+                  <div key={item.id} className={styles.tableRow}>
+                    <div className={styles.cellUser}>
+                      {userHref != null ? (
+                        <Link
+                          className={styles.cellUserLink}
+                          to={userHref}
+                        >
+                          <UserCellContent
+                            primary={item.userPrimary}
+                            secondary={item.userSecondary}
+                          />
+                        </Link>
+                      ) : (
+                        <UserCellContent
+                          primary={item.userPrimary}
+                          secondary={item.userSecondary}
+                        />
+                      )}
+                    </div>
+                    <div className={styles.cellActivityType}>
+                      <Link
+                        className={styles.activityTypeLink}
+                        to={detailHref}
+                        state={detailState}
+                      >
+                        <Text size="2">{item.activityType}</Text>
+                      </Link>
+                    </div>
+                    <div className={styles.cellCreatedAt}>
+                      <Text size="2" className={styles.cellText}>
+                        {item.createdAt}
+                      </Text>
+                    </div>
+                    <div className={styles.cellChevron}>
+                      <Link to={detailHref} state={detailState}>
+                        <ChevronRightIcon
+                          className={styles.chevronIcon}
+                          width="1rem"
+                          height="1rem"
+                        />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+
+          {/* Empty state row inside the table */}
+          {isEmpty ? (
+            <div className={styles.emptyRow}>
+              <Text size="2" className={styles.emptyText}>
+                <FormattedMessage id="AuditLogList.empty" />
+              </Text>
+            </div>
+          ) : null}
         </div>
-        <PaginationWidget
-          className={cn(styles.pagination, isEmpty && styles.empty)}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onChangeOffset={onChangeOffset}
-        />
-        {isEmpty ? (
-          <MessageBar>
-            <FormattedMessage id="AuditLogList.empty" />
-          </MessageBar>
-        ) : null}
       </div>
-    </>
+
+      <PaginationWidget
+        className={cn(styles.pagination, isEmpty && styles.paginationHidden)}
+        offset={offset}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        onChangeOffset={onChangeOffset}
+      />
+    </div>
   );
 };
 

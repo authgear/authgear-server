@@ -26,6 +26,20 @@ export const Default: Story = {
   },
 };
 
+export const Stacked: Story = {
+  args: {
+    layout: "stacked",
+    contentClassName: "gap-4",
+    title: "Select Login Methods",
+    children: (
+      <>
+        <TextField size="2" label="Primary method" value="Email" />
+        <TextField size="2" label="Authentication" value="Password" />
+      </>
+    ),
+  },
+};
+
 export const SingleField: Story = {
   args: {
     children: <TextField size="2" label="Grace period (days)" value="30" />,

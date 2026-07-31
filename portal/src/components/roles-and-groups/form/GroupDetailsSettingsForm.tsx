@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
+import { Button } from "@radix-ui/themes";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { SimpleFormModel } from "../../../hook/useSimpleForm";
@@ -14,10 +14,9 @@ import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsVeriticalFormLayout,
 } from "../../../RoleAndGroupsLayout";
-import FormTextField from "../../../FormTextField";
-import WidgetDescription from "../../../WidgetDescription";
-import PrimaryButton from "../../../PrimaryButton";
-import DefaultButton from "../../../DefaultButton";
+import { TextField } from "../../v2/TextField/TextField";
+import { TextArea } from "../../v2/TextArea/TextArea";
+import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUpdateGroupMutation } from "../../../graphql/adminapi/mutations/updateGroupMutation";
 import { APIError } from "../../../error/error";
@@ -40,7 +39,6 @@ function GroupDetailsSettingsFormContent({
 }: {
   onClickDeleteGroup: () => void;
 }) {
-  const { themes } = useSystemConfig();
   const { renderToString } = useContext(MessageContext);
 
   const {
@@ -51,8 +49,10 @@ function GroupDetailsSettingsFormContent({
 
   const onFormStateChangeCallbacks = useMemo(() => {
     const createCallback = (key: keyof FormState) => {
-      return (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const newValue = e.currentTarget.value;
+      return (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => {
+        const newValue = e.target.value;
         setFormState((prev) => {
           return { ...prev, [key]: newValue };
         });
@@ -68,43 +68,37 @@ function GroupDetailsSettingsFormContent({
   return (
     <div>
       <RoleAndGroupsVeriticalFormLayout>
-        <div>
-          <FormTextField
-            required={true}
-            fieldName="name"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("GroupDetailsSettingsForm.groupName.title")}
-            value={formState.groupName}
-            onChange={onFormStateChangeCallbacks.groupName}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="GroupDetailsSettingsForm.groupName.description" />
-          </WidgetDescription>
-        </div>
-        <div>
-          <FormTextField
-            required={true}
-            fieldName="key"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("GroupDetailsSettingsForm.groupKey.title")}
-            placeholder={generateGroupKeyFromName(formState.groupName)}
-            value={formState.groupKey}
-            onChange={onFormStateChangeCallbacks.groupKey}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="GroupDetailsSettingsForm.groupKey.description" />
-          </WidgetDescription>
-        </div>
-        <FormTextField
-          multiline={true}
-          resizable={false}
-          autoAdjustHeight={true}
-          rows={3}
-          fieldName="description"
+        <TextField
+          size="2"
+          required={true}
+          fieldName="name"
           parentJSONPointer=""
           type="text"
+          label={renderToString("GroupDetailsSettingsForm.groupName.title")}
+          hint={
+            <FormattedMessage id="GroupDetailsSettingsForm.groupName.description" />
+          }
+          value={formState.groupName}
+          onChange={onFormStateChangeCallbacks.groupName}
+        />
+        <TextField
+          size="2"
+          required={true}
+          fieldName="key"
+          parentJSONPointer=""
+          type="text"
+          label={renderToString("GroupDetailsSettingsForm.groupKey.title")}
+          hint={
+            <FormattedMessage id="GroupDetailsSettingsForm.groupKey.description" />
+          }
+          placeholder={generateGroupKeyFromName(formState.groupName)}
+          value={formState.groupKey}
+          onChange={onFormStateChangeCallbacks.groupKey}
+        />
+        <TextArea
+          size="2"
+          fieldName="description"
+          parentJSONPointer=""
           label={renderToString(
             "GroupDetailsSettingsForm.groupDescription.title"
           )}
@@ -115,19 +109,21 @@ function GroupDetailsSettingsFormContent({
 
       <RoleAndGroupsFormFooter className="mt-12">
         <PrimaryButton
+          size="2"
           disabled={!canSave || isUpdating}
           type="submit"
           text={<FormattedMessage id="save" />}
         />
-        <DefaultButton
+        <Button
+          size="2"
+          variant="outline"
+          color="red"
           disabled={isUpdating}
-          theme={themes.destructive}
           type="button"
           onClick={onClickDeleteGroup}
-          text={
-            <FormattedMessage id="GroupDetailsSettingsForm.button.deleteGroup" />
-          }
-        />
+        >
+          <FormattedMessage id="GroupDetailsSettingsForm.button.deleteGroup" />
+        </Button>
       </RoleAndGroupsFormFooter>
     </div>
   );

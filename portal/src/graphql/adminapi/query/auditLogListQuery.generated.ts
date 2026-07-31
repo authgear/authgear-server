@@ -3,9 +3,9 @@ import * as Types from '../globalTypes.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type AuditLogEdgesNodeFragment = { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string } | null };
+export type AuditLogEdgesNodeFragment = { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null } | null };
 
-export type AuditLogListFragment = { __typename?: 'AuditLogConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'AuditLogEdge', node?: { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string } | null } | null } | null> | null };
+export type AuditLogListFragment = { __typename?: 'AuditLogConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'AuditLogEdge', node?: { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null } | null } | null } | null> | null };
 
 export type AuditLogListQueryQueryVariables = Types.Exact<{
   pageSize: Types.Scalars['Int']['input'];
@@ -20,7 +20,7 @@ export type AuditLogListQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AuditLogListQueryQuery = { __typename?: 'Query', auditLogs?: { __typename?: 'AuditLogConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'AuditLogEdge', node?: { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string } | null } | null } | null> | null } | null };
+export type AuditLogListQueryQuery = { __typename?: 'Query', auditLogs?: { __typename?: 'AuditLogConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'AuditLogEdge', node?: { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null } | null } | null } | null> | null } | null };
 
 export const AuditLogEdgesNodeFragmentDoc = gql`
     fragment AuditLogEdgesNode on AuditLog {
@@ -29,6 +29,9 @@ export const AuditLogEdgesNodeFragmentDoc = gql`
   activityType
   user {
     id
+    standardAttributes
+    formattedName
+    endUserAccountID
   }
   data
 }

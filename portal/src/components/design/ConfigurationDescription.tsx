@@ -1,6 +1,6 @@
 import React from "react";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
-import WidgetDescription from "../../WidgetDescription";
 
 interface ConfigurationDescriptionProps {
   labelKey: string;
@@ -9,9 +9,9 @@ const ConfigurationDescription: React.VFC<ConfigurationDescriptionProps> =
   function ConfigurationDescription(props) {
     const { labelKey } = props;
     return (
-      <WidgetDescription>
+      <Text as="p" size="2" color="gray">
         <FormattedMessage id={labelKey} />
-      </WidgetDescription>
+      </Text>
     );
   };
 

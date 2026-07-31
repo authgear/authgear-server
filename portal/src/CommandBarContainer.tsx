@@ -48,6 +48,21 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
     } = props;
 
     const defaultHeaderContent = useMemo(() => {
+      // When the command bar is hidden, only mount the ProgressIndicator while
+      // loading. Keeping a visibility:hidden indicator still reserves height and
+      // leaves a thin white sticky strip above the page title.
+      const progressIndicator =
+        hideCommandBar === true ? (
+          isLoading ? (
+            <ProgressIndicator styles={progressIndicatorStyles} />
+          ) : null
+        ) : (
+          <ProgressIndicator
+            styles={progressIndicatorStyles}
+            className={!isLoading ? styles.hidden : ""}
+          />
+        );
+
       return (
         <>
           {hideCommandBar === true ? null : (
@@ -59,27 +74,32 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
             />
           )}
           {messageBar}
-          <ProgressIndicator
-            styles={progressIndicatorStyles}
-            className={!isLoading ? styles.hidden : ""}
-          />
+          {progressIndicator}
         </>
       );
     }, [hideCommandBar, isLoading, messageBar, primaryItems, secondaryItems]);
 
+    const isHeaderEmpty =
+      hideCommandBar === true &&
+      messageBar == null &&
+      !isLoading &&
+      renderHeaderContent == null;
+
     return (
       <>
-        <div
-          className={
-            headerPosition === "sticky"
-              ? styles.headerSticky
-              : styles.headerStatic
-          }
-        >
-          {renderHeaderContent
-            ? renderHeaderContent(defaultHeaderContent)
-            : defaultHeaderContent}
-        </div>
+        {isHeaderEmpty ? null : (
+          <div
+            className={
+              headerPosition === "sticky"
+                ? styles.headerSticky
+                : styles.headerStatic
+            }
+          >
+            {renderHeaderContent
+              ? renderHeaderContent(defaultHeaderContent)
+              : defaultHeaderContent}
+          </div>
+        )}
         <div
           className={cn(styles.content, className)}
           // For DetailList to correctly know what to display

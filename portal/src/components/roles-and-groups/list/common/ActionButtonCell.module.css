@@ -2,3 +2,13 @@
   padding-left: 0;
   border: 0;
 }
+
+.iconButtonContainer {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.iconButton:not(:hover) {
+  background-color: transparent;
+}

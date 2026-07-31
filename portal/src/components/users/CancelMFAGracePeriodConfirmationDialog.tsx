@@ -1,9 +1,7 @@
-import { Dialog, DialogFooter } from "@fluentui/react";
 import { Context, FormattedMessage } from "../../intl";
 import React, { useContext, useCallback, useMemo } from "react";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
 import { ConfirmationDialogStore } from "../../hook/useConfirmationDialog";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 interface CancelMFAGracePeriodConfirmationDialogProps {
   store: ConfirmationDialogStore;
@@ -28,36 +26,30 @@ export const CancelMFAGracePeriodConfirmationDialog: React.VFC<CancelMFAGracePer
       }
     }, [store]);
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: (
-          <FormattedMessage id="UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.title" />
-        ),
-        subText: renderToString(
-          "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.message"
-        ),
-      };
+    const description = useMemo(() => {
+      return renderToString(
+        "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.message"
+      );
     }, [renderToString]);
 
     return (
-      <Dialog
-        hidden={!store.visible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: store.loading }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            loading={store.loading ?? false}
-          />
-          <DefaultButton
-            disabled={store.loading}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={store.visible}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
+        title={
+          <FormattedMessage id="UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.title" />
+        }
+        description={description}
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={store.loading}
+        confirmColor="red"
+      />
     );
   };

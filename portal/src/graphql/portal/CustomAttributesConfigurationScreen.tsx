@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useRef, useMemo} from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import cn from "classnames";
 import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
-import cn from "classnames";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { PlusIcon } from "@radix-ui/react-icons";
 import FormContainer from "../../FormContainer";
 import {
   AppConfigFormModel,
@@ -20,9 +21,10 @@ import {
   CustomAttributesAttributeConfig,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./CustomAttributesConfigurationScreen.module.css";
-import PrimaryButton from "../../PrimaryButton";
-import NavBreadcrumb from "../../NavBreadcrumb";
 
 interface FormState {
   items: CustomAttributesAttributeConfig[];
@@ -64,14 +66,81 @@ function EmptyState() {
   );
   return (
     <div className={styles.emptyState}>
-      <Text className={styles.emptyStateMessage} block={true}>
-        <FormattedMessage id="CustomAttributesConfigurationScreen.empty-message" />
-      </Text>
+      <div className={styles.emptyStateInner}>
+        <div className={styles.emptyStateIcon}>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect
+              x="9"
+              y="1"
+              width="6"
+              height="5"
+              rx="1"
+              fill="currentColor"
+              opacity="0.4"
+            />
+            <rect
+              x="11"
+              y="4"
+              width="2"
+              height="3"
+              fill="currentColor"
+              opacity="0.4"
+            />
+            <rect x="2" y="5" width="20" height="16" rx="2" fill="currentColor" opacity="0.15" />
+            <rect x="2" y="5" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <circle cx="8" cy="12" r="2.5" fill="currentColor" opacity="0.6" />
+            <line
+              x1="12.5"
+              y1="10.5"
+              x2="18"
+              y2="10.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <line
+              x1="12.5"
+              y1="13.5"
+              x2="18"
+              y2="13.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <Text
+          as="p"
+          size="3"
+          weight="bold"
+          className={styles.emptyStateHeading}
+        >
+          <FormattedMessage id="CustomAttributesConfigurationScreen.empty-heading" />
+        </Text>
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.emptyStateDescription}
+        >
+          <FormattedMessage id="CustomAttributesConfigurationScreen.empty-description" />
+        </Text>
+      </div>
       <PrimaryButton
-        className={styles.addNewAttributeButton}
+        size="2"
         onClick={onClick}
         text={
-          <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+          <span className={styles.addButtonContent}>
+            <PlusIcon width="1rem" height="1rem" />
+            <FormattedMessage id="CustomAttributesConfigurationScreen.label.create-custom-attributes" />
+          </span>
         }
       />
     </div>
@@ -85,7 +154,7 @@ function ItemComponent(
   const { pointer } = item;
   const fieldName = parseJSONPointer(pointer)[0];
   return (
-    <Text className={cn(className, styles.fieldName)} block={true}>
+    <Text as="p" size="2" weight="medium" className={className}>
       {fieldName}
     </Text>
   );
@@ -96,17 +165,15 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
     const navigate = useNavigate();
     const { state, setState } = props.form;
     const { items } = state;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
-    const navBreadcrumbItems = useMemo(() => {
-      return [
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
-          ),
-        },
-      ];
-    }, []);
+    const isEmpty = items.length === 0;
+
+    const onAddNewAttribute = useCallback(() => {
+      navigate("./add");
+    }, [navigate]);
 
     const onChangeItems = useCallback(
       (newItems: CustomAttributesAttributeConfig[]) => {
@@ -128,25 +195,36 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
     );
 
     return (
-      <>
-        <ScreenContent layout="list">
-          <div className={styles.widget}>
-            <div className="flex gap-x-1">
-              <NavBreadcrumb
-                className="flex-1 overflow-hidden items-center"
-                items={navBreadcrumbItems}
-              />
+      <ScreenContent
+        layout="list"
+        className={cn(
+          styles.screenContent,
+          isDirty ? styles.contentWithSaveBar : null
+        )}
+      >
+        <div ref={contentWidthAnchorRef} className={styles.widget}>
+          <div className={styles.header}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
+            </Text>
+            {!isEmpty ? (
               <PrimaryButton
+                size="2"
+                onClick={onAddNewAttribute}
                 text={
-                  <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+                  <span className={styles.addButtonContent}>
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+                  </span>
                 }
-                iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-                // eslint-disable-next-line @typescript-eslint/strict-void-return
-                onClick={useCallback(async () => navigate("./add"), [navigate])}
               />
-            </div>
+            ) : null}
           </div>
-          <div className={styles.widget}>
+        </div>
+        <div className={styles.widget}>
+          {isEmpty ? (
+            <EmptyState />
+          ) : (
             <UserProfileAttributesList
               items={items}
               onChangeItems={onChangeItems}
@@ -154,10 +232,10 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
               onEditButtonClick={onEditButtonClick}
               ItemComponent={ItemComponent}
             />
-            {state.items.length <= 0 ? <EmptyState /> : null}
-          </div>
-        </ScreenContent>
-      </>
+          )}
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </ScreenContent>
     );
   };
 
@@ -181,8 +259,8 @@ const CustomAttributesConfigurationScreen: React.VFC =
     return (
       <FormContainer
         form={form}
-        showDiscardButton={true}
-        stickyFooterComponent={true}
+        hideFooterComponent={true}
+        canSave={true}
       >
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>

@@ -1,27 +1,43 @@
 .root {
-  margin-left: 10px;
-  padding-top: 16px;
   display: flex;
   flex-direction: column;
-  row-gap: 16px;
+  gap: 24px;
 }
 
 .authenticatorContainer {
-  display: flex;
-  flex-direction: column;
-  row-gap: 4px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 64px;
+  row-gap: 24px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
 }
 
 .header {
   display: block;
-  font-weight: 600;
+  margin: 0;
+  color: var(--gray-12);
 }
 
 .authenticatorKindHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  display: contents;
+}
+
+.authenticatorKindHeader > .header {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.authenticatorKindHeader > :not(.header) {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.authenticatorContainer > :not(.authenticatorKindHeader) {
+  grid-column: 2;
 }
 
 .authenticatorTypeSection + .authenticatorTypeSection {
@@ -29,7 +45,7 @@
 }
 
 .authenticatorTypeSection--password {
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .authenticatorTypeHeader {
@@ -37,9 +53,10 @@
 }
 
 .cell {
-  padding-left: 1px;
+  padding: 12px 0;
   display: grid;
-  grid-gap: 3px 0;
+  grid-gap: 6px 0;
+  border-bottom: 1px solid var(--gray-5);
 }
 
 .cell--not-first {
@@ -47,42 +64,71 @@
 }
 
 .cellLabel {
-  font-size: 14px;
+  color: var(--gray-12);
 }
 
 .cellDesc {
-  font-size: 14px;
-  color: #888888;
+  color: var(--gray-a11);
 }
 
 .button {
   place-self: center;
-  font-weight: 600;
-  border: 1px solid #d8d8d8;
   margin-left: 12px;
 }
 
 .passwordCell {
-  grid-template:
-    "plabel    preset    premove"
-    "pdesc     preset    premove"
-    "pchange   preset    premove"
-    "pexpired  preset    premove"
-    / auto min-content min-content;
-  grid-gap: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border-bottom: 0;
 }
 
 .passwordCellLabel {
-  grid-area: plabel;
   font-weight: 600;
 }
 
+.passwordCellSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+}
+
+.passwordCellMetadata {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .passwordCellDesc {
-  grid-area: pdesc;
+  color: var(--gray-12);
 }
 
 .passwordCellChangeOnLogin {
-  grid-area: pchange;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 4px;
+  padding: 16px;
+  border: 1px solid var(--gray-5);
+  border-radius: 12px;
+}
+
+.passwordCellChangeOnLoginText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.passwordCellChangeOnLoginTitle,
+.passwordCellChangeOnLoginDescription {
+  margin: 0;
 }
 
 .passwordCellExpired {
@@ -99,7 +145,7 @@
 }
 
 .changePasswordButton {
-  grid-area: preset;
+  margin: 0;
   white-space: nowrap;
 }
 
@@ -184,9 +230,28 @@
 }
 
 .authenticatorEmpty {
-  margin-right: 200px;
-  color: #888888;
+  margin: 0;
   @apply py-2;
+}
+
+.secondaryOverview {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.secondaryEmpty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.secondaryEmptyTitle,
+.secondaryEmptyDescription {
+  margin: 0;
 }
 
 .authenticatorGrantGracePeriod {
@@ -196,5 +261,5 @@
 .updateMFAGracePeriodContainer {
   font-size: 14px;
   line-height: 20px;
-  color: #888888;
+  color: var(--gray-a11);
 }

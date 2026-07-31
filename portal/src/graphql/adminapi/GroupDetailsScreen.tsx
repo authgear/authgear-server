@@ -8,8 +8,7 @@ import { GroupQueryNodeFragment } from "./query/groupQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
-import { PivotItem } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/form/GroupDetailsSettingsForm";
 import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/GroupDetailsScreenRoleListContainer";
 
@@ -20,10 +19,24 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
   const { group } = props;
   const { renderToString } = useContext(MessageContext);
 
-  const { selectedKey, onLinkClick } = usePivotNavigation([
+  const { selectedKey, onChangeKey } = usePivotNavigation([
     SETTINGS_KEY,
     ROLES_KEY,
   ]);
+
+  const tabs = useMemo(
+    () => [
+      {
+        value: SETTINGS_KEY,
+        label: renderToString("GroupDetailsScreen.tabs.settings"),
+      },
+      {
+        value: ROLES_KEY,
+        label: renderToString("GroupDetailsScreen.tabs.roles"),
+      },
+    ],
+    [renderToString]
+  );
 
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     return [
@@ -37,21 +50,14 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
 
   return (
     <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
-      <AGPivot
-        overflowBehavior="menu"
-        selectedKey={selectedKey}
-        onLinkClick={onLinkClick}
+      <OverflowTabs
         className="mb-8"
-      >
-        <PivotItem
-          itemKey={SETTINGS_KEY}
-          headerText={renderToString("GroupDetailsScreen.tabs.settings")}
-        />
-        <PivotItem
-          itemKey={ROLES_KEY}
-          headerText={renderToString("GroupDetailsScreen.tabs.roles")}
-        />
-      </AGPivot>
+        value={selectedKey}
+        onValueChange={(value) => {
+          onChangeKey(value as typeof SETTINGS_KEY | typeof ROLES_KEY);
+        }}
+        tabs={tabs}
+      />
       {selectedKey === ROLES_KEY ? (
         <GroupDetailsScreenRoleListContainer group={group} />
       ) : (

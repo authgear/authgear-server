@@ -1,41 +1,31 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { produce } from "immer";
+import { Checkbox, IconButton, Text } from "@radix-ui/themes";
 import {
-  Checkbox,
-  DetailsList,
-  IColumn,
-  SelectionMode,
-  ICheckboxProps,
-  IDetailsHeaderProps,
-  IRenderFunction,
-  DetailsHeader,
-  DetailsRow,
-  IDetailsRowProps,
-  SelectAllVisibility,
-  SearchBox,
-  CheckboxVisibility,
-  ScrollablePane,
-  StickyPositionType,
-  Sticky,
-  IconButton,
-  IIconProps,
-} from "@fluentui/react";
-import { Context } from "../../intl";
-import { useTextField } from "../../hook/useInput";
+  Cross2Icon,
+  DrawingPinFilledIcon,
+  DrawingPinIcon,
+} from "@radix-ui/react-icons";
+import { Context, FormattedMessage } from "../../intl";
 import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";
 import ALL_COUNTRIES from "../../data/country.json";
 import { useExactKeywordSearch } from "../../util/search";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
 
 import styles from "./AuthenticationCountryCallingCodeList.module.css";
 
 export interface CountryCallingCodeListProps {
   className?: string;
+  title?: React.ReactNode;
   pinnedAlpha2: string[];
   allowedAlpha2: string[];
   featureAllowlist?: string[];
-  onChange: (newPinnedCodes: string[], newSelectedCodes: string[]) => void;
+  onChange: (newAllowedCodes: string[], newPinnedCodes: string[]) => void;
   disabled: boolean;
 }
 
@@ -60,86 +50,6 @@ const COUNTRY_MAP: CountryMap = ALL_COUNTRIES.reduce<CountryMap>(
   {}
 );
 
-interface CountryCallingCodeListItemCheckboxProps extends ICheckboxProps {
-  index?: number;
-  onCheckboxClicked: (index: number, checked: boolean) => void;
-}
-
-interface CountryCallingCodeListPinButtonProps {
-  className?: string;
-  index?: number;
-  pinned?: boolean;
-  onPinClick: (index: number, checked: boolean) => void;
-  disabled: boolean;
-}
-
-interface CountryCallingCodeListSelectAllProps extends ICheckboxProps {
-  isPartiallySelected: boolean;
-  isAllSelected: boolean;
-  selectAll: () => void;
-  unselectAll: () => void;
-}
-
-const HEADER_STYLE = {
-  check: {
-    width: "35px !important",
-    paddingLeft: "15px !important",
-  },
-};
-
-function makeCountryCodeListColumns(
-  renderToString: (messageId: string) => string
-): IColumn[] {
-  return [
-    {
-      key: "selected",
-      fieldName: "selected",
-      name: "",
-      minWidth: 90,
-      maxWidth: 90,
-      className: styles.callingCodeListColumnAlignLeft,
-    },
-    {
-      key: "countryName",
-      fieldName: "countryName",
-      name: renderToString(
-        "LoginIDConfigurationScreen.phone.columns.country-or-area"
-      ),
-      minWidth: 180,
-      maxWidth: 180,
-      isMultiline: true,
-      className: cn(
-        styles.countryNameCell,
-        styles.callingCodeListColumnAlignLeft
-      ),
-    },
-    {
-      key: "callingCode",
-      fieldName: "callingCode",
-      name: renderToString("LoginIDConfigurationScreen.phone.columns.code"),
-      minWidth: 40,
-      maxWidth: 40,
-      className: styles.callingCodeListColumnAlignLeft,
-    },
-    {
-      key: "order",
-      name: renderToString("LoginIDConfigurationScreen.phone.columns.order"),
-      fieldName: "order",
-      minWidth: 120,
-      maxWidth: 120,
-      className: styles.callingCodeListColumnAlignLeft,
-    },
-    {
-      key: "pinned",
-      name: renderToString("LoginIDConfigurationScreen.phone.columns.pinned"),
-      fieldName: "pinned",
-      minWidth: 140,
-      maxWidth: 140,
-      className: styles.callingCodeListColumnAlignCenter,
-    },
-  ];
-}
-
 function indexArrayOrNull<T>(list: T[], index: number): T | null {
   if (index >= 0 && index < list.length) {
     return list[index];
@@ -159,94 +69,44 @@ function edit(values: string[], target: string, checked: boolean): string[] {
   });
 }
 
-const CountryCallingCodeListItemCheckbox: React.VFC<CountryCallingCodeListItemCheckboxProps> =
-  function CountryCallingCodeListItemCheckbox(
-    props: CountryCallingCodeListItemCheckboxProps
-  ) {
-    const { onCheckboxClicked, index, ...rest } = props;
+function PinButton(props: {
+  pinned: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}): React.ReactElement {
+  const { pinned, disabled, onClick } = props;
+  const { renderToString } = useContext(Context);
+  const PinIcon = pinned ? DrawingPinFilledIcon : DrawingPinIcon;
 
-    const onChange = useCallback(
-      (_event, checked?: boolean) => {
-        if (index == null || checked == null) {
-          return;
-        }
-        onCheckboxClicked(index, checked);
-      },
-      [onCheckboxClicked, index]
-    );
-
-    return <Checkbox {...rest} onChange={onChange} />;
-  };
-
-const CountryCallingCodeListPinButton: React.VFC<CountryCallingCodeListPinButtonProps> =
-  function CountryCallingCodeListPinButton(
-    props: CountryCallingCodeListPinButtonProps
-  ) {
-    const { className, index, pinned, onPinClick, disabled } = props;
-
-    const iconProps: IIconProps = useMemo(() => {
-      const iconName = pinned ? "PinnedSolid" : "Pinned";
-      return { iconName };
-    }, [pinned]);
-
-    const onButtonClick = useCallback(() => {
-      if (index == null || pinned == null) {
-        return;
-      }
-      onPinClick(index, !pinned);
-    }, [index, pinned, onPinClick]);
-
-    return (
-      <IconButton
-        className={className}
-        iconProps={iconProps}
-        onClick={onButtonClick}
-        disabled={disabled}
+  return (
+    <IconButton
+      type="button"
+      className={styles.pinButton}
+      variant="ghost"
+      color="gray"
+      size="1"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={renderToString(
+        "LoginIDConfigurationScreen.phone.columns.pinned"
+      )}
+      aria-pressed={pinned}
+    >
+      <PinIcon
+        className={cn(styles.pinIcon, pinned && styles.pinIconPinned)}
+        width="1rem"
+        height="1rem"
       />
-    );
-  };
-
-const CountryCallingCodeListSelectAll: React.VFC<CountryCallingCodeListSelectAllProps> =
-  function CountryCallingCodeListSelectAll(
-    props: CountryCallingCodeListSelectAllProps
-  ) {
-    const {
-      isPartiallySelected,
-      isAllSelected,
-      selectAll,
-      unselectAll,
-      ...rest
-    } = props;
-
-    const onChange = useCallback(
-      (_event, checked?: boolean) => {
-        if (checked == null) {
-          return;
-        }
-        if (checked) {
-          selectAll();
-        } else {
-          unselectAll();
-        }
-      },
-      [selectAll, unselectAll]
-    );
-
-    return (
-      <Checkbox
-        {...rest}
-        indeterminate={isPartiallySelected}
-        checked={isAllSelected}
-        onChange={onChange}
-      />
-    );
-  };
+    </IconButton>
+  );
+}
 
 const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
   function CountryCallingCodeList(props: CountryCallingCodeListProps) {
     const {
       disabled,
       className,
+      title,
       pinnedAlpha2,
       allowedAlpha2,
       featureAllowlist,
@@ -256,11 +116,15 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
     const { getTelecomCountryName } = useGetTelecomCountryName();
 
     const [searchString, setSearchString] = useState("");
-    const { onChange: onSearchBoxChange } = useTextField((value) => {
-      setSearchString(value);
-    });
 
-    const onSearchBoxClear = useCallback((_e) => {
+    const onSearchChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchString(e.target.value);
+      },
+      []
+    );
+
+    const onSearchClear = useCallback(() => {
       setSearchString("");
     }, []);
 
@@ -290,12 +154,10 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
         };
       };
 
-      // Add pinned items first
       for (const alpha2 of pinnedAlpha2) {
         lst.push(makeItem(alpha2));
       }
 
-      // Separate enabled and disabled items
       for (const country of ALL_COUNTRIES) {
         if (pinned.has(country.Alpha2)) {
           continue;
@@ -326,11 +188,6 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
       "countryCallingCode",
       "displayName",
     ]);
-
-    const countryCodeListColumns = useMemo(
-      () => makeCountryCodeListColumns(renderToString),
-      [renderToString]
-    );
 
     const isPartiallySelected = useMemo(() => {
       return (
@@ -406,135 +263,136 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
       onChange([], []);
     }, [onChange]);
 
-    const onRenderCallingCodeItemColumn = React.useCallback(
-      (item?: ListItem, index?: number, column?: IColumn) => {
-        switch (column?.key) {
-          case "selected":
-            return (
-              <CountryCallingCodeListItemCheckbox
-                index={index}
-                checked={item?.selected}
-                onCheckboxClicked={onSelect}
-                disabled={item?.disabled ?? false}
-              />
-            );
-          case "order":
-            if (item?.pinned) {
-              return (
-                <OrderButtons
-                  disabled={item.disabled}
-                  index={index}
-                  itemCount={pinnedAlpha2.length}
-                  onSwapClicked={onSwap}
-                />
-              );
-            }
-            return null;
-          case "pinned":
-            return (
-              <CountryCallingCodeListPinButton
-                index={index}
-                className={styles.pin}
-                pinned={item?.pinned ?? false}
-                onPinClick={onPinClick}
-                disabled={item?.disabled ?? false}
-              />
-            );
-          case "countryName":
-            return <span>{item?.displayName}</span>;
-          case "callingCode":
-            return <span>{item?.countryCallingCode}</span>;
-          default:
-            return null;
+    const onSelectAllCheckedChange = useCallback(
+      (checked: boolean | "indeterminate") => {
+        if (checked === "indeterminate") {
+          return;
+        }
+        if (checked) {
+          selectAll();
+        } else {
+          unselectAll();
         }
       },
-      [onSwap, pinnedAlpha2, onPinClick, onSelect]
-    );
-
-    const onRenderCallingCodeListHeader = useCallback<
-      IRenderFunction<IDetailsHeaderProps>
-    >(
-      (props) => {
-        if (props == null) {
-          return null;
-        }
-        const renderCheckbox = () => {
-          return (
-            <CountryCallingCodeListSelectAll
-              selectAll={selectAll}
-              unselectAll={unselectAll}
-              isPartiallySelected={isPartiallySelected}
-              isAllSelected={isAllSelected}
-              disabled={disabled}
-            />
-          );
-        };
-
-        // modify column width for select all checkbox
-        const modifiedColumns = produce(props.columns, (draftColumn) => {
-          const activeColumnWidth = draftColumn[0].calculatedWidth!;
-          draftColumn[0].calculatedWidth = activeColumnWidth - 35;
-        });
-
-        return (
-          <Sticky stickyPosition={StickyPositionType.Header}>
-            <DetailsHeader
-              {...props}
-              columns={modifiedColumns}
-              onRenderDetailsCheckbox={renderCheckbox}
-              selectAllVisibility={SelectAllVisibility.visible}
-              styles={HEADER_STYLE}
-            />
-          </Sticky>
-        );
-      },
-      [disabled, selectAll, unselectAll, isPartiallySelected, isAllSelected]
-    );
-
-    const onRenderCallingCodeListRow = useCallback<
-      IRenderFunction<IDetailsRowProps>
-    >(
-      (props) => {
-        if (props == null) {
-          return null;
-        }
-        const { itemIndex } = props;
-        const isLastPinnedRow = itemIndex === pinnedAlpha2.length - 1;
-        return (
-          <DetailsRow
-            {...props}
-            className={cn(styles.callingCodeListRow, {
-              [styles.lastPinnedCallingCode]: isLastPinnedRow,
-            })}
-          />
-        );
-      },
-      [pinnedAlpha2]
+      [selectAll, unselectAll]
     );
 
     return (
       <div className={cn(styles.root, className)}>
-        <SearchBox
-          className={styles.searchBox}
-          placeholder={renderToString("search")}
-          value={searchString}
-          onChange={onSearchBoxChange}
-          onClear={onSearchBoxClear}
-          disabled={disabled}
-        />
-        <div className={styles.listWrapper}>
-          <ScrollablePane>
-            <DetailsList
-              className={styles.detailsList}
-              columns={countryCodeListColumns}
-              items={filteredItems}
-              selectionMode={SelectionMode.none}
-              onRenderItemColumn={onRenderCallingCodeItemColumn}
-              onRenderDetailsHeader={onRenderCallingCodeListHeader}
-              onRenderRow={onRenderCallingCodeListRow}
-              checkboxVisibility={CheckboxVisibility.always}
+        <div className={styles.toolbar}>
+          {title != null ? (
+            <Text as="p" size="2" weight="medium" className={styles.toolbarTitle}>
+              {title}
+            </Text>
+          ) : (
+            <span />
+          )}
+          <div className={styles.searchField}>
+            <TextField
+              size="2"
+              type="search"
+              placeholder={renderToString("search")}
+              value={searchString}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              onChange={onSearchChange}
+              disabled={disabled}
+              suffixPlain={true}
+              suffix={
+                searchString !== "" ? (
+                  <button
+                    type="button"
+                    className={styles.searchClearButton}
+                    aria-label={renderToString(
+                      "APIResourcesScreen.clear-search"
+                    )}
+                    onClick={onSearchClear}
+                  >
+                    <Cross2Icon className={styles.searchClearIcon} />
+                  </button>
+                ) : undefined
+              }
             />
-          </ScrollablePane>
+          </div>
+        </div>
+        <div className={styles.listWrapper}>
+          <div className={styles.table}>
+            <div className={styles.tableHeader}>
+              <div className={styles.cellSelected}>
+                <Checkbox
+                  checked={
+                    isAllSelected
+                      ? true
+                      : isPartiallySelected
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={onSelectAllCheckedChange}
+                  disabled={disabled}
+                  aria-label={renderToString("activate")}
+                />
+              </div>
+              <div className={styles.headerCellCountry}>
+                <FormattedMessage id="LoginIDConfigurationScreen.phone.columns.country-or-area" />
+              </div>
+              <div className={styles.headerCellCode}>
+                <FormattedMessage id="LoginIDConfigurationScreen.phone.columns.code" />
+              </div>
+              <div className={styles.headerCellOrder}>
+                <FormattedMessage id="LoginIDConfigurationScreen.phone.columns.order" />
+              </div>
+              <div className={styles.headerCellPinned} aria-hidden={true} />
+            </div>
+            {filteredItems.map((item, index) => {
+              const isLastPinnedRow = index === pinnedAlpha2.length - 1;
+              return (
+                <div
+                  key={item.key}
+                  className={cn(
+                    styles.tableRow,
+                    isLastPinnedRow && styles.lastPinnedCallingCode
+                  )}
+                >
+                  <div className={styles.cellSelected}>
+                    <Checkbox
+                      checked={item.selected}
+                      disabled={item.disabled}
+                      onCheckedChange={(checked) => {
+                        if (checked === "indeterminate") {
+                          return;
+                        }
+                        onSelect(index, checked);
+                      }}
+                    />
+                  </div>
+                  <div className={styles.cellCountry}>
+                    <Text size="2">{item.displayName}</Text>
+                  </div>
+                  <div className={styles.cellCode}>
+                    <Text size="2">{item.countryCallingCode}</Text>
+                  </div>
+                  <div className={styles.cellOrder}>
+                    {item.pinned ? (
+                      <OrderButtons
+                        disabled={item.disabled}
+                        index={index}
+                        itemCount={pinnedAlpha2.length}
+                        onSwapClicked={onSwap}
+                      />
+                    ) : null}
+                  </div>
+                  <div className={styles.cellPinned}>
+                    <PinButton
+                      pinned={item.pinned}
+                      disabled={item.disabled}
+                      onClick={() => {
+                        onPinClick(index, !item.pinned);
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );

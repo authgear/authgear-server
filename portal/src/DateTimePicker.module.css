@@ -1,0 +1,37 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.inputRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.timeInput {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.timeSelectTrigger {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .inputRow {
+    flex-direction: column;
+  }
+
+  .input,
+  .timeInput,
+  .timeSelectTrigger {
+    width: 100%;
+  }
+}

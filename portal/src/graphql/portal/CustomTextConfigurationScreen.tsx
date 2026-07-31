@@ -1,6 +1,13 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "../../intl";
+import { Select, Text } from "@radix-ui/themes";
+import { Context as MFContext, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import ExternalLink from "../../ExternalLink";
 
@@ -23,13 +30,10 @@ import {
 } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import ManageLanguageWidget from "./ManageLanguageWidget";
+import CodeEditor from "../../CodeEditor";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import EditTemplatesWidget, {
-  EditTemplatesWidgetSection,
-} from "./EditTemplatesWidget";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 import styles from "./CustomTextConfigurationScreen.module.css";
 
@@ -52,9 +56,140 @@ interface FormModel {
   save: () => Promise<void>;
 }
 
+interface LanguageSelectOption {
+  value: LanguageTag;
+  label: string;
+  disabled: boolean;
+}
+
+interface CustomTextConfigurationContentProps {
+  form: FormModel;
+  languageOptions: LanguageSelectOption[];
+  onChangeSelectedLanguage: (language: LanguageTag) => void;
+  translationValue: string;
+  onChangeTranslation: (value: string | undefined, e: unknown) => void;
+  gitCommitHash: string;
+  translationSheetLanguage: LanguageTag;
+}
+
+const CustomTextConfigurationContent: React.VFC<CustomTextConfigurationContentProps> =
+  function CustomTextConfigurationContent(props) {
+    const {
+      form,
+      languageOptions,
+      onChangeSelectedLanguage,
+      translationValue,
+      onChangeTranslation,
+      gitCommitHash,
+      translationSheetLanguage,
+    } = props;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    return (
+      <ScreenContent
+        className={cn(isDirty ? styles.contentWithSaveBar : null)}
+      >
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="CustomTextConfigurationScreen.title" />
+          </Text>
+          <div className={styles.headerMeta}>
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.pageDescription}
+            >
+              <FormattedMessage id="CustomTextConfigurationScreen.description" />
+            </Text>
+            <Select.Root
+              value={form.state.selectedLanguage}
+              onValueChange={onChangeSelectedLanguage}
+            >
+              <Select.Trigger
+                variant="surface"
+                className={styles.languageSelectTrigger}
+              />
+              <Select.Content
+                position="popper"
+                className={styles.languageSelectContent}
+              >
+                {languageOptions.map((option) => (
+                  <Select.Item
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
+                  >
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            styles.widget,
+            styles.editorCard,
+            isDirty && styles.settingsCardSaveBarClearance
+          )}
+        >
+          <div className={styles.editorCardHeader}>
+            <Text as="p" size="3" weight="medium" className={styles.editorCardTitle}>
+              <FormattedMessage id="CustomTextConfigurationScreen.editor.title" />
+            </Text>
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.editorCardDescription}
+            >
+              <FormattedMessage
+                id="EditTemplatesWidget.translationjson.subtitle"
+                values={{
+                  COMMIT: gitCommitHash,
+                  language: translationSheetLanguage,
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  externalLink: (chunks: React.ReactNode) => (
+                    <ExternalLink
+                      href={`https://github.com/authgear/authgear-server/blob/${gitCommitHash}/resources/authgear/templates/${translationSheetLanguage}/translation.json`}
+                    >
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  docLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://docs.authgear.com/customization/ui-customization/built-in-ui/localization">
+                      {chunks}
+                    </ExternalLink>
+                  ),
+                }}
+              />
+            </Text>
+          </div>
+          <CodeEditor
+            key={form.state.selectedLanguage}
+            className={styles.codeEditor}
+            language="json"
+            value={translationValue}
+            onChange={onChangeTranslation}
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </ScreenContent>
+    );
+  };
+
 const CustomTextConfigurationScreen: React.VFC =
   function CustomTextConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
+    const { renderToString } = useContext(MFContext);
     const { gitCommitHash, builtinLanguages } = useSystemConfig();
     const config = useAppAndSecretConfigQuery(appID);
 
@@ -140,6 +275,42 @@ const CustomTextConfigurationScreen: React.VFC =
       [config, resourceForm, state]
     );
 
+    const languageOptions = useMemo<LanguageSelectOption[]>(() => {
+      const options: LanguageSelectOption[] = [];
+      const combinedLocales = new Set([
+        ...initialSupportedLanguages,
+        ...form.state.supportedLanguages,
+      ]);
+
+      for (const locale of combinedLocales) {
+        const isNew = !initialSupportedLanguages.includes(locale);
+        const isRemoved = !form.state.supportedLanguages.includes(locale);
+
+        let localeDisplay = renderToString(`Locales.${locale}`);
+        if (isRemoved) {
+          localeDisplay = renderToString("ManageLanguageWidget.option-removed", {
+            LANG: localeDisplay,
+          });
+        }
+
+        options.push({
+          value: locale,
+          label: renderToString("ManageLanguageWidget.language-label", {
+            LANG: localeDisplay,
+            IS_FALLBACK: String(form.state.fallbackLanguage === locale),
+          }),
+          disabled: isRemoved || isNew,
+        });
+      }
+
+      return options;
+    }, [
+      initialSupportedLanguages,
+      form.state.supportedLanguages,
+      form.state.fallbackLanguage,
+      renderToString,
+    ]);
+
     const getValueFromState = useCallback(
       (
         resources: Partial<Record<string, Resource>>,
@@ -171,53 +342,48 @@ const CustomTextConfigurationScreen: React.VFC =
       []
     );
 
-    const getValue = useCallback(
-      (def: ResourceDefinition) => {
-        const selectedValue = getValueFromState(
+    const translationValue = useMemo(() => {
+      const selectedValue = getValueFromState(
+        form.state.resources,
+        form.state.selectedLanguage,
+        form.state.fallbackLanguage,
+        RESOURCE_TRANSLATION_JSON,
+        (res) => res?.nullableValue ?? res?.effectiveData
+      );
+      if (selectedValue != null) {
+        return selectedValue;
+      }
+
+      return (
+        getValueFromState(
           form.state.resources,
-          form.state.selectedLanguage,
+          DEFAULT_TEMPLATE_LOCALE,
           form.state.fallbackLanguage,
-          def,
-          (res) => res?.nullableValue ?? res?.effectiveData
-        );
-        if (selectedValue != null) {
-          return selectedValue;
-        }
+          RESOURCE_TRANSLATION_JSON,
+          (res) => res?.effectiveData
+        ) ?? ""
+      );
+    }, [form.state, getValueFromState]);
 
-        return (
-          getValueFromState(
-            form.state.resources,
-            DEFAULT_TEMPLATE_LOCALE,
-            form.state.fallbackLanguage,
-            def,
-            (res) => res?.effectiveData
-          ) ?? ""
-        );
-      },
-      [form.state, getValueFromState]
-    );
-
-    const getOnChange = useCallback(
-      (def: ResourceDefinition) => {
+    const onChangeTranslation = useCallback(
+      (value: string | undefined, _e: unknown) => {
         const specifier: ResourceSpecifier = {
-          def,
+          def: RESOURCE_TRANSLATION_JSON,
           locale: form.state.selectedLanguage,
           extension: null,
         };
-        return (value: string | undefined, _e: unknown) => {
-          form.setState((prev) => {
-            const updatedResources = { ...prev.resources };
-            const resource: Resource = {
-              specifier,
-              path: expandSpecifier(specifier),
-              nullableValue: value ?? "",
-              effectiveData:
-                prev.resources[specifierId(specifier)]?.effectiveData,
-            };
-            updatedResources[specifierId(resource.specifier)] = resource;
-            return { ...prev, resources: updatedResources };
-          });
-        };
+        form.setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const resource: Resource = {
+            specifier,
+            path: expandSpecifier(specifier),
+            nullableValue: value ?? "",
+            effectiveData:
+              prev.resources[specifierId(specifier)]?.effectiveData,
+          };
+          updatedResources[specifierId(resource.specifier)] = resource;
+          return { ...prev, resources: updatedResources };
+        });
       },
       [form]
     );
@@ -229,81 +395,17 @@ const CustomTextConfigurationScreen: React.VFC =
       return state.fallbackLanguage;
     }, [builtinLanguages, state.fallbackLanguage, state.selectedLanguage]);
 
-    const sectionsTranslationJSON: [EditTemplatesWidgetSection] = [
-      {
-        key: "translation.json",
-        title: (
-          <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
-        ),
-        items: [
-          {
-            key: "translation.json",
-            title: (
-              <FormattedMessage
-                id="EditTemplatesWidget.translationjson.subtitle"
-                values={{
-                  COMMIT: gitCommitHash,
-                  language: translationSheetLanguage,
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  externalLink: (chunks: React.ReactNode) => (
-                    <ExternalLink
-                      href={`https://github.com/authgear/authgear-server/blob/${gitCommitHash}/resources/authgear/templates/${translationSheetLanguage}/translation.json`}
-                    >
-                      {chunks}
-                    </ExternalLink>
-                  ),
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  docLink: (chunks: React.ReactNode) => (
-                    <ExternalLink href="https://docs.authgear.com/customization/ui-customization/built-in-ui/localization">
-                      {chunks}
-                    </ExternalLink>
-                  ),
-                }}
-              />
-            ),
-            language: "json",
-            value: getValue(RESOURCE_TRANSLATION_JSON),
-            onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
-            editor: "code",
-          },
-        ],
-      },
-    ];
-
     return (
-      <FormContainer form={form} canSave={true}>
-        <ScreenContent>
-          <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
-            <FormattedMessage id="CustomTextConfigurationScreen.title" />
-          </ScreenTitle>
-          <div
-            className={cn(
-              "pt-1",
-              "col-span-8",
-              "tablet:col-span-full",
-              "flex",
-              "items-center",
-              "justify-between",
-              "gap-x-2"
-            )}
-          >
-            <ScreenDescription>
-              <FormattedMessage id="CustomTextConfigurationScreen.description" />
-            </ScreenDescription>
-            <ManageLanguageWidget
-              showLabel={false}
-              existingLanguages={initialSupportedLanguages}
-              supportedLanguages={initialSupportedLanguages}
-              selectedLanguage={form.state.selectedLanguage}
-              fallbackLanguage={form.state.fallbackLanguage}
-              onChangeSelectedLanguage={setSelectedLanguage}
-            />
-          </div>
-          <EditTemplatesWidget
-            className={cn(styles.widget, styles.translationEditorWidget)}
-            sections={sectionsTranslationJSON}
-          />
-        </ScreenContent>
+      <FormContainer form={form} canSave={true} hideFooterComponent={true}>
+        <CustomTextConfigurationContent
+          form={form}
+          languageOptions={languageOptions}
+          onChangeSelectedLanguage={setSelectedLanguage}
+          translationValue={translationValue}
+          onChangeTranslation={onChangeTranslation}
+          gitCommitHash={gitCommitHash}
+          translationSheetLanguage={translationSheetLanguage}
+        />
       </FormContainer>
     );
   };

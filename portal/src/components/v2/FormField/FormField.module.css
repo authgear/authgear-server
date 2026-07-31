@@ -13,7 +13,7 @@
 }
 
 .formField__label {
-  @apply block;
+  @apply inline-flex items-center;
   color: var(--gray-12);
 }
 

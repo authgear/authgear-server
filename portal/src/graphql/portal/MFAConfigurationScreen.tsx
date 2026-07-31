@@ -1,11 +1,6 @@
-import React, { useMemo, useCallback, useContext } from "react";
-import {
-  Dropdown,
-  Text,
-  useTheme,
-  MessageBar,
-  MessageBarType,
-} from "@fluentui/react";
+import React, { useMemo, useCallback, useContext, useRef } from "react";
+import cn from "classnames";
+import { Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
@@ -24,16 +19,15 @@ import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import Toggle from "../../Toggle";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { FormField } from "../../components/v2/FormField/FormField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { Callout } from "../../components/v2/Callout/Callout";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
-import { useDropdown } from "../../hook/useInput";
-import WidgetDescription from "../../WidgetDescription";
-import FormTextField from "../../FormTextField";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
@@ -48,7 +42,6 @@ import PasswordSettings, {
   setUIForgotPasswordConfig,
 } from "./PasswordSettings";
 import { formatDuration, parseDuration } from "../../util/duration";
-import HorizontalDivider from "../../HorizontalDivider";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
@@ -311,12 +304,18 @@ function UnreasonableWarning(props: UnreasonableWarningProps) {
   }
 
   return (
-    <div>
+    <div className={styles.warningList}>
       {unreasonableTypes.map((t) => {
         return (
-          <MessageBar key={t} messageBarType={MessageBarType.info}>
-            <FormattedMessage id={"MFAConfigurationScreen.unreasonable." + t} />
-          </MessageBar>
+          <Callout
+            key={t}
+            className="w-full"
+            type="info"
+            showCloseButton={false}
+            text={
+              <FormattedMessage id={"MFAConfigurationScreen.unreasonable." + t} />
+            }
+          />
         );
       })}
     </div>
@@ -354,29 +353,21 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       smtpConfigured,
     } = state;
     const { renderToString } = useContext(Context);
-    const {
-      semanticColors: { disabledText },
-    } = useTheme();
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
-    const renderMFAMode = useCallback(
-      (key: SecondaryAuthenticationMode) => {
-        return renderToString("MFAConfigurationScreen.policy.mode." + key);
-      },
-      [renderToString]
-    );
-
-    const { options: mfaModeOptions, onChange: onChangeMFAMode } = useDropdown(
-      ALL_MFA_OPTIONS,
-      (option) => {
+    const onChangeMFAMode = useCallback(
+      (value: string) => {
+        const option = value as SecondaryAuthenticationMode;
         setState((prev) => ({
           ...prev,
           mfaMode: option,
           mfaGlobalGracePeriodEnabled:
-            option !== "required" ? false : mfaGlobalGracePeriodEnabled,
+            option !== "required" ? false : prev.mfaGlobalGracePeriodEnabled,
         }));
       },
-      mfaMode,
-      renderMFAMode
+      [setState]
     );
 
     const isSMSRequiredForSomeEnabledFeatures = useMemo(() => {
@@ -412,69 +403,60 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
             key: type,
             checked: isChecked,
             content: (
-              <div>
-                <Text
-                  variant="small"
-                  styles={{
-                    root: {
-                      color: disabled ? disabledText : undefined,
-                    },
-                  }}
-                >
-                  <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
-                </Text>
-              </div>
+              <Text size="2" color={disabled ? "gray" : undefined}>
+                <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
+              </Text>
             ),
           };
         }),
-      [secondary, featureDisabled, disabledText]
+      [secondary, featureDisabled]
     );
 
     const onChangeMFAGlobalGracePeriodEnabled = useCallback(
-      (_e, checked?: boolean) => {
+      (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          mfaGlobalGracePeriodEnabled: checked ?? false,
+          mfaGlobalGracePeriodEnabled: checked,
         }));
       },
       [setState]
     );
 
     const onChangeDeviceTokenEnabled = useCallback(
-      (_e, checked?: boolean) => {
+      (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          deviceTokenEnabled: checked ?? false,
+          deviceTokenEnabled: checked,
         }));
       },
       [setState]
     );
 
     const onChangeRecoveryCodeEnabled = useCallback(
-      (_e, checked?: boolean) => {
+      (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          recoveryCodeEnabled: checked ?? false,
+          recoveryCodeEnabled: checked,
         }));
       },
       [setState]
     );
 
     const onChangeRecoveryCodeListEnabled = useCallback(
-      (_e, checked?: boolean) => {
+      (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          recoveryCodeListEnabled: checked ?? false,
+          recoveryCodeListEnabled: checked,
         }));
       },
       [setState]
     );
 
     const onChangeNumRecoveryCode = useCallback(
-      (_, value?: string) => {
+      (e: React.ChangeEvent<HTMLInputElement>) => {
         setState((prev) => ({
           ...prev,
-          numRecoveryCode: parseIntegerAllowLeadingZeros(value),
+          numRecoveryCode: parseIntegerAllowLeadingZeros(e.target.value),
         }));
       },
       [setState]
@@ -505,14 +487,19 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
     );
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="MFAConfigurationScreen.title" />
-        </ScreenTitle>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
-          <ScreenDescription className={styles.widget}>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="MFAConfigurationScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="MFAConfigurationScreen.description" />
-          </ScreenDescription>
+          </Text>
+        </div>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           {isAuthgearOnce &&
           isSMSRequiredForSomeEnabledFeatures &&
           !smsProviderConfigured ? (
@@ -527,48 +514,109 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               className={styles.widget}
             />
           ) : null}
-          <Widget className={styles.widget}>
-            <WidgetTitle>
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
               <FormattedMessage id="MFAConfigurationScreen.policy.title" />
-            </WidgetTitle>
-            <Dropdown
-              label={renderToString("MFAConfigurationScreen.policy.mode.title")}
-              options={mfaModeOptions}
-              selectedKey={mfaMode}
-              onChange={onChangeMFAMode}
-            />
-            {mfaMode === "required" ? (
-              <div>
-                <Toggle
-                  label={
-                    <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.title" />
-                  }
-                  inlineLabel={false}
-                  checked={mfaGlobalGracePeriodEnabled}
-                  onChange={onChangeMFAGlobalGracePeriodEnabled}
-                />
-                <WidgetDescription>
-                  <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.description" />
-                </WidgetDescription>
-              </div>
-            ) : null}
-            <Toggle
+            }
+          >
+            <FormField
+              size="2"
+              labelSize="2"
+              labelSpace="1"
               label={
+                <FormattedMessage id="MFAConfigurationScreen.policy.mode.title" />
+              }
+            >
+              <RadioGroup.Root
+                value={mfaMode}
+                onValueChange={onChangeMFAMode}
+                className={styles.modeRadioGroup}
+              >
+                <Flex direction="column" gap="3">
+                  {ALL_MFA_OPTIONS.map((option) => (
+                    <div key={option} className={styles.modeRadioBlock}>
+                      <Text
+                        as="label"
+                        size="2"
+                        className={styles.modeRadioOption}
+                      >
+                        <Flex gap="2" align="start">
+                          <RadioGroup.Item
+                            value={option}
+                            className={styles.modeRadioItem}
+                          />
+                          <div className={styles.modeRadioContent}>
+                            <Text as="span" size="2">
+                              <FormattedMessage
+                                id={`MFAConfigurationScreen.policy.mode.${option}.label`}
+                              />
+                            </Text>
+                            <Text as="p" size="1" color="gray">
+                              <FormattedMessage
+                                id={`MFAConfigurationScreen.policy.mode.${option}.description`}
+                              />
+                            </Text>
+                          </div>
+                        </Flex>
+                      </Text>
+                      {option === "required" && mfaMode === "required" ? (
+                        <Flex
+                          gap="2"
+                          align="start"
+                          className={styles.gracePeriodRow}
+                        >
+                          <span
+                            className={styles.modeRadioItemSpacer}
+                            aria-hidden={true}
+                          />
+                          <div className={styles.gracePeriodContent}>
+                            <Toggle
+                              checked={mfaGlobalGracePeriodEnabled}
+                              onCheckedChange={
+                                onChangeMFAGlobalGracePeriodEnabled
+                              }
+                              textWeight="medium"
+                              text={
+                                <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.title" />
+                              }
+                            />
+                            <Text as="p" size="1" color="gray">
+                              <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.description" />
+                            </Text>
+                          </div>
+                        </Flex>
+                      ) : null}
+                    </div>
+                  ))}
+                </Flex>
+              </RadioGroup.Root>
+            </FormField>
+            <Toggle
+              checked={deviceTokenEnabled}
+              onCheckedChange={onChangeDeviceTokenEnabled}
+              textWeight="medium"
+              text={
                 <FormattedMessage id="MFAConfigurationScreen.policy.device-token.title" />
               }
-              inlineLabel={false}
-              checked={deviceTokenEnabled}
-              onChange={onChangeDeviceTokenEnabled}
             />
-          </Widget>
-          <HorizontalDivider className={styles.separator} />
-          <Widget className={styles.widget}>
-            <WidgetTitle>
+          </SettingsSectionCard>
+          <SettingsSectionCard
+            className={styles.widget}
+            contentClassName="gap-4"
+            title={
               <FormattedMessage id="MFAConfigurationScreen.authenticator.title" />
-            </WidgetTitle>
-            <WidgetDescription>
+            }
+          >
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.sectionDescription}
+            >
               <FormattedMessage id="MFAConfigurationScreen.authenticator.description" />
-            </WidgetDescription>
+            </Text>
             {featureDisabled ? (
               <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
             ) : null}
@@ -584,67 +632,80 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               onSwap={onSwapSecondaryAuthenticator}
             />
             <UnreasonableWarning primary={primary} secondary={secondary} />
-          </Widget>
+          </SettingsSectionCard>
           {showPasswordSettings ? (
-            <>
-              <HorizontalDivider className={styles.separator} />
-              <PasswordSettings
-                className={styles.widget}
-                forgotPasswordLinkValidPeriodSeconds={
-                  forgotPasswordLinkValidPeriodSeconds
-                }
-                forgotPasswordCodeValidPeriodSeconds={
-                  forgotPasswordCodeValidPeriodSeconds
-                }
-                resetPasswordWithEmailBy={resetPasswordWithEmailBy}
-                resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
-                authenticatorPasswordConfig={authenticatorPasswordConfig}
-                passwordPolicyFeatureConfig={
-                  featureConfig?.authenticator?.password?.policy
-                }
-                isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
-                isLoginIDEmailEnabled={isLoginIDEmailEnabled}
-                setState={setState}
-              />
-            </>
+            <PasswordSettings
+              className={styles.widget}
+              forgotPasswordLinkValidPeriodSeconds={
+                forgotPasswordLinkValidPeriodSeconds
+              }
+              forgotPasswordCodeValidPeriodSeconds={
+                forgotPasswordCodeValidPeriodSeconds
+              }
+              resetPasswordWithEmailBy={resetPasswordWithEmailBy}
+              resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
+              authenticatorPasswordConfig={authenticatorPasswordConfig}
+              passwordPolicyFeatureConfig={
+                featureConfig?.authenticator?.password?.policy
+              }
+              isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
+              isLoginIDEmailEnabled={isLoginIDEmailEnabled}
+              setState={setState}
+            />
           ) : null}
-          <HorizontalDivider className={styles.separator} />
-          <Widget className={styles.widget}>
-            <WidgetTitle>
+          <SettingsSectionCard
+            className={cn(
+              styles.widget,
+              isDirty && styles.settingsCardSaveBarClearance
+            )}
+            contentClassName="gap-4"
+            title={
               <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />
-            </WidgetTitle>
-            <WidgetDescription>
+            }
+          >
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.sectionDescription}
+            >
               <FormattedMessage id="MFAConfigurationScreen.recovery-code.description" />
-            </WidgetDescription>
+            </Text>
             <Toggle
-              label={
+              checked={recoveryCodeEnabled}
+              onCheckedChange={onChangeRecoveryCodeEnabled}
+              textWeight="medium"
+              text={
                 <FormattedMessage id="MFAConfigurationScreen.recovery-code.toggle.title" />
               }
-              inlineLabel={false}
-              checked={recoveryCodeEnabled}
-              onChange={onChangeRecoveryCodeEnabled}
             />
-            <FormTextField
-              disabled={!recoveryCodeEnabled}
-              parentJSONPointer="/authentication/recovery_code"
-              fieldName="count"
-              label={renderToString(
-                "MFAConfigurationScreen.recovery-code.input.title"
-              )}
-              value={numRecoveryCode?.toFixed(0) ?? ""}
-              onChange={onChangeNumRecoveryCode}
-            />
-            <Toggle
-              disabled={!recoveryCodeEnabled}
-              label={
-                <FormattedMessage id="MFAConfigurationScreen.recovery-code.list.toggle.title" />
-              }
-              inlineLabel={false}
-              checked={recoveryCodeListEnabled}
-              onChange={onChangeRecoveryCodeListEnabled}
-            />
-          </Widget>
+            {recoveryCodeEnabled ? (
+              <>
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  type="text"
+                  parentJSONPointer="/authentication/recovery_code"
+                  fieldName="count"
+                  label={
+                    <FormattedMessage id="MFAConfigurationScreen.recovery-code.input.title" />
+                  }
+                  value={numRecoveryCode?.toFixed(0) ?? ""}
+                  onChange={onChangeNumRecoveryCode}
+                />
+                <Toggle
+                  checked={recoveryCodeListEnabled}
+                  onCheckedChange={onChangeRecoveryCodeListEnabled}
+                  textWeight="medium"
+                  text={
+                    <FormattedMessage id="MFAConfigurationScreen.recovery-code.list.toggle.title" />
+                  }
+                />
+              </>
+            ) : null}
+          </SettingsSectionCard>
         </ShowOnlyIfSIWEIsDisabled>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -729,7 +790,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
   }
 
   return (
-    <FormContainer form={form} stickyFooterComponent={true}>
+    <FormContainer form={form} hideFooterComponent={true}>
       <MFAConfigurationContent
         form={form}
         isLoginIDEmailEnabled={isLoginIDEmailEnabled}

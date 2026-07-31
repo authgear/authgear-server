@@ -1,17 +1,22 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import cn from "classnames";
-import styles from "./RoleAndGroupsLayout.module.css";
-import NavBreadcrumb, { BreadcrumbItem } from "./NavBreadcrumb";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { ProgressIndicator } from "@fluentui/react";
+import { useParams } from "react-router-dom";
+import styles from "./RoleAndGroupsLayout.module.css";
+import { BreadcrumbItem } from "./NavBreadcrumb";
 import { useIsLoading } from "./hook/loading";
 import {
   ErrorMessageBar,
   ErrorMessageBarContextProvider,
 } from "./ErrorMessageBar";
+import Link from "./Link";
 
 interface RoleAndGroupsLayoutProps {
   headerBreadcrumbs: BreadcrumbItem[];
   headerSubitem?: ReactNode;
+  headerDescription?: ReactNode;
 }
 
 const progressIndicatorStyles = {
@@ -20,14 +25,41 @@ const progressIndicatorStyles = {
   },
 };
 
+function resolveBreadcrumbPath(to: string, appID: string): string {
+  if (to === "" || to === ".") {
+    return "";
+  }
+  return to.replace("~/", `/project/${appID}/`);
+}
+
 export const RoleAndGroupsLayout: React.VFC<
   React.PropsWithChildren<RoleAndGroupsLayoutProps>
 > = function RoleAndGroupsLayout({
   headerBreadcrumbs,
   headerSubitem,
+  headerDescription,
   children,
 }) {
   const isLoading = useIsLoading();
+  const { appID } = useParams() as { appID: string };
+
+  const { title, backLink } = useMemo(() => {
+    const titleItem = headerBreadcrumbs[headerBreadcrumbs.length - 1];
+    const parentItem =
+      headerBreadcrumbs.length > 1
+        ? headerBreadcrumbs[headerBreadcrumbs.length - 2]
+        : null;
+    const parentTo =
+      parentItem != null ? resolveBreadcrumbPath(parentItem.to, appID) : "";
+
+    return {
+      title: titleItem?.label ?? null,
+      backLink:
+        parentItem != null && parentTo !== ""
+          ? { to: parentTo, label: parentItem.label }
+          : null,
+    };
+  }, [appID, headerBreadcrumbs]);
 
   return (
     <ErrorMessageBarContextProvider>
@@ -42,11 +74,30 @@ export const RoleAndGroupsLayout: React.VFC<
         </div>
         <div className={styles.main}>
           <header className={styles.header}>
-            <NavBreadcrumb
-              className={styles.breadcrumb}
-              items={headerBreadcrumbs}
-            />
-            {headerSubitem != null ? headerSubitem : null}
+            <div className={styles.headerMain}>
+              {backLink != null ? (
+                <Link to={backLink.to} className={styles.backLink}>
+                  <ChevronLeftIcon className={styles.backLinkIcon} />
+                  <span>{backLink.label}</span>
+                </Link>
+              ) : null}
+              <div className={styles.titleRow}>
+                <Text
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  className={styles.pageTitle}
+                >
+                  {title}
+                </Text>
+                {headerSubitem != null ? headerSubitem : null}
+              </div>
+              {headerDescription != null ? (
+                <div className={styles.headerDescription}>
+                  {headerDescription}
+                </div>
+              ) : null}
+            </div>
           </header>
           <section className={styles.content}>{children}</section>
         </div>

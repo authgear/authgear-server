@@ -1,35 +1,26 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import {
-  ColumnActionsMode,
-  DetailsRow,
-  IColumn,
-  IDetailsRowProps,
-} from "@fluentui/react";
-import { Context as MessageContext } from "../../../intl";
-import { useParams } from "react-router-dom";
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
+import { DotsVerticalIcon, TrashIcon } from "@radix-ui/react-icons";
+import { Context, FormattedMessage } from "../../../intl";
+import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./GroupRolesList.module.css";
 import { Group, Role } from "../../../graphql/adminapi/globalTypes.generated";
-import Link from "../../../Link";
 import DeleteGroupRoleDialog, {
   DeleteGroupRoleDialogData,
 } from "../dialog/DeleteGroupRoleDialog";
-import ActionButtonCell from "./common/ActionButtonCell";
-import TextCell from "./common/TextCell";
-import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import { CopyIconButton } from "../../v2/CopyIconButton/CopyIconButton";
 
 export interface GroupRolesListItem
   extends Pick<Group, "id" | "name" | "key"> {}
 
 export interface GroupRolesListGroup
   extends Pick<Role, "id" | "name" | "key"> {}
-
-export enum GroupRolesListColumnKey {
-  Name = "Name",
-  Key = "Key",
-  Action = "Action",
-}
 
 interface GroupRolesListProps {
   group: GroupRolesListGroup;
@@ -40,7 +31,8 @@ interface GroupRolesListProps {
 export const GroupRolesList: React.VFC<GroupRolesListProps> =
   function GroupRolesList({ group, roles, className }) {
     const { appID } = useParams() as { appID: string };
-    const { renderToString } = useContext(MessageContext);
+    const { renderToString } = useContext(Context);
+    const navigate = useNavigate();
 
     const [deleteDialogData, setDeleteDialogData] =
       useState<DeleteGroupRoleDialogData | null>(null);
@@ -49,9 +41,7 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
       []
     );
     const onClickDeleteRole = useCallback(
-      (e: React.MouseEvent<unknown>, item: GroupRolesListItem) => {
-        e.preventDefault();
-        e.stopPropagation();
+      (item: GroupRolesListItem) => {
         setDeleteDialogData({
           roleID: item.id,
           roleKey: item.key,
@@ -64,93 +54,58 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
       [group]
     );
 
-    const columns: IColumn[] = useMemo((): IColumn[] => {
-      return [
-        {
-          key: GroupRolesListColumnKey.Name,
-          fieldName: "name",
-          name: renderToString("GroupRolesList.column.name"),
-          minWidth: 100,
-          maxWidth: 300,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: GroupRolesListColumnKey.Key,
-          fieldName: "key",
-          name: renderToString("GroupRolesList.column.key"),
-          minWidth: 100,
-          maxWidth: 9999,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: GroupRolesListColumnKey.Action,
-          fieldName: "action",
-          name: renderToString("GroupRolesList.column.action"),
-          minWidth: 67,
-          maxWidth: 67,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-      ];
-    }, [renderToString]);
-
-    const onRenderRow = React.useCallback(
-      (props?: IDetailsRowProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <Link
-            className="contents"
-            to={`/project/${appID}/user-management/roles/${
-              (props.item as GroupRolesListItem).id
-            }/details`}
-          >
-            <DetailsRow {...props} />
-          </Link>
+    const onItemClicked = useCallback(
+      (item: GroupRolesListItem) => {
+        navigate(
+          `/project/${appID}/user-management/roles/${item.id}/details`
         );
       },
-      [appID]
+      [appID, navigate]
     );
 
-    const onRenderItemColumn = useCallback(
-      (item: GroupRolesListItem, _index?: number, column?: IColumn) => {
-        switch (column?.key) {
-          case GroupRolesListColumnKey.Action: {
-            return (
-              <ActionButtonCell
-                variant="destructive"
-                text={renderToString("GroupRolesList.actions.remove")}
-                onClick={(e) => {
-                  onClickDeleteRole(e, item);
-                }}
-              />
-            );
-          }
-          default:
-            return (
-              <TextCell>
-                {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
-              </TextCell>
-            );
-        }
-      },
-      [onClickDeleteRole, renderToString]
-    );
+    const rowActionsLabel = renderToString("GroupsList.row-actions");
 
-    const listEmptyText = renderToString("GroupRolesList.empty");
+    if (roles.length === 0) {
+      return (
+        <>
+          <div className={cn(className, styles.listRoot)}>
+            <Text as="p" size="2" color="gray" className={styles.empty}>
+              <FormattedMessage id="GroupRolesList.empty" />
+            </Text>
+          </div>
+          <DeleteGroupRoleDialog
+            data={deleteDialogData}
+            onDismiss={onDismissDeleteDialog}
+          />
+        </>
+      );
+    }
 
     return (
       <>
-        <div className={cn(styles.root, className)}>
-          <RolesAndGroupsBaseList
-            emptyText={listEmptyText}
-            onRenderRow={onRenderRow}
-            onRenderItemColumn={onRenderItemColumn}
-            items={roles}
-            columns={columns}
-          />
+        <div className={cn(className, styles.listRoot)}>
+          <div className={styles.tableWrapper}>
+            <div className={styles.table}>
+              <div className={styles.tableHeader}>
+                <div className={styles.tableHeaderCellName}>
+                  <FormattedMessage id="GroupRolesList.column.name" />
+                </div>
+                <div className={styles.tableHeaderCellKey}>
+                  <FormattedMessage id="GroupRolesList.column.key" />
+                </div>
+                <div className={styles.tableHeaderCellActions} />
+              </div>
+              {roles.map((item) => (
+                <GroupRoleRow
+                  key={item.id}
+                  item={item}
+                  onDelete={onClickDeleteRole}
+                  onItemClicked={onItemClicked}
+                  rowActionsLabel={rowActionsLabel}
+                />
+              ))}
+            </div>
+          </div>
         </div>
         <DeleteGroupRoleDialog
           data={deleteDialogData}
@@ -159,3 +114,89 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
       </>
     );
   };
+
+interface GroupRoleRowProps {
+  item: GroupRolesListItem;
+  onDelete: (item: GroupRolesListItem) => void;
+  onItemClicked: (item: GroupRolesListItem) => void;
+  rowActionsLabel: string;
+}
+
+function GroupRoleRow({
+  item,
+  onDelete,
+  onItemClicked,
+  rowActionsLabel,
+}: GroupRoleRowProps) {
+  const onRowClick = useCallback(() => {
+    onItemClicked(item);
+  }, [onItemClicked, item]);
+
+  const onRowKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onItemClicked(item);
+      }
+    },
+    [onItemClicked, item]
+  );
+
+  return (
+    <div
+      className={styles.tableRow}
+      role="button"
+      tabIndex={0}
+      onClick={onRowClick}
+      onKeyDown={onRowKeyDown}
+    >
+      <div className={styles.tableCellName}>
+        <Text size="2" className={styles.nameText}>
+          {item.name}
+        </Text>
+      </div>
+      <div className={styles.tableCellKey}>
+        <div
+          className={styles.keyCell}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Text size="2" className={styles.keyText}>
+            {item.key}
+          </Text>
+          <CopyIconButton textToCopy={item.key} />
+        </div>
+      </div>
+      <div
+        className={styles.tableCellActions}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <RadixIconButton
+              className={styles.rowActionsButton}
+              variant="soft"
+              color="gray"
+              size="2"
+              aria-label={rowActionsLabel}
+            >
+              <DotsVerticalIcon width="1rem" height="1rem" />
+            </RadixIconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Item
+              color="red"
+              onSelect={() => {
+                onDelete(item);
+              }}
+            >
+              <TrashIcon />
+              <FormattedMessage id="GroupRolesList.actions.remove" />
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </div>
+    </div>
+  );
+}

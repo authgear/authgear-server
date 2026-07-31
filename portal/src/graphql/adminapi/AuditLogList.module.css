@@ -4,21 +4,264 @@
   overflow: hidden;
 }
 
-.listWrapper {
-  flex: 1 1 0;
+/* ── Table wrapper (scrollable) ── */
+
+.tableWrapper {
+  /* Size to content so a short list doesn't leave a tall empty box,
+     but still shrink + scroll when the rows exceed the available height. */
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-a6);
+  margin: 0 24px;
 }
 
-.pagination {
-  align-self: flex-end;
-  margin: 12px 16px;
+/* ── Table ── */
+
+.table {
+  min-width: 40rem;
+  width: 100%;
+}
+
+/* ── Header row ── */
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  min-width: 40rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
+
+  /* Keep the header visible while the table body scrolls. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.headerCellUser,
+.headerCellActivityType,
+.headerCellCreatedAt,
+.headerCellChevron {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.headerCellUser {
+  width: 24rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.headerCellActivityType {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
+.headerCellCreatedAt {
+  flex: 1 1 0;
+  min-width: 18rem;
+  padding: 0;
+}
+
+.headerCellChevron {
+  width: 2.75rem;
+  flex-shrink: 0;
+}
+
+/* ── Sort button inside Created At header ── */
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+  width: 100%;
+  white-space: nowrap;
+}
+
+.sortButton:hover {
+  color: var(--accent-9);
 }
 
 .sortIcon {
-  margin-right: 8px;
+  flex-shrink: 0;
 }
 
-.empty {
+/* ── Data rows ── */
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  min-width: 40rem;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a2);
+}
+
+.emptyRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 16px;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.emptyText {
+  color: var(--gray-11);
+  text-align: center;
+}
+
+.cellUser,
+.cellActivityType,
+.cellCreatedAt,
+.cellChevron {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.cellUser {
+  width: 24rem;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cellUserLink {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cellText {
+  @apply truncate;
+  min-width: 0;
+  display: block;
+}
+
+.userCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userPrimary {
+  font-weight: 500;
+  color: var(--gray-12);
+}
+
+.userSecondary {
+  font-weight: 400;
+  color: var(--gray-11);
+}
+
+.cellActivityType {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
+.activityTypeLink {
+  color: var(--accent-9);
+}
+
+.activityTypeLink:hover {
+  color: var(--accent-10);
+}
+
+.cellCreatedAt {
+  flex: 1 1 0;
+  min-width: 18rem;
+}
+
+.cellCreatedAt .cellText {
+  white-space: nowrap;
+}
+
+.cellChevron {
+  width: 2.75rem;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+.chevronIcon {
+  color: var(--gray-9);
+}
+
+/* ── Shimmer skeleton ── */
+
+.shimmerRow {
+  display: flex;
+  align-items: center;
+  min-width: 40rem;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+  animation: shimmer-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.shimmerCell {
+  height: 0.875rem;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-a5);
+  margin: 12px 16px;
+}
+
+.shimmerUser {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.shimmerActivityType {
+  width: 12rem;
+  flex-shrink: 0;
+}
+
+.shimmerCreatedAt {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 14rem;
+}
+
+.shimmerChevron {
+  width: 0.75rem;
+  margin: 12px auto;
+}
+
+/* ── Pagination ── */
+
+.pagination {
+  align-self: flex-end;
+  margin: 12px 24px;
+}
+
+.paginationHidden {
   @apply hidden;
 }

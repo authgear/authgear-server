@@ -1,6 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import { Context, FormattedMessage } from "../../intl";
-import { DeleteConfirmationDialog } from "../common/DeleteConfirmationDialog";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 export interface DeleteResourceDialogData {
   resourceURI: string;
@@ -12,40 +12,50 @@ interface DeleteResourceDialogProps {
   onDismiss: () => void;
   onConfirm: (data: DeleteResourceDialogData) => void;
   isLoading: boolean;
-  onDismissed?: () => void;
 }
 
 export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
   function DeleteResourceDialog(props) {
-    const { onDismiss, onConfirm, isLoading, onDismissed, data } = props;
-    const { renderToString } = React.useContext(Context);
+    const { onDismiss, onConfirm, isLoading, data } = props;
+    const { renderToString } = useContext(Context);
 
-    const renderTitle = useCallback(() => {
-      return renderToString("DeleteResourceDialog.title");
-    }, [renderToString]);
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDismiss();
+        }
+      },
+      [onDismiss]
+    );
 
-    const renderSubText = useCallback((data: DeleteResourceDialogData) => {
-      return (
-        <FormattedMessage
-          id="DeleteResourceDialog.description"
-          values={{
-            name: data.resourceName ?? data.resourceURI,
-            // eslint-disable-next-line react/no-unstable-nested-components
-            b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-          }}
-        />
-      );
-    }, []);
+    const handleConfirm = useCallback(() => {
+      if (data == null) {
+        return;
+      }
+      onConfirm(data);
+    }, [data, onConfirm]);
 
     return (
-      <DeleteConfirmationDialog
-        data={data}
-        renderTitle={renderTitle}
-        renderSubText={renderSubText}
-        onDismiss={onDismiss}
-        onConfirm={onConfirm}
-        isLoading={isLoading}
-        onDismissed={onDismissed}
+      <ConfirmationDialog
+        open={data != null}
+        onOpenChange={onOpenChange}
+        title={<FormattedMessage id="DeleteResourceDialog.title" />}
+        description={
+          <FormattedMessage
+            id="DeleteResourceDialog.description"
+            values={{
+              name: data?.resourceName ?? data?.resourceURI ?? "",
+              // eslint-disable-next-line react/no-unstable-nested-components
+              b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+            }}
+          />
+        }
+        confirmText={renderToString("delete")}
+        cancelText={renderToString("cancel")}
+        onConfirm={handleConfirm}
+        onCancel={onDismiss}
+        loading={isLoading}
+        confirmColor="red"
       />
     );
   };

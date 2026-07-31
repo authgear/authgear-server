@@ -1,27 +1,17 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import cn from "classnames";
-import {
-  IStyle,
-  Label,
-  Text,
-  Dialog,
-  DialogFooter,
-  ChoiceGroup,
-  IChoiceGroupOption,
-  IChoiceGroupOptionProps,
-  MessageBar,
-  MessageBarType,
-} from "@fluentui/react";
+import { Badge, Button, Dialog, RadioGroup, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { useNavigate } from "react-router-dom";
 import { DateTime, SystemZone } from "luxon";
+import {
+  CalendarIcon,
+  CardStackMinusIcon,
+  CircleBackslashIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import ListCellLayout from "../../ListCellLayout";
-import OutlinedActionButton from "../../components/common/OutlinedActionButton";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
-import TextField from "../../TextField";
 import ExternalLink from "../../ExternalLink";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
@@ -41,32 +31,38 @@ import {
   ErrorParseRule,
   makeInvalidAccountStatusTransitionErrorParseRule,
 } from "../../error/parse";
+import { Callout } from "../../components/v2/Callout/Callout";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 
-const disableReasonTextStyle: IStyle = {
-  lineHeight: "20px",
-};
-
-const labelTextStyle: IStyle = {
-  lineHeight: "20px",
-  fontWeight: 600,
-};
-
-const bodyTextStyle: IStyle = {
-  lineHeight: "20px",
-  maxWidth: "500px",
-};
-
-const choiceGroupStyle = {
-  flexContainer: {
-    selectors: {
-      ".ms-ChoiceField": {
-        display: "block",
-      },
-    },
-  },
-};
-
-const dialogStyles = { main: { minHeight: 0 } };
+function StatusActionButton({
+  className,
+  disabled,
+  destructive = false,
+  solid = false,
+  onClick,
+  children,
+}: {
+  className?: string;
+  disabled?: boolean;
+  destructive?: boolean;
+  solid?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}): React.ReactElement {
+  return (
+    <Button
+      className={cn(styles.statusActionButton, className)}
+      size="2"
+      variant={solid ? "solid" : "outline"}
+      color={destructive ? "red" : "gray"}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+}
 
 export interface AccountStatus {
   id: string;
@@ -319,6 +315,8 @@ function getButtonStates(data: AccountStatus): ButtonStates {
 
 export interface AccountValidPeriodFormProps {
   className?: string;
+  calloutColor?: "gray";
+  calloutSize?: "1" | "2" | "3";
   accountValidFrom: Date | null;
   onPickAccountValidFrom: (date: Date | null) => void;
   accountValidUntil: Date | null;
@@ -330,13 +328,14 @@ export function AccountValidPeriodForm(
 ): React.ReactElement {
   const {
     className,
+    calloutColor,
+    calloutSize = "2",
     accountValidFrom,
     accountValidUntil,
     onPickAccountValidFrom,
     onPickAccountValidUntil,
   } = props;
 
-  const { themes } = useSystemConfig();
   const { locale } = useContext(Context);
   const formattedZone = formatSystemZone(new Date(), locale);
   const showEndAtWarning = useMemo(
@@ -347,40 +346,32 @@ export function AccountValidPeriodForm(
   );
   return (
     <div className={cn(className, "flex flex-col gap-2")}>
-      <MessageBar
-        messageBarType={MessageBarType.info}
-        styles={{
-          iconContainer: {
-            display: "none",
-          },
-        }}
-      >
-        <FormattedMessage
-          id="AccountValidPeriodForm.timezone-description"
-          values={{
-            timezone: formattedZone,
-          }}
-        />
-      </MessageBar>
+      <Callout
+        type="info"
+        color={calloutColor}
+        size={calloutSize}
+        showCloseButton={false}
+        text={
+          <FormattedMessage
+            id="AccountValidPeriodForm.timezone-description"
+            values={{
+              timezone: formattedZone,
+            }}
+          />
+        }
+      />
       <DateTimePicker
         pickedDateTime={accountValidFrom}
         minDateTime={null}
         onPickDateTime={onPickAccountValidFrom}
         showClearButton={true}
         label={
-          <Label>
+          <Text as="label" size="2" weight="medium">
             <FormattedMessage id="AccountValidPeriodForm.start-at" />
-          </Label>
+          </Text>
         }
         hint={
-          <Text
-            variant="small"
-            styles={{
-              root: {
-                color: themes.main.semanticColors.bodySubtext,
-              },
-            }}
-          >
+          <Text size="1" color="gray">
             <FormattedMessage id="AccountValidPeriodForm.hint" />
           </Text>
         }
@@ -391,27 +382,24 @@ export function AccountValidPeriodForm(
         onPickDateTime={onPickAccountValidUntil}
         showClearButton={true}
         label={
-          <Label>
+          <Text as="label" size="2" weight="medium">
             <FormattedMessage id="AccountValidPeriodForm.end-at" />
-          </Label>
+          </Text>
         }
         hint={
-          <Text
-            variant="small"
-            styles={{
-              root: {
-                color: themes.main.semanticColors.bodySubtext,
-              },
-            }}
-          >
+          <Text size="1" color="gray">
             <FormattedMessage id="AccountValidPeriodForm.hint" />
           </Text>
         }
       />
       {showEndAtWarning ? (
-        <MessageBar messageBarType={MessageBarType.warning}>
-          <FormattedMessage id="AccountValidPeriodForm.end-at-warning" />
-        </MessageBar>
+        <Callout
+          type="warning"
+          color="yellow"
+          size={calloutSize}
+          showCloseButton={false}
+          text={<FormattedMessage id="AccountValidPeriodForm.end-at-warning" />}
+        />
       ) : null}
     </div>
   );
@@ -420,26 +408,17 @@ export function AccountValidPeriodForm(
 const DisableUserCell: React.VFC<DisableUserCellProps> =
   function DisableUserCell(props) {
     const { locale } = useContext(Context);
-    const { themes } = useSystemConfig();
     const { data, onClickDisable, onClickReenable } = props;
     const buttonStates = getButtonStates(data);
     return (
       <ListCellLayout className={styles.actionCell}>
         <div className={styles.actionCellLabel}>
-          <Text
-            styles={{
-              root: labelTextStyle,
-            }}
-          >
+          <Text as="p" size="2" weight="medium" className={styles.cellLabel}>
             <FormattedMessage id="UserDetailsAccountStatus.disable-user.title" />
           </Text>
         </div>
         <div className={styles.actionCellBody}>
-          <Text
-            styles={{
-              root: bodyTextStyle,
-            }}
-          >
+          <Text as="p" size="2" className={styles.cellBody}>
             <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
           </Text>
         </div>
@@ -449,11 +428,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
           <div className={styles.actionCellDescription}>
             {buttonStates.toggleDisable.disableReason != null ? (
               <>
-                <Text
-                  styles={{
-                    root: disableReasonTextStyle,
-                  }}
-                >
+                <Text as="p" size="2" className={styles.cellMeta}>
                   <FormattedMessage
                     id="UserDetailsAccountStatus.disable-user.reason"
                     values={{
@@ -467,9 +442,10 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             {buttonStates.toggleDisable.temporarilyDisabledUntil != null ? (
               <>
                 <Text
-                  styles={{
-                    root: labelTextStyle,
-                  }}
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cellLabel}
                 >
                   <FormattedMessage
                     id="UserDetailsAccountStatus.disable-user.until"
@@ -488,36 +464,31 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
         ) : null}
         {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily ? (
           <div className={styles.actionCellActionButtonContainer}>
-            <OutlinedActionButton
+            <StatusActionButton
               disabled={buttonStates.toggleDisable.buttonDisabled}
-              theme={themes.actionButton}
-              iconProps={{ iconName: "Play" }}
-              text={
-                <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
-              }
               onClick={onClickReenable}
-            />
-            <OutlinedActionButton
+            >
+              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
+            </StatusActionButton>
+            <StatusActionButton
               disabled={buttonStates.toggleDisable.buttonDisabled}
-              theme={themes.destructive}
-              iconProps={{ iconName: "Calendar" }}
-              text={
-                <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.edit-schedule" />
-              }
+              destructive={true}
               onClick={onClickDisable}
-            />
+            >
+              <CircleBackslashIcon />
+              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.edit-schedule" />
+            </StatusActionButton>
           </div>
         ) : (
-          <OutlinedActionButton
+          <StatusActionButton
             disabled={buttonStates.toggleDisable.buttonDisabled}
-            theme={themes.destructive}
+            destructive={true}
             className={styles.actionCellActionButton}
-            iconProps={{ iconName: "Blocked" }}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.disable" />
-            }
             onClick={onClickDisable}
-          />
+          >
+            <CircleBackslashIcon />
+            <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.disable" />
+          </StatusActionButton>
         )}
       </ListCellLayout>
     );
@@ -526,7 +497,6 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
 const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
   function AccountValidPeriodCell(props) {
     const { locale } = useContext(Context);
-    const { themes } = useSystemConfig();
     const {
       data,
       onClickSetAccountValidPeriod,
@@ -536,20 +506,12 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
     return (
       <ListCellLayout className={styles.actionCell}>
         <div className={styles.actionCellLabel}>
-          <Text
-            styles={{
-              root: labelTextStyle,
-            }}
-          >
+          <Text as="p" size="2" weight="medium" className={styles.cellLabel}>
             <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.title" />
           </Text>
         </div>
         <div className={styles.actionCellBody}>
-          <Text
-            styles={{
-              root: bodyTextStyle,
-            }}
-          >
+          <Text as="p" size="2" className={styles.cellBody}>
             {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
             buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.body--unset" />
@@ -599,33 +561,31 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
             )}
           </Text>
         </div>
-        <OutlinedActionButton
+        <StatusActionButton
           disabled={buttonStates.setAccountValidPeriod.buttonDisabled}
-          theme={themes.destructive}
+          destructive={true}
           className={styles.actionCellActionButton}
-          iconProps={{ iconName: "Calendar" }}
-          text={
-            buttonStates.setAccountValidPeriod.accountValidFrom == null &&
-            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
-              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
-            ) : (
-              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
-            )
-          }
           onClick={
             buttonStates.setAccountValidPeriod.accountValidFrom == null &&
             buttonStates.setAccountValidPeriod.accountValidUntil == null
               ? onClickSetAccountValidPeriod
               : onClickEditAccountValidPeriod
           }
-        />
+        >
+          <CalendarIcon />
+          {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
+          buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+            <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
+          ) : (
+            <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
+          )}
+        </StatusActionButton>
       </ListCellLayout>
     );
   };
 
 const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
   function AnonymizeUserCell(props) {
-    const { themes } = useSystemConfig();
     const {
       data,
       onClickAnonymizeOrSchedule,
@@ -636,53 +596,49 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
     return (
       <ListCellLayout className={styles.actionCell}>
         <Text
-          className={styles.actionCellLabel}
-          styles={{
-            root: labelTextStyle,
-          }}
+          as="p"
+          size="2"
+          weight="medium"
+          className={cn(styles.actionCellLabel, styles.cellLabel)}
         >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.title" />
         </Text>
         <Text
-          className={styles.actionCellBody}
-          styles={{
-            root: bodyTextStyle,
-          }}
+          as="p"
+          size="2"
+          className={cn(styles.actionCellBody, styles.cellBody)}
         >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.body" />
         </Text>
         {buttonStates.anonymize.anonymizeAt != null ? (
           <div className={styles.actionCellActionButtonContainer}>
-            <OutlinedActionButton
+            <StatusActionButton
               disabled={buttonStates.anonymize.buttonDisabled}
-              theme={themes.actionButton}
-              iconProps={{ iconName: "Undo" }}
-              text={
-                <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
-              }
               onClick={onClickCancelAnonymization}
-            />
-            <OutlinedActionButton
+            >
+              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
+            </StatusActionButton>
+            <StatusActionButton
               disabled={buttonStates.anonymize.buttonDisabled}
-              theme={themes.destructive}
-              iconProps={{ iconName: "Archive" }}
-              text={
-                <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize-now" />
-              }
+              destructive={true}
+              solid={true}
               onClick={onClickAnonymizeImmediately}
-            />
+            >
+              <CardStackMinusIcon />
+              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize-now" />
+            </StatusActionButton>
           </div>
         ) : (
-          <OutlinedActionButton
+          <StatusActionButton
             disabled={buttonStates.anonymize.buttonDisabled}
-            theme={themes.destructive}
+            destructive={true}
+            solid={true}
             className={styles.actionCellActionButton}
-            iconProps={{ iconName: "Archive" }}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
-            }
             onClick={onClickAnonymizeOrSchedule}
-          />
+          >
+            <CardStackMinusIcon />
+            <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
+          </StatusActionButton>
         )}
       </ListCellLayout>
     );
@@ -691,7 +647,6 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
 const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   props
 ) {
-  const { themes } = useSystemConfig();
   const {
     data,
     onClickCancelDeletion,
@@ -702,53 +657,49 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   return (
     <ListCellLayout className={styles.actionCell}>
       <Text
-        className={styles.actionCellLabel}
-        styles={{
-          root: labelTextStyle,
-        }}
+        as="p"
+        size="2"
+        weight="medium"
+        className={cn(styles.actionCellLabel, styles.cellLabel)}
       >
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.title" />
       </Text>
       <Text
-        className={styles.actionCellBody}
-        styles={{
-          root: bodyTextStyle,
-        }}
+        as="p"
+        size="2"
+        className={cn(styles.actionCellBody, styles.cellBody)}
       >
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.body" />
       </Text>
       {buttonStates.delete.deleteAt != null ? (
         <div className={styles.actionCellActionButtonContainer}>
-          <OutlinedActionButton
+          <StatusActionButton
             disabled={buttonStates.delete.buttonDisabled}
-            theme={themes.actionButton}
-            iconProps={{ iconName: "Undo" }}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
-            }
             onClick={onClickCancelDeletion}
-          />
-          <OutlinedActionButton
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
+          </StatusActionButton>
+          <StatusActionButton
             disabled={buttonStates.delete.buttonDisabled}
-            theme={themes.destructive}
-            iconProps={{ iconName: "Delete" }}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
-            }
+            destructive={true}
+            solid={true}
             onClick={onClickDeleteImmediately}
-          />
+          >
+            <TrashIcon />
+            <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
+          </StatusActionButton>
         </div>
       ) : (
-        <OutlinedActionButton
+        <StatusActionButton
           disabled={buttonStates.delete.buttonDisabled}
-          theme={themes.destructive}
+          destructive={true}
+          solid={true}
           className={styles.actionCellActionButton}
-          iconProps={{ iconName: "Delete" }}
-          text={
-            <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
-          }
           onClick={onClickDeleteOrSchedule}
-        />
+        >
+          <TrashIcon />
+          <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
+        </StatusActionButton>
       )}
     </ListCellLayout>
   );
@@ -756,7 +707,6 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
 
 const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
   function AccountLockoutCell(props) {
-    const { themes } = useSystemConfig();
     const { locale } = useContext(Context);
     const { data, onClickResetAccountLockout } = props;
     const lockout = data.accountLockout;
@@ -768,20 +718,12 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
     return (
       <ListCellLayout className={styles.actionCell}>
         <div className={styles.actionCellLabel}>
-          <Text
-            styles={{
-              root: labelTextStyle,
-            }}
-          >
+          <Text as="p" size="2" weight="medium" className={styles.cellLabel}>
             <FormattedMessage id="UserDetailsAccountStatus.account-lockout.title" />
           </Text>
         </div>
         <div className={styles.actionCellBody}>
-          <Text
-            styles={{
-              root: bodyTextStyle,
-            }}
-          >
+          <Text as="p" size="2" className={styles.cellBody}>
             {lockout.isLocked ? (
               <>
                 {lockout.lockoutType === "per_user" ? (
@@ -806,12 +748,7 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
                 {lockout.lockoutType === "per_user_per_ip" &&
                 lockout.lockedIPs.length > 0 ? (
                   <div style={{ marginTop: "8px" }}>
-                    <Text
-                      variant="small"
-                      styles={{
-                        root: { fontWeight: 600, marginBottom: "4px" },
-                      }}
-                    >
+                    <Text as="p" size="1" weight="medium">
                       <FormattedMessage id="UserDetailsAccountStatus.account-lockout.locked-ips" />
                     </Text>
                     <ul style={{ marginTop: "4px", paddingLeft: "20px" }}>
@@ -830,7 +767,7 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
               <FormattedMessage id="UserDetailsAccountStatus.account-lockout.body--unlocked" />
             )}
           </Text>
-          <Text variant="small" style={{ marginTop: "8px", display: "block" }}>
+          <Text as="p" size="1" color="gray" style={{ marginTop: "8px" }}>
             <FormattedMessage
               id="UserDetailsAccountStatus.account-lockout.learn-more"
               values={{
@@ -845,16 +782,13 @@ const AccountLockoutCell: React.VFC<AccountLockoutCellProps> =
           </Text>
         </div>
         {lockout.isLocked ? (
-          <OutlinedActionButton
+          <StatusActionButton
             disabled={false}
-            theme={themes.actionButton}
             className={styles.actionCellActionButton}
-            iconProps={{ iconName: "Blocked" }}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
-            }
             onClick={onClickResetAccountLockout}
-          />
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
+          </StatusActionButton>
         ) : null}
       </ListCellLayout>
     );
@@ -942,32 +876,51 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
 
     return (
       <div className={styles.root}>
-        <DisableUserCell
-          data={data}
-          onClickDisable={onClickDisable}
-          onClickReenable={onClickReenable}
-        />
-        <AccountValidPeriodCell
-          data={data}
-          onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
-          onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
-        />
-        <AccountLockoutCell
-          data={data}
-          onClickResetAccountLockout={onClickResetAccountLockout}
-        />
-        <AnonymizeUserCell
-          data={data}
-          onClickAnonymizeImmediately={onClickAnonymizeImmediately}
-          onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
-          onClickCancelAnonymization={onClickCancelAnonymization}
-        />
-        <RemoveUserCell
-          data={data}
-          onClickCancelDeletion={onClickCancelDeletion}
-          onClickDeleteImmediately={onClickDeleteImmediately}
-          onClickDeleteOrSchedule={onClickDeleteOrSchedule}
-        />
+        <section className={styles.statusCard}>
+          <Text as="p" size="3" weight="medium" className={styles.title}>
+            <FormattedMessage id="UserDetailsAccountStatus.title" />
+          </Text>
+          <div className={styles.statusContent}>
+            <DisableUserCell
+              data={data}
+              onClickDisable={onClickDisable}
+              onClickReenable={onClickReenable}
+            />
+            <AccountValidPeriodCell
+              data={data}
+              onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
+              onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
+            />
+            <AccountLockoutCell
+              data={data}
+              onClickResetAccountLockout={onClickResetAccountLockout}
+            />
+          </div>
+        </section>
+        <section className={cn(styles.statusCard, styles.dangerZoneCard)}>
+          <Text
+            as="p"
+            size="3"
+            weight="medium"
+            className={cn(styles.title, styles.dangerZoneTitle)}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.danger-zone.title" />
+          </Text>
+          <div className={styles.statusContent}>
+            <AnonymizeUserCell
+              data={data}
+              onClickAnonymizeImmediately={onClickAnonymizeImmediately}
+              onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
+              onClickCancelAnonymization={onClickCancelAnonymization}
+            />
+            <RemoveUserCell
+              data={data}
+              onClickCancelDeletion={onClickCancelDeletion}
+              onClickDeleteImmediately={onClickDeleteImmediately}
+              onClickDeleteOrSchedule={onClickDeleteOrSchedule}
+            />
+          </div>
+        </section>
         <AccountStatusDialog
           key={String(dialogKey)}
           accountStatus={data}
@@ -1002,7 +955,6 @@ export function AccountStatusDialog(
   props: AccountStatusDialogProps
 ): React.ReactElement {
   const { isHidden, onDismiss, mode, accountStatus } = props;
-  const { themes } = useSystemConfig();
   const { locale, renderToString } = useContext(Context);
 
   const [defaultTemporarilyDisabledUntil] = useState(() =>
@@ -1089,34 +1041,44 @@ export function AccountStatusDialog(
     [accountValidFrom]
   );
 
-  const onRenderTemporarilyDisableFormField = useCallback(
-    (
-      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
-      render?: (
-        props?: IChoiceGroupOption & IChoiceGroupOptionProps
-      ) => JSX.Element | null
-    ) => {
-      const formattedZone = formatSystemZone(new Date(), locale);
-      return (
+  const disableForm = useMemo(() => {
+    const formattedZone = formatSystemZone(new Date(), locale);
+    return (
+      <div className={styles.disableForm}>
         <div className="flex flex-col gap-2">
-          {render?.(props)}
+          <Text as="label" size="2" weight="medium">
+            <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.label" />
+          </Text>
+          <RadioGroup.Root
+            className={styles.disablePeriodOptions}
+            value={disableChoiceGroupKey}
+            onValueChange={(value) => {
+              setDisableChoiceGroupKey(value as "indefinitely" | "temporarily");
+            }}
+          >
+            <RadioGroup.Item value="indefinitely">
+              <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.options.indefinitely" />
+            </RadioGroup.Item>
+            <RadioGroup.Item value="temporarily">
+              <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.options.temporarily" />
+            </RadioGroup.Item>
+          </RadioGroup.Root>
           {disableChoiceGroupKey === "temporarily" ? (
-            <div className="flex flex-col ml-6 gap-2">
-              <MessageBar
-                messageBarType={MessageBarType.info}
-                styles={{
-                  iconContainer: {
-                    display: "none",
-                  },
-                }}
-              >
-                <FormattedMessage
-                  id="AccountStatusDialog.disable-user.timezone-description"
-                  values={{
-                    timezone: formattedZone,
-                  }}
-                />
-              </MessageBar>
+            <div className="flex flex-col gap-2">
+              <Callout
+                type="info"
+                color="gray"
+                size="1"
+                showCloseButton={false}
+                text={
+                  <FormattedMessage
+                    id="AccountStatusDialog.disable-user.timezone-description"
+                    values={{
+                      timezone: formattedZone,
+                    }}
+                  />
+                }
+              />
               <DateTimePicker
                 minDateTime={"now"}
                 pickedDateTime={temporarilyDisabledUntil}
@@ -1127,63 +1089,8 @@ export function AccountStatusDialog(
             </div>
           ) : null}
         </div>
-      );
-    },
-    [disableChoiceGroupKey, locale, temporarilyDisabledUntil]
-  );
-
-  const disableChoiceGroupOptions: IChoiceGroupOption[] = useMemo(() => {
-    return [
-      {
-        key: "indefinitely",
-        text: renderToString(
-          "AccountStatusDialog.disable-user.disable-period.options.indefinitely"
-        ),
-      },
-      {
-        key: "temporarily",
-        text: renderToString(
-          "AccountStatusDialog.disable-user.disable-period.options.temporarily"
-        ),
-        onRenderField: onRenderTemporarilyDisableFormField,
-      },
-    ];
-  }, [onRenderTemporarilyDisableFormField, renderToString]);
-
-  const onChangeDisableChoiceGroup = useCallback(
-    (
-      _?: React.FormEvent<HTMLElement | HTMLInputElement>,
-      option?: IChoiceGroupOption
-    ) => {
-      if (!option?.key) return;
-      setDisableChoiceGroupKey(option.key as any);
-    },
-    []
-  );
-  const onChangeDisableReason = useCallback(
-    (
-      _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-      value?: string
-    ) => {
-      setDisableReason(value ?? "");
-    },
-    []
-  );
-  const disableForm = useMemo(() => {
-    return (
-      <div className="flex flex-col gap-4">
-        <ChoiceGroup
-          styles={choiceGroupStyle}
-          // @ts-expect-error
-          label={
-            <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.label" />
-          }
-          options={disableChoiceGroupOptions}
-          selectedKey={disableChoiceGroupKey}
-          onChange={onChangeDisableChoiceGroup}
-        />
         <TextField
-          // @ts-expect-error
+          size="2"
           label={
             <FormattedMessage id="AccountStatusDialog.disable-user.disable-reason.label" />
           }
@@ -1191,22 +1098,26 @@ export function AccountStatusDialog(
             "AccountStatusDialog.disable-user.disable-reason.placeholder"
           )}
           value={disableReason}
-          onChange={onChangeDisableReason}
+          onChange={(event) => {
+            setDisableReason(event.currentTarget.value);
+          }}
         />
       </div>
     );
   }, [
     disableChoiceGroupKey,
-    disableChoiceGroupOptions,
     disableReason,
-    onChangeDisableChoiceGroup,
-    onChangeDisableReason,
+    locale,
     renderToString,
+    temporarilyDisabledUntil,
   ]);
 
   const accountValidPeriodForm = useMemo(() => {
     return (
       <AccountValidPeriodForm
+        className={styles.accountValidPeriodDialogForm}
+        calloutColor="gray"
+        calloutSize="1"
         accountValidFrom={accountValidFrom}
         accountValidUntil={accountValidUntil}
         onPickAccountValidFrom={onPickAccountValidFrom}
@@ -1464,15 +1375,15 @@ export function AccountStatusDialog(
         />
       );
       button1 = (
-        <PrimaryButton
-          theme={themes.main}
+        <Button
+          size="2"
+          color="indigo"
           disabled={loading}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
+          loading={loading}
           onClick={onClickUnscheduleDeletion}
-          text={
-            <FormattedMessage id="AccountStatusDialog.cancel-deletion.action.cancel-deletion" />
-          }
-        />
+        >
+          <FormattedMessage id="AccountStatusDialog.cancel-deletion.action.cancel-deletion" />
+        </Button>
       );
     };
     const prepareUnscheduleAnonymization = () => {
@@ -1486,15 +1397,15 @@ export function AccountStatusDialog(
         />
       );
       button1 = (
-        <PrimaryButton
-          theme={themes.main}
+        <Button
+          size="2"
+          color="indigo"
           disabled={loading}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
+          loading={loading}
           onClick={onClickUnscheduleAnonymization}
-          text={
-            <FormattedMessage id="AccountStatusDialog.cancel-anonymization.action.cancel-anonymization" />
-          }
-        />
+        >
+          <FormattedMessage id="AccountStatusDialog.cancel-anonymization.action.cancel-anonymization" />
+        </Button>
       );
     };
     const prepareReenable = () => {
@@ -1510,15 +1421,15 @@ export function AccountStatusDialog(
         />
       );
       button1 = (
-        <PrimaryButton
-          theme={themes.main}
+        <Button
+          size="2"
+          color="indigo"
           disabled={loading}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
+          loading={loading}
           onClick={onClickReenable}
-          text={
-            <FormattedMessage id="AccountStatusDialog.reenable-user.action.reenable" />
-          }
-        />
+        >
+          <FormattedMessage id="AccountStatusDialog.reenable-user.action.reenable" />
+        </Button>
       );
     };
     const prepareDisable = () => {
@@ -1535,15 +1446,15 @@ export function AccountStatusDialog(
       );
       body = disableForm;
       button1 = (
-        <PrimaryButton
-          theme={themes.destructive}
+        <Button
+          size="2"
+          color="red"
           disabled={loading}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
+          loading={loading}
           onClick={onClickDisable}
-          text={
-            <FormattedMessage id="AccountStatusDialog.disable-user.action.disable" />
-          }
-        />
+        >
+          <FormattedMessage id="AccountStatusDialog.disable-user.action.disable" />
+        </Button>
       );
     };
     const prepareEditAccountValidPeriod = () => {
@@ -1558,15 +1469,15 @@ export function AccountStatusDialog(
       );
       body = accountValidPeriodForm;
       button1 = (
-        <PrimaryButton
-          theme={themes.main}
+        <Button
+          size="2"
+          color="indigo"
           disabled={loading}
-          text={
-            <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
-          }
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
+          loading={loading}
           onClick={onClickSetAccountValidPeriod}
-        />
+        >
+          <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
+        </Button>
       );
     };
 
@@ -1589,15 +1500,15 @@ export function AccountStatusDialog(
         );
         body = accountValidPeriodForm;
         button1 = (
-          <PrimaryButton
-            theme={themes.main}
+          <Button
+            size="2"
+            color="indigo"
             disabled={loading}
-            text={
-              <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
-            }
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickSetAccountValidPeriod}
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
+          </Button>
         );
         break;
       case "edit-account-valid-period":
@@ -1614,26 +1525,26 @@ export function AccountStatusDialog(
           />
         );
         button1 = (
-          <PrimaryButton
-            theme={themes.main}
+          <Button
+            size="2"
+            color="indigo"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickScheduleAnonymization}
-            text={
-              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
+          </Button>
         );
         button2 = (
-          <PrimaryButton
-            theme={themes.destructive}
+          <Button
+            size="2"
+            color="red"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickAnonymize}
-            text={
-              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+          </Button>
         );
         break;
       case "cancel-anonymization":
@@ -1650,15 +1561,15 @@ export function AccountStatusDialog(
           />
         );
         button1 = (
-          <PrimaryButton
-            theme={themes.destructive}
+          <Button
+            size="2"
+            color="red"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickAnonymize}
-            text={
-              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+          </Button>
         );
         break;
 
@@ -1671,26 +1582,26 @@ export function AccountStatusDialog(
           />
         );
         button1 = (
-          <PrimaryButton
-            theme={themes.main}
+          <Button
+            size="2"
+            color="indigo"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickScheduleDeletion}
-            text={
-              <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
+          </Button>
         );
         button2 = (
-          <PrimaryButton
-            theme={themes.destructive}
+          <Button
+            size="2"
+            color="red"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickDelete}
-            text={
-              <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+          </Button>
         );
         break;
       case "cancel-deletion":
@@ -1706,15 +1617,15 @@ export function AccountStatusDialog(
           />
         );
         button1 = (
-          <PrimaryButton
-            theme={themes.destructive}
+          <Button
+            size="2"
+            color="red"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickDelete}
-            text={
-              <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
-            }
-          />
+          >
+            <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+          </Button>
         );
         break;
       case "reset-account-lockout":
@@ -1728,15 +1639,15 @@ export function AccountStatusDialog(
           />
         );
         button1 = (
-          <PrimaryButton
-            theme={themes.main}
+          <Button
+            size="2"
+            color="indigo"
             disabled={loading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            loading={loading}
             onClick={onClickResetAccountLockout}
-            text={
-              <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
-            }
-          />
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
+          </Button>
         );
         break;
       case "auto": {
@@ -1780,8 +1691,6 @@ export function AccountStatusDialog(
     onClickSetAccountValidPeriod,
     onClickUnscheduleAnonymization,
     onClickUnscheduleDeletion,
-    themes.destructive,
-    themes.main,
   ]);
 
   const accountStatusErrorRules: ErrorParseRule[] = useMemo(() => {
@@ -1799,25 +1708,37 @@ export function AccountStatusDialog(
 
   return (
     <>
-      <Dialog
-        hidden={isHidden}
-        onDismiss={onDialogDismiss}
-        // @ts-expect-error
-        dialogContentProps={dialogContentPropsAndDialogSlots.dialogContentProps}
-        styles={dialogStyles}
-        minWidth={560}
+      <Dialog.Root
+        open={!isHidden}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDialogDismiss();
+          }
+        }}
       >
-        {dialogContentPropsAndDialogSlots.body}
-        <DialogFooter>
-          {dialogContentPropsAndDialogSlots.button1}
-          {dialogContentPropsAndDialogSlots.button2}
-          <DefaultButton
-            onClick={onDialogDismiss}
-            disabled={loading}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        <Dialog.Content maxWidth="560px" size="3">
+          <Dialog.Title>
+            {dialogContentPropsAndDialogSlots.dialogContentProps.title}
+          </Dialog.Title>
+          {dialogContentPropsAndDialogSlots.dialogContentProps.subText !=
+          null ? (
+            <Dialog.Description size="2">
+              {dialogContentPropsAndDialogSlots.dialogContentProps.subText}
+            </Dialog.Description>
+          ) : null}
+          {dialogContentPropsAndDialogSlots.body}
+          <div className={styles.dialogActions}>
+            <SecondaryButton
+              size="2"
+              disabled={loading}
+              text={<FormattedMessage id="cancel" />}
+              onClick={onDialogDismiss}
+            />
+            {dialogContentPropsAndDialogSlots.button1}
+            {dialogContentPropsAndDialogSlots.button2}
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
       <ErrorDialog
         error={error}
         rules={accountStatusErrorRules}
@@ -1831,13 +1752,6 @@ export interface AccountStatusBadgeProps {
   className?: string;
   accountStatus: AccountStatus;
 }
-
-const warnBadgeStyle: IStyle = {
-  padding: 4,
-  borderRadius: 4,
-  color: "#ffffff",
-  backgroundColor: "#e23d3d",
-};
 
 export function AccountStatusBadge(
   props: AccountStatusBadgeProps
@@ -1872,14 +1786,9 @@ export function AccountStatusBadge(
   }
 
   return (
-    <Text
-      className={className}
-      styles={{
-        root: warnBadgeStyle,
-      }}
-    >
+    <Badge className={className} color="red" radius="small">
       <FormattedMessage id={id} />
-    </Text>
+    </Badge>
   );
 }
 
@@ -1964,14 +1873,7 @@ export function AccountStatusMessageBar(
     return null;
   }
 
-  // delayedRender={false} avoids FluentUI's DelayedRender wrapper, which
-  // intermittently renders an empty bar when the parent form updates state
-  // during mount (e.g. when navigating back to a disabled user's detail page).
-  return (
-    <MessageBar messageBarType={MessageBarType.warning} delayedRender={false}>
-      {message}
-    </MessageBar>
-  );
+  return <Callout type="warning" text={message} showCloseButton={false} />;
 }
 
 export default UserDetailsAccountStatus;

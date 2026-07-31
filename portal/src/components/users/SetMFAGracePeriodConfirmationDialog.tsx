@@ -1,9 +1,7 @@
-import { Dialog, DialogFooter } from "@fluentui/react";
 import { Context, FormattedMessage } from "../../intl";
 import React, { useContext, useCallback, useMemo } from "react";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
 import { ConfirmationDialogStore } from "../../hook/useConfirmationDialog";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 export enum MFAGracePeriodAction {
   Grant = "grant",
@@ -34,14 +32,14 @@ export const SetMFAGracePeriodConfirmationDialog: React.VFC<SetMFAGracePeriodCon
       }
     }, [store]);
 
-    const dialogContentProps = useMemo(() => {
+    const dialogContent = useMemo(() => {
       switch (action) {
         case MFAGracePeriodAction.Extend:
           return {
             title: (
               <FormattedMessage id="UserDetails.account-security.extend-mfa-grace-period-confirm-dialog.title" />
             ),
-            subText: renderToString(
+            description: renderToString(
               "UserDetails.account-security.extend-mfa-grace-period-confirm-dialog.message"
             ),
           };
@@ -51,7 +49,7 @@ export const SetMFAGracePeriodConfirmationDialog: React.VFC<SetMFAGracePeriodCon
             title: (
               <FormattedMessage id="UserDetails.account-security.grant-mfa-grace-period-confirm-dialog.title" />
             ),
-            subText: renderToString(
+            description: renderToString(
               "UserDetails.account-security.grant-mfa-grace-period-confirm-dialog.message"
             ),
           };
@@ -59,24 +57,21 @@ export const SetMFAGracePeriodConfirmationDialog: React.VFC<SetMFAGracePeriodCon
     }, [action, renderToString]);
 
     return (
-      <Dialog
-        hidden={!store.visible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: store.loading }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            loading={store.loading ?? false}
-          />
-          <DefaultButton
-            disabled={store.loading}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={store.visible}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
+        title={dialogContent.title}
+        description={dialogContent.description}
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={store.loading}
+        confirmColor="red"
+      />
     );
   };

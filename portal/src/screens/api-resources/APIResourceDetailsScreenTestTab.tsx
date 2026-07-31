@@ -5,28 +5,29 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import DefaultButton from "../../DefaultButton";
+import { Select, Tabs, Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import WidgetTitle from "../../WidgetTitle";
-import { Text, Dropdown, IDropdownOption, PivotItem } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useNavigate } from "react-router-dom";
 import { useEndpoints } from "../../hook/useEndpoints";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
-import HorizontalDivider from "../../HorizontalDivider";
 import { CodeField } from "../../components/common/CodeField";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import { LocationState } from "./APIResourceDetailsScreen";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { parseRawError } from "../../error/parse";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import { copyToClipboard } from "../../util/clipboard";
 import {
   ExampleCodeVariant,
   useExampleCode,
 } from "../../components/api-resources/useExampleCode";
-import ButtonWithLoading from "../../ButtonWithLoading";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { FormField } from "../../components/v2/FormField/FormField";
+import ExternalLink from "../../ExternalLink";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import styles from "./APIResourceDetailsTestTab.module.css";
 
 export function APIResourceDetailsScreenTestTab({
   resource,
@@ -48,6 +49,8 @@ export function APIResourceDetailsScreenTestTab({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [selectedCodeVariant, setSelectedCodeVariant] =
     useState<ExampleCodeVariant>(ExampleCodeVariant.curl);
+  const [tokenCopied, setTokenCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const { startReauthentication, isRevealing } =
     useStartReauthentication<LocationState>();
 
@@ -58,7 +61,6 @@ export function APIResourceDetailsScreenTestTab({
   }, [effectiveAppConfig, selectedClientId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAccessToken(null);
   }, [selectedClient]);
 
@@ -88,30 +90,16 @@ export function APIResourceDetailsScreenTestTab({
           return authorizedClientIDs.has(clientConfig.client_id);
         })
         .map((clientConfig) => ({
-          key: clientConfig.client_id,
-          text: clientConfig.name ?? clientConfig.client_name ?? "",
+          value: clientConfig.client_id,
+          label: clientConfig.name ?? clientConfig.client_name ?? "",
         })) ?? []
     );
   }, [effectiveAppConfig.oauth?.clients, resource.clientIDs]);
-
-  const handleDropdownChange = useCallback(
-    (_: unknown, option?: IDropdownOption) => {
-      setSelectedClientId(String(option?.key ?? ""));
-    },
-    [setSelectedClientId]
-  );
-
-  const handlePivotClick = useCallback((item?: PivotItem) => {
-    if (item?.props.itemKey) {
-      setSelectedCodeVariant(item.props.itemKey as ExampleCodeVariant);
-    }
-  }, []);
 
   const revealSecrets = useCallback(() => {
     startReauthentication(navigate, {
       isClientSecretRevealed: true,
     }).catch((e) => {
-      // Normally there should not be any error.
       console.error(e);
     });
   }, [navigate, startReauthentication]);
@@ -166,57 +154,84 @@ export function APIResourceDetailsScreenTestTab({
     clientID: selectedClientId,
   });
 
-  const { copyButtonProps: copyTokenButtonProps, Feedback: CopyTokenFeedback } =
-    useCopyFeedback({
-      textToCopy: accessToken ?? "",
-    });
+  const onCopyToken = useCallback(() => {
+    if (accessToken == null) {
+      return;
+    }
+    copyToClipboard(accessToken);
+    setTokenCopied(true);
+    window.setTimeout(() => setTokenCopied(false), 2000);
+  }, [accessToken]);
 
-  const { copyButtonProps: copyCodeButtonProps, Feedback: CopyCodeFeedback } =
-    useCopyFeedback({
-      textToCopy: exampleCode,
-    });
+  const onCopyCode = useCallback(() => {
+    copyToClipboard(exampleCode);
+    setCodeCopied(true);
+    window.setTimeout(() => setCodeCopied(false), 2000);
+  }, [exampleCode]);
+
+  const selectPlaceholder =
+    authorizedApplicationsOptions.length === 0
+      ? renderToString(
+          "APIResourceDetailsScreen.test.selectApplication.empty"
+        )
+      : renderToString("APIResourceDetailsScreen.test.selectApplication");
 
   return (
-    <div className="pt-5 flex-1 flex flex-col space-y-4">
-      <header className="space-y-2">
-        <WidgetTitle>
-          <FormattedMessage id="APIResourceDetailsScreen.tab.test" />
-        </WidgetTitle>
-        <Text block={true}>
+    <div className={styles.root}>
+      <SettingsSectionCard
+        title={<FormattedMessage id="APIResourceDetailsScreen.tab.test" />}
+        description={
           <FormattedMessage id="APIResourceDetailsScreen.test.description" />
-        </Text>
-      </header>
-      <div className="flex-1 flex flex-col max-w-180 space-y-5">
-        <Dropdown
-          label={renderToString(
-            "APIResourceDetailsScreen.test.authorizedApplications"
-          )}
-          placeholder={
-            authorizedApplicationsOptions.length === 0
-              ? renderToString(
-                  "APIResourceDetailsScreen.test.selectApplication.empty"
-                )
-              : renderToString(
-                  "APIResourceDetailsScreen.test.selectApplication"
-                )
+        }
+        contentClassName={styles.cardContent}
+      >
+        <FormField
+          size="2"
+          label={
+            <FormattedMessage id="APIResourceDetailsScreen.test.authorizedApplications" />
           }
-          options={authorizedApplicationsOptions}
-          disabled={authorizedApplicationsOptions.length === 0}
-          selectedKey={selectedClient?.client_id}
-          onChange={handleDropdownChange}
-        />
+        >
+          <Select.Root
+            value={selectedClient?.client_id || undefined}
+            onValueChange={setSelectedClientId}
+            disabled={authorizedApplicationsOptions.length === 0}
+            size="2"
+          >
+            <Select.Trigger
+              className={styles.selectTrigger}
+              placeholder={selectPlaceholder}
+            />
+            <Select.Content position="popper">
+              {authorizedApplicationsOptions.map((option) => (
+                <Select.Item key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
         {selectedClient != null ? (
           <>
-            <HorizontalDivider />
-            <section>
-              <WidgetTitle>
+            <hr className={styles.divider} />
+            <section className={styles.section}>
+              <Text as="p" size="3" weight="medium" className={styles.title}>
                 <FormattedMessage id="APIResourceDetailsScreen.test.accessToken.title" />
-              </WidgetTitle>
-              <Text block={true} className="mt-2">
-                <FormattedMessage id="APIResourceDetailsScreen.test.accessToken.description" />
+              </Text>
+              <Text as="p" size="2" color="gray" className={styles.description}>
+                <FormattedMessage
+                  id="APIResourceDetailsScreen.test.accessToken.description"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    ExternalLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://djwt.authgear.com/">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                  }}
+                />
               </Text>
               <CodeField
-                className="mt-3"
+                className={styles.codeField}
                 codeClassName="h-25 overflow-y-auto"
                 placeholder={
                   <FormattedMessage id="APIResourceDetailsScreen.test.accessToken.placeholder" />
@@ -224,26 +239,33 @@ export function APIResourceDetailsScreenTestTab({
               >
                 {accessToken}
               </CodeField>
-              <div className="mt-4 flex space-x-4">
-                <ButtonWithLoading
-                  labelId="APIResourceDetailsScreen.test.generateButton.text"
-                  // eslint-disable-next-line @typescript-eslint/strict-void-return
+              <div className={styles.actions}>
+                <PrimaryButton
+                  size="2"
                   onClick={onGenerate}
                   disabled={isGenerating}
                   loading={isRevealing || isGenerating}
+                  text={
+                    <FormattedMessage id="APIResourceDetailsScreen.test.generateButton.text" />
+                  }
                 />
-                <DefaultButton
-                  {...copyTokenButtonProps}
-                  text={<FormattedMessage id="copy" />}
+                <SecondaryButton
+                  size="2"
+                  onClick={onCopyToken}
                   disabled={accessToken == null}
-                  iconProps={undefined}
+                  text={
+                    tokenCopied ? (
+                      <FormattedMessage id="copied-to-clipboard" />
+                    ) : (
+                      <FormattedMessage id="copy" />
+                    )
+                  }
                 />
-                <CopyTokenFeedback />
               </div>
             </section>
-            <HorizontalDivider />
-            <section>
-              <WidgetTitle>
+            <hr className={styles.divider} />
+            <section className={styles.section}>
+              <Text as="p" size="3" weight="medium" className={styles.title}>
                 <FormattedMessage
                   id="APIResourceDetailsScreen.test.requestToken.title"
                   values={{
@@ -253,56 +275,53 @@ export function APIResourceDetailsScreenTestTab({
                       selectedClient.client_id,
                   }}
                 />
-              </WidgetTitle>
-              <AGPivot
-                className="mt-2"
-                selectedKey={selectedCodeVariant}
-                onLinkClick={handlePivotClick}
+              </Text>
+              <Tabs.Root
+                value={selectedCodeVariant}
+                onValueChange={(value) =>
+                  setSelectedCodeVariant(value as ExampleCodeVariant)
+                }
               >
-                <PivotItem
-                  headerText={renderToString(
-                    "APIResourceDetailsScreen.test.pivot.curl.headerText"
-                  )}
-                  itemKey={ExampleCodeVariant.curl}
-                />
-                <PivotItem
-                  headerText={renderToString(
-                    "APIResourceDetailsScreen.test.pivot.python.headerText"
-                  )}
-                  itemKey={ExampleCodeVariant.Python}
-                />
-                <PivotItem
-                  headerText={renderToString(
-                    "APIResourceDetailsScreen.test.pivot.go.headerText"
-                  )}
-                  itemKey={ExampleCodeVariant.Go}
-                />
-                <PivotItem
-                  headerText={renderToString(
-                    "APIResourceDetailsScreen.test.pivot.nodejs.headerText"
-                  )}
-                  itemKey={ExampleCodeVariant.NodeJS}
-                />
-              </AGPivot>
-              <CodeField className="mt-4">{exampleCode}</CodeField>
-              <div className="mt-4 flex space-x-4">
-                <ButtonWithLoading
-                  labelId="reveal"
+                <Tabs.List className={styles.codeTabsList}>
+                  <Tabs.Trigger value={ExampleCodeVariant.curl}>
+                    <FormattedMessage id="APIResourceDetailsScreen.test.pivot.curl.headerText" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value={ExampleCodeVariant.Python}>
+                    <FormattedMessage id="APIResourceDetailsScreen.test.pivot.python.headerText" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value={ExampleCodeVariant.Go}>
+                    <FormattedMessage id="APIResourceDetailsScreen.test.pivot.go.headerText" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value={ExampleCodeVariant.NodeJS}>
+                    <FormattedMessage id="APIResourceDetailsScreen.test.pivot.nodejs.headerText" />
+                  </Tabs.Trigger>
+                </Tabs.List>
+              </Tabs.Root>
+              <CodeField className={styles.codeField}>{exampleCode}</CodeField>
+              <div className={styles.actions}>
+                <PrimaryButton
+                  size="2"
                   onClick={revealSecrets}
                   disabled={selectedClientSecret != null}
                   loading={isRevealing}
+                  text={<FormattedMessage id="reveal" />}
                 />
-                <DefaultButton
-                  {...copyCodeButtonProps}
-                  text={<FormattedMessage id="copy" />}
-                  iconProps={undefined}
+                <SecondaryButton
+                  size="2"
+                  onClick={onCopyCode}
+                  text={
+                    codeCopied ? (
+                      <FormattedMessage id="copied-to-clipboard" />
+                    ) : (
+                      <FormattedMessage id="copy" />
+                    )
+                  }
                 />
-                <CopyCodeFeedback />
               </div>
             </section>
           </>
         ) : null}
-      </div>
+      </SettingsSectionCard>
     </div>
   );
 }

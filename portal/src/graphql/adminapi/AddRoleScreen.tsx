@@ -8,14 +8,14 @@ import {
 } from "../../RoleAndGroupsLayout";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import FormTextField from "../../FormTextField";
-import WidgetDescription from "../../WidgetDescription";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { TextArea } from "../../components/v2/TextArea/TextArea";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useCreateRoleMutation } from "./mutations/createRoleMutation";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
-import { validateRole } from "../../model/role";
+import { generateRoleKeyFromName, validateRole } from "../../model/role";
 import { useNavigate } from "react-router-dom";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useFormTopErrors } from "../../form";
@@ -33,6 +33,110 @@ const defaultState: FormState = {
   roleName: "",
   roleDescription: "",
 };
+
+function AddRolesScreenForm() {
+  const {
+    form: { state: formState, setState: setFormState },
+    canSave,
+    isUpdating,
+  } = useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
+  const navigate = useNavigate();
+
+  const errors = useFormTopErrors();
+  const { setErrors } = useErrorMessageBarContext();
+  useEffect(() => {
+    setErrors(errors);
+  }, [errors, setErrors]);
+
+  const cancel = useCallback(() => {
+    navigate("..", { replace: true });
+  }, [navigate]);
+
+  const onFormStateChangeCallbacks = useMemo(() => {
+    const createCallback = (key: keyof FormState) => {
+      return (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => {
+        const newValue = e.target.value;
+        setFormState((prev) => {
+          return { ...prev, [key]: newValue };
+        });
+      };
+    };
+    return {
+      roleKey: createCallback("roleKey"),
+      roleName: createCallback("roleName"),
+      roleDescription: createCallback("roleDescription"),
+    };
+  }, [setFormState]);
+
+  const { renderToString } = useContext(MessageContext);
+
+  const roleKeyFieldErrorRules = useMemo(
+    () => [
+      makeReasonErrorParseRule(
+        "RoleDuplicateKey",
+        "errors.roles.key.duplicated"
+      ),
+    ],
+    []
+  );
+
+  return (
+    <div>
+      <RoleAndGroupsVeriticalFormLayout>
+        <TextField
+          size="2"
+          required={true}
+          fieldName="name"
+          parentJSONPointer=""
+          type="text"
+          label={renderToString("AddRoleScreen.roleName.title")}
+          hint={<FormattedMessage id="AddRoleScreen.roleName.description" />}
+          value={formState.roleName}
+          onChange={onFormStateChangeCallbacks.roleName}
+        />
+        <TextField
+          size="2"
+          errorRules={roleKeyFieldErrorRules}
+          required={true}
+          fieldName="key"
+          parentJSONPointer=""
+          placeholder={generateRoleKeyFromName(formState.roleName)}
+          type="text"
+          label={renderToString("AddRoleScreen.roleKey.title")}
+          hint={<FormattedMessage id="AddRoleScreen.roleKey.description" />}
+          value={formState.roleKey}
+          onChange={onFormStateChangeCallbacks.roleKey}
+        />
+        <TextArea
+          size="2"
+          fieldName="description"
+          parentJSONPointer=""
+          label={renderToString("AddRoleScreen.roleDescription.title")}
+          value={formState.roleDescription}
+          onChange={onFormStateChangeCallbacks.roleDescription}
+        />
+      </RoleAndGroupsVeriticalFormLayout>
+      <RoleAndGroupsFormFooter className="mt-12">
+        <PrimaryButton
+          size="2"
+          disabled={!canSave || isUpdating}
+          type="submit"
+          text={<FormattedMessage id="create" />}
+        />
+        <SecondaryButton
+          size="2"
+          disabled={isUpdating}
+          type="button"
+          onClick={cancel}
+          text={<FormattedMessage id="cancel" />}
+        />
+      </RoleAndGroupsFormFooter>
+    </div>
+  );
+}
+
 const AddRoleScreen: React.VFC = function AddRoleScreen() {
   const navigate = useNavigate();
 
@@ -76,8 +180,8 @@ const AddRoleScreen: React.VFC = function AddRoleScreen() {
   });
 
   const canSave = useMemo(
-    () => form.state.roleKey !== "" && form.state.roleName !== "",
-    [form.state.roleKey, form.state.roleName]
+    () => form.state.roleName !== "",
+    [form.state.roleName]
   );
 
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
@@ -105,113 +209,5 @@ const AddRoleScreen: React.VFC = function AddRoleScreen() {
     </RoleAndGroupsLayout>
   );
 };
-
-function AddRolesScreenForm() {
-  const {
-    form: { state: formState, setState: setFormState },
-    canSave,
-    isUpdating,
-  } = useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
-  const navigate = useNavigate();
-
-  const errors = useFormTopErrors();
-  const { setErrors } = useErrorMessageBarContext();
-  useEffect(() => {
-    setErrors(errors);
-  }, [errors, setErrors]);
-
-  const cancel = useCallback(() => {
-    navigate("..", { replace: true });
-  }, [navigate]);
-
-  const onFormStateChangeCallbacks = useMemo(() => {
-    const createCallback = (key: keyof FormState) => {
-      return (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const newValue = e.currentTarget.value;
-        setFormState((prev) => {
-          return { ...prev, [key]: newValue };
-        });
-      };
-    };
-    return {
-      roleKey: createCallback("roleKey"),
-      roleName: createCallback("roleName"),
-      roleDescription: createCallback("roleDescription"),
-    };
-  }, [setFormState]);
-
-  const { renderToString } = useContext(MessageContext);
-
-  const roleKeyFieldErrorRules = useMemo(
-    () => [
-      makeReasonErrorParseRule(
-        "RoleDuplicateKey",
-        "errors.roles.key.duplicated"
-      ),
-    ],
-    []
-  );
-
-  return (
-    <div>
-      <RoleAndGroupsVeriticalFormLayout>
-        <div>
-          <FormTextField
-            required={true}
-            fieldName="name"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("AddRoleScreen.roleName.title")}
-            value={formState.roleName}
-            onChange={onFormStateChangeCallbacks.roleName}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRoleScreen.roleName.description" />
-          </WidgetDescription>
-        </div>
-        <div>
-          <FormTextField
-            errorRules={roleKeyFieldErrorRules}
-            required={true}
-            fieldName="key"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("AddRoleScreen.roleKey.title")}
-            value={formState.roleKey}
-            onChange={onFormStateChangeCallbacks.roleKey}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRoleScreen.roleKey.description" />
-          </WidgetDescription>
-        </div>
-        <FormTextField
-          multiline={true}
-          resizable={false}
-          autoAdjustHeight={true}
-          rows={3}
-          fieldName="description"
-          parentJSONPointer=""
-          type="text"
-          label={renderToString("AddRoleScreen.roleDescription.title")}
-          value={formState.roleDescription}
-          onChange={onFormStateChangeCallbacks.roleDescription}
-        />
-      </RoleAndGroupsVeriticalFormLayout>
-      <RoleAndGroupsFormFooter className="mt-12">
-        <PrimaryButton
-          disabled={!canSave || isUpdating}
-          type="submit"
-          text={<FormattedMessage id="create" />}
-        />
-        <DefaultButton
-          disabled={isUpdating}
-          type="button"
-          onClick={cancel}
-          text={<FormattedMessage id="cancel" />}
-        />
-      </RoleAndGroupsFormFooter>
-    </div>
-  );
-}
 
 export default AddRoleScreen;

@@ -1,12 +1,16 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useQuery } from "@apollo/client";
-import { SearchBox } from "@fluentui/react";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
-import PrimaryButton from "../../../PrimaryButton";
+import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../v2/TextField/TextField";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -45,12 +49,8 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
 
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const onChangeSearchKeyword = useCallback(
-    (e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (e === undefined) {
-        return;
-      }
-      const value = e.currentTarget.value;
-      setSearchKeyword(value);
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.target.value);
     },
     []
   );
@@ -108,17 +108,39 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
   return (
     <>
       <section className="flex-1 flex flex-col">
-        <header className="flex flex-row items-center justify-between mb-8">
-          <SearchBox
-            className="max-w-[300px] min-w-0 flex-1 mr-2"
-            placeholder={renderToString("search")}
-            value={searchKeyword}
-            onChange={onChangeSearchKeyword}
-            onClear={onClearSearchKeyword}
-          />
+        <header className="flex flex-row items-center justify-between mb-8 gap-2">
+          <div className="max-w-[300px] min-w-0 flex-1">
+            <TextField
+              size="2"
+              type="search"
+              value={searchKeyword}
+              placeholder={renderToString("search")}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              onChange={onChangeSearchKeyword}
+              suffixPlain={true}
+              suffix={
+                searchKeyword !== "" ? (
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer"
+                    aria-label={renderToString("APIResourcesScreen.clear-search")}
+                    onClick={onClearSearchKeyword}
+                  >
+                    <Cross2Icon width="0.875rem" height="0.875rem" />
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
           <PrimaryButton
-            text={<FormattedMessage id="GroupDetailsScreen.roles.add" />}
+            size="2"
             onClick={showAddRoleDialog}
+            text={
+              <span className="inline-flex items-center gap-1">
+                <PlusIcon width="1rem" height="1rem" />
+                <FormattedMessage id="GroupDetailsScreen.roles.add" />
+              </span>
+            }
           />
         </header>
         <GroupRolesList

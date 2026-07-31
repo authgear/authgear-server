@@ -1,5 +1,10 @@
-.pivot {
-  text-align: right;
+.content {
+  gap: 16px;
+}
+
+.periodicalControl {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .loadingWrapper {
@@ -20,4 +25,14 @@
   flex-direction: column;
   row-gap: 4px;
   text-align: left;
+}
+
+.metricLabel {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.metricValue {
+  margin: 0;
+  color: var(--gray-12);
 }

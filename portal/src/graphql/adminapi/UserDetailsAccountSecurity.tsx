@@ -1,25 +1,19 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
+import { Badge, Button, DropdownMenu, Text } from "@radix-ui/themes";
 import {
-  Dialog,
-  DialogFooter,
-  IContextualMenuItem,
-  IContextualMenuProps,
-  Icon,
-  List,
-  MessageBar,
-  MessageBarType,
-  Text,
-} from "@fluentui/react";
+  CheckCircledIcon,
+  ChevronDownIcon,
+  EnvelopeClosedIcon,
+  MobileIcon,
+  PlusIcon,
+} from "@radix-ui/react-icons";
 import { FormattedMessage, Context } from "../../intl";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
 import ListCellLayout from "../../ListCellLayout";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import { formatDatetime } from "../../util/formatDatetime";
 import {
   Identity,
@@ -30,9 +24,8 @@ import {
 } from "./globalTypes.generated";
 import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
-import Toggle from "../../Toggle";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { DateTime } from "luxon";
 import { parseDuration } from "../../util/duration";
 import { SetPasswordExpiredConfirmationDialog } from "../../components/users/SetPasswordExpiredConfirmationDialog";
@@ -48,6 +41,10 @@ import {
 import { useSetMFAGracePeriodMutation } from "./mutations/setMFAGracePeriodMutation";
 import { useRemoveMFAGracePeriodMutation } from "./mutations/removeMFAGracePeriodMutation";
 import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CancelMFAGracePeriodConfirmationDialog";
+import { Add2FAPhoneDialog } from "../../components/users/Add2FAPhoneDialog";
+import { Add2FAEmailDialog } from "../../components/users/Add2FAEmailDialog";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { Callout } from "../../components/v2/Callout/Callout";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
@@ -57,6 +54,9 @@ interface UserDetailsAccountSecurityProps {
   authenticatorConfig: PortalAPIAppConfig["authenticator"];
   identities: Identity[];
   authenticators: Authenticator[];
+  phoneInputAllowlist?: string[];
+  phoneInputPinnedList?: string[];
+  onAuthenticatorCreated?: () => unknown;
 }
 
 interface PasskeyIdentityData {
@@ -125,8 +125,10 @@ interface RemoveConfirmationDialogProps
   loading?: boolean;
 }
 
-interface Add2FAMenuItem extends IContextualMenuItem {
+interface Add2FAMenuItem {
   key: SecondaryAuthenticatorType;
+  text: string;
+  onSelect: () => void;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -479,36 +481,25 @@ const RemoveConfirmationDialog: React.VFC<RemoveConfirmationDialogProps> =
       );
     }, [renderToString, displayName]);
 
-    const removeConfirmDialogContentProps = useMemo(() => {
-      return {
-        title: (
-          <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
-        ),
-        subText: dialogMessage,
-      };
-    }, [dialogMessage]);
-
     return (
-      <Dialog
-        hidden={!visible}
-        dialogContentProps={removeConfirmDialogContentProps}
-        modalProps={{ isBlocking: loading }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            loading={loading ?? false}
-            disabled={!visible}
-          />
-          <DefaultButton
-            disabled={(loading ?? false) || !visible}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={visible}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
+        title={
+          <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
+        }
+        description={dialogMessage}
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={loading}
+        confirmColor="red"
+      />
     );
   };
 
@@ -516,7 +507,6 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
   function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
     const { id, displayName, addedOn, showConfirmationDialog, withTopSpacing } =
       props;
-    const { themes } = useSystemConfig();
     const onRemoveClicked = useCallback(() => {
       showConfirmationDialog({
         id,
@@ -538,21 +528,24 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
             "authgear-portal-icons authgear-portal-icons-passkey"
           )}
         ></i>
-        <Text className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
+        <Text size="2" weight="medium" className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
           {displayName}
         </Text>
-        <Text className={cn(styles.cellDesc, styles.passkeyCellDesc)}>
+        <Text size="2" color="gray" className={cn(styles.cellDesc, styles.passkeyCellDesc)}>
           <FormattedMessage
             id="UserDetails.account-security.added-on"
             values={{ datetime: addedOn }}
           />
         </Text>
-        <DefaultButton
+        <Button
           className={cn(styles.button, styles.passkeyCellRemoveButton)}
+          size="1"
+          variant="outline"
+          color="red"
           onClick={onRemoveClicked}
-          theme={themes.destructive}
-          text={<FormattedMessage id="remove" />}
-        />
+        >
+          <FormattedMessage id="remove" />
+        </Button>
       </ListCellLayout>
     );
   };
@@ -572,7 +565,6 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
     } = props;
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
 
     const labelId = getLocaleKeyWithAuthenticatorType(
       AuthenticatorType.Password,
@@ -612,32 +604,56 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
           withTopSpacing ? styles["cell--not-first"] : ""
         )}
       >
-        <Text className={cn(styles.cellLabel, styles.passwordCellLabel)}>
+        <Text size="3" weight="medium" className={cn(styles.cellLabel, styles.passwordCellLabel)}>
           <FormattedMessage id={labelId!} />
         </Text>
-        <Text className={cn(styles.cellDesc, styles.passwordCellDesc)}>
-          <FormattedMessage
-            id="UserDetails.account-security.last-updated"
-            values={{ datetime: lastUpdated }}
-          />
-        </Text>
+        <div className={styles.passwordCellSummary}>
+          <div className={styles.passwordCellMetadata}>
+            <Badge size="1" color="green" variant="outline">
+              <CheckCircledIcon width={12} height={12} />
+              <FormattedMessage id="UserDetails.account-security.password-set" />
+            </Badge>
+            <Text size="2" className={cn(styles.cellDesc, styles.passwordCellDesc)}>
+              <FormattedMessage
+                id="UserDetails.account-security.last-updated"
+                values={{ datetime: lastUpdated }}
+              />
+            </Text>
+          </div>
+          {kind === "PRIMARY" ? (
+            <Button
+              className={cn(styles.button, styles.changePasswordButton)}
+              size="2"
+              variant="ghost"
+              onClick={onResetPasswordClicked}
+            >
+              <FormattedMessage id="UserDetails.account-security.change-password" />
+            </Button>
+          ) : null}
+        </div>
         {kind === "PRIMARY" ? (
-          <Toggle
-            className={styles.passwordCellChangeOnLogin}
-            label={renderToString(
-              "UserDetails.account-security.change-on-login.label"
-            )}
-            checked={changeOnLogin}
-            disabled={passwordExpired}
-            onChange={showMarkAsExpiredConfirmationDialog}
-          />
+          <div className={styles.passwordCellChangeOnLogin}>
+            <div className={styles.passwordCellChangeOnLoginText}>
+              <Text as="p" size="2" weight="medium" className={styles.passwordCellChangeOnLoginTitle}>
+                <FormattedMessage id="UserDetails.account-security.change-on-login.label" />
+              </Text>
+              <Text as="p" size="2" color="gray" className={styles.passwordCellChangeOnLoginDescription}>
+                <FormattedMessage id="UserDetails.account-security.change-on-login.description" />
+              </Text>
+            </div>
+            <Toggle
+              checked={changeOnLogin}
+              disabled={passwordExpired}
+              onCheckedChange={showMarkAsExpiredConfirmationDialog}
+            />
+          </div>
         ) : null}
         {passwordExpired ? (
-          <MessageBar
+          <Callout
             className={styles.passwordCellExpired}
-            messageBarType={MessageBarType.warning}
-          >
-            <FormattedMessage
+            type="warning"
+            showCloseButton={false}
+            text={<FormattedMessage
               id="UserDetails.account-security.expired"
               values={{
                 expiredInDays,
@@ -648,25 +664,19 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
                   </Text>
                 ),
               }}
-            />
-          </MessageBar>
-        ) : null}
-        {kind === "PRIMARY" ? (
-          <PrimaryButton
-            className={cn(styles.button, styles.changePasswordButton)}
-            onClick={onResetPasswordClicked}
-            text={
-              <FormattedMessage id="UserDetails.account-security.change-password" />
-            }
+            />}
           />
         ) : null}
         {kind === "SECONDARY" ? (
-          <DefaultButton
+          <Button
             className={cn(styles.button, styles.removePasswordButton)}
+            size="1"
+            variant="outline"
+            color="red"
             onClick={onRemoveClicked}
-            theme={themes.destructive}
-            text={<FormattedMessage id="remove" />}
-          />
+          >
+            <FormattedMessage id="remove" />
+          </Button>
         ) : null}
       </ListCellLayout>
     );
@@ -676,7 +686,6 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
   function TOTPAuthenticatorCell(props: TOTPAuthenticatorCellProps) {
     const { id, kind, label, addedOn, showConfirmationDialog, withTopSpacing } =
       props;
-    const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
       showConfirmationDialog({
@@ -694,22 +703,25 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
           withTopSpacing ? styles["cell--not-first"] : ""
         )}
       >
-        <Text className={cn(styles.cellLabel, styles.totpCellLabel)}>
+        <Text size="2" weight="medium" className={cn(styles.cellLabel, styles.totpCellLabel)}>
           {label}
         </Text>
-        <Text className={cn(styles.cellDesc, styles.totpCellDesc)}>
+        <Text size="2" color="gray" className={cn(styles.cellDesc, styles.totpCellDesc)}>
           <FormattedMessage
             id="UserDetails.account-security.added-on"
             values={{ datetime: addedOn }}
           />
         </Text>
         {kind === "SECONDARY" ? (
-          <DefaultButton
+          <Button
             className={cn(styles.button, styles.totpRemoveButton)}
+            size="1"
+            variant="outline"
+            color="red"
             onClick={onRemoveClicked}
-            theme={themes.destructive}
-            text={<FormattedMessage id="remove" />}
-          />
+          >
+            <FormattedMessage id="remove" />
+          </Button>
         ) : null}
       </ListCellLayout>
     );
@@ -726,7 +738,6 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
       showConfirmationDialog,
       withTopSpacing,
     } = props;
-    const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
       showConfirmationDialog({
@@ -744,11 +755,13 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
           withTopSpacing ? styles["cell--not-first"] : ""
         )}
       >
-        <Icon className={styles.oobOtpCellIcon} iconName={iconName} />
-        <Text className={cn(styles.cellLabel, styles.oobOtpCellLabel)}>
+        <span className={styles.oobOtpCellIcon}>
+          {iconName === "Mail" ? <EnvelopeClosedIcon /> : <MobileIcon />}
+        </span>
+        <Text size="2" weight="medium" className={cn(styles.cellLabel, styles.oobOtpCellLabel)}>
           {label}
         </Text>
-        <Text className={cn(styles.cellDesc, styles.oobOtpCellAddedOn)}>
+        <Text size="2" color="gray" className={cn(styles.cellDesc, styles.oobOtpCellAddedOn)}>
           <FormattedMessage
             id="UserDetails.account-security.added-on"
             values={{ datetime: addedOn }}
@@ -756,12 +769,15 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
         </Text>
 
         {kind === "SECONDARY" ? (
-          <DefaultButton
+          <Button
             className={cn(styles.button, styles.oobOtpRemoveButton)}
+            size="1"
+            variant="outline"
+            color="red"
             onClick={onRemoveClicked}
-            theme={themes.destructive}
-            text={<FormattedMessage id="remove" />}
-          />
+          >
+            <FormattedMessage id="remove" />
+          </Button>
         ) : null}
       </ListCellLayout>
     );
@@ -775,9 +791,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       authenticatorConfig,
       identities,
       authenticators,
+      phoneInputAllowlist,
+      phoneInputPinnedList,
+      onAuthenticatorCreated,
     } = props;
     const { locale, renderToString } = useContext(Context);
     const navigate = useNavigate();
+    const [add2FAPhoneDialogOpen, setAdd2FAPhoneDialogOpen] = useState(false);
+    const [add2FAEmailDialogOpen, setAdd2FAEmailDialogOpen] = useState(false);
 
     const { user } = useUserQuery(userID);
 
@@ -909,7 +930,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       return globalEndAt > userEndAt ? globalEndAt : userEndAt;
     }, [globalGracePeriodEndAt, userGracePeriod, authenticationConfig]);
 
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const canExtendMFAGracePeriod = useMemo(() => {
       // Global grace period without deadline, no need to extend
       if (
@@ -1126,30 +1146,27 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       [deleteIdentity, dismissConfirmationDialog]
     );
 
-    const add2FAMenuProps: IContextualMenuProps = useMemo(() => {
+    const add2FAMenuItems = useMemo(() => {
       const availableMenuItem: Add2FAMenuItem[] = [
         {
           key: "password",
           text: renderToString("AuthenticatorType.secondary.password"),
-          iconProps: { iconName: "Accounts" },
-          onClick: () => {
+          onSelect: () => {
             void navigate("./add-2fa-password");
           },
         },
         {
           key: "oob_otp_email",
           text: renderToString("AuthenticatorType.secondary.oob-otp-email"),
-          iconProps: { iconName: "Mail" },
-          onClick: () => {
-            void navigate("./add-2fa-email");
+          onSelect: () => {
+            setAdd2FAEmailDialogOpen(true);
           },
         },
         {
           key: "oob_otp_sms",
           text: renderToString("AuthenticatorType.secondary.oob-otp-phone"),
-          iconProps: { iconName: "CellPhone" },
-          onClick: () => {
-            void navigate("./add-2fa-phone");
+          onSelect: () => {
+            setAdd2FAPhoneDialogOpen(true);
           },
         },
       ];
@@ -1175,10 +1192,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
 
         return true;
       });
-      return {
-        items: enabledItems,
-        directionalHintFixed: true,
-      };
+      return enabledItems;
     }, [
       renderToString,
       navigate,
@@ -1241,81 +1255,90 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         {primaryAuthenticatorLists.hasVisibleList ||
         primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
           <div className={styles.authenticatorContainer}>
-            <div className={styles.authenticatorKindHeader}>
-              <Text as="h2" variant="medium" className={cn(styles.header)}>
+            <div
+              className={cn(
+                "flex justify-between",
+                styles.authenticatorKindHeader
+              )}
+            >
+              <Text as="p" size="3" weight="medium" className={cn(styles.header)}>
                 <FormattedMessage id="UserDetails.account-security.primary" />
               </Text>
               {primaryAuthenticatorLists.password.length === 0 ? (
-                <PrimaryButton
-                  iconProps={{ iconName: "CirclePlus" }}
-                  styles={{
-                    menuIcon: { paddingLeft: "3px" },
-                    icon: { paddingRight: "3px" },
-                  }}
-                  text={
-                    <FormattedMessage id="UserDetails.account-security.primary.password.add" />
-                  }
+                <Button
+                  size="2"
                   onClick={addPrimaryPassword}
-                />
+                >
+                  <PlusIcon />
+                  <FormattedMessage id="UserDetails.account-security.primary.password.add" />
+                </Button>
               ) : null}
             </div>
             {!primaryAuthenticatorLists.hasVisibleList ? (
               <>
-                <Text as="h3" className={cn(styles.authenticatorEmpty)}>
+                <Text as="p" size="2" color="gray" className={cn(styles.authenticatorEmpty)}>
                   <FormattedMessage id="UserDetails.account-security.primary.empty" />
                 </Text>
               </>
             ) : null}
             {primaryAuthenticatorLists.password.length > 0 ? (
-              <List
-                className={cn(
-                  styles.authenticatorTypeSection,
-                  styles["authenticatorTypeSection--password"]
-                )}
-                items={primaryAuthenticatorLists.password}
-                onRenderCell={onRenderPasswordAuthenticatorDetailCell}
-              />
+              <div className={cn(styles.authenticatorTypeSection, styles["authenticatorTypeSection--password"])}>
+                {primaryAuthenticatorLists.password.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderPasswordAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
+              </div>
             ) : null}
             {primaryAuthenticatorLists.passkey.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.passkey" />
                 </Text>
-                <List
-                  items={primaryAuthenticatorLists.passkey}
-                  onRenderCell={onRenderPasskeyIdentityDetailCell}
-                />
+                {primaryAuthenticatorLists.passkey.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderPasskeyIdentityDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
                 </Text>
-                <List
-                  items={primaryAuthenticatorLists.oobOtpEmail}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
+                {primaryAuthenticatorLists.oobOtpEmail.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
             {primaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-phone" />
                 </Text>
-                <List
-                  items={primaryAuthenticatorLists.oobOtpSMS}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
+                {primaryAuthenticatorLists.oobOtpSMS.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
           </div>
@@ -1323,27 +1346,69 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         {secondaryAuthenticatorLists.hasVisibleList ||
         secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
           <div className={styles.authenticatorContainer}>
-            <div className={styles.authenticatorKindHeader}>
-              <Text as="h2" className={cn(styles.header)}>
+            <div
+              className={cn(
+                "flex justify-between",
+                styles.authenticatorKindHeader
+              )}
+            >
+              <Text as="p" size="3" weight="medium" className={cn(styles.header)}>
                 <FormattedMessage id="UserDetails.account-security.secondary" />
               </Text>
-              <PrimaryButton
-                disabled={add2FAMenuProps.items.length === 0}
-                iconProps={{ iconName: "CirclePlus" }}
-                menuProps={add2FAMenuProps}
-                styles={{
-                  menuIcon: { paddingLeft: "3px" },
-                  icon: { paddingRight: "3px" },
-                }}
-                text={
-                  <FormattedMessage id="UserDetails.account-security.secondary.add" />
-                }
-              />
+            </div>
+            <div className={styles.secondaryOverview}>
+              {!secondaryAuthenticatorLists.hasVisibleList ? (
+                <div className={styles.secondaryEmpty}>
+                  <Text as="p" size="3" weight="medium" className={styles.secondaryEmptyTitle}>
+                    <FormattedMessage id="UserDetails.account-security.secondary.empty" />
+                  </Text>
+                  <Text as="p" size="2" color="gray" className={styles.secondaryEmptyDescription}>
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.empty-description"
+                      values={{
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        gracePeriod: (chunks: React.ReactNode) => (
+                          <LinkButton
+                            className={styles.authenticatorGrantGracePeriod}
+                            onClick={setMFAGracePeriodConfirmationDialog.show}
+                          >
+                            {chunks}
+                          </LinkButton>
+                        ),
+                      }}
+                    />
+                  </Text>
+                </div>
+              ) : (
+                <div />
+              )}
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <Button
+                    size="2"
+                    variant="outline"
+                    color="gray"
+                    disabled={add2FAMenuItems.length === 0}
+                  >
+                    <FormattedMessage id="UserDetails.account-security.secondary.add" />
+                    <ChevronDownIcon width={16} height={16} />
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content align="end">
+                  {add2FAMenuItems.map((item) => (
+                    <DropdownMenu.Item key={item.key} onSelect={item.onSelect}>
+                      {item.text}
+                    </DropdownMenu.Item>
+                  ))}
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
             </div>
             {secondaryAuthenticatorLists.totp.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.secondary.totp" />
@@ -1354,16 +1419,19 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     </>
                   ) : null}
                 </Text>
-                <List
-                  items={secondaryAuthenticatorLists.totp}
-                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
-                />
+                {secondaryAuthenticatorLists.totp.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderTotpAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
             {secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
@@ -1374,16 +1442,19 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     </>
                   ) : null}
                 </Text>
-                <List
-                  items={secondaryAuthenticatorLists.oobOtpEmail}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
+                {secondaryAuthenticatorLists.oobOtpEmail.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
             {secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
@@ -1394,16 +1465,19 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     </>
                   ) : null}
                 </Text>
-                <List
-                  items={secondaryAuthenticatorLists.oobOtpSMS}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
+                {secondaryAuthenticatorLists.oobOtpSMS.map((item, index) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                  </React.Fragment>
+                ))}
               </div>
             ) : null}
             {secondaryAuthenticatorLists.password.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
                 <Text
-                  as="h3"
+                  as="p"
+                  size="2"
+                  weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.secondary.password" />
@@ -1414,21 +1488,20 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     </>
                   ) : null}
                 </Text>
-                <List
-                  className={cn(
-                    styles.authenticatorTypeSection,
-                    styles["authenticatorTypeSection--password"]
-                  )}
-                  items={secondaryAuthenticatorLists.password}
-                  onRenderCell={onRenderPasswordAuthenticatorDetailCell}
-                />
+                <div className={cn(styles.authenticatorTypeSection, styles["authenticatorTypeSection--password"])}>
+                  {secondaryAuthenticatorLists.password.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                      {onRenderPasswordAuthenticatorDetailCell(item, index)}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
             ) : null}
             {secondaryAuthicatorIsRequired &&
-            (!secondaryAuthenticatorLists.hasVisibleList ||
-              !secondaryAuthenticatorLists.hasEnabledAuthenticator) ? (
+            secondaryAuthenticatorLists.hasVisibleList &&
+            !secondaryAuthenticatorLists.hasEnabledAuthenticator ? (
               <>
-                <Text as="h3" className={cn(styles.authenticatorEmpty)}>
+                <Text as="p" size="2" color="gray" className={cn(styles.authenticatorEmpty)}>
                   {!secondaryAuthenticatorLists.hasVisibleList ? (
                     <FormattedMessage id="UserDetails.account-security.secondary.empty" />
                   ) : (
@@ -1479,19 +1552,30 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         <SetPasswordExpiredConfirmationDialog
           store={setPasswordExpiredConfirmDialog}
           isExpired={isExpired}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmSetPasswordExpired}
         />
         <SetMFAGracePeriodConfirmationDialog
           store={setMFAGracePeriodConfirmationDialog}
           action={mfaGracePeriodAction}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmSetMFAGracePeriod}
         />
         <CancelMFAGracePeriodConfirmationDialog
           store={cancelMFAGracePeriodConfirmationDialog}
-          // eslint-disable-next-line @typescript-eslint/strict-void-return
           onConfirm={onConfirmRemoveMFAGracePeriod}
+        />
+        <Add2FAPhoneDialog
+          open={add2FAPhoneDialogOpen}
+          userID={userID}
+          phoneInputAllowlist={phoneInputAllowlist}
+          phoneInputPinnedList={phoneInputPinnedList}
+          onOpenChange={setAdd2FAPhoneDialogOpen}
+          onCreated={onAuthenticatorCreated}
+        />
+        <Add2FAEmailDialog
+          open={add2FAEmailDialogOpen}
+          userID={userID}
+          onOpenChange={setAdd2FAEmailDialogOpen}
+          onCreated={onAuthenticatorCreated}
         />
       </div>
     );

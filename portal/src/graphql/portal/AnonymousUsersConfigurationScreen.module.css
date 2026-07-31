@@ -1,47 +1,156 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
-.widgetDescription {
-  margin-bottom: 8px;
+.pageHeader {
+  @apply flex flex-col gap-2;
 }
 
-.controls {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-}
-
-.separator {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-}
-
-.title {
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}
+
+.lifetimeSection {
+  @apply flex flex-col gap-2;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.sectionSeparator {
+  width: 100%;
 }
 
 .sessionInfo {
   display: grid;
   grid-template-columns: max-content auto;
-  gap: 16px 32px;
-  padding: 16px 0;
+  gap: 1rem 2rem;
+  padding: 0.5rem 0;
 }
 
-.sessionInfo .tooltipLabel {
-  display: flex;
+.tooltipLabel {
+  @apply flex items-center gap-1;
 }
 
-.detailsHeader {
-  padding: 0;
+.infoIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--gray-a11);
+  cursor: help;
 }
 
-.tooltipHeader {
-  display: flex;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.bold {
-  font-weight: 600;
+@media (min-width: 1081px) {
+  .tableWrapper {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .tableWrapper::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.table {
+  min-width: 100%;
+}
+
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.headerCellName,
+.headerCellIdleTimeout,
+.headerCellLifetime,
+.headerCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.headerCellName,
+.headerCellIdleTimeout,
+.headerCellLifetime {
+  @apply min-w-0 flex-1;
+}
+
+.headerCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.cellName,
+.cellIdleTimeout,
+.cellLifetime,
+.cellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.cellName,
+.cellIdleTimeout,
+.cellLifetime {
+  @apply min-w-0 flex-1 overflow-hidden;
+}
+
+.cellNameText {
+  @apply min-w-0 truncate;
+}
+
+.cellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.applicationsLink {
+  margin: 0;
 }

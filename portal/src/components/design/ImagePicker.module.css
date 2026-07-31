@@ -5,3 +5,38 @@
   /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../images/ic-imagesmode.svg");
 }
+
+.picker {
+  @apply flex items-start gap-4 w-full;
+}
+
+.preview {
+  @apply flex items-center justify-center shrink-0;
+  @apply size-[7.25rem] overflow-hidden;
+  @apply rounded-lg border border-solid;
+  border-color: var(--gray-a4);
+  background-color: var(--gray-1);
+  cursor: pointer;
+  padding: 0;
+}
+
+.previewFilled {
+  background-color: white;
+}
+
+.previewImage {
+  @apply h-full w-full object-cover;
+}
+
+.previewImageFallback {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.pickerActions {
+  @apply flex flex-1 flex-col gap-2 min-w-0;
+}
+
+.pickerButtons {
+  @apply flex items-center gap-2;
+}

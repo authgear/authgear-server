@@ -1,18 +1,27 @@
 .container {
-  @apply h-full;
-  @apply flex flex-col;
-  @apply overflow-auto;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+
+  /* Let body to scroll in mobile — same pattern as ScreenLayout / CommandBarContainer */
+  @apply mobile:h-auto mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
 }
 
 .header {
 }
 
 .contentExpand {
-  @apply flex flex-col flex-1;
+  @apply flex flex-col flex-1 min-h-0;
+  @apply mobile:min-h-min;
 }
 
 .contentExpandNoShrink {
-  @apply flex flex-col flex-1-0-auto;
+  @apply flex flex-col flex-1 min-h-0;
+  @apply mobile:min-h-min;
 }
 
 .footer {

@@ -9,8 +9,21 @@
   padding: 24px;
 }
 
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
 .pivot {
   margin-top: 20px;
+}
+
+.pivot :global(.rt-TabsList) {
+  box-shadow: none;
+  border-bottom: 1px solid var(--gray-a6);
 }
 
 .listContainer {
@@ -23,9 +36,8 @@
 .commandBarContainerContent {
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  padding-right: 0;
   padding-top: 16px;
+  padding-bottom: 0;
 }
 
 .list {

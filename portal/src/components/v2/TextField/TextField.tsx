@@ -48,6 +48,7 @@ export interface TextInputProps {
 
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onClick?: React.MouseEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
@@ -119,12 +120,9 @@ function TextField_(props: TextFieldProps): React.ReactElement {
       htmlFor={id}
       optional={optional}
       required={required}
-      error={error}
+      error={error ?? fieldProps.errorMessage}
       hint={hint}
       labelSpace="1"
-      parentJSONPointer={parentJSONPointer}
-      fieldName={fieldName}
-      errorRules={errorRules}
     >
       <Input
         {...props}
@@ -168,6 +166,7 @@ function Input({
   error,
   value,
   onChange,
+  onClick,
   onBlur,
   onFocus,
   inputClassName,
@@ -192,6 +191,7 @@ function Input({
       required={required}
       value={value}
       onChange={onChange}
+      onClick={onClick}
       onBlur={onBlur}
       onFocus={onFocus}
     >

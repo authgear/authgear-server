@@ -1,7 +1,21 @@
 .listWrapper {
   @apply flex-1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover {
+  background-color: var(--gray-a2);
 }
 
 .pagination {
@@ -10,5 +24,5 @@
 }
 
 .message {
-  @apply mt-5 h-min;
+  margin: 20px 0;
 }

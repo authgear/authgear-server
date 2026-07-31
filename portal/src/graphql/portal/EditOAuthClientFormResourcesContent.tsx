@@ -266,7 +266,6 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
         onDismiss={handleCloseUnauthorizeDialog}
         // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={handleConfirmUnauthorize}
-        onDismissed={handleCloseUnauthorizeDialog}
       />
     </section>
   );

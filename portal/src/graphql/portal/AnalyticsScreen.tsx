@@ -1,60 +1,28 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useConst } from "@fluentui/react-hooks";
-import { ICommandBarItemProps, Text, useTheme } from "@fluentui/react";
+import { CalendarIcon, ResetIcon } from "@radix-ui/react-icons";
+import { Button, Spinner, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
+import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
 import { Periodical } from "./globalTypes.generated";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import AnalyticsActivityWidget from "./AnalyticsActivityWidget";
 import AnalyticsSignupConversionWidget from "./AnalyticsSignupConversionWidget";
 import AnalyticsSignupMethodsWidget from "./AnalyticsSignupMethodsWidget";
 import ShowError from "../../ShowError";
-import CommandBarContainer from "../../CommandBarContainer";
 import styles from "./AnalyticsScreen.module.css";
 import useTransactionalState from "../../hook/useTransactionalState";
-import DateRangeDialog from "./DateRangeDialog";
+import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseDate } from "../../util/date";
-import ScreenDescription from "../../ScreenDescription";
-import CommandBarButton from "../../CommandBarButton";
 
 function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
   return new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
   );
 }
-
-const CommandBarLabelValue = (label: string, value: string) => {
-  return (props: ICommandBarItemProps) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const theme = useTheme();
-    return (
-      <CommandBarButton
-        {...props.commandBarButtonProps}
-        className={styles.commandBarButtonLabelValue}
-        text={
-          <>
-            <span className={styles.label}>{label}</span>
-            <span
-              className={styles.value}
-              style={{ color: theme.palette.neutralTertiary }}
-            >
-              {value}
-            </span>
-          </>
-        }
-        styles={{
-          // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
-          label: {
-            whiteSpace: "nowrap",
-          },
-        }}
-      />
-    );
-  };
-};
 
 const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
@@ -70,7 +38,6 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   // eslint-disable-next-line react-hooks/purity
   const today = useConst(new Date(Date.now()));
   const yesterday = useMemo(() => {
-    // yesterday
     const d = new Date(
       Date.UTC(
         today.getUTCFullYear(),
@@ -83,7 +50,6 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
 
   const defaultRangeTo = useMemo(() => yesterday, [yesterday]);
   const defaultRangeFrom = useMemo(() => {
-    // default 1 year range
     const d = new Date(
       Date.UTC(
         defaultRangeTo.getUTCFullYear() - 1,
@@ -145,95 +111,31 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     signupByMethodsChart,
   } = useAnalyticChartsQuery(appID, periodical, rangeFromStr, rangeToStr);
 
-  const onClickDateRange = useCallback(
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setDateRangeDialogHidden(false);
-    },
-    []
-  );
+  const onClickDateRange = useCallback(() => {
+    setDateRangeDialogHidden(false);
+  }, []);
 
-  const onClickResetDateRange = useCallback(
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setRangeFromImmediately(defaultRangeFrom);
-      setRangeToImmediately(defaultRangeTo);
-    },
-    [
-      setRangeFromImmediately,
-      setRangeToImmediately,
-      defaultRangeFrom,
-      defaultRangeTo,
-    ]
-  );
-
-  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
-    return [
-      {
-        key: "startDate",
-        text: `${renderToString(
-          "AnalyticsScreen.start-date.label"
-        )} ${rangeFromStr}`,
-        iconProps: { iconName: "Calendar" },
-        commandBarButtonAs: CommandBarLabelValue(
-          renderToString("AnalyticsScreen.start-date.label"),
-          rangeFromStr
-        ),
-        commandBarButtonProps: {
-          iconProps: { iconName: "Calendar" },
-          onClick: onClickDateRange,
-        },
-      },
-      {
-        key: "endDate",
-        text: `${renderToString(
-          "AnalyticsScreen.end-date.label"
-        )} ${rangeToStr}`,
-        iconProps: { iconName: "Calendar" },
-        commandBarButtonAs: CommandBarLabelValue(
-          renderToString("AnalyticsScreen.end-date.label"),
-          rangeToStr
-        ),
-        commandBarButtonProps: {
-          iconProps: { iconName: "Calendar" },
-          onClick: onClickDateRange,
-        },
-      },
-      {
-        key: "reset",
-        text: renderToString("AnalyticsScreen.clear-date-range.label"),
-        iconProps: { iconName: "ClearFilter" },
-        onClick: onClickResetDateRange,
-      },
-    ];
+  const onClickResetDateRange = useCallback(() => {
+    setRangeFromImmediately(defaultRangeFrom);
+    setRangeToImmediately(defaultRangeTo);
   }, [
-    renderToString,
-    rangeFromStr,
-    rangeToStr,
-    onClickDateRange,
-    onClickResetDateRange,
+    setRangeFromImmediately,
+    setRangeToImmediately,
+    defaultRangeFrom,
+    defaultRangeTo,
   ]);
 
-  const onDismissDateRangeDialog = useCallback(
-    (e?: React.MouseEvent<unknown>) => {
-      e?.stopPropagation();
-      setDateRangeDialogHidden(true);
-      rollbackRangeFrom();
-      rollbackRangeTo();
-    },
-    [setDateRangeDialogHidden, rollbackRangeFrom, rollbackRangeTo]
-  );
+  const onDismissDateRangeDialog = useCallback(() => {
+    setDateRangeDialogHidden(true);
+    rollbackRangeFrom();
+    rollbackRangeTo();
+  }, [rollbackRangeFrom, rollbackRangeTo]);
 
-  const commitDateRange = useCallback(
-    (e?: React.MouseEvent<unknown>) => {
-      e?.preventDefault();
-      e?.stopPropagation();
-      setDateRangeDialogHidden(true);
-      commitRangeFrom();
-      commitRangeTo();
-    },
-    [setDateRangeDialogHidden, commitRangeFrom, commitRangeTo]
-  );
+  const commitDateRange = useCallback(() => {
+    setDateRangeDialogHidden(true);
+    commitRangeFrom();
+    commitRangeTo();
+  }, [commitRangeFrom, commitRangeTo]);
 
   const onSelectRangeFrom = useCallback(
     (value: Date | null | undefined) => {
@@ -315,35 +217,71 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
 
   return (
     <>
-      <CommandBarContainer isLoading={loading} primaryItems={primaryItems}>
-        <ScreenContent layout="list">
-          <ScreenTitle className={styles.widget}>
+      <ScreenContent layout="list">
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AnalyticsScreen.title" />
-          </ScreenTitle>
-          <ScreenDescription className={styles.widget}>
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="AnalyticsScreen.description" />
-          </ScreenDescription>
-          <AnalyticsActivityWidget
-            className={styles.activityWidget}
-            loading={loading}
-            periodical={periodical}
-            onPeriodicalChange={setPeriodical}
-            activeUserChartData={activeUserChart}
-            totalUserCountChartData={totalUserCountChart}
-          />
-          <AnalyticsSignupConversionWidget
-            className={styles.signupConversionWidget}
-            loading={loading}
-            signupConversionRate={signupConversionRate}
-          />
-          <AnalyticsSignupMethodsWidget
-            className={styles.signupMethodsWidget}
-            loading={loading}
-            signupByMethodsChart={signupByMethodsChart}
-          />
-        </ScreenContent>
-      </CommandBarContainer>
-      <DateRangeDialog
+          </Text>
+        </div>
+        <div className={cn(styles.widget, styles.filterBar)}>
+          <Button
+            size="2"
+            variant="outline"
+            color="gray"
+            onClick={onClickDateRange}
+          >
+            <CalendarIcon width="1rem" height="1rem" />
+            <span className={styles.dateButtonLabel}>
+              <FormattedMessage id="AnalyticsScreen.start-date.label" />
+            </span>
+            <span className={styles.dateButtonValue}>{rangeFromStr}</span>
+          </Button>
+          <Button
+            size="2"
+            variant="outline"
+            color="gray"
+            onClick={onClickDateRange}
+          >
+            <CalendarIcon width="1rem" height="1rem" />
+            <span className={styles.dateButtonLabel}>
+              <FormattedMessage id="AnalyticsScreen.end-date.label" />
+            </span>
+            <span className={styles.dateButtonValue}>{rangeToStr}</span>
+          </Button>
+          <Button
+            size="2"
+            variant="ghost"
+            color="gray"
+            onClick={onClickResetDateRange}
+          >
+            <ResetIcon width="1rem" height="1rem" />
+            <FormattedMessage id="AnalyticsScreen.clear-date-range.label" />
+          </Button>
+          {loading ? <Spinner size="2" className={styles.loadingSpinner} /> : null}
+        </div>
+        <AnalyticsActivityWidget
+          className={styles.activityWidget}
+          loading={loading}
+          periodical={periodical}
+          onPeriodicalChange={setPeriodical}
+          activeUserChartData={activeUserChart}
+          totalUserCountChartData={totalUserCountChart}
+        />
+        <AnalyticsSignupConversionWidget
+          className={styles.signupConversionWidget}
+          loading={loading}
+          signupConversionRate={signupConversionRate}
+        />
+        <AnalyticsSignupMethodsWidget
+          className={styles.signupMethodsWidget}
+          loading={loading}
+          signupByMethodsChart={signupByMethodsChart}
+        />
+      </ScreenContent>
+      <AuditLogDateRangeDialog
         hidden={dateRangeDialogHidden}
         title={renderToString("AnalyticsScreen.date-range.dialog-title")}
         fromDatePickerLabel={renderToString(
@@ -369,7 +307,11 @@ const AnalyticsScreen: React.VFC = function AnalyticsScreen() {
   const { analyticEnabled } = useSystemConfig();
 
   if (!analyticEnabled) {
-    return <Text>Analytics page is disabled.</Text>;
+    return (
+      <Text as="p" size="2">
+        Analytics page is disabled.
+      </Text>
+    );
   }
 
   return <AnalyticsScreenContent />;

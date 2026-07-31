@@ -1,0 +1,96 @@
+.root {
+  min-width: 0;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--space-6);
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-2);
+  background-color: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+  color: var(--gray-12);
+  cursor: pointer;
+}
+
+.trigger:hover {
+  box-shadow: inset 0 0 0 1px var(--gray-a8);
+}
+
+.triggerLabel {
+  @apply truncate;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: var(--font-size-2);
+}
+
+.triggerPlaceholder {
+  color: var(--gray-a10);
+}
+
+.triggerIcon,
+.triggerAction {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--gray-a11);
+}
+
+.triggerAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  width: var(--radix-popover-trigger-width);
+  min-width: 12.5rem;
+  padding: var(--space-2);
+  /* Stay above the sticky table header (z-index: 2). */
+  z-index: 50;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  max-height: 13rem;
+  margin-top: var(--space-2);
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2rem;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--gray-12);
+  cursor: pointer;
+}
+
+.option:hover,
+.optionSelected {
+  background-color: var(--accent-a3);
+}
+
+.optionText {
+  @apply truncate;
+  min-width: 0;
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  margin: 0;
+  text-align: center;
+}

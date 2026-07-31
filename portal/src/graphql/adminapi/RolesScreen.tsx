@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { ISearchBoxProps, SearchBox } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { Cross2Icon } from "@radix-ui/react-icons";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -16,6 +17,10 @@ import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { RolesEmptyView } from "../../components/roles-and-groups/empty-view/RolesEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
 import ShowError from "../../ShowError";
 
 const pageSize = 10;
@@ -45,15 +50,16 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(offset);
   }, []);
 
-  const onChangeSearchKeyword = useCallback((_e, value) => {
-    if (value != null) {
-      setSearchKeyword(value);
+  const onChangeSearchKeyword = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.target.value);
       // Reset offset when search keyword was changed.
       setOffset(0);
-    }
-  }, []);
+    },
+    []
+  );
 
-  const onClearSearchKeyword = useCallback((_e) => {
+  const onClearSearchKeyword = useCallback(() => {
     setSearchKeyword("");
     // Reset offset when search keyword was changed.
     setOffset(0);
@@ -74,21 +80,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const isLoading = loading || data == null;
 
   const isEmpty = !isLoading && data.roles?.totalCount === 0;
-
-  const searchBoxProps: ISearchBoxProps = useMemo(() => {
-    return {
-      className: styles.searchBox,
-      placeholder: renderToString("search"),
-      value: searchKeyword,
-      onChange: onChangeSearchKeyword,
-      onClear: onClearSearchKeyword,
-    };
-  }, [
-    renderToString,
-    searchKeyword,
-    onChangeSearchKeyword,
-    onClearSearchKeyword,
-  ]);
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
@@ -113,8 +104,39 @@ const RolesScreen: React.VFC = function RolesScreen() {
     <RoleAndGroupsLayout
       headerBreadcrumbs={items}
       headerSubitem={headerSubItem}
+      headerDescription={
+        !isEmpty ? (
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage id="RolesScreen.description" />
+          </Text>
+        ) : null
+      }
     >
-      {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
+      {!isEmpty ? (
+        <div className={styles.searchField}>
+          <TextField
+            size="2"
+            type="search"
+            value={searchKeyword}
+            placeholder={renderToString("search")}
+            iconStart={TextFieldIcon.MagnifyingGlass}
+            onChange={onChangeSearchKeyword}
+            suffixPlain={true}
+            suffix={
+              searchKeyword !== "" ? (
+                <button
+                  type="button"
+                  className={styles.searchClearButton}
+                  aria-label={renderToString("APIResourcesScreen.clear-search")}
+                  onClick={onClearSearchKeyword}
+                >
+                  <Cross2Icon className={styles.searchClearIcon} />
+                </button>
+              ) : undefined
+            }
+          />
+        </div>
+      ) : null}
       {isEmpty ? (
         <RolesEmptyView className={styles.emptyStateContainer} />
       ) : (

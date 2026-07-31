@@ -1,46 +1,90 @@
-.widget {
-  grid-column: 1 / span 8;
-
-  @apply tablet:col-span-full;
-
-  @apply flex flex-col;
+.screenRoot {
+  @apply flex flex-col flex-1-0-auto min-h-0;
 }
 
-/* Spans full 12-column grid so the pivot tab bar + border-bottom fill the content area.
-   Tab content is constrained back to 8 columns via itemContainer maxWidth in TSX. */
-.detailsRoot {
-  grid-column: 1 / span 12;
-
-  @apply tablet:col-span-full;
-
-  @apply flex flex-col;
-}
-
-/* Constrains summary block to the original 8-column width (8×80px + 7×16px gaps = 752px). */
-.summarySection {
-  max-width: 752px;
-}
-
-.screenContent {
-  @apply flex-1-0-auto;
-
-  grid-template-rows: min-content minmax(min-content, 1fr);
-}
-
-/* Override ScreenContent's default fixed 80px columns so the 12-col detailsRoot
-   fills the full container width on large screens (making the pivot tab bar
-   full-bleed). Content width is constrained via summarySection / itemContainer
-   maxWidth. minmax(0, 1fr) avoids forcing a minimum width that would cause
-   horizontal scrolling on narrower viewports. The doubled selector raises
-   specificity above ScreenContent.module.css's .autoRows. */
-.screenContent.screenContent {
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-}
-
-.pivot {
-  @apply flex-1 flex flex-col;
+.topBar {
+  @apply sticky top-0 z-10;
+  @apply mobile:top-[var(--screen-header-height)];
 }
 
 .formContainer {
   @apply flex flex-col flex-1-0-auto;
+  min-height: 0;
+}
+
+.screenContent {
+  @apply flex-1 overflow-auto;
+  @apply mobile:overflow-visible;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.widget {
+  @apply flex flex-col;
+  padding: 24px;
+  gap: 24px;
+  min-height: 100%;
+}
+
+.tabs {
+  /* push down a bit from summary */
+}
+
+.tabContent {
+  @apply flex flex-col;
+  width: 100%;
+  max-width: 848px;
+  padding-top: 8px;
+  gap: 24px;
+}
+
+.fullWidthTabContent {
+  max-width: none;
+}
+
+.profileTabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.profileTabMain {
+  order: 1;
+  width: 100%;
+  max-width: 848px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profileTabSidebar {
+  order: 2;
+  align-self: flex-start;
+  width: 100%;
+  max-width: 848px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dateItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dateItemValue {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.dateItemDate {
+  white-space: nowrap;
+  min-width: 100px;
 }

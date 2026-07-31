@@ -28,3 +28,16 @@
 .rt-CalloutRoot a {
   font-weight: var(--font-weight-medium);
 }
+
+/* Tooltips portal to document.body; they must sit above dialog overlays. */
+.rt-TooltipContent {
+  z-index: 10001;
+}
+
+/* Select, menu, popover and hover card content also portal to document.body,
+   so they need the same treatment to remain usable inside a dialog. */
+.rt-PopperContent,
+.rt-SelectContent,
+.rt-BaseMenuContent {
+  z-index: 10001;
+}

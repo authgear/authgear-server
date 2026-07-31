@@ -1,17 +1,12 @@
 import React, { useMemo, useContext, useCallback, ReactElement } from "react";
 import { produce } from "immer";
-import {
-  Checkbox,
-  Dropdown,
-  IDropdownOption,
-  IDropdownProps,
-  Label,
-} from "@fluentui/react";
+import cn from "classnames";
+import { Checkbox, Select, Separator, Text } from "@radix-ui/themes";
+import { IBasePickerStyles } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import {
   AuthenticatorPasswordConfig,
   PasswordPolicyFeatureConfig,
-  PasswordPolicyConfig,
   isPasswordPolicyGuessableLevel,
   passwordPolicyGuessableLevels,
   PortalAPIAppConfig,
@@ -19,13 +14,10 @@ import {
   AccountRecoveryCodeChannel,
   AccountRecoveryChannel,
 } from "../../types";
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetSubtitle from "../../WidgetSubtitle";
-import WidgetDescription from "../../WidgetDescription";
-import HorizontalDivider from "../../HorizontalDivider";
-import TextField from "../../TextField";
-import Toggle from "../../Toggle";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { FormField } from "../../components/v2/FormField/FormField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import CustomTagPicker from "../../CustomTagPicker";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
@@ -37,6 +29,14 @@ import {
   tryProduce,
 } from "../../util/input";
 import { formatDuration, parseDuration } from "../../util/duration";
+import styles from "./PasswordSettings.module.css";
+
+const excludedKeywordsTagPickerStyles: Partial<IBasePickerStyles> = {
+  ...fixTagPickerStyles,
+  root: {
+    width: "100%",
+  },
+};
 
 export enum ResetPasswordWithEmailMethod {
   Link = "link",
@@ -192,107 +192,13 @@ export interface PasswordSettingsProps<T extends State> extends State {
   setState: (fn: (state: T) => T) => void;
 }
 
-function useResetPasswordWithEmailDropdown<T extends State>(
-  setState: PasswordSettingsProps<T>["setState"]
-): {
-  options: IDropdownOption<ResetPasswordWithEmailMethod>[];
-  onChange: IDropdownProps["onChange"];
-} {
-  const { renderToString } = useContext(Context);
-  const options: IDropdownOption<ResetPasswordWithEmailMethod>[] = useMemo(
-    () => [
-      {
-        key: ResetPasswordWithEmailMethod.Link,
-        text: renderToString(
-          "PasswordSettings.resetPasswordWithEmail.options.link"
-        ),
-      },
-      {
-        key: ResetPasswordWithEmailMethod.Code,
-        text: renderToString(
-          "PasswordSettings.resetPasswordWithEmail.options.code"
-        ),
-      },
-    ],
-    [renderToString]
-  );
-
-  const onChange = useCallback(
-    (_: unknown, option?: IDropdownOption<ResetPasswordWithEmailMethod>) => {
-      const key = option?.key as ResetPasswordWithEmailMethod;
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.resetPasswordWithEmailBy = key;
-        })
-      );
-    },
-    [setState]
-  );
-
-  return {
-    options,
-    onChange,
-  };
-}
-
-function useResetPasswordWithPhoneDropdown<T extends State>(
-  setState: PasswordSettingsProps<T>["setState"]
-): {
-  options: IDropdownOption<ResetPasswordWithPhoneMethod>[];
-  onChange: IDropdownProps["onChange"];
-} {
-  const { renderToString } = useContext(Context);
-  const options: IDropdownOption<ResetPasswordWithPhoneMethod>[] = useMemo(
-    () => [
-      {
-        key: ResetPasswordWithPhoneMethod.SMS,
-        text: renderToString(
-          "PasswordSettings.resetPasswordWithPhone.options.sms"
-        ),
-      },
-      {
-        key: ResetPasswordWithPhoneMethod.Whatsapp,
-        text: renderToString(
-          "PasswordSettings.resetPasswordWithPhone.options.whatsapp"
-        ),
-      },
-      {
-        key: ResetPasswordWithPhoneMethod.WhatsappOrSMS,
-        text: renderToString(
-          "PasswordSettings.resetPasswordWithPhone.options.whatsappOrSMS"
-        ),
-      },
-    ],
-    [renderToString]
-  );
-
-  const onChange = useCallback(
-    (_: unknown, option?: IDropdownOption<ResetPasswordWithPhoneMethod>) => {
-      const key = option?.key as ResetPasswordWithPhoneMethod;
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.resetPasswordWithPhoneBy = key;
-        })
-      );
-    },
-    [setState]
-  );
-
-  return {
-    options,
-    onChange,
-  };
-}
-
 function usePasswordNumberOnChange<T extends State>(
   setState: PasswordSettingsProps<T>["setState"],
   key: "min_length" | "history_days" | "history_size"
 ) {
   return useCallback(
-    (_, value) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
       setState((prev) =>
         produce(prev, (prev) => {
           prev.authenticatorPasswordConfig.policy ??= {};
@@ -307,21 +213,40 @@ function usePasswordNumberOnChange<T extends State>(
 
 function usePasswordCheckboxOnChange<T extends State>(
   setState: PasswordSettingsProps<T>["setState"],
-  key: keyof PasswordPolicyConfig
+  key:
+    | "uppercase_required"
+    | "lowercase_required"
+    | "alphabet_required"
+    | "digit_required"
+    | "symbol_required"
 ) {
   return useCallback(
-    (_, value) => {
-      if (value == null) {
+    (checked: boolean | "indeterminate") => {
+      if (checked === "indeterminate") {
         return;
       }
       setState((prev) =>
         produce(prev, (prev) => {
           prev.authenticatorPasswordConfig.policy ??= {};
-          prev.authenticatorPasswordConfig.policy[key] = value;
+          prev.authenticatorPasswordConfig.policy[key] = checked;
         })
       );
     },
     [setState, key]
+  );
+}
+
+function PolicyCheckbox(props: {
+  label: React.ReactNode;
+  checked: boolean | undefined;
+  onCheckedChange: (checked: boolean | "indeterminate") => void;
+}): ReactElement {
+  const { label, checked, onCheckedChange } = props;
+  return (
+    <label className={styles.checkboxRow}>
+      <Checkbox checked={checked ?? false} onCheckedChange={onCheckedChange} />
+      <Text size="2">{label}</Text>
+    </label>
   );
 }
 
@@ -371,10 +296,7 @@ export default function PasswordSettings<T extends State>(
   ]);
 
   const onChangeForceChange = useCallback(
-    (_e, checked) => {
-      if (checked == null) {
-        return;
-      }
+    (checked: boolean) => {
       setState((prev) =>
         produce(prev, (prev) => {
           prev.authenticatorPasswordConfig.force_change = checked;
@@ -385,10 +307,8 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangeLinkExpirySeconds = useCallback(
-    (_e, value: string | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
       setState((s) =>
         produce(s, (s) => {
           s.forgotPasswordLinkValidPeriodSeconds = tryProduce(
@@ -405,10 +325,8 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangeCodeExpirySeconds = useCallback(
-    (_e, value: string | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
       setState((s) =>
         produce(s, (s) => {
           s.forgotPasswordCodeValidPeriodSeconds = tryProduce(
@@ -425,10 +343,8 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangeExpiryForceChangeDays = useCallback(
-    (_e, value: string | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
       setState((s) =>
         produce(s, (s) => {
           s.authenticatorPasswordConfig.expiry ??= {};
@@ -490,15 +406,16 @@ export default function PasswordSettings<T extends State>(
 
   const minGuessableLevelOptions = useMemo(() => {
     return passwordPolicyGuessableLevels.map((level) => ({
-      key: level,
-      text: renderToString(
+      value: String(level),
+      label: renderToString(
         `PasswordPolicyConfigurationScreen.min-guessable-level.${level}`
       ),
     }));
   }, [renderToString]);
+
   const onChangeMinimumGuessableLevel = useCallback(
-    (_, option) => {
-      const key = option?.key;
+    (value: string) => {
+      const key = Number(value);
       if (!isPasswordPolicyGuessableLevel(key)) {
         return;
       }
@@ -513,10 +430,7 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangePreventReuseEnabled = useCallback(
-    (_, checked) => {
-      if (checked == null) {
-        return;
-      }
+    (checked: boolean) => {
       setState((prev) =>
         produce(prev, (prev) => {
           prev.authenticatorPasswordConfig.policy ??= {};
@@ -534,10 +448,7 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangeExpiryForceChangeEnabled = useCallback(
-    (_, checked) => {
-      if (checked == null) {
-        return;
-      }
+    (checked: boolean) => {
       setState((prev) =>
         produce(prev, (prev) => {
           prev.authenticatorPasswordConfig.expiry ??= {};
@@ -577,213 +488,377 @@ export default function PasswordSettings<T extends State>(
     onAdd: onAddExcludedKeywords,
   } = useTagPickerWithNewTags(valueForExcludedKeywords, updateExcludedKeywords);
 
-  const resetPasswordWithEmailDropdown =
-    useResetPasswordWithEmailDropdown(setState);
-  const resetPasswordWithPhoneDropdown =
-    useResetPasswordWithPhoneDropdown(setState);
+  const resetPasswordWithEmailOptions = useMemo(
+    () => [
+      {
+        value: ResetPasswordWithEmailMethod.Link,
+        label: renderToString(
+          "PasswordSettings.resetPasswordWithEmail.options.link"
+        ),
+      },
+      {
+        value: ResetPasswordWithEmailMethod.Code,
+        label: renderToString(
+          "PasswordSettings.resetPasswordWithEmail.options.code"
+        ),
+      },
+    ],
+    [renderToString]
+  );
+
+  const resetPasswordWithPhoneOptions = useMemo(
+    () => [
+      {
+        value: ResetPasswordWithPhoneMethod.SMS,
+        label: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.sms"
+        ),
+      },
+      {
+        value: ResetPasswordWithPhoneMethod.Whatsapp,
+        label: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.whatsapp"
+        ),
+      },
+      {
+        value: ResetPasswordWithPhoneMethod.WhatsappOrSMS,
+        label: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.whatsappOrSMS"
+        ),
+      },
+    ],
+    [renderToString]
+  );
+
+  const onChangeResetPasswordWithEmail = useCallback(
+    (value: string) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.resetPasswordWithEmailBy = value as ResetPasswordWithEmailMethod;
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeResetPasswordWithPhone = useCallback(
+    (value: string) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.resetPasswordWithPhoneBy = value as ResetPasswordWithPhoneMethod;
+        })
+      );
+    },
+    [setState]
+  );
 
   return (
-    <Widget className={className}>
-      <WidgetTitle>
+    <SettingsSectionCard
+      className={className}
+      contentClassName="gap-4"
+      title={
         <FormattedMessage id="LoginMethodConfigurationScreen.password.title" />
-      </WidgetTitle>
-      <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.resetPassword.title" />
-      </WidgetSubtitle>
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
-        options={resetPasswordWithEmailDropdown.options}
-        selectedKey={resetPasswordWithEmailBy}
-        onChange={resetPasswordWithEmailDropdown.onChange}
-        disabled={!isLoginIDEmailEnabled}
-      />
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
-        options={resetPasswordWithPhoneDropdown.options}
-        selectedKey={resetPasswordWithPhoneBy}
-        onChange={resetPasswordWithPhoneDropdown.onChange}
-        disabled={!isLoginIDPhoneEnabled}
-      />
-      <TextField
-        type="text"
-        label={renderToString(
-          "PasswordSettings.reset-link-valid-duration.label"
-        )}
-        value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeLinkExpirySeconds}
-        disabled={!isLoginIDEmailEnabled}
-      />
-      <TextField
-        type="text"
-        label={renderToString(
-          "PasswordSettings.reset-code-valid-duration.label"
-        )}
-        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeCodeExpirySeconds}
-        disabled={!(isLoginIDEmailEnabled || isLoginIDPhoneEnabled)}
-      />
-      <HorizontalDivider />
-      <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
-      </WidgetSubtitle>
-      <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
-      </WidgetDescription>
-      <Toggle
-        checked={authenticatorPasswordConfig.force_change}
-        inlineLabel={true}
-        label={
-          <FormattedMessage id="PasswordPolicyConfigurationScreen.force-change.label" />
-        }
-        onChange={onChangeForceChange}
-      />
-      <TextField
-        type="text"
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.min-length.label"
-        )}
-        value={authenticatorPasswordConfig.policy?.min_length?.toFixed(0) ?? ""}
-        onChange={onChangeMinLength}
-      />
-      <Checkbox
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.require-digit.label"
-        )}
-        checked={authenticatorPasswordConfig.policy?.digit_required}
-        onChange={onChangeDigitRequired}
-      />
-      <Checkbox
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.require-lowercase.label"
-        )}
-        checked={authenticatorPasswordConfig.policy?.lowercase_required}
-        onChange={onChangeLowercaseRequired}
-      />
-      <Checkbox
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.require-uppercase.label"
-        )}
-        checked={authenticatorPasswordConfig.policy?.uppercase_required}
-        onChange={onChangeUppercaseRequired}
-      />
-      <Checkbox
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.require-alphabet.label"
-        )}
-        checked={authenticatorPasswordConfig.policy?.alphabet_required}
-        onChange={onChangeAlphabetRequired}
-      />
-      <Checkbox
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.require-symbol.label"
-        )}
-        checked={authenticatorPasswordConfig.policy?.symbol_required}
-        onChange={onChangeSymbolRequired}
-      />
-      <HorizontalDivider />
-      <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements.advanced" />
-      </WidgetSubtitle>
-      {anyAdvancedPolicyDisabled ? (
-        <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-      ) : null}
-      <Dropdown
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.min-guessable-level.label"
-        )}
-        disabled={
-          passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled
-        }
-        options={minGuessableLevelOptions}
-        selectedKey={
-          authenticatorPasswordConfig.policy?.minimum_guessable_level
-        }
-        onChange={onChangeMinimumGuessableLevel}
-      />
-      <Toggle
-        disabled={passwordPolicyFeatureConfig?.history?.disabled}
-        checked={isPreventPasswordReuseEnabled}
-        inlineLabel={true}
-        label={
-          <FormattedMessage id="PasswordPolicyConfigurationScreen.prevent-reuse.label" />
-        }
-        onChange={onChangePreventReuseEnabled}
-      />
-      <TextField
-        type="text"
-        disabled={
-          (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
-          !isPreventPasswordReuseEnabled
-        }
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.history-days.label"
-        )}
-        value={
-          authenticatorPasswordConfig.policy?.history_days?.toFixed(0) ?? ""
-        }
-        onChange={onChangeHistoryDays}
-      />
-      <TextField
-        type="text"
-        disabled={
-          (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
-          !isPreventPasswordReuseEnabled
-        }
-        label={renderToString(
-          "PasswordPolicyConfigurationScreen.history-size.label"
-        )}
-        value={
-          authenticatorPasswordConfig.policy?.history_size?.toFixed(0) ?? ""
-        }
-        onChange={onChangeHistorySize}
-      />
-      <HorizontalDivider />
-      <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry" />
-      </WidgetSubtitle>
-      <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.description" />
-      </WidgetDescription>
-      <Toggle
-        checked={isPasswordExpiryForceChangeEnabled}
-        inlineLabel={true}
-        label={
-          <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.enable-force-change.label" />
-        }
-        onChange={onChangeExpiryForceChangeEnabled}
-      />
-      <TextField
-        type="number"
-        min={0}
-        disabled={!isPasswordExpiryForceChangeEnabled}
-        label={renderToString(
-          "LoginMethodConfigurationScreen.password.expiry.force-change-since-last-update.label"
-        )}
-        value={passwordExpiryForceChangeDays?.toFixed(0) ?? ""}
-        onChange={onChangeExpiryForceChangeDays}
-        onBlur={onBlurExpiryForceChangeDays}
-      />
-      <HorizontalDivider />
-      <div>
-        <Label
-          disabled={passwordPolicyFeatureConfig?.excluded_keywords?.disabled}
+      }
+    >
+      <div className={styles.section}>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.resetPassword.title" />
+        </Text>
+        <FormField
+          size="2"
+          labelSize="2"
+          labelSpace="1"
+          label={
+            <FormattedMessage id="PasswordSettings.resetPasswordWithEmail.label" />
+          }
         >
-          <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
-        </Label>
-        <CustomTagPicker
-          styles={fixTagPickerStyles}
-          inputProps={{
-            "aria-label": renderToString(
-              "PasswordPolicyConfigurationScreen.excluded-keywords.label"
-            ),
-          }}
-          disabled={passwordPolicyFeatureConfig?.excluded_keywords?.disabled}
-          selectedItems={excludedKeywords}
-          onChange={onChangeExcludedKeywords}
-          onResolveSuggestions={onResolveSuggestionsExcludedKeywords}
-          onAdd={onAddExcludedKeywords}
+          <Select.Root
+            value={resetPasswordWithEmailBy}
+            onValueChange={onChangeResetPasswordWithEmail}
+            disabled={!isLoginIDEmailEnabled}
+            size="2"
+          >
+            <Select.Trigger
+              variant="surface"
+              className={styles.selectTrigger}
+            />
+            <Select.Content>
+              {resetPasswordWithEmailOptions.map((opt) => (
+                <Select.Item key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
+        <FormField
+          size="2"
+          labelSize="2"
+          labelSpace="1"
+          label={
+            <FormattedMessage id="PasswordSettings.resetPasswordWithPhone.label" />
+          }
+        >
+          <Select.Root
+            value={resetPasswordWithPhoneBy}
+            onValueChange={onChangeResetPasswordWithPhone}
+            disabled={!isLoginIDPhoneEnabled}
+            size="2"
+          >
+            <Select.Trigger
+              variant="surface"
+              className={styles.selectTrigger}
+            />
+            <Select.Content>
+              {resetPasswordWithPhoneOptions.map((opt) => (
+                <Select.Item key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          label={
+            <FormattedMessage id="PasswordSettings.reset-link-valid-duration.label" />
+          }
+          value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
+          onChange={onChangeLinkExpirySeconds}
+          disabled={!isLoginIDEmailEnabled}
+        />
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          label={
+            <FormattedMessage id="PasswordSettings.reset-code-valid-duration.label" />
+          }
+          value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
+          onChange={onChangeCodeExpirySeconds}
+          disabled={!(isLoginIDEmailEnabled || isLoginIDPhoneEnabled)}
         />
       </div>
-    </Widget>
+
+      <Separator size="4" className={styles.separator} />
+
+      <div className={styles.section}>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
+        </Text>
+        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
+        </Text>
+        <Toggle
+          checked={authenticatorPasswordConfig.force_change ?? false}
+          onCheckedChange={onChangeForceChange}
+          textWeight="medium"
+          text={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.force-change.label" />
+          }
+        />
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          label={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.min-length.label" />
+          }
+          value={
+            authenticatorPasswordConfig.policy?.min_length?.toFixed(0) ?? ""
+          }
+          onChange={onChangeMinLength}
+        />
+        <div className={styles.checkboxGroup}>
+          <PolicyCheckbox
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.require-digit.label" />
+            }
+            checked={authenticatorPasswordConfig.policy?.digit_required}
+            onCheckedChange={onChangeDigitRequired}
+          />
+          <PolicyCheckbox
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.require-lowercase.label" />
+            }
+            checked={authenticatorPasswordConfig.policy?.lowercase_required}
+            onCheckedChange={onChangeLowercaseRequired}
+          />
+          <PolicyCheckbox
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.require-uppercase.label" />
+            }
+            checked={authenticatorPasswordConfig.policy?.uppercase_required}
+            onCheckedChange={onChangeUppercaseRequired}
+          />
+          <PolicyCheckbox
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.require-alphabet.label" />
+            }
+            checked={authenticatorPasswordConfig.policy?.alphabet_required}
+            onCheckedChange={onChangeAlphabetRequired}
+          />
+          <PolicyCheckbox
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.require-symbol.label" />
+            }
+            checked={authenticatorPasswordConfig.policy?.symbol_required}
+            onCheckedChange={onChangeSymbolRequired}
+          />
+        </div>
+      </div>
+
+      <Separator size="4" className={styles.separator} />
+
+      <div className={styles.section}>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements.advanced" />
+        </Text>
+        {anyAdvancedPolicyDisabled ? (
+          <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        ) : null}
+        <FormField
+          size="2"
+          labelSize="2"
+          labelSpace="1"
+          label={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.min-guessable-level.label" />
+          }
+        >
+          <Select.Root
+            value={String(
+              authenticatorPasswordConfig.policy?.minimum_guessable_level ?? 0
+            )}
+            onValueChange={onChangeMinimumGuessableLevel}
+            disabled={
+              passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled
+            }
+            size="2"
+          >
+            <Select.Trigger
+              variant="surface"
+              className={styles.selectTrigger}
+            />
+            <Select.Content>
+              {minGuessableLevelOptions.map((opt) => (
+                <Select.Item key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
+        <Toggle
+          disabled={passwordPolicyFeatureConfig?.history?.disabled}
+          checked={isPreventPasswordReuseEnabled}
+          onCheckedChange={onChangePreventReuseEnabled}
+          textWeight="medium"
+          text={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.prevent-reuse.label" />
+          }
+        />
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          disabled={
+            (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+            !isPreventPasswordReuseEnabled
+          }
+          label={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.history-days.label" />
+          }
+          value={
+            authenticatorPasswordConfig.policy?.history_days?.toFixed(0) ?? ""
+          }
+          onChange={onChangeHistoryDays}
+        />
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          disabled={
+            (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+            !isPreventPasswordReuseEnabled
+          }
+          label={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.history-size.label" />
+          }
+          value={
+            authenticatorPasswordConfig.policy?.history_size?.toFixed(0) ?? ""
+          }
+          onChange={onChangeHistorySize}
+        />
+      </div>
+
+      <Separator size="4" className={styles.separator} />
+
+      <div className={styles.section}>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry" />
+        </Text>
+        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.description" />
+        </Text>
+        <Toggle
+          checked={isPasswordExpiryForceChangeEnabled}
+          onCheckedChange={onChangeExpiryForceChangeEnabled}
+          textWeight="medium"
+          text={
+            <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.enable-force-change.label" />
+          }
+        />
+        <TextField
+          size="2"
+          labelSize="2"
+          type="number"
+          disabled={!isPasswordExpiryForceChangeEnabled}
+          label={
+            <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.force-change-since-last-update.label" />
+          }
+          value={passwordExpiryForceChangeDays?.toFixed(0) ?? ""}
+          onChange={onChangeExpiryForceChangeDays}
+          onBlur={onBlurExpiryForceChangeDays}
+        />
+      </div>
+
+      <Separator size="4" className={styles.separator} />
+
+      <div
+        className={cn(
+          passwordPolicyFeatureConfig?.excluded_keywords?.disabled &&
+            styles.sectionDisabled
+        )}
+      >
+        <FormField
+          size="2"
+          labelSize="2"
+          labelSpace="1"
+          label={
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
+          }
+        >
+          <div className={styles.excludedKeywordsTagPicker}>
+            <CustomTagPicker
+              styles={excludedKeywordsTagPickerStyles}
+              inputProps={{
+                "aria-label": renderToString(
+                  "PasswordPolicyConfigurationScreen.excluded-keywords.label"
+                ),
+              }}
+              disabled={
+                passwordPolicyFeatureConfig?.excluded_keywords?.disabled
+              }
+              selectedItems={excludedKeywords}
+              onChange={onChangeExcludedKeywords}
+              onResolveSuggestions={onResolveSuggestionsExcludedKeywords}
+              onAdd={onAddExcludedKeywords}
+            />
+          </div>
+        </FormField>
+      </div>
+    </SettingsSectionCard>
   );
 }

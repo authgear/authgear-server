@@ -2,12 +2,22 @@
 @import "./icons/authgear-portal-icons.css";
 @import "./formatting.css";
 
-/* Ensure the page is least as tall as the viewport */
+/* Ensure the app fills the viewport without a document scrollbar on desktop */
 html,
 body,
 #react-app-root {
-  min-height: 100vh;
   height: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  html,
+  body,
+  #react-app-root {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
 }
 
 html {

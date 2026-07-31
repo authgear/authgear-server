@@ -1,5 +1,5 @@
 .header {
-  @apply flex items-center justify-between;
+  @apply flex items-center justify-between gap-4;
 }
 
 .widget {
@@ -8,6 +8,14 @@
   @apply tablet:col-span-full;
 }
 
-.messageBar {
-  margin-top: 10px;
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.inviteButtonContent {
+  @apply inline-flex items-center gap-1;
 }

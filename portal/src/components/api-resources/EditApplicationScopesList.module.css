@@ -1,7 +1,79 @@
 .listRoot {
-  @apply flex flex-col min-h-0 overflow-hidden pt-6;
+  @apply flex flex-col min-h-0 overflow-hidden pt-6 gap-4;
+}
+
+.toolbar {
+  @apply flex items-center gap-8 flex-wrap;
+}
+
+.searchField {
+  width: 18.75rem;
+  max-width: 100%;
+}
+
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.selectActions {
+  @apply flex items-center gap-2;
+}
+
+.textAction {
+  @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+}
+
+.textAction:hover {
+  color: var(--accent-10);
+}
+
+.selectDivider {
+  width: 1px;
+  height: 1rem;
+  background-color: var(--gray-a6);
 }
 
 .listWrapper {
   @apply flex-1 min-h-0 overflow-y-auto;
+}
+
+.table {
+  min-width: 100%;
+}
+
+.tableHeader {
+  @apply flex w-full items-center;
+  min-height: 2.75rem;
+}
+
+.tableHeaderCell {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.tableCell {
+  @apply flex min-w-0 flex-1 items-center gap-2 px-3 py-3 cursor-pointer;
+}
+
+.empty {
+  @apply px-3 py-4;
+  margin: 0;
 }

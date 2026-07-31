@@ -1,0 +1,9 @@
+/* Radix ghost buttons apply a negative horizontal margin equal to their
+   ghost padding so the label aligns optically. At the right edge of the
+   filter bar this makes the hover background overflow past the container.
+   Cancel the right overhang by zeroing the right margin override.
+   The `button` element selector raises specificity above Radix's own
+   `:where(.rt-variant-ghost)` rule (which has 0 specificity). */
+button.refreshButton {
+  --margin-right: var(--button-ghost-padding-x);
+}

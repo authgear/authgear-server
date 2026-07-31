@@ -1,7 +1,7 @@
-import React, { FormEvent, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
-import { Label, Slider } from "@fluentui/react";
-import TextField from "../../TextField";
+import { Slider, Text } from "@radix-ui/themes";
+import { TextField } from "../v2/TextField/TextField";
 import Configuration from "./Configuration";
 
 const PIXEL_HEIGHT_REGEX = /^[0-9]+px$/;
@@ -82,13 +82,8 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
     }, [heightPX]);
 
     const onChangeInput = useCallback(
-      (
-        _e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        newValue?: string
-      ) => {
-        if (newValue == null) {
-          return;
-        }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
         if (APP_LOGO_HEIGHT_INPUT_REGEX.test(newValue) === false) {
           return;
         }
@@ -99,27 +94,37 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
       []
     );
 
+    const onSliderChange = useCallback((values: number[]) => {
+      if (values[0] != null) {
+        setHeightPX(values[0]);
+      }
+    }, []);
+
     return (
       <Configuration labelKey={labelKey}>
-        <div className={cn("flex", "items-center", "gap-x-2")}>
+        <div className={cn("flex", "items-center", "gap-4")}>
           <Slider
             className={cn("flex-1")}
             aria-label={sliderAriaLabel}
-            showValue={false}
-            value={heightPX}
-            onChange={setHeightPX}
+            value={[heightPX]}
+            onValueChange={onSliderChange}
             min={minHeight ?? APP_LOGO_MIN_HEIGHT}
             max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
+            size="2"
+            variant="classic"
           />
-          <TextField
-            type="number"
-            min={minHeight ?? APP_LOGO_MIN_HEIGHT}
-            max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
-            step={1}
-            onChange={onChangeInput}
-            value={heightPX.toString()}
-          />
-          <Label>px</Label>
+          <div className={cn("flex", "items-center", "gap-1", "shrink-0")}>
+            <TextField
+              size="2"
+              type="number"
+              value={heightPX.toString()}
+              onChange={onChangeInput}
+              inputClassName={cn("w-16")}
+            />
+            <Text as="span" size="2">
+              px
+            </Text>
+          </div>
         </div>
       </Configuration>
     );

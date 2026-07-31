@@ -1,21 +1,30 @@
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import React, { useCallback, useState, useEffect, useRef, useMemo} from "react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
-import React, { useMemo, useCallback, useState, useEffect } from "react";
 import ScreenContent from "../../ScreenContent";
 import styles from "./IPBlocklistScreen.module.css";
-import ScreenDescription from "../../ScreenDescription";
 import FormContainer from "../../FormContainer";
 import { useCheckIPMutation } from "./mutations/checkIPMutation";
-import { useAppConfigForm } from "../../hook/useAppConfigForm";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
 import { useParams } from "react-router-dom";
 import { PortalAPIAppConfig } from "../../types";
+import ShowLoading from "../../ShowLoading";
+import ShowError from "../../ShowError";
 import {
   IPBlocklistForm,
   IPBlocklistFormState,
   toCIDRs,
   IPCheckResult,
 } from "../../components/ipblocklist/IPBlocklistForm";
+import { IPBlocklistCheckIPPanel } from "../../components/ipblocklist/IPBlocklistCheckIPPanel";
 import { produce } from "immer";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 const IP_FILTER_PORTAL_RULE_NAME = "__portal";
 
@@ -91,104 +100,151 @@ function constructConfig(
   });
 }
 
+interface IPBlocklistScreenContentProps {
+  form: AppConfigFormModel<FormState>;
+  appID: string;
+  setCheckIPError: (error: unknown) => void;
+}
+
+const IPBlocklistScreenContent: React.VFC<IPBlocklistScreenContentProps> =
+  function IPBlocklistScreenContent({ form, appID, setCheckIPError }) {
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    const {
+      checkIP,
+      loading: checkingIP,
+      error: checkIPMutationError,
+    } = useCheckIPMutation(appID);
+    const [ipToCheck, setIPToCheck] = useState("");
+    const [checkIPResult, setCheckIPResult] = useState<IPCheckResult | null>(
+      null
+    );
+
+    useEffect(() => {
+      setCheckIPError(checkIPMutationError);
+    }, [checkIPMutationError, setCheckIPError]);
+
+    const onIPToCheckChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setIPToCheck(e.target.value);
+      },
+      []
+    );
+
+    const onCheckIP = useCallback(() => {
+      setCheckIPError(null);
+      checkIP(
+        ipToCheck,
+        toCIDRs(form.state.blockedIPCIDRs),
+        form.state.blockedCountryAlpha2s
+      )
+        .then((result) => {
+          setCheckIPResult({
+            ipAddress: ipToCheck,
+            result: Boolean(result),
+          });
+        })
+        .catch(() => {});
+    }, [
+      checkIP,
+      ipToCheck,
+      form.state.blockedIPCIDRs,
+      form.state.blockedCountryAlpha2s,
+      setCheckIPError,
+    ]);
+
+    useEffect(() => {
+      setCheckIPResult(null);
+    }, [form.state.blockedCountryAlpha2s, form.state.blockedIPCIDRs]);
+
+    return (
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="IPBlocklistScreen.title" />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage id="IPBlocklistScreen.description" />
+          </Text>
+        </div>
+
+        <SettingsSectionCard
+          className={cn(
+            styles.widget,
+            form.state.isEditAllowed &&
+              !form.state.isEnabled &&
+              styles.settingsCardAlignCenter
+          )}
+          contentClassName="gap-4"
+          title={<FormattedMessage id="IPBlocklistScreen.settings.label" />}
+        >
+          <IPBlocklistForm state={form.state} setState={form.setState} />
+        </SettingsSectionCard>
+
+        {form.state.isEditAllowed && form.state.isEnabled ? (
+          <SettingsSectionCard
+            className={cn(
+              styles.widget,
+              isDirty && styles.settingsCardSaveBarClearance
+            )}
+            contentClassName="gap-4"
+            title={<FormattedMessage id="IPBlocklistScreen.check-ip.label" />}
+          >
+            <IPBlocklistCheckIPPanel
+              ipToCheck={ipToCheck}
+              onIPToCheckChange={onIPToCheckChange}
+              onCheckIP={onCheckIP}
+              checkingIP={checkingIP}
+              checkIPResult={checkIPResult}
+            />
+          </SettingsSectionCard>
+        ) : null}
+
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </ScreenContent>
+    );
+  };
+
 const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      { to: ".", label: <FormattedMessage id="IPBlocklistScreen.title" /> },
-    ];
-  }, []);
-
   const { appID } = useParams() as { appID: string };
+  const [checkIPError, setCheckIPError] = useState<unknown>(null);
 
-  const appConfigForm = useAppConfigForm({
+  const form = useAppConfigForm({
     appID,
     constructFormState,
     constructConfig,
   });
 
-  const {
-    checkIP,
-    loading: checkingIP,
-    error: checkIPMutationError,
-  } = useCheckIPMutation(appID);
-  const [ipToCheck, setIPToCheck] = useState("");
-  const [checkIPError, setCheckIPError] = useState<unknown>(null);
-  const [checkIPResult, setCheckIPResult] = useState<IPCheckResult | null>(
-    null
-  );
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCheckIPError(checkIPMutationError);
-  }, [checkIPMutationError]);
   const clearCheckIPError = useCallback(async () => {
     setCheckIPError(null);
   }, []);
 
-  const onIPToCheckChange = useCallback(
-    (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setIPToCheck(e.currentTarget.value);
-    },
-    []
-  );
+  if (form.isLoading) {
+    return <ShowLoading />;
+  }
 
-  const onCheckIP = useCallback(() => {
-    setCheckIPError(null);
-    checkIP(
-      ipToCheck,
-      toCIDRs(appConfigForm.state.blockedIPCIDRs),
-      appConfigForm.state.blockedCountryAlpha2s
-    )
-      .then((result) => {
-        setCheckIPResult({
-          ipAddress: ipToCheck,
-          result: Boolean(result),
-        });
-      })
-      .catch(() => {
-        // Error is handled by the form
-      });
-  }, [
-    checkIP,
-    ipToCheck,
-    appConfigForm.state.blockedIPCIDRs,
-    appConfigForm.state.blockedCountryAlpha2s,
-  ]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCheckIPResult(null);
-  }, [
-    appConfigForm.state.blockedCountryAlpha2s,
-    appConfigForm.state.blockedIPCIDRs,
-  ]);
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
 
   return (
     <FormContainer
-      form={appConfigForm}
+      form={form}
+      hideFooterComponent={true}
       canSave={true}
-      stickyFooterComponent={true}
-      showDiscardButton={true}
       localError={checkIPError}
       beforeSave={clearCheckIPError}
     >
-      <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="IPBlocklistScreen.description" />
-        </ScreenDescription>
-      </ScreenContent>
-      <div className={styles.widget}>
-        <IPBlocklistForm
-          state={appConfigForm.state}
-          setState={appConfigForm.setState}
-          ipToCheck={ipToCheck}
-          onIPToCheckChange={onIPToCheckChange}
-          onCheckIP={onCheckIP}
-          checkingIP={checkingIP}
-          checkIPResult={checkIPResult}
-        />
-      </div>
+      <IPBlocklistScreenContent
+        form={form}
+        appID={appID}
+        setCheckIPError={setCheckIPError}
+      />
     </FormContainer>
   );
 };

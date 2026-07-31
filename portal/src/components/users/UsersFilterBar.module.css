@@ -1,5 +1,6 @@
+/* No overflow clipping here: the Radix focus ring is drawn with a negative
+   outline-offset, so part of it falls outside the field and would be cut off. */
 .root {
-  @apply overflow-hidden;
   @apply flex gap-4 flex-wrap;
   @apply mobile:flex-col mobile:flex-nowrap;
 }
@@ -10,13 +11,34 @@
 }
 
 .filterContainer {
-  @apply flex gap-x-4 overflow-hidden;
+  @apply flex gap-x-4 min-w-0;
 }
 
 .filter {
-  /* Set flex basis to auto so it can wrap */
-  /* Set flex shrink to 1 so it will not take more than remaining spaces */
-  flex: 0 1 auto;
-  @apply min-w-[100px] max-w-[300px];
-  @apply mobile:flex-1 mobile:min-w-0 mobile:max-w-none;
+  width: 10rem;
+  flex: 0 0 10rem;
+  @apply mobile:w-auto mobile:flex-1 mobile:min-w-0;
+}
+
+.searchIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.searchClearButton {
+  @apply flex items-center justify-center;
+  padding: 0;
+  border: 0;
+  color: var(--gray-a11);
+  background: transparent;
+  cursor: pointer;
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 1rem;
+  height: 1rem;
 }

@@ -16,10 +16,10 @@ import { generateGroupKeyFromName, validateGroup } from "../../model/group";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
-import FormTextField from "../../FormTextField";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
-import WidgetDescription from "../../WidgetDescription";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { TextArea } from "../../components/v2/TextArea/TextArea";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { makeReasonErrorParseRule } from "../../error/parse";
 
 interface FormState {
@@ -54,8 +54,10 @@ function AddGroupScreenForm() {
 
   const onFormStateChangeCallbacks = useMemo(() => {
     const createCallback = (key: keyof FormState) => {
-      return (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const newValue = e.currentTarget.value;
+      return (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => {
+        const newValue = e.target.value;
         setFormState((prev) => {
           return { ...prev, [key]: newValue };
         });
@@ -83,44 +85,34 @@ function AddGroupScreenForm() {
   return (
     <div>
       <RoleAndGroupsVeriticalFormLayout>
-        <div>
-          <FormTextField
-            required={true}
-            fieldName="name"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("AddGroupScreen.groupName.title")}
-            value={formState.groupName}
-            onChange={onFormStateChangeCallbacks.groupName}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddGroupScreen.groupName.description" />
-          </WidgetDescription>
-        </div>
-        <div>
-          <FormTextField
-            errorRules={groupKeyFieldErrorRules}
-            required={true}
-            fieldName="key"
-            parentJSONPointer=""
-            placeholder={generateGroupKeyFromName(formState.groupName)}
-            type="text"
-            label={renderToString("AddGroupScreen.groupKey.title")}
-            value={formState.groupKey}
-            onChange={onFormStateChangeCallbacks.groupKey}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddGroupScreen.groupKey.description" />
-          </WidgetDescription>
-        </div>
-        <FormTextField
-          multiline={true}
-          resizable={false}
-          autoAdjustHeight={true}
-          rows={3}
-          fieldName="description"
+        <TextField
+          size="2"
+          required={true}
+          fieldName="name"
           parentJSONPointer=""
           type="text"
+          label={renderToString("AddGroupScreen.groupName.title")}
+          hint={<FormattedMessage id="AddGroupScreen.groupName.description" />}
+          value={formState.groupName}
+          onChange={onFormStateChangeCallbacks.groupName}
+        />
+        <TextField
+          size="2"
+          errorRules={groupKeyFieldErrorRules}
+          required={true}
+          fieldName="key"
+          parentJSONPointer=""
+          placeholder={generateGroupKeyFromName(formState.groupName)}
+          type="text"
+          label={renderToString("AddGroupScreen.groupKey.title")}
+          hint={<FormattedMessage id="AddGroupScreen.groupKey.description" />}
+          value={formState.groupKey}
+          onChange={onFormStateChangeCallbacks.groupKey}
+        />
+        <TextArea
+          size="2"
+          fieldName="description"
+          parentJSONPointer=""
           label={renderToString("AddGroupScreen.groupDescription.title")}
           value={formState.groupDescription}
           onChange={onFormStateChangeCallbacks.groupDescription}
@@ -128,11 +120,13 @@ function AddGroupScreenForm() {
       </RoleAndGroupsVeriticalFormLayout>
       <RoleAndGroupsFormFooter className="mt-12">
         <PrimaryButton
+          size="2"
           disabled={!canSave || isUpdating}
           type="submit"
           text={<FormattedMessage id="create" />}
         />
-        <DefaultButton
+        <SecondaryButton
+          size="2"
           disabled={isUpdating}
           type="button"
           onClick={cancel}

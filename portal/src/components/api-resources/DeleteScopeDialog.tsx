@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import { Context, FormattedMessage } from "../../intl";
-import { DeleteConfirmationDialog } from "../common/DeleteConfirmationDialog";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 export interface DeleteScopeDialogData {
   scope: string;
@@ -12,38 +12,48 @@ interface DeleteScopeDialogProps {
   onDismiss: () => void;
   onConfirm: (data: DeleteScopeDialogData) => void;
   isLoading: boolean;
-  onDismissed?: () => void;
 }
 
 export const DeleteScopeDialog: React.VFC<DeleteScopeDialogProps> =
   function DeleteScopeDialog(props) {
-    const { onDismiss, onConfirm, isLoading, onDismissed, data } = props;
+    const { onDismiss, onConfirm, isLoading, data } = props;
     const { renderToString } = useContext(Context);
 
-    const renderTitle = useCallback(() => {
-      return renderToString("DeleteScopeDialog.title");
-    }, [renderToString]);
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDismiss();
+        }
+      },
+      [onDismiss]
+    );
 
-    const renderSubText = useCallback((data: DeleteScopeDialogData) => {
-      return (
-        <FormattedMessage
-          id="DeleteScopeDialog.description"
-          values={{
-            scope: data.scope,
-          }}
-        />
-      );
-    }, []);
+    const handleConfirm = useCallback(() => {
+      if (data == null) {
+        return;
+      }
+      onConfirm(data);
+    }, [data, onConfirm]);
 
     return (
-      <DeleteConfirmationDialog
-        data={data}
-        renderTitle={renderTitle}
-        renderSubText={renderSubText}
-        onDismiss={onDismiss}
-        onConfirm={onConfirm}
-        isLoading={isLoading}
-        onDismissed={onDismissed}
+      <ConfirmationDialog
+        open={data != null}
+        onOpenChange={onOpenChange}
+        title={<FormattedMessage id="DeleteScopeDialog.title" />}
+        description={
+          <FormattedMessage
+            id="DeleteScopeDialog.description"
+            values={{
+              scope: data?.scope ?? "",
+            }}
+          />
+        }
+        confirmText={renderToString("delete")}
+        cancelText={renderToString("cancel")}
+        onConfirm={handleConfirm}
+        onCancel={onDismiss}
+        loading={isLoading}
+        confirmColor="red"
       />
     );
   };

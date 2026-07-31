@@ -1,14 +1,26 @@
 .emptyStateContainer {
-  /* Spacing top = 48px */
-  /* Gap from layout = 20px */
-  /* Remaining space = 48 - 20 = 28px = 7unit */
-  @apply mt-7;
+  @apply w-full;
 }
 
-.searchBox {
-  width: 300px;
+.searchField {
+  width: 18.75rem;
+  max-width: 100%;
+  margin-bottom: 20px;
+  @apply mobile:w-auto;
+}
 
-  @apply mobile:w-auto mb-8;
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .list {

@@ -6,17 +6,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  ChoiceGroup,
-  DefaultEffects,
-  Dropdown,
-  IChoiceGroupOption,
-  IDropdownOption,
-  IDropdownStyleProps,
-  IDropdownStyles,
-  IStyleFunctionOrObject,
-  Text,
-} from "@fluentui/react";
+import { ExternalLinkIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
+import { Button, Heading, Select, SegmentedControl, Tabs, Text } from "@radix-ui/themes";
 import { Context as MFContext, FormattedMessage } from "../../../intl";
 import cn from "classnames";
 
@@ -26,31 +17,26 @@ import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import {
   Alignment,
-  AllAlignments,
   DEFAULT_DARK_THEME,
   DEFAULT_LIGHT_THEME,
   Theme,
 } from "../../../model/themeAuthFlowV2";
 
-import ScreenTitle from "../../../ScreenTitle";
-import ManageLanguageWidget from "../ManageLanguageWidget";
-import FormTextField from "../../../FormTextField";
-import TextField from "../../../TextField";
-import DefaultButton from "../../../DefaultButton";
-import Toggle from "../../../Toggle";
 import ConfigurationGroup from "../../../components/design/ConfigurationGroup";
 import FallbackDescription from "../../../components/design/FallbackDescription";
 import ConfigurationDescription from "../../../components/design/ConfigurationDescription";
 import AppLogoPicker from "../../../components/design/AppLogoPicker";
 import { ImagePicker } from "../../../components/design/ImagePicker";
-import ButtonToggleGroup, {
-  Option,
-} from "../../../components/common/ButtonToggleGroup";
 import Configuration from "../../../components/design/Configuration";
 import { ColorPicker } from "../../../components/design/ColorPicker";
 import BorderRadius from "../../../components/design/BorderRadius";
 import TextDecoration from "../../../components/design/TextDecoration";
 import Separator from "../../../components/design/Separator";
+import { FormField } from "../../../components/v2/FormField/FormField";
+import { TextField } from "../../../components/v2/TextField/TextField";
+import { Toggle } from "../../../components/v2/Toggle/Toggle";
+import { SecondaryButton } from "../../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { SaveFunctionBar } from "../../../components/v2/SaveFunctionBar/SaveFunctionBar";
 
 import { BranchDesignForm, useBrandDesignForm } from "./form";
 import styles from "./DesignScreen.module.css";
@@ -61,11 +47,11 @@ import {
   getSupportedPreviewPagesFromConfig,
   mapDesignFormStateToPreviewCustomisationMessage,
 } from "./viewModel";
-import PrimaryButton from "../../../PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import AppLogoHeightSetter from "../../../components/design/AppLogoHeightSetter";
 import { useTester } from "../../../hook/tester";
 import Tooltip from "../../../Tooltip";
+import Link from "../../../Link";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -75,17 +61,19 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
     const { designForm } = props;
     const { renderToString } = useContext(MFContext);
     const onChange = useCallback(
-      (_: React.FormEvent<any>, value?: string) => {
-        if (value == null) {
-          return;
-        }
-        designForm.setAppName(value);
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        designForm.setAppName(e.target.value);
       },
       [designForm]
     );
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.organisation.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.organisation.label"
+        collapsible
+        defaultOpen
+      >
         <TextField
+          size="2"
           label={renderToString(
             "DesignScreen.configuration.organisation.name.label"
           )}
@@ -102,60 +90,69 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
     );
   };
 
-interface ThemeConfigurationProps {
+function useThemeOptionChange(designForm: BranchDesignForm) {
+  return useCallback(
+    (value: string) => {
+      if (value !== "lightOnly" && value !== "darkOnly" && value !== "auto") {
+        return;
+      }
+      designForm.setThemeOption(value);
+      if (value === "lightOnly") {
+        designForm.setSelectedTheme(Theme.Light);
+      } else if (value === "darkOnly") {
+        designForm.setSelectedTheme(Theme.Dark);
+      } else {
+        designForm.setSelectedTheme(
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? Theme.Dark
+            : Theme.Light
+        );
+      }
+    },
+    [designForm]
+  );
+}
+
+interface AppearanceConfigurationProps {
   designForm: BranchDesignForm;
 }
 
-const ThemeConfiguration: React.VFC<ThemeConfigurationProps> =
-  function ThemeConfiguration(props) {
+const AppearanceConfiguration: React.VFC<AppearanceConfigurationProps> =
+  function AppearanceConfiguration(props) {
     const { designForm } = props;
     const { renderToString } = useContext(MFContext);
-    const onChange = useCallback(
-      (_event, options?: IChoiceGroupOption) => {
-        const value = options?.key;
-        if (value !== "lightOnly" && value !== "darkOnly" && value !== "auto") {
-          return;
-        }
-        designForm.setThemeOption(value);
-        if (value === "lightOnly") {
-          designForm.setSelectedTheme(Theme.Light);
-        } else if (value === "darkOnly") {
-          designForm.setSelectedTheme(Theme.Dark);
-        } else {
-          designForm.setSelectedTheme(
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? Theme.Dark
-              : Theme.Light
-          );
-        }
-      },
-      [designForm]
-    );
-    const options: IChoiceGroupOption[] = useMemo(
-      () => [
-        {
-          key: "lightOnly",
-          text: renderToString("DesignScreen.configuration.theme.lightOnly"),
-        },
-        {
-          key: "darkOnly",
-          text: renderToString("DesignScreen.configuration.theme.darkOnly"),
-        },
-        {
-          key: "auto",
-          text: renderToString("DesignScreen.configuration.theme.auto"),
-        },
-      ],
-      [renderToString]
-    );
+    const onValueChange = useThemeOptionChange(designForm);
+
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.theme.label">
-        <ChoiceGroup
-          selectedKey={designForm.state.themeOption}
-          options={options}
-          onChange={onChange}
-        />
-      </ConfigurationGroup>
+      <FormField
+        size="2"
+        labelSpace="1"
+        label={
+          <FormattedMessage id="DesignScreen.configuration.appearance.label" />
+        }
+      >
+        <Select.Root
+          value={designForm.state.themeOption}
+          onValueChange={onValueChange}
+          size="2"
+        >
+          <Select.Trigger
+            variant="surface"
+            className={styles.appearanceSelect}
+          />
+          <Select.Content>
+            <Select.Item value="auto">
+              {renderToString("DesignScreen.configuration.theme.autoAppearance")}
+            </Select.Item>
+            <Select.Item value="lightOnly">
+              {renderToString("DesignScreen.configuration.theme.lightOnly")}
+            </Select.Item>
+            <Select.Item value="darkOnly">
+              {renderToString("DesignScreen.configuration.theme.darkOnly")}
+            </Select.Item>
+          </Select.Content>
+        </Select.Root>
+      </FormField>
     );
   };
 
@@ -166,8 +163,10 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
   function AppLogoConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.logo.label">
-        <ConfigurationDescription labelKey="DesignScreen.configuration.logo.description" />
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.logo.label"
+        collapsible
+      >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
             <Configuration labelKey="DesignScreen.configuration.logo.light">
@@ -182,16 +181,6 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 fallbackLanguage={designForm.state.fallbackLanguage}
               />
             ) : null}
-            <AppLogoHeightSetter
-              sliderAriaLabel="light-logo-slider"
-              value={
-                designForm.state.customisableLightTheme.logo.height ??
-                DEFAULT_LIGHT_THEME.logo.height
-              }
-              defaultValue={DEFAULT_LIGHT_THEME.logo.height}
-              onChange={designForm.lightThemeSetters.setLogoHeight}
-              labelKey="DesignScreen.configuration.logo.height.label.light"
-            />
           </>
         ) : null}
         {designForm.state.themeOption !== "lightOnly" ? (
@@ -208,17 +197,39 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 fallbackLanguage={designForm.state.fallbackLanguage}
               />
             ) : null}
-            <AppLogoHeightSetter
-              sliderAriaLabel="dark-logo-slider"
-              value={
-                designForm.state.customisableDarkTheme.logo.height ??
-                DEFAULT_DARK_THEME.logo.height
-              }
-              defaultValue={DEFAULT_DARK_THEME.logo.height}
-              onChange={designForm.darkThemeSetters.setLogoHeight}
-              labelKey="DesignScreen.configuration.logo.height.label.dark"
-            />
           </>
+        ) : null}
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <AppLogoHeightSetter
+            sliderAriaLabel="light-logo-slider"
+            value={
+              designForm.state.customisableLightTheme.logo.height ??
+              DEFAULT_LIGHT_THEME.logo.height
+            }
+            defaultValue={DEFAULT_LIGHT_THEME.logo.height}
+            onChange={designForm.lightThemeSetters.setLogoHeight}
+            labelKey={
+              designForm.state.themeOption === "lightOnly"
+                ? "DesignScreen.configuration.logo.height.label"
+                : "DesignScreen.configuration.logo.height.label.light"
+            }
+          />
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <AppLogoHeightSetter
+            sliderAriaLabel="dark-logo-slider"
+            value={
+              designForm.state.customisableDarkTheme.logo.height ??
+              DEFAULT_DARK_THEME.logo.height
+            }
+            defaultValue={DEFAULT_DARK_THEME.logo.height}
+            onChange={designForm.darkThemeSetters.setLogoHeight}
+            labelKey={
+              designForm.state.themeOption === "darkOnly"
+                ? "DesignScreen.configuration.logo.height.label"
+                : "DesignScreen.configuration.logo.height.label.dark"
+            }
+          />
         ) : null}
       </ConfigurationGroup>
     );
@@ -231,11 +242,14 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
   function FaviconConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.favicon.label">
-        <ConfigurationDescription labelKey="DesignScreen.configuration.favicon.description" />
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.favicon.label"
+        collapsible
+      >
         <ImagePicker
           sizeLimitInBytes={100 * 1000}
           base64EncodedData={designForm.state.faviconBase64EncodedData}
+          descriptionKey="DesignScreen.configuration.favicon.uploadDescription"
           onChange={designForm.setFavicon}
         />
         {designForm.state.selectedLanguage !==
@@ -248,57 +262,58 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
     );
   };
 
-const AlignmentOptions = AllAlignments.map((value) => ({ value }));
+const AlignmentIcon: React.VFC<{ alignment: Alignment }> = function AlignmentIcon(
+  props
+) {
+  const { alignment } = props;
+  return (
+    <span
+      className={cn(
+        styles.icAlignment,
+        alignment === "start" && styles.icAlignmentLeft,
+        alignment === "center" && styles.icAlignmentCenter,
+        alignment === "end" && styles.icAlignmentRight
+      )}
+      aria-hidden
+    />
+  );
+};
+
 interface AlignmentConfigurationProps {
   designForm: BranchDesignForm;
 }
 const AlignmentConfiguration: React.VFC<AlignmentConfigurationProps> =
   function AlignmentConfiguration(props) {
     const { designForm } = props;
-    const onSelectOption = useCallback(
-      (option: Option<Alignment>) => {
-        designForm.setCardAlignment(option.value);
-      },
-      [designForm]
-    );
-    const renderOption = useCallback(
-      (option: Option<Alignment>, selected: boolean) => {
-        return (
-          <span
-            className={cn(
-              styles.icAlignment,
-              (() => {
-                switch (option.value) {
-                  case "start":
-                    return styles.icAlignmentLeft;
-                  case "center":
-                    return styles.icAlignmentCenter;
-                  case "end":
-                    return styles.icAlignmentRight;
-                  default:
-                    return undefined;
-                }
-              })(),
-              selected && styles.selected
-            )}
-          ></span>
-        );
-      },
-      []
-    );
+    const alignment =
+      designForm.state.customisableLightTheme.card.alignment ??
+      DEFAULT_LIGHT_THEME.card.alignment;
+
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.card.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.card.label"
+        collapsible
+        defaultOpen
+      >
         <Configuration labelKey="DesignScreen.configuration.card.alignment.label">
-          <ButtonToggleGroup
-            className={cn("mt-2")}
-            value={
-              designForm.state.customisableLightTheme.card.alignment ??
-              DEFAULT_LIGHT_THEME.card.alignment
+          <SegmentedControl.Root
+            className={styles.cardAlignmentToggle}
+            value={alignment}
+            onValueChange={(value) =>
+              designForm.setCardAlignment(value as Alignment)
             }
-            options={AlignmentOptions}
-            onSelectOption={onSelectOption}
-            renderOption={renderOption}
-          ></ButtonToggleGroup>
+            size="1"
+          >
+            <SegmentedControl.Item value="start">
+              <AlignmentIcon alignment="start" />
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value="center">
+              <AlignmentIcon alignment="center" />
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value="end">
+              <AlignmentIcon alignment="end" />
+            </SegmentedControl.Item>
+          </SegmentedControl.Root>
         </Configuration>
       </ConfigurationGroup>
     );
@@ -311,7 +326,10 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
   function BackgroundConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.background.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.background.label"
+        collapsible
+      >
         <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
@@ -376,7 +394,10 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
   function ButtonConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.button.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.button.label"
+        collapsible
+      >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
             <Configuration labelKey="DesignScreen.configuration.button.primaryButton.label.light">
@@ -468,7 +489,10 @@ const IconConfiguration: React.VFC<IconConfigurationProps> =
   function IconConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.icon.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.icon.label"
+        collapsible
+      >
         <ConfigurationDescription labelKey="DesignScreen.configuration.icon.description" />
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
@@ -505,26 +529,29 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
     const { renderToString } = useContext(MFContext);
 
     const onPrivacyPolicyLinkChange = useCallback(
-      (_: React.FormEvent, value?: string) => {
-        designForm.setPrivacyPolicyLink(value ?? "");
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        designForm.setPrivacyPolicyLink(e.target.value);
       },
       [designForm]
     );
     const onTermsOfServiceLinkChange = useCallback(
-      (_: React.FormEvent, value?: string) => {
-        designForm.setTermsOfServiceLink(value ?? "");
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        designForm.setTermsOfServiceLink(e.target.value);
       },
       [designForm]
     );
     const onCustomerSupportLinkChange = useCallback(
-      (_: React.FormEvent, value?: string) => {
-        designForm.setCustomerSupportLink(value ?? "");
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        designForm.setCustomerSupportLink(e.target.value);
       },
       [designForm]
     );
 
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.link.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.link.label"
+        collapsible
+      >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
             <Configuration labelKey="DesignScreen.configuration.link.color.label.light">
@@ -558,6 +585,7 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
         </Configuration>
         <Separator className={cn(styles.linkConfigurationSeparator)} />
         <TextField
+          size="2"
           label={renderToString(
             "DesignScreen.configuration.link.urls.privacyPolicy.label"
           )}
@@ -568,6 +596,7 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
           onChange={onPrivacyPolicyLinkChange}
         />
         <TextField
+          size="2"
           label={renderToString(
             "DesignScreen.configuration.link.urls.termsOfService.label"
           )}
@@ -578,6 +607,7 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
           onChange={onTermsOfServiceLinkChange}
         />
         <TextField
+          size="2"
           label={renderToString(
             "DesignScreen.configuration.link.urls.customerSupport.label"
           )}
@@ -601,7 +631,10 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
   function InputConfiguration(props) {
     const { designForm } = props;
     return (
-      <ConfigurationGroup labelKey="DesignScreen.configuration.input.label">
+      <ConfigurationGroup
+        labelKey="DesignScreen.configuration.input.label"
+        collapsible
+      >
         <Configuration labelKey="DesignScreen.configuration.input.border.label">
           <BorderRadius
             parentJSONPointer="/inputField"
@@ -629,23 +662,20 @@ const DefaultClientURIConfiguration: React.VFC<DefaultClientURIConfigurationProp
       () => designForm.state.defaultClientURI !== ""
     );
     const onChangeEnableClientURI = useCallback(
-      (_: React.MouseEvent, checked?: boolean) => {
-        const enabled_ = checked ?? false;
-        if (enabled_) {
+      (checked: boolean) => {
+        if (checked) {
           designForm.setDefaultClientURI(uri);
         } else {
           designForm.setDefaultClientURI("");
         }
-        setEnabled(enabled_);
+        setEnabled(checked);
       },
       [uri, designForm]
     );
 
     const onChangeURI = useCallback(
-      (_: React.FormEvent<any>, value?: string) => {
-        if (value == null) {
-          return;
-        }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setURI(value);
         designForm.setDefaultClientURI(value);
       },
@@ -657,13 +687,13 @@ const DefaultClientURIConfiguration: React.VFC<DefaultClientURIConfigurationProp
         <ConfigurationDescription labelKey="DesignScreen.configuration.defaultClientURI.description" />
         <Toggle
           checked={enabled}
-          onChange={onChangeEnableClientURI}
-          label={renderToString(
+          onCheckedChange={onChangeEnableClientURI}
+          text={renderToString(
             "DesignScreen.configuration.defaultClientURI.enable.description"
           )}
-          inlineLabel={true}
         />
-        <FormTextField
+        <TextField
+          size="2"
           fieldName="default_client_uri"
           parentJSONPointer="/ui"
           disabled={!enabled}
@@ -683,37 +713,24 @@ const AuthgearBrandingConfiguration: React.VFC<AuthgearBrandingConfigurationProp
   function AuthgearBrandingConfiguration(props) {
     const { appID, designForm } = props;
     const { renderToString } = useContext(MFContext);
-    const onChangeDisableWatermark = useCallback(
-      (_: React.MouseEvent, checked?: boolean) => {
-        designForm.setDisplayAuthgearLogo(checked ?? true);
+    const onChangeDisplayAuthgearLogo = useCallback(
+      (checked: boolean) => {
+        designForm.setDisplayAuthgearLogo(checked);
       },
       [designForm]
     );
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.authgearBranding.label">
         {designForm.state.whiteLabelingDisabled ? (
-          <div
-            className={cn(
-              "flex",
-              "items-center",
-              "p-4",
-              "border",
-              "border-solid",
-              "border-neutral-quaternaryAlt"
-            )}
-          >
-            <Text
-              className={cn("leading-5", "font-semibold", "text-neutral-dark")}
-            >
+          <div className={styles.upgradeBanner}>
+            <Text as="p" size="2" weight="medium">
               <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeToHide" />
             </Text>
-            <DefaultButton
-              className={cn(styles.upgradeNowButton, "ml-3", "flex-none")}
-              href={`/project/${appID}/billing`}
-              text={
+            <Button asChild variant="outline" size="2" color="gray">
+              <Link to={`/project/${appID}/billing`}>
                 <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeNow" />
-              }
-            />
+              </Link>
+            </Button>
           </div>
         ) : null}
         <Toggle
@@ -721,11 +738,10 @@ const AuthgearBrandingConfiguration: React.VFC<AuthgearBrandingConfigurationProp
             designForm.state.whiteLabelingDisabled ||
             designForm.state.showAuthgearLogo
           }
-          onChange={onChangeDisableWatermark}
-          label={renderToString(
+          onCheckedChange={onChangeDisplayAuthgearLogo}
+          text={renderToString(
             "DesignScreen.configuration.authgearBranding.disableAuthgearLogo.label"
           )}
-          inlineLabel={true}
           disabled={designForm.state.whiteLabelingDisabled}
         />
       </ConfigurationGroup>
@@ -739,51 +755,85 @@ interface ConfigurationPanelProps {
 const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
   function ConfigurationPanel(props) {
     const { appID, designForm } = props;
+    const [activeTab, setActiveTab] = useState("branding");
+
     return (
-      <div>
-        <OrganisationConfiguration designForm={designForm} />
-        <Separator />
-        <ThemeConfiguration designForm={designForm} />
-        <Separator />
-        <AppLogoConfiguration designForm={designForm} />
-        <Separator />
-        <FaviconConfiguration designForm={designForm} />
-        <Separator />
-        <AlignmentConfiguration designForm={designForm} />
-        <Separator />
-        <BackgroundConfiguration designForm={designForm} />
-        <Separator />
-        <ButtonConfiguration designForm={designForm} />
-        <Separator />
-        <IconConfiguration designForm={designForm} />
-        <Separator />
-        <LinkConfiguration designForm={designForm} />
-        <Separator />
-        <InputConfiguration designForm={designForm} />
-        <Separator />
-        <DefaultClientURIConfiguration designForm={designForm} />
-        <Separator />
-        <AuthgearBrandingConfiguration appID={appID} designForm={designForm} />
-      </div>
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className={styles.configTabs}
+      >
+        <Tabs.List className={styles.configTabsList}>
+          <Tabs.Trigger value="branding">
+            <FormattedMessage id="DesignScreen.tabs.branding" />
+          </Tabs.Trigger>
+          <Tabs.Trigger value="style">
+            <FormattedMessage id="DesignScreen.tabs.style" />
+          </Tabs.Trigger>
+          <Tabs.Trigger value="advance">
+            <FormattedMessage id="DesignScreen.tabs.advance" />
+          </Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content
+          value="branding"
+          className={cn(styles.configTabContent, styles.configTabContentAccordion)}
+        >
+          <OrganisationConfiguration designForm={designForm} />
+          <AppLogoConfiguration designForm={designForm} />
+          <FaviconConfiguration designForm={designForm} />
+        </Tabs.Content>
+        <Tabs.Content
+          value="style"
+          className={cn(styles.configTabContent, styles.configTabContentAccordion)}
+        >
+          <AlignmentConfiguration designForm={designForm} />
+          <ButtonConfiguration designForm={designForm} />
+          <InputConfiguration designForm={designForm} />
+          <BackgroundConfiguration designForm={designForm} />
+          <IconConfiguration designForm={designForm} />
+          <LinkConfiguration designForm={designForm} />
+        </Tabs.Content>
+        <Tabs.Content value="advance" className={styles.configTabContent}>
+          <DefaultClientURIConfiguration designForm={designForm} />
+          <Separator />
+          <AuthgearBrandingConfiguration appID={appID} designForm={designForm} />
+        </Tabs.Content>
+      </Tabs.Root>
     );
   };
 
-const PreviewPageDropdownStyles: IStyleFunctionOrObject<
-  IDropdownStyleProps,
-  IDropdownStyles
-> = {
-  dropdown: {
-    width: "180px",
-    selectors: {
-      "::after": {
-        display: "none",
-      },
-    },
-  },
-  title: {
-    border: "none",
-    textAlign: "left",
-  },
+const PreviewLanguageSelect: React.VFC<{
+  designForm: BranchDesignForm;
+}> = function PreviewLanguageSelect(props) {
+  const { designForm } = props;
+  const { renderToString } = useContext(MFContext);
+
+  const previewLanguageOptions = useMemo(() => {
+    return designForm.state.supportedLanguages.map((lang) => ({
+      value: lang,
+      label: renderToString(`Locales.${lang}`),
+    }));
+  }, [designForm.state.supportedLanguages, renderToString]);
+
+  return (
+    <Select.Root
+      value={designForm.state.selectedLanguage}
+      onValueChange={designForm.setSelectedLanguage}
+      size="2"
+    >
+      <Select.Trigger
+        variant="surface"
+        className={styles.headerLanguageSelect}
+      />
+      <Select.Content position="popper">
+        {previewLanguageOptions.map((opt) => (
+          <Select.Item key={opt.value} value={opt.value}>
+            {opt.label}
+          </Select.Item>
+        ))}
+      </Select.Content>
+    </Select.Root>
+  );
 };
 
 interface PreviewThemeToggleProps {
@@ -791,50 +841,24 @@ interface PreviewThemeToggleProps {
   setActiveTheme: (theme: Theme) => void;
   disabled: boolean;
 }
-const PreviewThemeToggleOptions = [Theme.Light, Theme.Dark].map((value) => ({
-  value,
-}));
 const PreviewThemeToggle: React.VFC<PreviewThemeToggleProps> =
   function PreviewThemeToggle(props) {
     const { activeTheme, setActiveTheme, disabled } = props;
-    const renderOption = useCallback(
-      (option: Option<Theme>, selected: boolean) => {
-        return (
-          <span
-            className={cn(
-              styles.icTheme,
-              (() => {
-                switch (option.value) {
-                  case Theme.Light:
-                    return styles.icLightMode;
-                  case Theme.Dark:
-                    return styles.icDarkMode;
-                  default:
-                    return undefined;
-                }
-              })(),
-              selected && styles.selected
-            )}
-          ></span>
-        );
-      },
-      []
-    );
-    const onSelectOption = useCallback(
-      (option: Option<Theme>) => {
-        setActiveTheme(option.value);
-      },
-      [setActiveTheme]
-    );
     return (
-      <ButtonToggleGroup
+      <SegmentedControl.Root
+        className={styles.previewThemeToggle}
         value={activeTheme}
-        options={PreviewThemeToggleOptions}
-        onSelectOption={onSelectOption}
-        renderOption={renderOption}
+        onValueChange={(v) => setActiveTheme(v as Theme)}
+        size="1"
         disabled={disabled}
-        withBorder={false}
-      ></ButtonToggleGroup>
+      >
+        <SegmentedControl.Item value={Theme.Light}>
+          <SunIcon className={styles.previewThemeIcon} aria-hidden />
+        </SegmentedControl.Item>
+        <SegmentedControl.Item value={Theme.Dark}>
+          <MoonIcon className={styles.previewThemeIcon} aria-hidden />
+        </SegmentedControl.Item>
+      </SegmentedControl.Root>
     );
   };
 
@@ -860,23 +884,12 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     () => supportedPreviewPages[0].screen
   );
 
-  const previewPageOptions = useMemo((): IDropdownOption[] => {
-    return supportedPreviewPages.map(
-      (page): IDropdownOption => ({
-        key: page.screen,
-        text: renderToString(`DesignScreen.preview.pages.title.${page.key}`),
-      })
-    );
+  const previewPageOptions = useMemo(() => {
+    return supportedPreviewPages.map((page) => ({
+      value: page.screen,
+      label: renderToString(`DesignScreen.preview.pages.title.${page.key}`),
+    }));
   }, [supportedPreviewPages, renderToString]);
-  const onChangePreviewPageOption = useCallback(
-    (_e: unknown, option?: IDropdownOption) => {
-      if (option == null) {
-        return;
-      }
-      setSelectedPreviewPage(option.key as PreviewPageType);
-    },
-    []
-  );
 
   const src = useMemo(() => {
     const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
@@ -898,7 +911,6 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   }, [designForm.state]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsIframeLoading(true);
   }, [src]);
 
@@ -913,27 +925,22 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
 
   return (
     <div className={cn("flex", "flex-col", className)}>
-      <div
-        className={cn(
-          "flex",
-          "justify-between",
-          "content-center",
-          "px-6",
-          "py-1",
-          "border-x-0",
-          "border-t-0",
-          "border-b",
-          "border-solid",
-          "border-neutral-light"
-        )}
-      >
-        <Dropdown
-          className={styles.previewDropdown}
-          styles={PreviewPageDropdownStyles}
-          selectedKey={selectedPreviewPage}
-          options={previewPageOptions}
-          onChange={onChangePreviewPageOption}
-        />
+      <div className={styles.previewToolbar}>
+        <Select.Root
+          value={selectedPreviewPage}
+          onValueChange={(v) => setSelectedPreviewPage(v as PreviewPageType)}
+          size="2"
+        >
+          <Select.Trigger variant="surface" className={styles.previewPageSelect} />
+          <Select.Content position="popper">
+            {previewPageOptions.map((opt) => (
+              <Select.Item key={opt.value} value={opt.value}>
+                {opt.label}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Root>
+        <div className={styles.previewToolbarSpacer} />
         {designForm.state.themeOption === "auto" ? (
           <PreviewThemeToggle
             activeTheme={designForm.state.selectedTheme}
@@ -966,8 +973,9 @@ interface DesignScreenContentProps {
 const DesignScreenContent: React.VFC<DesignScreenContentProps> =
   function DesignScreenContent(props) {
     const { appID, effectiveAppConfig, form } = props;
-    const { canSave, onSave } = useFormContainerBaseContext();
-    const { renderToString } = useContext(MFContext);
+    const { canSave, getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
     const { triggerTester: onTry, isLoading: isTryLoading } = useTester(
       appID,
       effectiveAppConfig.http?.public_origin ?? ""
@@ -977,78 +985,83 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
       <>
         <div
           className={cn(
-            "pt-6",
-            "px-6",
-            "flex",
-            "items-center",
-            "justify-between"
+            styles.contentRoot,
+            isDirty && styles.contentWithSaveBar
           )}
         >
-          <ScreenTitle>
-            <FormattedMessage id="DesignScreen.title" />
-          </ScreenTitle>
-          <div className={styles.titleActions}>
-            <ManageLanguageWidget
-              existingLanguages={form.state.supportedLanguages}
-              supportedLanguages={form.state.supportedLanguages}
-              selectedLanguage={form.state.selectedLanguage}
-              fallbackLanguage={form.state.fallbackLanguage}
-              onChangeSelectedLanguage={form.setSelectedLanguage}
-            />
-            <Tooltip
-              isHidden={!canSave}
-              tooltipMessageId="DesignScreen.action.try.disabledHint"
-            >
-              <DefaultButton
-                text={renderToString("DesignScreen.action.try")}
-                iconProps={{ iconName: "Play" }}
-                // eslint-disable-next-line @typescript-eslint/strict-void-return
-                onClick={onTry}
-                disabled={canSave || isTryLoading}
-              />
-            </Tooltip>
-            <PrimaryButton
-              text={renderToString("save")}
-              disabled={!canSave}
-              onClick={onSave}
-            />
-          </div>
-        </div>
-        <div
-          className={cn(
-            "min-h-0",
-            "flex-1",
-            "flex",
-            "flex-row-reverse",
-            "tablet:flex-col",
-            "tablet:overflow-auto"
-          )}
-        >
-          <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
-            <div className={cn("desktop:w-80")}>
-              <ConfigurationPanel appID={appID} designForm={form} />
+          <div className={styles.saveBarScope}>
+            <div ref={contentWidthAnchorRef} className={styles.saveBarAnchor}>
+              <div className={styles.pageHeader}>
+                <Heading as="h1" size="5" weight="medium">
+                  <FormattedMessage id="DesignScreen.title" />
+                </Heading>
+                <div className={styles.titleActions}>
+                  <PreviewLanguageSelect designForm={form} />
+                  <Tooltip
+                    isHidden={!canSave}
+                    tooltipMessageId="DesignScreen.action.try.disabledHint"
+                  >
+                    <SecondaryButton
+                      size="2"
+                      text={
+                        <span className={styles.livePreviewButton}>
+                          <ExternalLinkIcon
+                            className={styles.livePreviewIcon}
+                          />
+                          <FormattedMessage id="DesignScreen.action.livePreview" />
+                        </span>
+                      }
+                      onClick={onTry}
+                      disabled={canSave || isTryLoading}
+                      loading={isTryLoading}
+                    />
+                  </Tooltip>
+                </div>
+              </div>
             </div>
           </div>
-          <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
-            <div
-              className={cn(
-                "rounded-xl",
-                "h-full",
-                "tablet:h-178.5",
-                "overflow-hidden"
-              )}
-              style={{
-                boxShadow: DefaultEffects.elevation4,
-              }}
-            >
-              <Preview
-                className={cn("h-full")}
-                effectiveAppConfig={effectiveAppConfig}
-                designForm={form}
-              />
+          <div
+            className={cn(
+              "min-h-0",
+              "flex-1",
+              "flex",
+              "flex-row-reverse",
+              "tablet:flex-col",
+              "tablet:overflow-auto"
+            )}
+          >
+            <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
+              <div className={styles.configColumn}>
+                <div className={styles.appearancePanel}>
+                  <AppearanceConfiguration designForm={form} />
+                </div>
+                <div className={styles.configPanel}>
+                  <ConfigurationPanel appID={appID} designForm={form} />
+                </div>
+              </div>
+            </div>
+            <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
+              <div
+                className={cn(
+                  "rounded-xl",
+                  "h-full",
+                  "tablet:h-178.5",
+                  "overflow-hidden",
+                  "border",
+                  "border-solid",
+                  "border-gray-a6"
+                )}
+              >
+                <Preview
+                  className={cn("h-full")}
+                  effectiveAppConfig={effectiveAppConfig}
+                  designForm={form}
+                />
+              </div>
             </div>
           </div>
         </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </>
     );
   };

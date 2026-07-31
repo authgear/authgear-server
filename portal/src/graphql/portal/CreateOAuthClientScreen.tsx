@@ -281,7 +281,7 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
                   <PortalLink
                     to={`/project/${encodeURIComponent(
                       appNodeID
-                    )}/api-resources/create`}
+                    )}/api-resources?create=1`}
                   >
                     {chunks}
                   </PortalLink>

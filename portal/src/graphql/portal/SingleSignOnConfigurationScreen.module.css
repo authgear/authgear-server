@@ -1,44 +1,67 @@
 .widget {
-  @apply col-span-8 tablet:col-span-full;
+  @apply col-span-full;
 }
 
-.headerContent {
-  @apply p-5;
+.pageHeader {
+  @apply flex flex-col gap-2;
 }
 
-.screenTitle {
-  @apply col-span-12;
-  @apply flex items-center justify-between;
+.pageTitleRow {
+  @apply flex items-start justify-between gap-4;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
 }
 
 .content {
-  @apply col-span-full;
-  @apply grid grid-cols-12;
+  @apply col-span-full flex flex-col gap-4 min-w-0;
 }
 
-.contentItem {
-  @apply col-span-full;
-  @apply border-x-0 border-t-0 border-b border-solid border-separator;
-  @apply transition-colors;
+.list {
+  @apply flex flex-col min-w-0;
 }
 
-.contentItem:hover {
-  @apply bg-neutral-lighter;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-3);
 }
 
-.contentHeader {
-  @apply col-span-full;
-  @apply border-x-0 border-t-0 border-b border-solid border-separator;
+.table {
+  min-width: 100%;
+  width: 100%;
 }
 
 .emptyMessage {
-  @apply col-start-5 col-span-4;
-  @apply flex flex-col items-center justify-center;
-  @apply space-y-4;
-  @apply py-20;
+  @apply flex flex-col items-center justify-start text-center w-full;
+  padding: 1.5rem;
 }
 
-.deleteButton {
-  @apply flex items-center justify-center;
-  @apply space-x-2;
+.emptyTitle {
+  margin: 0 0 0.5rem;
+  color: var(--gray-12);
+}
+
+.emptyDescription {
+  margin: 0;
+  max-width: 30rem;
+  color: var(--gray-11);
+}
+
+.emptyButton {
+  @apply mt-4;
 }

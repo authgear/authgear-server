@@ -1,5 +1,38 @@
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
 .widget {
   grid-column: 1 / span 8;
-
   @apply tablet:col-span-full;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  margin-bottom: 8px;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
 }

@@ -1,28 +1,70 @@
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.screenContent {
+  grid-template-rows: auto;
+  align-content: start;
+}
+
+.header {
+  @apply flex items-center justify-between gap-4;
+}
+
 .widget {
-  grid-column: 1 / span 12;
+  grid-column: 1 / -1;
+  align-self: start;
 
   @apply tablet:col-span-full;
 }
 
-.fieldName {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 600;
-  height: 100%;
+  color: var(--gray-12);
+}
+
+.addButtonContent {
+  @apply inline-flex items-center gap-1;
 }
 
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px;
+  min-height: 200px;
 }
 
-.emptyStateMessage {
-  font-weight: 600;
+.emptyStateInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 480px;
+  width: 100%;
 }
 
-.addNewAttributeButton {
-  margin: 16px 0;
+.emptyStateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  color: var(--accent-9);
+}
+
+.emptyStateHeading {
+  margin: 0;
+  text-align: center;
+}
+
+.emptyStateDescription {
+  margin: 0;
+  text-align: center;
 }
