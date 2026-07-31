@@ -19,11 +19,6 @@
   grid-template-columns: minmax(0, 1.65fr) repeat(3, minmax(0, 1.15fr)) 44px;
 }
 
-.gridWithActions .headerCell {
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
 .sectionTitleRow {
   min-height: 44px;
   padding: 12px;
