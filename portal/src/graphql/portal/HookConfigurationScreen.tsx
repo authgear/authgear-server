@@ -286,6 +286,19 @@ interface ConfigFormState {
   secret: string | null;
 }
 
+function minSetIndex(indices: ReadonlySet<number>): number | null {
+  if (indices.size === 0) {
+    return null;
+  }
+  let min = Infinity;
+  for (const i of indices) {
+    if (i < min) {
+      min = i;
+    }
+  }
+  return min;
+}
+
 function checkDirty(diff: ResourcesDiffResult | null, url: string): boolean {
   if (diff == null) {
     return false;
@@ -526,8 +539,9 @@ interface BlockingHooksTableProps {
   makeDefaultHandler: () => BlockingEventHandler;
   onEditDeno: (index: number, value: BlockingEventHandler) => void;
   addDisabled: boolean;
-  onEditingChange?: (editing: boolean) => void;
   endpointErrorIndices: ReadonlySet<number>;
+  autoExpandIndex: number | null;
+  autoExpandRequest: number;
 }
 
 function BlockingHooksTable({
@@ -537,19 +551,17 @@ function BlockingHooksTable({
   makeDefaultHandler,
   onEditDeno,
   addDisabled,
-  onEditingChange,
   endpointErrorIndices,
+  autoExpandIndex,
+  autoExpandRequest,
 }: BlockingHooksTableProps): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { isDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [draft, setDraft] = useState<BlockingEventHandler | null>(null);
   const [pendingEventName, setPendingEventName] = useState<string | null>(null);
-
-  useEffect(() => {
-    onEditingChange?.(expandedIndex != null);
-  }, [expandedIndex, onEditingChange]);
 
   useEffect(() => {
     if (!isDirty) {
@@ -557,6 +569,17 @@ function BlockingHooksTable({
       setDraft(null);
     }
   }, [isDirty]);
+
+  useEffect(() => {
+    if (autoExpandIndex == null) {
+      return;
+    }
+    if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
+      return;
+    }
+    setExpandedIndex(autoExpandIndex);
+    setDraft({ ...handlers[autoExpandIndex] });
+  }, [autoExpandRequest, autoExpandIndex, handlers]);
 
   const applyDraftChange = useCallback(
     (newDraft: BlockingEventHandler) => {
@@ -904,8 +927,9 @@ interface NonBlockingHooksTableProps {
   makeDefaultHandler: () => NonBlockingEventHandler;
   onEditDeno: (index: number, value: NonBlockingEventHandler) => void;
   addDisabled: boolean;
-  onEditingChange?: (editing: boolean) => void;
   showEndpointErrors: boolean;
+  autoExpandIndex: number | null;
+  autoExpandRequest: number;
 }
 
 function NonBlockingHooksTable({
@@ -915,18 +939,16 @@ function NonBlockingHooksTable({
   makeDefaultHandler,
   onEditDeno,
   addDisabled,
-  onEditingChange,
   showEndpointErrors,
+  autoExpandIndex,
+  autoExpandRequest,
 }: NonBlockingHooksTableProps): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { isDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [draft, setDraft] = useState<NonBlockingEventHandler | null>(null);
-
-  useEffect(() => {
-    onEditingChange?.(expandedIndex != null);
-  }, [expandedIndex, onEditingChange]);
 
   useEffect(() => {
     if (!isDirty) {
@@ -934,6 +956,17 @@ function NonBlockingHooksTable({
       setDraft(null);
     }
   }, [isDirty]);
+
+  useEffect(() => {
+    if (autoExpandIndex == null) {
+      return;
+    }
+    if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
+      return;
+    }
+    setExpandedIndex(autoExpandIndex);
+    setDraft({ ...handlers[autoExpandIndex] });
+  }, [autoExpandRequest, autoExpandIndex, handlers]);
 
   const applyDraftChange = useCallback(
     (newDraft: NonBlockingEventHandler) => {
@@ -1232,7 +1265,8 @@ function HookScreenWithSaveBar({
   anchorRef: React.RefObject<HTMLDivElement>;
   children: React.ReactNode;
 }): React.ReactElement {
-  const { isDirty } = useFormContainerBaseContext();
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   return (
     <ScreenContent
       className={isDirty && codeEditorState == null ? styles.contentWithSaveBar : undefined}
@@ -1276,14 +1310,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       useState<CodeEditorState | null>(null);
     const [activeTab, setActiveTab] = useState("blocking-events");
     const [pendingTab, setPendingTab] = useState<string | null>(null);
-    const [blockingTableEditing, setBlockingTableEditing] = useState(false);
-    const [nonBlockingTableEditing, setNonBlockingTableEditing] = useState(false);
-    const hookTableEditing = blockingTableEditing || nonBlockingTableEditing;
-
-    const clearHookTableEditing = useCallback(() => {
-      setBlockingTableEditing(false);
-      setNonBlockingTableEditing(false);
-    }, []);
 
     const isLoading = useIsLoading();
 
@@ -1315,13 +1341,18 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       };
     }, [config.state, resources.state, resources.diff]);
 
-    const form: FormModel = {
-      isLoading: config.isLoading || resources.isLoading,
-      isUpdating: config.isUpdating || resources.isUpdating,
-      getIsDirty: () =>
+    const getHasUnsavedChanges = useCallback(
+      () =>
         config.getIsDirty() ||
         resources.getIsDirty() ||
         codeEditorState?.value != null,
+      [config.getIsDirty, resources.getIsDirty, codeEditorState?.value]
+    );
+
+    const form: FormModel = {
+      isLoading: config.isLoading || resources.isLoading,
+      isUpdating: config.isUpdating || resources.isUpdating,
+      getIsDirty: getHasUnsavedChanges,
       loadError: config.loadError ?? resources.loadError,
       updateError: config.updateError ?? resources.updateError,
       state,
@@ -1340,12 +1371,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       reset: () => {
         resources.reset();
         config.reset();
-        clearHookTableEditing();
       },
       save: async (ignoreConflict: boolean = false) => {
         await resources.save(ignoreConflict);
         await config.save(ignoreConflict);
-        clearHookTableEditing();
       },
     };
 
@@ -1754,39 +1783,84 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return indices;
     }, [state.blocking_handlers]);
 
+    const nonBlockingInvalidEndpointIndices = useMemo(() => {
+      const indices = new Set<number>();
+      state.non_blocking_handlers.forEach((h, i) => {
+        if (
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+        ) {
+          indices.add(i);
+        }
+      });
+      return indices;
+    }, [state.non_blocking_handlers]);
+
     const [showEndpointErrors, setShowEndpointErrors] = useState(false);
     const [blockingEndpointErrorIndices, setBlockingEndpointErrorIndices] =
       useState<ReadonlySet<number>>(() => new Set());
+    const [blockingAutoExpandIndex, setBlockingAutoExpandIndex] = useState<
+      number | null
+    >(null);
+    const [blockingAutoExpandRequest, setBlockingAutoExpandRequest] =
+      useState(0);
+    const [nonBlockingAutoExpandIndex, setNonBlockingAutoExpandIndex] =
+      useState<number | null>(null);
+    const [nonBlockingAutoExpandRequest, setNonBlockingAutoExpandRequest] =
+      useState(0);
 
     const beforeSave = useCallback(async () => {
       if (hasInvalidWebhookURL) {
         setShowEndpointErrors(true);
         setBlockingEndpointErrorIndices(blockingInvalidEndpointIndices);
+
+        const firstBlockingInvalid = minSetIndex(
+          blockingInvalidEndpointIndices
+        );
+        if (firstBlockingInvalid != null) {
+          setActiveTab("blocking-events");
+          setBlockingAutoExpandIndex(firstBlockingInvalid);
+          setBlockingAutoExpandRequest((n) => n + 1);
+        } else {
+          const firstNonBlockingInvalid = minSetIndex(
+            nonBlockingInvalidEndpointIndices
+          );
+          if (firstNonBlockingInvalid != null) {
+            setActiveTab("non-blocking-events");
+            setNonBlockingAutoExpandIndex(firstNonBlockingInvalid);
+            setNonBlockingAutoExpandRequest((n) => n + 1);
+          }
+        }
+
         throw new Error("invalid webhook endpoint");
       }
       setShowEndpointErrors(false);
       setBlockingEndpointErrorIndices(new Set());
-    }, [blockingInvalidEndpointIndices, hasInvalidWebhookURL]);
+    }, [
+      blockingInvalidEndpointIndices,
+      hasInvalidWebhookURL,
+      nonBlockingInvalidEndpointIndices,
+    ]);
 
     useEffect(() => {
-      if (!form.isDirty) {
+      if (!getHasUnsavedChanges()) {
         setShowEndpointErrors(false);
         setBlockingEndpointErrorIndices(new Set());
       }
-    }, [form.isDirty]);
+    }, [getHasUnsavedChanges]);
 
     const onTabValueChange = useCallback(
       (nextTab: string) => {
         if (nextTab === activeTab) {
           return;
         }
-        if (form.isDirty) {
+        if (getHasUnsavedChanges()) {
           setPendingTab(nextTab);
           return;
         }
         setActiveTab(nextTab);
       },
-      [activeTab, form.isDirty]
+      [activeTab, getHasUnsavedChanges]
     );
 
     const onDiscardTabSwitchDismiss = useCallback(() => {
@@ -1964,8 +2038,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             makeDefaultHandler={makeDefaultHandler}
                             onEditDeno={onEditBlocking}
                             addDisabled={blockingHandlerLimitReached}
-                            onEditingChange={setBlockingTableEditing}
                             endpointErrorIndices={blockingEndpointErrorIndices}
+                            autoExpandIndex={blockingAutoExpandIndex}
+                            autoExpandRequest={blockingAutoExpandRequest}
                           />
                         ) : null}
                       </div>
@@ -2023,8 +2098,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             makeDefaultHandler={makeDefaultNonBlockingHandler}
                             onEditDeno={onEditNonBlocking}
                             addDisabled={nonBlockingHandlerLimitReached}
-                            onEditingChange={setNonBlockingTableEditing}
                             showEndpointErrors={showEndpointErrors}
+                            autoExpandIndex={nonBlockingAutoExpandIndex}
+                            autoExpandRequest={nonBlockingAutoExpandRequest}
                           />
                         ) : null}
                       </div>
