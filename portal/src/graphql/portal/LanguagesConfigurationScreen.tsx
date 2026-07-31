@@ -13,11 +13,7 @@ import {
   Select,
   Text,
 } from "@radix-ui/themes";
-import {
-  DotsVerticalIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
+import { DotsVerticalIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { produce } from "immer";
 import cn from "classnames";
 import { Context as MFContext, FormattedMessage } from "../../intl";
@@ -36,6 +32,7 @@ import {
   TextFieldIcon,
 } from "../../components/v2/TextField/TextField";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
+import Link from "../../Link";
 
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
@@ -124,11 +121,8 @@ interface SelectPrimaryLanguageSectionProps {
 }
 const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageSectionProps> =
   function SelectPrimaryLanguageSection(props) {
-    const {
-      supportedLanguages,
-      primaryLanguage,
-      onChangePrimaryLanguage,
-    } = props;
+    const { supportedLanguages, primaryLanguage, onChangePrimaryLanguage } =
+      props;
 
     const { getLanguageDisplayText } = useContext(PageContext);
 
@@ -147,7 +141,12 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageSectionProps>
           <FormattedMessage id="LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title" />
         }
       >
-        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.sectionDescription}
+        >
           <FormattedMessage id="LanguagesConfigurationScreen.selectPrimaryLanguageWidget.description" />
         </Text>
         <FormField
@@ -195,6 +194,7 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
       supportedLanguages,
       onToggleSupportedLanguage,
     } = props;
+    const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MFContext);
     const { getLanguageDisplayText } = useContext(PageContext);
     const addLanguageControlRef = useRef<HTMLDivElement>(null);
@@ -264,8 +264,7 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
     const onOpenAddLanguages = useCallback(() => {
       setIsAddingLanguage(true);
       window.setTimeout(() => {
-        const input =
-          searchInputContainerRef.current?.querySelector("input");
+        const input = searchInputContainerRef.current?.querySelector("input");
         input?.focus();
       }, 0);
     }, []);
@@ -312,8 +311,29 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
 
     return (
       <div className={styles.supportedLanguagesList}>
-        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
-          <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.description" />
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.sectionDescription}
+        >
+          <FormattedMessage
+            id="LanguagesConfigurationScreen.supportedLanguages.description"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              CustomTextLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/custom-text`}>
+                  {chunks}
+                </Link>
+              ),
+              // eslint-disable-next-line react/no-unstable-nested-components
+              TemplatesLink: (chunks: React.ReactNode) => (
+                <Link to={`/project/${appID}/branding/localization`}>
+                  {chunks}
+                </Link>
+              ),
+            }}
+          />
         </Text>
 
         <div className={styles.addLanguageToolbar}>
@@ -322,9 +342,7 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
             className={styles.addLanguageControl}
           >
             <div
-              className={cn(
-                showSearch && styles.addLanguageButtonWrapHidden
-              )}
+              className={cn(showSearch && styles.addLanguageButtonWrapHidden)}
             >
               <button
                 type="button"
@@ -426,8 +444,7 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
             ) : (
               selectedLanguages.map((lang) => {
                 const isCustom = !builtinLanguageSet.has(lang);
-                const canDelete =
-                  lang !== primaryLanguage && lang !== "en";
+                const canDelete = lang !== primaryLanguage && lang !== "en";
                 return (
                   <div key={lang} className={styles.languagesTableRow}>
                     <div className={styles.languagesTableCellLanguage}>
@@ -471,7 +488,9 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
                                 <FormattedMessage id="LanguagesConfigurationScreen.cannot-remove-default-language" />
                               }
                             >
-                              <span className={styles.disabledDeleteTooltipTarget}>
+                              <span
+                                className={styles.disabledDeleteTooltipTarget}
+                              >
                                 <DropdownMenu.Item
                                   color="red"
                                   disabled={true}
