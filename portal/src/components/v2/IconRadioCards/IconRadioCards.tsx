@@ -33,9 +33,9 @@ export function IconRadioCards<T extends string>({
   options,
   ...rootProps
 }: IconRadioCardsProps<T>): React.ReactElement {
-  // The checked visual of RadixRadioCards.Item is derived solely from
-  // Root's value === Item's value, so the Root must be controlled; a
-  // `checked` prop on Item is ignored by the Radix primitive.
+  // RadixRadioCards.Item derives its checked visual from
+  // Root's value === Item's value, so the Root must be controlled for the
+  // form state to fully drive the selection.
   const handleValueChange = useCallback(
     (newValue: string) => {
       if (newValue === value) {
@@ -145,6 +145,12 @@ function OptionItem<T extends string>({
   checked?: boolean;
   onToggle?: () => void;
 }) {
+  // RadioGroup.Item spreads the props it receives over the checked state it
+  // derives from the Root, so an explicit `checked: undefined` would clear it
+  // and leave every item unchecked. Only the multi-select variant, whose Root
+  // cannot hold more than one value, supplies the override.
+  const checkedProp: { checked?: boolean } = checked == null ? {} : { checked };
+
   return (
     <Tooltip content={option.tooltip} disabled={option.tooltip == null}>
       {/* We need this extra div because Tooltip and RadixRadioCards.Item both write to data-state attribute causing bugs */}
@@ -154,7 +160,7 @@ function OptionItem<T extends string>({
           key={option.value}
           value={option.value}
           disabled={option.disabled}
-          checked={checked}
+          {...checkedProp}
           onClick={onToggle}
         >
           <div

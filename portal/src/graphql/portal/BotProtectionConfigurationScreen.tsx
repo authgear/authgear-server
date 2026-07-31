@@ -363,7 +363,11 @@ function RequirementSelectField({
 }: RequirementSelectFieldProps): React.ReactElement {
   return (
     <FormField size="2" labelSize="2" label={label} labelSpace="1">
-      <Select.Root value={value} onValueChange={onValueChange} disabled={disabled}>
+      <Select.Root
+        value={value}
+        onValueChange={onValueChange}
+        disabled={disabled}
+      >
         <Select.Trigger
           variant="surface"
           className={styles.requirementSelectTrigger}
@@ -400,7 +404,12 @@ function RequirementRadioRow({
   return (
     <>
       <div className={styles.requirementRadioRow}>
-        <Text as="p" size="2" weight="medium" className={styles.requirementRadioRowLabel}>
+        <Text
+          as="p"
+          size="2"
+          weight="medium"
+          className={styles.requirementRadioRowLabel}
+        >
           {label}
         </Text>
         <RadioGroup.Root
@@ -720,7 +729,12 @@ const BotProtectionProviderSection: React.VFC<BotProtectionProviderSectionProps>
                 options={providerOptions}
                 itemFillSpaces={true}
               />
-              <Text as="p" size="1" color="gray" className={styles.providerDescription}>
+              <Text
+                as="p"
+                size="1"
+                color="gray"
+                className={styles.providerDescription}
+              >
                 {providerDescription}
               </Text>
             </div>
@@ -1045,7 +1059,10 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       (
         fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
       ) => {
-        setState((state) => ({ ...state, requirements: fn(state.requirements) }));
+        setState((state) => ({
+          ...state,
+          requirements: fn(state.requirements),
+        }));
       },
       [setState]
     );
