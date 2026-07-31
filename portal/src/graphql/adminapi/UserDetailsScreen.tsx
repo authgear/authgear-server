@@ -1,14 +1,17 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Text } from "@radix-ui/themes";
 import { MessageBar, MessageBarType, ProgressIndicator } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
+import cn from "classnames";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import UserDetailSummary from "./UserDetailSummary";
 import UserProfileForm, {
   CustomAttributesState,
@@ -117,12 +120,14 @@ import {
 } from "../../ErrorMessageBar";
 import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { useIsLoading } from "../../hook/loading";
+import { ProfilePictureDialog } from "./ProfilePictureDialog";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig;
   refreshUser?: () => unknown;
+  profileContentRef?: React.RefObject<HTMLDivElement>;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -330,6 +335,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { auditLogEnabled } = useSystemConfig();
+  const { appID } = useParams() as { appID: string };
   const { selectedKey, onChangeKey } = usePivotNavigation([
     USER_PROFILE_KEY,
     ACCOUNT_SECURITY_PIVOT_KEY,
@@ -340,9 +346,25 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     ACCOUNT_STATUS_KEY,
     ...(auditLogEnabled ? [LOGS_KEY] : []),
   ]);
-  const { form, data, appConfig, refreshUser } = props;
+  const { form, data, appConfig, refreshUser, profileContentRef } = props;
   const { state, setState } = form;
   const { renderToString, locale } = React.useContext(Context);
+  const [selectedProfileImage, setSelectedProfileImage] =
+    React.useState<File | null>(null);
+
+  const onDismissProfilePictureDialog = useCallback(() => {
+    setSelectedProfileImage(null);
+  }, []);
+
+  const profilePictureDialog = (
+    <ProfilePictureDialog
+      appID={appID}
+      user={data}
+      file={selectedProfileImage}
+      onDismiss={onDismissProfilePictureDialog}
+      onSaved={refreshUser}
+    />
+  );
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities = appConfig.authentication?.identities ?? [];
@@ -512,46 +534,54 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
   if (data.isAnonymized) {
     return (
-      <div className={styles.widget}>
-        <UserDetailSummary
-          isAnonymous={data.isAnonymous}
-          isAnonymized={data.isAnonymized}
-          profileImageURL={data.standardAttributes.picture}
-          profileImageEditable={profileImageEditable}
-          rawUserID={extractRawID(data.id)}
-          formattedName={data.formattedName ?? undefined}
-          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-          createdAtISO={data.createdAt ?? null}
-          lastLoginAtISO={data.lastLoginAt ?? null}
-          accountStatus={data}
-        />
-        <AccountStatusMessageBar accountStatus={data} />
-        <MessageBar messageBarType={MessageBarType.info}>
-          <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
-        </MessageBar>
-        <OverflowTabs
-          className={styles.tabs}
-          value={selectedKey}
-          onValueChange={(v) =>
-            onChangeKey(v as typeof ACCOUNT_STATUS_KEY | typeof LOGS_KEY)
-          }
-          tabs={tabsForAnonymized}
-        />
-        {selectedKey === ACCOUNT_STATUS_KEY ? (
-          <UserDetailsAccountStatus data={data} />
-        ) : null}
-        {selectedKey === LOGS_KEY ? <UserDetailsLogs userID={data.id} /> : null}
-      </div>
+      <>
+        <div className={styles.widget}>
+          <UserDetailSummary
+            isAnonymous={data.isAnonymous}
+            isAnonymized={data.isAnonymized}
+            profileImageURL={data.standardAttributes.picture}
+            profileImageEditable={profileImageEditable}
+            onSelectProfileImage={setSelectedProfileImage}
+            rawUserID={extractRawID(data.id)}
+            formattedName={data.formattedName ?? undefined}
+            endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+            createdAtISO={data.createdAt ?? null}
+            lastLoginAtISO={data.lastLoginAt ?? null}
+            accountStatus={data}
+          />
+          <AccountStatusMessageBar accountStatus={data} />
+          <MessageBar messageBarType={MessageBarType.info}>
+            <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
+          </MessageBar>
+          <OverflowTabs
+            className={styles.tabs}
+            value={selectedKey}
+            onValueChange={(v) =>
+              onChangeKey(v as typeof ACCOUNT_STATUS_KEY | typeof LOGS_KEY)
+            }
+            tabs={tabsForAnonymized}
+          />
+          {selectedKey === ACCOUNT_STATUS_KEY ? (
+            <UserDetailsAccountStatus data={data} />
+          ) : null}
+          {selectedKey === LOGS_KEY ? (
+            <UserDetailsLogs userID={data.id} />
+          ) : null}
+        </div>
+        {profilePictureDialog}
+      </>
     );
   }
 
   return (
-    <div className={styles.widget}>
+    <>
+      <div className={styles.widget}>
       <UserDetailSummary
         isAnonymous={data.isAnonymous}
         isAnonymized={data.isAnonymized}
         profileImageURL={data.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
+        onSelectProfileImage={setSelectedProfileImage}
         rawUserID={extractRawID(data.id)}
         formattedName={data.formattedName ?? undefined}
         endUserAccountIdentifier={data.endUserAccountID ?? undefined}
@@ -587,7 +617,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
               datetime={formattedLastLogin}
             />
           </aside>
-          <div className={styles.profileTabMain}>
+          <div ref={profileContentRef} className={styles.profileTabMain}>
             <UserProfileForm
               identities={identities}
               standardAttributes={state.standardAttributes}
@@ -602,9 +632,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
       ) : null}
 
       {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
-        <div
-          className={`${styles.tabContent} ${styles.fullWidthTabContent}`}
-        >
+        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
           <UserDetailsAccountSecurity
             userID={data.id}
             authenticationConfig={appConfig.authentication}
@@ -619,9 +647,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
       ) : null}
 
       {selectedKey === CONNECTED_IDENTITIES_PIVOT_KEY ? (
-        <div
-          className={`${styles.tabContent} ${styles.fullWidthTabContent}`}
-        >
+        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
           <UserDetailsConnectedIdentities
             identities={identities}
             verifiedClaims={verifiedClaims}
@@ -634,9 +660,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
       ) : null}
 
       {selectedKey === SESSION_PIVOT_KEY ? (
-        <div
-          className={`${styles.tabContent} ${styles.fullWidthTabContent}`}
-        >
+        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
           <UserDetailsSession
             sessions={sessions}
             oauthClients={oauthClientConfig}
@@ -671,7 +695,9 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           <UserDetailsLogs userID={data.id} />
         </div>
       ) : null}
-    </div>
+      </div>
+      {profilePictureDialog}
+    </>
   );
 };
 
@@ -680,6 +706,41 @@ interface UserDetailsScreenContentProps {
   refreshUser?: () => void;
   effectiveAppConfig: PortalAPIAppConfig;
 }
+
+interface UserDetailsScreenFormProps {
+  form: SimpleFormModel<FormState>;
+  user: UserQueryNodeFragment;
+  refreshUser?: () => void;
+  effectiveAppConfig: PortalAPIAppConfig;
+}
+
+const UserDetailsScreenForm: React.VFC<UserDetailsScreenFormProps> =
+  function UserDetailsScreenForm(props: UserDetailsScreenFormProps) {
+    const { form, user, refreshUser, effectiveAppConfig } = props;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    return (
+      <>
+        <div
+          className={cn(
+            styles.screenContent,
+            isDirty ? styles.contentWithSaveBar : null
+          )}
+        >
+          <UserDetails
+            form={form}
+            data={user}
+            appConfig={effectiveAppConfig}
+            refreshUser={refreshUser}
+            profileContentRef={contentWidthAnchorRef}
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </>
+    );
+  };
 
 const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
@@ -750,14 +811,12 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
             form={form}
             hideFooterComponent={true}
           >
-            <div className={styles.screenContent}>
-              <UserDetails
-                form={form}
-                data={user}
-                appConfig={effectiveAppConfig}
-                refreshUser={refreshUser}
-              />
-            </div>
+            <UserDetailsScreenForm
+              form={form}
+              user={user}
+              refreshUser={refreshUser}
+              effectiveAppConfig={effectiveAppConfig}
+            />
           </FormContainer>
         </div>
       </ErrorMessageBarContextProvider>

@@ -17,6 +17,10 @@
   @apply mobile:overflow-visible;
 }
 
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
 .widget {
   @apply flex flex-col;
   padding: 24px;

@@ -7,6 +7,7 @@ import Link from "../../Link";
 import { FormattedMessage, Context } from "../../intl";
 import { AccountStatus } from "./UserDetailsAccountStatus";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { PROFILE_PICTURE_ACCEPT } from "./ProfilePictureDialog";
 
 import styles from "./UserDetailSummary.module.css";
 
@@ -19,6 +20,7 @@ interface UserDetailSummaryProps {
   endUserAccountIdentifier: string | undefined;
   profileImageURL: string | undefined;
   profileImageEditable: boolean;
+  onSelectProfileImage?: (file: File) => void;
   createdAtISO: string | null;
   lastLoginAtISO: string | null;
   accountStatus: AccountStatus;
@@ -76,6 +78,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       endUserAccountIdentifier,
       profileImageURL,
       profileImageEditable,
+      onSelectProfileImage,
       className,
       accountStatus,
     } = props;
@@ -110,6 +113,18 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       const name = endUserAccountIdentifier || rawUserID || "U";
       return name[0].toUpperCase();
     }, [endUserAccountIdentifier, rawUserID]);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const onChangeProfileImage = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.currentTarget.files?.[0];
+        event.currentTarget.value = "";
+        if (file != null) {
+          onSelectProfileImage?.(file);
+        }
+      },
+      [onSelectProfileImage]
+    );
 
     return (
       <div className={cn(styles.root, className)}>
@@ -127,14 +142,24 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
               radius="full"
             />
             {profileImageEditable ? (
-              <Link
-                to="./edit-picture"
-                className={styles.cameraLink}
-                aria-label={renderToString("EditPictureScreen.title")}
+              <button
+                type="button"
+                className={styles.cameraButton}
+                aria-label={renderToString("ProfilePictureDialog.title")}
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
               >
                 <CameraIcon className={styles.cameraIcon} />
-              </Link>
+              </button>
             ) : null}
+            <input
+              ref={fileInputRef}
+              className={styles.fileInput}
+              type="file"
+              accept={PROFILE_PICTURE_ACCEPT}
+              onChange={onChangeProfileImage}
+            />
           </div>
           <div className={styles.headerInfo}>
             <div className={styles.nameRow}>
