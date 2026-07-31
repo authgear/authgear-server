@@ -49,13 +49,7 @@ func ProvideDenoClient(endpoint config.DenoEndpoint) *hook.DenoClientImpl {
 }
 
 func ProvidePosthogCredential(analyticConfig *config.AnalyticConfig) *analytic.PosthogCredentials {
-	if analyticConfig.PosthogEndpoint != "" && analyticConfig.PosthogAPIKey != "" {
-		return &analytic.PosthogCredentials{
-			Endpoint: analyticConfig.PosthogEndpoint,
-			APIKey:   analyticConfig.PosthogAPIKey,
-		}
-	}
-	return nil
+	return analytic.NewPosthogCredentials(analyticConfig)
 }
 
 var denoDependencySet = wire.NewSet(

@@ -135,4 +135,7 @@ type EnvironmentConfig struct {
 	SMSGatewayConfig SMSGatewayEnvironmentConfig `envconfig:"SMS_GATEWAY"`
 
 	SharedAuthgearEndpoint SharedAuthgearEndpoint `envconfig:"SHARED_AUTHGEAR_ENDPOINT"`
+
+	// Analytic configures analytics forwarding (e.g. PostHog) from the server runtime.
+	Analytic AnalyticConfig `envconfig:"ANALYTIC"`
 }
