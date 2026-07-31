@@ -63,7 +63,10 @@ export function RadioCards<T extends string>({
       color="indigo"
       highContrast={highContrast}
       columns={gridColumns(numberOfColumns, itemMinWidth, itemFillSpaces)}
-      value={value ?? undefined}
+      // "" (never undefined) keeps the Root controlled from the first render,
+      // so a null selection renders as nothing checked instead of leaving the
+      // group uncontrolled. Matches IconRadioCards.
+      value={value ?? ""}
       onValueChange={handleValueChange}
     >
       {options.map((option) => {
