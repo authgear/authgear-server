@@ -52,6 +52,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -89,6 +90,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -125,6 +127,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: phone
     steps:
     - name: authenticate_primary_phone
@@ -161,6 +164,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: username
     steps:
     - name: authenticate_primary_username
@@ -201,6 +205,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -277,6 +282,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -317,6 +323,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -355,6 +362,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -391,6 +399,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: oauth
 - type: check_account_status
 - type: terminate_other_sessions
@@ -425,6 +434,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -459,6 +469,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: ldap
 - type: check_account_status
 - type: terminate_other_sessions
@@ -479,6 +490,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: ldap
     steps:
     - name: authenticate_secondary_ldap
@@ -511,6 +523,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -565,6 +578,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     steps:
     - name: authenticate_primary_email
@@ -610,6 +624,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - identification: email
     bot_protection:
       mode: always
@@ -670,6 +685,7 @@ steps:
 - name: login_identify
   type: identify
   one_of:
+  - identification: select_account
   - bot_protection:
       mode: always
     identification: email

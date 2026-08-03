@@ -17,3 +17,7 @@ var ErrNoPublicSignup = apierrors.Forbidden.
 	WithReason("AuthenticationFlowNoPublicSignup").
 	SkipLoggingToExternalService().
 	New("public signup is disabled")
+
+var ErrSelectAccountSessionChanged = apierrors.Unauthorized.
+	WithReason("SelectAccountSessionChanged").
+	New("session no longer matches the selected account")

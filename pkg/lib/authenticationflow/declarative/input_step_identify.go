@@ -36,7 +36,7 @@ func (i *InputSchemaStepIdentify) GetFlowRootObject() config.AuthenticationFlowO
 func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for _, option := range i.Options {
+	for index, option := range i.Options {
 		b := validation.SchemaBuilder{}
 		required := []string{"identification"}
 		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(option.Identification))
@@ -135,6 +135,10 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 				)
 
 			setRequiredAndAppendOneOf()
+		case model.AuthenticationFlowIdentificationSelectAccount:
+			required = append(required, "index")
+			b.Properties().Property("index", validation.SchemaBuilder{}.Type(validation.TypeInteger).Const(index))
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}
@@ -176,6 +180,8 @@ type InputStepIdentify struct {
 	ServerName string `json:"server_name"`
 	Username   string `json:"username"`
 	Password   string `json:"password"`
+
+	Index int `json:"index,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -186,6 +192,7 @@ var _ inputTakeLoginIDOrExternalJWT = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 var _ inputTakeBotProtection = &InputStepIdentify{}
 var _ inputTakeLDAP = &InputStepIdentify{}
+var _ inputTakeIdentificationOptionIndex = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -245,4 +252,8 @@ func (i *InputStepIdentify) GetUsername() string {
 
 func (i *InputStepIdentify) GetPassword() string {
 	return i.Password
+}
+
+func (i *InputStepIdentify) GetIdentificationOptionIndex() int {
+	return i.Index
 }

@@ -1,0 +1,43 @@
+name: Login without a session omits the select_account option
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: select_account
+          - identification: username
+            steps:
+            - type: authenticate
+              one_of:
+              - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                {
+                  "identification": "username"
+                }
+              ]
+            }
+          }
+        }

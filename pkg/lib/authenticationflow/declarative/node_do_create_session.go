@@ -19,6 +19,14 @@ type NodeDoCreateSession struct {
 	CreateReason session.CreateReason `json:"create_reason"`
 	SkipCreate   bool                 `json:"skip_create"`
 
+	// ContinueFromSessionType and ContinueFromSessionID identify the
+	// existing session that was reused instead of creating a new one (see
+	// MilestoneDoUseExistingSession) — populated by the caller only when
+	// SkipCreate is true because of that milestone, not merely because
+	// x_suppress_idp_session_cookie was requested.
+	ContinueFromSessionType session.Type `json:"continue_from_session_type,omitempty"`
+	ContinueFromSessionID   string       `json:"continue_from_session_id,omitempty"`
+
 	Session                 *idpsession.IDPSession    `json:"session,omitempty"`
 	SessionCookie           *http.Cookie              `json:"session_cookie,omitempty"`
 	AuthenticationInfoEntry *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
@@ -26,27 +34,51 @@ type NodeDoCreateSession struct {
 }
 
 func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
-	attrs := session.NewAttrs(n.UserID)
-
-	amr, err := CollectAMR(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	attrs.SetAMR(amr)
-
 	identitySpecs, err := collectIdentitySpecs(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	authnInfo := authenticationinfo.T{
-		UserID:          n.UserID,
-		AuthenticatedAt: deps.Clock.NowUTC(),
-		AMR:             amr,
-		IdentitySpecs:   identitySpecs,
-	}
+	var authnInfo authenticationinfo.T
 	var newSession *idpsession.IDPSession = nil
 	var sessionCookie *http.Cookie = nil
+
+	if n.ContinueFromSessionID != "" {
+		// The session being continued was already re-verified against the
+		// current request by resolveSelectAccountSession, but it may have
+		// been resolved in an earlier request than this one, so check again
+		// here that it is still the same session before reusing its
+		// authentication details as-is.
+		sess := session.GetSession(ctx)
+		if sess == nil || sess.SessionID() != n.ContinueFromSessionID || sess.SessionType() != n.ContinueFromSessionType {
+			return nil, ErrSelectAccountSessionChanged
+		}
+		authnInfo = sess.CreateNewAuthenticationInfoByThisSession()
+		authnInfo.IdentitySpecs = identitySpecs
+		authnInfo.ContinueFromSessionType = string(n.ContinueFromSessionType)
+		authnInfo.ContinueFromSessionID = n.ContinueFromSessionID
+	} else {
+		amr, err := CollectAMR(ctx, deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		authnInfo = authenticationinfo.T{
+			UserID:          n.UserID,
+			AuthenticatedAt: deps.Clock.NowUTC(),
+			AMR:             amr,
+			IdentitySpecs:   identitySpecs,
+		}
+
+		if !n.SkipCreate {
+			attrs := session.NewAttrs(n.UserID)
+			attrs.SetAMR(amr)
+			s, token := deps.IDPSessions.MakeSession(attrs)
+			newSession = s
+			sessionCookie = deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
+			authnInfo.AuthenticatedBySessionID = newSession.SessionID()
+			authnInfo.AuthenticatedBySessionType = string(newSession.SessionType())
+		}
+	}
 
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
 
@@ -54,14 +86,6 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 		deps.SessionCookie.SameSiteStrictDef,
 		"true",
 	)
-
-	if !n.SkipCreate {
-		s, token := deps.IDPSessions.MakeSession(attrs)
-		newSession = s
-		sessionCookie = deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
-		authnInfo.AuthenticatedBySessionID = newSession.SessionID()
-		authnInfo.AuthenticatedBySessionType = string(newSession.SessionType())
-	}
 
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo,
 		authflow.GetOAuthSessionID(ctx),

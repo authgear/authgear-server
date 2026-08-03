@@ -12,6 +12,8 @@ const (
 	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
 	AuthenticationFlowIdentificationIDToken  AuthenticationFlowIdentification = "id_token"
 	AuthenticationFlowIdentificationLDAP     AuthenticationFlowIdentification = "ldap"
+
+	AuthenticationFlowIdentificationSelectAccount AuthenticationFlowIdentification = "select_account"
 )
 
 func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
@@ -42,6 +44,9 @@ func (m AuthenticationFlowIdentification) PrimaryAuthentications() []Authenticat
 	case AuthenticationFlowIdentificationLDAP:
 		// LDAP does not require primary authentication.
 		return nil
+	case AuthenticationFlowIdentificationSelectAccount:
+		// SelectAccount does not require primary authentication.
+		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))
 	}
@@ -69,6 +74,9 @@ func (m AuthenticationFlowIdentification) SecondaryAuthentications() []Authentic
 		return nil
 	case AuthenticationFlowIdentificationLDAP:
 		return all
+	case AuthenticationFlowIdentificationSelectAccount:
+		// SelectAccount does not require secondary authentication.
+		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))
 	}

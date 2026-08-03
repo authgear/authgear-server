@@ -20,12 +20,12 @@ error: |-
   /steps/0/type: enum
     map[actual:foobar expected:[identify]]
   /steps/1/one_of/0: required
-    map[actual:[bot_protection identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
+    map[actual:[bot_protection identification] expected:[login_flow signup_flow] missing:[login_flow signup_flow]]
   /steps/1/one_of/0/bot_protection: required
     map[actual:[foobar] expected:[mode] missing:[mode]]
   /steps/1/one_of/0/bot_protection/foobar: 
   /steps/1/one_of/0/identification: enum
-    map[actual:foobar expected:[email phone username oauth passkey ldap id_token]]
+    map[actual:foobar expected:[email phone username oauth passkey ldap id_token select_account]]
 value:
   name: id
   steps:
@@ -51,3 +51,44 @@ value:
         mode: always
       signup_flow: a
       login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: select_account-without-signup-flow
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: select_account
+      login_flow: b
+    - identification: email
+      signup_flow: a
+      login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: select_account-with-signup-flow-is-invalid
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: select_account
+      login_flow: b
+      signup_flow: a
+---
+part: AuthenticationFlowSignupLoginFlow
+name: select_account-without-login-flow-is-invalid
+error: |-
+  invalid value:
+  /steps/0/one_of/0: required
+    map[actual:[identification] expected:[login_flow] missing:[login_flow]]
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: select_account

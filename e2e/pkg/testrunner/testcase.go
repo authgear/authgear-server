@@ -164,6 +164,10 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
+		if step.SessionCookie != nil {
+			client.InjectSession(step.SessionCookie.IDPSessionID, step.SessionCookie.IDPSessionToken)
+		}
+
 		flowResponse, flowErr = client.CreateFlow(input)
 
 		if step.Output != nil {
@@ -586,6 +590,10 @@ func (tc *TestCase) executeStep(
 				return nil, state, false
 			}
 			inputState = strings.TrimSpace(inputState)
+		}
+
+		if step.SessionCookie != nil {
+			client.InjectSession(step.SessionCookie.IDPSessionID, step.SessionCookie.IDPSessionToken)
 		}
 
 		flowResponse, flowErr = client.InputFlow(nil, nil, inputState, input)

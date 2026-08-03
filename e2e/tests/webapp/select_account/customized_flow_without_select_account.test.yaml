@@ -1,0 +1,144 @@
+name: select_account is unavailable for a customized login flow that doesn't declare it
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: email
+              steps:
+              - name: authenticate
+                type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: lSo1Ui9pr2_uxxYYJeX3kYmXFqc2xEg5-t7JYLY_K_4
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 302
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/login?{{ (urlParse .steps.authorize_1.result.http_response_headers.location).query }}"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: select-account-webapp@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_password
+  - name: submit_password
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_password: password
+    http_output:
+      http_status: 302
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_password.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - name: oauth_exchange_code_1
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "C~higTZz5CcHWA2UfOg1X.u~EX0OoJkERLbso0YeFfEaqi3eki.JTEQ5SXJR5fE~"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # Second OAuth authorization while the session is still valid. Because
+  # this project's login_flows is customized and does not declare
+  # select_account, the built-in UI must treat account continuation as
+  # unavailable for this project - same as a Custom UI calling the JSON API
+  # would see no select_account option at all - and bounce straight to
+  # /login instead of rendering "Continue as X" or falling back to the
+  # legacy session-minting path.
+  - name: authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: _KHfZq_nzdUr8mdstm_JWKdzbxQIeCW-pKjxf9IJEnc
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+      html_xpath_exists:
+        - /html/body//form//input[@name='x_login_id']
+
+  # A direct POST x_action=continue (e.g. a stale client that cached the
+  # select_account page from before the flow was reconfigured) must also be
+  # refused rather than silently completing via the legacy fallback.
+  - name: select_account_continue_direct
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://127.0.0.1:4000/authflow/v2/select_account
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_action: continue
+    http_output:
+      http_status: 302
+
+  # Only the first (real) login fired user.authenticated - the second
+  # authorization never completed any authentication.
+  - name: verify_event_count
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+      ORDER BY created_at
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]
