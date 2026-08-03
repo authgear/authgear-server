@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @apply mobile:min-h-min mobile:overflow-visible;
 }
 
 /* ── Table wrapper (scrollable) ── */
@@ -18,6 +20,8 @@
   border-radius: var(--radius-3);
   border: 1px solid var(--gray-a6);
   margin: 0 24px;
+
+  @apply mobile:flex-none mobile:min-h-min mobile:overflow-y-visible;
 }
 
 /* ── Table ── */

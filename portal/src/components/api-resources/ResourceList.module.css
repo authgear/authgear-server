@@ -1,5 +1,7 @@
 .listRoot {
   @apply flex flex-col min-h-0 overflow-hidden;
+
+  @apply mobile:min-h-min mobile:overflow-visible;
 }
 
 .tableWrapper {
@@ -8,6 +10,8 @@
   min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+  @apply mobile:min-h-min mobile:overflow-y-visible;
 }
 
 .table {

@@ -1,9 +1,13 @@
 .scrollBody {
   @apply flex flex-col min-h-full;
+
+  @apply mobile:min-h-min;
 }
 
 .screenContent {
   @apply flex-1 min-h-0;
+
+  @apply mobile:flex-none mobile:min-h-min mobile:overflow-visible;
 }
 
 .header {

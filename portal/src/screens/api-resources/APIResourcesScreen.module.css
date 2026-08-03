@@ -3,10 +3,14 @@
   /* Fill the remaining ScreenContent 1fr row so empty state can center */
   min-height: 0;
   height: 100%;
+
+  @apply mobile:min-h-min mobile:h-auto mobile:flex-none mobile:overflow-visible;
 }
 
 .list {
   @apply flex-1 min-h-0;
+
+  @apply mobile:flex-none mobile:min-h-min;
 }
 
 .searchField {

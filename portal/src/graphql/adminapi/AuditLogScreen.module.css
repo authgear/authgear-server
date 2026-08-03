@@ -3,6 +3,8 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+
+  @apply mobile:h-auto mobile:min-h-min mobile:overflow-visible mobile:flex-1-0-auto;
 }
 
 .header {
@@ -31,6 +33,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @apply mobile:flex-none mobile:min-h-min mobile:overflow-visible;
 }
 
 .commandBarContainerContent {
@@ -38,10 +42,14 @@
   flex-direction: column;
   padding-top: 16px;
   padding-bottom: 0;
+
+  @apply mobile:flex-none mobile:min-h-min mobile:overflow-visible;
 }
 
 .list {
   flex: 1 1 0px;
+
+  @apply mobile:flex-none mobile:min-h-min;
 }
 
 .messageBar {
