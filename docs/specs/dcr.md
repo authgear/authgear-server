@@ -5,6 +5,8 @@ Authgear supports Dynamic Client Registration as defined by:
 - [RFC 7591 — OAuth 2.0 Dynamic Client Registration Protocol](https://www.rfc-editor.org/rfc/rfc7591)
 - [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html)
 
+> See also [Client ID Metadata Documents (CIMD)](./cimd.md) — a proposed, registration-free alternative for the same "unregistered client" problem, likely to supersede DCR's open-registration mode for the MCP use case below.
+
 ## Table of Contents
 
 - [Glossary](#glossary)
@@ -541,7 +543,12 @@ DCR-registered clients are represented using the unified `OAuthClient` model def
 
 ```graphql
 extend type Query {
-  """Returns DCR-registered clients only. Static clients are managed via authgear.yaml."""
+  """
+  Returns clients that exist outside authgear.yaml: DCR-registered clients and,
+  when enabled, CIMD-resolved clients (see cimd.md). Distinguish the two via
+  `source` on OAuthClient (DCR vs CIMD). Static clients are managed via
+  authgear.yaml and are not returned here.
+  """
   dynamicClients(
     first: Int
     after: String
