@@ -4,6 +4,7 @@ An Authgear **client** is any OAuth 2.0 / OIDC application that interacts with t
 
 1. **Static clients** — declared in `authgear.yaml` under `oauth.clients`. Changes require a configuration deploy.
 2. **Dynamic clients** — registered at runtime via [Dynamic Client Registration (DCR)](./dcr.md). Stored in the database.
+3. **Client ID Metadata Document (CIMD) clients** *(proposed, see [cimd.md](./cimd.md))* — resolved by fetching a JSON document from a `client_id` URL, then persisted as a single shared record per `client_id`, refreshed on each refetch. Not registered like a DCR client; there is no registration event, only resolution.
 
 This document defines the unified client model and presents it as a GraphQL type. It then describes how each source maps into the model.
 
@@ -19,6 +20,9 @@ This document defines the unified client model and presents it as a GraphQL type
 type OAuthClient {
   """Unique, immutable client identifier."""
   clientID: String!
+
+  """Which of the three sources this client came from."""
+  source: OAuthClientSource!
 
   """
   Whether the client is first-party or third-party. Third-party clients always
@@ -147,8 +151,15 @@ type OAuthClient {
   """
   replaceProjectLogoWithLogoURI: Boolean!
 
-  """RFC 3339 timestamp of DCR registration. Null for static clients."""
+  """RFC 3339 timestamp of DCR registration. Null for static and CIMD clients."""
   registeredAt: DateTime
+
+  """
+  RFC 3339 timestamp of the most recent successful fetch of the client's
+  Client ID Metadata Document, refreshed on each refetch (see cimd.md). Null
+  for static and DCR clients, which are never fetched from an external URL.
+  """
+  lastFetchedAt: DateTime
 }
 
 type AuthenticationFlowAllowlist {
@@ -173,11 +184,22 @@ enum OAuthClientKind {
   """Operated by an external developer. Consent screen is always shown."""
   THIRD_PARTY
 }
+
+enum OAuthClientSource {
+  """Declared in authgear.yaml."""
+  STATIC
+
+  """Registered via Dynamic Client Registration. See dcr.md."""
+  DCR
+
+  """Resolved from a Client ID Metadata Document. See cimd.md."""
+  CIMD
+}
 ```
 
 ## Mapping from Static Config
 
-The config field `x_application_type` is a shorthand that encodes `isThirdParty`, `isConfidential`, and `applicationType` together. The table below shows the decomposition. The `spa` and `traditional_webapp` values both map to the same three fields; the distinction between them is preserved in `postLogoutRedirectURIs` (non-empty for `traditional_webapp`).
+`source` is always `STATIC` for every client in this section. The config field `x_application_type` is a shorthand that encodes `isThirdParty`, `isConfidential`, and `applicationType` together. The table below shows the decomposition. The `spa` and `traditional_webapp` values both map to the same three fields; the distinction between them is preserved in `postLogoutRedirectURIs` (non-empty for `traditional_webapp`).
 
 | `x_application_type` | `kind` | `isConfidential` | `isServiceClient` | `applicationType` |
 |---|---|---|---|---|
@@ -210,6 +232,7 @@ The resulting `OAuthClient` object is:
 ```json
 {
   "clientID": "myapp",
+  "source": "STATIC",
   "kind": "FIRST_PARTY",
   "isConfidential": false,
   "isServiceClient": false,
@@ -239,7 +262,8 @@ The resulting `OAuthClient` object is:
   "preAuthenticatedURLEnabled": false,
   "preAuthenticatedURLAllowedOrigins": [],
   "replaceProjectLogoWithLogoURI": false,
-  "registeredAt": null
+  "registeredAt": null,
+  "lastFetchedAt": null
 }
 ```
 
@@ -247,7 +271,7 @@ Fields absent from `authgear.yaml` resolve to their defaults via `OAuthClientCon
 
 ## Mapping from DCR
 
-When a client is registered via `POST /oauth2/register`, `kind` is determined by the IAT type and `applicationType` comes directly from the OIDC `application_type` field in the request body. DCR clients are always public, so `isConfidential` is always `false`.
+`source` is always `DCR` for every client in this section. When a client is registered via `POST /oauth2/register`, `kind` is determined by the IAT type and `applicationType` comes directly from the OIDC `application_type` field in the request body. DCR clients are always public, so `isConfidential` is always `false`.
 
 | DCR `application_type` | IAT type | `kind` | `isConfidential` | `isServiceClient` | `applicationType` |
 |---|---|---|---|---|---|
@@ -275,6 +299,7 @@ The resulting `OAuthClient` object is:
 ```json
 {
   "clientID": "dcrc_Xf2kLmNpQrStUvWx",
+  "source": "DCR",
   "kind": "FIRST_PARTY",
   "isConfidential": false,
   "isServiceClient": false,
@@ -304,7 +329,8 @@ The resulting `OAuthClient` object is:
   "preAuthenticatedURLEnabled": false,
   "preAuthenticatedURLAllowedOrigins": [],
   "replaceProjectLogoWithLogoURI": false,
-  "registeredAt": "2024-11-15T00:00:00Z"
+  "registeredAt": "2024-11-15T00:00:00Z",
+  "lastFetchedAt": null
 }
 ```
 
