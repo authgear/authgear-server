@@ -20,12 +20,10 @@ import {
   PartialTheme,
   Spinner,
   SpinnerSize,
-  PivotItem,
 } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { Tabs, Text as RadixText } from "@radix-ui/themes";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "../../intl";
-import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import {
@@ -65,12 +63,11 @@ import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMut
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 import { formatDateOnly } from "../../util/formatDateOnly";
 import { FeatureBanner } from "../../components/billing/FeatureBanner";
-import ScreenDescription from "../../ScreenDescription";
 import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
 import { usePivotNavigation } from "../../hook/usePivot";
-import LinkButton from "../../LinkButton";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
+import { TextButton } from "../../components/v2/Button/TextButton/TextButton";
 import { extractRawID } from "../../util/graphql";
 import { CancelSubscriptionSurveyDialog } from "../../components/billing/CancelSubscriptionSurveyDialog";
 
@@ -481,7 +478,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     previousMonthSubscriptionUsage,
   } = props;
   const { themes } = useSystemConfig();
-  const { renderToString } = useContext(Context);
 
   const hasSubscription = useMemo(() => !!subscription, [subscription]);
 
@@ -506,10 +502,17 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const [cancelSurveyDialogHidden, setCancelSurveyDialogHidden] =
     useState(true);
 
-  const { selectedKey: selectedTab, onLinkClick } = usePivotNavigation<Tab>([
-    Tab.Subscription,
-    Tab.PlanDetail,
-  ]);
+  const { selectedKey: selectedTab, onChangeKey: onTabChange } =
+    usePivotNavigation<Tab>([Tab.Subscription, Tab.PlanDetail]);
+
+  const onTabValueChange = useCallback(
+    (value: string) => {
+      if (value === Tab.Subscription || value === Tab.PlanDetail) {
+        onTabChange(value);
+      }
+    },
+    [onTabChange]
+  );
 
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -669,53 +672,68 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       </Dialog>
 
       <div className={styles.root}>
-        <div className={cn(styles.section, "grid gap-4 grid-flow-row")}>
-          <ScreenTitle>
+        <div className={styles.header}>
+          <RadixText
+            as="p"
+            size="5"
+            weight="bold"
+            className={styles.pageTitle}
+          >
             <FormattedMessage id="SubscriptionScreen.title" />
-          </ScreenTitle>
-          <ScreenDescription>
+          </RadixText>
+          <RadixText
+            as="p"
+            size="2"
+            color="gray"
+            className={styles.pageDescription}
+          >
             <FormattedMessage id="SubscriptionScreen.description" />
-          </ScreenDescription>
+          </RadixText>
         </div>
-        <AGPivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
-          <PivotItem
-            itemKey={Tab.Subscription}
-            headerText={renderToString("SubscriptionScreen.tabs.subscription")}
-          />
-          <PivotItem
-            itemKey={Tab.PlanDetail}
-            headerText={renderToString("SubscriptionScreen.tabs.planDetails")}
-          />
-        </AGPivot>
-        {selectedTab === Tab.Subscription ? (
-          <div className="py-6 grid grid-flow-row gap-4">
-            <FeatureBanner />
-            <PlansSection
-              currentPlanName={planName}
+        <Tabs.Root
+          className={styles.tabsRoot}
+          value={selectedTab}
+          onValueChange={onTabValueChange}
+        >
+          <Tabs.List className={styles.tabsList}>
+            <Tabs.Trigger value={Tab.Subscription}>
+              <FormattedMessage id="SubscriptionScreen.tabs.subscription" />
+            </Tabs.Trigger>
+            <Tabs.Trigger value={Tab.PlanDetail}>
+              <FormattedMessage id="SubscriptionScreen.tabs.planDetails" />
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value={Tab.Subscription} className={styles.tabContent}>
+            <div className="py-6 grid grid-flow-row gap-4">
+              <FeatureBanner />
+              <PlansSection
+                currentPlanName={planName}
+                subscriptionCancelled={subscriptionCancelled}
+                nextBillingDate={nextBillingDate}
+                subscriptionPlans={subscriptionPlans}
+                onClickContactUs={onClickContactUs}
+                onClickCancelSubscription={onClickCancel}
+              />
+              <footer className={styles.section}>
+                <Text block={true}>
+                  <FormattedMessage id="SubscriptionScreen.footer.tax" />
+                </Text>
+              </footer>
+            </div>
+          </Tabs.Content>
+          <Tabs.Content value={Tab.PlanDetail} className={styles.tabContent}>
+            <PlanDetailsTab
+              appID={appID}
+              planName={planName}
               subscriptionCancelled={subscriptionCancelled}
               nextBillingDate={nextBillingDate}
-              subscriptionPlans={subscriptionPlans}
-              onClickContactUs={onClickContactUs}
-              onClickCancelSubscription={onClickCancel}
+              thisMonthUsage={thisMonthUsage}
+              thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+              previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
+              hasSubscription={hasSubscription}
             />
-            <footer className={styles.section}>
-              <Text block={true}>
-                <FormattedMessage id="SubscriptionScreen.footer.tax" />
-              </Text>
-            </footer>
-          </div>
-        ) : (
-          <PlanDetailsTab
-            appID={appID}
-            planName={planName}
-            subscriptionCancelled={subscriptionCancelled}
-            nextBillingDate={nextBillingDate}
-            thisMonthUsage={thisMonthUsage}
-            thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
-            previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
-            hasSubscription={hasSubscription}
-          />
-        )}
+          </Tabs.Content>
+        </Tabs.Root>
       </div>
     </>
   );
@@ -775,27 +793,25 @@ function PlanDetailsTab({
   );
 
   return (
-    <div className="py-6 grid grid-flow-row gap-4 max-w-[720px]">
-      <div className="space-y-2">
-        <Text variant="xLarge" block={true}>
-          <FormattedMessage id="SubscriptionScreen.planDetails.title" />
-        </Text>
+    <div className={styles.planDetailsGrid}>
+      <div className={cn(styles.widget, styles.planDetailsTab)}>
+        <div className={styles.planDetailsHeader}>
         {subscriptionCancelled && formattedBillingDate != null ? (
           <CancelSubscriptionReminder
             formattedBillingDate={formattedBillingDate}
           />
         ) : null}
         {formattedBillingDate ? (
-          <Text variant="medium" className="text-text-secondary" block={true}>
+          <RadixText as="p" size="2" color="gray">
             <FormattedMessage
               id="SubscriptionScreen.planDetails.nextBillingDate"
               values={{ date: formattedBillingDate }}
             />
-          </Text>
+          </RadixText>
         ) : null}
-        <Text variant="medium" className="text-text-secondary" block={true}>
+        <RadixText as="p" size="2" color="gray">
           <FormattedMessage id="SubscriptionScreen.planDetails.reminder" />
-        </Text>
+        </RadixText>
       </div>
       <CurrentPlanCard
         planName={planName}
@@ -805,21 +821,18 @@ function PlanDetailsTab({
         hasSubscription={hasSubscription}
       />
       {formattedBillingDate != null ? (
-        <LinkButton
-          className="text-sm relative justify-self-start"
-          onClick={onClickManageSubscription}
+        <TextButton
+          variant="default"
+          size="3"
+          loading={manageSubscriptionLoading}
           disabled={isLoading}
-        >
-          <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
+          text={
             <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
-          </span>
-          {manageSubscriptionLoading === true ? (
-            <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
-              <Spinner size={SpinnerSize.xSmall} />
-            </div>
-          ) : null}
-        </LinkButton>
+          }
+          onClick={onClickManageSubscription}
+        />
       ) : null}
+      </div>
     </div>
   );
 }
@@ -859,10 +872,15 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
     }, [cancelFailedSubscription]);
 
     return (
-      <div className={styles.root}>
-        <ScreenTitle className={styles.section}>
+      <div className={styles.processingPaymentRoot}>
+        <RadixText
+          as="p"
+          size="5"
+          weight="bold"
+          className={styles.pageTitle}
+        >
           <FormattedMessage id="SubscriptionScreen.title" />
-        </ScreenTitle>
+        </RadixText>
         <div
           className={cn(styles.processingPaymentSection)}
           style={{

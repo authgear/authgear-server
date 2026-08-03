@@ -5,6 +5,83 @@
   row-gap: 24px;
 }
 
+.processingPaymentRoot {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 1252px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.tabsRoot {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tabsList {
+  width: 100%;
+  box-shadow: none;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--gray-a6);
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.planDetailsGrid {
+  display: grid;
+  column-gap: 16px;
+  row-gap: 20px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+
+  @apply grid-cols-[repeat(12,_80px)] auto-rows-auto tablet:grid-cols-12;
+  @apply content-start;
+}
+
+.widget {
+  grid-column: 1 / span 9;
+
+  @apply tablet:col-span-full;
+}
+
+.planDetailsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.planDetailsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .section {
   max-width: 1252px;
 }

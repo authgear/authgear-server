@@ -1678,7 +1678,7 @@
   "SubscriptionScreen.description": "View and manage the features and resources to boost performance",
   "SubscriptionScreen.recommended": "Recommended",
   "SubscriptionScreen.tabs.subscription": "Subscription",
-  "SubscriptionScreen.tabs.planDetails": "Plan details",
+  "SubscriptionScreen.tabs.planDetails": "Billing & Usage",
   "SubscriptionScreen.planDetails.title": "Current Billing & Usage",
   "SubscriptionScreen.planDetails.nextBillingDate": "Next billing date: {date}",
   "SubscriptionScreen.planDetails.reminder": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",

@@ -1,18 +1,11 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import {
-  IButtonProps,
-  ITooltipHostProps,
-  PartialTheme,
-  ProgressIndicator,
-  Text,
-  ThemeProvider,
-  TooltipHost,
-  useTheme,
-} from "@fluentui/react";
+import cn from "classnames";
+import { Text as RadixText } from "@radix-ui/themes";
+import { useNavigate } from "react-router-dom";
 import styles from "./CurrentPlanCard.module.css";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import { useId } from "@fluentui/react-hooks";
-import LinkButton from "../../LinkButton";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
+import { TextButton } from "../v2/Button/TextButton/TextButton";
 import {
   SMSCost,
   SMSUsage,
@@ -32,7 +25,6 @@ import {
   SubscriptionUsage,
   Usage,
 } from "../../graphql/portal/globalTypes.generated";
-import { useNavigate } from "react-router-dom";
 
 interface CurrentPlanCardProps {
   planName: string;
@@ -53,7 +45,6 @@ export function CurrentPlanCard({
     if (!isStripePlan(planName)) {
       return undefined;
     }
-    // show subscription fee only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -71,7 +62,6 @@ export function CurrentPlanCard({
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
-    // show sms cost only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -89,7 +79,6 @@ export function CurrentPlanCard({
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
-    // show whatsapp cost only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -149,11 +138,13 @@ function CostItemRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between">
-      <Text variant="medium" className="font-semibold">
+    <div className={styles.costItemRow}>
+      <RadixText size="2" className={styles.costItemLabel}>
         {label}
-      </Text>
-      <Text variant="medium">{value}</Text>
+      </RadixText>
+      <RadixText size="2" className={styles.costItemValue}>
+        {value}
+      </RadixText>
     </div>
   );
 }
@@ -190,30 +181,30 @@ function FixedCostSection({
 
   return (
     <section className={styles.card}>
-      <div className="space-y-2">
-        <Text block={true} variant="mediumPlus" className="font-semibold">
+      <div className={styles.sectionHeader}>
+        <RadixText as="p" size="3" weight="medium" className={styles.sectionTitle}>
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.title" />
-        </Text>
+        </RadixText>
         {baseAmount != null ? (
-          <div className="flex items-end">
-            <Text variant="xxLarge">
+          <div className={styles.priceRow}>
+            <RadixText size="8">
               <FormattedMessage
                 id="CurrentPlanCard.subscriptionFee.value"
                 values={{ price: baseAmount.toLocaleString(locale) }}
               />
-            </Text>
-            <Text variant="large" className="ml-2 font-semibold">
+            </RadixText>
+            <RadixText size="4" weight="medium" className={styles.priceUnit}>
               <FormattedMessage id="CurrentPlanCard.subscriptionFee.unit" />
-            </Text>
+            </RadixText>
           </div>
         ) : (
-          <Text variant="xxLarge">-</Text>
+          <RadixText size="8">-</RadixText>
         )}
       </div>
-      <div className="space-y-2">
-        <Text block={true} variant="medium" className="font-semibold">
+      <div className={styles.detailsSection}>
+        <RadixText as="p" size="2" weight="medium" className={styles.detailsSectionTitle}>
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.include" />
-        </Text>
+        </RadixText>
         <CostItemRow
           label={
             <FormattedMessage
@@ -265,31 +256,31 @@ function MeteredCostSection({
 
   return (
     <section className={styles.card}>
-      <div className="space-y-2">
-        <Text block={true} variant="mediumPlus" className="font-semibold">
+      <div className={styles.sectionHeader}>
+        <RadixText as="p" size="3" weight="medium" className={styles.sectionTitle}>
           <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.title" />
-        </Text>
-        <div className="flex items-end">
+        </RadixText>
+        <div className={styles.priceRow}>
           {totalCost != null ? (
             <>
-              <Text variant="xxLarge">
+              <RadixText size="8">
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.value"
                   values={{ price: totalCost.toLocaleString(locale) }}
                 />
-              </Text>
-              <Text variant="large" className="ml-2 font-semibold">
+              </RadixText>
+              <RadixText size="4" weight="medium" className={styles.priceUnit}>
                 <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.unit" />
-              </Text>
+              </RadixText>
             </>
           ) : (
-            <Text variant="large" className="ml-2 font-semibold">
+            <RadixText size="4" weight="medium">
               -
-            </Text>
+            </RadixText>
           )}
         </div>
       </div>
-      <div className="space-y-2">
+      <div className={styles.detailsSection}>
         {smsCost != null || smsUsage != null ? (
           <CostItemRow
             label={
@@ -438,14 +429,22 @@ function MAUUsageSection({
   }, [navigate]);
 
   return (
-    <section className={styles.card}>
+    <section className={cn(styles.card, styles["card--fullWidth"])}>
       <UsageMeter
         title={<FormattedMessage id="CurrentPlanCard.mau.title" />}
         current={mauCurrent}
         limit={mauLimit}
         previous={mauPrevious}
         warnPercentage={0.8}
-        tooltip={<FormattedMessage id="CurrentPlanCard.mau.tooltip" />}
+        tooltip={
+          <FormattedMessage
+            id="CurrentPlanCard.mau.tooltip"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              br: () => <br />,
+            }}
+          />
+        }
         onClickUpgrade={onUpgrade}
       />
     </section>
@@ -454,19 +453,13 @@ function MAUUsageSection({
 
 interface UsageMeterProps {
   title: React.ReactNode;
-  tooltip: ITooltipHostProps["content"];
+  tooltip: React.ReactNode;
   current?: number;
   limit?: number;
   previous?: number;
   warnPercentage: number;
-  onClickUpgrade?: IButtonProps["onClick"];
+  onClickUpgrade?: React.MouseEventHandler<HTMLButtonElement>;
 }
-
-const USAGE_METER_THEME_WARN: PartialTheme = {
-  palette: {
-    themePrimary: "#F9597A",
-  },
-};
 
 function UsageMeter(props: UsageMeterProps): React.ReactElement {
   const {
@@ -480,71 +473,75 @@ function UsageMeter(props: UsageMeterProps): React.ReactElement {
   } = props;
   const percentComplete =
     current != null && limit != null ? current / limit : null;
-  const id = useId("usage-meter");
-  const calloutProps = useMemo(() => {
-    return {
-      target: `#${id}`,
-    };
-  }, [id]);
-  const currentTheme = useTheme();
   const limitReached =
     current != null && limit != null ? current >= limit : false;
-  const theme = limitReached ? USAGE_METER_THEME_WARN : currentTheme;
-  const usageStyles = {
-    root: {
-      color: limitReached
-        ? USAGE_METER_THEME_WARN.palette?.themePrimary
-        : currentTheme.palette.neutralSecondary,
-    },
-  };
+
   return (
-    <TooltipHost
-      hostClassName="col-span-2"
-      content={tooltip}
-      calloutProps={calloutProps}
-    >
-      <div className="flex flex-col">
-        <Text
-          id={id}
-          block={true}
-          variant="mediumPlus"
-          className="self-start font-semibold mb-2"
+    <Tooltip content={tooltip}>
+      <div className={styles.usageMeter}>
+        <RadixText
+          as="p"
+          size="3"
+          weight="medium"
+          className={styles.usageMeterTitle}
         >
           {title}
-        </Text>
-        <ThemeProvider theme={theme}>
-          {percentComplete != null ? (
-            <ProgressIndicator
-              className="w-full"
-              percentComplete={percentComplete}
+        </RadixText>
+        {percentComplete != null ? (
+          <div className={styles.progressBar}>
+            <div
+              className={cn(
+                styles.progressBarFill,
+                limitReached ? styles["progressBarFill--warn"] : null
+              )}
+              style={{ width: `${Math.min(percentComplete, 1) * 100}%` }}
+            />
+          </div>
+        ) : null}
+        <RadixText
+          as="p"
+          size="2"
+          className={cn(
+            styles.usageText,
+            limitReached ? styles["usageText--warn"] : null
+          )}
+        >
+          {limit != null && current != null
+            ? `${current} / ${limit}`
+            : limit == null && current != null
+            ? `${current}`
+            : null}
+          {previous != null ? (
+            <FormattedMessage
+              id="CurrentPlanCard.mau.previous"
+              values={{
+                count: previous,
+              }}
             />
           ) : null}
-          <Text block={true} styles={usageStyles} variant="medium">
-            {limit != null && current != null
-              ? `${current} / ${limit}`
-              : limit == null && current != null
-              ? `${current}`
-              : null}
-            {previous != null ? (
-              <FormattedMessage
-                id="CurrentPlanCard.mau.previous"
-                values={{
-                  count: previous,
-                }}
-              />
-            ) : null}
-          </Text>
-          {limitReached ? (
-            <LinkButton onClick={onClickUpgrade}>
-              <FormattedMessage id="CurrentPlanCard.mau.limitReached" />
-            </LinkButton>
-          ) : percentComplete != null && percentComplete >= warnPercentage ? (
-            <LinkButton onClick={onClickUpgrade}>
-              <FormattedMessage id="CurrentPlanCard.mau.approachingLimit" />
-            </LinkButton>
-          ) : null}
-        </ThemeProvider>
+        </RadixText>
+        {limitReached ? (
+          <div className={styles.upgradeLink}>
+            <TextButton
+              variant="default"
+              size="3"
+              text={<FormattedMessage id="CurrentPlanCard.mau.limitReached" />}
+              onClick={onClickUpgrade}
+            />
+          </div>
+        ) : percentComplete != null && percentComplete >= warnPercentage ? (
+          <div className={styles.upgradeLink}>
+            <TextButton
+              variant="default"
+              size="3"
+              text={
+                <FormattedMessage id="CurrentPlanCard.mau.approachingLimit" />
+              }
+              onClick={onClickUpgrade}
+            />
+          </div>
+        ) : null}
       </div>
-    </TooltipHost>
+    </Tooltip>
   );
 }

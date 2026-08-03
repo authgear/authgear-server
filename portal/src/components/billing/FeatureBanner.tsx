@@ -1,5 +1,11 @@
 import React from "react";
-import { Icon, Text } from "@fluentui/react";
+import {
+  CheckCircledIcon,
+  CheckIcon,
+  LayersIcon,
+  RocketIcon,
+} from "@radix-ui/react-icons";
+import { Text as RadixText } from "@radix-ui/themes";
 import styles from "./FeatureBanner.module.css";
 import { FormattedMessage } from "../../intl";
 
@@ -8,18 +14,18 @@ interface FeatureBannerProps {}
 export function FeatureBanner({}: FeatureBannerProps): React.ReactElement {
   return (
     <div className={styles.bannerContainer}>
-      <div className="space-y-4 flex-1-0-auto">
-        <div className="space-y-2">
-          <Text variant="xxLarge" block={true}>
+      <div className={styles.contentSection}>
+        <div className={styles.header}>
+          <RadixText size="8" as="p" className={styles.title}>
             <FormattedMessage id="FeatureBanner.title" />
-          </Text>
-          <Text variant="large" className="text-text-secondary" block={true}>
+          </RadixText>
+          <RadixText size="4" as="p" className={styles.subtitle}>
             <FormattedMessage id="FeatureBanner.subtitle" />
-          </Text>
+          </RadixText>
         </div>
         <FeatureList />
       </div>
-      <div className="flex-1 min-w-100">
+      <div className={styles.highlightedSection}>
         <HighlightedFeatureList />
       </div>
     </div>
@@ -43,51 +49,57 @@ function FeatureList() {
   return (
     <ul className={styles.featureList}>
       {featureMessageIDs.map((id) => (
-        <li key={id} className="flex items-center">
-          <Icon iconName={"CheckMark"} className="text-sm text-theme-primary" />
-          <Text className="font-semibold ml-2" variant="medium">
+        <li key={id} className={styles.featureItem}>
+          <CheckIcon className={styles.featureIcon} width="1rem" height="1rem" />
+          <RadixText size="2" weight="medium" className={styles.featureText}>
             <FormattedMessage id={id} />
-          </Text>
+          </RadixText>
         </li>
       ))}
     </ul>
   );
 }
 
-const highlightedFeatures = [
+type HighlightedFeatureIcon = typeof CheckCircledIcon;
+
+const highlightedFeatures: {
+  messageID: string;
+  icon: HighlightedFeatureIcon;
+}[] = [
   {
     messageID: "FeatureBanner.highlightedFeatures.fullAccessToAllFeatures",
-    iconName: "VerifiedBrand",
+    icon: CheckCircledIcon,
   },
   {
     messageID: "FeatureBanner.highlightedFeatures.startBuildingForFree",
-    iconName: "FavoriteList",
+    icon: RocketIcon,
   },
   {
     messageID: "FeatureBanner.highlightedFeatures.flexibleUsageBasedAddOns",
-    iconName: "ExploreContent",
+    icon: LayersIcon,
   },
 ];
 
 function HighlightedFeatureList() {
   return (
     <ul className={styles.highlightedFeatureList}>
-      {highlightedFeatures.map((feature) => (
-        <li
-          key={feature.messageID}
-          className="flex items-center rounded-xl bg-brand-100 px-4 py-3"
-        >
-          <div className="bg-brand-50 w-14 h-14 flex items-center justify-center rounded-lg">
-            <Icon
-              iconName={feature.iconName}
-              className="text-3xl text-theme-primary"
-            />
-          </div>
-          <Text className="font-semibold ml-4" variant="large">
-            <FormattedMessage id={feature.messageID} />
-          </Text>
-        </li>
-      ))}
+      {highlightedFeatures.map((feature) => {
+        const Icon = feature.icon;
+        return (
+          <li key={feature.messageID} className={styles.highlightedFeatureItem}>
+            <div className={styles.highlightedFeatureIconBox}>
+              <Icon
+                className={styles.highlightedFeatureIcon}
+                width="1.875rem"
+                height="1.875rem"
+              />
+            </div>
+            <RadixText size="3" weight="medium" className={styles.highlightedFeatureText}>
+              <FormattedMessage id={feature.messageID} />
+            </RadixText>
+          </li>
+        );
+      })}
     </ul>
   );
 }
