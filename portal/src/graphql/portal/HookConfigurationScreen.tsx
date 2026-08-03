@@ -830,20 +830,40 @@ function BlockingHooksTable({
                       >
                         <FormattedMessage id="HookConfigurationScreen.header.type.label" />
                       </RadixText>
-                      <Select.Root
-                        size="2"
-                        value={draft.kind}
-                        onValueChange={onDraftKindChange}
-                      >
-                        <Select.Trigger />
-                        <Select.Content style={{ zIndex: 200 }}>
-                          {kindOptions.map((opt) => (
-                            <Select.Item key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
+                      <div className={styles.hookTypeRow}>
+                        <div className={styles.hookTypeSelect}>
+                          <Select.Root
+                            size="2"
+                            value={draft.kind}
+                            onValueChange={onDraftKindChange}
+                          >
+                            <Select.Trigger
+                              className={styles.hookTypeSelectTrigger}
+                            />
+                            <Select.Content style={{ zIndex: 200 }}>
+                              {kindOptions.map((opt) => (
+                                <Select.Item key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Root>
+                        </div>
+                        {draft.kind === "denohook" ? (
+                          <div className={styles.hookEditScriptButton}>
+                            <RadixPrimaryButton
+                              size="2"
+                              text={
+                                <Flex gap="1" align="center">
+                                  <Pencil1Icon />
+                                  <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
+                                </Flex>
+                              }
+                              onClick={onClickEditScript}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                     <div className={styles.hookAccordionField}>
                       <RadixText as="p" size="1" weight="medium" color="gray">
@@ -902,26 +922,6 @@ function BlockingHooksTable({
                           {null}
                         </RadixTextField.Input>
                       </FormField>
-                    ) : null}
-                    {draft.kind === "denohook" ? (
-                      <div className={styles.hookAccordionField}>
-                        <RadixText
-                          as="label"
-                          size="1"
-                          weight="medium"
-                          color="gray"
-                        >
-                          <FormattedMessage id="HookConfigurationScreen.action.script.label" />
-                        </RadixText>
-                        <button
-                          type="button"
-                          className={styles.editScriptButton}
-                          onClick={onClickEditScript}
-                        >
-                          <Pencil1Icon />
-                          <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
-                        </button>
-                      </div>
                     ) : null}
                   </div>
                 ) : null}
@@ -1229,20 +1229,40 @@ function NonBlockingHooksTable({
                       >
                         <FormattedMessage id="HookConfigurationScreen.header.type.label" />
                       </RadixText>
-                      <Select.Root
-                        size="2"
-                        value={draft.kind}
-                        onValueChange={onDraftKindChange}
-                      >
-                        <Select.Trigger />
-                        <Select.Content style={{ zIndex: 200 }}>
-                          {kindOptions.map((opt) => (
-                            <Select.Item key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
+                      <div className={styles.hookTypeRow}>
+                        <div className={styles.hookTypeSelect}>
+                          <Select.Root
+                            size="2"
+                            value={draft.kind}
+                            onValueChange={onDraftKindChange}
+                          >
+                            <Select.Trigger
+                              className={styles.hookTypeSelectTrigger}
+                            />
+                            <Select.Content style={{ zIndex: 200 }}>
+                              {kindOptions.map((opt) => (
+                                <Select.Item key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Root>
+                        </div>
+                        {draft.kind === "denohook" ? (
+                          <div className={styles.hookEditScriptButton}>
+                            <RadixPrimaryButton
+                              size="2"
+                              text={
+                                <Flex gap="1" align="center">
+                                  <Pencil1Icon />
+                                  <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
+                                </Flex>
+                              }
+                              onClick={onClickEditScript}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                     {draft.kind === "webhook" ? (
                       <FormField
@@ -1263,26 +1283,6 @@ function NonBlockingHooksTable({
                           {null}
                         </RadixTextField.Input>
                       </FormField>
-                    ) : null}
-                    {draft.kind === "denohook" ? (
-                      <div className={styles.hookAccordionField}>
-                        <RadixText
-                          as="label"
-                          size="1"
-                          weight="medium"
-                          color="gray"
-                        >
-                          <FormattedMessage id="HookConfigurationScreen.action.script.label" />
-                        </RadixText>
-                        <button
-                          type="button"
-                          className={styles.editScriptButton}
-                          onClick={onClickEditScript}
-                        >
-                          <Pencil1Icon />
-                          <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
-                        </button>
-                      </div>
                     ) : null}
                   </div>
                 ) : null}

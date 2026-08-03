@@ -286,19 +286,24 @@
   min-width: 0;
 }
 
-.editScriptButton {
-  @apply inline-flex cursor-pointer items-center gap-1;
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--accent-9);
-  min-height: 2rem;
+.hookTypeRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
-.editScriptButton:hover {
-  color: var(--accent-10);
+.hookTypeSelect {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.hookTypeSelectTrigger {
+  width: 100%;
+}
+
+.hookEditScriptButton {
+  flex-shrink: 0;
 }
 
 .hookAddButton {
