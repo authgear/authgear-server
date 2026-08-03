@@ -60,6 +60,8 @@
   flex-shrink: 0;
   width: 8.75rem;
   color: var(--gray-12);
+
+  @apply tablet:w-auto;
 }
 
 .sectionContent {
@@ -325,6 +327,8 @@
   flex-shrink: 0;
   width: 8.75rem;
   @apply flex flex-col gap-2;
+
+  @apply tablet:w-auto;
 }
 
 /* Blocking hooks accordion */
