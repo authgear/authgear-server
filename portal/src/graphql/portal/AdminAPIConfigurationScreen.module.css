@@ -76,12 +76,12 @@
 }
 
 .keysTable {
-  min-width: 36rem;
+  min-width: 100%;
 }
 
 .keysTableHeader {
   @apply flex w-full items-center;
-  min-width: 36rem;
+  min-width: 100%;
   min-height: 2.75rem;
 }
 
@@ -111,7 +111,7 @@
 
 .keysTableRow {
   @apply flex w-full items-center;
-  min-width: 36rem;
+  min-width: 100%;
   min-height: 2.75rem;
   border-top: 1px solid var(--gray-a6);
   background-color: var(--gray-a2);
@@ -148,6 +148,10 @@
   width: 3.5rem;
   flex-shrink: 0;
   @apply justify-end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .generateKeyButton {

@@ -86,6 +86,10 @@
   @apply justify-end;
 }
 
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
 .activeStatus {
   position: relative;
   width: fit-content;

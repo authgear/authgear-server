@@ -157,12 +157,12 @@
 }
 
 .languagesTable {
-  min-width: 36rem;
+  min-width: 100%;
 }
 
 .languagesTableHeader {
   @apply flex w-full items-center;
-  min-width: 36rem;
+  min-width: 100%;
   min-height: 2.75rem;
 }
 
@@ -184,7 +184,7 @@
 
 .languagesTableRow {
   @apply flex w-full items-center;
-  min-width: 36rem;
+  min-width: 100%;
   min-height: 2.75rem;
   border-top: 1px solid var(--gray-a6);
   background-color: var(--gray-a2);
@@ -192,7 +192,7 @@
 
 .languagesTableEmptyRow {
   @apply flex w-full items-center px-3 py-3;
-  min-width: 36rem;
+  min-width: 100%;
   min-height: 2.75rem;
   border-top: 1px solid var(--gray-a6);
   background-color: var(--gray-a2);
