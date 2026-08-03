@@ -23,6 +23,16 @@ func TestGetHost(t *testing.T) {
 			So(httputil.GetHost(r, true), ShouldEqual, "example.com")
 		})
 
+		Convey("should take the first host when X-Forwarded-Host has multiple values", func() {
+			r.Header.Set("X-Forwarded-Host", "a.example.com, b.example.com")
+			So(httputil.GetHost(r, true), ShouldEqual, "a.example.com")
+		})
+
+		Convey("should take the first host when X-Original-Host has multiple values", func() {
+			r.Header.Set("X-Original-Host", "a.example.com, b.example.com")
+			So(httputil.GetHost(r, true), ShouldEqual, "a.example.com")
+		})
+
 		Convey("should resolve with priority", func() {
 			r.Header.Set("X-Forwarded-Host", "a")
 			r.Header.Set("X-Original-Host", "b")
