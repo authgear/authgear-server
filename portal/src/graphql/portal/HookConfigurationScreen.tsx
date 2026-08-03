@@ -822,6 +822,44 @@ function BlockingHooksTable({
                 {isOpen && draft != null ? (
                   <div className={styles.hookAccordionBody}>
                     <div className={styles.hookAccordionField}>
+                      <RadixText as="p" size="1" weight="medium" color="gray">
+                        <FormattedMessage id="HookConfigurationScreen.header.event.label" />
+                      </RadixText>
+                      <RadioGroup.Root
+                        value={draft.event}
+                        onValueChange={onDraftEventChange}
+                        className={styles.hookEventRadioContainer}
+                      >
+                        <Flex direction="column" gap="3">
+                          {BLOCK_EVENT_CATEGORIES.map((category) => (
+                            <Flex
+                              key={category.labelId}
+                              direction="column"
+                              gap="2"
+                            >
+                              <RadixText
+                                as="p"
+                                size="1"
+                                weight="bold"
+                                className={styles.hookEventCategoryLabel}
+                              >
+                                <FormattedMessage id={category.labelId} />
+                              </RadixText>
+                              {category.events.map((eventType) => (
+                                <RadixText key={eventType} as="label" size="2">
+                                  <Flex gap="2" align="center">
+                                    <RadioGroup.Item value={eventType} />
+                                    {eventType}
+                                    <BlockingEventInfoIcon event={eventType} />
+                                  </Flex>
+                                </RadixText>
+                              ))}
+                            </Flex>
+                          ))}
+                        </Flex>
+                      </RadioGroup.Root>
+                    </div>
+                    <div className={styles.hookAccordionField}>
                       <RadixText
                         as="label"
                         size="1"
@@ -864,44 +902,6 @@ function BlockingHooksTable({
                           </div>
                         ) : null}
                       </div>
-                    </div>
-                    <div className={styles.hookAccordionField}>
-                      <RadixText as="p" size="1" weight="medium" color="gray">
-                        <FormattedMessage id="HookConfigurationScreen.header.event.label" />
-                      </RadixText>
-                      <RadioGroup.Root
-                        value={draft.event}
-                        onValueChange={onDraftEventChange}
-                        className={styles.hookEventRadioContainer}
-                      >
-                        <Flex direction="column" gap="3">
-                          {BLOCK_EVENT_CATEGORIES.map((category) => (
-                            <Flex
-                              key={category.labelId}
-                              direction="column"
-                              gap="2"
-                            >
-                              <RadixText
-                                as="p"
-                                size="1"
-                                weight="bold"
-                                className={styles.hookEventCategoryLabel}
-                              >
-                                <FormattedMessage id={category.labelId} />
-                              </RadixText>
-                              {category.events.map((eventType) => (
-                                <RadixText key={eventType} as="label" size="2">
-                                  <Flex gap="2" align="center">
-                                    <RadioGroup.Item value={eventType} />
-                                    {eventType}
-                                    <BlockingEventInfoIcon event={eventType} />
-                                  </Flex>
-                                </RadixText>
-                              ))}
-                            </Flex>
-                          ))}
-                        </Flex>
-                      </RadioGroup.Root>
                     </div>
                     {draft.kind === "webhook" ? (
                       <FormField
