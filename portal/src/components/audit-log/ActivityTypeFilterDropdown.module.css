@@ -4,6 +4,13 @@
   min-width: 13rem;
 }
 
+@media (max-width: 1080px) {
+  .root {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 .trigger {
   display: flex;
   align-items: center;

@@ -4,6 +4,19 @@
   min-width: 10.5rem;
 }
 
+@media (max-width: 1080px) {
+  .root {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rootCustom {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+}
+
 .rootCustom {
   width: auto;
   min-width: 14rem;
