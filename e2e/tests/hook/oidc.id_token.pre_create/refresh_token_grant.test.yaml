@@ -1,0 +1,60 @@
+name: oidc.id_token.pre_create carries the resolved user through the refresh_token grant
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    hook:
+      blocking_handlers:
+      - event: oidc.id_token.pre_create
+        url: authgeardeno:///deno/echouserintoidtoken.ts
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id
+      FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}'
+      AND l.login_id = 'carried-user@example.com'
+
+  - name: generate_token
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  # issueTokensForRefreshToken is the path the production traces that
+  # motivated this optimization were captured against; it is the only one
+  # of the token-issuing paths not already covered by the oauth_exchange_code
+  # tests above.
+  - name: refresh
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      refresh_token: "{{ .steps.generate_token.result.refresh_token }}"
+      client_id: e2e
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "id_token": "[[string]]",
+          "access_token": "[[string]]"
+        }
+      # http_request does not decode the id_token JWT, so the mutated
+      # x_echo_* claims cannot be asserted here. Claim-level assertion for
+      # this grant is covered by the unit tests in
+      # pkg/lib/oauth/oidc/id_token_test.go and
+      # pkg/lib/oauth/handler/handler_token_test.go.
