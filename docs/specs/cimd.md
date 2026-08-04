@@ -12,6 +12,7 @@ This document assumes familiarity with the [Client Model](./client.md), which CI
 - [Use Cases](#use-cases)
   - [UC1. MCP client publishes its identity as a CIMD document](#uc1-mcp-client-publishes-its-identity-as-a-cimd-document)
 - [Configuration](#configuration)
+  - [Client Limit](#client-limit)
 - [OIDC Discovery Metadata](#oidc-discovery-metadata)
 - [Client ID Format](#client-id-format)
 - [The Client Metadata Document](#the-client-metadata-document)
@@ -151,6 +152,20 @@ oauth:
 
 Fetch timeout, maximum document size, and cache lifetime are fixed values, not project-configurable — see [Fetching](#fetching).
 
+### Client Limit
+
+**authgear.features.yaml**
+
+```yaml
+oauth:
+  client_id_metadata_document:
+    maximum_clients: null
+```
+
+- `oauth.client_id_metadata_document.maximum_clients`: Optional. Integer. Default `null` (no limit). The maximum number of CIMD-resolved clients the project may have persisted at once, checked against the current count of `OAuthClient` records with `source: CIMD`. Once at `maximum_clients`, resolving a `client_id` with no existing persisted record fails the authorization request with `access_denied` (see [Error Handling](#error-handling)). A `client_id` that already has a persisted record is unaffected regardless of the limit, since resolving it again doesn't create a new one.
+
+An admin can free a slot with [`deleteDynamicClient`](./dcr.md#new-mutation), but for a CIMD client this only evicts the current persisted record — the same `client_id` can produce a new one on its next successful resolution. It is not a durable ban; see [Domain Trust](#domain-trust) for the closest thing to one.
+
 ## OIDC Discovery Metadata
 
 When CIMD is enabled, `client_id_metadata_document_supported: true` is added to the discovery documents at `<endpoint>/.well-known/openid-configuration` and `<endpoint>/.well-known/oauth-authorization-server`, per [spec §6](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-6) (Authorization Server Metadata). The spec itself marks this property OPTIONAL for an authorization server to include; Authgear includes it whenever CIMD is enabled.
@@ -199,6 +214,8 @@ A document that fails any MUST-level check is treated as if the fetch had failed
 ### Error Handling
 
 If fetching or validating the document fails for any reason, Authgear treats the `client_id` as unresolvable — the authorization request fails the same way it does today for a `client_id` that matches no known client (`invalid_client`-shaped error, since redirect URI validation cannot proceed without a resolved client). Per [spec §5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-5.2) (Metadata Caching), a failed or invalid fetch is never reused, so a document author who fixes their document sees the fix take effect on the very next authorization request that needs it. See [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle) for why the error surface deliberately does not distinguish _why_ the fetch failed.
+
+A brand-new `client_id` that would otherwise resolve successfully but finds the project already at its [client limit](#client-limit) is a distinct case: the authorization request fails with `access_denied`, not the generic `invalid_client`-shaped error above. This is not a fetch-outcome signal — it doesn't vary by target host or reveal anything about network reachability — so it falls outside the uniform-error rule in [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle), which governs only errors arising from the fetch itself.
 
 ## Accepted Metadata Fields
 
