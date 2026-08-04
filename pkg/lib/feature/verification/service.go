@@ -97,13 +97,22 @@ func (s *Service) GetVerificationStatuses(ctx context.Context, is []*identity.In
 		userIDs = append(userIDs, userID)
 	}
 
-	allClaims, err := s.ClaimStore.ListByUserIDs(ctx, userIDs)
+	claims, err := s.ListClaimsByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
 
+	return s.getVerificationStatusesWithClaims(idensByUserID, claims), nil
+}
+
+// ListClaimsByUserIDs returns every verified claim of these users.
+func (s *Service) ListClaimsByUserIDs(ctx context.Context, userIDs []string) ([]*Claim, error) {
+	return s.ClaimStore.ListByUserIDs(ctx, userIDs)
+}
+
+func (s *Service) getVerificationStatusesWithClaims(idensByUserID map[string][]*identity.Info, claims []*Claim) map[string][]ClaimStatus {
 	claimsByUserIDs := map[string][]*Claim{}
-	for _, c := range allClaims {
+	for _, c := range claims {
 		arr := claimsByUserIDs[c.UserID]
 		claimsByUserIDs[c.UserID] = append(arr, c)
 	}
@@ -111,13 +120,13 @@ func (s *Service) GetVerificationStatuses(ctx context.Context, is []*identity.In
 	statuses := map[string][]ClaimStatus{}
 
 	for userID, idens := range idensByUserID {
-		claims, ok := claimsByUserIDs[userID]
+		userClaims, ok := claimsByUserIDs[userID]
 		if !ok {
-			claims = []*Claim{}
+			userClaims = []*Claim{}
 		}
 
 		verifiedClaims := make(map[claim]struct{})
-		for _, c := range claims {
+		for _, c := range userClaims {
 			verifiedClaims[claim{c.Name, c.Value}] = struct{}{}
 		}
 
@@ -129,7 +138,7 @@ func (s *Service) GetVerificationStatuses(ctx context.Context, is []*identity.In
 		}
 	}
 
-	return statuses, nil
+	return statuses
 }
 
 func (s *Service) GetAuthenticatorVerificationStatus(ctx context.Context, a *authenticator.Info) (AuthenticatorStatus, error) {
@@ -195,15 +204,33 @@ func (s *Service) GetClaimStatus(ctx context.Context, userID string, claimName m
 }
 
 func (s *Service) AreUsersVerified(ctx context.Context, identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error) {
-	allIdens := []*identity.Info{}
-	for _, arr := range identitiesByUserIDs {
-		allIdens = append(allIdens, arr...)
+	userIDs := make([]string, 0, len(identitiesByUserIDs))
+	for userID := range identitiesByUserIDs {
+		userIDs = append(userIDs, userID)
 	}
 
-	allStatuses, err := s.GetVerificationStatuses(ctx, allIdens)
+	claims, err := s.ListClaimsByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
+
+	return s.AreUsersVerifiedWithClaims(ctx, identitiesByUserIDs, claims)
+}
+
+// AreUsersVerifiedWithClaims is AreUsersVerified with the claims already read.
+func (s *Service) AreUsersVerifiedWithClaims(
+	ctx context.Context,
+	identitiesByUserIDs map[string][]*identity.Info,
+	claims []*Claim,
+) (map[string]bool, error) {
+	idensByUserID := map[string][]*identity.Info{}
+	for _, arr := range identitiesByUserIDs {
+		for _, iden := range arr {
+			idensByUserID[iden.UserID] = append(idensByUserID[iden.UserID], iden)
+		}
+	}
+
+	allStatuses := s.getVerificationStatusesWithClaims(idensByUserID, claims)
 
 	results := map[string]bool{}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -21,17 +22,19 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error)
-	AreUsersVerified(ctx context.Context, identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error)
+	ListClaimsByUserIDs(ctx context.Context, userIDs []string) ([]*verification.Claim, error)
+	AreUsersVerifiedWithClaims(ctx context.Context, identitiesByUserIDs map[string][]*identity.Info, claims []*verification.Claim) (map[string]bool, error)
 }
 
 type StandardAttributesService interface {
 	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]any) (map[string]any, error)
-	DeriveStandardAttributesForUsers(
+	DeriveStandardAttributesForUsersWithClaims(
 		ctx context.Context,
 		role accesscontrol.Role,
 		userIDs []string,
 		updatedAts []time.Time,
 		attrsList []map[string]any,
+		claims []*verification.Claim,
 	) (map[string]map[string]any, error)
 }
 
@@ -107,17 +110,23 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 		return nil, err
 	}
 
-	isVerifiedByUserID, err := p.Verification.AreUsersVerified(ctx, identitiesByUserID)
+	claims, err := p.Verification.ListClaimsByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsers(
+	isVerifiedByUserID, err := p.Verification.AreUsersVerifiedWithClaims(ctx, identitiesByUserID, claims)
+	if err != nil {
+		return nil, err
+	}
+
+	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsersWithClaims(
 		ctx,
 		role,
 		userIDs,
 		updatedAts,
 		stdAttrsList,
+		claims,
 	)
 	if err != nil {
 		return nil, err
@@ -211,17 +220,23 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 		return nil, err
 	}
 
-	isVerifiedByUserID, err := p.Verification.AreUsersVerified(ctx, identitiesByUserID)
+	claims, err := p.Verification.ListClaimsByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsers(
+	isVerifiedByUserID, err := p.Verification.AreUsersVerifiedWithClaims(ctx, identitiesByUserID, claims)
+	if err != nil {
+		return nil, err
+	}
+
+	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsersWithClaims(
 		ctx,
 		"",
 		userIDs,
 		updatedAts,
 		stdAttrsList,
+		claims,
 	)
 	if err != nil {
 		return nil, err
