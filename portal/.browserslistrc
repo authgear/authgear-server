@@ -23,3 +23,10 @@ Edge >= 116
 Samsung >= 23
 
 >=0.4% and not dead
+
+# caniuse-lite usage-share data can get revised in a way that pushes an
+# old iOS Safari version above the 0.4% threshold used by the query
+# above, even though it's below the floor set by "iOS >= 14.5" up top.
+# Exclude it explicitly so a caniuse-lite update can't silently widen
+# our supported browser range.
+not iOS < 14.5
