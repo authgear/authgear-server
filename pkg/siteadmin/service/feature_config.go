@@ -265,7 +265,16 @@ func readEffectiveFeatureConfig(ctx context.Context, mgr *resource.Manager) (*co
 // override" — this is the one case callers must treat specially (not an
 // error, and not "store an empty file"). Does NOT run schema validation —
 // that happens inside computeLayers, which validates this data as one of the
-// layers it merges, plus the merged result.
+// layers it merges, plus the merged result. It DOES reject YAML that fails
+// to even parse syntactically, for the same reason as the multi-document
+// check below: computeLayers's underlying error for a syntax failure
+// (configsource.AuthgearFeatureYAMLDescriptor.viewEffectiveResource's
+// "malformed feature config: %w") is a plain wrapped error, not a
+// *validation.AggregatedError, so pkg/api/apierrors's asAPIError can't
+// recognize it as ValidationFailed — it falls through to an unclassified
+// 500 UnexpectedError instead. A syntax error is a whole-document problem
+// like the multi-document case, not a per-field one, so it gets the same
+// hand-built ValidationFailed treatment (no causes).
 func parseAppFeatureConfigOverride(raw string) ([]byte, error) {
 	if strings.TrimSpace(raw) == "" {
 		return nil, nil
@@ -275,7 +284,7 @@ func parseAppFeatureConfigOverride(raw string) ([]byte, error) {
 
 	n, err := countYAMLDocuments(data)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.ValidationFailed.New("app_feature_config_yaml is not valid YAML: " + err.Error())
 	}
 	if n > 1 {
 		return nil, apierrors.ValidationFailed.New("app_feature_config_yaml must contain at most one YAML document")
@@ -284,10 +293,9 @@ func parseAppFeatureConfigOverride(raw string) ([]byte, error) {
 	return data, nil
 }
 
-// countYAMLDocuments counts YAML documents separated by "---". Malformed
-// YAML is not an error here — countYAMLDocuments returns whatever count it
-// reached and nil; computeLayers (via ParseFeatureConfigWithoutDefaults)
-// produces the canonical validation error for malformed input.
+// countYAMLDocuments counts YAML documents separated by "---". A genuine
+// syntax error is returned to the caller (see parseAppFeatureConfigOverride
+// above) — only a clean end-of-input is treated as "done counting".
 func countYAMLDocuments(data []byte) (int, error) {
 	dec := goyaml.NewDecoder(bytes.NewReader(data))
 	count := 0
@@ -297,7 +305,7 @@ func countYAMLDocuments(data []byte) (int, error) {
 			if errors.Is(err, io.EOF) {
 				return count, nil
 			}
-			return count, nil
+			return count, err
 		}
 		count++
 	}

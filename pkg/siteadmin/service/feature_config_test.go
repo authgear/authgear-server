@@ -278,6 +278,29 @@ func TestFeatureConfigService_UpdateAppFeatureConfig(t *testing.T) {
 			So(csStore.updated, ShouldBeNil)
 		})
 
+		Convey("YAML that fails to parse syntactically is rejected as ValidationFailed, not an unclassified 500", func() {
+			svc := makeService(csStore)
+
+			// A genuine syntax error (unindented scalar breaking mapping
+			// syntax), not a schema violation -- this must never reach
+			// computeLayers, whose underlying "malformed feature config"
+			// error from configsource.viewEffectiveResource is a plain
+			// wrapped error, not a *validation.AggregatedError, so
+			// pkg/api/apierrors's asAPIError can't classify it and falls
+			// through to UnexpectedError/500 (the bug this test pins).
+			_, err := svc.UpdateAppFeatureConfig(context.Background(), "app1", "oauth:\n  client\n    maximum: 5\n")
+			So(err, ShouldNotBeNil)
+			So(apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+				return e.Kind.Name == apierrors.Invalid && e.Kind.Reason == "ValidationFailed"
+			}), ShouldBeTrue)
+			So(apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+				return e.Code >= 500
+			}), ShouldBeFalse)
+			var aggErr *validation.AggregatedError
+			So(errors.As(err, &aggErr), ShouldBeFalse)
+			So(csStore.updated, ShouldBeNil)
+		})
+
 		Convey("app does not exist", func() {
 			svc := makeService(csStore)
 
