@@ -86,8 +86,8 @@ var _ = FeatureConfigSchema.Add("LoginIDPhoneFeatureConfig", `
 `)
 
 type LoginIDPhoneFeatureConfig struct {
-	// No omitempty: see the comment on CustomDomainFeatureConfig.Disabled
-	// (feature_custom_domain.go).
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
 	Disabled bool `json:"disabled"`
 }
 
@@ -237,8 +237,8 @@ var _ = FeatureConfigSchema.Add("OAuthSSOProviderFeatureConfig", `
 `)
 
 type OAuthSSOProviderFeatureConfig struct {
-	// No omitempty: see the comment on CustomDomainFeatureConfig.Disabled
-	// (feature_custom_domain.go).
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
 	Disabled bool `json:"disabled"`
 }
 

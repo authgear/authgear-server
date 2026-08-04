@@ -11,7 +11,8 @@ var _ = FeatureConfigSchema.Add("RateLimitsFeatureConfig", `
 `)
 
 type RateLimitsFeatureConfig struct {
-	// No omitempty: see the comment on CustomDomainFeatureConfig.Disabled.
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
 	Disabled bool `json:"disabled"`
 }
 

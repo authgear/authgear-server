@@ -11,11 +11,8 @@ var _ = FeatureConfigSchema.Add("CustomDomainFeatureConfig", `
 `)
 
 type CustomDomainFeatureConfig struct {
-	// No omitempty: false is the real, correct default (not disabled), not
-	// an absence -- omitempty would hide it from the effective config JSON
-	// shown by the Site Admin API's feature-config UI, making a
-	// fully-resolved section look empty/unset instead of explicitly
-	// carrying its default value.
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
 	Disabled bool `json:"disabled"`
 }
 
