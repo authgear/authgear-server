@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 
@@ -253,5 +254,39 @@ collaborator:
 		So(effective.UI, ShouldNotBeNil)
 		So(effective.UI.PhoneInput, ShouldNotBeNil)
 		So(effective.UI.PhoneInput.AllowList, ShouldResemble, []string{"US", "GB"})
+	})
+}
+
+// These single-field sections have `false` as their real, correct default
+// (not disabled) -- `omitempty` hid that from JSON output, making a
+// fully-resolved section marshal as an empty object indistinguishable from
+// one with no fields at all. Sections stay non-nil with a `false` value
+// regardless, from SetFieldDefaults's generic pointer-to-struct
+// initialization (default.go) -- this test is specifically about the
+// *serialized shape*, which is what the Site Admin API's feature-config UI
+// (and any other JSON consumer of FeatureConfig) actually sees.
+func TestFeatureConfigDisabledFieldsSerializeExplicitly(t *testing.T) {
+	Convey("false-valued Disabled fields marshal explicitly, not as an empty object", t, func() {
+		ctx := context.Background()
+		cfg, err := config.ParseFeatureConfig(ctx, []byte(`{}`))
+		So(err, ShouldBeNil)
+
+		data, err := json.Marshal(cfg)
+		So(err, ShouldBeNil)
+
+		var raw map[string]any
+		err = json.Unmarshal(data, &raw)
+		So(err, ShouldBeNil)
+
+		So(raw["custom_domain"], ShouldResemble, map[string]any{"disabled": false})
+		So(raw["google_tag_manager"], ShouldResemble, map[string]any{"disabled": false})
+		So(raw["rate_limits"], ShouldResemble, map[string]any{"disabled": false})
+
+		ui, _ := raw["ui"].(map[string]any)
+		So(ui["white_labeling"], ShouldResemble, map[string]any{"disabled": false})
+
+		authentication, _ := raw["authentication"].(map[string]any)
+		secondaryAuthenticators, _ := authentication["secondary_authenticators"].(map[string]any)
+		So(secondaryAuthenticators["oob_otp_sms"], ShouldResemble, map[string]any{"disabled": false})
 	})
 }

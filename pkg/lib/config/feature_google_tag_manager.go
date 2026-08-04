@@ -11,7 +11,8 @@ var _ = FeatureConfigSchema.Add("GoogleTagManagerFeatureConfig", `
 `)
 
 type GoogleTagManagerFeatureConfig struct {
-	Disabled bool `json:"disabled,omitempty"`
+	// No omitempty: see the comment on CustomDomainFeatureConfig.Disabled.
+	Disabled bool `json:"disabled"`
 }
 
 var _ MergeableFeatureConfig = &GoogleTagManagerFeatureConfig{}

@@ -51,7 +51,8 @@ var _ = FeatureConfigSchema.Add("WhiteLabelingFeatureConfig", `
 `)
 
 type WhiteLabelingFeatureConfig struct {
-	Disabled bool `json:"disabled,omitempty"`
+	// No omitempty: see the comment on CustomDomainFeatureConfig.Disabled.
+	Disabled bool `json:"disabled"`
 }
 
 var _ = FeatureConfigSchema.Add("PhoneInputFeatureConfig", `
