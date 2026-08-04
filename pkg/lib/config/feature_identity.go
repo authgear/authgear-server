@@ -86,7 +86,9 @@ var _ = FeatureConfigSchema.Add("LoginIDPhoneFeatureConfig", `
 `)
 
 type LoginIDPhoneFeatureConfig struct {
-	Disabled bool `json:"disabled,omitempty"`
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
+	Disabled bool `json:"disabled"`
 }
 
 var _ = FeatureConfigSchema.Add("OAuthSSOFeatureConfig", `
@@ -235,7 +237,9 @@ var _ = FeatureConfigSchema.Add("OAuthSSOProviderFeatureConfig", `
 `)
 
 type OAuthSSOProviderFeatureConfig struct {
-	Disabled bool `json:"disabled,omitempty"`
+	// No omitempty: false is this field's real default, not an absence
+	// (see the update-feature-config skill).
+	Disabled bool `json:"disabled"`
 }
 
 var _ = FeatureConfigSchema.Add("BiometricFeatureConfig", `

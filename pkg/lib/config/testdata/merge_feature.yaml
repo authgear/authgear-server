@@ -69,6 +69,9 @@ configs:
         allowlist:
           - US
           - CA
+  - ui:
+      phone_input:
+        allowlist: []
   - identity:
       oauth:
         providers:
@@ -168,9 +171,7 @@ result:
     white_labeling:
       disabled: true
     phone_input:
-      allowlist:
-        - US
-        - CA
+      allowlist: [] # later layer overrides [US, CA] to explicit "allow all"
   custom_domain:
     disabled: true
   oauth:
