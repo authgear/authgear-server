@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { TextField as RadixTextField } from "@radix-ui/themes";
 import { TextField } from "../TextField/TextField";
 
@@ -108,13 +108,6 @@ function ColorPicker({
   onValueChange?: (value: ColorHex) => void;
   onOpen?: () => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const openPicker = useCallback(() => {
-    onOpen?.();
-    inputRef.current?.click();
-  }, [onOpen]);
-
   const handleColorInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const el = e.currentTarget;
@@ -123,20 +116,24 @@ function ColorPicker({
     [onValueChange]
   );
 
+  const handleClick = useCallback(() => {
+    onOpen?.();
+  }, [onOpen]);
+
   return (
     <div
       className={styles.colorPickerField__pickerContainer}
       style={{ backgroundColor: value }}
     >
-      <button
-        type="button"
-        className={styles.colorPickerField__pickerButton}
-        onClick={openPicker}
-      />
+      {/* The input itself covers the swatch so the user's click lands
+          directly on it. Safari only opens the native color panel for an
+          input with a real rendered box; programmatically clicking a
+          zero-size input does nothing there. */}
       <input
-        ref={inputRef}
         type="color"
-        className="h-0 w-0 appearance-none border-none"
+        value={value}
+        className={styles.colorPickerField__pickerInput}
+        onClick={handleClick}
         onChange={handleColorInputChange}
       />
     </div>
