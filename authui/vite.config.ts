@@ -5,7 +5,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
 
-const fontFileExtensions = [".eot", ".otf", ".ttf", "woff", ".woff2"];
+const fontFileExtensions = [".woff2"];
 
 const templateBase = "../resources/authgear/templates/en/web/";
 const templateNameByAssetName: Record<string, string> = {
