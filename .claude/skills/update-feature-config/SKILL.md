@@ -82,9 +82,60 @@ override," forcing an awkward, undiscoverable workaround
 (`phone_input: {}` with the field omitted) instead. Don't add a schema
 constraint "for safety" without confirming the runtime already needs it.
 
+## Don't tag a scalar field `omitempty` if its zero value is a real default
+
+`SetFieldDefaults` (`pkg/lib/config/default.go`) already makes every section
+pointer non-nil via its generic reflection walk, regardless of whether that
+section implements `SetDefaults()` — a section is never actually "absent" in
+a parsed/defaulted `FeatureConfig`. If a plain (non-pointer) `bool`/`string`/
+`int`/`float` field's zero value (`false`/`""`/`0`) *is* that field's real,
+intended default — not a stand-in for "not set" — tagging it `omitempty`
+doesn't skip anything meaningful when parsing, but it does hide that value
+from JSON *output*: `encoding/json` treats the zero value as "empty" and
+omits the key, so a fully-resolved section marshals as `{}` instead of e.g.
+`{"disabled": false}`. This makes the Site Admin API's
+`effective_plan_feature_config`/`effective_app_feature_config` (and any
+other JSON consumer of `FeatureConfig`) show a resolved section as if it
+were empty/unset. Fix: drop `omitempty` — plain `json:"disabled"`. This is
+always safe, because `Merge()` for these fields already operates on the
+*section's* pointer-nil-ness (see the field-level merge rule above), never
+the leaf scalar's zero value — removing `omitempty` never changes merge or
+validation behavior, only what the field looks like once marshaled.
+
+This is a different situation from the slice case in "Schema/runtime
+consistency" above (`PhoneInputFeatureConfig.allowlist`): there, `nil` and an
+explicit empty slice are two *different* meaningful values (inherit vs.
+explicitly cleared), so the fix was `omitzero` (which only omits the true
+zero value, `nil`), not simply dropping the tag. A plain scalar only has one
+value to begin with, so just remove `omitempty` entirely — don't reach for
+`omitzero` there, it would be a no-op.
+
+**Test with a real marshal, not `ShouldResemble` on parsed structs.** Every
+existing test in this package compares parsed Go *structs*, which can't tell
+`omitempty` apart from no tag at all — that's exactly why this went
+unnoticed for nine fields across five sections. Marshal with
+`encoding/json.Marshal` (or `sigs.k8s.io/yaml.Marshal`, which calls it
+internally — this is what `viewEffectiveResource`'s merge fold does) and
+assert on the resulting shape, e.g.
+`TestFeatureConfigDisabledFieldsSerializeExplicitly` in `feature_test.go`.
+
+**When auditing for this, grep the whole package by field, not file by
+file.** A file having a `SetDefaults()` for one field doesn't mean every
+field in that file is covered — `feature_identity.go` has one for
+`BiometricFeatureConfig` (a pointer-scalar field) while
+`LoginIDPhoneFeatureConfig.Disabled` and
+`OAuthSSOProviderFeatureConfig.Disabled` (plain-bool, single-field sections
+in that same file) still had the bug. Use:
+
+```
+grep -nE '^\s*[A-Z][A-Za-z0-9_]*\s+(bool|string|int|int32|int64|float32|float64)\s+`json:"[^"]*,omitempty"`' pkg/lib/config/feature_*.go
+```
+
 ## References
 
 - `pkg/lib/config/feature.go` — top-level `FeatureConfig.Merge` dispatcher
 - `pkg/lib/config/feature_*.go` — per-section `Merge` implementations
 - `pkg/lib/config/testdata/merge_feature.yaml` — shared merge test fixture
 - `pkg/lib/config/testdata/parse_feature_tests.yaml` — schema validation test fixture
+- `pkg/lib/config/default.go` — `SetFieldDefaults`, the generic reflection walk
+- `pkg/lib/config/feature_test.go`'s `TestFeatureConfigDisabledFieldsSerializeExplicitly` — marshal-based test pattern for the omitempty rule above
