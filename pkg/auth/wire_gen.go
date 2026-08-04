@@ -1125,13 +1125,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -1198,12 +1202,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrants: redisStore,
 	}
 	accessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -1218,12 +1222,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService:       oauthOfflineGrantService,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
@@ -2110,13 +2114,17 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -2183,12 +2191,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrants: redisStore,
 	}
 	accessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -2203,12 +2211,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService:       oauthOfflineGrantService,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
@@ -3147,21 +3155,25 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -3321,12 +3333,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
@@ -3397,6 +3409,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:                    tokenService,
 		AccessTokenEncoding:             oauthAccessTokenEncoding,
 		Events:                          eventService,
+		UserBlockingEventContexts:       userBlockingEventContextProvider,
 		SessionManager:                  manager2,
 		App2App:                         app2appProvider,
 		Challenges:                      challengeProvider,
@@ -4830,13 +4843,17 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	jwksHandler := &oauth3.JWKSHandler{
 		JWKS: idTokenIssuer,
@@ -5684,13 +5701,17 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	userInfoHandler := &oauth3.UserInfoHandler{
 		Database:            handle,
@@ -6546,13 +6567,17 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -7470,21 +7495,25 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -7644,12 +7673,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
@@ -7720,6 +7749,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:                    tokenService,
 		AccessTokenEncoding:             oauthAccessTokenEncoding,
 		Events:                          eventService,
+		UserBlockingEventContexts:       userBlockingEventContextProvider,
 		SessionManager:                  manager2,
 		App2App:                         app2appProvider,
 		Challenges:                      challengeProvider,
@@ -8759,30 +8789,34 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -9824,30 +9858,34 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -11393,13 +11431,17 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -12575,13 +12617,17 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -13764,13 +13810,17 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -39426,13 +39476,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -41592,13 +41646,17 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -42774,13 +42832,17 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -48263,21 +48325,25 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
@@ -48300,12 +48366,12 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Store: resourcescopeStore,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
@@ -48376,6 +48442,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:                    tokenService,
 		AccessTokenEncoding:             oauthAccessTokenEncoding,
 		Events:                          eventService,
+		UserBlockingEventContexts:       userBlockingEventContextProvider,
 		SessionManager:                  manager2,
 		App2App:                         app2appProvider,
 		Challenges:                      challengeProvider,
@@ -49396,13 +49463,17 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -52417,13 +52488,17 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -53449,13 +53524,17 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -54552,13 +54631,17 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -55625,13 +55708,17 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -58551,13 +58638,17 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -59757,13 +59848,17 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -60956,13 +61051,17 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -62145,13 +62244,17 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -63331,13 +63434,17 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -64521,13 +64628,17 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -65709,13 +65820,17 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -66895,13 +67010,17 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -68077,13 +68196,17 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -69259,13 +69382,17 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -70446,13 +70573,17 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -71634,13 +71765,17 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -72816,13 +72951,17 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -74002,13 +74141,17 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -75184,13 +75327,17 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -76366,13 +76513,17 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -77548,13 +77699,17 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -78730,13 +78885,17 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -79919,13 +80078,17 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -81103,13 +81266,17 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -82286,13 +82453,17 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -83617,13 +83788,17 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -84743,13 +84918,17 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -86279,13 +86458,17 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -87461,13 +87644,17 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -88643,13 +88830,17 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -89943,13 +90134,17 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -91127,13 +91322,17 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
@@ -92157,13 +92356,17 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -93040,13 +93243,17 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -93953,13 +94160,17 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -94859,13 +95070,17 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -116196,21 +116411,25 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := &oauth.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -117265,13 +117484,17 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	facadeIdentityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -118174,13 +118397,17 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	oauthOfflineGrantService := &oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,

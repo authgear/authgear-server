@@ -11,12 +11,34 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+type stubUserBlockingEventContextUserService struct {
+	user *model.User
+	err  error
+}
+
+func (s *stubUserBlockingEventContextUserService) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
+	return s.user, s.err
+}
+
+type stubUserBlockingEventContextIdentityService struct {
+	identities []*identity.Info
+	err        error
+}
+
+func (s *stubUserBlockingEventContextIdentityService) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
+	return s.identities, s.err
+}
 
 const PrivateKeyPEM = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC89eQDeH8icj6j
@@ -66,7 +88,6 @@ func TestAccessToken(t *testing.T) {
 
 		mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		mockEventService := NewMockEventService(ctrl)
-		mockIdentityService := NewMockAccessTokenEncodingIdentityService(ctrl)
 
 		encoding := &AccessTokenEncoding{
 			Secrets:       secrets,
@@ -78,8 +99,11 @@ func TestAccessToken(t *testing.T) {
 					HTTPProto: "http",
 				},
 			},
-			Events:     mockEventService,
-			Identities: mockIdentityService,
+			Events: mockEventService,
+			UserBlockingEventContexts: &UserBlockingEventContextProvider{
+				Users:      &stubUserBlockingEventContextUserService{user: &model.User{Meta: model.Meta{ID: "user-id"}}},
+				Identities: &stubUserBlockingEventContextIdentityService{},
+			},
 		}
 
 		client := &config.OAuthClientConfig{
@@ -103,9 +127,9 @@ func TestAccessToken(t *testing.T) {
 			}, nil
 		}).AnyTimes()
 		mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
+		mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true).AnyTimes()
 		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
 		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
-		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
 
 		ctx := context.Background()
 		options := EncodeUserAccessTokenOptions{
@@ -229,4 +253,211 @@ func TestClientAccessToken(t *testing.T) {
 		So(iat, ShouldEqual, createdAt)
 		So(exp, ShouldEqual, expireAt)
 	})
+}
+
+func TestAccessTokenEncoding_PrepareUserAccessToken_UserBlockingEventContext(t *testing.T) {
+	Convey("PrepareUserAccessToken threads UserBlockingEventContext to PrepareBlockingEventWithTx", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+		secrets := &config.OAuthKeyMaterials{Set: jwkSet}
+
+		client := &config.OAuthClientConfig{
+			IssueJWTAccessToken: true,
+			ClientID:            "client-id",
+			AccessTokenLifetime: 3600,
+		}
+		clientLike := ClientClientLike(client, []string{"openid"})
+		accessGrant := &AccessGrant{
+			CreatedAt: now,
+			ExpireAt:  now.Add(client.AccessTokenLifetime.Duration()),
+			TokenHash: "token-hash",
+			Scopes:    []string{"openid"},
+		}
+
+		baseURL := &endpoints.Endpoints{
+			OAuthEndpoints: &endpoints.OAuthEndpoints{
+				HTTPHost:  "test1.authgear.com",
+				HTTPProto: "http",
+			},
+		}
+
+		baseOptions := func() EncodeUserAccessTokenOptions {
+			return EncodeUserAccessTokenOptions{
+				OriginalToken:      "token",
+				ClientConfig:       client,
+				ClientLike:         clientLike,
+				AccessGrant:        accessGrant,
+				AuthenticationInfo: authenticationinfo.T{UserID: "user-id"},
+			}
+		}
+
+		Convey("WillDeliverBlockingEvent false: the provider is never called and ResolvedUser is nil", func() {
+			mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
+
+			mockEventService := NewMockEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(false)
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			encoding := &AccessTokenEncoding{
+				Secrets:       secrets,
+				Clock:         clock.NewMockClockAtTime(now),
+				IDTokenIssuer: mockIDTokenIssuer,
+				BaseURL:       baseURL,
+				Events:        mockEventService,
+			}
+
+			_, err := encoding.PrepareUserAccessToken(context.Background(), baseOptions())
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldBeNil)
+		})
+
+		Convey("WillDeliverBlockingEvent true with opts.UserBlockingEventContext supplied: the provider is not called", func() {
+			mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
+
+			mockEventService := NewMockEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true)
+			var capturedPayload *blocking.OIDCJWTPreCreateBlockingEventPayload
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedPayload = e.(*blocking.OIDCJWTPreCreateBlockingEventPayload)
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			suppliedUser := &model.User{Meta: model.Meta{ID: "user-id"}, IsVerified: true}
+			suppliedIdentities := []model.Identity{{Meta: model.Meta{ID: "identity-1"}}}
+
+			encoding := &AccessTokenEncoding{
+				Secrets:       secrets,
+				Clock:         clock.NewMockClockAtTime(now),
+				IDTokenIssuer: mockIDTokenIssuer,
+				BaseURL:       baseURL,
+				Events:        mockEventService,
+				// Left nil: it must not be called in this case. Calling it
+				// would panic on the nil pointer, failing the test.
+				UserBlockingEventContexts: nil,
+			}
+
+			options := baseOptions()
+			options.UserBlockingEventContext = &UserBlockingEventContext{
+				UserID:     "user-id",
+				UserModel:  suppliedUser,
+				Identities: suppliedIdentities,
+			}
+
+			_, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldEqual, suppliedUser)
+			So(capturedPayload.Identities, ShouldResemble, suppliedIdentities)
+		})
+
+		Convey("WillDeliverBlockingEvent true with a supplied context whose UserID does not match: the provider is called", func() {
+			mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
+
+			mockEventService := NewMockEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true)
+			var capturedPayload *blocking.OIDCJWTPreCreateBlockingEventPayload
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedPayload = e.(*blocking.OIDCJWTPreCreateBlockingEventPayload)
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			providerUser := &model.User{Meta: model.Meta{ID: "user-id"}, IsVerified: true}
+			providerIdentity := &identity.Info{
+				ID:        "identity-from-provider",
+				Type:      model.IdentityTypeAnonymous,
+				Anonymous: &identity.Anonymous{KeyID: "key-id"},
+			}
+
+			encoding := &AccessTokenEncoding{
+				Secrets:       secrets,
+				Clock:         clock.NewMockClockAtTime(now),
+				IDTokenIssuer: mockIDTokenIssuer,
+				BaseURL:       baseURL,
+				Events:        mockEventService,
+				UserBlockingEventContexts: &UserBlockingEventContextProvider{
+					Users:      &stubUserBlockingEventContextUserService{user: providerUser},
+					Identities: &stubUserBlockingEventContextIdentityService{identities: []*identity.Info{providerIdentity}},
+				},
+			}
+
+			options := baseOptions()
+			options.UserBlockingEventContext = &UserBlockingEventContext{
+				UserID:    "other-user",
+				UserModel: &model.User{Meta: model.Meta{ID: "other-user"}},
+			}
+
+			_, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldEqual, providerUser)
+			So(capturedPayload.Identities, ShouldResemble, []model.Identity{providerIdentity.ToModel()})
+		})
+
+		Convey("WillDeliverBlockingEvent true with no supplied context: the provider is called once", func() {
+			mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
+
+			mockEventService := NewMockEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true)
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					return &event.Event{Payload: e}, nil
+				})
+
+			providerUser := &model.User{Meta: model.Meta{ID: "user-id"}}
+			callCount := 0
+			encoding := &AccessTokenEncoding{
+				Secrets:       secrets,
+				Clock:         clock.NewMockClockAtTime(now),
+				IDTokenIssuer: mockIDTokenIssuer,
+				BaseURL:       baseURL,
+				Events:        mockEventService,
+				UserBlockingEventContexts: &UserBlockingEventContextProvider{
+					Users: &countingUserBlockingEventContextUserService{
+						stubUserBlockingEventContextUserService: stubUserBlockingEventContextUserService{user: providerUser},
+						calls:                                   &callCount,
+					},
+					Identities: &stubUserBlockingEventContextIdentityService{},
+				},
+			}
+
+			_, err := encoding.PrepareUserAccessToken(context.Background(), baseOptions())
+			So(err, ShouldBeNil)
+			So(callCount, ShouldEqual, 1)
+		})
+	})
+}
+
+type countingUserBlockingEventContextUserService struct {
+	stubUserBlockingEventContextUserService
+	calls *int
+}
+
+func (s *countingUserBlockingEventContextUserService) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
+	*s.calls++
+	return s.stubUserBlockingEventContextUserService.Get(ctx, id, role)
 }
