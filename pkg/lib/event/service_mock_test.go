@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	db "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -186,4 +187,18 @@ func (m *MockResolver) Resolve(ctx context.Context, anything any) error {
 func (mr *MockResolverMockRecorder) Resolve(ctx, anything interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockResolver)(nil).Resolve), ctx, anything)
+}
+
+// ResolveWithUser mocks base method.
+func (m *MockResolver) ResolveWithUser(ctx context.Context, anything any, u *model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveWithUser", ctx, anything, u)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResolveWithUser indicates an expected call of ResolveWithUser.
+func (mr *MockResolverMockRecorder) ResolveWithUser(ctx, anything, u interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveWithUser", reflect.TypeOf((*MockResolver)(nil).ResolveWithUser), ctx, anything, u)
 }

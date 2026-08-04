@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -35,6 +36,7 @@ type Store interface {
 
 type Resolver interface {
 	Resolve(ctx context.Context, anything any) (err error)
+	ResolveWithUser(ctx context.Context, anything any, u *model.User) (err error)
 }
 
 var EventLogger = slogutil.NewLogger("event")
