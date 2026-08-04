@@ -15,6 +15,9 @@ type Sink struct {
 	Database  *appdb.Handle
 }
 
+// WillDeliverBlockingEvent: the reindex sink does not consume blocking events.
+func (s *Sink) WillDeliverBlockingEvent(eventType event.Type) bool { return false }
+
 func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) error {
 	return nil
 }

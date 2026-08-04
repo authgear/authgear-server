@@ -26,6 +26,7 @@ type Database interface {
 type Sink interface {
 	ReceiveBlockingEvent(ctx context.Context, e *event.Event) error
 	ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error
+	WillDeliverBlockingEvent(eventType event.Type) bool
 }
 
 type Store interface {
@@ -192,6 +193,18 @@ func (s *Service) DidCommitTx(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// WillDeliverBlockingEvent reports whether any sink will act on a blocking event
+// of this type. When it is false, the event payload is never observed, so the
+// caller may skip populating it.
+func (s *Service) WillDeliverBlockingEvent(eventType event.Type) bool {
+	for _, sink := range s.Sinks {
+		if sink.WillDeliverBlockingEvent(eventType) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Service) nextSeq(ctx context.Context) (seq int64, err error) {

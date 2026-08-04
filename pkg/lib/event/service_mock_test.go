@@ -99,6 +99,20 @@ func (mr *MockSinkMockRecorder) ReceiveNonBlockingEvent(ctx, e interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveNonBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveNonBlockingEvent), ctx, e)
 }
 
+// WillDeliverBlockingEvent mocks base method.
+func (m *MockSink) WillDeliverBlockingEvent(eventType event.Type) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WillDeliverBlockingEvent", eventType)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// WillDeliverBlockingEvent indicates an expected call of WillDeliverBlockingEvent.
+func (mr *MockSinkMockRecorder) WillDeliverBlockingEvent(eventType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WillDeliverBlockingEvent", reflect.TypeOf((*MockSink)(nil).WillDeliverBlockingEvent), eventType)
+}
+
 // MockStore is a mock of Store interface.
 type MockStore struct {
 	ctrl     *gomock.Controller
