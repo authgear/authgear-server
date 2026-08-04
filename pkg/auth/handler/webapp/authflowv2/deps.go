@@ -81,5 +81,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2SettingsIdentityViewUsernameHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsIdentityEditUsernameHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsIdentityListOAuthHandler), "*"),
+	wire.Struct(new(AuthflowV2SettingsIdentityDeprecatedRedirectHandler), "*"),
 	wire.Struct(new(PreviewWidgetHandler), "*"),
 )

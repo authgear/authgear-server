@@ -114766,6 +114766,11 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	return authflowV2SettingsIdentityListOAuthHandler
 }
 
+func newWebAppAuthflowV2SettingsIdentityDeprecatedRedirectHandler(p *deps.RequestProvider) http.Handler {
+	authflowV2SettingsIdentityDeprecatedRedirectHandler := &authflowv2.AuthflowV2SettingsIdentityDeprecatedRedirectHandler{}
+	return authflowV2SettingsIdentityDeprecatedRedirectHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
