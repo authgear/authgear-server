@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -99,6 +100,12 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 		logger.WithError(err).Error(ctx, "unexpected error")
 	}
 
+	if errors.Is(err, authflow.ErrStepNotFound) ||
+		apierrors.IsKind(err, declarative.InvalidTargetStep) ||
+		apierrors.IsKind(err, declarative.InvalidFlowConfig) {
+		logger.WithError(err).Error(ctx, "flow misconfiguration error")
+	}
+
 	recoverable := func() *webapp.Result {
 		cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierr)
 		if err != nil {
@@ -122,6 +129,12 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 	case apierr.Reason == "AuthenticationFlowNoPublicSignup":
 		fallthrough
 	case errors.Is(err, authflow.ErrFlowNotFound):
+		fallthrough
+	case errors.Is(err, authflow.ErrStepNotFound):
+		fallthrough
+	case apierrors.IsKind(err, declarative.InvalidTargetStep):
+		fallthrough
+	case apierrors.IsKind(err, declarative.InvalidFlowConfig):
 		fallthrough
 	case user.IsAccountStatusError(err):
 		fallthrough
