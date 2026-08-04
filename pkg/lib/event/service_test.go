@@ -428,5 +428,69 @@ func TestServiceDispatchEvent(t *testing.T) {
 			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 		})
+
+		Convey("DispatchEventOnCommit with a non-blocking payload whose DeletedUserIDs is empty resolves exactly once, in WillCommitTx", func() {
+			userID := "user-id"
+			user := model.User{
+				Meta: model.Meta{ID: userID},
+			}
+			payload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
+			}
+
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
+			resolver.EXPECT().Resolve(ctx, payload).Times(1).Return(nil)
+
+			err := service.DispatchEventOnCommit(ctx, payload)
+			So(err, ShouldBeNil)
+
+			err = service.WillCommitTx(ctx)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("DispatchEventOnCommit with a non-blocking payload whose DeletedUserIDs is non-empty resolves twice", func() {
+			userID := "user-id"
+			user := model.User{
+				Meta: model.Meta{ID: userID},
+			}
+			payload := &MockNonBlockingEvent1{
+				MockUserEventBase:  MockUserEventBase{user},
+				MockDeletedUserIDs: []string{userID},
+			}
+
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
+			resolver.EXPECT().Resolve(ctx, payload).Times(2).Return(nil)
+
+			err := service.DispatchEventOnCommit(ctx, payload)
+			So(err, ShouldBeNil)
+
+			err = service.WillCommitTx(ctx)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("DispatchEventImmediately calls Resolve exactly once", func() {
+			userID := "user-id"
+			user := model.User{
+				Meta: model.Meta{ID: userID},
+			}
+			payload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
+			}
+
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			resolver.EXPECT().Resolve(ctx, payload).Times(1).Return(nil)
+			sink.EXPECT().ReceiveNonBlockingEvent(ctx, gomock.Any()).Return(nil)
+
+			err := service.DispatchEventImmediately(ctx, payload)
+			So(err, ShouldBeNil)
+		})
 	})
 }

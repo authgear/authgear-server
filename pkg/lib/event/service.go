@@ -94,11 +94,15 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 			}
 		}
 	case event.NonBlockingPayload:
-		// Resolve refs once here
-		// If the event is about entity deletion,
-		// then it is not possible to resolve the entity in DidCommitTx.
-		if err = s.Resolver.Resolve(ctx, payload); err != nil {
-			return
+		// A non-blocking payload is resolved again in WillCommitTx. Resolving it
+		// here as well is only observable when the later resolve cannot find the
+		// user: resolve.go swallows ErrUserNotFound and keeps whatever was
+		// resolved earlier. That happens exactly when the user row is gone by
+		// commit time, which the payload declares via DeletedUserIDs.
+		if len(typedPayload.DeletedUserIDs()) > 0 {
+			if err = s.Resolver.Resolve(ctx, payload); err != nil {
+				return
+			}
 		}
 		s.NonBlockingPayloads = append(s.NonBlockingPayloads, typedPayload)
 	default:
@@ -111,14 +115,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 // DispatchEventImmediately dispatches the event immediately.
 func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error) {
 	logger := EventLogger.GetLogger(ctx)
-	// Resolve refs once here
-	// If the event is about entity deletion,
-	// then it is not possible to resolve the entity in DidRollbackTx.
-	err = s.Resolver.Resolve(ctx, payload)
-	if err != nil {
-		return
-	}
-
+	// resolveNonBlockingEvent is the single resolve for this path.
 	e, err := s.resolveNonBlockingEvent(ctx, payload)
 	if err != nil {
 		return err
