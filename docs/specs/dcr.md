@@ -12,6 +12,7 @@ Authgear supports Dynamic Client Registration as defined by:
 - [Glossary](#glossary)
 - [Use Cases](#use-cases)
 - [Configuration](#configuration)
+  - [Client Limit](#client-limit)
 - [OIDC Discovery Metadata](#oidc-discovery-metadata)
 - [Initial Access Token](#initial-access-token)
 - [Registration Endpoint](#registration-endpoint)
@@ -242,6 +243,22 @@ oauth:
 
 > **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to all third-party clients, including DCR-registered ones. See [API Resources and Scopes](./api-resource.md#access-policy).
 
+### Client Limit
+
+A DCR client is created by anyone holding a valid IAT (or, under open registration, by anyone at all) — no per-client admin action is required, unlike a static client. Left uncapped, this lets the project's client population grow without bound.
+
+**authgear.features.yaml**
+
+```yaml
+oauth:
+  dynamic_client_registration:
+    maximum_clients: null
+```
+
+- `oauth.dynamic_client_registration.maximum_clients`: Optional. Integer. Default `null` (no limit). The maximum number of DCR-registered clients the project may have at once, checked against the current count of `OAuthClient` records with `source: DCR`. Once at `maximum_clients`, `POST /oauth2/register` is rejected with `access_denied` (see [Errors](#errors)) regardless of IAT validity.
+
+This is a plan-tier limit, set in `authgear.features.yaml`, not something a project admin edits directly — distinct in both file and purpose from `oauth.dynamic_client_registration.*` in `authgear.yaml` above.
+
 ## OIDC Discovery Metadata
 
 When DCR is enabled, `registration_endpoint` is added to the discovery documents at:
@@ -267,7 +284,7 @@ Full example of `/.well-known/openid-configuration` with DCR enabled (fields tak
 
 ## Initial Access Token
 
-An IAT is an **opaque** token issued by the Admin API (see [Admin API — IAT mutation](#new-mutation-createinitialaccesstoken)). It is passed as `Authorization: Bearer <iat>` to the registration endpoint.
+An IAT is an **opaque** token issued by the Admin API (see [IAT management](#iat-management)). It is passed as `Authorization: Bearer <iat>` to the registration endpoint.
 
 An IAT authorizes the bearer to register a new OAuth client. The key behavioral rules are:
 
@@ -347,7 +364,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 | `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for non-localhost) |
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
 | `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
-| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, or a first-party IAT is required but a third-party IAT or no IAT was presented) |
+| `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, a first-party IAT is required but a third-party IAT or no IAT was presented, or the project's [client limit](#client-limit) has been reached) |
 
 **`invalid_client_metadata` causes:**
 
@@ -464,7 +481,7 @@ The admin configures the access policy once per Resource/Scope in the portal. In
 
 ## Admin API
 
-The portal displays registered clients by querying the Admin GraphQL API. Client creation is done by calling `POST /oauth2/register` directly with an IAT (when required); client management (read, update, delete) is deferred to RFC 7592.
+The portal displays registered clients by querying the Admin GraphQL API. Client creation is done by calling `POST /oauth2/register` directly with an IAT (when required). Client self-service management (the client reading/updating/deleting its own registration via a Registration Access Token) is deferred to RFC 7592 — see [Future Works](#future-works). Admin-initiated deletion is a separate, already-defined capability — see [New mutation](#new-mutation) below.
 
 ### IAT management
 
@@ -569,6 +586,31 @@ type DynamicClientEdge {
 }
 ```
 
+### New mutation
+
+```graphql
+extend type Mutation {
+  """
+  Deletes a DCR-registered or CIMD-resolved client: removes its persisted
+  record and revokes all outstanding authorizations and tokens issued to it,
+  for every user. Frees one slot against the client's corresponding limit
+  (see Client Limit in dcr.md / cimd.md). Not applicable to static clients —
+  manage those via authgear.yaml instead.
+  """
+  deleteDynamicClient(input: DeleteDynamicClientInput!): DeleteDynamicClientPayload!
+}
+
+input DeleteDynamicClientInput {
+  clientID: String!
+}
+
+type DeleteDynamicClientPayload {
+  ok: Boolean
+}
+```
+
+For a DCR client, deletion is permanent: the same `client_id` never reappears unless a new `POST /oauth2/register` call creates it again. For a CIMD client, deletion only evicts the current persisted record — the same `client_id` URL can produce a new record on its very next successful resolution, since nothing prevents a caller from presenting that URL again. This mutation frees a slot immediately in both cases, but for CIMD it is not a durable ban; see [cimd.md — Domain Trust](./cimd.md#domain-trust) for the closest thing to one.
+
 ## Future Works
 
 ### Per client config update
@@ -577,7 +619,7 @@ Currently `default_client_config` applies a single set of token lifetimes to all
 
 ### Client management (RFC 7592)
 
-DCR clients cannot currently be read, updated, or deleted after registration. RFC 7592 is the planned mechanism for all post-registration client management — see below.
+DCR clients cannot currently be read or updated after registration, and cannot delete themselves (admin-initiated deletion is already covered by [`deleteDynamicClient`](#new-mutation)). RFC 7592 is the planned mechanism for client self-service management — see below.
 
 ### RFC 7592 — Client Registration Management
 

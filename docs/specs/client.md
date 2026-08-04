@@ -1,6 +1,6 @@
 # Client Model
 
-An Authgear **client** is any OAuth 2.0 / OIDC application that interacts with the authorization server. Clients may originate from two sources:
+An Authgear **client** is any OAuth 2.0 / OIDC application that interacts with the authorization server. Clients may originate from three sources:
 
 1. **Static clients** — declared in `authgear.yaml` under `oauth.clients`. Changes require a configuration deploy.
 2. **Dynamic clients** — registered at runtime via [Dynamic Client Registration (DCR)](./dcr.md). Stored in the database.
@@ -335,3 +335,5 @@ The resulting `OAuthClient` object is:
 ```
 
 Token lifetime fields are populated from `oauth.dynamic_client_registration.default_client_config` when set, otherwise from the project defaults. All Authgear extension fields are fixed at their zero values for DCR clients and cannot be changed at registration time.
+
+Static clients are implicitly bounded — each one requires a project admin to edit and deploy `authgear.yaml`. DCR-registered and CIMD-resolved clients are not, since neither requires a per-client admin action; each source defines its own `authgear.features.yaml` limit — see [dcr.md — Client Limit](./dcr.md#client-limit) and [cimd.md — Client Limit](./cimd.md#client-limit).
