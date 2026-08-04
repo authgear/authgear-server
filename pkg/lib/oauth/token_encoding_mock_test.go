@@ -155,18 +155,18 @@ func (mr *MockEventServiceMockRecorder) DispatchEventWithoutTx(ctx, e interface{
 }
 
 // PrepareBlockingEventWithTx mocks base method.
-func (m *MockEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error) {
+func (m *MockEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload)
+	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload, opts)
 	ret0, _ := ret[0].(*event.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PrepareBlockingEventWithTx indicates an expected call of PrepareBlockingEventWithTx.
-func (mr *MockEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload interface{}) *gomock.Call {
+func (mr *MockEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockEventService)(nil).PrepareBlockingEventWithTx), ctx, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockEventService)(nil).PrepareBlockingEventWithTx), ctx, payload, opts)
 }
 
 // MockAccessTokenEncodingIdentityService is a mock of AccessTokenEncodingIdentityService interface.

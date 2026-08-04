@@ -42,7 +42,7 @@ type IDTokenIssuerIdentityService interface {
 }
 
 type IDTokenIssuerEventService interface {
-	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (e *event.Event, err error)
 	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
 }
 
@@ -167,7 +167,7 @@ func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDToken
 		},
 	}
 
-	event, err := ti.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
+	event, err := ti.Events.PrepareBlockingEventWithTx(ctx, eventPayload, event.PrepareBlockingEventOptions{})
 	if err != nil {
 		return nil, err
 	}

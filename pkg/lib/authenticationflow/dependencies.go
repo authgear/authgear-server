@@ -121,7 +121,7 @@ type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 	DispatchEventWithoutTx(ctx context.Context, e *event.Event) error
-	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error)
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (*event.Event, error)
 }
 
 type UserService interface {

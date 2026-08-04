@@ -169,18 +169,18 @@ func (mr *MockIDTokenIssuerEventServiceMockRecorder) DispatchEventWithoutTx(ctx,
 }
 
 // PrepareBlockingEventWithTx mocks base method.
-func (m *MockIDTokenIssuerEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error) {
+func (m *MockIDTokenIssuerEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload)
+	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload, opts)
 	ret0, _ := ret[0].(*event.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PrepareBlockingEventWithTx indicates an expected call of PrepareBlockingEventWithTx.
-func (mr *MockIDTokenIssuerEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload interface{}) *gomock.Call {
+func (mr *MockIDTokenIssuerEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockIDTokenIssuerEventService)(nil).PrepareBlockingEventWithTx), ctx, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockIDTokenIssuerEventService)(nil).PrepareBlockingEventWithTx), ctx, payload, opts)
 }
 
 // MockIDTokenHintResolverIssuer is a mock of IDTokenHintResolverIssuer interface.

@@ -72,16 +72,14 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 		s.DatabaseHooked = true
 	}
 
-	// Resolve refs once here
-	// If the event is about entity deletion,
-	// then it is not possible to resolve the entity in DidCommitTx.
-	err = s.Resolver.Resolve(ctx, payload)
-	if err != nil {
-		return
-	}
-
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
+		// A blocking payload is resolved here or not at all; there is no later pass.
+		if s.WillDeliverBlockingEvent(typedPayload.BlockingEventType()) {
+			if err = s.Resolver.Resolve(ctx, payload); err != nil {
+				return
+			}
+		}
 		eventContext := s.makeContext(ctx, payload)
 		var seq int64
 		seq, err = s.nextSeq(ctx)
@@ -96,6 +94,12 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 			}
 		}
 	case event.NonBlockingPayload:
+		// Resolve refs once here
+		// If the event is about entity deletion,
+		// then it is not possible to resolve the entity in DidCommitTx.
+		if err = s.Resolver.Resolve(ctx, payload); err != nil {
+			return
+		}
 		s.NonBlockingPayloads = append(s.NonBlockingPayloads, typedPayload)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))
@@ -141,14 +145,26 @@ func (s *Service) DispatchEventWithoutTx(ctx context.Context, e *event.Event) (e
 	return
 }
 
-func (s *Service) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error) {
+func (s *Service) PrepareBlockingEventWithTx(
+	ctx context.Context,
+	payload event.BlockingPayload,
+	opts event.PrepareBlockingEventOptions,
+) (e *event.Event, err error) {
 	eventContext := s.makeContext(ctx, payload)
 	var seq int64
 	seq, err = s.nextSeq(ctx)
 	if err != nil {
 		return
 	}
-	err = s.Resolver.Resolve(ctx, payload)
+	switch {
+	case !s.WillDeliverBlockingEvent(payload.BlockingEventType()):
+		// No sink will observe the payload; skip the read entirely,
+		// regardless of whether a resolved user was supplied.
+	case opts.ResolvedUser != nil:
+		err = s.Resolver.ResolveWithUser(ctx, payload, opts.ResolvedUser)
+	default:
+		err = s.Resolver.Resolve(ctx, payload)
+	}
 	if err != nil {
 		return
 	}

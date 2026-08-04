@@ -36,7 +36,7 @@ type BaseURLProvider interface {
 
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
-	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (e *event.Event, err error)
 	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
 }
 
@@ -158,7 +158,7 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 		},
 	}
 
-	event, err := e.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
+	event, err := e.Events.PrepareBlockingEventWithTx(ctx, eventPayload, event.PrepareBlockingEventOptions{})
 	if err != nil {
 		return nil, err
 	}

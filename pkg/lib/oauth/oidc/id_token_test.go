@@ -85,7 +85,7 @@ func TestIDTokenIssuer(t *testing.T) {
 		)
 
 		mockEventService := NewMockIDTokenIssuerEventService(ctrl)
-		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload) (*event.Event, error) {
+		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
 			return &event.Event{
 				Payload: e,
 			}, nil
