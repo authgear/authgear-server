@@ -288,5 +288,14 @@ func TestFeatureConfigDisabledFieldsSerializeExplicitly(t *testing.T) {
 		authentication, _ := raw["authentication"].(map[string]any)
 		secondaryAuthenticators, _ := authentication["secondary_authenticators"].(map[string]any)
 		So(secondaryAuthenticators["oob_otp_sms"], ShouldResemble, map[string]any{"disabled": false})
+
+		identity, _ := raw["identity"].(map[string]any)
+		loginID, _ := identity["login_id"].(map[string]any)
+		types, _ := loginID["types"].(map[string]any)
+		So(types["phone"], ShouldResemble, map[string]any{"disabled": false})
+
+		oauth, _ := identity["oauth"].(map[string]any)
+		providers, _ := oauth["providers"].(map[string]any)
+		So(providers["google"], ShouldResemble, map[string]any{"disabled": false})
 	})
 }
