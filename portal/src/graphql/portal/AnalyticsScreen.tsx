@@ -8,6 +8,7 @@ import { Context, FormattedMessage } from "../../intl";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
 import { Periodical } from "./globalTypes.generated";
 import ScreenContent from "../../ScreenContent";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import AnalyticsActivityWidget from "./AnalyticsActivityWidget";
 import AnalyticsSignupConversionWidget from "./AnalyticsSignupConversionWidget";
 import AnalyticsSignupMethodsWidget from "./AnalyticsSignupMethodsWidget";
@@ -217,70 +218,72 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
 
   return (
     <>
-      <ScreenContent layout="list">
-        <div className={cn(styles.widget, styles.pageHeader)}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="AnalyticsScreen.title" />
-          </Text>
-          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
-            <FormattedMessage id="AnalyticsScreen.description" />
-          </Text>
-        </div>
-        <div className={cn(styles.widget, styles.filterBar)}>
-          <Button
-            size="2"
-            variant="outline"
-            color="gray"
-            onClick={onClickDateRange}
-          >
-            <CalendarIcon width="1rem" height="1rem" />
-            <span className={styles.dateButtonLabel}>
-              <FormattedMessage id="AnalyticsScreen.start-date.label" />
-            </span>
-            <span className={styles.dateButtonValue}>{rangeFromStr}</span>
-          </Button>
-          <Button
-            size="2"
-            variant="outline"
-            color="gray"
-            onClick={onClickDateRange}
-          >
-            <CalendarIcon width="1rem" height="1rem" />
-            <span className={styles.dateButtonLabel}>
-              <FormattedMessage id="AnalyticsScreen.end-date.label" />
-            </span>
-            <span className={styles.dateButtonValue}>{rangeToStr}</span>
-          </Button>
-          <Button
-            size="2"
-            variant="ghost"
-            color="gray"
-            onClick={onClickResetDateRange}
-          >
-            <ResetIcon width="1rem" height="1rem" />
-            <FormattedMessage id="AnalyticsScreen.clear-date-range.label" />
-          </Button>
-          {loading ? <Spinner size="2" className={styles.loadingSpinner} /> : null}
-        </div>
-        <AnalyticsActivityWidget
-          className={styles.activityWidget}
-          loading={loading}
-          periodical={periodical}
-          onPeriodicalChange={setPeriodical}
-          activeUserChartData={activeUserChart}
-          totalUserCountChartData={totalUserCountChart}
-        />
-        <AnalyticsSignupConversionWidget
-          className={styles.signupConversionWidget}
-          loading={loading}
-          signupConversionRate={signupConversionRate}
-        />
-        <AnalyticsSignupMethodsWidget
-          className={styles.signupMethodsWidget}
-          loading={loading}
-          signupByMethodsChart={signupByMethodsChart}
-        />
-      </ScreenContent>
+      <ScreenLayoutScrollView>
+        <ScreenContent layout="auto-rows">
+          <div className={cn(styles.widget, styles.pageHeader)}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="AnalyticsScreen.title" />
+            </Text>
+            <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+              <FormattedMessage id="AnalyticsScreen.description" />
+            </Text>
+          </div>
+          <div className={cn(styles.widget, styles.filterBar)}>
+            <Button
+              size="2"
+              variant="outline"
+              color="gray"
+              onClick={onClickDateRange}
+            >
+              <CalendarIcon width="1rem" height="1rem" />
+              <span className={styles.dateButtonLabel}>
+                <FormattedMessage id="AnalyticsScreen.start-date.label" />
+              </span>
+              <span className={styles.dateButtonValue}>{rangeFromStr}</span>
+            </Button>
+            <Button
+              size="2"
+              variant="outline"
+              color="gray"
+              onClick={onClickDateRange}
+            >
+              <CalendarIcon width="1rem" height="1rem" />
+              <span className={styles.dateButtonLabel}>
+                <FormattedMessage id="AnalyticsScreen.end-date.label" />
+              </span>
+              <span className={styles.dateButtonValue}>{rangeToStr}</span>
+            </Button>
+            <Button
+              size="2"
+              variant="ghost"
+              color="gray"
+              onClick={onClickResetDateRange}
+            >
+              <ResetIcon width="1rem" height="1rem" />
+              <FormattedMessage id="AnalyticsScreen.clear-date-range.label" />
+            </Button>
+            {loading ? <Spinner size="2" className={styles.loadingSpinner} /> : null}
+          </div>
+          <AnalyticsActivityWidget
+            className={styles.activityWidget}
+            loading={loading}
+            periodical={periodical}
+            onPeriodicalChange={setPeriodical}
+            activeUserChartData={activeUserChart}
+            totalUserCountChartData={totalUserCountChart}
+          />
+          <AnalyticsSignupConversionWidget
+            className={styles.signupConversionWidget}
+            loading={loading}
+            signupConversionRate={signupConversionRate}
+          />
+          <AnalyticsSignupMethodsWidget
+            className={styles.signupMethodsWidget}
+            loading={loading}
+            signupByMethodsChart={signupByMethodsChart}
+          />
+        </ScreenContent>
+      </ScreenLayoutScrollView>
       <AuditLogDateRangeDialog
         hidden={dateRangeDialogHidden}
         title={renderToString("AnalyticsScreen.date-range.dialog-title")}
