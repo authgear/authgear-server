@@ -48,32 +48,6 @@
   pointer-events: none;
 }
 
-.addLanguageTrigger {
-  @apply inline-flex items-center justify-center gap-1;
-  height: var(--space-6);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--gray-a7);
-  border-radius: var(--radius-2);
-  background-color: var(--color-panel-solid);
-  box-shadow: inset 0 0 0 1px var(--gray-a5);
-  cursor: pointer;
-  font-size: var(--font-size-2);
-  line-height: var(--line-height-2);
-  font-weight: var(--font-weight-medium);
-  color: var(--gray-12);
-}
-
-.addLanguageTrigger:hover:not(:disabled) {
-  background-color: var(--gray-a2);
-}
-
-.addLanguageTrigger:disabled {
-  background-color: var(--gray-a3);
-  color: var(--gray-a8);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
 .addLanguageButtonContent {
   @apply inline-flex items-center gap-1;
 }

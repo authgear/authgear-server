@@ -24,6 +24,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
@@ -344,17 +345,17 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
             <div
               className={cn(showSearch && styles.addLanguageButtonWrapHidden)}
             >
-              <button
-                type="button"
-                className={styles.addLanguageTrigger}
+              <SecondaryButton
+                size="2"
                 disabled={allLanguagesAdded}
                 onClick={onOpenAddLanguages}
-              >
-                <span className={styles.addLanguageButtonContent}>
-                  <PlusIcon width="1rem" height="1rem" />
-                  <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.add-languages" />
-                </span>
-              </button>
+                text={
+                  <span className={styles.addLanguageButtonContent}>
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.add-languages" />
+                  </span>
+                }
+              />
             </div>
             {showSearch ? (
               <>
