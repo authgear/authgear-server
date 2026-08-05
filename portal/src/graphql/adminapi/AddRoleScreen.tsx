@@ -119,18 +119,18 @@ function AddRolesScreenForm() {
         />
       </RoleAndGroupsVeriticalFormLayout>
       <RoleAndGroupsFormFooter className="mt-12">
-        <PrimaryButton
-          size="2"
-          disabled={!canSave || isUpdating}
-          type="submit"
-          text={<FormattedMessage id="create" />}
-        />
         <SecondaryButton
           size="2"
           disabled={isUpdating}
           type="button"
           onClick={cancel}
           text={<FormattedMessage id="cancel" />}
+        />
+        <PrimaryButton
+          size="2"
+          disabled={!canSave || isUpdating}
+          type="submit"
+          text={<FormattedMessage id="create" />}
         />
       </RoleAndGroupsFormFooter>
     </div>
