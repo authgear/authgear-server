@@ -1,22 +1,19 @@
-.root {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  row-gap: 24px;
+.widget {
+  grid-column: 1 / span 9;
+
+  @apply tablet:col-span-full;
 }
 
-.processingPaymentRoot {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  row-gap: 24px;
+.widgetWide {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
 }
 
-.header {
+.pageHeader {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-width: 1252px;
 }
 
 .pageTitle {
@@ -51,21 +48,23 @@
   min-width: 0;
 }
 
-.planDetailsGrid {
+.planDetailsTabContent {
   display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: 16px;
-  row-gap: 20px;
-  padding-top: 24px;
-  padding-bottom: 24px;
-
-  @apply grid-cols-[repeat(12,_80px)] auto-rows-auto tablet:grid-cols-12;
-  @apply content-start;
+  width: 100%;
+  min-width: 0;
 }
 
-.widget {
+.planDetailsTabContent > * {
   grid-column: 1 / span 9;
+  min-width: 0;
+}
 
-  @apply tablet:col-span-full;
+@media (max-width: 1080px) {
+  .planDetailsTabContent > * {
+    grid-column: 1 / -1;
+  }
 }
 
 .planDetailsTab {
@@ -74,6 +73,8 @@
   gap: 16px;
   width: 100%;
   min-width: 0;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 
 .planDetailsHeader {
@@ -83,7 +84,8 @@
 }
 
 .section {
-  max-width: 1252px;
+  width: 100%;
+  min-width: 0;
 }
 
 .cardsContainer {
@@ -108,6 +110,13 @@
   display: flex;
   flex-direction: column;
   row-gap: 10px;
+}
+
+.processingPaymentRoot {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 24px;
 }
 
 .processingPaymentSection {

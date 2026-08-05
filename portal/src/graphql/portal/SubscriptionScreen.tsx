@@ -42,6 +42,7 @@ import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscr
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import ScreenContent from "../../ScreenContent";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
@@ -671,8 +672,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         </DialogFooter>
       </Dialog>
 
-      <div className={styles.root}>
-        <div className={styles.header}>
+      <ScreenContent layout="auto-rows">
+        <div className={cn(styles.widget, styles.pageHeader)}>
           <RadixText
             as="p"
             size="5"
@@ -691,7 +692,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           </RadixText>
         </div>
         <Tabs.Root
-          className={styles.tabsRoot}
+          className={cn(styles.widgetWide, styles.tabsRoot)}
           value={selectedTab}
           onValueChange={onTabValueChange}
         >
@@ -722,19 +723,23 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             </div>
           </Tabs.Content>
           <Tabs.Content value={Tab.PlanDetail} className={styles.tabContent}>
-            <PlanDetailsTab
-              appID={appID}
-              planName={planName}
-              subscriptionCancelled={subscriptionCancelled}
-              nextBillingDate={nextBillingDate}
-              thisMonthUsage={thisMonthUsage}
-              thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
-              previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
-              hasSubscription={hasSubscription}
-            />
+            <div className={styles.planDetailsTabContent}>
+              <PlanDetailsTab
+                appID={appID}
+                planName={planName}
+                subscriptionCancelled={subscriptionCancelled}
+                nextBillingDate={nextBillingDate}
+                thisMonthUsage={thisMonthUsage}
+                thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+                previousMonthSubscriptionUsage={
+                  previousMonthSubscriptionUsage
+                }
+                hasSubscription={hasSubscription}
+              />
+            </div>
           </Tabs.Content>
         </Tabs.Root>
-      </div>
+      </ScreenContent>
     </>
   );
 }
@@ -793,9 +798,8 @@ function PlanDetailsTab({
   );
 
   return (
-    <div className={styles.planDetailsGrid}>
-      <div className={cn(styles.widget, styles.planDetailsTab)}>
-        <div className={styles.planDetailsHeader}>
+    <div className={styles.planDetailsTab}>
+      <div className={styles.planDetailsHeader}>
         {subscriptionCancelled && formattedBillingDate != null ? (
           <CancelSubscriptionReminder
             formattedBillingDate={formattedBillingDate}
@@ -832,7 +836,6 @@ function PlanDetailsTab({
           onClick={onClickManageSubscription}
         />
       ) : null}
-      </div>
     </div>
   );
 }

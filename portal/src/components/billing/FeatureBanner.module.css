@@ -85,7 +85,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-3);
-  background-color: var(--accent-a2);
+  background-color: white;
   flex-shrink: 0;
 }
 

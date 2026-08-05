@@ -23,10 +23,12 @@
 
 .priceLarge {
   line-height: var(--line-height-8);
+  font-weight: 600;
 }
 
 .priceCustom {
   line-height: 36px;
+  font-weight: 600;
 }
 
 .priceMonthlyRow {
@@ -36,6 +38,7 @@
 
 .priceMonthlyUnit {
   margin-left: 8px;
+  font-weight: 600;
 }
 
 .smsPriceSection {

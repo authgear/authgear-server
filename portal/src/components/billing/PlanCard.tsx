@@ -143,7 +143,7 @@ function PlanPrice({
       );
     case "custom":
       return (
-        <RadixText size="4" weight="medium" className={styles.priceCustom}>
+        <RadixText size="4" className={styles.priceCustom}>
           <FormattedMessage id="PlanCard.price.custom" />
         </RadixText>
       );
@@ -161,7 +161,7 @@ function PlanPrice({
               }}
             />
           </RadixText>
-          <RadixText size="4" weight="medium" className={styles.priceMonthlyUnit}>
+          <RadixText size="4" className={styles.priceMonthlyUnit}>
             <FormattedMessage id="PlanCard.price.monthly.unit" />
           </RadixText>
         </div>
