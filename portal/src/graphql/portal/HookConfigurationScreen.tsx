@@ -2009,18 +2009,18 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 />
               </div>
               <Flex gap="2" direction="row">
+                <SecondaryButton
+                  size="2"
+                  text={<FormattedMessage id="cancel" />}
+                  onClick={onClickCancelEditing}
+                  disabled={isLoading}
+                />
                 <RadixPrimaryButton
                   size="2"
                   text={<FormattedMessage id="finish-editing" />}
                   onClick={onClickFinishEditing}
                   disabled={isLoading}
                   loading={isLoading}
-                />
-                <SecondaryButton
-                  size="2"
-                  text={<FormattedMessage id="cancel" />}
-                  onClick={onClickCancelEditing}
-                  disabled={isLoading}
                 />
               </Flex>
             </div>
