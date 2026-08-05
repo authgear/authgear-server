@@ -1237,7 +1237,7 @@
   "AcceptAdminInvitationScreen.accept-error.title": "Accept Invitation Error",
   "GeneralSettings.app-id.label": "App ID",
   "CookieLifetimeConfigurationScreen.title": "Session",
-  "CookieLifetimeConfigurationScreen.description": "Controls the single sign-on (SSO) session Authgear keeps in the browser for <b>{hostname}</b>, shared across every app in this project. Only applies to browser-based sign-in. Token-based apps (SPAs, native apps using the SDK) keep their own session, configured per app in <applicationsLink>Applications</applicationsLink>.",
+  "CookieLifetimeConfigurationScreen.description": "When a user signs in, Authgear sets a session cookie on <b>{hostname}</b> (your Authgear endpoint domain), shared across every app in this project. Web apps on the same root domain can use this cookie directly as their session (cookie-based authentication). Token-based apps (SPAs, native apps using the SDK) keep their own session, but at their next sign-in an active Authgear session lets the user continue as the signed-in user without re-entering credentials. Per-app settings are in <applicationsLink>Applications</applicationsLink>.",
   "CookieLifetimeConfigurationScreen.session-behavior.label": "Session Behavior",
   "CookieLifetimeConfigurationScreen.session-behavior.description": "Controls whether a signed-in session survives after the browser is closed.",
   "CookieLifetimeConfigurationScreen.session-behavior.keep-signed-in.title": "Keep users signed in",
