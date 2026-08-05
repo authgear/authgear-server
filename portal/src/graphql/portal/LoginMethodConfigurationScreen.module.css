@@ -73,3 +73,11 @@
   @apply flex flex-col;
   @apply gap-y-2;
 }
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}

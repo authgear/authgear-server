@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useState,
   useContext,
+  useRef,
 } from "react";
 import cn from "classnames";
 import {
@@ -78,6 +79,8 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import PriorityList from "../../PriorityList";
 import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
@@ -3700,12 +3703,17 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     );
 
     const uiImplementation = useUIImplementation(projectUIImplementation);
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="LoginMethodConfigurationScreen.title" />
-        </ScreenTitle>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div ref={contentWidthAnchorRef} className={styles.widget}>
+          <ScreenTitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.title" />
+          </ScreenTitle>
+        </div>
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           <ChosenLoginMethod
             loginMethod={loginMethod}
@@ -3752,7 +3760,10 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           />
           <HorizontalDivider className={styles.separator} />
           <AGPivot
-            className={styles.widget}
+            className={cn(
+              styles.widget,
+              isDirty && styles.settingsCardSaveBarClearance
+            )}
             styles={PIVOT_STYLES}
             overflowBehavior="menu"
           >
@@ -3886,6 +3897,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             </PivotItem>
           </AGPivot>
         </ShowOnlyIfSIWEIsDisabled>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
@@ -4027,8 +4039,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       <FormContainer
         form={form}
         errorRules={ERROR_RULES}
-        stickyFooterComponent={true}
-        showDiscardButton={true}
+        hideFooterComponent={true}
       >
         <LoginMethodConfigurationContent appID={appID} form={form} />
       </FormContainer>
