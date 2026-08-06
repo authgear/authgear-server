@@ -69,6 +69,9 @@ func TestTokenHandler(t *testing.T) {
 		clientResourceScopeService := NewMockTokenHandlerClientResourceScopeService(ctrl)
 		appSessionTokens := NewMockTokenHandlerAppSessionTokenStore(ctrl)
 
+		events := NewMockEventService(ctrl)
+		events.EXPECT().WillDeliverBlockingEvent(gomock.Any()).AnyTimes().Return(false)
+
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 
 		h := handler.TokenHandler{
@@ -100,6 +103,7 @@ func TestTokenHandler(t *testing.T) {
 			CodeGrantService:                codeGrantService,
 			Challenges:                      challenges,
 			App2App:                         app2appService,
+			Events:                          events,
 		}
 
 		handle := func(ctx context.Context, req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {

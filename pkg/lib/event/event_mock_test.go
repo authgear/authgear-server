@@ -32,6 +32,7 @@ func (e *MockUserEventBase) GetTriggeredBy() event.TriggeredByType {
 
 type MockNonBlockingEvent1 struct {
 	MockUserEventBase
+	MockDeletedUserIDs []string
 }
 
 func (e *MockNonBlockingEvent1) NonBlockingEventType() event.Type {
@@ -54,7 +55,7 @@ func (e *MockNonBlockingEvent1) RequireReindexUserIDs() []string {
 }
 
 func (e *MockNonBlockingEvent1) DeletedUserIDs() []string {
-	return nil
+	return e.MockDeletedUserIDs
 }
 
 type MockNonBlockingEvent2 struct {

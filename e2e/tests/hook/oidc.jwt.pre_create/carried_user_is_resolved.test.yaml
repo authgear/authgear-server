@@ -1,0 +1,93 @@
+name: oidc.jwt.pre_create receives the user carried from the token endpoint
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    hook:
+      blocking_handlers:
+      - event: oidc.jwt.pre_create
+        url: authgeardeno:///deno/requireuserinjwt.ts
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "carried-user@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # oauth_exchange_code exposes access_token only as an opaque string, so the
+  # oidc.jwt.pre_create payload cannot be asserted directly. Instead the
+  # requireuserinjwt.ts hook rejects the request unless e.payload.user.id is
+  # populated, so a successful exchange here is itself the assertion that the
+  # carried user reached the jwt.pre_create payload. A companion negative
+  # case is not added: there is no way to make the payload legitimately
+  # empty while this hook is registered.
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          },
+          "access_token": "[[string]]"
+        }

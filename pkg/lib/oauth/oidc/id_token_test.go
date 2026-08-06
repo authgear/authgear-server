@@ -13,16 +13,37 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+type stubUserBlockingEventContextUserService struct {
+	user *model.User
+	err  error
+}
+
+func (s *stubUserBlockingEventContextUserService) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
+	return s.user, s.err
+}
+
+type stubUserBlockingEventContextIdentityService struct {
+	identities []*identity.Info
+	err        error
+}
+
+func (s *stubUserBlockingEventContextIdentityService) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
+	return s.identities, s.err
+}
 
 const PrivateKeyPEM = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC89eQDeH8icj6j
@@ -85,15 +106,18 @@ func TestIDTokenIssuer(t *testing.T) {
 		)
 
 		mockEventService := NewMockIDTokenIssuerEventService(ctrl)
-		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload) (*event.Event, error) {
+		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
 			return &event.Event{
 				Payload: e,
 			}, nil
 		}).AnyTimes()
 		mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
+		mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate).Return(true)
 
-		mockIdentityService := NewMockIDTokenIssuerIdentityService(ctrl)
-		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
+		eventUserCtxProvider := &oauth.UserBlockingEventContextProvider{
+			Users:      &stubUserBlockingEventContextUserService{user: &model.User{Meta: model.Meta{ID: "user-id"}}},
+			Identities: &stubUserBlockingEventContextIdentityService{},
+		}
 
 		issuer := &IDTokenIssuer{
 			Secrets: secrets,
@@ -103,10 +127,10 @@ func TestIDTokenIssuer(t *testing.T) {
 					HTTPProto: "http",
 				},
 			},
-			UserInfoService: mockUserInfoService,
-			Events:          mockEventService,
-			Identities:      mockIdentityService,
-			Clock:           clock.NewMockClockAtTime(now),
+			UserInfoService:           mockUserInfoService,
+			Events:                    mockEventService,
+			UserBlockingEventContexts: eventUserCtxProvider,
+			Clock:                     clock.NewMockClockAtTime(now),
 		}
 
 		client := &config.OAuthClientConfig{
@@ -401,4 +425,199 @@ func TestGetUserInfo(t *testing.T) {
 			{CreatedAt: now, UpdatedAt: now, Type: model.IdentityTypeOAuth, OAuthProviderType: "google", OAuthProviderAlias: "google"},
 		})
 	})
+}
+
+func TestIDTokenIssuer_PrepareIDToken_UserBlockingEventContext(t *testing.T) {
+	Convey("PrepareIDToken threads UserBlockingEventContext to PrepareBlockingEventWithTx", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), gomock.Any()).Return(
+			&userinfo.UserInfo{User: &model.User{}},
+			nil,
+		).AnyTimes()
+
+		baseOpts := func() PrepareIDTokenOptions {
+			return PrepareIDTokenOptions{
+				ClientID:           "client-id",
+				AuthenticationInfo: authenticationInfoForUser("user-id"),
+				ClientLike:         oauth.ClientClientLike(&config.OAuthClientConfig{ClientID: "client-id"}, []string{"openid"}),
+			}
+		}
+
+		Convey("WillDeliverBlockingEvent false: the provider is never called and ResolvedUser is nil", func() {
+			mockEventService := NewMockIDTokenIssuerEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate).Return(false)
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			issuer := &IDTokenIssuer{
+				Secrets:         secretsForTest(),
+				BaseURL:         baseURLForTest(),
+				UserInfoService: mockUserInfoService,
+				Events:          mockEventService,
+				Clock:           clock.NewMockClockAtTime(now),
+			}
+
+			_, err := issuer.PrepareIDToken(context.Background(), baseOpts())
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldBeNil)
+		})
+
+		Convey("WillDeliverBlockingEvent true with opts.UserBlockingEventContext supplied: the provider is not called", func() {
+			mockEventService := NewMockIDTokenIssuerEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate).Return(true)
+			var capturedPayload *blocking.OIDCIDTokenPreCreateBlockingEventPayload
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedPayload = e.(*blocking.OIDCIDTokenPreCreateBlockingEventPayload)
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			suppliedUser := &model.User{Meta: model.Meta{ID: "user-id"}, IsVerified: true}
+			suppliedIdentities := []model.Identity{{Meta: model.Meta{ID: "identity-1"}}}
+
+			issuer := &IDTokenIssuer{
+				Secrets:         secretsForTest(),
+				BaseURL:         baseURLForTest(),
+				UserInfoService: mockUserInfoService,
+				Events:          mockEventService,
+				// Left nil: it must not be called in this case. Calling it
+				// would panic on the nil pointer, failing the test.
+				UserBlockingEventContexts: nil,
+				Clock:                     clock.NewMockClockAtTime(now),
+			}
+
+			opts := baseOpts()
+			opts.UserBlockingEventContext = &oauth.UserBlockingEventContext{
+				UserID:     "user-id",
+				UserModel:  suppliedUser,
+				Identities: suppliedIdentities,
+			}
+
+			_, err := issuer.PrepareIDToken(context.Background(), opts)
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldEqual, suppliedUser)
+			So(capturedPayload.Identities, ShouldResemble, suppliedIdentities)
+		})
+
+		Convey("WillDeliverBlockingEvent true with a supplied context whose UserID does not match: the provider is called", func() {
+			mockEventService := NewMockIDTokenIssuerEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate).Return(true)
+			var capturedPayload *blocking.OIDCIDTokenPreCreateBlockingEventPayload
+			var capturedOpts event.PrepareBlockingEventOptions
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					capturedPayload = e.(*blocking.OIDCIDTokenPreCreateBlockingEventPayload)
+					capturedOpts = opts
+					return &event.Event{Payload: e}, nil
+				})
+
+			providerUser := &model.User{Meta: model.Meta{ID: "user-id"}, IsVerified: true}
+			providerIdentity := &identity.Info{
+				ID:        "identity-from-provider",
+				Type:      model.IdentityTypeAnonymous,
+				Anonymous: &identity.Anonymous{KeyID: "key-id"},
+			}
+
+			issuer := &IDTokenIssuer{
+				Secrets:         secretsForTest(),
+				BaseURL:         baseURLForTest(),
+				UserInfoService: mockUserInfoService,
+				Events:          mockEventService,
+				UserBlockingEventContexts: &oauth.UserBlockingEventContextProvider{
+					Users:      &stubUserBlockingEventContextUserService{user: providerUser},
+					Identities: &stubUserBlockingEventContextIdentityService{identities: []*identity.Info{providerIdentity}},
+				},
+				Clock: clock.NewMockClockAtTime(now),
+			}
+
+			opts := baseOpts()
+			opts.UserBlockingEventContext = &oauth.UserBlockingEventContext{
+				UserID:    "other-user",
+				UserModel: &model.User{Meta: model.Meta{ID: "other-user"}},
+			}
+
+			_, err := issuer.PrepareIDToken(context.Background(), opts)
+			So(err, ShouldBeNil)
+			So(capturedOpts.ResolvedUser, ShouldEqual, providerUser)
+			So(capturedPayload.Identities, ShouldResemble, []model.Identity{providerIdentity.ToModel()})
+		})
+
+		Convey("WillDeliverBlockingEvent true with no supplied context: the provider is called once", func() {
+			mockEventService := NewMockIDTokenIssuerEventService(ctrl)
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate).Return(true)
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+					return &event.Event{Payload: e}, nil
+				})
+
+			providerUser := &model.User{Meta: model.Meta{ID: "user-id"}}
+			callCount := 0
+			issuer := &IDTokenIssuer{
+				Secrets:         secretsForTest(),
+				BaseURL:         baseURLForTest(),
+				UserInfoService: mockUserInfoService,
+				Events:          mockEventService,
+				UserBlockingEventContexts: &oauth.UserBlockingEventContextProvider{
+					Users: &countingUserBlockingEventContextUserService{
+						stubUserBlockingEventContextUserService: stubUserBlockingEventContextUserService{user: providerUser},
+						calls:                                   &callCount,
+					},
+					Identities: &stubUserBlockingEventContextIdentityService{},
+				},
+				Clock: clock.NewMockClockAtTime(now),
+			}
+
+			_, err := issuer.PrepareIDToken(context.Background(), baseOpts())
+			So(err, ShouldBeNil)
+			So(callCount, ShouldEqual, 1)
+		})
+	})
+}
+
+type countingUserBlockingEventContextUserService struct {
+	stubUserBlockingEventContextUserService
+	calls *int
+}
+
+func (s *countingUserBlockingEventContextUserService) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
+	*s.calls++
+	return s.stubUserBlockingEventContextUserService.Get(ctx, id, role)
+}
+
+func secretsForTest() *config.OAuthKeyMaterials {
+	jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+	if err != nil {
+		panic(err)
+	}
+	jwkKey, _ := jwkSet.Key(0)
+	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+	_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+	return &config.OAuthKeyMaterials{Set: jwkSet}
+}
+
+func baseURLForTest() *endpoints.Endpoints {
+	return &endpoints.Endpoints{
+		OAuthEndpoints: &endpoints.OAuthEndpoints{
+			HTTPHost:  "test.authgear.com",
+			HTTPProto: "http",
+		},
+	}
+}
+
+func authenticationInfoForUser(userID string) authenticationinfo.T {
+	return authenticationinfo.T{
+		UserID:          userID,
+		AuthenticatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
 }

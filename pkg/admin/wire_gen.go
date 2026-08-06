@@ -1261,30 +1261,34 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	userBlockingEventContextProvider := &oauth2.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth2.AccessGrantService{
 		AppID:             appID,

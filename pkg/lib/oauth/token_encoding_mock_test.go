@@ -10,7 +10,6 @@ import (
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
-	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	gomock "github.com/golang/mock/gomock"
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -155,56 +154,32 @@ func (mr *MockEventServiceMockRecorder) DispatchEventWithoutTx(ctx, e interface{
 }
 
 // PrepareBlockingEventWithTx mocks base method.
-func (m *MockEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error) {
+func (m *MockEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload)
+	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload, opts)
 	ret0, _ := ret[0].(*event.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PrepareBlockingEventWithTx indicates an expected call of PrepareBlockingEventWithTx.
-func (mr *MockEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload interface{}) *gomock.Call {
+func (mr *MockEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockEventService)(nil).PrepareBlockingEventWithTx), ctx, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockEventService)(nil).PrepareBlockingEventWithTx), ctx, payload, opts)
 }
 
-// MockAccessTokenEncodingIdentityService is a mock of AccessTokenEncodingIdentityService interface.
-type MockAccessTokenEncodingIdentityService struct {
-	ctrl     *gomock.Controller
-	recorder *MockAccessTokenEncodingIdentityServiceMockRecorder
-}
-
-// MockAccessTokenEncodingIdentityServiceMockRecorder is the mock recorder for MockAccessTokenEncodingIdentityService.
-type MockAccessTokenEncodingIdentityServiceMockRecorder struct {
-	mock *MockAccessTokenEncodingIdentityService
-}
-
-// NewMockAccessTokenEncodingIdentityService creates a new mock instance.
-func NewMockAccessTokenEncodingIdentityService(ctrl *gomock.Controller) *MockAccessTokenEncodingIdentityService {
-	mock := &MockAccessTokenEncodingIdentityService{ctrl: ctrl}
-	mock.recorder = &MockAccessTokenEncodingIdentityServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAccessTokenEncodingIdentityService) EXPECT() *MockAccessTokenEncodingIdentityServiceMockRecorder {
-	return m.recorder
-}
-
-// ListIdentitiesThatHaveStandardAttributes mocks base method.
-func (m *MockAccessTokenEncodingIdentityService) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
+// WillDeliverBlockingEvent mocks base method.
+func (m *MockEventService) WillDeliverBlockingEvent(eventType event.Type) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListIdentitiesThatHaveStandardAttributes", ctx, userID)
-	ret0, _ := ret[0].([]*identity.Info)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "WillDeliverBlockingEvent", eventType)
+	ret0, _ := ret[0].(bool)
+	return ret0
 }
 
-// ListIdentitiesThatHaveStandardAttributes indicates an expected call of ListIdentitiesThatHaveStandardAttributes.
-func (mr *MockAccessTokenEncodingIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(ctx, userID interface{}) *gomock.Call {
+// WillDeliverBlockingEvent indicates an expected call of WillDeliverBlockingEvent.
+func (mr *MockEventServiceMockRecorder) WillDeliverBlockingEvent(eventType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockAccessTokenEncodingIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WillDeliverBlockingEvent", reflect.TypeOf((*MockEventService)(nil).WillDeliverBlockingEvent), eventType)
 }
 
 // MockPrepareUserAccessTokenResult is a mock of PrepareUserAccessTokenResult interface.
