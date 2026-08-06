@@ -403,6 +403,10 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityViewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityViewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityEditUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityEditUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityListOAuthRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityListOAuthHandler))
+	// /settings/identity and /settings/identities were removed from the settings UI.
+	// Redirect them to /settings for SDKs and bookmarks that still link to the old paths.
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityDeprecatedRedirectRoute(webappSettingsRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityDeprecatedRedirectHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentitiesDeprecatedRedirectRoute(webappSettingsRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityDeprecatedRedirectHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsBiometricRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsBiometricHandler),
 	})

@@ -121,6 +121,12 @@ const (
 
 	AuthflowV2RouteSettingsIdentityListOAuth     = "/settings/identity/oauth"
 	AuthflowV2RouteSettingsIdentityOAuthCallback = "/settings/identity/oauth/callback"
+
+	// The following routes were removed from the settings UI, but older SDKs
+	// may still link to them directly. Keep them as redirects to /settings
+	// for backward compatibility.
+	AuthflowV2RouteSettingsIdentityDeprecated   = "/settings/identity"
+	AuthflowV2RouteSettingsIdentitiesDeprecated = "/settings/identities"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {

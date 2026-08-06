@@ -1,0 +1,87 @@
+name: /settings still serves the normal UI, and the deprecated /settings/identity and /settings/identities paths redirect to it
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - password
+    identity:
+      login_id:
+        keys:
+          - key: email
+            type: email
+
+before:
+  - type: user_import
+    user_import: users.json
+
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT i.user_id AS id FROM _auth_identity i
+      JOIN _auth_identity_login_id l ON i.id = l.id AND l.app_id = i.app_id
+      WHERE i.app_id = '{{ .AppID }}' AND l.login_id = 'settings-redirect@example.com'
+
+  - name: generate_refresh_token
+    action: generate_refresh_token
+    generate_refresh_token_user_id: '{{ index (index .steps.get_user_id.result.rows 0) "id" }}'
+    generate_refresh_token_client_id: e2e
+
+  - name: generate_app_session_token
+    action: generate_app_session_token
+    generate_app_session_token_refresh_token: '{{ .steps.generate_refresh_token.result.refresh_token }}'
+
+  # Exchange the app_session_token for an app_session cookie via the authorize endpoint.
+  # The app_session cookie satisfies RequireAuthenticatedMiddleware on the settings pages,
+  # so subsequent requests reusing the same cookie jar are treated as an authenticated user.
+  - name: exchange_app_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: none
+      client_id: e2e
+      redirect_uri: "http://localhost:4000"
+      scope: "openid https://authgear.com/scopes/full-access offline_access"
+      prompt: none
+      login_hint: 'https://authgear.com/login_hint?type=app_session_token&app_session_token={{ .steps.generate_app_session_token.result.app_session_token }}'
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # /settings must keep serving the normal settings UI directly, with no redirect.
+  - name: settings_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/settings
+    http_output:
+      http_status: 200
+      redirect_path: /settings
+      html_xpath_exists:
+        - //h1[@class='settings-title']
+
+  # The old singular /settings/identity page was removed from the settings UI.
+  # SDKs and bookmarks that still link to it must be redirected to /settings.
+  - name: settings_identity_deprecated
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/settings/identity
+    http_output:
+      http_status: 200
+      redirect_path: /settings
+      html_xpath_exists:
+        - //h1[@class='settings-title']
+
+  # The old plural /settings/identities page was removed from the settings UI.
+  # SDKs and bookmarks that still link to it must be redirected to /settings.
+  - name: settings_identities_deprecated
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/settings/identities
+    http_output:
+      http_status: 200
+      redirect_path: /settings
+      html_xpath_exists:
+        - //h1[@class='settings-title']
