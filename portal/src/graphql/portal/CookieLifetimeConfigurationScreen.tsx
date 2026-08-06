@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -18,11 +18,19 @@ import FormContainer from "../../FormContainer";
 
 import styles from "./CookieLifetimeConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
+import PortalLink from "../../Link";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
+
+type SessionBehavior = "keep-signed-in" | "end-on-browser-close";
+
+const ALL_SESSION_BEHAVIORS: SessionBehavior[] = [
+  "keep-signed-in",
+  "end-on-browser-close",
+];
 function getHostname(publicOrigin: string): string {
   try {
     return new URL(publicOrigin).hostname;
@@ -33,6 +41,7 @@ function getHostname(publicOrigin: string): string {
 
 interface FormState {
   publicOrigin: string;
+  useSessionCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   idleTimeoutEnabled: boolean;
   idleTimeoutSeconds: number | undefined;
@@ -41,6 +50,7 @@ interface FormState {
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
+    useSessionCookie: config.session?.use_session_cookie ?? false,
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     idleTimeoutSeconds: config.session?.idle_timeout_seconds,
@@ -54,6 +64,11 @@ function constructConfig(
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.session = config.session ?? {};
+    if (currentState.useSessionCookie) {
+      config.session.use_session_cookie = true;
+    } else {
+      delete config.session.use_session_cookie;
+    }
     config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
     config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
     config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
@@ -69,6 +84,7 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
   function CookieLifetimeConfigurationScreenContent(props) {
     const { form } = props;
     const { state, setState } = form;
+    const { appID } = useParams() as { appID: string };
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
@@ -76,6 +92,16 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
     const hostname = useMemo(
       () => getHostname(state.publicOrigin),
       [state.publicOrigin]
+    );
+
+    const onSessionBehaviorChange = useCallback(
+      (newValue: string) => {
+        setState((prev) => ({
+          ...prev,
+          useSessionCookie: newValue === "end-on-browser-close",
+        }));
+      },
+      [setState]
     );
 
     const onSessionLifetimeSecondsChange = useCallback(
@@ -129,7 +155,68 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
               }}
             />
           </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage
+              id="CookieLifetimeConfigurationScreen.description-tips"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                applicationsLink: (chunks: React.ReactNode) => (
+                  <PortalLink to={`/project/${appID}/configuration/apps`}>
+                    {chunks}
+                  </PortalLink>
+                ),
+              }}
+            />
+          </Text>
         </div>
+
+        <SettingsSectionCard
+          className={styles.widget}
+          contentClassName="gap-4"
+          title={
+            <FormattedMessage id="CookieLifetimeConfigurationScreen.session-behavior.label" />
+          }
+        >
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage id="CookieLifetimeConfigurationScreen.session-behavior.description" />
+          </Text>
+          <RadioGroup.Root
+            value={
+              state.useSessionCookie ? "end-on-browser-close" : "keep-signed-in"
+            }
+            onValueChange={onSessionBehaviorChange}
+          >
+            <Flex direction="column" gap="3">
+              {ALL_SESSION_BEHAVIORS.map((option) => (
+                <Text
+                  key={option}
+                  as="label"
+                  size="2"
+                  className={styles.behaviorRadioOption}
+                >
+                  <Flex gap="2" align="start">
+                    <RadioGroup.Item
+                      value={option}
+                      className={styles.behaviorRadioItem}
+                    />
+                    <div className={styles.behaviorRadioContent}>
+                      <Text as="span" size="2">
+                        <FormattedMessage
+                          id={`CookieLifetimeConfigurationScreen.session-behavior.${option}.title`}
+                        />
+                      </Text>
+                      <Text as="p" size="1" color="gray">
+                        <FormattedMessage
+                          id={`CookieLifetimeConfigurationScreen.session-behavior.${option}.description`}
+                        />
+                      </Text>
+                    </div>
+                  </Flex>
+                </Text>
+              ))}
+            </Flex>
+          </RadioGroup.Root>
+        </SettingsSectionCard>
 
         <SettingsSectionCard
           className={cn(
@@ -138,9 +225,12 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
           )}
           contentClassName="gap-4"
           title={
-            <FormattedMessage id="CookieLifetimeConfigurationScreen.settings.label" />
+            <FormattedMessage id="CookieLifetimeConfigurationScreen.session-expiration.label" />
           }
         >
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage id="CookieLifetimeConfigurationScreen.session-expiration.description" />
+          </Text>
           <TextField
             size="2"
             labelSize="2"
@@ -149,10 +239,7 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
               <FormattedMessage id="CookieLifetimeConfigurationScreen.session-lifetime.label" />
             }
             hint={
-              <FormattedMessage
-                id="CookieLifetimeConfigurationScreen.session-lifetime.description"
-                values={{ hostname }}
-              />
+              <FormattedMessage id="CookieLifetimeConfigurationScreen.session-lifetime.description" />
             }
             value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
             onChange={onSessionLifetimeSecondsChange}

@@ -600,6 +600,7 @@ export interface SessionConfig {
   idle_timeout_enabled?: boolean;
   idle_timeout_seconds?: DurationSeconds;
   lifetime_seconds?: DurationSeconds;
+  use_session_cookie?: boolean;
 }
 
 export interface HookConfig {
