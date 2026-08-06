@@ -152,6 +152,13 @@ const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigur
                 hostname,
                 // eslint-disable-next-line react/no-unstable-nested-components
                 b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+              }}
+            />
+          </Text>
+          <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <FormattedMessage
+              id="CookieLifetimeConfigurationScreen.description-tips"
+              values={{
                 // eslint-disable-next-line react/no-unstable-nested-components
                 applicationsLink: (chunks: React.ReactNode) => (
                   <PortalLink to={`/project/${appID}/configuration/apps`}>
