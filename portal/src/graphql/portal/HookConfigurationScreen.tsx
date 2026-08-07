@@ -1,25 +1,41 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
-import {
-  Dropdown,
-  IDropdownOption,
-  Label,
-  FontIcon,
-  Text,
-  Dialog,
-  useTheme,
-  DialogFooter,
-} from "@fluentui/react";
 import { produce } from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import {
+  ChevronDownIcon,
+  CopyIcon,
+  EyeOpenIcon,
+  InfoCircledIcon,
+  Pencil1Icon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
+import {
+  Callout as RadixCallout,
+  Flex,
+  IconButton as RadixIconButton,
+  RadioGroup,
+  Select,
+  Tabs,
+  Text as RadixText,
+  Tooltip as RadixTooltip,
+} from "@radix-ui/themes";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import BlockerDialog from "../../BlockerDialog";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
+import { PrimaryButton as RadixPrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   BlockingHookHandlerConfig,
   HookFeatureConfig,
@@ -33,6 +49,8 @@ import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useResourceForm } from "../../hook/useResourceForm";
 import {
   ResourceSpecifier,
@@ -41,33 +59,26 @@ import {
   getDenoScriptPathFromURL,
   makeDenoScriptSpecifier,
 } from "../../util/resource";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import FieldList, { ListItemProps } from "../../FieldList";
+import { copyToClipboard } from "../../util/clipboard";
 import FormContainer from "../../FormContainer";
-import FormTextField from "../../FormTextField";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { genRandomHexadecimalString } from "../../util/random";
 import styles from "./HookConfigurationScreen.module.css";
-import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
-import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
-import TextField from "../../TextField";
+import { FormField } from "../../components/v2/FormField/FormField";
+import { TextField as RadixTextField } from "../../components/v2/TextField/TextField";
+import { isValidWebhookHookURI } from "../../util/hookUri";
 import ExternalLink from "../../ExternalLink";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import PrimaryButton from "../../PrimaryButton";
-import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
-import DefaultButton from "../../DefaultButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import HorizontalDivider from "../../HorizontalDivider";
 import { DENO_TYPES_URL } from "../../util/deno";
 
 const CODE_EDITOR_OPTIONS = {
@@ -89,6 +100,54 @@ const BLOCK_EVENT_TYPES = [
 ] as const;
 
 type BlockingEvent = (typeof BLOCK_EVENT_TYPES)[number];
+
+const BLOCK_EVENT_CATEGORIES: Array<{
+  labelId: string;
+  events: BlockingEvent[];
+}> = [
+  {
+    labelId: "HookConfigurationScreen.event-category.user",
+    events: [
+      "user.pre_create",
+      "user.profile.pre_update",
+      "user.pre_schedule_deletion",
+      "user.pre_schedule_anonymization",
+    ],
+  },
+  {
+    labelId: "HookConfigurationScreen.event-category.oidc",
+    events: ["oidc.jwt.pre_create", "oidc.id_token.pre_create"],
+  },
+  {
+    labelId: "HookConfigurationScreen.event-category.authentication",
+    events: [
+      "authentication.pre_initialize",
+      "authentication.post_identified",
+      "authentication.pre_authenticated",
+    ],
+  },
+];
+
+const BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS: Record<BlockingEvent, string> = {
+  "user.pre_create":
+    "HookConfigurationScreen.blocking-event.user.pre_create.description",
+  "user.profile.pre_update":
+    "HookConfigurationScreen.blocking-event.user.profile.pre_update.description",
+  "user.pre_schedule_deletion":
+    "HookConfigurationScreen.blocking-event.user.pre_schedule_deletion.description",
+  "user.pre_schedule_anonymization":
+    "HookConfigurationScreen.blocking-event.user.pre_schedule_anonymization.description",
+  "oidc.jwt.pre_create":
+    "HookConfigurationScreen.blocking-event.oidc.jwt.pre_create.description",
+  "oidc.id_token.pre_create":
+    "HookConfigurationScreen.blocking-event.oidc.id_token.pre_create.description",
+  "authentication.pre_initialize":
+    "HookConfigurationScreen.blocking-event.authentication.pre_initialize.description",
+  "authentication.post_identified":
+    "HookConfigurationScreen.blocking-event.authentication.post_identified.description",
+  "authentication.pre_authenticated":
+    "HookConfigurationScreen.blocking-event.authentication.pre_authenticated.description",
+};
 
 const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
   {
@@ -219,6 +278,7 @@ interface BlockingEventHandler {
 }
 
 interface NonBlockingEventHandler {
+  name: string;
   events: string[];
   kind: HookKind;
   url: string;
@@ -231,6 +291,19 @@ interface ConfigFormState {
   blocking_handlers: BlockingHookHandlerConfig[];
   non_blocking_handlers: NonBlockingHookHandlerConfig[];
   secret: string | null;
+}
+
+function minSetIndex(indices: ReadonlySet<number>): number | null {
+  if (indices.size === 0) {
+    return null;
+  }
+  let min = Infinity;
+  for (const i of indices) {
+    if (i < min) {
+      min = i;
+    }
+  }
+  return min;
 }
 
 function checkDirty(diff: ResourcesDiffResult | null, url: string): boolean {
@@ -280,23 +353,100 @@ const MASKED_SECRET = "***************";
 
 const WEBHOOK_SIGNATURE_ID = "webhook-signature";
 
-const EDIT_BUTTON_ICON_PROPS = {
-  iconName: "Edit",
-};
+const EMPTY_ENDPOINT_ERROR_INDICES: ReadonlySet<number> = new Set();
 
-const EDIT_BUTTON_STYLES = {
-  root: {
-    // The native height is 40px.
-    // But we want to make sure everything in the same row has the same height,
-    // So we force it to 32px.
-    height: "32px",
-  },
-  label: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-};
+function isBlockingEvent(event: string): event is BlockingEvent {
+  return (BLOCK_EVENT_TYPES as readonly string[]).includes(event);
+}
+
+function BlockingEventInfoIcon({
+  event,
+}: {
+  event: string;
+}): React.ReactElement | null {
+  if (!isBlockingEvent(event)) {
+    return null;
+  }
+
+  const messageID = BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS[event];
+
+  return (
+    <RadixTooltip content={<FormattedMessage id={messageID} />}>
+      <InfoCircledIcon
+        className={styles.hookEventInfoIcon}
+        width="1rem"
+        height="1rem"
+        aria-hidden={true}
+      />
+    </RadixTooltip>
+  );
+}
+
+function CopyIconButton({
+  textToCopy,
+}: {
+  textToCopy: string;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCopy = useCallback(() => {
+    copyToClipboard(textToCopy);
+    setCopied(true);
+    if (timerRef.current != null) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  }, [textToCopy]);
+
+  return (
+    <RadixTooltip
+      content={
+        copied ? renderToString("copied-to-clipboard") : renderToString("copy")
+      }
+      open={copied ? true : undefined}
+    >
+      <RadixIconButton
+        type="button"
+        variant="ghost"
+        color="gray"
+        size="1"
+        aria-label={renderToString("copy")}
+        onClick={handleCopy}
+        className={styles.copyIconButton}
+      >
+        <CopyIcon width="1rem" height="1rem" />
+      </RadixIconButton>
+    </RadixTooltip>
+  );
+}
+
+function RevealIconButton({
+  onClick,
+}: {
+  onClick: () => void;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+
+  return (
+    <RadixTooltip content={renderToString("reveal")}>
+      <RadixIconButton
+        type="button"
+        variant="ghost"
+        color="gray"
+        size="1"
+        aria-label={renderToString("reveal")}
+        onClick={onClick}
+        className={styles.copyIconButton}
+      >
+        <EyeOpenIcon width="1rem" height="1rem" />
+      </RadixIconButton>
+    </RadixTooltip>
+  );
+}
 
 function constructConfigFormState(
   config: PortalAPIAppConfig,
@@ -388,337 +538,800 @@ function addMissingResources(state: FormState) {
   }
 }
 
-interface BlockingHandlerItemEditProps {
-  index: number;
-  value: BlockingEventHandler;
-  onChange: (newValue: BlockingEventHandler) => void;
-  onEdit: (index: number, value: BlockingEventHandler) => void;
+interface BlockingHooksTableProps {
+  handlers: BlockingEventHandler[];
+  onHandlersChange: (handlers: BlockingEventHandler[]) => void;
+  onHandlerItemChange: (
+    handlers: BlockingEventHandler[],
+    index: number,
+    item: BlockingEventHandler
+  ) => void;
+  makeDefaultHandler: () => BlockingEventHandler;
+  onEditDeno: (index: number, value: BlockingEventHandler) => void;
+  addDisabled: boolean;
+  endpointErrorIndices: ReadonlySet<number>;
+  autoExpandIndex: number | null;
+  autoExpandRequest: number;
 }
-const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
-  function BlockingHandlerItemEdit(props) {
-    const { index, value, onChange, onEdit } = props;
-    const [newEventName, setNewEventName] = useState<string | null>(null);
 
-    const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
+function BlockingHooksTable({
+  handlers,
+  onHandlersChange,
+  onHandlerItemChange,
+  makeDefaultHandler,
+  onEditDeno,
+  addDisabled,
+  endpointErrorIndices,
+  autoExpandIndex,
+  autoExpandRequest,
+}: BlockingHooksTableProps): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
-    const theme = useTheme();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [draft, setDraft] = useState<BlockingEventHandler | null>(null);
+  const [pendingEventName, setPendingEventName] = useState<string | null>(null);
 
-    const eventField = useMemo(
-      () => ({
-        parentJSONPointer: `/hook/blocking_handlers/${index}`,
-        fieldName: "event",
-      }),
-      [index]
-    );
-    const urlField = useMemo(
-      () => ({
-        parentJSONPointer: `/hook/blocking_handlers/${index}`,
-        fieldName: "url",
-      }),
-      [index]
-    );
-    const eventFieldProps = useErrorMessageString(eventField);
-    const urlFieldProps = useErrorMessage(urlField);
+  useEffect(() => {
+    if (!isDirty) {
+      setExpandedIndex(null);
+      setDraft(null);
+    }
+  }, [isDirty]);
 
-    const onDismissDialog = useCallback((e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setNewEventName(null);
-    }, []);
-    const onConfirmChangeEvent = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (newEventName != null) {
-          onChange({ ...value, event: newEventName });
-          setNewEventName(null);
-        }
+  useEffect(() => {
+    if (autoExpandIndex == null) {
+      return;
+    }
+    if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
+      return;
+    }
+    setExpandedIndex(autoExpandIndex);
+    setDraft({ ...handlers[autoExpandIndex] });
+  }, [autoExpandRequest, autoExpandIndex, handlers]);
+
+  const applyDraftChange = useCallback(
+    (newDraft: BlockingEventHandler) => {
+      if (expandedIndex == null) {
+        return;
+      }
+      setDraft(newDraft);
+      const newHandlers = handlers.map((h, i) =>
+        i === expandedIndex ? newDraft : h
+      );
+      onHandlerItemChange(newHandlers, expandedIndex, newDraft);
+    },
+    [expandedIndex, handlers, onHandlerItemChange]
+  );
+
+  const kindOptions = useMemo(
+    () => [
+      {
+        value: "webhook",
+        label: renderToString("HookConfigurationScreen.hook-kind.webhook"),
       },
-      [onChange, value, newEventName]
-    );
-    const onBlockingEventChange = useCallback(
-      (_, event?: IDropdownOption) => {
-        // Show the dialog to confirm overwriting the script if
-        // the kind is denohook.
-        if (value.kind === "denohook") {
-          const key = event?.key ?? null;
-          if (typeof key === "string") {
-            setNewEventName(key);
-          }
-        } else {
-          onChange({ ...value, event: String(event?.key ?? "") });
-        }
+      {
+        value: "denohook",
+        label: renderToString("HookConfigurationScreen.hook-kind.denohook"),
       },
-      [value, onChange]
-    );
-    const onURLChange = useCallback(
-      (_, url?: string) => {
-        onChange({ ...value, url: url ?? "" });
-      },
-      [onChange, value]
-    );
-    const onChangeHookKind = useCallback(
-      (_, event?: IDropdownOption) => {
-        const key = event?.key;
-        if (key != null) {
-          switch (key) {
-            case "webhook":
-              onChange({ ...value, kind: "webhook", url: "" });
-              break;
-            case "denohook":
-              onChange({
-                ...value,
-                kind: "denohook",
-                url: makeNewURL("blocking"),
-              });
-              break;
-            default:
-              break;
-          }
-        }
-      },
-      [onChange, value]
-    );
-    const onClickEdit = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onEdit(index, value);
-      },
-      [onEdit, index, value]
-    );
+    ],
+    [renderToString]
+  );
 
-    const eventOptions = useMemo(() => {
-      return BLOCK_EVENT_TYPES.map((t) => ({
-        key: t,
-        text: t,
-      }));
-    }, []);
+  const onClickAdd = useCallback(() => {
+    const newHandler = makeDefaultHandler();
+    const newHandlers = [...handlers, newHandler];
+    onHandlersChange(newHandlers);
+    setExpandedIndex(newHandlers.length - 1);
+    setDraft({ ...newHandler });
+  }, [handlers, makeDefaultHandler, onHandlersChange]);
 
-    const kindOptions = useMemo(() => {
-      return [
-        {
-          key: "webhook",
-          text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
-        },
-        {
-          key: "denohook",
-          text: renderToString("HookConfigurationScreen.hook-kind.denohook"),
-        },
-      ];
-    }, [renderToString]);
+  const onClickEdit = useCallback(
+    (index: number) => {
+      if (expandedIndex === index) {
+        setExpandedIndex(null);
+        setDraft(null);
+        return;
+      }
+      setExpandedIndex(index);
+      setDraft({ ...handlers[index] });
+    },
+    [handlers, expandedIndex]
+  );
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: renderToString("HookConfigurationScreen.change-event.title"),
-        subText: renderToString(
-          "HookConfigurationScreen.change-event.description"
-        ),
-      };
-    }, [renderToString]);
+  const onClickDelete = useCallback(
+    (index: number) => {
+      const newHandlers = handlers.filter((_, i) => i !== index);
+      onHandlersChange(newHandlers);
+      if (expandedIndex === index) {
+        setExpandedIndex(null);
+        setDraft(null);
+      } else if (expandedIndex != null && expandedIndex > index) {
+        setExpandedIndex(expandedIndex - 1);
+      }
+    },
+    [handlers, onHandlersChange, expandedIndex]
+  );
 
+  const onDraftKindChange = useCallback(
+    (kind: string) => {
+      if (draft == null) {
+        return;
+      }
+      if (kind === "webhook") {
+        applyDraftChange({ ...draft, kind: "webhook", url: "" });
+      } else if (kind === "denohook") {
+        applyDraftChange({
+          ...draft,
+          kind: "denohook",
+          url: makeNewURL("blocking"),
+        });
+      }
+    },
+    [draft, applyDraftChange]
+  );
+
+  const onDraftEventChange = useCallback(
+    (event: string) => {
+      if (draft == null) {
+        return;
+      }
+      if (draft.kind === "denohook") {
+        setPendingEventName(event);
+      } else {
+        applyDraftChange({ ...draft, event });
+      }
+    },
+    [draft, applyDraftChange]
+  );
+
+  const onConfirmEventChange = useCallback(() => {
+    if (draft == null || pendingEventName == null) {
+      return;
+    }
+    applyDraftChange({ ...draft, event: pendingEventName });
+    setPendingEventName(null);
+  }, [draft, pendingEventName, applyDraftChange]);
+
+  const onCancelEventChange = useCallback(() => {
+    setPendingEventName(null);
+  }, []);
+
+  const onDraftURLChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (draft == null) {
+        return;
+      }
+      applyDraftChange({ ...draft, url: e.target.value });
+    },
+    [draft, applyDraftChange]
+  );
+
+  const draftEndpointFormatError = useMemo(() => {
+    if (expandedIndex == null || !endpointErrorIndices.has(expandedIndex)) {
+      return null;
+    }
+    if (draft?.kind !== "webhook") {
+      return null;
+    }
     return (
-      <>
-        <Dialog
-          hidden={newEventName == null}
-          onDismiss={onDismissDialog}
-          dialogContentProps={dialogContentProps}
-        >
-          <DialogFooter>
-            <PrimaryButton
-              theme={themes.destructive}
-              text={
-                <FormattedMessage id="HookConfigurationScreen.change-event.label" />
-              }
-              onClick={onConfirmChangeEvent}
-            />
-            <DefaultButton
-              text={<FormattedMessage id="cancel" />}
-              onClick={onDismissDialog}
-            />
-          </DialogFooter>
-        </Dialog>
-        <div className={styles.hookContainer}>
-          <Dropdown
-            className={styles.blockingHookKind}
-            options={kindOptions}
-            selectedKey={value.kind}
-            onChange={onChangeHookKind}
-            ariaLabel={"HookConfigurationScreen.hook-kind.label"}
-          />
-          <Dropdown
-            className={styles.blockingHookEvent}
-            options={eventOptions}
-            selectedKey={value.event}
-            onChange={onBlockingEventChange}
-            ariaLabel={"HookConfigurationScreen.blocking-events.label"}
-            {...eventFieldProps}
-          />
-          {value.kind === "webhook" ? (
-            <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
-              <Label>
-                <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-              </Label>
-              <TextField
-                className={styles.hookConfigConfig}
-                value={value.url}
-                onChange={onURLChange}
-                placeholder="https://example.com/callback"
-                {...urlFieldProps}
-              />
-            </div>
-          ) : null}
-          {value.kind === "denohook" ? (
-            <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
-              <Label>
-                <FormattedMessage id="HookConfigurationScreen.action.script.label" />
-              </Label>
-              <ActionButton
-                className={styles.hookConfigConfig}
-                iconProps={EDIT_BUTTON_ICON_PROPS}
-                styles={EDIT_BUTTON_STYLES}
-                text={
-                  <>
-                    <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                    {value.isDirty ? (
-                      <FontIcon
-                        iconName="LocationDot"
-                        className={styles.dot}
-                        style={{
-                          color: theme.palette.themePrimary,
-                        }}
+      <FormattedMessage
+        id="errors.validation.format"
+        values={{ format: "other" }}
+      />
+    );
+  }, [endpointErrorIndices, expandedIndex, draft]);
+
+  const onClickEditScript = useCallback(() => {
+    if (expandedIndex == null) {
+      return;
+    }
+    const handler = handlers[expandedIndex];
+    setExpandedIndex(null);
+    setDraft(null);
+    onEditDeno(expandedIndex, handler);
+  }, [expandedIndex, handlers, onEditDeno]);
+
+  return (
+    <>
+      <ConfirmationDialog
+        open={pendingEventName != null}
+        onOpenChange={(open) => {
+          if (!open) onCancelEventChange();
+        }}
+        title={
+          <FormattedMessage id="HookConfigurationScreen.change-event.title" />
+        }
+        description={
+          <FormattedMessage id="HookConfigurationScreen.change-event.description" />
+        }
+        confirmText={
+          <FormattedMessage id="HookConfigurationScreen.change-event.label" />
+        }
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmEventChange}
+        onCancel={onCancelEventChange}
+        confirmColor="red"
+      />
+
+      {handlers.length === 0 ? (
+        <RadixCallout.Root color="gray" variant="surface" size="1">
+          <RadixCallout.Icon>
+            <InfoCircledIcon width="1rem" height="1rem" />
+          </RadixCallout.Icon>
+          <RadixCallout.Text>
+            <FormattedMessage id="HookConfigurationScreen.blocking-handlers.empty" />
+          </RadixCallout.Text>
+        </RadixCallout.Root>
+      ) : (
+        <div className={styles.hookAccordionList}>
+          {handlers.map((handler, index) => {
+            const isOpen = expandedIndex === index;
+            return (
+              <div key={index} className={styles.hookAccordionItem}>
+                {/* Accordion header */}
+                <div className={styles.hookAccordionHeader}>
+                  <button
+                    type="button"
+                    className={styles.hookAccordionToggle}
+                    onClick={() => onClickEdit(index)}
+                    aria-expanded={isOpen}
+                  >
+                    <RadixText
+                      size="2"
+                      weight="medium"
+                      className={styles.hookCellTruncate}
+                    >
+                      {handler.event}
+                    </RadixText>
+                    {handler.isDirty ? (
+                      <span
+                        className={styles.hookDirtyDot}
+                        aria-hidden={true}
                       />
                     ) : null}
-                  </>
-                }
-                onClick={onClickEdit}
-              />
-            </div>
-          ) : null}
-        </div>
-      </>
-    );
-  };
-
-interface NonBlockingHandlerItemEditProps {
-  index: number;
-  value: NonBlockingEventHandler;
-  onChange: (newValue: NonBlockingEventHandler) => void;
-  onEdit: (index: number, value: NonBlockingEventHandler) => void;
-}
-const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
-  function NonBlockingHandlerItemEdit(props) {
-    const { index, value, onChange, onEdit } = props;
-
-    const theme = useTheme();
-
-    const { renderToString } = useContext(Context);
-
-    const onURLChange = useCallback(
-      (_, url?: string) => {
-        onChange({ ...value, url: url ?? "" });
-      },
-      [onChange, value]
-    );
-    const onChangeHookKind = useCallback(
-      (_, event?: IDropdownOption) => {
-        const key = event?.key;
-        if (key != null) {
-          switch (key) {
-            case "webhook":
-              onChange({ ...value, kind: "webhook", url: "" });
-              break;
-            case "denohook":
-              onChange({
-                ...value,
-                kind: "denohook",
-                url: makeNewURL("nonblocking"),
-              });
-              break;
-            default:
-              break;
-          }
-        }
-      },
-      [onChange, value]
-    );
-    const onClickEdit = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onEdit(index, value);
-      },
-      [onEdit, index, value]
-    );
-
-    const kindOptions = useMemo(() => {
-      return [
-        {
-          key: "webhook",
-          text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
-        },
-        {
-          key: "denohook",
-          text: renderToString("HookConfigurationScreen.hook-kind.denohook"),
-        },
-      ];
-    }, [renderToString]);
-
-    return (
-      <div className={styles.hookContainer}>
-        <Dropdown
-          className={styles.nonblockingHookEvent}
-          options={kindOptions}
-          selectedKey={value.kind}
-          onChange={onChangeHookKind}
-          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
-        />
-        {value.kind === "webhook" ? (
-          <div className={cn(styles.nonblockingHookConfig, styles.hookConfig)}>
-            <Label>
-              <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-            </Label>
-            <FormTextField
-              className={styles.hookConfigConfig}
-              parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
-              fieldName="url"
-              value={value.url}
-              onChange={onURLChange}
-              placeholder="https://example.com/callback"
-            />
-          </div>
-        ) : null}
-        {value.kind === "denohook" ? (
-          <div className={cn(styles.nonblockingHookConfig, styles.hookConfig)}>
-            <Label>
-              <FormattedMessage id="HookConfigurationScreen.action.script.label" />
-            </Label>
-            <ActionButton
-              className={styles.hookConfigConfig}
-              iconProps={EDIT_BUTTON_ICON_PROPS}
-              styles={EDIT_BUTTON_STYLES}
-              text={
-                <>
-                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                  {value.isDirty ? (
-                    <FontIcon
-                      iconName="LocationDot"
-                      className={styles.dot}
-                      style={{
-                        color: theme.palette.themePrimary,
-                      }}
+                  </button>
+                  <RadixIconButton
+                    type="button"
+                    variant="ghost"
+                    color="red"
+                    size="2"
+                    onClick={() => onClickDelete(index)}
+                  >
+                    <TrashIcon width="1rem" height="1rem" />
+                  </RadixIconButton>
+                  <button
+                    type="button"
+                    className={styles.hookAccordionChevronButton}
+                    onClick={() => onClickEdit(index)}
+                    aria-expanded={isOpen}
+                  >
+                    <ChevronDownIcon
+                      className={cn(
+                        styles.hookAccordionChevron,
+                        isOpen && styles.hookAccordionChevronOpen
+                      )}
+                      width="1rem"
+                      height="1rem"
                     />
-                  ) : null}
-                </>
-              }
-              onClick={onClickEdit}
-            />
-          </div>
-        ) : null}
-      </div>
+                  </button>
+                </div>
+
+                {/* Accordion body - shown when expanded */}
+                {isOpen && draft != null ? (
+                  <div className={styles.hookAccordionBody}>
+                    <div className={styles.hookAccordionField}>
+                      <RadixText as="p" size="1" weight="medium" color="gray">
+                        <FormattedMessage id="HookConfigurationScreen.header.event.label" />
+                      </RadixText>
+                      <RadioGroup.Root
+                        value={draft.event}
+                        onValueChange={onDraftEventChange}
+                        className={styles.hookEventRadioContainer}
+                      >
+                        <Flex direction="column" gap="3">
+                          {BLOCK_EVENT_CATEGORIES.map((category) => (
+                            <Flex
+                              key={category.labelId}
+                              direction="column"
+                              gap="2"
+                            >
+                              <RadixText
+                                as="p"
+                                size="1"
+                                weight="bold"
+                                className={styles.hookEventCategoryLabel}
+                              >
+                                <FormattedMessage id={category.labelId} />
+                              </RadixText>
+                              {category.events.map((eventType) => (
+                                <RadixText key={eventType} as="label" size="2">
+                                  <Flex gap="2" align="center">
+                                    <RadioGroup.Item value={eventType} />
+                                    {eventType}
+                                    <BlockingEventInfoIcon event={eventType} />
+                                  </Flex>
+                                </RadixText>
+                              ))}
+                            </Flex>
+                          ))}
+                        </Flex>
+                      </RadioGroup.Root>
+                    </div>
+                    <div className={styles.hookAccordionField}>
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.header.type.label" />
+                      </RadixText>
+                      <div className={styles.hookTypeRow}>
+                        <div className={styles.hookTypeSelect}>
+                          <Select.Root
+                            size="2"
+                            value={draft.kind}
+                            onValueChange={onDraftKindChange}
+                          >
+                            <Select.Trigger
+                              className={styles.hookTypeSelectTrigger}
+                            />
+                            <Select.Content style={{ zIndex: 200 }}>
+                              {kindOptions.map((opt) => (
+                                <Select.Item key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Root>
+                        </div>
+                        {draft.kind === "denohook" ? (
+                          <div className={styles.hookEditScriptButton}>
+                            <RadixPrimaryButton
+                              size="2"
+                              text={
+                                <Flex gap="1" align="center">
+                                  <Pencil1Icon />
+                                  <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
+                                </Flex>
+                              }
+                              onClick={onClickEditScript}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    {draft.kind === "webhook" ? (
+                      <FormField
+                        size="2"
+                        labelSpace="1"
+                        label={
+                          <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
+                        }
+                        error={draftEndpointFormatError}
+                      >
+                        <RadixTextField.Input
+                          size="2"
+                          value={draft.url}
+                          onChange={onDraftURLChange}
+                          placeholder="https://example.com/callback"
+                          error={draftEndpointFormatError}
+                        >
+                          {null}
+                        </RadixTextField.Input>
+                      </FormField>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add button */}
+      {!addDisabled ? (
+        <button
+          type="button"
+          className={styles.hookAddButton}
+          onClick={onClickAdd}
+        >
+          <PlusIcon />
+          <FormattedMessage id="add" />
+        </button>
+      ) : null}
+    </>
+  );
+}
+
+interface NonBlockingHooksTableProps {
+  handlers: NonBlockingEventHandler[];
+  onHandlersChange: (handlers: NonBlockingEventHandler[]) => void;
+  onHandlerItemChange: (
+    handlers: NonBlockingEventHandler[],
+    index: number,
+    item: NonBlockingEventHandler
+  ) => void;
+  makeDefaultHandler: () => NonBlockingEventHandler;
+  onEditDeno: (index: number, value: NonBlockingEventHandler) => void;
+  addDisabled: boolean;
+  showEndpointErrors: boolean;
+  autoExpandIndex: number | null;
+  autoExpandRequest: number;
+}
+
+function NonBlockingHooksTable({
+  handlers,
+  onHandlersChange,
+  onHandlerItemChange,
+  makeDefaultHandler,
+  onEditDeno,
+  addDisabled,
+  showEndpointErrors,
+  autoExpandIndex,
+  autoExpandRequest,
+}: NonBlockingHooksTableProps): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [draft, setDraft] = useState<NonBlockingEventHandler | null>(null);
+
+  useEffect(() => {
+    if (!isDirty) {
+      setExpandedIndex(null);
+      setDraft(null);
+    }
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (autoExpandIndex == null) {
+      return;
+    }
+    if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
+      return;
+    }
+    setExpandedIndex(autoExpandIndex);
+    setDraft({ ...handlers[autoExpandIndex] });
+  }, [autoExpandRequest, autoExpandIndex, handlers]);
+
+  const applyDraftChange = useCallback(
+    (newDraft: NonBlockingEventHandler) => {
+      if (expandedIndex == null) {
+        return;
+      }
+      setDraft(newDraft);
+      const newHandlers = handlers.map((h, i) =>
+        i === expandedIndex ? newDraft : h
+      );
+      onHandlerItemChange(newHandlers, expandedIndex, newDraft);
+    },
+    [expandedIndex, handlers, onHandlerItemChange]
+  );
+
+  const kindOptions = useMemo(
+    () => [
+      {
+        value: "webhook",
+        label: renderToString("HookConfigurationScreen.hook-kind.webhook"),
+      },
+      {
+        value: "denohook",
+        label: renderToString("HookConfigurationScreen.hook-kind.denohook"),
+      },
+    ],
+    [renderToString]
+  );
+
+  const onClickAdd = useCallback(() => {
+    const newHandler = makeDefaultHandler();
+    const newHandlers = [...handlers, newHandler];
+    onHandlersChange(newHandlers);
+    setExpandedIndex(newHandlers.length - 1);
+    setDraft({ ...newHandler });
+  }, [handlers, makeDefaultHandler, onHandlersChange]);
+
+  const onClickEdit = useCallback(
+    (index: number) => {
+      if (expandedIndex === index) {
+        setExpandedIndex(null);
+        setDraft(null);
+        return;
+      }
+      setExpandedIndex(index);
+      setDraft({ ...handlers[index] });
+    },
+    [handlers, expandedIndex]
+  );
+
+  const onClickDelete = useCallback(
+    (index: number) => {
+      const newHandlers = handlers.filter((_, i) => i !== index);
+      onHandlersChange(newHandlers);
+      if (expandedIndex === index) {
+        setExpandedIndex(null);
+        setDraft(null);
+      } else if (expandedIndex != null && expandedIndex > index) {
+        setExpandedIndex(expandedIndex - 1);
+      }
+    },
+    [handlers, onHandlersChange, expandedIndex]
+  );
+
+  const onDraftKindChange = useCallback(
+    (kind: string) => {
+      if (draft == null) {
+        return;
+      }
+      if (kind === "webhook") {
+        applyDraftChange({ ...draft, kind: "webhook", url: "" });
+      } else if (kind === "denohook") {
+        applyDraftChange({
+          ...draft,
+          kind: "denohook",
+          url: makeNewURL("nonblocking"),
+        });
+      }
+    },
+    [draft, applyDraftChange]
+  );
+
+  const onDraftNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (draft == null) {
+        return;
+      }
+      applyDraftChange({ ...draft, name: e.target.value });
+    },
+    [draft, applyDraftChange]
+  );
+
+  const onDraftURLChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (draft == null) {
+        return;
+      }
+      applyDraftChange({ ...draft, url: e.target.value });
+    },
+    [draft, applyDraftChange]
+  );
+
+  const draftEndpointFormatError = useMemo(() => {
+    if (!showEndpointErrors) {
+      return null;
+    }
+    if (draft?.kind !== "webhook") {
+      return null;
+    }
+    if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="errors.validation.format"
+        values={{ format: "other" }}
+      />
     );
-  };
+  }, [showEndpointErrors, draft]);
+
+  const onClickEditScript = useCallback(() => {
+    if (expandedIndex == null) {
+      return;
+    }
+    const handler = handlers[expandedIndex];
+    setExpandedIndex(null);
+    setDraft(null);
+    onEditDeno(expandedIndex, handler);
+  }, [expandedIndex, handlers, onEditDeno]);
+
+  return (
+    <>
+      {handlers.length === 0 ? (
+        <RadixCallout.Root color="gray" variant="surface" size="1">
+          <RadixCallout.Icon>
+            <InfoCircledIcon width="1rem" height="1rem" />
+          </RadixCallout.Icon>
+          <RadixCallout.Text>
+            <FormattedMessage id="HookConfigurationScreen.non-blocking-handlers.empty" />
+          </RadixCallout.Text>
+        </RadixCallout.Root>
+      ) : (
+        <div className={styles.hookAccordionList}>
+          {handlers.map((handler, index) => {
+            const isOpen = expandedIndex === index;
+            const fallbackLabel =
+              handler.kind === "webhook"
+                ? handler.url ||
+                  renderToString("HookConfigurationScreen.hook-kind.webhook")
+                : renderToString("HookConfigurationScreen.hook-kind.denohook");
+            const headerLabel = handler.name || fallbackLabel;
+
+            return (
+              <div key={index} className={styles.hookAccordionItem}>
+                <div className={styles.hookAccordionHeader}>
+                  <button
+                    type="button"
+                    className={styles.hookAccordionToggle}
+                    onClick={() => onClickEdit(index)}
+                    aria-expanded={isOpen}
+                  >
+                    <RadixText
+                      size="2"
+                      weight="medium"
+                      className={styles.hookCellTruncate}
+                    >
+                      {headerLabel}
+                    </RadixText>
+                    {handler.isDirty ? (
+                      <span
+                        className={styles.hookDirtyDot}
+                        aria-hidden={true}
+                      />
+                    ) : null}
+                  </button>
+                  <RadixIconButton
+                    type="button"
+                    variant="ghost"
+                    color="red"
+                    size="2"
+                    onClick={() => onClickDelete(index)}
+                  >
+                    <TrashIcon width="1rem" height="1rem" />
+                  </RadixIconButton>
+                  <button
+                    type="button"
+                    className={styles.hookAccordionChevronButton}
+                    onClick={() => onClickEdit(index)}
+                    aria-expanded={isOpen}
+                  >
+                    <ChevronDownIcon
+                      className={cn(
+                        styles.hookAccordionChevron,
+                        isOpen && styles.hookAccordionChevronOpen
+                      )}
+                      width="1rem"
+                      height="1rem"
+                    />
+                  </button>
+                </div>
+
+                {isOpen && draft != null ? (
+                  <div className={styles.hookAccordionBody}>
+                    <div className={styles.hookAccordionField}>
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.non-blocking-handler.name.label" />
+                      </RadixText>
+                      <RadixTextField.Input
+                        size="2"
+                        value={draft.name}
+                        onChange={onDraftNameChange}
+                        placeholder={renderToString(
+                          "HookConfigurationScreen.non-blocking-handler.name.placeholder"
+                        )}
+                      >
+                        {null}
+                      </RadixTextField.Input>
+                    </div>
+                    <div className={styles.hookAccordionField}>
+                      <RadixText
+                        as="label"
+                        size="1"
+                        weight="medium"
+                        color="gray"
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.header.type.label" />
+                      </RadixText>
+                      <div className={styles.hookTypeRow}>
+                        <div className={styles.hookTypeSelect}>
+                          <Select.Root
+                            size="2"
+                            value={draft.kind}
+                            onValueChange={onDraftKindChange}
+                          >
+                            <Select.Trigger
+                              className={styles.hookTypeSelectTrigger}
+                            />
+                            <Select.Content style={{ zIndex: 200 }}>
+                              {kindOptions.map((opt) => (
+                                <Select.Item key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Root>
+                        </div>
+                        {draft.kind === "denohook" ? (
+                          <div className={styles.hookEditScriptButton}>
+                            <RadixPrimaryButton
+                              size="2"
+                              text={
+                                <Flex gap="1" align="center">
+                                  <Pencil1Icon />
+                                  <FormattedMessage id="HookConfigurationScreen.action.edit-script" />
+                                </Flex>
+                              }
+                              onClick={onClickEditScript}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    {draft.kind === "webhook" ? (
+                      <FormField
+                        size="2"
+                        labelSpace="1"
+                        label={
+                          <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
+                        }
+                        error={draftEndpointFormatError}
+                      >
+                        <RadixTextField.Input
+                          size="2"
+                          value={draft.url}
+                          onChange={onDraftURLChange}
+                          placeholder="https://example.com/callback"
+                          error={draftEndpointFormatError}
+                        >
+                          {null}
+                        </RadixTextField.Input>
+                      </FormField>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {!addDisabled ? (
+        <button
+          type="button"
+          className={styles.hookAddButton}
+          onClick={onClickAdd}
+        >
+          <PlusIcon />
+          <FormattedMessage id="add" />
+        </button>
+      ) : null}
+    </>
+  );
+}
+
+function HookScreenWithSaveBar({
+  codeEditorState,
+  anchorRef,
+  children,
+}: {
+  codeEditorState: CodeEditorState | null;
+  anchorRef: React.RefObject<HTMLDivElement>;
+  children: React.ReactNode;
+}): React.ReactElement {
+  const { getIsDirty } = useFormContainerBaseContext();
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+  return (
+    <ScreenContent
+      className={
+        isDirty && codeEditorState == null
+          ? styles.contentWithSaveBar
+          : undefined
+      }
+    >
+      {children}
+      {codeEditorState == null ? (
+        <SaveFunctionBar anchorRef={anchorRef} />
+      ) : null}
+    </ScreenContent>
+  );
+}
 
 interface HookConfigurationScreenContentProps {
   form: AppSecretConfigFormModel<ConfigFormState>;
@@ -745,13 +1358,12 @@ interface CodeEditorState {
 const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentProps> =
   function HookConfigurationScreenContent(props) {
     const { appID } = useParams() as { appID: string };
-    const { renderToString } = useContext(Context);
     const { hookFeatureConfig, form: config } = props;
-
-    const theme = useTheme();
 
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
+    const [activeTab, setActiveTab] = useState("blocking-events");
+    const [pendingTab, setPendingTab] = useState<string | null>(null);
 
     const isLoading = useIsLoading();
 
@@ -783,37 +1395,53 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       };
     }, [config.state, resources.state, resources.diff]);
 
-    const form: FormModel = {
-      isLoading: config.isLoading || resources.isLoading,
-      isUpdating: config.isUpdating || resources.isUpdating,
-      getIsDirty: () =>
+    const getHasUnsavedChanges = useCallback(
+      () =>
         config.getIsDirty() ||
         resources.getIsDirty() ||
         codeEditorState?.value != null,
-      loadError: config.loadError ?? resources.loadError,
-      updateError: config.updateError ?? resources.updateError,
-      state,
-      setState: (fn) => {
-        const newState = fn(state);
-        const { resources: newResources, ...configState } = newState;
-        config.setState(() => ({
-          ...configState,
-        }));
-        resources.setState(() => newResources);
-      },
-      reload: () => {
-        resources.reload();
-        config.reload();
-      },
-      reset: () => {
-        resources.reset();
-        config.reset();
-      },
-      save: async (ignoreConflict: boolean = false) => {
-        await resources.save(ignoreConflict);
-        await config.save(ignoreConflict);
-      },
-    };
+      // getIsDirty identities are stable (see useLiveState); listing the
+      // whole form model objects would recreate this callback every render.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [config.getIsDirty, resources.getIsDirty, codeEditorState?.value]
+    );
+
+    const hasUnsavedChanges = useMemo(
+      () => getHasUnsavedChanges(),
+      [getHasUnsavedChanges]
+    );
+
+    const form: FormModel = useMemo(
+      () => ({
+        isLoading: config.isLoading || resources.isLoading,
+        isUpdating: config.isUpdating || resources.isUpdating,
+        getIsDirty: getHasUnsavedChanges,
+        loadError: config.loadError ?? resources.loadError,
+        updateError: config.updateError ?? resources.updateError,
+        state,
+        setState: (fn) => {
+          const newState = fn(state);
+          const { resources: newResources, ...configState } = newState;
+          config.setState(() => ({
+            ...configState,
+          }));
+          resources.setState(() => newResources);
+        },
+        reload: () => {
+          resources.reload();
+          config.reload();
+        },
+        reset: () => {
+          resources.reset();
+          config.reset();
+        },
+        save: async (ignoreConflict: boolean = false) => {
+          await resources.save(ignoreConflict);
+          await config.save(ignoreConflict);
+        },
+      }),
+      [config, resources, state, getHasUnsavedChanges]
+    );
 
     const { setState } = form;
 
@@ -907,6 +1535,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const locationState = useLocationEffect((state: LocationState) => {
       if (state.isOAuthRedirect) {
+        setActiveTab("signing-secret");
         window.location.hash = "";
         window.location.hash = "#" + WEBHOOK_SIGNATURE_ID;
       }
@@ -917,7 +1546,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     );
 
     const onTimeoutChange = useCallback(
-      (_, value?: string) => {
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           timeout: parseIntegerAllowLeadingZeros(value),
@@ -927,7 +1557,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     );
 
     const onTotalTimeoutChange = useCallback(
-      (_, value?: string) => {
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           totalTimeout: parseIntegerAllowLeadingZeros(value),
@@ -979,6 +1610,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const onEditBlocking = useCallback(
       (index: number, _value: BlockingEventHandler) => {
+        setActiveTab("blocking-events");
         setCodeEditorState({
           eventKind: "blocking",
           index,
@@ -990,6 +1622,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const onEditNonBlocking = useCallback(
       (index: number, _value: NonBlockingEventHandler) => {
+        setActiveTab("non-blocking-events");
         setCodeEditorState({
           eventKind: "nonblocking",
           index,
@@ -1007,20 +1640,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         isDirty: false,
       }),
       []
-    );
-    const BlockingHandlerListItem = useCallback(
-      (props: ListItemProps<BlockingEventHandler>) => {
-        const { index, value, onChange } = props;
-        return (
-          <BlockingHandlerItemEdit
-            index={index}
-            value={value}
-            onChange={onChange}
-            onEdit={onEditBlocking}
-          />
-        );
-      },
-      [onEditBlocking]
     );
     const onBlockingHandlersChange = useCallback(
       (value: BlockingEventHandler[]) => {
@@ -1071,6 +1690,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     // non-blocking handlers
     const makeDefaultNonBlockingHandler = useCallback(
       (): NonBlockingEventHandler => ({
+        name: "",
         events: ["*"],
         kind: "webhook",
         url: "",
@@ -1079,27 +1699,36 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       []
     );
 
-    const NonBlockingHandlerListItem = useCallback(
-      (props: ListItemProps<NonBlockingEventHandler>) => {
-        const { index, value, onChange } = props;
-        return (
-          <NonBlockingHandlerItemEdit
-            index={index}
-            value={value}
-            onChange={onChange}
-            onEdit={onEditNonBlocking}
-          />
-        );
-      },
-      [onEditNonBlocking]
-    );
-
     const onNonBlockingHandlersChange = useCallback(
       (value: NonBlockingEventHandler[]) => {
         setState((state) =>
           produce(state, (state) => {
             const newValue = value.map((h) => {
               return {
+                name: h.name || undefined,
+                events: h.events,
+                url: h.url,
+              };
+            });
+            state.non_blocking_handlers = newValue;
+            addMissingResources(state);
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onNonBlockingHandlersChangeItemChange = useCallback(
+      (
+        value: NonBlockingEventHandler[],
+        _index: number,
+        _item: NonBlockingEventHandler
+      ) => {
+        setState((state) =>
+          produce(state, (state) => {
+            const newValue = value.map((h) => {
+              return {
+                name: h.name || undefined,
                 events: h.events,
                 url: h.url,
               };
@@ -1114,31 +1743,24 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const navigate = useNavigate();
 
-    const onClickReveal = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const onRevealSecret = useCallback(() => {
+      if (state.secret != null) {
+        setRevealed(true);
+        return;
+      }
 
-        if (state.secret != null) {
-          setRevealed(true);
-          return;
-        }
+      const locationState: LocationState = {
+        isOAuthRedirect: true,
+      };
 
-        const locationState: LocationState = {
-          isOAuthRedirect: true,
-        };
+      startReauthentication(navigate, locationState).catch((e) => {
+        // Normally there should not be any error.
+        console.error(e);
+      });
+    }, [navigate, state.secret]);
 
-        startReauthentication(navigate, locationState).catch((e) => {
-          // Normally there should not be any error.
-          console.error(e);
-        });
-      },
-      [navigate, state.secret]
-    );
-
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: state.secret ?? "",
-    });
+    const isSecretMasked = !revealed || state.secret == null;
+    const secretKeyValue = isSecretMasked ? MASKED_SECRET : state.secret ?? "";
 
     const blockingHandlerMax = useMemo(() => {
       return hookFeatureConfig?.blocking_handler?.maximum ?? 99;
@@ -1195,6 +1817,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       for (const c of cfgs) {
         out.push({
           ...c,
+          name: c.name ?? "",
           kind: getHookKind(c.url),
           isDirty: checkDirty(diff, c.url),
         });
@@ -1202,328 +1825,480 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return out;
     }, [state.diff, state.non_blocking_handlers]);
 
+    const hasInvalidWebhookURL = useMemo(() => {
+      const allHandlers = [
+        ...state.blocking_handlers,
+        ...state.non_blocking_handlers,
+      ];
+      return allHandlers.some(
+        (h) =>
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+      );
+    }, [state.blocking_handlers, state.non_blocking_handlers]);
+
+    const blockingInvalidEndpointIndices = useMemo(() => {
+      const indices = new Set<number>();
+      state.blocking_handlers.forEach((h, i) => {
+        if (
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+        ) {
+          indices.add(i);
+        }
+      });
+      return indices;
+    }, [state.blocking_handlers]);
+
+    const nonBlockingInvalidEndpointIndices = useMemo(() => {
+      const indices = new Set<number>();
+      state.non_blocking_handlers.forEach((h, i) => {
+        if (
+          getHookKind(h.url) === "webhook" &&
+          (h.url === "" || !isValidWebhookHookURI(h.url))
+        ) {
+          indices.add(i);
+        }
+      });
+      return indices;
+    }, [state.non_blocking_handlers]);
+
+    const [showEndpointErrors, setShowEndpointErrors] = useState(false);
+    const [blockingEndpointErrorIndices, setBlockingEndpointErrorIndices] =
+      useState<ReadonlySet<number>>(() => new Set());
+    const [blockingAutoExpandIndex, setBlockingAutoExpandIndex] = useState<
+      number | null
+    >(null);
+    const [blockingAutoExpandRequest, setBlockingAutoExpandRequest] =
+      useState(0);
+    const [nonBlockingAutoExpandIndex, setNonBlockingAutoExpandIndex] =
+      useState<number | null>(null);
+    const [nonBlockingAutoExpandRequest, setNonBlockingAutoExpandRequest] =
+      useState(0);
+
+    const beforeSave = useCallback(async () => {
+      if (hasInvalidWebhookURL) {
+        setShowEndpointErrors(true);
+        setBlockingEndpointErrorIndices(blockingInvalidEndpointIndices);
+
+        const firstBlockingInvalid = minSetIndex(
+          blockingInvalidEndpointIndices
+        );
+        if (firstBlockingInvalid != null) {
+          setActiveTab("blocking-events");
+          setBlockingAutoExpandIndex(firstBlockingInvalid);
+          setBlockingAutoExpandRequest((n) => n + 1);
+        } else {
+          const firstNonBlockingInvalid = minSetIndex(
+            nonBlockingInvalidEndpointIndices
+          );
+          if (firstNonBlockingInvalid != null) {
+            setActiveTab("non-blocking-events");
+            setNonBlockingAutoExpandIndex(firstNonBlockingInvalid);
+            setNonBlockingAutoExpandRequest((n) => n + 1);
+          }
+        }
+
+        throw new Error("invalid webhook endpoint");
+      }
+      setShowEndpointErrors(false);
+      setBlockingEndpointErrorIndices(new Set());
+    }, [
+      blockingInvalidEndpointIndices,
+      hasInvalidWebhookURL,
+      nonBlockingInvalidEndpointIndices,
+    ]);
+
+    useEffect(() => {
+      if (hasUnsavedChanges) {
+        return;
+      }
+      setShowEndpointErrors(false);
+      setBlockingEndpointErrorIndices((prev) =>
+        prev.size === 0 ? prev : EMPTY_ENDPOINT_ERROR_INDICES
+      );
+    }, [hasUnsavedChanges]);
+
+    const onTabValueChange = useCallback(
+      (nextTab: string) => {
+        if (nextTab === activeTab) {
+          return;
+        }
+        if (getHasUnsavedChanges()) {
+          setPendingTab(nextTab);
+          return;
+        }
+        setActiveTab(nextTab);
+      },
+      [activeTab, getHasUnsavedChanges]
+    );
+
+    const onDiscardTabSwitchDismiss = useCallback(() => {
+      setPendingTab(null);
+    }, []);
+
+    const onDiscardTabSwitchConfirm = useCallback(() => {
+      if (pendingTab != null) {
+        form.reset();
+        setCodeEditorState(null);
+        setActiveTab(pendingTab);
+      }
+      setPendingTab(null);
+    }, [form, pendingTab]);
+
+    const contentWidthAnchorRef = React.useRef<HTMLDivElement>(null);
+
     return (
       <FormContainer
         form={form}
-        hideFooterComponent={codeEditorState != null}
-        stickyFooterComponent={true}
-        showDiscardButton={true}
+        hideFooterComponent={true}
+        beforeSave={beforeSave}
       >
-        <ScreenContent>
+        <HookScreenWithSaveBar
+          codeEditorState={codeEditorState}
+          anchorRef={contentWidthAnchorRef}
+        >
           {codeEditorState != null ? (
             <div className={cn(styles.codeEditorContainer)}>
-              <WidgetTitle>
-                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage
-                  id="HookConfigurationScreen.edit-hook.description"
-                  values={{
-                    // eslint-disable-next-line react/no-unstable-nested-components
-                    docLink: (chunks: React.ReactNode) => (
-                      <ExternalLink
-                        href={
-                          codeEditorState.eventKind === "blocking"
-                            ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
-                            : "https://docs.authgear.com/customization/events-hooks/non-blocking-events"
-                        }
-                      >
-                        {chunks}
-                      </ExternalLink>
-                    ),
-                  }}
+              <div className={cn(styles.widget, styles.pageHeader)}>
+                <RadixText
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  className={styles.pageTitle}
+                >
+                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                </RadixText>
+                <RadixText
+                  as="p"
+                  size="2"
+                  color="gray"
+                  className={styles.pageDescription}
+                >
+                  <FormattedMessage
+                    id="HookConfigurationScreen.edit-hook.description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      docLink: (chunks: React.ReactNode) => (
+                        <ExternalLink
+                          href={
+                            codeEditorState.eventKind === "blocking"
+                              ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
+                              : "https://docs.authgear.com/customization/events-hooks/non-blocking-events"
+                          }
+                        >
+                          {chunks}
+                        </ExternalLink>
+                      ),
+                    }}
+                  />
+                </RadixText>
+              </div>
+              <div className={cn(styles.widget, styles.editorCard)}>
+                <div className={styles.editorCardHeader}>
+                  <RadixText as="p" size="3" weight="medium">
+                    <FormattedMessage id="HookConfigurationScreen.edit-typescript.label" />
+                  </RadixText>
+                </div>
+                <CodeEditor
+                  className={styles.codeEditor}
+                  language="typescript"
+                  value={code}
+                  onChange={onChangeCode}
+                  options={CODE_EDITOR_OPTIONS}
                 />
-              </WidgetDescription>
-              <CodeEditor
-                className={styles.codeEditor}
-                language="typescript"
-                value={code}
-                onChange={onChangeCode}
-                options={CODE_EDITOR_OPTIONS}
-              />
-              <div className={styles.codeEditorFooter}>
-                <PrimaryButton
-                  text="Finish Editing"
-                  // eslint-disable-next-line @typescript-eslint/strict-void-return
-                  onClick={onClickFinishEditing}
-                  disabled={isLoading}
-                />
-                <DefaultButton
-                  text="Cancel"
+              </div>
+              <Flex gap="2" direction="row">
+                <SecondaryButton
+                  size="2"
+                  text={<FormattedMessage id="cancel" />}
                   onClick={onClickCancelEditing}
                   disabled={isLoading}
                 />
-              </div>
+                <RadixPrimaryButton
+                  size="2"
+                  text={<FormattedMessage id="finish-editing" />}
+                  onClick={onClickFinishEditing}
+                  disabled={isLoading}
+                  loading={isLoading}
+                />
+              </Flex>
             </div>
           ) : (
             <>
-              <ScreenTitle className={styles.widget}>
-                <FormattedMessage id="HookConfigurationScreen.title" />
-              </ScreenTitle>
-              <ScreenDescription className={styles.widget}>
-                <FormattedMessage id="HookConfigurationScreen.description" />
-              </ScreenDescription>
-
-              <Widget className={styles.widget}>
-                <WidgetTitle>
-                  <FormattedMessage id="HookConfigurationScreen.blocking-events" />
-                </WidgetTitle>
-                <WidgetDescription>
-                  <FormattedMessage
-                    id="HookConfigurationScreen.blocking-events.description"
-                    values={{
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      docLink: (chunks: React.ReactNode) => (
-                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/blocking-events">
-                          {chunks}
-                        </ExternalLink>
-                      ),
-                    }}
-                  />
-                </WidgetDescription>
-                {blockingHandlerMax < 99 ? (
-                  blockingHandlerDisabled ? (
-                    <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.blocking-events.disabled" />
-                  ) : (
-                    <FeatureDisabledMessageBar
-                      messageID="FeatureConfig.webhook.blocking-events.maximum"
-                      messageValues={{
-                        maximum: blockingHandlerMax,
-                      }}
-                    />
-                  )
-                ) : null}
-                {!hideBlockingHandlerList ? (
-                  <FieldList
-                    listClassName={styles.hookList}
-                    listItemClassName={styles.hookListItem}
-                    listItemStyle={{
-                      borderBottomColor: theme.semanticColors.bodyDivider,
-                    }}
-                    label={
-                      <>
-                        <Label>
-                          <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
-                        </Label>
-                        <div
-                          className={styles.hookHeader}
-                          style={{
-                            borderBottomColor: theme.semanticColors.bodyDivider,
-                          }}
-                        >
-                          <Text
-                            block={true}
-                            className={styles.blockingHookKind}
-                            styles={{
-                              root: {
-                                color: theme.semanticColors.bodySubtext,
-                              },
-                            }}
-                          >
-                            <FormattedMessage id="HookConfigurationScreen.header.type.label" />
-                          </Text>
-                          <Text
-                            block={true}
-                            className={styles.blockingHookEvent}
-                            styles={{
-                              root: {
-                                color: theme.semanticColors.bodySubtext,
-                              },
-                            }}
-                          >
-                            <FormattedMessage id="HookConfigurationScreen.header.event.label" />
-                          </Text>
-                          <Text
-                            block={true}
-                            className={styles.blockingHookConfig}
-                            styles={{
-                              root: {
-                                color: theme.semanticColors.bodySubtext,
-                              },
-                            }}
-                          >
-                            <FormattedMessage id="HookConfigurationScreen.header.config.label" />
-                          </Text>
-                        </div>
-                      </>
-                    }
-                    parentJSONPointer="/hook"
-                    fieldName="blocking_handlers"
-                    list={blockingHandlers}
-                    onListItemAdd={onBlockingHandlersChange}
-                    onListItemChange={onBlockingHandlersChangeItemChange}
-                    onListItemDelete={onBlockingHandlersChange}
-                    makeDefaultItem={makeDefaultHandler}
-                    ListItemComponent={BlockingHandlerListItem}
-                    addButtonLabelMessageID="add"
-                    addDisabled={blockingHandlerLimitReached}
-                  />
-                ) : null}
-              </Widget>
-              <Widget className={styles.widget}>
-                <HorizontalDivider />
-              </Widget>
-              <Widget className={styles.widget}>
-                <WidgetTitle>
-                  <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
-                </WidgetTitle>
-                <WidgetDescription>
-                  <FormattedMessage
-                    id="HookConfigurationScreen.non-blocking-events.description"
-                    values={{
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      docLink: (chunks: React.ReactNode) => (
-                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/non-blocking-events">
-                          {chunks}
-                        </ExternalLink>
-                      ),
-                    }}
-                  />
-                </WidgetDescription>
-                {nonBlockingHandlerMax < 99 ? (
-                  nonBlockingHandlerDisabled ? (
-                    <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.non-blocking-events.disabled" />
-                  ) : (
-                    <FeatureDisabledMessageBar
-                      messageID="FeatureConfig.webhook.non-blocking-events.maximum"
-                      messageValues={{
-                        maximum: nonBlockingHandlerMax,
-                      }}
-                    />
-                  )
-                ) : null}
-                {!hideNonBlockingHandlerList ? (
-                  <FieldList
-                    listClassName={styles.hookList}
-                    listItemClassName={styles.hookListItem}
-                    listItemStyle={{
-                      borderBottomColor: theme.semanticColors.bodyDivider,
-                    }}
-                    label={
-                      <>
-                        <Label>
-                          <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
-                        </Label>
-                        <div
-                          className={styles.hookHeader}
-                          style={{
-                            borderBottomColor: theme.semanticColors.bodyDivider,
-                          }}
-                        >
-                          <Text
-                            block={true}
-                            className={styles.nonblockingHookEvent}
-                            styles={{
-                              root: {
-                                color: theme.semanticColors.bodySubtext,
-                              },
-                            }}
-                          >
-                            <FormattedMessage id="HookConfigurationScreen.header.event.label" />
-                          </Text>
-                          <Text
-                            block={true}
-                            className={styles.nonblockingHookConfig}
-                            styles={{
-                              root: {
-                                color: theme.semanticColors.bodySubtext,
-                              },
-                            }}
-                          >
-                            <FormattedMessage id="HookConfigurationScreen.header.config.label" />
-                          </Text>
-                        </div>
-                      </>
-                    }
-                    parentJSONPointer="/hook"
-                    fieldName="non_blocking_handlers"
-                    list={nonBlockingHandlers}
-                    onListItemAdd={onNonBlockingHandlersChange}
-                    onListItemChange={onNonBlockingHandlersChange}
-                    onListItemDelete={onNonBlockingHandlersChange}
-                    makeDefaultItem={makeDefaultNonBlockingHandler}
-                    ListItemComponent={NonBlockingHandlerListItem}
-                    addButtonLabelMessageID="add"
-                    addDisabled={nonBlockingHandlerLimitReached}
-                  />
-                ) : null}
-              </Widget>
-              <HorizontalDivider className={styles.separator} />
-              <Widget className={styles.widget}>
-                <WidgetTitle>
-                  <FormattedMessage id="HookConfigurationScreen.hook-settings" />
-                </WidgetTitle>
-                <TextField
-                  type="text"
-                  label={renderToString(
-                    "HookConfigurationScreen.total-timeout.label"
-                  )}
-                  value={state.totalTimeout?.toFixed(0) ?? ""}
-                  onChange={onTotalTimeoutChange}
-                />
-                <TextField
-                  type="text"
-                  label={renderToString(
-                    "HookConfigurationScreen.timeout.label"
-                  )}
-                  value={state.timeout?.toFixed(0) ?? ""}
-                  onChange={onTimeoutChange}
-                />
-              </Widget>
-
-              <Widget className={styles.widget} contentLayout="grid">
-                <WidgetTitle
-                  className={styles.columnFull}
-                  id={WEBHOOK_SIGNATURE_ID}
+              <div
+                ref={contentWidthAnchorRef}
+                className={cn(styles.widget, styles.pageHeader)}
+              >
+                <RadixText
+                  as="p"
+                  size="5"
+                  weight="bold"
+                  className={styles.pageTitle}
                 >
-                  <FormattedMessage id="HookConfigurationScreen.signature.title" />
-                </WidgetTitle>
-                <WidgetDescription className={styles.columnFull}>
-                  <FormattedMessage
-                    id="HookConfigurationScreen.signature.description"
-                    values={{
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      docLink: (chunks: React.ReactNode) => (
-                        <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
-                          {chunks}
-                        </ExternalLink>
-                      ),
-                    }}
-                  />
-                </WidgetDescription>
-                <TextField
-                  className={styles.secretInput}
-                  type="text"
-                  label={renderToString(
-                    "HookConfigurationScreen.signature.secret-key"
-                  )}
-                  value={
-                    revealed && state.secret != null
-                      ? state.secret
-                      : MASKED_SECRET
-                  }
-                  readOnly={true}
-                />
-                <PrimaryButton
-                  className={styles.secretButton}
-                  id={copyButtonProps.id}
-                  onClick={revealed ? copyButtonProps.onClick : onClickReveal}
-                  onMouseLeave={
-                    revealed ? copyButtonProps.onMouseLeave : undefined
-                  }
-                  text={
-                    revealed ? (
-                      <FormattedMessage id="copy" />
-                    ) : (
-                      <FormattedMessage id="reveal" />
-                    )
-                  }
-                />
-                <Feedback />
-              </Widget>
+                  <FormattedMessage id="HookConfigurationScreen.title" />
+                </RadixText>
+                <RadixText
+                  as="p"
+                  size="2"
+                  color="gray"
+                  className={styles.pageDescription}
+                >
+                  <FormattedMessage id="HookConfigurationScreen.description" />
+                </RadixText>
+              </div>
+
+              <Tabs.Root
+                className={styles.tabsRoot}
+                value={activeTab}
+                onValueChange={onTabValueChange}
+              >
+                <Tabs.List className={styles.tabsList}>
+                  <Tabs.Trigger value="blocking-events">
+                    <FormattedMessage id="HookConfigurationScreen.blocking-events" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value="non-blocking-events">
+                    <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value="settings">
+                    <FormattedMessage id="HookConfigurationScreen.settings" />
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value="signing-secret">
+                    <FormattedMessage id="HookConfigurationScreen.signing-secret" />
+                  </Tabs.Trigger>
+                </Tabs.List>
+
+                <Tabs.Content
+                  value="blocking-events"
+                  className={styles.tabContent}
+                >
+                  <section className={styles.section}>
+                    <div className={styles.sectionInner}>
+                      <RadixText
+                        as="p"
+                        size="3"
+                        weight="medium"
+                        className={styles.sectionHeading}
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
+                      </RadixText>
+                      <div className={styles.sectionContent}>
+                        <RadixText
+                          as="p"
+                          size="1"
+                          color="gray"
+                          className={styles.sectionDescription}
+                        >
+                          <FormattedMessage
+                            id="HookConfigurationScreen.blocking-events.description"
+                            values={{
+                              // eslint-disable-next-line react/no-unstable-nested-components
+                              docLink: (chunks: React.ReactNode) => (
+                                <ExternalLink href="https://docs.authgear.com/customization/events-hooks/blocking-events">
+                                  {chunks}
+                                </ExternalLink>
+                              ),
+                            }}
+                          />
+                        </RadixText>
+                        {blockingHandlerMax < 99 ? (
+                          blockingHandlerDisabled ? (
+                            <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.blocking-events.disabled" />
+                          ) : (
+                            <FeatureDisabledMessageBar
+                              messageID="FeatureConfig.webhook.blocking-events.maximum"
+                              messageValues={{
+                                maximum: blockingHandlerMax,
+                              }}
+                            />
+                          )
+                        ) : null}
+                        {!hideBlockingHandlerList ? (
+                          <BlockingHooksTable
+                            handlers={blockingHandlers}
+                            onHandlersChange={onBlockingHandlersChange}
+                            onHandlerItemChange={
+                              onBlockingHandlersChangeItemChange
+                            }
+                            makeDefaultHandler={makeDefaultHandler}
+                            onEditDeno={onEditBlocking}
+                            addDisabled={blockingHandlerLimitReached}
+                            endpointErrorIndices={blockingEndpointErrorIndices}
+                            autoExpandIndex={blockingAutoExpandIndex}
+                            autoExpandRequest={blockingAutoExpandRequest}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                  </section>
+                </Tabs.Content>
+
+                <Tabs.Content
+                  value="non-blocking-events"
+                  className={styles.tabContent}
+                >
+                  <section className={styles.section}>
+                    <div className={styles.sectionInner}>
+                      <RadixText
+                        as="p"
+                        size="3"
+                        weight="medium"
+                        className={styles.sectionHeading}
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.non-blocking-handlers.label" />
+                      </RadixText>
+                      <div className={styles.sectionContent}>
+                        <RadixText
+                          as="p"
+                          size="1"
+                          color="gray"
+                          className={styles.sectionDescription}
+                        >
+                          <FormattedMessage
+                            id="HookConfigurationScreen.non-blocking-events.description"
+                            values={{
+                              // eslint-disable-next-line react/no-unstable-nested-components
+                              docLink: (chunks: React.ReactNode) => (
+                                <ExternalLink href="https://docs.authgear.com/customization/events-hooks/non-blocking-events">
+                                  {chunks}
+                                </ExternalLink>
+                              ),
+                            }}
+                          />
+                        </RadixText>
+                        {nonBlockingHandlerMax < 99 ? (
+                          nonBlockingHandlerDisabled ? (
+                            <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.non-blocking-events.disabled" />
+                          ) : (
+                            <FeatureDisabledMessageBar
+                              messageID="FeatureConfig.webhook.non-blocking-events.maximum"
+                              messageValues={{
+                                maximum: nonBlockingHandlerMax,
+                              }}
+                            />
+                          )
+                        ) : null}
+                        {!hideNonBlockingHandlerList ? (
+                          <NonBlockingHooksTable
+                            handlers={nonBlockingHandlers}
+                            onHandlersChange={onNonBlockingHandlersChange}
+                            onHandlerItemChange={
+                              onNonBlockingHandlersChangeItemChange
+                            }
+                            makeDefaultHandler={makeDefaultNonBlockingHandler}
+                            onEditDeno={onEditNonBlocking}
+                            addDisabled={nonBlockingHandlerLimitReached}
+                            showEndpointErrors={showEndpointErrors}
+                            autoExpandIndex={nonBlockingAutoExpandIndex}
+                            autoExpandRequest={nonBlockingAutoExpandRequest}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                  </section>
+                </Tabs.Content>
+
+                <Tabs.Content value="settings" className={styles.tabContent}>
+                  <section className={styles.section}>
+                    <div className={styles.sectionInner}>
+                      <RadixText
+                        as="p"
+                        size="3"
+                        weight="medium"
+                        className={styles.sectionHeading}
+                      >
+                        <FormattedMessage id="HookConfigurationScreen.hook-settings" />
+                      </RadixText>
+                      <div className={styles.sectionContent}>
+                        <RadixTextField
+                          size="2"
+                          labelSize="2"
+                          type="text"
+                          label={
+                            <FormattedMessage id="HookConfigurationScreen.total-timeout.label" />
+                          }
+                          value={state.totalTimeout?.toFixed(0) ?? ""}
+                          onChange={onTotalTimeoutChange}
+                        />
+                        <RadixTextField
+                          size="2"
+                          labelSize="2"
+                          type="text"
+                          label={
+                            <FormattedMessage id="HookConfigurationScreen.timeout.label" />
+                          }
+                          value={state.timeout?.toFixed(0) ?? ""}
+                          onChange={onTimeoutChange}
+                        />
+                      </div>
+                    </div>
+                  </section>
+                </Tabs.Content>
+
+                <Tabs.Content
+                  value="signing-secret"
+                  className={styles.tabContent}
+                >
+                  <section className={styles.section}>
+                    <div className={styles.sectionInner}>
+                      <RadixText
+                        as="p"
+                        size="3"
+                        weight="medium"
+                        className={styles.sectionHeading}
+                      >
+                        <span id={WEBHOOK_SIGNATURE_ID}>
+                          <FormattedMessage id="HookConfigurationScreen.signature.title" />
+                        </span>
+                      </RadixText>
+                      <div className={styles.sectionContent}>
+                        <RadixTextField
+                          size="2"
+                          labelSize="2"
+                          type="text"
+                          label={
+                            <FormattedMessage id="HookConfigurationScreen.signature.secret-key" />
+                          }
+                          value={secretKeyValue}
+                          readOnly={true}
+                          suffixPlain={true}
+                          suffix={
+                            isSecretMasked ? (
+                              <RevealIconButton onClick={onRevealSecret} />
+                            ) : secretKeyValue.length > 0 ? (
+                              <CopyIconButton textToCopy={secretKeyValue} />
+                            ) : undefined
+                          }
+                          hint={
+                            <FormattedMessage
+                              id="HookConfigurationScreen.signature.description"
+                              values={{
+                                // eslint-disable-next-line react/no-unstable-nested-components
+                                docLink: (chunks: React.ReactNode) => (
+                                  <ExternalLink href="https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature">
+                                    {chunks}
+                                  </ExternalLink>
+                                ),
+                              }}
+                            />
+                          }
+                        />
+                      </div>
+                    </div>
+                  </section>
+                </Tabs.Content>
+              </Tabs.Root>
             </>
           )}
-        </ScreenContent>
+        </HookScreenWithSaveBar>
+        <BlockerDialog
+          open={pendingTab != null}
+          contentTitleId="SwitchTabBlockerDialog.title"
+          contentSubTextId="SwitchTabBlockerDialog.content"
+          contentConfirmId="SwitchTabBlockerDialog.confirm"
+          onDialogConfirm={onDiscardTabSwitchConfirm}
+          onDialogDismiss={onDiscardTabSwitchDismiss}
+        />
       </FormContainer>
     );
   };
