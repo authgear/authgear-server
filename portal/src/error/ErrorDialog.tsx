@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
+import { Dialog } from "@radix-ui/themes";
 import { FormattedMessage, Values } from "../intl";
 
 import { ErrorParseRule, parseAPIErrors, parseRawError } from "./parse";
-import PrimaryButton from "../PrimaryButton";
+import { PrimaryButton } from "../components/v2/Button/PrimaryButton/PrimaryButton";
 import ErrorRenderer from "../ErrorRenderer";
+import styles from "./ErrorDialog.module.css";
 
 interface ErrorDialogProps {
   titleMessageID?: string;
@@ -45,31 +46,34 @@ const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
     }
   }, [error]);
 
-  // @ts-expect-error
-  const errorDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id={titleMessageID ?? "error"} />,
-      subText: <ErrorRenderer errors={topErrors} />,
-    };
-  }, [titleMessageID, topErrors]);
-
   const onDismiss = useCallback(() => {
     setVisible(false);
   }, []);
 
+  const onOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setVisible(false);
+    }
+  }, []);
+
   return (
-    <Dialog
-      hidden={!visible}
-      dialogContentProps={errorDialogContentProps}
-      onDismiss={onDismiss}
-    >
-      <DialogFooter>
-        <PrimaryButton
-          onClick={onDismiss}
-          text={<FormattedMessage id="ok" />}
-        />
-      </DialogFooter>
-    </Dialog>
+    <Dialog.Root open={visible} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="400px" size="3">
+        <Dialog.Title>
+          <FormattedMessage id={titleMessageID ?? "error"} />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          <ErrorRenderer errors={topErrors} />
+        </Dialog.Description>
+        <div className={styles.actions}>
+          <PrimaryButton
+            size="2"
+            onClick={onDismiss}
+            text={<FormattedMessage id="ok" />}
+          />
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 };
 
