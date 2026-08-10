@@ -1,12 +1,10 @@
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 
 export type ActivityTypeCategoryGroupId =
-  | "user"
-  | "email"
-  | "phone"
-  | "oauth-biometric"
-  | "sms"
-  | "whatsapp"
+  | "account"
+  | "authentication"
+  | "identity"
+  | "delivery"
   | "security"
   | "usage"
   | "m2m"
@@ -14,16 +12,17 @@ export type ActivityTypeCategoryGroupId =
   | "project";
 
 export type ActivityTypeSubcategoryId =
-  | "user-account"
-  | "user-authentication"
-  | "user-username"
-  | "email-delivery"
-  | "email-identity"
-  | "phone-identity"
-  | "oauth-identity"
-  | "biometric-identity"
-  | "sms"
-  | "whatsapp"
+  | "account"
+  | "authentication-signin"
+  | "authentication-failure"
+  | "identity-username"
+  | "identity-email"
+  | "identity-phone"
+  | "identity-oauth"
+  | "identity-biometric"
+  | "delivery-email"
+  | "delivery-sms"
+  | "delivery-whatsapp"
   | "security"
   | "usage"
   | "m2m"
@@ -43,12 +42,10 @@ export type ActivityTypeCategoryId = ActivityTypeSubcategoryId;
 
 export const ACTIVITY_TYPE_CATEGORY_GROUP_ORDER: ActivityTypeCategoryGroupId[] =
   [
-    "user",
-    "email",
-    "phone",
-    "oauth-biometric",
-    "sms",
-    "whatsapp",
+    "account",
+    "authentication",
+    "identity",
+    "delivery",
     "security",
     "usage",
     "m2m",
@@ -60,12 +57,16 @@ const GROUP_SUBCATEGORY_ORDER: Record<
   ActivityTypeCategoryGroupId,
   ActivityTypeSubcategoryId[]
 > = {
-  user: ["user-account", "user-authentication", "user-username"],
-  email: ["email-delivery", "email-identity"],
-  phone: ["phone-identity"],
-  "oauth-biometric": ["oauth-identity", "biometric-identity"],
-  sms: ["sms"],
-  whatsapp: ["whatsapp"],
+  account: ["account"],
+  authentication: ["authentication-signin", "authentication-failure"],
+  identity: [
+    "identity-username",
+    "identity-email",
+    "identity-phone",
+    "identity-oauth",
+    "identity-biometric",
+  ],
+  delivery: ["delivery-email", "delivery-sms", "delivery-whatsapp"],
   security: ["security"],
   usage: ["usage"],
   m2m: ["m2m"],
@@ -89,16 +90,17 @@ const SUBCATEGORY_TO_GROUP: Record<
   ActivityTypeSubcategoryId,
   ActivityTypeCategoryGroupId
 > = {
-  "user-account": "user",
-  "user-authentication": "user",
-  "user-username": "user",
-  "email-delivery": "email",
-  "email-identity": "email",
-  "phone-identity": "phone",
-  "oauth-identity": "oauth-biometric",
-  "biometric-identity": "oauth-biometric",
-  sms: "sms",
-  whatsapp: "whatsapp",
+  account: "account",
+  "authentication-signin": "authentication",
+  "authentication-failure": "authentication",
+  "identity-username": "identity",
+  "identity-email": "identity",
+  "identity-phone": "identity",
+  "identity-oauth": "identity",
+  "identity-biometric": "identity",
+  "delivery-email": "delivery",
+  "delivery-sms": "delivery",
+  "delivery-whatsapp": "delivery",
   security: "security",
   usage: "usage",
   m2m: "m2m",
@@ -170,6 +172,15 @@ function getProjectActivityTypeSubcategory(
   return "project-app";
 }
 
+// Successful sign-in / session USER_* events; the remaining USER_* events are
+// account lifecycle/status events.
+const AUTHENTICATION_SIGNIN_ACTIVITY_TYPE_KEYS = new Set([
+  "USER_AUTHENTICATED",
+  "USER_REAUTHENTICATED",
+  "USER_SIGNED_OUT",
+  "USER_SESSION_TERMINATED",
+]);
+
 export function getActivityTypeSubcategory(
   activityType: AuditLogActivityType
 ): ActivityTypeSubcategoryId {
@@ -181,34 +192,41 @@ export function getActivityTypeSubcategory(
     return getProjectActivityTypeSubcategory(activityTypeKey);
   }
   if (activityTypeKey.startsWith("AUTHENTICATION_")) {
-    return "user-authentication";
+    return "authentication-failure";
   }
-  if (activityTypeKey.startsWith("IDENTITY_USERNAME_")) {
-    return "user-username";
+  // A verification outcome, not a delivery event.
+  if (activityTypeKey === "WHATSAPP_OTP_VERIFIED") {
+    return "authentication-signin";
+  }
+  if (AUTHENTICATION_SIGNIN_ACTIVITY_TYPE_KEYS.has(activityTypeKey)) {
+    return "authentication-signin";
   }
   if (activityTypeKey.startsWith("USER_")) {
-    return "user-account";
+    return "account";
+  }
+  if (activityTypeKey.startsWith("IDENTITY_USERNAME_")) {
+    return "identity-username";
   }
   if (activityTypeKey.startsWith("IDENTITY_EMAIL_")) {
-    return "email-identity";
-  }
-  if (activityTypeKey.startsWith("EMAIL_")) {
-    return "email-delivery";
+    return "identity-email";
   }
   if (activityTypeKey.startsWith("IDENTITY_PHONE_")) {
-    return "phone-identity";
+    return "identity-phone";
   }
   if (activityTypeKey.startsWith("IDENTITY_OAUTH_")) {
-    return "oauth-identity";
+    return "identity-oauth";
   }
   if (activityTypeKey.startsWith("IDENTITY_BIOMETRIC_")) {
-    return "biometric-identity";
+    return "identity-biometric";
+  }
+  if (activityTypeKey.startsWith("EMAIL_")) {
+    return "delivery-email";
   }
   if (activityTypeKey.startsWith("SMS_")) {
-    return "sms";
+    return "delivery-sms";
   }
   if (activityTypeKey.startsWith("WHATSAPP_")) {
-    return "whatsapp";
+    return "delivery-whatsapp";
   }
   if (
     activityTypeKey.startsWith("BOT_PROTECTION_") ||
@@ -222,7 +240,7 @@ export function getActivityTypeSubcategory(
   if (activityTypeKey.startsWith("M2M_")) {
     return "m2m";
   }
-  return "user-account";
+  return "account";
 }
 
 /** @deprecated Use getActivityTypeSubcategory instead. */
