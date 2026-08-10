@@ -375,9 +375,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       <ConfirmationDialog
         open={isRemoveDialogVisible}
         onOpenChange={onRemoveDialogOpenChange}
-        title={
-          <FormattedMessage id="EditPictureScreen.remove-picture.label" />
-        }
+        title={<FormattedMessage id="EditPictureScreen.remove-picture.label" />}
         description={renderToString(
           "EditPictureScreen.remove-picture.dialog.description"
         )}
@@ -439,11 +437,25 @@ const EditPictureScreen: React.VFC = function EditPictureScreen() {
   }
 
   if (userError != null) {
-    return <ShowError error={userError} onRetry={refetchUser} />;
+    return (
+      <ShowError
+        error={userError}
+        onRetry={() => {
+          refetchUser().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (appConfigError != null) {
-    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+    return (
+      <ShowError
+        error={appConfigError}
+        onRetry={() => {
+          refetchAppConfig().finally(() => {});
+        }}
+      />
+    );
   }
 
   return <EditPictureScreenContent user={user} appID={appID} />;

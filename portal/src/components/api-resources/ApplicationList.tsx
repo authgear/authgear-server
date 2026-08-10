@@ -52,8 +52,7 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
               const toggleDisabled = disabledToggleClientIDsSet.has(
                 item.clientID
               );
-              const showManageScopes =
-                item.authorized && !toggleDisabled;
+              const showManageScopes = item.authorized && !toggleDisabled;
               return (
                 <div key={item.clientID} className={styles.tableRow}>
                   <div className={styles.tableCellApplication}>
@@ -77,9 +76,7 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
                         className={styles.manageScopesButton}
                         onClick={() => onManageScopes(item)}
                       >
-                        {renderToString(
-                          "ApplicationList.columns.manageScopes"
-                        )}
+                        {renderToString("ApplicationList.columns.manageScopes")}
                       </button>
                     ) : null}
                   </div>

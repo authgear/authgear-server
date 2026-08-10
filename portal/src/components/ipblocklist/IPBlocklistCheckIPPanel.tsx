@@ -1,6 +1,9 @@
 import React, { useId, useMemo } from "react";
 import { Callout, Text } from "@radix-ui/themes";
-import { ExclamationTriangleIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import {
+  ExclamationTriangleIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 import { FormattedMessage } from "../../intl";
 import { useErrorMessage } from "../../formbinding";
 import { TextField } from "../v2/TextField/TextField";
@@ -39,9 +42,7 @@ export function IPBlocklistCheckIPPanel({
       <FormField
         size="2"
         labelSize="2"
-        label={
-          <FormattedMessage id="IPBlocklistForm.check-ip-address.label" />
-        }
+        label={<FormattedMessage id="IPBlocklistForm.check-ip-address.label" />}
         htmlFor={id}
         labelSpace="1"
         parentJSONPointer=""
@@ -87,7 +88,9 @@ export function IPBlocklistCheckIPPanel({
                 values={{
                   ipAddress: checkIPResult.ipAddress,
                   // eslint-disable-next-line react/no-unstable-nested-components
-                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Callout.Text>
@@ -103,7 +106,9 @@ export function IPBlocklistCheckIPPanel({
                 values={{
                   ipAddress: checkIPResult.ipAddress,
                   // eslint-disable-next-line react/no-unstable-nested-components
-                  strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                  strong: (chunks: React.ReactNode) => (
+                    <strong>{chunks}</strong>
+                  ),
                 }}
               />
             </Callout.Text>

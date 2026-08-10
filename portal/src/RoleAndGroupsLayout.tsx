@@ -53,7 +53,7 @@ export const RoleAndGroupsLayout: React.VFC<
       parentItem != null ? resolveBreadcrumbPath(parentItem.to, appID) : "";
 
     return {
-      title: titleItem?.label ?? null,
+      title: titleItem.label ?? null,
       backLink:
         parentItem != null && parentTo !== ""
           ? { to: parentTo, label: parentItem.label }

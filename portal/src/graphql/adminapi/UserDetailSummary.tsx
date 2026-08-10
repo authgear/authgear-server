@@ -97,9 +97,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       if (isAnonymous) {
         return renderToString("UsersList.anonymous-user");
       }
-      return (
-        formattedName || endUserAccountIdentifier || rawUserID
-      );
+      return formattedName || endUserAccountIdentifier || rawUserID;
     }, [
       isAnonymized,
       isAnonymous,
@@ -163,7 +161,12 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           </div>
           <div className={styles.headerInfo}>
             <div className={styles.nameRow}>
-              <Text as="p" size="6" weight="bold" className={styles.displayName}>
+              <Text
+                as="p"
+                size="6"
+                weight="bold"
+                className={styles.displayName}
+              >
                 {displayName}
               </Text>
               <AccountStatusRadixBadge accountStatus={accountStatus} />

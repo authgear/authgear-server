@@ -313,7 +313,9 @@ function UnreasonableWarning(props: UnreasonableWarningProps) {
             type="info"
             showCloseButton={false}
             text={
-              <FormattedMessage id={"MFAConfigurationScreen.unreasonable." + t} />
+              <FormattedMessage
+                id={"MFAConfigurationScreen.unreasonable." + t}
+              />
             }
           />
         );
@@ -454,9 +456,10 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
 
     const onChangeNumRecoveryCode = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((prev) => ({
           ...prev,
-          numRecoveryCode: parseIntegerAllowLeadingZeros(e.target.value),
+          numRecoveryCode: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]

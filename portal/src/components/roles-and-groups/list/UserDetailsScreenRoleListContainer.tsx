@@ -14,10 +14,7 @@ import { RolesEmptyView } from "../empty-view/RolesEmptyView";
 import { UserRolesListItem, UserRolesList } from "./UserRolesList";
 import cn from "classnames";
 import { AddUserRolesDialog } from "../dialog/AddUserRolesDialog";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../../v2/TextField/TextField";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import { InfoCircledIcon, PlusIcon } from "@radix-ui/react-icons";
@@ -126,7 +123,14 @@ function UserDetailsScreenRoleListContainer({
   }, [isSearch, combinedRoles, offset, searchKeyword]);
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {

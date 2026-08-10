@@ -88,9 +88,7 @@ const CustomTextConfigurationContent: React.VFC<CustomTextConfigurationContentPr
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
     return (
-      <ScreenContent
-        className={cn(isDirty ? styles.contentWithSaveBar : null)}
-      >
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
         <div
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
@@ -141,7 +139,12 @@ const CustomTextConfigurationContent: React.VFC<CustomTextConfigurationContentPr
           )}
         >
           <div className={styles.editorCardHeader}>
-            <Text as="p" size="3" weight="medium" className={styles.editorCardTitle}>
+            <Text
+              as="p"
+              size="3"
+              weight="medium"
+              className={styles.editorCardTitle}
+            >
               <FormattedMessage id="CustomTextConfigurationScreen.editor.title" />
             </Text>
             <Text
@@ -288,9 +291,12 @@ const CustomTextConfigurationScreen: React.VFC =
 
         let localeDisplay = renderToString(`Locales.${locale}`);
         if (isRemoved) {
-          localeDisplay = renderToString("ManageLanguageWidget.option-removed", {
-            LANG: localeDisplay,
-          });
+          localeDisplay = renderToString(
+            "ManageLanguageWidget.option-removed",
+            {
+              LANG: localeDisplay,
+            }
+          );
         }
 
         options.push({

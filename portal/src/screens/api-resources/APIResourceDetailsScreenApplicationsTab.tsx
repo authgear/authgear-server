@@ -107,82 +107,33 @@ export function APIResourceDetailsScreenApplicationsTab({
     setApplicationToUnauthorize(null);
   }, []);
 
-  const handleConfirmUnauthorize = useCallback(async () => {
+  const handleConfirmUnauthorize = useCallback(() => {
     if (!applicationToUnauthorize) {
       return;
     }
-    try {
-      setDisabledToggleClientIDs((prev) => [
-        ...prev,
-        applicationToUnauthorize.clientID,
-      ]);
-
-      const newResource = {
-        ...resource,
-        clientIDs: resource.clientIDs.filter(
-          (clientID) => clientID !== applicationToUnauthorize.clientID
-        ),
-      };
-
-      await removeResource({
-        variables: {
-          clientID: applicationToUnauthorize.clientID,
-          resourceURI: resource.resourceURI,
-        },
-        refetchQueries: [ResourceQueryDocument],
-        awaitRefetchQueries: true,
-        optimisticResponse: {
-          removeResourceFromClientID: {
-            resource: newResource,
-          },
-        },
-        update: (cache) => {
-          cache.writeQuery<ResourceQueryQuery>({
-            query: ResourceQueryDocument,
-            variables: { id: resource.id },
-            data: { node: newResource },
-          });
-        },
-      });
-    } catch (e: unknown) {
-      setErrors(parseRawError(e));
-    } finally {
-      setDisabledToggleClientIDs((prev) =>
-        prev.filter(
-          (clientID) => clientID !== applicationToUnauthorize.clientID
-        )
-      );
-      handleCloseUnauthorizeDialog();
-    }
-  }, [
-    applicationToUnauthorize,
-    resource,
-    removeResource,
-    setErrors,
-    handleCloseUnauthorizeDialog,
-  ]);
-
-  const onToggleAuthorized = useCallback(
-    async (item: ApplicationListItem, checked: boolean) => {
-      if (!checked) {
-        handleOpenUnauthorizeDialog(item);
-        return;
-      }
+    const unauthorize = async () => {
       try {
-        setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
+        setDisabledToggleClientIDs((prev) => [
+          ...prev,
+          applicationToUnauthorize.clientID,
+        ]);
+
         const newResource = {
           ...resource,
-          clientIDs: [...resource.clientIDs, item.clientID],
+          clientIDs: resource.clientIDs.filter(
+            (clientID) => clientID !== applicationToUnauthorize.clientID
+          ),
         };
-        await addResource({
+
+        await removeResource({
           variables: {
-            clientID: item.clientID,
+            clientID: applicationToUnauthorize.clientID,
             resourceURI: resource.resourceURI,
           },
           refetchQueries: [ResourceQueryDocument],
           awaitRefetchQueries: true,
           optimisticResponse: {
-            addResourceToClientID: {
+            removeResourceFromClientID: {
               resource: newResource,
             },
           },
@@ -198,9 +149,64 @@ export function APIResourceDetailsScreenApplicationsTab({
         setErrors(parseRawError(e));
       } finally {
         setDisabledToggleClientIDs((prev) =>
-          prev.filter((clientID) => clientID !== item.clientID)
+          prev.filter(
+            (clientID) => clientID !== applicationToUnauthorize.clientID
+          )
         );
+        handleCloseUnauthorizeDialog();
       }
+    };
+    void unauthorize();
+  }, [
+    applicationToUnauthorize,
+    resource,
+    removeResource,
+    setErrors,
+    handleCloseUnauthorizeDialog,
+  ]);
+
+  const onToggleAuthorized = useCallback(
+    (item: ApplicationListItem, checked: boolean) => {
+      if (!checked) {
+        handleOpenUnauthorizeDialog(item);
+        return;
+      }
+      const authorize = async () => {
+        try {
+          setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
+          const newResource = {
+            ...resource,
+            clientIDs: [...resource.clientIDs, item.clientID],
+          };
+          await addResource({
+            variables: {
+              clientID: item.clientID,
+              resourceURI: resource.resourceURI,
+            },
+            refetchQueries: [ResourceQueryDocument],
+            awaitRefetchQueries: true,
+            optimisticResponse: {
+              addResourceToClientID: {
+                resource: newResource,
+              },
+            },
+            update: (cache) => {
+              cache.writeQuery<ResourceQueryQuery>({
+                query: ResourceQueryDocument,
+                variables: { id: resource.id },
+                data: { node: newResource },
+              });
+            },
+          });
+        } catch (e: unknown) {
+          setErrors(parseRawError(e));
+        } finally {
+          setDisabledToggleClientIDs((prev) =>
+            prev.filter((clientID) => clientID !== item.clientID)
+          );
+        }
+      };
+      void authorize();
     },
     [resource, addResource, setErrors, handleOpenUnauthorizeDialog]
   );

@@ -164,7 +164,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
               </div>
             ) : (
               <div className={styles.emptyMessage}>
-                <Text as="p" size="4" weight="bold" className={styles.emptyTitle}>
+                <Text
+                  as="p"
+                  size="4"
+                  weight="bold"
+                  className={styles.emptyTitle}
+                >
                   <FormattedMessage id="SingleSignOnConfigurationScreen.empty-message" />
                 </Text>
                 <div className={styles.emptyButton}>

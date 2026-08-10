@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
@@ -145,9 +151,7 @@ const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFo
     const { appID } = useParams() as { appID: string };
 
     return (
-      <ScreenContent
-        className={cn(isDirty ? styles.contentWithSaveBar : null)}
-      >
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
         <div
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo} from "react";
+import React, { useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import { FormattedMessage } from "../../intl";
@@ -93,8 +93,24 @@ function EmptyState() {
               fill="currentColor"
               opacity="0.4"
             />
-            <rect x="2" y="5" width="20" height="16" rx="2" fill="currentColor" opacity="0.15" />
-            <rect x="2" y="5" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <rect
+              x="2"
+              y="5"
+              width="20"
+              height="16"
+              rx="2"
+              fill="currentColor"
+              opacity="0.15"
+            />
+            <rect
+              x="2"
+              y="5"
+              width="20"
+              height="16"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
             <circle cx="8" cy="12" r="2.5" fill="currentColor" opacity="0.6" />
             <line
               x1="12.5"
@@ -257,11 +273,7 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer
-        form={form}
-        hideFooterComponent={true}
-        canSave={true}
-      >
+      <FormContainer form={form} hideFooterComponent={true} canSave={true}>
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );

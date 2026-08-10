@@ -37,6 +37,8 @@ import {
   AccessControlLevelString,
   CustomAttributesAttributeConfig,
   OAuthClientConfig,
+  Authorization,
+  Session,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { extractRawID } from "../../util/graphql";
@@ -51,7 +53,6 @@ import UserDetailsAccountStatus, {
 } from "./UserDetailsAccountStatus";
 import UserDetailsLogs from "./UserDetailsLogs";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { Authorization, Session } from "../../types";
 
 // Temporary UI preview data for Sam Lee — remove after Sessions & Apps UI work.
 const UI_PREVIEW_RAW_USER_ID = "8d442fbc-ea7c-4130-9114-432631fdb5d3";
@@ -568,9 +569,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           <OverflowTabs
             className={styles.tabs}
             value={selectedKey}
-            onValueChange={(v) =>
-              onChangeKey(v as typeof ACCOUNT_STATUS_KEY | typeof LOGS_KEY)
-            }
+            onValueChange={(v) => onChangeKey(v)}
             tabs={tabsForAnonymized}
           />
           {selectedKey === ACCOUNT_STATUS_KEY ? (
@@ -592,125 +591,113 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   return (
     <>
       <div className={styles.widget}>
-      <UserDetailSummary
-        isAnonymous={data.isAnonymous}
-        isAnonymized={data.isAnonymized}
-        profileImageURL={data.standardAttributes.picture}
-        profileImageEditable={profileImageEditable}
-        onSelectProfileImage={setSelectedProfileImage}
-        rawUserID={extractRawID(data.id)}
-        formattedName={data.formattedName ?? undefined}
-        endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-        createdAtISO={data.createdAt ?? null}
-        lastLoginAtISO={data.lastLoginAt ?? null}
-        accountStatus={data}
-      />
-      <AccountStatusMessageBar accountStatus={data} />
-      <OverflowTabs
-        className={styles.tabs}
-        value={selectedKey}
-        onValueChange={(v) =>
-          onChangeKey(
-            v as
-              | typeof USER_PROFILE_KEY
-              | typeof ACCOUNT_SECURITY_PIVOT_KEY
-              | typeof CONNECTED_IDENTITIES_PIVOT_KEY
-              | typeof SESSION_PIVOT_KEY
-              | typeof ROLES_KEY
-              | typeof GROUPS_KEY
-              | typeof ACCOUNT_STATUS_KEY
-              | typeof LOGS_KEY
-          )
-        }
-        tabs={tabs}
-      />
+        <UserDetailSummary
+          isAnonymous={data.isAnonymous}
+          isAnonymized={data.isAnonymized}
+          profileImageURL={data.standardAttributes.picture}
+          profileImageEditable={profileImageEditable}
+          onSelectProfileImage={setSelectedProfileImage}
+          rawUserID={extractRawID(data.id)}
+          formattedName={data.formattedName ?? undefined}
+          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+          createdAtISO={data.createdAt ?? null}
+          lastLoginAtISO={data.lastLoginAt ?? null}
+          accountStatus={data}
+        />
+        <AccountStatusMessageBar accountStatus={data} />
+        <OverflowTabs
+          className={styles.tabs}
+          value={selectedKey}
+          onValueChange={(v) => onChangeKey(v)}
+          tabs={tabs}
+        />
 
-      {selectedKey === USER_PROFILE_KEY ? (
-        <div className={styles.profileTabContent}>
-          <aside className={styles.profileTabSidebar}>
-            <DateSidebarItem
-              label={<FormattedMessage id="UserDetails.last-login" />}
-              datetime={formattedLastLogin}
-            />
-          </aside>
-          <div ref={profileContentRef} className={styles.profileTabMain}>
-            <UserProfileForm
+        {selectedKey === USER_PROFILE_KEY ? (
+          <div className={styles.profileTabContent}>
+            <aside className={styles.profileTabSidebar}>
+              <DateSidebarItem
+                label={<FormattedMessage id="UserDetails.last-login" />}
+                datetime={formattedLastLogin}
+              />
+            </aside>
+            <div ref={profileContentRef} className={styles.profileTabMain}>
+              <UserProfileForm
+                identities={identities}
+                standardAttributes={state.standardAttributes}
+                onChangeStandardAttributes={onChangeStandardAttributes}
+                standardAttributeAccessControl={standardAttributeAccessControl}
+                customAttributesConfig={customAttributesConfig}
+                customAttributes={state.customAttributes}
+                onChangeCustomAttributes={onChangeCustomAttributes}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
+          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+            <UserDetailsAccountSecurity
+              userID={data.id}
+              authenticationConfig={appConfig.authentication}
+              authenticatorConfig={appConfig.authenticator}
               identities={identities}
-              standardAttributes={state.standardAttributes}
-              onChangeStandardAttributes={onChangeStandardAttributes}
-              standardAttributeAccessControl={standardAttributeAccessControl}
-              customAttributesConfig={customAttributesConfig}
-              customAttributes={state.customAttributes}
-              onChangeCustomAttributes={onChangeCustomAttributes}
+              authenticators={authenticators}
+              phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
+              phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
+              onAuthenticatorCreated={refreshUser}
             />
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
-        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
-          <UserDetailsAccountSecurity
-            userID={data.id}
-            authenticationConfig={appConfig.authentication}
-            authenticatorConfig={appConfig.authenticator}
-            identities={identities}
-            authenticators={authenticators}
-            phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
-            phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
-            onAuthenticatorCreated={refreshUser}
-          />
-        </div>
-      ) : null}
+        {selectedKey === CONNECTED_IDENTITIES_PIVOT_KEY ? (
+          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+            <UserDetailsConnectedIdentities
+              identities={identities}
+              verifiedClaims={verifiedClaims}
+              availableLoginIdIdentities={availableLoginIdIdentities}
+              phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
+              phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
+              onIdentityCreated={refreshUser}
+            />
+          </div>
+        ) : null}
 
-      {selectedKey === CONNECTED_IDENTITIES_PIVOT_KEY ? (
-        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
-          <UserDetailsConnectedIdentities
-            identities={identities}
-            verifiedClaims={verifiedClaims}
-            availableLoginIdIdentities={availableLoginIdIdentities}
-            phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
-            phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
-            onIdentityCreated={refreshUser}
-          />
-        </div>
-      ) : null}
+        {selectedKey === SESSION_PIVOT_KEY ? (
+          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+            <UserDetailsSession
+              sessions={sessions}
+              oauthClients={oauthClientConfig}
+            />
+            <UserDetailsAuthorization
+              authorizations={authorizations}
+              oauthClientConfig={oauthClientConfig}
+            />
+          </div>
+        ) : null}
 
-      {selectedKey === SESSION_PIVOT_KEY ? (
-        <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
-          <UserDetailsSession
-            sessions={sessions}
-            oauthClients={oauthClientConfig}
-          />
-          <UserDetailsAuthorization
-            authorizations={authorizations}
-            oauthClientConfig={oauthClientConfig}
-          />
-        </div>
-      ) : null}
+        {selectedKey === ROLES_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsScreenRoleListContainer user={data} />
+          </div>
+        ) : null}
 
-      {selectedKey === ROLES_KEY ? (
-        <div className={styles.tabContent}>
-          <UserDetailsScreenRoleListContainer user={data} />
-        </div>
-      ) : null}
+        {selectedKey === GROUPS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsScreenGroupListContainer user={data} />
+          </div>
+        ) : null}
 
-      {selectedKey === GROUPS_KEY ? (
-        <div className={styles.tabContent}>
-          <UserDetailsScreenGroupListContainer user={data} />
-        </div>
-      ) : null}
+        {selectedKey === ACCOUNT_STATUS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsAccountStatus data={data} />
+          </div>
+        ) : null}
 
-      {selectedKey === ACCOUNT_STATUS_KEY ? (
-        <div className={styles.tabContent}>
-          <UserDetailsAccountStatus data={data} />
-        </div>
-      ) : null}
-
-      {selectedKey === LOGS_KEY ? (
-        <div className={styles.tabContent}>
-          <UserDetailsLogs userID={data.id} />
-        </div>
-      ) : null}
+        {selectedKey === LOGS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsLogs userID={data.id} />
+          </div>
+        ) : null}
       </div>
       {profilePictureDialog}
     </>
@@ -719,14 +706,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
 interface UserDetailsScreenContentProps {
   user: UserQueryNodeFragment;
-  refreshUser?: () => void;
+  refreshUser?: () => unknown;
   effectiveAppConfig: PortalAPIAppConfig;
 }
 
 interface UserDetailsScreenFormProps {
   form: SimpleFormModel<FormState>;
   user: UserQueryNodeFragment;
-  refreshUser?: () => void;
+  refreshUser?: () => unknown;
   effectiveAppConfig: PortalAPIAppConfig;
 }
 
@@ -858,11 +845,25 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const loading = loadingUser || loadingAppConfig;
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (appConfigError != null) {
-    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+    return (
+      <ShowError
+        error={appConfigError}
+        onRetry={() => {
+          refetchAppConfig().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {

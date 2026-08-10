@@ -21,6 +21,7 @@
   width: 100%;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
 .trigger:focus-visible {
   outline: 2px solid var(--accent-9);
   outline-offset: -2px;
@@ -28,6 +29,7 @@
 
 .label {
   @apply min-w-0 flex-1 m-0 p-0;
+  /* stylelint-disable-next-line declaration-no-important */
   line-height: 1 !important;
 }
 

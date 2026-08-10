@@ -8,7 +8,12 @@ import React, {
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { addDays } from "@fluentui/react";
-import { Callout as RadixCallout, Spinner, Table, Text } from "@radix-ui/themes";
+import {
+  Callout as RadixCallout,
+  Spinner,
+  Table,
+  Text,
+} from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";

@@ -183,7 +183,14 @@ const UsersScreen: React.VFC = function UsersScreen() {
 
   const messageBar = useMemo(() => {
     if (error != null) {
-      return <ShowError error={error} onRetry={refetch} />;
+      return (
+        <ShowError
+          error={error}
+          onRetry={() => {
+            refetch().finally(() => {});
+          }}
+        />
+      );
     }
     return null;
   }, [error, refetch]);
@@ -228,10 +235,9 @@ const UsersScreen: React.VFC = function UsersScreen() {
                   <FormattedMessage id="UsersScreen.add-user" />
                 </Flex>
               }
-              onClick={useCallback(
-                async () => navigate("./add-user"),
-                [navigate]
-              )}
+              onClick={useCallback(() => {
+                navigate("./add-user");
+              }, [navigate])}
             />
           </div>
           <UsersFilterBar

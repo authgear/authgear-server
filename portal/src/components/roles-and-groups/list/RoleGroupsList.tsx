@@ -55,9 +55,7 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
 
     const onItemClicked = useCallback(
       (item: RoleGroupsListItem) => {
-        navigate(
-          `/project/${appID}/user-management/groups/${item.id}/details`
-        );
+        navigate(`/project/${appID}/user-management/groups/${item.id}/details`);
       },
       [appID, navigate]
     );

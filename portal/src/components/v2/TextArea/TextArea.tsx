@@ -78,10 +78,7 @@ export function TextArea({
       labelSpace="1"
     >
       <RadixTextArea
-        className={cn(
-          hasError ? styles["textArea--error"] : null,
-          className
-        )}
+        className={cn(hasError ? styles["textArea--error"] : null, className)}
         variant="surface"
         size={size}
         placeholder={placeholder}

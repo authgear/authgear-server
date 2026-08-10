@@ -636,9 +636,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         onChange(
           {
             ...config,
-            discovery_document_endpoint: emptyStringToUndefined(
-              e.target.value
-            ),
+            discovery_document_endpoint: emptyStringToUndefined(e.target.value),
           },
           secret
         ),
@@ -834,11 +832,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             <span className={styles.widgetHeaderIcon}>
               <OAuthClientIcon providerItemKey={providerItemKey} />
             </span>
-            <Text as="p" size="3" weight="medium" className={styles.contentTitle}>
+            <Text
+              as="p"
+              size="3"
+              weight="medium"
+              className={styles.contentTitle}
+            >
               {renderToString(messageID)}
             </Text>
           </div>
-          <Text as="p" size="2" color="gray" className={styles.contentDescription}>
+          <Text
+            as="p"
+            size="2"
+            color="gray"
+            className={styles.contentDescription}
+          >
             <FormattedMessage
               id="SingleSignOnConfigurationWidget.setupGuide"
               values={{
@@ -860,9 +868,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           <IconRadioCards
             size="2"
             value={
-              isDemoCredentialSelected
-                ? ("demo" as const)
-                : ("custom" as const)
+              isDemoCredentialSelected ? ("demo" as const) : ("custom" as const)
             }
             onValueChange={onDemoCredentialValueChange}
             options={demoCredentialOptions}
@@ -1198,7 +1204,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                       styles.advancedToggleIcon,
                       !advancedFolded ? styles.advancedToggleIconOpen : null
                     )}
-                    aria-hidden
+                    aria-hidden={true}
                   />
                 </button>
                 {advancedFolded ? null : (
@@ -1267,7 +1273,12 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
               <OAuthClientIcon providerItemKey={providerItemKey} />
             </div>
             <div className={styles.cardName}>
-              <Text as="p" size="2" weight="medium" className={styles.cardTitle}>
+              <Text
+                as="p"
+                size="2"
+                weight="medium"
+                className={styles.cardTitle}
+              >
                 <FormattedMessage id={cardTitleId} />
               </Text>
               {cardSubtitleId != null ? (
@@ -1376,7 +1387,12 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
                 subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
               }`}
             </Text>
-            <Text as="p" size="1" color="gray" className={styles.rowDescription}>
+            <Text
+              as="p"
+              size="1"
+              color="gray"
+              className={styles.rowDescription}
+            >
               <FormattedMessage id={descriptionId} />
             </Text>
           </div>

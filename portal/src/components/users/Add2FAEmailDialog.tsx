@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Button, Dialog } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { TextField } from "../v2/TextField/TextField";
@@ -41,11 +41,13 @@ export function Add2FAEmailDialog({
   const { createAuthenticator, loading, error } =
     useCreateAuthenticatorMutation(userID);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setEmail("");
     }
-  }, [open]);
+  }
 
   const formError = useMemo(() => {
     if (error == null) {
@@ -57,26 +59,29 @@ export function Add2FAEmailDialog({
   }, [error]);
 
   const onSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const value = email.trim();
       if (value === "" || loading) {
         return;
       }
 
-      try {
-        const authenticator = await createAuthenticator({
-          type: AuthenticatorType.OobOtpEmail,
-          email: value,
-          kind: AuthenticatorKind.Secondary,
-        });
-        if (authenticator != null) {
-          await onCreated?.();
-          onOpenChange(false);
+      const submit = async () => {
+        try {
+          const authenticator = await createAuthenticator({
+            type: AuthenticatorType.OobOtpEmail,
+            email: value,
+            kind: AuthenticatorKind.Secondary,
+          });
+          if (authenticator != null) {
+            await onCreated?.();
+            onOpenChange(false);
+          }
+        } catch {
+          // Error is rendered in the dialog.
         }
-      } catch {
-        // Error is rendered in the dialog.
-      }
+      };
+      void submit();
     },
     [createAuthenticator, email, loading, onCreated, onOpenChange]
   );

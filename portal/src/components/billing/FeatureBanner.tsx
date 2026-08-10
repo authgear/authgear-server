@@ -50,7 +50,11 @@ function FeatureList() {
     <ul className={styles.featureList}>
       {featureMessageIDs.map((id) => (
         <li key={id} className={styles.featureItem}>
-          <CheckIcon className={styles.featureIcon} width="1rem" height="1rem" />
+          <CheckIcon
+            className={styles.featureIcon}
+            width="1rem"
+            height="1rem"
+          />
           <RadixText size="2" weight="medium" className={styles.featureText}>
             <FormattedMessage id={id} />
           </RadixText>
@@ -94,7 +98,11 @@ function HighlightedFeatureList() {
                 height="1.875rem"
               />
             </div>
-            <RadixText size="3" weight="medium" className={styles.highlightedFeatureText}>
+            <RadixText
+              size="3"
+              weight="medium"
+              className={styles.highlightedFeatureText}
+            >
               <FormattedMessage id={feature.messageID} />
             </RadixText>
           </li>

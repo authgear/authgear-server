@@ -674,12 +674,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
       <ScreenContent layout="auto-rows">
         <div className={cn(styles.widget, styles.pageHeader)}>
-          <RadixText
-            as="p"
-            size="5"
-            weight="bold"
-            className={styles.pageTitle}
-          >
+          <RadixText as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="SubscriptionScreen.title" />
           </RadixText>
           <RadixText
@@ -731,9 +726,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                 nextBillingDate={nextBillingDate}
                 thisMonthUsage={thisMonthUsage}
                 thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
-                previousMonthSubscriptionUsage={
-                  previousMonthSubscriptionUsage
-                }
+                previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
                 hasSubscription={hasSubscription}
               />
             </div>
@@ -876,12 +869,7 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
 
     return (
       <div className={styles.processingPaymentRoot}>
-        <RadixText
-          as="p"
-          size="5"
-          weight="bold"
-          className={styles.pageTitle}
-        >
+        <RadixText as="p" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="SubscriptionScreen.title" />
         </RadixText>
         <div

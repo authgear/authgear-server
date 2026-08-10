@@ -122,9 +122,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
 
     const onItemClick = useCallback(
       (item: UserRolesListItem) => {
-        navigate(
-          `/project/${appID}/user-management/roles/${item.id}/details`
-        );
+        navigate(`/project/${appID}/user-management/roles/${item.id}/details`);
       },
       [appID, navigate]
     );

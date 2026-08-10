@@ -4,10 +4,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { Checkbox, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import styles from "./EditApplicationScopesList.module.css";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../v2/TextField/TextField";
 
 export interface EditApplicationScopesListItem {
   scope: string;

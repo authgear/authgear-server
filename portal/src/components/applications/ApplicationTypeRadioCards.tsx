@@ -40,9 +40,7 @@ function applicationTypeIcon(Icon: SquareIconProps["Icon"]) {
   );
 }
 
-function ApplicationTypeCardSubtitle(props: {
-  description: React.ReactNode;
-}) {
+function ApplicationTypeCardSubtitle(props: { description: React.ReactNode }) {
   const { description } = props;
   return (
     <Text as="p" size="1" className={styles.subtitleLine}>

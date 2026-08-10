@@ -83,20 +83,20 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const activityType = auditLog?.activityType;
   const loggedAt =
     auditLog != null
-      ? (formatDatetime(locale, auditLog.createdAt) ?? undefined)
+      ? formatDatetime(locale, auditLog.createdAt) ?? undefined
       : undefined;
-  const rawUserID = auditLog != null ? getRawUserIDFromAuditLog(auditLog) : undefined;
+  const rawUserID =
+    auditLog != null ? getRawUserIDFromAuditLog(auditLog) : undefined;
   const userID = auditLog?.user?.id ?? undefined;
-  const deleted = auditLog != null && auditLog.user?.id == null && rawUserID != null;
+  const deleted =
+    auditLog != null && auditLog.user?.id == null && rawUserID != null;
   const ipAddress = auditLog?.ipAddress ?? undefined;
   const geoLocationCode: string | undefined =
     auditLog?.data?.context?.geo_location_code ?? undefined;
   const userAgent = auditLog?.userAgent ?? undefined;
   const clientID = auditLog?.clientID ?? undefined;
   const code =
-    auditLog?.data != null
-      ? JSON.stringify(auditLog.data, null, 2)
-      : undefined;
+    auditLog?.data != null ? JSON.stringify(auditLog.data, null, 2) : undefined;
 
   if (loading) {
     return <ShowLoading />;
@@ -120,7 +120,12 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
 
         {error != null ? (
           <div className={styles.widget}>
-            <ShowError error={error} onRetry={refetch} />
+            <ShowError
+              error={error}
+              onRetry={() => {
+                refetch().finally(() => {});
+              }}
+            />
           </div>
         ) : null}
 
@@ -143,7 +148,9 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
                     label={
                       <FormattedMessage id="AuditLogEntryScreen.field.activity-type" />
                     }
-                    value={renderToString("AuditLogActivityType." + activityType)}
+                    value={renderToString(
+                      "AuditLogActivityType." + activityType
+                    )}
                   />
                 ) : null}
 

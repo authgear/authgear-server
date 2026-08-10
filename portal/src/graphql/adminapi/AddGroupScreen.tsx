@@ -54,9 +54,7 @@ function AddGroupScreenForm() {
 
   const onFormStateChangeCallbacks = useMemo(() => {
     const createCallback = (key: keyof FormState) => {
-      return (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      ) => {
+      return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const newValue = e.target.value;
         setFormState((prev) => {
           return { ...prev, [key]: newValue };

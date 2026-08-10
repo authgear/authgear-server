@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   ChevronDownIcon,
@@ -14,10 +8,7 @@ import {
 import { Checkbox, Popover, Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../v2/TextField/TextField";
 import {
   ActivityTypeCategoryGroupId,
   ActivityTypeSubcategoryId,
@@ -123,9 +114,7 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
               const options = subcategory.activityTypes
                 .map((activityType) => ({
                   key: activityType,
-                  label: renderToString(
-                    "AuditLogActivityType." + activityType
-                  ),
+                  label: renderToString("AuditLogActivityType." + activityType),
                 }))
                 .filter((option) =>
                   normalizedSearch === ""
@@ -189,34 +178,37 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
       );
     }, [selectedSubcategoryIds]);
 
-    useEffect(() => {
+    const desiredExpansion = useMemo<{
+      groupIds: Set<ActivityTypeCategoryGroupId>;
+      subcategoryIds: Set<ActivityTypeSubcategoryId>;
+    } | null>(() => {
       if (!open) {
-        return;
+        return null;
       }
 
       const normalizedSearch = searchValue.trim();
       if (normalizedSearch !== "") {
-        setExpandedGroupIds(
-          new Set(groupSections.map((section) => section.id))
-        );
-        setExpandedSubcategoryIds(
-          new Set(
+        return {
+          groupIds: new Set(groupSections.map((section) => section.id)),
+          subcategoryIds: new Set(
             groupSections.flatMap((section) =>
               section.subcategories.map((subcategory) => subcategory.id)
             )
-          )
-        );
-        return;
+          ),
+        };
       }
 
       if (selectedGroupIds.size > 0 && selectedSubcategoryIds.size > 0) {
-        setExpandedGroupIds(selectedGroupIds);
-        setExpandedSubcategoryIds(selectedSubcategoryIds);
-        return;
+        return {
+          groupIds: selectedGroupIds,
+          subcategoryIds: selectedSubcategoryIds,
+        };
       }
 
-      setExpandedGroupIds(new Set());
-      setExpandedSubcategoryIds(new Set());
+      return {
+        groupIds: new Set(),
+        subcategoryIds: new Set(),
+      };
     }, [
       open,
       searchValue,
@@ -224,6 +216,19 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
       selectedSubcategoryIds,
       groupSections,
     ]);
+
+    // Adjust the expanded sections during render whenever the derived
+    // expansion changes (i.e. the dropdown opens, or the search or the
+    // selection changes while it is open).
+    const [prevDesiredExpansion, setPrevDesiredExpansion] =
+      useState(desiredExpansion);
+    if (prevDesiredExpansion !== desiredExpansion) {
+      setPrevDesiredExpansion(desiredExpansion);
+      if (desiredExpansion != null) {
+        setExpandedGroupIds(desiredExpansion.groupIds);
+        setExpandedSubcategoryIds(desiredExpansion.subcategoryIds);
+      }
+    }
 
     const toggleGroup = useCallback((groupId: ActivityTypeCategoryGroupId) => {
       setExpandedGroupIds((prev) => {
@@ -386,7 +391,12 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
             <div className={styles.list}>
               {hasSelection ? (
                 <div className={styles.selectedSection}>
-                  <Text as="p" size="1" weight="medium" className={styles.selectedSectionTitle}>
+                  <Text
+                    as="p"
+                    size="1"
+                    weight="medium"
+                    className={styles.selectedSectionTitle}
+                  >
                     <FormattedMessage id="AuditLogScreen.activity-types-selected-section" />
                   </Text>
                   {renderOptions(selectedOptions, styles.itemSelectedList)}

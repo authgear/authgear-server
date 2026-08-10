@@ -127,8 +127,10 @@ function UserInfo(props: UserInfoProps) {
     formattedName ?? endUserAccountID ?? rawID
   );
   const fallback =
-    (formattedName ?? endUserAccountID ?? rawID).trim().charAt(0).toUpperCase() ||
-    "?";
+    (formattedName ?? endUserAccountID ?? rawID)
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "?";
 
   return (
     <div className={styles.userInfo}>
@@ -140,11 +142,20 @@ function UserInfo(props: UserInfoProps) {
         fallback={fallback}
       />
       <div className={styles.userInfoDisplayName}>
-        <Text size="2" weight="medium" className={styles.userInfoDisplayNameText}>
+        <Text
+          size="2"
+          weight="medium"
+          className={styles.userInfoDisplayNameText}
+        >
           {displayName}
         </Text>
         {isDisabled && !isAnonymized ? (
-          <Badge color="red" size="1" radius="small" className={styles.disabledBadge}>
+          <Badge
+            color="red"
+            size="1"
+            radius="small"
+            className={styles.disabledBadge}
+          >
             <FormattedMessage id="AccountStatusBadge.disabled" />
           </Badge>
         ) : null}
@@ -199,8 +210,8 @@ function SortHeader({
   const SortIcon = !active
     ? CaretSortIcon
     : sortDirection === SortDirection.Asc
-      ? CaretUpIcon
-      : CaretDownIcon;
+    ? CaretUpIcon
+    : CaretDownIcon;
   return (
     <button type="button" className={styles.sortButton} onClick={onClick}>
       {children}
@@ -439,7 +450,9 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
                     {showRolesAndGroups ? (
                       <>
                         <UserTextCell value={getRelatedItemsText(item.roles)} />
-                        <UserTextCell value={getRelatedItemsText(item.groups)} />
+                        <UserTextCell
+                          value={getRelatedItemsText(item.groups)}
+                        />
                       </>
                     ) : null}
                     <div className={styles.tableCellDate}>

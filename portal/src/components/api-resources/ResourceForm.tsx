@@ -1,5 +1,10 @@
 import React, { useContext, useCallback, useEffect, useId } from "react";
-import { Flex, IconButton, Text, TextField as RadixTextField } from "@radix-ui/themes";
+import {
+  Flex,
+  IconButton,
+  Text,
+  TextField as RadixTextField,
+} from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import cn from "classnames";
 import styles from "./ResourceForm.module.css";
@@ -52,17 +57,17 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
     const { renderToString } = useContext(Context);
     const resourceURIId = useId();
     const handleNameChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setState((s) => ({ ...s, name: e.target.value })),
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.value;
+        setState((s) => ({ ...s, name }));
+      },
       [setState]
     );
     const handleResourceURIChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setState((s) => {
-          let resourceURI = e.target.value;
-          resourceURI = resourceURI.replace(/^(\s*)https:\/\//, "");
-          return { ...s, resourceURI };
-        }),
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const resourceURI = e.target.value.replace(/^(\s*)https:\/\//, "");
+        setState((s) => ({ ...s, resourceURI }));
+      },
       [setState]
     );
     const { onSubmit, canSave, isUpdating } = useFormContainerBaseContext();
@@ -84,9 +89,7 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
           *
         </span>
         <Tooltip
-          content={
-            <FormattedMessage id="ResourceForm.resourceURI.tooltip" />
-          }
+          content={<FormattedMessage id="ResourceForm.resourceURI.tooltip" />}
         >
           <IconButton
             type="button"

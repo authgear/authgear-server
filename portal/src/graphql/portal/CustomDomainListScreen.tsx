@@ -1,18 +1,7 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { produce } from "immer";
-import {
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import { MessageBar, MessageBarType } from "@fluentui/react";
 import {
@@ -55,9 +44,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenContent from "../../ScreenContent";
 import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import {
-  TextField as RadixTextField,
-} from "../../components/v2/TextField/TextField";
+import { TextField as RadixTextField } from "../../components/v2/TextField/TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { FormContainerBase } from "../../FormContainerBase";
 import { nullishCoalesce, or_ } from "../../util/operators";
@@ -244,7 +231,9 @@ const DomainRow: React.VFC<DomainRowProps> = function DomainRow(props) {
 
   const showDelete = Boolean(item.id && item.isCustom && !item.isPublicOrigin);
   const showVerify = Boolean(item.id && !item.isVerified);
-  const showActivate = Boolean(item.id && item.isVerified && !item.isPublicOrigin);
+  const showActivate = Boolean(
+    item.id && item.isVerified && !item.isPublicOrigin
+  );
   const hasActions = showActivate || showDelete || showVerify;
 
   const statusNode = (() => {
@@ -352,11 +341,13 @@ const DomainActionErrorDialog: React.VFC<DomainActionErrorDialogProps> =
     const { error, rules = [], fallbackErrorMessageID } = props;
     const [open, setOpen] = useState(false);
 
-    useEffect(() => {
+    const [prevError, setPrevError] = useState<unknown>(null);
+    if (error !== prevError) {
+      setPrevError(error);
       if (error != null) {
         setOpen(true);
       }
-    }, [error]);
+    }
 
     const errors = useMemo(() => {
       const apiErrors = parseRawError(error);
@@ -583,13 +574,12 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
 
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
-    const savedPublicOriginRef = useRef<string>(state.publicOrigin);
-    useEffect(() => {
-      if (!isDirty) {
-        savedPublicOriginRef.current = state.publicOrigin;
-      }
-    }, [isDirty, state]);
-    const prevSavedPublicOrigin = savedPublicOriginRef.current;
+    const [prevSavedPublicOrigin, setPrevSavedPublicOrigin] = useState<string>(
+      state.publicOrigin
+    );
+    if (!isDirty && prevSavedPublicOrigin !== state.publicOrigin) {
+      setPrevSavedPublicOrigin(state.publicOrigin);
+    }
 
     const domainListItems: DomainListItem[] = useMemo(() => {
       const list: DomainListItem[] = domains.map((domain) => {

@@ -1,15 +1,7 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { Dialog, Flex, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
-import {
-  parseAPIErrors,
-  parseRawError,
-} from "../../error/parse";
+import { parseAPIErrors, parseRawError } from "../../error/parse";
 import { useUpdateScopeMutationMutation } from "../../graphql/adminapi/mutations/updateScopeMutation.generated";
 import { ResourceScopesQueryDocument } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
@@ -59,17 +51,10 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
           throw new Error("unexpected null data");
         }
         return result.data.updateScope.scope;
-      }
+      },
     });
 
-    const {
-      state,
-      setState,
-      save,
-      isUpdating,
-      updateError,
-      reset,
-    } = form;
+    const { state, setState, save, isUpdating, updateError, reset } = form;
 
     useEffect(() => {
       if (scope == null) {
@@ -98,7 +83,8 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
 
     const onDescriptionChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        setState((s) => ({ ...s, description: e.target.value }));
+        const description = e.target.value;
+        setState((s) => ({ ...s, description }));
       },
       [setState]
     );

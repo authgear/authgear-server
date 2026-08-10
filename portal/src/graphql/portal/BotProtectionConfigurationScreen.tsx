@@ -533,13 +533,14 @@ const BotProtectionProviderSection: React.VFC<BotProtectionProviderSectionProps>
 
     const onChangeRecaptchaV2SiteKey = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           providerConfigs: {
             ...state.providerConfigs,
             recaptchav2: {
               ...state.providerConfigs.recaptchav2,
-              siteKey: e.target.value,
+              siteKey: value,
             },
           },
         }));
@@ -549,13 +550,14 @@ const BotProtectionProviderSection: React.VFC<BotProtectionProviderSectionProps>
 
     const onChangeRecaptchaV2SecretKey = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           providerConfigs: {
             ...state.providerConfigs,
             recaptchav2: {
               ...state.providerConfigs.recaptchav2,
-              editingSecretKey: e.target.value,
+              editingSecretKey: value,
             },
           },
         }));
@@ -565,13 +567,14 @@ const BotProtectionProviderSection: React.VFC<BotProtectionProviderSectionProps>
 
     const onChangeCloudflareSiteKey = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           providerConfigs: {
             ...state.providerConfigs,
             cloudflare: {
               ...state.providerConfigs.cloudflare,
-              siteKey: e.target.value,
+              siteKey: value,
             },
           },
         }));
@@ -581,13 +584,14 @@ const BotProtectionProviderSection: React.VFC<BotProtectionProviderSectionProps>
 
     const onChangeCloudflareSecretKey = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setState((state) => ({
           ...state,
           providerConfigs: {
             ...state.providerConfigs,
             cloudflare: {
               ...state.providerConfigs.cloudflare,
-              editingSecretKey: e.target.value,
+              editingSecretKey: value,
             },
           },
         }));
@@ -819,11 +823,11 @@ const BotProtectionRequirementsSection: React.VFC<BotProtectionRequirementsSecti
     const riskModeOptions = useMemo(
       () => [
         {
-          value: "never" as BotProtectionRiskMode,
+          value: "never",
           label: neverLabel,
         },
         {
-          value: "always" as BotProtectionRiskMode,
+          value: "always",
           label: alwaysLabel,
         },
       ],

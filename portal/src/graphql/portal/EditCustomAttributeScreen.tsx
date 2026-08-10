@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo} from "react";
+import React, { useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import { FormattedMessage } from "../../intl";
@@ -108,7 +108,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { getIsDirty } = useFormContainerBaseContext();
-    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+  const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;

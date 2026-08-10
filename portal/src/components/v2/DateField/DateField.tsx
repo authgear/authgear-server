@@ -19,9 +19,6 @@ function parseDateString(value: string): Date | null {
     return null;
   }
   const datetime = DateTime.fromFormat(value, DATE_FORMAT);
-  if (!datetime.isValid) {
-    return null;
-  }
   return datetime.toJSDate();
 }
 

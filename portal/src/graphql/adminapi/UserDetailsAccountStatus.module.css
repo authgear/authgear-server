@@ -19,18 +19,6 @@
   background-color: var(--red-a2);
 }
 
-.dangerZoneCard .actionCell {
-  border-bottom-color: var(--gray-5);
-}
-
-.dangerZoneCard .cellLabel {
-  color: var(--red-12);
-}
-
-.dangerZoneCard .cellBody {
-  color: var(--red-11);
-}
-
 .title {
   margin: 0;
   color: var(--gray-12);
@@ -104,6 +92,18 @@
   @apply gap-x-6 gap-y-1;
   @apply py-6;
   border-bottom: 1px solid var(--gray-5);
+}
+
+.dangerZoneCard .actionCell {
+  border-bottom-color: var(--gray-5);
+}
+
+.dangerZoneCard .cellLabel {
+  color: var(--red-12);
+}
+
+.dangerZoneCard .cellBody {
+  color: var(--red-11);
 }
 
 .actionCell:last-child {

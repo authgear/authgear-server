@@ -7,10 +7,7 @@ import React, {
 } from "react";
 import { useParams } from "react-router-dom";
 import { Select, Text } from "@radix-ui/themes";
-import {
-  ChatBubbleIcon,
-  EnvelopeClosedIcon,
-} from "@radix-ui/react-icons";
+import { ChatBubbleIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
@@ -250,9 +247,12 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
         let localeDisplay = renderToString(`Locales.${locale}`);
         if (isRemoved) {
-          localeDisplay = renderToString("ManageLanguageWidget.option-removed", {
-            LANG: localeDisplay,
-          });
+          localeDisplay = renderToString(
+            "ManageLanguageWidget.option-removed",
+            {
+              LANG: localeDisplay,
+            }
+          );
         }
 
         options.push({
@@ -1136,7 +1136,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       (tab) => tab.key === selectedKey
     )
       ? selectedKey
-      : (visibleTabs[0]?.key ?? PIVOT_KEY_DEFAULT);
+      : visibleTabs[0]?.key ?? PIVOT_KEY_DEFAULT;
 
     const selectedTabSections =
       visibleTabs.find((tab) => tab.key === effectiveSelectedKey)?.sections ??
@@ -1175,8 +1175,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         (selectedChannel === "sms" && tabChannels.sms)
           ? selectedChannel
           : tabChannels.email
-            ? "email"
-            : "sms";
+          ? "email"
+          : "sms";
       const channelSections = filterSectionsForChannel(
         tabKey,
         sections,

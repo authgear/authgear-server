@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { Button, Dialog } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
@@ -50,14 +50,16 @@ export function Add2FAPhoneDialog({
   const { createAuthenticator, loading, error } =
     useCreateAuthenticatorMutation(userID);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setE164("");
       setRawInputValue("");
     } else {
       setFieldKey((key) => key + 1);
     }
-  }, [open]);
+  }
 
   const formError = useMemo(() => {
     if (error == null) {
@@ -69,25 +71,28 @@ export function Add2FAPhoneDialog({
   }, [error]);
 
   const onSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (e164 === "" || loading) {
         return;
       }
 
-      try {
-        const authenticator = await createAuthenticator({
-          type: AuthenticatorType.OobOtpSms,
-          phone: e164,
-          kind: AuthenticatorKind.Secondary,
-        });
-        if (authenticator != null) {
-          await onCreated?.();
-          onOpenChange(false);
+      const submit = async () => {
+        try {
+          const authenticator = await createAuthenticator({
+            type: AuthenticatorType.OobOtpSms,
+            phone: e164,
+            kind: AuthenticatorKind.Secondary,
+          });
+          if (authenticator != null) {
+            await onCreated?.();
+            onOpenChange(false);
+          }
+        } catch {
+          // Error is rendered in the dialog.
         }
-      } catch {
-        // Error is rendered in the dialog.
-      }
+      };
+      void submit();
     },
     [createAuthenticator, e164, loading, onCreated, onOpenChange]
   );
@@ -122,7 +127,9 @@ export function Add2FAPhoneDialog({
               setRawInputValue(values.rawInputValue);
             }}
           />
-          <div className={cn(styles.actions, phoneDialogStyles.phoneDialogActions)}>
+          <div
+            className={cn(styles.actions, phoneDialogStyles.phoneDialogActions)}
+          >
             <SecondaryButton
               size="2"
               disabled={loading}

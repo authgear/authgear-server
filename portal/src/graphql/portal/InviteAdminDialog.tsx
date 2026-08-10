@@ -98,17 +98,18 @@ const InviteAdminDialog: React.VFC<InviteAdminDialogProps> =
     );
 
     const onSubmit = useCallback(
-      async (e: React.FormEvent) => {
+      (e: React.FormEvent) => {
         e.preventDefault();
         if (isUpdating) {
           return;
         }
-        try {
-          await save();
-          onDismiss();
-        } catch {
-          // Error is rendered via FormProvider / field error message.
-        }
+        save()
+          .then(() => {
+            onDismiss();
+          })
+          .catch(() => {
+            // Error is rendered via FormProvider / field error message.
+          });
       },
       [isUpdating, onDismiss, save]
     );

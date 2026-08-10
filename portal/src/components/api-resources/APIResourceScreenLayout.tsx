@@ -39,15 +39,16 @@ const APIResourceScreenLayout: React.VFC<APIResourceLayoutProps> =
     const { appID } = useParams() as { appID: string };
 
     const { title, backLink } = useMemo(() => {
-      const titleItem = breadcrumbItems[breadcrumbItems.length - 1];
+      const titleItem =
+        breadcrumbItems.length > 0
+          ? breadcrumbItems[breadcrumbItems.length - 1]
+          : null;
       const parentItem =
         breadcrumbItems.length > 1
           ? breadcrumbItems[breadcrumbItems.length - 2]
           : null;
       const parentTo =
-        parentItem != null
-          ? resolveBreadcrumbPath(parentItem.to, appID)
-          : "";
+        parentItem != null ? resolveBreadcrumbPath(parentItem.to, appID) : "";
 
       return {
         title: titleItem?.label ?? null,

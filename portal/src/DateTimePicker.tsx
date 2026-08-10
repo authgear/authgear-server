@@ -153,9 +153,6 @@ export default function DateTimePicker(
       }
 
       const selectedDate = DateTime.fromISO(value);
-      if (!selectedDate.isValid) {
-        return;
-      }
 
       const previous =
         pickedDateTime != null

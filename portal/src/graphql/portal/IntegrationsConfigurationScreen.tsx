@@ -137,16 +137,13 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
           field.fieldName === gtmContainerIDField.fieldName &&
           field.parentJSONPointer === gtmContainerIDField.parentJSONPointer
         ) {
-          return errors.length > 0 ? (
-            <ErrorRenderer errors={errors} />
-          ) : null;
+          return errors.length > 0 ? <ErrorRenderer errors={errors} /> : null;
         }
       }
       return null;
     }, [updateError, gtmContainerIDField]);
 
-    const displayContainerIDError =
-      localContainerIDError ?? containerIDError;
+    const displayContainerIDError = localContainerIDError ?? containerIDError;
 
     const items: Item[] = useMemo(() => {
       const savedConnected = initialState.googleTagManagerContainerID !== "";

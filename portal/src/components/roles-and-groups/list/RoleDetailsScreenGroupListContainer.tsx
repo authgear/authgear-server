@@ -6,20 +6,14 @@ import { useQuery } from "@apollo/client";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../../v2/TextField/TextField";
 import {
   GroupsListQueryDocument,
   GroupsListQueryQuery,
   GroupsListQueryQueryVariables,
 } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
-import {
-  RoleGroupsList,
-  RoleGroupsListItem,
-} from "../list/RoleGroupsList";
+import { RoleGroupsList, RoleGroupsListItem } from "../list/RoleGroupsList";
 import { AddRoleGroupsDialog } from "../dialog/AddRoleGroupsDialog";
 import { searchGroups } from "../../../model/group";
 
@@ -91,7 +85,14 @@ const RoleDetailsScreenGroupListContainer: React.VFC<
   }, [role.groups?.edges]);
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {
@@ -122,7 +123,9 @@ const RoleDetailsScreenGroupListContainer: React.VFC<
                   <button
                     type="button"
                     className="inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer"
-                    aria-label={renderToString("APIResourcesScreen.clear-search")}
+                    aria-label={renderToString(
+                      "APIResourcesScreen.clear-search"
+                    )}
                     onClick={onClearSearchKeyword}
                   >
                     <Cross2Icon width="0.875rem" height="0.875rem" />

@@ -105,9 +105,7 @@ function renderItem(
   return (
     <SettingsSectionCard
       key={item.key}
-      title={
-        <FormattedMessage id="EditTemplatesWidget.mailing-information" />
-      }
+      title={<FormattedMessage id="EditTemplatesWidget.mailing-information" />}
     >
       <TextFieldWidgetItem
         label={item.title}

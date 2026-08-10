@@ -1,10 +1,4 @@
-import React, {
-  useContext,
-  useMemo,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useContext, useMemo, useState, useCallback } from "react";
 import { Select, Tabs, Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
@@ -60,9 +54,11 @@ export function APIResourceDetailsScreenTestTab({
     );
   }, [effectiveAppConfig, selectedClientId]);
 
-  useEffect(() => {
+  const [prevSelectedClient, setPrevSelectedClient] = useState(selectedClient);
+  if (prevSelectedClient !== selectedClient) {
+    setPrevSelectedClient(selectedClient);
     setAccessToken(null);
-  }, [selectedClient]);
+  }
 
   const selectedClientSecret = useMemo((): string | null => {
     if (!secretConfig || !selectedClient?.client_id) {
@@ -104,7 +100,7 @@ export function APIResourceDetailsScreenTestTab({
     });
   }, [navigate, startReauthentication]);
 
-  const onGenerate = useCallback(async () => {
+  const onGenerate = useCallback(() => {
     if (selectedClientSecret == null) {
       revealSecrets();
     } else {
@@ -114,28 +110,31 @@ export function APIResourceDetailsScreenTestTab({
       body.append("resource", resource.resourceURI);
       body.append("client_secret", selectedClientSecret);
       setIsGenerating(true);
-      try {
-        const response = await fetch(tokenEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: body.toString(),
-        });
+      const generate = async () => {
+        try {
+          const response = await fetch(tokenEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: body.toString(),
+          });
 
-        if (!response.ok) {
-          throw new Error(`invalid response status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`invalid response status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          setAccessToken(data.access_token);
+        } catch (error) {
+          console.error("Error generating access token:", error);
+          setErrors(parseRawError(error));
+          setAccessToken(null);
+        } finally {
+          setIsGenerating(false);
         }
-
-        const data = await response.json();
-        setAccessToken(data.access_token);
-      } catch (error) {
-        console.error("Error generating access token:", error);
-        setErrors(parseRawError(error));
-        setAccessToken(null);
-      } finally {
-        setIsGenerating(false);
-      }
+      };
+      void generate();
     }
   }, [
     selectedClientSecret,
@@ -171,9 +170,7 @@ export function APIResourceDetailsScreenTestTab({
 
   const selectPlaceholder =
     authorizedApplicationsOptions.length === 0
-      ? renderToString(
-          "APIResourceDetailsScreen.test.selectApplication.empty"
-        )
+      ? renderToString("APIResourceDetailsScreen.test.selectApplication.empty")
       : renderToString("APIResourceDetailsScreen.test.selectApplication");
 
   return (

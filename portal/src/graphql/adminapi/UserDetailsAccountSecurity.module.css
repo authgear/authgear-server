@@ -75,13 +75,13 @@
   margin-top: 12px;
 }
 
-.authenticatorTypeGroup + .authenticatorTypeGroup {
-  margin-top: 12px;
-}
-
 .authenticatorTypeGroup {
   display: flex;
   flex-direction: column;
+}
+
+.authenticatorTypeGroup + .authenticatorTypeGroup {
+  margin-top: 12px;
 }
 
 .addAuthenticatorButton {

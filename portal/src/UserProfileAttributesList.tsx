@@ -259,10 +259,7 @@ function AccessControlSelect({
   return (
     <div className={styles.selectRoot}>
       <Select.Root value={selectedValue} onValueChange={onValueChange}>
-        <Select.Trigger
-          variant="surface"
-          className={styles.selectTrigger}
-        />
+        <Select.Trigger variant="surface" className={styles.selectTrigger} />
         <Select.Content>
           <Select.Item value="hidden">
             {renderToString("user-profile.access-control-level.hidden")}
@@ -581,9 +578,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         data-dnd-before={
           dndIndex != null && index < dndIndex ? true : undefined
         }
-        data-dnd-after={
-          dndIndex != null && index > dndIndex ? true : undefined
-        }
+        data-dnd-after={dndIndex != null && index > dndIndex ? true : undefined}
       >
         <div className={styles.cellMain}>
           {canReorder ? (
@@ -644,40 +639,38 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   return (
     <>
       <div className={styles.table}>
-        {sectionedItems != null
-          ? sectionedItems.map(({ section, items: groupItems }) => (
-              <React.Fragment key={section.key}>
-                <div className={styles.sectionTitleRow}>
-                  <Text size="2" weight="medium">
-                    <FormattedMessage id={section.titleMessageId} />
-                  </Text>
-                </div>
-                <ColumnHeaderRow
-                  canReorder={canReorder}
-                  hasEdit={hasEdit}
-                  gridClassName={gridClassName}
-                  endUserTooltipContent={endUserTooltipContent}
-                  bearerTooltipContent={bearerTooltipContent}
-                  portalUiTooltipContent={portalUiTooltipContent}
-                />
-                {groupItems.map(({ item, index }) =>
-                  renderItemRow(item, index)
-                )}
-              </React.Fragment>
-            ))
-          : (
-              <>
-                <ColumnHeaderRow
-                  canReorder={canReorder}
-                  hasEdit={hasEdit}
-                  gridClassName={gridClassName}
-                  endUserTooltipContent={endUserTooltipContent}
-                  bearerTooltipContent={bearerTooltipContent}
-                  portalUiTooltipContent={portalUiTooltipContent}
-                />
-                {items.map((item, index) => renderItemRow(item, index))}
-              </>
-            )}
+        {sectionedItems != null ? (
+          sectionedItems.map(({ section, items: groupItems }) => (
+            <React.Fragment key={section.key}>
+              <div className={styles.sectionTitleRow}>
+                <Text size="2" weight="medium">
+                  <FormattedMessage id={section.titleMessageId} />
+                </Text>
+              </div>
+              <ColumnHeaderRow
+                canReorder={canReorder}
+                hasEdit={hasEdit}
+                gridClassName={gridClassName}
+                endUserTooltipContent={endUserTooltipContent}
+                bearerTooltipContent={bearerTooltipContent}
+                portalUiTooltipContent={portalUiTooltipContent}
+              />
+              {groupItems.map(({ item, index }) => renderItemRow(item, index))}
+            </React.Fragment>
+          ))
+        ) : (
+          <>
+            <ColumnHeaderRow
+              canReorder={canReorder}
+              hasEdit={hasEdit}
+              gridClassName={gridClassName}
+              endUserTooltipContent={endUserTooltipContent}
+              bearerTooltipContent={bearerTooltipContent}
+              portalUiTooltipContent={portalUiTooltipContent}
+            />
+            {items.map((item, index) => renderItemRow(item, index))}
+          </>
+        )}
       </div>
 
       <Dialog.Root

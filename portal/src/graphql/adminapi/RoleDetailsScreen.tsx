@@ -74,7 +74,14 @@ const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
   });
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {

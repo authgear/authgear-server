@@ -58,6 +58,7 @@
   transition: opacity 150ms ease;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
 .cameraButton:hover,
 .cameraButton:focus-visible {
   opacity: 1;

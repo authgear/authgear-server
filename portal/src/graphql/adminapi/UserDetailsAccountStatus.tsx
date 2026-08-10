@@ -1380,7 +1380,9 @@ export function AccountStatusDialog(
           color="indigo"
           disabled={loading}
           loading={loading}
-          onClick={onClickUnscheduleDeletion}
+          onClick={() => {
+            onClickUnscheduleDeletion().finally(() => {});
+          }}
         >
           <FormattedMessage id="AccountStatusDialog.cancel-deletion.action.cancel-deletion" />
         </Button>
@@ -1402,7 +1404,9 @@ export function AccountStatusDialog(
           color="indigo"
           disabled={loading}
           loading={loading}
-          onClick={onClickUnscheduleAnonymization}
+          onClick={() => {
+            onClickUnscheduleAnonymization().finally(() => {});
+          }}
         >
           <FormattedMessage id="AccountStatusDialog.cancel-anonymization.action.cancel-anonymization" />
         </Button>
@@ -1426,7 +1430,9 @@ export function AccountStatusDialog(
           color="indigo"
           disabled={loading}
           loading={loading}
-          onClick={onClickReenable}
+          onClick={() => {
+            onClickReenable().finally(() => {});
+          }}
         >
           <FormattedMessage id="AccountStatusDialog.reenable-user.action.reenable" />
         </Button>
@@ -1451,7 +1457,9 @@ export function AccountStatusDialog(
           color="red"
           disabled={loading}
           loading={loading}
-          onClick={onClickDisable}
+          onClick={() => {
+            onClickDisable().finally(() => {});
+          }}
         >
           <FormattedMessage id="AccountStatusDialog.disable-user.action.disable" />
         </Button>
@@ -1474,7 +1482,9 @@ export function AccountStatusDialog(
           color="indigo"
           disabled={loading}
           loading={loading}
-          onClick={onClickSetAccountValidPeriod}
+          onClick={() => {
+            onClickSetAccountValidPeriod().finally(() => {});
+          }}
         >
           <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
         </Button>
@@ -1505,7 +1515,9 @@ export function AccountStatusDialog(
             color="indigo"
             disabled={loading}
             loading={loading}
-            onClick={onClickSetAccountValidPeriod}
+            onClick={() => {
+              onClickSetAccountValidPeriod().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
           </Button>
@@ -1530,7 +1542,9 @@ export function AccountStatusDialog(
             color="indigo"
             disabled={loading}
             loading={loading}
-            onClick={onClickScheduleAnonymization}
+            onClick={() => {
+              onClickScheduleAnonymization().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
           </Button>
@@ -1541,7 +1555,9 @@ export function AccountStatusDialog(
             color="red"
             disabled={loading}
             loading={loading}
-            onClick={onClickAnonymize}
+            onClick={() => {
+              onClickAnonymize().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
           </Button>
@@ -1566,7 +1582,9 @@ export function AccountStatusDialog(
             color="red"
             disabled={loading}
             loading={loading}
-            onClick={onClickAnonymize}
+            onClick={() => {
+              onClickAnonymize().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
           </Button>
@@ -1587,7 +1605,9 @@ export function AccountStatusDialog(
             color="indigo"
             disabled={loading}
             loading={loading}
-            onClick={onClickScheduleDeletion}
+            onClick={() => {
+              onClickScheduleDeletion().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
           </Button>
@@ -1598,7 +1618,9 @@ export function AccountStatusDialog(
             color="red"
             disabled={loading}
             loading={loading}
-            onClick={onClickDelete}
+            onClick={() => {
+              onClickDelete().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
           </Button>
@@ -1622,7 +1644,9 @@ export function AccountStatusDialog(
             color="red"
             disabled={loading}
             loading={loading}
-            onClick={onClickDelete}
+            onClick={() => {
+              onClickDelete().finally(() => {});
+            }}
           >
             <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
           </Button>
@@ -1644,7 +1668,9 @@ export function AccountStatusDialog(
             color="indigo"
             disabled={loading}
             loading={loading}
-            onClick={onClickResetAccountLockout}
+            onClick={() => {
+              onClickResetAccountLockout().finally(() => {});
+            }}
           >
             <FormattedMessage id="UserDetailsAccountStatus.account-lockout.action.reset" />
           </Button>

@@ -151,6 +151,7 @@
   padding: 12px 8px;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
 .pinButton:not(:hover):not(:focus-visible):not([data-state="open"]) {
   background-color: transparent;
 }

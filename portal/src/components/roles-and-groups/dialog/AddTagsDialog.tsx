@@ -95,19 +95,42 @@ function AddTagsDialog({
     wasOpenRef.current = !isHidden;
   }, [isHidden, propsOnDismissed, resetState]);
 
-  useEffect(() => {
-    if (isHidden || !hasSearchKeyword) {
+  const suggestionsActive = !isHidden && hasSearchKeyword;
+
+  // Adjust the dropdown state during render whenever the suggestion query
+  // changes: open it in a loading state when a query becomes active, and
+  // clear it when the query becomes inactive. The effect below only
+  // performs the asynchronous fetch.
+  const fetchKey = useMemo(
+    () => ({
+      suggestionsActive,
+      debouncedSearchKeyword,
+      tags,
+      onResolveSuggestions,
+    }),
+    [suggestionsActive, debouncedSearchKeyword, tags, onResolveSuggestions]
+  );
+  const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
+  if (prevFetchKey !== fetchKey) {
+    setPrevFetchKey(fetchKey);
+    if (suggestionsActive) {
+      setSuggestionsLoading(true);
+      setSuggestionsOpen(true);
+    } else {
       setSuggestions([]);
       setSuggestionsLoading(false);
       if (!hasSearchKeyword) {
         setSuggestionsOpen(false);
       }
+    }
+  }
+
+  useEffect(() => {
+    if (isHidden || !hasSearchKeyword) {
       return;
     }
 
     let cancelled = false;
-    setSuggestionsLoading(true);
-    setSuggestionsOpen(true);
     Promise.resolve(onResolveSuggestions(debouncedSearchKeyword, tags)).then(
       (result) => {
         if (!cancelled) {

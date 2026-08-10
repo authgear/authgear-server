@@ -98,8 +98,7 @@ export function getInitialAuditLogDateRange(
       : new Date();
   const fromParam =
     queryFrom != null && queryFrom !== "" ? new Date(queryFrom) : null;
-  const toParam =
-    queryTo != null && queryTo !== "" ? new Date(queryTo) : null;
+  const toParam = queryTo != null && queryTo !== "" ? new Date(queryTo) : null;
   const preset = detectDateRangePreset(fromParam, toParam, referenceDate);
 
   if (preset === "custom") {

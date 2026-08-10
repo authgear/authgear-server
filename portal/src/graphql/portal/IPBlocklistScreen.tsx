@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef, useMemo} from "react";
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
@@ -155,9 +161,20 @@ const IPBlocklistScreenContent: React.VFC<IPBlocklistScreenContentProps> =
       setCheckIPError,
     ]);
 
-    useEffect(() => {
+    const [prevBlocklist, setPrevBlocklist] = useState({
+      blockedIPCIDRs: form.state.blockedIPCIDRs,
+      blockedCountryAlpha2s: form.state.blockedCountryAlpha2s,
+    });
+    if (
+      prevBlocklist.blockedIPCIDRs !== form.state.blockedIPCIDRs ||
+      prevBlocklist.blockedCountryAlpha2s !== form.state.blockedCountryAlpha2s
+    ) {
+      setPrevBlocklist({
+        blockedIPCIDRs: form.state.blockedIPCIDRs,
+        blockedCountryAlpha2s: form.state.blockedCountryAlpha2s,
+      });
       setCheckIPResult(null);
-    }, [form.state.blockedCountryAlpha2s, form.state.blockedIPCIDRs]);
+    }
 
     return (
       <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>

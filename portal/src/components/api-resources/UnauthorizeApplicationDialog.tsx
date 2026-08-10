@@ -46,9 +46,7 @@ export const UnauthorizeApplicationDialog: React.VFC<UnauthorizeApplicationDialo
             }}
           />
         }
-        confirmText={renderToString(
-          "UnauthorizeApplicationDialog.unauthorize"
-        )}
+        confirmText={renderToString("UnauthorizeApplicationDialog.unauthorize")}
         cancelText={renderToString("cancel")}
         onConfirm={handleConfirm}
         onCancel={onDismiss}

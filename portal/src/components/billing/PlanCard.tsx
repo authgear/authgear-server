@@ -190,11 +190,7 @@ function PlanSMSPrice({
           <RadixText size="2" as="p" className={styles.smsPriceTitle}>
             <FormattedMessage id="PlanCard.smsPrice.metered.title" />
           </RadixText>
-          <RadixText
-            size="2"
-            as="p"
-            className={styles.smsPriceSecondary}
-          >
+          <RadixText size="2" as="p" className={styles.smsPriceSecondary}>
             <FormattedMessage
               id="PlanCard.smsPrice.metered.price"
               values={{
@@ -220,9 +216,7 @@ function FeatureListItem({
       {Icon != null ? (
         <Icon className={styles.featureIcon} width="1rem" height="1rem" />
       ) : null}
-      <RadixText size="2">
-        {message}
-      </RadixText>
+      <RadixText size="2">{message}</RadixText>
     </li>
   );
 }
@@ -331,9 +325,7 @@ function AddonListItem({
   return (
     <li className={styles.featureItem}>
       <Icon className={styles.featureIcon} width="1rem" height="1rem" />
-      <RadixText size="2">
-        {message}
-      </RadixText>
+      <RadixText size="2">{message}</RadixText>
     </li>
   );
 }
@@ -352,11 +344,7 @@ function AddOnsList({
         <RadixText size="2">
           <FormattedMessage id="PlanCard.plan.addons.title" />
         </RadixText>
-        <Tooltip
-          content={
-            <FormattedMessage id="PlanCard.plan.addons.hint" />
-          }
-        >
+        <Tooltip content={<FormattedMessage id="PlanCard.plan.addons.hint" />}>
           <InfoCircledIcon
             className={styles.addonHintIcon}
             width="1rem"

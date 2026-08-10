@@ -182,7 +182,12 @@ function FixedCostSection({
   return (
     <section className={styles.card}>
       <div className={styles.sectionHeader}>
-        <RadixText as="p" size="3" weight="medium" className={styles.sectionTitle}>
+        <RadixText
+          as="p"
+          size="3"
+          weight="medium"
+          className={styles.sectionTitle}
+        >
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.title" />
         </RadixText>
         {baseAmount != null ? (
@@ -202,7 +207,12 @@ function FixedCostSection({
         )}
       </div>
       <div className={styles.detailsSection}>
-        <RadixText as="p" size="2" weight="medium" className={styles.detailsSectionTitle}>
+        <RadixText
+          as="p"
+          size="2"
+          weight="medium"
+          className={styles.detailsSectionTitle}
+        >
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.include" />
         </RadixText>
         <CostItemRow
@@ -339,7 +349,12 @@ function MeteredCostSection({
   return (
     <section className={styles.card}>
       <div className={styles.sectionHeader}>
-        <RadixText as="p" size="3" weight="medium" className={styles.sectionTitle}>
+        <RadixText
+          as="p"
+          size="3"
+          weight="medium"
+          className={styles.sectionTitle}
+        >
           <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.title" />
         </RadixText>
         <div className={styles.priceRow}>
@@ -415,10 +430,13 @@ function MeteredCostSection({
             total={whatsappCost?.otherRegionsTotalCost}
             unitPrice={whatsappCost?.otherRegionsUnitCost}
             quantity={
-              whatsappCost?.otherRegionsCount ?? whatsappUsage?.otherRegionsCount
+              whatsappCost?.otherRegionsCount ??
+              whatsappUsage?.otherRegionsCount
             }
             countOnly={
-              whatsappCost == null ? whatsappUsage?.otherRegionsCount : undefined
+              whatsappCost == null
+                ? whatsappUsage?.otherRegionsCount
+                : undefined
             }
           />
         ) : null}

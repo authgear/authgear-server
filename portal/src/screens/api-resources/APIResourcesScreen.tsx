@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useContext, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  useEffect,
+} from "react";
 import { Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { encodeOffsetToCursor } from "../../util/pagination";
@@ -42,9 +48,17 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const navigate = useNavigate();
   const { appID } = useParams<{ appID: string }>();
 
+  const wantCreateDialog = searchParams.get("create") === "1";
+  const [prevWantCreateDialog, setPrevWantCreateDialog] = useState(false);
+  if (prevWantCreateDialog !== wantCreateDialog) {
+    setPrevWantCreateDialog(wantCreateDialog);
+    if (wantCreateDialog) {
+      setCreateDialogOpen(true);
+    }
+  }
+
   useEffect(() => {
     if (searchParams.get("create") === "1") {
-      setCreateDialogOpen(true);
       const next = new URLSearchParams(searchParams);
       next.delete("create");
       setSearchParams(next, { replace: true });

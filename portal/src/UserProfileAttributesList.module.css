@@ -130,6 +130,7 @@
 }
 
 .reorderHandle {
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- cosmetic cursor only */
   cursor: grab;
   display: flex;
   align-items: center;
@@ -138,6 +139,7 @@
   color: var(--gray-8);
 
   &:active {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- cosmetic cursor only */
     cursor: grabbing;
   }
 }

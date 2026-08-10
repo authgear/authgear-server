@@ -73,9 +73,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
 
   const onItemClicked = useCallback(
     (item: GroupListItem) => {
-      navigate(
-        `/project/${appID}/user-management/groups/${item.id}/details`
-      );
+      navigate(`/project/${appID}/user-management/groups/${item.id}/details`);
     },
     [appID, navigate]
   );

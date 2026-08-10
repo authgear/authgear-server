@@ -5,7 +5,13 @@ import React, {
   useId,
   useMemo,
 } from "react";
-import { Dialog, Flex, IconButton, Text, TextField as RadixTextField } from "@radix-ui/themes";
+import {
+  Dialog,
+  Flex,
+  IconButton,
+  Text,
+  TextField as RadixTextField,
+} from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
@@ -17,10 +23,7 @@ import {
 } from "../../error/parse";
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
-import {
-  ResourceFormState,
-  sanitizeFormState,
-} from "./ResourceForm";
+import { ResourceFormState, sanitizeFormState } from "./ResourceForm";
 import { TextField } from "../v2/TextField/TextField";
 import { FormField } from "../v2/FormField/FormField";
 import { Tooltip } from "../v2/Tooltip/Tooltip";
@@ -76,7 +79,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
           throw new Error("unexpected null data");
         }
         return result.data.createResource.resource.id;
-      }
+      },
     });
 
     const {
@@ -103,16 +106,11 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
       onCreated?.(submissionResult);
       onDismiss();
       navigate(
-        `/project/${appID}/api-resources/${encodeURIComponent(submissionResult)}`
+        `/project/${appID}/api-resources/${encodeURIComponent(
+          submissionResult
+        )}`
       );
-    }, [
-      isSubmitted,
-      submissionResult,
-      appID,
-      navigate,
-      onCreated,
-      onDismiss,
-    ]);
+    }, [isSubmitted, submissionResult, appID, navigate, onCreated, onDismiss]);
 
     const onCancel = useCallback(() => {
       if (!isUpdating) {
@@ -131,18 +129,16 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
 
     const onNameChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        setState((s) => ({ ...s, name: e.target.value }));
+        const name = e.target.value;
+        setState((s) => ({ ...s, name }));
       },
       [setState]
     );
 
     const onResourceURIChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        setState((s) => {
-          let resourceURI = e.target.value;
-          resourceURI = resourceURI.replace(/^(\s*)https:\/\//, "");
-          return { ...s, resourceURI };
-        });
+        const resourceURI = e.target.value.replace(/^(\s*)https:\/\//, "");
+        setState((s) => ({ ...s, resourceURI }));
       },
       [setState]
     );

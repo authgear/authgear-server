@@ -8,10 +8,7 @@ interface SeparatorProps {
 const Separator: React.VFC<SeparatorProps> = function Separator(props) {
   const { className } = props;
   return (
-    <RadixSeparator
-      size="4"
-      className={cn("w-full", "my-6", className)}
-    />
+    <RadixSeparator size="4" className={cn("w-full", "my-6", className)} />
   );
 };
 

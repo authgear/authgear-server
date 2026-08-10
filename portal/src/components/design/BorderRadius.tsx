@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SegmentedControl } from "@radix-ui/themes";
 import { Context as MFContext } from "../../intl";
 import cn from "classnames";
@@ -93,8 +88,14 @@ interface BorderRadiusProps {
 const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   props
 ) {
-  const { value, onChange, parentJSONPointer, fieldName, errorRules, className } =
-    props;
+  const {
+    value,
+    onChange,
+    parentJSONPointer,
+    fieldName,
+    errorRules,
+    className,
+  } = props;
   const { renderToString } = useContext(MFContext);
 
   const [radiusValue, setRadiusValue] = useState(() => {

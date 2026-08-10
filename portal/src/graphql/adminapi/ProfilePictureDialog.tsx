@@ -46,20 +46,22 @@ export function ProfilePictureDialog(
   const { updateUser } = useUpdateUserMutation();
   const cropperRef = useRef<ReactCropperjs | null>(null);
   const [source, setSource] = useState<string>();
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError] = useState(
+    () => file != null && !isAcceptedFile(file)
+  );
   const [uploadError, setUploadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  const [prevFile, setPrevFile] = useState(file);
+  if (prevFile !== file) {
+    setPrevFile(file);
     setSource(undefined);
-    setImageError(false);
+    setImageError(file != null && !isAcceptedFile(file));
     setUploadError(false);
+  }
 
-    if (file == null) {
-      return;
-    }
-    if (!isAcceptedFile(file)) {
-      setImageError(true);
+  useEffect(() => {
+    if (file == null || !isAcceptedFile(file)) {
       return;
     }
 

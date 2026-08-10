@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
@@ -107,9 +113,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
     const { appID } = useParams() as { appID: string };
 
     return (
-      <ScreenContent
-        className={cn(isDirty ? styles.contentWithSaveBar : null)}
-      >
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
         <div
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
@@ -235,7 +239,11 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
         effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
         "";
       return (
-        <FormContainer form={form} afterSave={onSaveSuccess} hideFooterComponent={true}>
+        <FormContainer
+          form={form}
+          afterSave={onSaveSuccess}
+          hideFooterComponent={true}
+        >
           <EditSingleSignOnConfigurationContent
             form={form}
             alias={alias}

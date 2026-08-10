@@ -148,7 +148,12 @@ const AnalyticsSignupConversionWidgetContent: React.VFC<AnalyticsSignupConversio
             <Text as="p" size="2" className={styles.metricLabel}>
               <FormattedMessage id="AnalyticsSignupConversionWidget.unique-signup-view.label" />
             </Text>
-            <Text as="p" size="6" weight="medium" className={styles.metricValue}>
+            <Text
+              as="p"
+              size="6"
+              weight="medium"
+              className={styles.metricValue}
+            >
               {signupConversionRate?.totalSignupUniquePageView ?? "-"}
             </Text>
           </div>
@@ -156,7 +161,12 @@ const AnalyticsSignupConversionWidgetContent: React.VFC<AnalyticsSignupConversio
             <Text as="p" size="2" className={styles.metricLabel}>
               <FormattedMessage id="AnalyticsSignupConversionWidget.signup.label" />
             </Text>
-            <Text as="p" size="6" weight="medium" className={styles.metricValue}>
+            <Text
+              as="p"
+              size="6"
+              weight="medium"
+              className={styles.metricValue}
+            >
               {signupConversionRate?.totalSignup ?? "-"}
             </Text>
           </div>
@@ -180,9 +190,7 @@ const AnalyticsSignupConversionWidget: React.VFC<AnalyticsSignupConversionWidget
       <SettingsSectionCard
         className={props.className}
         layout="stacked"
-        title={
-          <FormattedMessage id="AnalyticsSignupConversionWidget.title" />
-        }
+        title={<FormattedMessage id="AnalyticsSignupConversionWidget.title" />}
         contentClassName={styles.content}
       >
         <AnalyticsSignupConversionWidgetContent {...props} />

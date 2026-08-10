@@ -49,9 +49,7 @@ export function APIResourceDetailsScreenDetailsTab({
     <FormContainerBase form={form} canSave={form.state.name.trim() !== ""}>
       <div ref={contentWidthAnchorRef} className={styles.root}>
         <SettingsSectionCard
-          title={
-            <FormattedMessage id="APIResourceDetailsScreen.tab.details" />
-          }
+          title={<FormattedMessage id="APIResourceDetailsScreen.tab.details" />}
         >
           <ResourceForm
             mode="edit"

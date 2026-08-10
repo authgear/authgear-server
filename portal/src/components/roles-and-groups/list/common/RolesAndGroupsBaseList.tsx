@@ -71,7 +71,9 @@ function RolesAndGroupsBaseList<T>(
               {items.map((item, index) => (
                 <Table.Row
                   key={index}
-                  className={onItemClick != null ? styles.clickableRow : undefined}
+                  className={
+                    onItemClick != null ? styles.clickableRow : undefined
+                  }
                   onClick={() => onItemClick?.(item)}
                 >
                   {columns.map((column) => (

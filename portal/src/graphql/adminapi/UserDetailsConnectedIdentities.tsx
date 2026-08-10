@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { generatePath, useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "../../intl";
@@ -187,7 +181,9 @@ function AddEmailDialog({
   onOpenChange,
   onCreated,
 }: AddEmailDialogProps): React.ReactElement {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
   const { createIdentity, loading, error } =
     useCreateLoginIDIdentityMutation(userID);
   const {
@@ -199,9 +195,13 @@ function AddEmailDialog({
   useLoading(isLoading);
   useProvideError(error ?? updateError);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
+    setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
     setEmail(open ? identityToEdit?.value ?? "" : "");
-  }, [identityToEdit, open]);
+  }
 
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -260,7 +260,12 @@ function AddEmailDialog({
             />
           )}
         </Dialog.Description>
-        <form className={styles.addIdentityForm} onSubmit={onSubmit}>
+        <form
+          className={styles.addIdentityForm}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
+        >
           <TextField
             size="2"
             type="email"
@@ -285,9 +290,7 @@ function AddEmailDialog({
               loading={isLoading}
               disabled={email.trim() === ""}
             >
-              <FormattedMessage
-                id={identityToEdit == null ? "add" : "save"}
-              />
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
             </Button>
           </div>
         </form>
@@ -322,14 +325,16 @@ function AddPhoneDialog({
   useLoading(loading);
   useProvideError(error);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setE164("");
       setRawInputValue("");
     } else {
       setFieldKey((key) => key + 1);
     }
-  }, [open]);
+  }
 
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -369,8 +374,13 @@ function AddPhoneDialog({
           <FormattedMessage id="PhoneScreen.add.description" />
         </Dialog.Description>
         <form
-          className={cn(styles.addIdentityForm, phoneDialogStyles.phoneDialogForm)}
-          onSubmit={onSubmit}
+          className={cn(
+            styles.addIdentityForm,
+            phoneDialogStyles.phoneDialogForm
+          )}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
         >
           <PhoneTextField
             key={fieldKey}
@@ -545,12 +555,18 @@ const BaseIdentityListCellTitle: React.VFC<BaseIdentityListCellTitleProps> = (
       <div className={styles.cellIcon}>{icon}</div>
       {as === "ExternalLink" ? (
         <ExternalLink {...externalLinkProps}>
-          <Text size="2" weight="medium" className={cn(styles.cellName, styles.cellNameExternalLink)}>
+          <Text
+            size="2"
+            weight="medium"
+            className={cn(styles.cellName, styles.cellNameExternalLink)}
+          >
             {children}
           </Text>
         </ExternalLink>
       ) : (
-        <Text size="2" weight="medium" className={styles.cellName}>{children}</Text>
+        <Text size="2" weight="medium" className={styles.cellName}>
+          {children}
+        </Text>
       )}
     </>
   );
@@ -579,9 +595,7 @@ const BaseIdentityListCellDescription: React.VFC<
               <FormattedMessage id="unverified" />
             </Text>
           )}
-          <Text className={styles.cellDescSeparator}>
-            {" | "}
-          </Text>
+          <Text className={styles.cellDescSeparator}>{" | "}</Text>
         </>
       ) : null}
       {children}
@@ -736,9 +750,7 @@ const BaseIdentityListCellActionButton: React.VFC<
   const shouldShowRemoveButton = removeButtonTextId[identityType] !== "";
 
   const hasActions =
-    shouldShowVerifyButton ||
-    shouldShowEditButton ||
-    shouldShowRemoveButton;
+    shouldShowVerifyButton || shouldShowEditButton || shouldShowRemoveButton;
 
   return (
     <div className={styles.actionButton}>
@@ -885,9 +897,7 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
           <span
             className={cn(
               styles.verificationStatus,
-              verified
-                ? styles.verifiedStatus
-                : styles.unverifiedStatus
+              verified ? styles.verifiedStatus : styles.unverifiedStatus
             )}
           >
             {verified ? (
@@ -1466,54 +1476,74 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 ) : null}
               </div>
             ))}
-          {identityLists.oauth.length > 0 ? (
-            <div>
-              <Text as="p" size="2" weight="medium" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.oauth" />
-              </Text>
-              {identityLists.oauth.map((item) => (
-                <React.Fragment key={item.id}>
-                  {onRenderIdentityCell(item)}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : null}
-          {identityLists.biometric.length > 0 ? (
-            <div>
-              <Text as="p" size="2" weight="medium" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.biometric" />
-              </Text>
-              {identityLists.biometric.map((item) => (
-                <React.Fragment key={item.id}>
-                  {onRenderIdentityCell(item)}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : null}
-          {identityLists.anonymous.length > 0 ? (
-            <div>
-              <Text as="p" size="2" weight="medium" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.anonymous" />
-              </Text>
-              {identityLists.anonymous.map((item) => (
-                <React.Fragment key={item.id}>
-                  {onRenderIdentityCell(item)}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : null}
-          {identityLists.ldap.length > 0 ? (
-            <div>
-              <Text as="p" size="2" weight="medium" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.ldap" />
-              </Text>
-              {identityLists.ldap.map((item) => (
-                <React.Fragment key={item.id}>
-                  {onRenderIdentityCell(item)}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : null}
+            {identityLists.oauth.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.oauth" />
+                </Text>
+                {identityLists.oauth.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.biometric.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.biometric" />
+                </Text>
+                {identityLists.biometric.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.anonymous.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.anonymous" />
+                </Text>
+                {identityLists.anonymous.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.ldap.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.ldap" />
+                </Text>
+                {identityLists.ldap.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
           </section>
         </section>
       </div>

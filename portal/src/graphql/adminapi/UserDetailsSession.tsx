@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  Button,
-  IconButton,
-  Text,
-  Tooltip,
-} from "@radix-ui/themes";
+import { Button, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
@@ -165,9 +160,9 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
           />
         ) : (
           <>
-          <div className={styles.tableContainer}>
-            <div className={styles.table}>
-              <div className={styles.tableHeader}>
+            <div className={styles.tableContainer}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
                   <div className={styles.deviceColumn}>
                     <FormattedMessage id="UserDetails.session.devices" />
                   </div>
@@ -181,13 +176,12 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
                     <FormattedMessage id="UserDetails.session.last-activity" />
                   </div>
                   <div className={styles.actionColumn} aria-hidden={true} />
-              </div>
+                </div>
                 {sessionListItems.map((item, index) => {
                   const client = oauthClients.find(
                     (candidate) => candidate.client_id === item.clientID
                   );
-                  const deviceName =
-                    item.displayName || item.userAgent || null;
+                  const deviceName = item.displayName || item.userAgent || null;
                   return (
                     <div
                       className={styles.tableRow}
@@ -197,7 +191,11 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
                         {deviceName != null ? (
                           deviceName
                         ) : (
-                          <Text size="2" color="gray" className={styles.unknown}>
+                          <Text
+                            size="2"
+                            color="gray"
+                            className={styles.unknown}
+                          >
                             <FormattedMessage id="UserDetails.session.devices.unknown" />
                           </Text>
                         )}
@@ -247,18 +245,18 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
                     </div>
                   );
                 })}
+              </div>
             </div>
-          </div>
-          <Button
-            className={styles.revokeAllButton}
-            size="2"
-            variant="outline"
-            color="red"
-            disabled={sessions.length === 0}
-            onClick={onRevokeAllClick}
-          >
-            <FormattedMessage id="UserDetails.session.revoke-all" />
-          </Button>
+            <Button
+              className={styles.revokeAllButton}
+              size="2"
+              variant="outline"
+              color="red"
+              disabled={sessions.length === 0}
+              onClick={onRevokeAllClick}
+            >
+              <FormattedMessage id="UserDetails.session.revoke-all" />
+            </Button>
           </>
         )}
       </div>

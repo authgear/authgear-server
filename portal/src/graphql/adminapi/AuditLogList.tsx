@@ -163,8 +163,8 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
     sortDirection === SortDirection.Asc
       ? CaretUpIcon
       : sortDirection === SortDirection.Desc
-        ? CaretDownIcon
-        : CaretSortIcon;
+      ? CaretDownIcon
+      : CaretSortIcon;
 
   return (
     <div className={cn(styles.root, className)}>
@@ -226,10 +226,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
                   <div key={item.id} className={styles.tableRow}>
                     <div className={styles.cellUser}>
                       {userHref != null ? (
-                        <Link
-                          className={styles.cellUserLink}
-                          to={userHref}
-                        >
+                        <Link className={styles.cellUserLink} to={userHref}>
                           <UserCellContent
                             primary={item.userPrimary}
                             secondary={item.userSecondary}

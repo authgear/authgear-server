@@ -102,9 +102,10 @@ export function IPBlocklistForm({
 
   const onBlockedIPCIDRsChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
       setState((prev) => ({
         ...prev,
-        blockedIPCIDRs: e.target.value,
+        blockedIPCIDRs: value,
       }));
     },
     [setState]
@@ -204,9 +205,7 @@ export function IPBlocklistForm({
             size="2"
             labelSize="2"
             className={styles.textArea}
-            label={
-              <FormattedMessage id="IPBlocklistForm.ip-address.label" />
-            }
+            label={<FormattedMessage id="IPBlocklistForm.ip-address.label" />}
             hint={
               <FormattedMessage id="IPBlocklistForm.ip-address.description" />
             }

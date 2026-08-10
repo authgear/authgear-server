@@ -14,10 +14,7 @@ import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
 import { UserGroupsListItem, UserGroupsList } from "./UserGroupsList";
 import cn from "classnames";
 import { AddUserGroupsDialog } from "../dialog/AddUserGroupsDialog";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../../v2/TextField/TextField";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import { InfoCircledIcon, PlusIcon } from "@radix-ui/react-icons";
@@ -113,7 +110,14 @@ function UserDetailsScreenGroupListContainer({
   }, [user.groups?.edges]);
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {

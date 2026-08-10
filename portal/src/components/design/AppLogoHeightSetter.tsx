@@ -95,7 +95,7 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
     );
 
     const onSliderChange = useCallback((values: number[]) => {
-      if (values[0] != null) {
+      if (values.length > 0) {
         setHeightPX(values[0]);
       }
     }, []);

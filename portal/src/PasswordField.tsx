@@ -251,8 +251,7 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
           </div>
           <ul className={styles.passwordPolicy}>
             {passwordPolicyData.map((policy) => {
-              const satisfied =
-                isPasswordPolicySatisfied[policy.key] === true;
+              const satisfied = isPasswordPolicySatisfied[policy.key] === true;
               return (
                 <li
                   key={policy.messageId}

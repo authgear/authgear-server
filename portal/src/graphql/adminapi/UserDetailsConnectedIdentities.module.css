@@ -120,6 +120,11 @@
   }
 }
 
+.actionButton {
+  grid-area: button-group;
+  justify-self: end;
+}
+
 .loginIdentityCell .actionButton {
   grid-area: action;
   justify-self: end;
@@ -234,11 +239,6 @@
   grid-area: button-group;
   display: flex;
   gap: 8px;
-}
-
-.actionButton {
-  grid-area: button-group;
-  justify-self: end;
 }
 
 .controlButton {

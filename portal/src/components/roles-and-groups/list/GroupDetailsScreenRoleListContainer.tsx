@@ -7,10 +7,7 @@ import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
-import {
-  TextField,
-  TextFieldIcon,
-} from "../../v2/TextField/TextField";
+import { TextField, TextFieldIcon } from "../../v2/TextField/TextField";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -123,7 +120,9 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
                   <button
                     type="button"
                     className="inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer"
-                    aria-label={renderToString("APIResourcesScreen.clear-search")}
+                    aria-label={renderToString(
+                      "APIResourcesScreen.clear-search"
+                    )}
                     onClick={onClearSearchKeyword}
                   >
                     <Cross2Icon width="0.875rem" height="0.875rem" />

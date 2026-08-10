@@ -1,7 +1,15 @@
 import React, { useContext } from "react";
 import cn from "classnames";
-import { DropdownMenu, IconButton as RadixIconButton, Text } from "@radix-ui/themes";
-import { DotsVerticalIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
+import {
+  DotsVerticalIcon,
+  Pencil1Icon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
 import { Context, FormattedMessage } from "../../intl";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";

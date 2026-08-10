@@ -7,7 +7,14 @@ import React, {
   useState,
 } from "react";
 import { ExternalLinkIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
-import { Button, Heading, Select, SegmentedControl, Tabs, Text } from "@radix-ui/themes";
+import {
+  Button,
+  Heading,
+  Select,
+  SegmentedControl,
+  Tabs,
+  Text,
+} from "@radix-ui/themes";
 import { Context as MFContext, FormattedMessage } from "../../../intl";
 import cn from "classnames";
 
@@ -43,7 +50,6 @@ import styles from "./DesignScreen.module.css";
 import { useAppAndSecretConfigQuery } from "../query/appAndSecretConfigQuery";
 import { PortalAPIAppConfig } from "../../../types";
 import {
-  PreviewPageType,
   getSupportedPreviewPagesFromConfig,
   mapDesignFormStateToPreviewCustomisationMessage,
 } from "./viewModel";
@@ -69,8 +75,8 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.organisation.label"
-        collapsible
-        defaultOpen
+        collapsible={true}
+        defaultOpen={true}
       >
         <TextField
           size="2"
@@ -142,7 +148,9 @@ const AppearanceConfiguration: React.VFC<AppearanceConfigurationProps> =
           />
           <Select.Content>
             <Select.Item value="auto">
-              {renderToString("DesignScreen.configuration.theme.autoAppearance")}
+              {renderToString(
+                "DesignScreen.configuration.theme.autoAppearance"
+              )}
             </Select.Item>
             <Select.Item value="lightOnly">
               {renderToString("DesignScreen.configuration.theme.lightOnly")}
@@ -165,7 +173,7 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.logo.label"
-        collapsible
+        collapsible={true}
       >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
@@ -244,7 +252,7 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.favicon.label"
-        collapsible
+        collapsible={true}
       >
         <ImagePicker
           sizeLimitInBytes={100 * 1000}
@@ -262,22 +270,21 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
     );
   };
 
-const AlignmentIcon: React.VFC<{ alignment: Alignment }> = function AlignmentIcon(
-  props
-) {
-  const { alignment } = props;
-  return (
-    <span
-      className={cn(
-        styles.icAlignment,
-        alignment === "start" && styles.icAlignmentLeft,
-        alignment === "center" && styles.icAlignmentCenter,
-        alignment === "end" && styles.icAlignmentRight
-      )}
-      aria-hidden
-    />
-  );
-};
+const AlignmentIcon: React.VFC<{ alignment: Alignment }> =
+  function AlignmentIcon(props) {
+    const { alignment } = props;
+    return (
+      <span
+        className={cn(
+          styles.icAlignment,
+          alignment === "start" && styles.icAlignmentLeft,
+          alignment === "center" && styles.icAlignmentCenter,
+          alignment === "end" && styles.icAlignmentRight
+        )}
+        aria-hidden={true}
+      />
+    );
+  };
 
 interface AlignmentConfigurationProps {
   designForm: BranchDesignForm;
@@ -292,8 +299,8 @@ const AlignmentConfiguration: React.VFC<AlignmentConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.card.label"
-        collapsible
-        defaultOpen
+        collapsible={true}
+        defaultOpen={true}
       >
         <Configuration labelKey="DesignScreen.configuration.card.alignment.label">
           <SegmentedControl.Root
@@ -328,7 +335,7 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.background.label"
-        collapsible
+        collapsible={true}
       >
         <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
         {designForm.state.themeOption !== "darkOnly" ? (
@@ -396,7 +403,7 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.button.label"
-        collapsible
+        collapsible={true}
       >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
@@ -491,7 +498,7 @@ const IconConfiguration: React.VFC<IconConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.icon.label"
-        collapsible
+        collapsible={true}
       >
         <ConfigurationDescription labelKey="DesignScreen.configuration.icon.description" />
         {designForm.state.themeOption !== "darkOnly" ? (
@@ -550,7 +557,7 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.link.label"
-        collapsible
+        collapsible={true}
       >
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
@@ -633,7 +640,7 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
     return (
       <ConfigurationGroup
         labelKey="DesignScreen.configuration.input.label"
-        collapsible
+        collapsible={true}
       >
         <Configuration labelKey="DesignScreen.configuration.input.border.label">
           <BorderRadius
@@ -726,7 +733,7 @@ const AuthgearBrandingConfiguration: React.VFC<AuthgearBrandingConfigurationProp
             <Text as="p" size="2" weight="medium">
               <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeToHide" />
             </Text>
-            <Button asChild variant="outline" size="2" color="gray">
+            <Button asChild={true} variant="outline" size="2" color="gray">
               <Link to={`/project/${appID}/billing`}>
                 <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeNow" />
               </Link>
@@ -776,7 +783,10 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         </Tabs.List>
         <Tabs.Content
           value="branding"
-          className={cn(styles.configTabContent, styles.configTabContentAccordion)}
+          className={cn(
+            styles.configTabContent,
+            styles.configTabContentAccordion
+          )}
         >
           <OrganisationConfiguration designForm={designForm} />
           <AppLogoConfiguration designForm={designForm} />
@@ -784,7 +794,10 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         </Tabs.Content>
         <Tabs.Content
           value="style"
-          className={cn(styles.configTabContent, styles.configTabContentAccordion)}
+          className={cn(
+            styles.configTabContent,
+            styles.configTabContentAccordion
+          )}
         >
           <AlignmentConfiguration designForm={designForm} />
           <ButtonConfiguration designForm={designForm} />
@@ -796,7 +809,10 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <Tabs.Content value="advance" className={styles.configTabContent}>
           <DefaultClientURIConfiguration designForm={designForm} />
           <Separator />
-          <AuthgearBrandingConfiguration appID={appID} designForm={designForm} />
+          <AuthgearBrandingConfiguration
+            appID={appID}
+            designForm={designForm}
+          />
         </Tabs.Content>
       </Tabs.Root>
     );
@@ -853,10 +869,10 @@ const PreviewThemeToggle: React.VFC<PreviewThemeToggleProps> =
         disabled={disabled}
       >
         <SegmentedControl.Item value={Theme.Light}>
-          <SunIcon className={styles.previewThemeIcon} aria-hidden />
+          <SunIcon className={styles.previewThemeIcon} aria-hidden={true} />
         </SegmentedControl.Item>
         <SegmentedControl.Item value={Theme.Dark}>
-          <MoonIcon className={styles.previewThemeIcon} aria-hidden />
+          <MoonIcon className={styles.previewThemeIcon} aria-hidden={true} />
         </SegmentedControl.Item>
       </SegmentedControl.Root>
     );
@@ -910,9 +926,11 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
   }, [designForm.state]);
 
-  useEffect(() => {
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setIsIframeLoading(true);
-  }, [src]);
+  }
 
   const onLoadIframe = useCallback(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
@@ -928,10 +946,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       <div className={styles.previewToolbar}>
         <Select.Root
           value={selectedPreviewPage}
-          onValueChange={(v) => setSelectedPreviewPage(v as PreviewPageType)}
+          onValueChange={(v) => setSelectedPreviewPage(v)}
           size="2"
         >
-          <Select.Trigger variant="surface" className={styles.previewPageSelect} />
+          <Select.Trigger
+            variant="surface"
+            className={styles.previewPageSelect}
+          />
           <Select.Content position="popper">
             {previewPageOptions.map((opt) => (
               <Select.Item key={opt.value} value={opt.value}>
@@ -976,10 +997,15 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
     const { canSave, getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
-    const { triggerTester: onTry, isLoading: isTryLoading } = useTester(
+    const { triggerTester, isLoading: isTryLoading } = useTester(
       appID,
       effectiveAppConfig.http?.public_origin ?? ""
     );
+    const onTry = useCallback(() => {
+      triggerTester().catch((err) => {
+        console.error(err);
+      });
+    }, [triggerTester]);
 
     return (
       <>

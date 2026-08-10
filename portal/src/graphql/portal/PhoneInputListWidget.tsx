@@ -281,7 +281,12 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
       <div className={cn(styles.root, className)}>
         <div className={styles.toolbar}>
           {title != null ? (
-            <Text as="p" size="2" weight="medium" className={styles.toolbarTitle}>
+            <Text
+              as="p"
+              size="2"
+              weight="medium"
+              className={styles.toolbarTitle}
+            >
               {title}
             </Text>
           ) : (
@@ -323,8 +328,8 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
                     isAllSelected
                       ? true
                       : isPartiallySelected
-                        ? "indeterminate"
-                        : false
+                      ? "indeterminate"
+                      : false
                   }
                   onCheckedChange={onSelectAllCheckedChange}
                   disabled={disabled}

@@ -127,9 +127,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
 
     const onItemClick = useCallback(
       (item: UserGroupsListItem) => {
-        navigate(
-          `/project/${appID}/user-management/groups/${item.id}/details`
-        );
+        navigate(`/project/${appID}/user-management/groups/${item.id}/details`);
       },
       [appID, navigate]
     );

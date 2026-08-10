@@ -100,6 +100,7 @@
   color: var(--accent-11);
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
 .advancedTrigger:focus-visible {
   outline: 2px solid var(--accent-9);
   outline-offset: 2px;

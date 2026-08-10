@@ -190,7 +190,12 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.title" />
         }
       >
-        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.sectionDescription}
+        >
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.description"
             values={{
@@ -278,10 +283,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                     </Tooltip>
                   </div>
                 </div>
-                <div
-                  className={styles.headerCellActions}
-                  aria-hidden={true}
-                />
+                <div className={styles.headerCellActions} aria-hidden={true} />
               </div>
               {items.map((item) => (
                 <div key={item.clientID} className={styles.tableRow}>
@@ -446,7 +448,9 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
           </SettingsSectionCard>
           <AnonymousUserLifeTimeDescription
             form={props.form}
-            className={isDirty ? styles.settingsCardSaveBarClearance : undefined}
+            className={
+              isDirty ? styles.settingsCardSaveBarClearance : undefined
+            }
           />
         </ShowOnlyIfSIWEIsDisabled>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />

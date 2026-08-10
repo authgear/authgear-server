@@ -40,7 +40,7 @@ const ConfigurationGroup: React.VFC<
         <Text as="span" size="3" weight="medium" className={styles.label}>
           {label}
         </Text>
-        <ChevronDownIcon className={styles.chevron} aria-hidden />
+        <ChevronDownIcon className={styles.chevron} aria-hidden={true} />
       </Collapsible.Trigger>
       <Collapsible.Content className={styles.content}>
         {children}

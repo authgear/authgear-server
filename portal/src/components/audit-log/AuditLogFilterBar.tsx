@@ -9,9 +9,7 @@ import {
   AuditLogDateRangeFilterDropdown,
   AuditLogDateRangePresetKey,
 } from "./AuditLogDateRangeFilterDropdown";
-import {
-  ActivityTypeFilterDropdown,
-} from "./ActivityTypeFilterDropdown";
+import { ActivityTypeFilterDropdown } from "./ActivityTypeFilterDropdown";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 import { RefreshButton } from "./RefreshButton";
 
@@ -71,7 +69,10 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     }, [onFilterChange]);
     const onChangeActivityTypes = useCallback(
       (newActivityTypes: AuditLogActivityType[]) => {
-        onFilterChange((prev) => ({ ...prev, activityTypes: newActivityTypes }));
+        onFilterChange((prev) => ({
+          ...prev,
+          activityTypes: newActivityTypes,
+        }));
       },
       [onFilterChange]
     );
@@ -98,7 +99,9 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
               onChange={dateRange.onChange}
               rangeFrom={dateRange.rangeFrom}
               rangeTo={dateRange.rangeTo}
-              onOpenCustomDateRangeDialog={dateRange.onOpenCustomDateRangeDialog}
+              onOpenCustomDateRangeDialog={
+                dateRange.onOpenCustomDateRangeDialog
+              }
             />
             <ActivityTypeFilterDropdown
               className={styles.activityTypeFilter}

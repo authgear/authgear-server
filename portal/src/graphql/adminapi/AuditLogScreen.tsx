@@ -115,14 +115,22 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const [offset, setOffset] = useState(initialOffset);
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(queryOrderBy);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(
-    queryLastUpdatedAt != null
+  // When the page is refreshed, and it is on the first page,
+  // update last_updated_at.
+  // Note that if the page is navigated from another page,
+  // this initializer is NOT run again.
+  // This is the intended behavior because we do not
+  // want to change last_updated_at.
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(() => {
+    if (queryPage === "1") {
+      return new Date();
+    }
+    return queryLastUpdatedAt != null
       ? new Date(Number(queryLastUpdatedAt))
-      : new Date()
-  );
+      : new Date();
+  });
   const initialDateRange = useMemo(
-    () =>
-      getInitialAuditLogDateRange(queryFrom, queryTo, queryLastUpdatedAt),
+    () => getInitialAuditLogDateRange(queryFrom, queryTo, queryLastUpdatedAt),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -254,7 +262,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       setDateRangePreset(preset);
       setOffset(0);
     },
-    [dateRangePreset]
+    [dateRangePreset, setOffset]
   );
 
   const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
@@ -297,25 +305,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     });
   }, [queryString, defaultActivityTypes]);
 
-  // Reset page to zero on search
-  useEffect(() => {
+  // Reset page to zero on search.
+  // This adjusts state during render instead of in an effect,
+  // so the reset applies in the same render pass as the search change.
+  const [prevDebouncedSearchQuery, setPrevDebouncedSearchQuery] = useState<
+    string | null
+  >(null);
+  if (prevDebouncedSearchQuery !== debouncedSearchQuery) {
+    setPrevDebouncedSearchQuery(debouncedSearchQuery);
     setOffset(0);
-  }, [debouncedSearchQuery]);
+  }
 
   const { renderToString } = useContext(Context);
-
-  // When the page is refreshed, and it is on the first page,
-  // update last_updated_at.
-  // Note that if the page is navigated from another page,
-  // this effect is NOT run.
-  // This is the intended behavior because we do not
-  // want to change last_updated_at.
-  useEffect(() => {
-    if (queryPage === "1") {
-      setLastUpdatedAt(new Date());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Sync state to searchParams.
   // The searchParams are a mirror of the state, so they must be replaced
@@ -410,9 +411,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return encodeOffsetToCursor(offset);
   }, [offset]);
 
-  const onChangeOffset = useCallback((offset) => {
-    setOffset(offset);
-  }, []);
+  const onChangeOffset = useCallback(
+    (offset) => {
+      setOffset(offset);
+    },
+    [setOffset]
+  );
 
   // Derive from the effective activityTypes (which accounts for the
   // user/admin tab) so that query routing and the search box placeholder
@@ -490,7 +494,14 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const messageBar = useMemo(() => {
     if (error != null) {
-      return <ShowError error={error} onRetry={refetch} />;
+      return (
+        <ShowError
+          error={error}
+          onRetry={() => {
+            refetch().finally(() => {});
+          }}
+        />
+      );
     }
     if (featureConfig.loadError != null) {
       return (
@@ -510,16 +521,13 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       const newFilters = fn(filters);
 
       if (
-        !areActivityTypesEqual(
-          newFilters.activityTypes,
-          filters.activityTypes
-        )
+        !areActivityTypesEqual(newFilters.activityTypes, filters.activityTypes)
       ) {
         setOffset(0);
       }
       setFilters(fn);
     },
-    [filters]
+    [filters, setOffset]
   );
 
   const onClickRefresh = useCallback(
@@ -591,7 +599,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       setDateRangePreset("custom");
       setOffset(0);
     },
-    [commitRangeFrom, commitRangeTo]
+    [commitRangeFrom, commitRangeTo, setOffset]
   );
 
   const onSelectRangeFrom = useCallback(
@@ -632,7 +640,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     } else {
       setSortDirection(SortDirection.Desc);
     }
-  }, [sortDirection]);
+  }, [sortDirection, setSortDirection]);
 
   const onTabChange = useCallback(
     (value: string) => {
@@ -646,7 +654,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         activityTypes: [],
       });
     },
-    [auditLogKind]
+    [auditLogKind, setOffset]
   );
   return (
     <>

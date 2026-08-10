@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -452,7 +447,12 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
         ) : (
           <>
             <div className={styles.widget}>
-              <Text as="p" size="2" weight="medium" className={styles.fieldLabel}>
+              <Text
+                as="p"
+                size="2"
+                weight="medium"
+                className={styles.fieldLabel}
+              >
                 <FormattedMessage id="AddUserScreen.select-sign-in-method.label" />
               </Text>
               <RadioGroup.Root
@@ -470,7 +470,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                     >
                       <Flex gap="2" align="center">
                         <RadioGroup.Item value={loginIdType} />
-                        <FormattedMessage id={loginIdTypeNameIds[loginIdType]} />
+                        <FormattedMessage
+                          id={loginIdTypeNameIds[loginIdType]}
+                        />
                       </Flex>
                     </Text>
                   ))}
@@ -482,9 +484,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
               <div className={styles.widget}>
                 <TextField
                   size="2"
-                  label={
-                    <FormattedMessage id={loginIdTypeNameIds.username} />
-                  }
+                  label={<FormattedMessage id={loginIdTypeNameIds.username} />}
                   value={username}
                   onChange={onUsernameChange}
                   parentJSONPointer=""
@@ -634,15 +634,25 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                   </Text>
                   <ChevronDownIcon
                     className={styles.advancedChevron}
-                    aria-hidden
+                    aria-hidden={true}
                   />
                 </Collapsible.Trigger>
                 <Collapsible.Content className={styles.advancedContent}>
                   <div className={styles.accountValidPeriodSection}>
-                    <Text as="p" size="3" weight="medium" className={styles.sectionTitle}>
+                    <Text
+                      as="p"
+                      size="3"
+                      weight="medium"
+                      className={styles.sectionTitle}
+                    >
                       <FormattedMessage id="AddUserScreen.valid-period.title" />
                     </Text>
-                    <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+                    <Text
+                      as="p"
+                      size="2"
+                      color="gray"
+                      className={styles.sectionDescription}
+                    >
                       <FormattedMessage id="AddUserScreen.valid-period.description" />
                     </Text>
                     <AccountValidPeriodForm

@@ -1,9 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import {
-  IconButton,
-  Text,
-  Tooltip,
-} from "@radix-ui/themes";
+import { IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
@@ -171,8 +167,8 @@ const UserDetailsAuthorization: React.VFC<Props> =
             />
           ) : (
             <div className={styles.tableContainer}>
-            <div className={styles.table}>
-              <div className={styles.tableHeader}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
                   <div className={styles.clientColumn}>
                     <FormattedMessage id="UserDetails.authorization.client-name" />
                   </div>
@@ -183,15 +179,13 @@ const UserDetailsAuthorization: React.VFC<Props> =
                     <FormattedMessage id="UserDetails.authorization.created-at" />
                   </div>
                   <div className={styles.actionColumn} aria-hidden={true} />
-              </div>
+                </div>
                 {authzListItems.map((item, index) => (
                   <div
                     className={styles.tableRow}
                     key={`${item.clientName}-${index}`}
                   >
-                    <div className={styles.clientColumn}>
-                      {item.clientName}
-                    </div>
+                    <div className={styles.clientColumn}>{item.clientName}</div>
                     <div className={styles.scopeColumn}>{item.scopesDesc}</div>
                     <div className={styles.createdAtColumn}>
                       {item.createdAt}
@@ -217,7 +211,7 @@ const UserDetailsAuthorization: React.VFC<Props> =
                     </div>
                   </div>
                 ))}
-            </div>
+              </div>
             </div>
           )}
         </div>

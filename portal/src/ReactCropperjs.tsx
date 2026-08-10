@@ -120,7 +120,10 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
               <span className={styles.visuallyHidden}>
                 <FormattedMessage id="EditPictureScreen.upload-new-picture.label" />
               </span>
-              <PersonIcon className={styles.placeholderIcon} aria-hidden={true} />
+              <PersonIcon
+                className={styles.placeholderIcon}
+                aria-hidden={true}
+              />
             </button>
           ) : (
             <img className={styles.preview} src={displaySrc} alt="" />
@@ -140,10 +143,6 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
         ...calculateDimensions(this.instance),
         imageSmoothingQuality: "high",
       });
-      if (canvas == null) {
-        resolve(null);
-        return;
-      }
       canvas.toBlob((blob) => {
         resolve(blob);
       });

@@ -648,7 +648,12 @@ export default function PasswordSettings<T extends State>(
         <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
           <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
         </Text>
-        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.sectionDescription}
+        >
           <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
         </Text>
         <Toggle
@@ -799,7 +804,12 @@ export default function PasswordSettings<T extends State>(
         <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
           <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry" />
         </Text>
-        <Text as="p" size="2" color="gray" className={styles.sectionDescription}>
+        <Text
+          as="p"
+          size="2"
+          color="gray"
+          className={styles.sectionDescription}
+        >
           <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.description" />
         </Text>
         <Toggle

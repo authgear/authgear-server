@@ -224,7 +224,12 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
             <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
               <FormattedMessage id="AnalyticsScreen.title" />
             </Text>
-            <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+            <Text
+              as="p"
+              size="2"
+              color="gray"
+              className={styles.pageDescription}
+            >
               <FormattedMessage id="AnalyticsScreen.description" />
             </Text>
           </div>
@@ -262,7 +267,9 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
               <ResetIcon width="1rem" height="1rem" />
               <FormattedMessage id="AnalyticsScreen.clear-date-range.label" />
             </Button>
-            {loading ? <Spinner size="2" className={styles.loadingSpinner} /> : null}
+            {loading ? (
+              <Spinner size="2" className={styles.loadingSpinner} />
+            ) : null}
           </div>
           <AnalyticsActivityWidget
             className={styles.activityWidget}

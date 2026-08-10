@@ -292,7 +292,12 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
                 ),
               ]}
             />
-            <Text as="p" size="1" color="gray" className={styles.fieldDescription}>
+            <Text
+              as="p"
+              size="1"
+              color="gray"
+              className={styles.fieldDescription}
+            >
               <FormattedMessage id="EditCustomAttributeForm.description.attribute-name" />
             </Text>
           </div>

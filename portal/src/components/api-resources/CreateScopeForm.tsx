@@ -47,21 +47,22 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
     }, [errors, setErrors]);
 
     const handleScopeChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setState((s) => ({ ...s, scope: e.target.value })),
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const scope = e.target.value;
+        setState((s) => ({ ...s, scope }));
+      },
       [setState]
     );
     const handleDescriptionChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setState((s) => ({ ...s, description: e.target.value })),
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const description = e.target.value;
+        setState((s) => ({ ...s, description }));
+      },
       [setState]
     );
 
     return (
-      <form
-        onSubmit={onSubmit}
-        className={cn(styles.root, className)}
-      >
+      <form onSubmit={onSubmit} className={cn(styles.root, className)}>
         <div className={styles.field}>
           <TextField
             size="2"

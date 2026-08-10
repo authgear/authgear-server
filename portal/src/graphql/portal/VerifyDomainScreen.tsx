@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dialog, Flex, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
@@ -146,11 +140,14 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
 
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
-  useEffect(() => {
+  const [prevVerifyDomainError, setPrevVerifyDomainError] =
+    useState<unknown>(null);
+  if (verifyDomainError !== prevVerifyDomainError) {
+    setPrevVerifyDomainError(verifyDomainError);
     if (verifyDomainError != null) {
       setErrorDialogOpen(true);
     }
-  }, [verifyDomainError]);
+  }
 
   const verifyErrors = useMemo(() => {
     const apiErrors = parseRawError(verifyDomainError);
@@ -286,7 +283,14 @@ const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
   }
 
   if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (domain == null) {

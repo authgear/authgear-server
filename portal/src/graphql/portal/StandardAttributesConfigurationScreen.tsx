@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Dialog, Flex, Switch, Text } from "@radix-ui/themes";
@@ -314,9 +320,9 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
 
     // Edit Attributes dialog state
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [draftEnabledPointers, setDraftEnabledPointers] = useState<Set<string>>(
-      new Set()
-    );
+    const [draftEnabledPointers, setDraftEnabledPointers] = useState<
+      Set<string>
+    >(new Set());
 
     const currentEnabledPointers = useMemo(
       () => new Set(state.standardAttributesItems.map((item) => item.pointer)),
@@ -326,7 +332,9 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
     const onOpenEditDialog = useCallback(() => {
       // Seed draft with currently enabled pointers (always include required ones)
       const draft = new Set(currentEnabledPointers);
-      REQUIRED_POINTERS.forEach((p) => draft.add(p));
+      REQUIRED_POINTERS.forEach((p) => {
+        draft.add(p);
+      });
       setDraftEnabledPointers(draft);
       setEditDialogOpen(true);
     }, [currentEnabledPointers]);
@@ -335,12 +343,9 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
       setEditDialogOpen(false);
     }, []);
 
-    const onEditDialogOpenChange = useCallback(
-      (open: boolean) => {
-        if (!open) setEditDialogOpen(false);
-      },
-      []
-    );
+    const onEditDialogOpenChange = useCallback((open: boolean) => {
+      if (!open) setEditDialogOpen(false);
+    }, []);
 
     const onToggleDraftPointer = useCallback(
       (pointer: string, enabled: boolean) => {
@@ -524,11 +529,7 @@ const StandardAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer
-        form={form}
-        hideFooterComponent={true}
-        canSave={true}
-      >
+      <FormContainer form={form} hideFooterComponent={true} canSave={true}>
         <StandardAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );
