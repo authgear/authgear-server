@@ -26,6 +26,7 @@
   padding: 24px;
   gap: 24px;
   min-height: 100%;
+  @apply mobile:p-4 mobile:gap-4;
 }
 
 .tabs {
@@ -36,6 +37,7 @@
   @apply flex flex-col;
   width: 100%;
   max-width: 848px;
+  min-width: 0;
   padding-top: 8px;
   gap: 24px;
 }
@@ -49,6 +51,7 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
+  min-width: 0;
   padding-top: 8px;
 }
 

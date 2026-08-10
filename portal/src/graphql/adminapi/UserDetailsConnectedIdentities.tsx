@@ -45,6 +45,7 @@ import { TextField } from "../../components/v2/TextField/TextField";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import PhoneTextField from "../../PhoneTextField";
+import phoneDialogStyles from "../../PhoneDialog.module.css";
 import { useUpdateLoginIDIdentityMutation } from "./mutations/updateIdentityMutation";
 
 interface IdentityClaim extends Record<string, unknown> {
@@ -355,14 +356,22 @@ function AddPhoneDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content maxWidth="480px" size="3">
+      <Dialog.Content
+        maxWidth="480px"
+        size="3"
+        className={phoneDialogStyles.phoneDialogContent}
+        data-phone-dialog="true"
+      >
         <Dialog.Title>
           <FormattedMessage id="PhoneScreen.add.title" />
         </Dialog.Title>
         <Dialog.Description size="2">
           <FormattedMessage id="PhoneScreen.add.description" />
         </Dialog.Description>
-        <form className={styles.addIdentityForm} onSubmit={onSubmit}>
+        <form
+          className={cn(styles.addIdentityForm, phoneDialogStyles.phoneDialogForm)}
+          onSubmit={onSubmit}
+        >
           <PhoneTextField
             key={fieldKey}
             label={renderToString("PhoneScreen.phone.label")}
@@ -374,7 +383,12 @@ function AddPhoneDialog({
               setRawInputValue(values.rawInputValue);
             }}
           />
-          <div className={styles.addIdentityDialogActions}>
+          <div
+            className={cn(
+              styles.addIdentityDialogActions,
+              phoneDialogStyles.phoneDialogActions
+            )}
+          >
             <SecondaryButton
               size="2"
               disabled={loading}
@@ -1339,7 +1353,14 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
     );
 
     // Always show Email → Phone number → User name in that order.
-    const loginIdentityTypesToShow = loginIdIdentityTypes;
+    // Hide the username section when this user has no username identity.
+    const loginIdentityTypesToShow = useMemo(
+      () =>
+        loginIdIdentityTypes.filter(
+          (type) => type !== "username" || identityLists.username.length > 0
+        ),
+      [identityLists.username.length]
+    );
 
     const confirmationDialogContentProps = useMemo(() => {
       return {

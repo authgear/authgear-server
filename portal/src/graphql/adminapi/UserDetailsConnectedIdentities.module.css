@@ -6,6 +6,8 @@
   padding: 24px;
   border: 1px solid var(--gray-6);
   border-radius: 12px;
+  min-width: 0;
+  @apply tablet:grid-cols-1 tablet:gap-4 tablet:p-4;
 }
 
 .headerSection {
@@ -61,6 +63,16 @@
   border-top: 1px solid var(--gray-a6);
   border-bottom: 0;
   background-color: var(--gray-a2);
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-template-areas:
+      "value action"
+      "date date";
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    row-gap: 8px;
+  }
 }
 
 .loginIdentityCell:last-child {
@@ -73,6 +85,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  @apply tablet:flex-wrap;
 }
 
 .verificationStatus {
@@ -100,6 +113,11 @@
 .loginIdentityDate {
   grid-area: date;
   white-space: nowrap;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    white-space: normal;
+  }
 }
 
 .loginIdentityCell .actionButton {
