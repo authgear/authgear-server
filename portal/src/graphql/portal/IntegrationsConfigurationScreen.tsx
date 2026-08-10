@@ -234,6 +234,14 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
         });
     }, [draftContainerID, form]);
 
+    const onGtmFormSubmit = useCallback(
+      (e: React.FormEvent) => {
+        e.preventDefault();
+        onSaveGTM();
+      },
+      [onSaveGTM]
+    );
+
     const onDeleteGTM = useCallback(() => {
       setLocalContainerIDError(null);
       setPendingGTMAction("delete");
@@ -318,51 +326,54 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
             <Dialog.Title>
               <FormattedMessage id="IntegrationsConfigurationScreen.add-on.gtm.dialog.title" />
             </Dialog.Title>
-            <TextField
-              size="2"
-              label={
-                <FormattedMessage id="IntegrationsConfigurationScreen.add-on.gtm.dialog.container-id.label" />
-              }
-              placeholder={renderToString(
-                "GoogleTagManagerConfigurationScreen.container-id.placeholder"
-              )}
-              value={draftContainerID}
-              onChange={onDraftContainerIDChange}
-              error={displayContainerIDError}
-            />
-            <Flex
-              gap="3"
-              mt="4"
-              justify={hasSavedGTMConnection ? "between" : "end"}
-            >
-              {hasSavedGTMConnection ? (
-                <Button
-                  size="2"
-                  variant="soft"
-                  color="red"
-                  onClick={onDeleteGTM}
-                  loading={pendingGTMAction === "delete"}
-                  disabled={isUpdating}
-                >
-                  <FormattedMessage id="delete" />
-                </Button>
-              ) : null}
-              <Flex gap="3">
-                <SecondaryButton
-                  size="2"
-                  text={<FormattedMessage id="cancel" />}
-                  onClick={onCloseGtmDialog}
-                  disabled={isUpdating}
-                />
-                <PrimaryButton
-                  size="2"
-                  text={<FormattedMessage id="save" />}
-                  onClick={onSaveGTM}
-                  loading={pendingGTMAction === "save"}
-                  disabled={isUpdating}
-                />
+            <form onSubmit={onGtmFormSubmit}>
+              <TextField
+                size="2"
+                label={
+                  <FormattedMessage id="IntegrationsConfigurationScreen.add-on.gtm.dialog.container-id.label" />
+                }
+                placeholder={renderToString(
+                  "GoogleTagManagerConfigurationScreen.container-id.placeholder"
+                )}
+                value={draftContainerID}
+                onChange={onDraftContainerIDChange}
+                error={displayContainerIDError}
+              />
+              <Flex
+                gap="3"
+                mt="4"
+                justify={hasSavedGTMConnection ? "between" : "end"}
+              >
+                {hasSavedGTMConnection ? (
+                  <Button
+                    type="button"
+                    size="2"
+                    variant="soft"
+                    color="red"
+                    onClick={onDeleteGTM}
+                    loading={pendingGTMAction === "delete"}
+                    disabled={isUpdating}
+                  >
+                    <FormattedMessage id="delete" />
+                  </Button>
+                ) : null}
+                <Flex gap="3">
+                  <SecondaryButton
+                    size="2"
+                    text={<FormattedMessage id="cancel" />}
+                    onClick={onCloseGtmDialog}
+                    disabled={isUpdating}
+                  />
+                  <PrimaryButton
+                    type="submit"
+                    size="2"
+                    text={<FormattedMessage id="save" />}
+                    loading={pendingGTMAction === "save"}
+                    disabled={isUpdating}
+                  />
+                </Flex>
               </Flex>
-            </Flex>
+            </form>
           </Dialog.Content>
         </Dialog.Root>
       </ScreenLayoutScrollView>
