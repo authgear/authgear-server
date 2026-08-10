@@ -27,12 +27,9 @@ import {
   AuditLogListQueryQueryVariables,
   AuditLogListQueryDocument,
 } from "./query/auditLogListQuery.generated";
-import {
-  AuditLogUserSearchQueryDocument,
-  AuditLogUserSearchQueryQuery,
-  AuditLogUserSearchQueryQueryVariables,
-} from "./query/auditLogUserSearchQuery.generated";
 import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
+import { toTypedID } from "../../util/graphql";
+import { NodeType } from "./node";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
@@ -71,26 +68,6 @@ const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
     !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
     !HIDDEN_ACTIVITY_TYPES.includes(activityType)
 );
-
-const EMAIL_ONLY_ACTIVITY_TYPES = [AuditLogActivityType.EmailSent];
-const PHONE_ONLY_ACTIVITY_TYPES = [
-  AuditLogActivityType.SmsSent,
-  AuditLogActivityType.WhatsappSent,
-];
-const NON_USER_SEARCH_ACTIVITY_TYPES = [
-  ...EMAIL_ONLY_ACTIVITY_TYPES,
-  ...PHONE_ONLY_ACTIVITY_TYPES,
-];
-
-function includesActivityTypeOrAll(
-  selectedActivityTypes: AuditLogActivityType[],
-  activityType: AuditLogActivityType
-): boolean {
-  return (
-    selectedActivityTypes.length === 0 ||
-    selectedActivityTypes.includes(activityType)
-  );
-}
 
 function areActivityTypesEqual(
   left: AuditLogActivityType[],
@@ -437,92 +414,50 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setOffset(offset);
   }, []);
 
+  // Derive from the effective activityTypes (which accounts for the
+  // user/admin tab) so that query routing and the search box placeholder
+  // never diverge.
+  const searchIncludesEmail = useMemo(() => {
+    return activityTypes.includes(AuditLogActivityType.EmailSent);
+  }, [activityTypes]);
+
+  const searchIncludesPhone = useMemo(() => {
+    return (
+      activityTypes.includes(AuditLogActivityType.SmsSent) ||
+      activityTypes.includes(AuditLogActivityType.WhatsappSent)
+    );
+  }, [activityTypes]);
+
   const queryEmailAddresses = useMemo(() => {
     const email = parseEmail(debouncedSearchQuery);
     if (email == null) {
       return null;
     }
-
-    if (
-      includesActivityTypeOrAll(
-        filters.activityTypes,
-        AuditLogActivityType.EmailSent
-      )
-    ) {
+    if (searchIncludesEmail) {
       return [email];
     }
     return null;
-  }, [debouncedSearchQuery, filters.activityTypes]);
+  }, [debouncedSearchQuery, searchIncludesEmail]);
 
   const queryPhoneNumbers = useMemo(() => {
     const phoneNumber = parsePhoneNumber(debouncedSearchQuery);
     if (phoneNumber == null) {
       return null;
     }
-    if (
-      includesActivityTypeOrAll(
-        filters.activityTypes,
-        AuditLogActivityType.SmsSent
-      ) ||
-      includesActivityTypeOrAll(
-        filters.activityTypes,
-        AuditLogActivityType.WhatsappSent
-      )
-    ) {
+    if (searchIncludesPhone) {
       return [phoneNumber];
     }
     return null;
-  }, [debouncedSearchQuery, filters.activityTypes]);
-
-  const shouldSearchUsers = useMemo(() => {
-    if (debouncedSearchQuery === "") {
-      return false;
-    }
-    if (queryEmailAddresses != null || queryPhoneNumbers != null) {
-      return false;
-    }
-    if (filters.activityTypes.length === 0) {
-      return true;
-    }
-    return filters.activityTypes.some(
-      (activityType) =>
-        !NON_USER_SEARCH_ACTIVITY_TYPES.includes(activityType)
-    );
-  }, [
-    debouncedSearchQuery,
-    queryEmailAddresses,
-    queryPhoneNumbers,
-    filters.activityTypes,
-  ]);
-
-  const {
-    data: userSearchData,
-    loading: userSearchLoading,
-    error: userSearchError,
-  } = useQuery<
-    AuditLogUserSearchQueryQuery,
-    AuditLogUserSearchQueryQueryVariables
-  >(AuditLogUserSearchQueryDocument, {
-    variables: {
-      searchKeyword: debouncedSearchQuery,
-    },
-    skip: !shouldSearchUsers,
-    fetchPolicy: "network-only",
-  });
+  }, [debouncedSearchQuery, searchIncludesPhone]);
 
   const queryUserIDs = useMemo(() => {
-    if (!shouldSearchUsers) {
+    if (queryEmailAddresses != null || queryPhoneNumbers != null) {
       return null;
     }
-    if (userSearchLoading) {
-      return null;
-    }
-    const edges = userSearchData?.users?.edges ?? [];
-    return edges.flatMap((edge) => (edge?.node?.id != null ? [edge.node.id] : []));
-  }, [shouldSearchUsers, userSearchLoading, userSearchData?.users?.edges]);
-
-  const noMatchingUsers =
-    shouldSearchUsers && !userSearchLoading && queryUserIDs?.length === 0;
+    // only search by userIDs if query notLikeEmail & notLikePhoneNumber
+    const trimmed = debouncedSearchQuery.trim();
+    return trimmed ? [toTypedID(NodeType.User, trimmed)] : null;
+  }, [debouncedSearchQuery, queryEmailAddresses, queryPhoneNumbers]);
 
   const {
     data: currentData,
@@ -545,26 +480,17 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         sortDirection,
       },
       fetchPolicy: "network-only",
-      skip:
-        featureConfig.isLoading ||
-        (shouldSearchUsers && userSearchLoading) ||
-        noMatchingUsers,
+      skip: featureConfig.isLoading,
     }
   );
 
   const data = currentData ?? previousData;
-  const auditLogs = noMatchingUsers
-    ? { edges: [], totalCount: 0 }
-    : data?.auditLogs ?? null;
-  const listLoading =
-    loading || featureConfig.isLoading || (shouldSearchUsers && userSearchLoading);
+  const auditLogs = data?.auditLogs ?? null;
+  const listLoading = loading || featureConfig.isLoading;
 
   const messageBar = useMemo(() => {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
-    }
-    if (userSearchError != null) {
-      return <ShowError error={userSearchError} />;
     }
     if (featureConfig.loadError != null) {
       return (
@@ -577,7 +503,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       );
     }
     return null;
-  }, [error, userSearchError, refetch, featureConfig]);
+  }, [error, refetch, featureConfig]);
 
   const onFilterChange = useCallback(
     (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
@@ -606,8 +532,19 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const searchBoxPlaceholder = useMemo(() => {
-    return renderToString("AuditLogScreen.search-by-user-name-or-email");
-  }, [renderToString]);
+    if (searchIncludesEmail && searchIncludesPhone) {
+      return renderToString(
+        "AuditLogScreen.search-by-user-id-or-email-or-phone"
+      );
+    }
+    if (searchIncludesEmail) {
+      return renderToString("AuditLogScreen.search-by-user-id-or-email");
+    }
+    if (searchIncludesPhone) {
+      return renderToString("AuditLogScreen.search-by-user-id-or-phone");
+    }
+    return renderToString("AuditLogScreen.search-by-user-id");
+  }, [searchIncludesEmail, searchIncludesPhone, renderToString]);
 
   const searchBoxProps = useMemo<ISearchBoxProps>(() => {
     return {
