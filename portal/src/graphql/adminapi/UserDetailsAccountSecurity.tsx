@@ -1,13 +1,14 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
-import { Badge, Button, DropdownMenu, Text } from "@radix-ui/themes";
+import { Badge, Button, DropdownMenu, IconButton, Text } from "@radix-ui/themes";
 import {
   CheckCircledIcon,
-  ChevronDownIcon,
+  DotsVerticalIcon,
   EnvelopeClosedIcon,
   MobileIcon,
   PlusIcon,
+  TrashIcon,
 } from "@radix-ui/react-icons";
 import { FormattedMessage, Context } from "../../intl";
 
@@ -24,7 +25,7 @@ import {
 } from "./globalTypes.generated";
 import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
-import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
+import { PortalAPIAppConfig } from "../../types";
 import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { DateTime } from "luxon";
 import { parseDuration } from "../../util/duration";
@@ -123,12 +124,6 @@ interface RemoveConfirmationDialogProps
   onDismiss: () => void;
   remove?: (id: string) => void;
   loading?: boolean;
-}
-
-interface Add2FAMenuItem {
-  key: SecondaryAuthenticatorType;
-  text: string;
-  onSelect: () => void;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -503,6 +498,65 @@ const RemoveConfirmationDialog: React.VFC<RemoveConfirmationDialogProps> =
     );
   };
 
+interface SecondaryAuthenticatorTableCellProps {
+  id: string;
+  label: string;
+  addedOn: string;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
+}
+
+const SecondaryAuthenticatorTableCell: React.VFC<
+  SecondaryAuthenticatorTableCellProps
+> = function SecondaryAuthenticatorTableCell(
+  props: SecondaryAuthenticatorTableCellProps
+) {
+  const { id, label, addedOn, showConfirmationDialog } = props;
+  const { renderToString } = useContext(Context);
+
+  const onRemoveClicked = useCallback(() => {
+    showConfirmationDialog({
+      id,
+      displayName: label,
+      type: "authenticator",
+    });
+  }, [id, label, showConfirmationDialog]);
+
+  return (
+    <ListCellLayout className={styles.authenticatorTableCell}>
+      <div className={styles.authenticatorTableValue}>
+        <Text size="2">{label}</Text>
+      </div>
+      <Text size="2" color="gray" className={styles.authenticatorTableDate}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.added-on"
+          values={{ datetime: addedOn }}
+        />
+      </Text>
+      <div className={styles.actionButton}>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <IconButton
+              className={styles.rowActionsButton}
+              size="2"
+              variant="soft"
+              color="gray"
+              aria-label={renderToString("action")}
+            >
+              <DotsVerticalIcon width="1rem" height="1rem" />
+            </IconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Item color="red" onSelect={onRemoveClicked}>
+              <TrashIcon />
+              <FormattedMessage id="remove" />
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </div>
+    </ListCellLayout>
+  );
+};
+
 const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
   function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
     const { id, displayName, addedOn, showConfirmationDialog, withTopSpacing } =
@@ -687,13 +741,16 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
     const { id, kind, label, addedOn, showConfirmationDialog, withTopSpacing } =
       props;
 
-    const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog({
-        id,
-        displayName: label,
-        type: "authenticator",
-      });
-    }, [id, label, showConfirmationDialog]);
+    if (kind === AuthenticatorKind.Secondary) {
+      return (
+        <SecondaryAuthenticatorTableCell
+          id={id}
+          label={label}
+          addedOn={addedOn}
+          showConfirmationDialog={showConfirmationDialog}
+        />
+      );
+    }
 
     return (
       <ListCellLayout
@@ -712,17 +769,6 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
             values={{ datetime: addedOn }}
           />
         </Text>
-        {kind === "SECONDARY" ? (
-          <Button
-            className={cn(styles.button, styles.totpRemoveButton)}
-            size="1"
-            variant="outline"
-            color="red"
-            onClick={onRemoveClicked}
-          >
-            <FormattedMessage id="remove" />
-          </Button>
-        ) : null}
       </ListCellLayout>
     );
   };
@@ -739,13 +785,16 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
       withTopSpacing,
     } = props;
 
-    const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog({
-        id,
-        displayName: label,
-        type: "authenticator",
-      });
-    }, [id, label, showConfirmationDialog]);
+    if (kind === AuthenticatorKind.Secondary) {
+      return (
+        <SecondaryAuthenticatorTableCell
+          id={id}
+          label={label}
+          addedOn={addedOn}
+          showConfirmationDialog={showConfirmationDialog}
+        />
+      );
+    }
 
     return (
       <ListCellLayout
@@ -767,18 +816,6 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
             values={{ datetime: addedOn }}
           />
         </Text>
-
-        {kind === "SECONDARY" ? (
-          <Button
-            className={cn(styles.button, styles.oobOtpRemoveButton)}
-            size="1"
-            variant="outline"
-            color="red"
-            onClick={onRemoveClicked}
-          >
-            <FormattedMessage id="remove" />
-          </Button>
-        ) : null}
       </ListCellLayout>
     );
   };
@@ -795,7 +832,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       phoneInputPinnedList,
       onAuthenticatorCreated,
     } = props;
-    const { locale, renderToString } = useContext(Context);
+    const { locale } = useContext(Context);
     const navigate = useNavigate();
     const [add2FAPhoneDialogOpen, setAdd2FAPhoneDialogOpen] = useState(false);
     const [add2FAEmailDialogOpen, setAdd2FAEmailDialogOpen] = useState(false);
@@ -1146,60 +1183,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       [deleteIdentity, dismissConfirmationDialog]
     );
 
-    const add2FAMenuItems = useMemo(() => {
-      const availableMenuItem: Add2FAMenuItem[] = [
-        {
-          key: "password",
-          text: renderToString("AuthenticatorType.secondary.password"),
-          onSelect: () => {
-            void navigate("./add-2fa-password");
-          },
-        },
-        {
-          key: "oob_otp_email",
-          text: renderToString("AuthenticatorType.secondary.oob-otp-email"),
-          onSelect: () => {
-            setAdd2FAEmailDialogOpen(true);
-          },
-        },
-        {
-          key: "oob_otp_sms",
-          text: renderToString("AuthenticatorType.secondary.oob-otp-phone"),
-          onSelect: () => {
-            setAdd2FAPhoneDialogOpen(true);
-          },
-        },
-      ];
-      const enabledItems = availableMenuItem.filter((item) => {
-        if (
-          !authenticationConfig?.secondary_authenticators?.includes(item.key)
-        ) {
-          return false;
-        }
-
-        if (item.key === "password") {
-          // Multiple additinal password is not allowed
-          if (
-            authenticators.findIndex(
-              (authn) =>
-                authn.kind === AuthenticatorKind.Secondary &&
-                authn.type === AuthenticatorType.Password
-            ) !== -1
-          ) {
-            return false;
-          }
-        }
-
-        return true;
-      });
-      return enabledItems;
-    }, [
-      renderToString,
-      navigate,
-      authenticationConfig?.secondary_authenticators,
-      authenticators,
-    ]);
-
     const onRenderExtendedMFAGracePeriod = useCallback(() => {
       return (
         <LinkButton
@@ -1356,120 +1339,134 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 <FormattedMessage id="UserDetails.account-security.secondary" />
               </Text>
             </div>
-            <div className={styles.secondaryOverview}>
-              {!secondaryAuthenticatorLists.hasVisibleList ? (
-                <div className={styles.secondaryEmpty}>
-                  <Text as="p" size="3" weight="medium" className={styles.secondaryEmptyTitle}>
-                    <FormattedMessage id="UserDetails.account-security.secondary.empty" />
-                  </Text>
-                  <Text as="p" size="2" color="gray" className={styles.secondaryEmptyDescription}>
-                    <FormattedMessage
-                      id="UserDetails.account-security.secondary.empty-description"
-                      values={{
-                        // eslint-disable-next-line react/no-unstable-nested-components
-                        gracePeriod: (chunks: React.ReactNode) => (
-                          <LinkButton
-                            className={styles.authenticatorGrantGracePeriod}
-                            onClick={setMFAGracePeriodConfirmationDialog.show}
-                          >
-                            {chunks}
-                          </LinkButton>
-                        ),
-                      }}
-                    />
-                  </Text>
-                </div>
-              ) : (
-                <div />
-              )}
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <Button
-                    size="2"
-                    variant="outline"
-                    color="gray"
-                    disabled={add2FAMenuItems.length === 0}
-                  >
-                    <FormattedMessage id="UserDetails.account-security.secondary.add" />
-                    <ChevronDownIcon width={16} height={16} />
-                  </Button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content align="end">
-                  {add2FAMenuItems.map((item) => (
-                    <DropdownMenu.Item key={item.key} onSelect={item.onSelect}>
-                      {item.text}
-                    </DropdownMenu.Item>
-                  ))}
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            </div>
+            {!secondaryAuthenticatorLists.hasVisibleList ? (
+              <div className={styles.secondaryEmpty}>
+                <Text as="p" size="3" weight="medium" className={styles.secondaryEmptyTitle}>
+                  <FormattedMessage id="UserDetails.account-security.secondary.empty" />
+                </Text>
+                <Text as="p" size="2" color="gray" className={styles.secondaryEmptyDescription}>
+                  <FormattedMessage
+                    id="UserDetails.account-security.secondary.empty-description"
+                    values={{
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      gracePeriod: (chunks: React.ReactNode) => (
+                        <LinkButton
+                          className={styles.authenticatorGrantGracePeriod}
+                          onClick={setMFAGracePeriodConfirmationDialog.show}
+                        >
+                          {chunks}
+                        </LinkButton>
+                      ),
+                    }}
+                  />
+                </Text>
+              </div>
+            ) : null}
             {secondaryAuthenticatorLists.totp.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
-                  size="2"
-                  weight="medium"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
-                  {!secondaryAuthenticatorLists.isSecondaryTOTPEnabled ? (
-                    <>
-                      {" "}
-                      <FormattedMessage id="UserDetails.account-security.disabled" />
-                    </>
-                  ) : null}
-                </Text>
-                {secondaryAuthenticatorLists.totp.map((item, index) => (
-                  <React.Fragment key={item.id}>
-                    {onRenderTotpAuthenticatorDetailCell(item, index)}
-                  </React.Fragment>
-                ))}
+                <div className={styles.authenticatorTable}>
+                  <div className={styles.authenticatorTableHeader}>
+                    <Text
+                      as="p"
+                      size="2"
+                      weight="medium"
+                      className={styles.authenticatorTableGroupTitle}
+                    >
+                      <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                      {!secondaryAuthenticatorLists.isSecondaryTOTPEnabled ? (
+                        <>
+                          {" "}
+                          <FormattedMessage id="UserDetails.account-security.disabled" />
+                        </>
+                      ) : null}
+                    </Text>
+                  </div>
+                  {secondaryAuthenticatorLists.totp.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                      {onRenderTotpAuthenticatorDetailCell(item, index)}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
             ) : null}
-            {secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
-                  size="2"
-                  weight="medium"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
-                  {!secondaryAuthenticatorLists.isSecondaryOOBOTPEmailEnabled ? (
-                    <>
-                      {" "}
-                      <FormattedMessage id="UserDetails.account-security.disabled" />
-                    </>
-                  ) : null}
-                </Text>
-                {secondaryAuthenticatorLists.oobOtpEmail.map((item, index) => (
-                  <React.Fragment key={item.id}>
-                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
-                  </React.Fragment>
-                ))}
+            {secondaryAuthenticatorLists.isSecondaryOOBOTPEmailEnabled ||
+            secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
+              <div className={styles.authenticatorTypeGroup}>
+                <div className={styles.authenticatorTypeSection}>
+                  <div className={styles.authenticatorTable}>
+                    <div className={styles.authenticatorTableHeader}>
+                      <Text
+                        as="p"
+                        size="2"
+                        weight="medium"
+                        className={styles.authenticatorTableGroupTitle}
+                      >
+                        <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
+                        {!secondaryAuthenticatorLists.isSecondaryOOBOTPEmailEnabled ? (
+                          <>
+                            {" "}
+                            <FormattedMessage id="UserDetails.account-security.disabled" />
+                          </>
+                        ) : null}
+                      </Text>
+                    </div>
+                    {secondaryAuthenticatorLists.oobOtpEmail.map((item, index) => (
+                      <React.Fragment key={item.id}>
+                        {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+                {secondaryAuthenticatorLists.isSecondaryOOBOTPEmailEnabled ? (
+                  <button
+                    type="button"
+                    className={styles.addAuthenticatorButton}
+                    onClick={() => setAdd2FAEmailDialogOpen(true)}
+                  >
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="UserDetails.account-security.secondary.add-oob-otp-email" />
+                  </button>
+                ) : null}
               </div>
             ) : null}
-            {secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
-                  size="2"
-                  weight="medium"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
-                  {!secondaryAuthenticatorLists.isSecondaryOOBOTPSMSEnabled ? (
-                    <>
-                      {" "}
-                      <FormattedMessage id="UserDetails.account-security.disabled" />
-                    </>
-                  ) : null}
-                </Text>
-                {secondaryAuthenticatorLists.oobOtpSMS.map((item, index) => (
-                  <React.Fragment key={item.id}>
-                    {onRenderOobOtpAuthenticatorDetailCell(item, index)}
-                  </React.Fragment>
-                ))}
+            {secondaryAuthenticatorLists.isSecondaryOOBOTPSMSEnabled ||
+            secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
+              <div className={styles.authenticatorTypeGroup}>
+                <div className={styles.authenticatorTypeSection}>
+                  <div className={styles.authenticatorTable}>
+                    <div className={styles.authenticatorTableHeader}>
+                      <Text
+                        as="p"
+                        size="2"
+                        weight="medium"
+                        className={styles.authenticatorTableGroupTitle}
+                      >
+                        <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
+                        {!secondaryAuthenticatorLists.isSecondaryOOBOTPSMSEnabled ? (
+                          <>
+                            {" "}
+                            <FormattedMessage id="UserDetails.account-security.disabled" />
+                          </>
+                        ) : null}
+                      </Text>
+                    </div>
+                    {secondaryAuthenticatorLists.oobOtpSMS.map((item, index) => (
+                      <React.Fragment key={item.id}>
+                        {onRenderOobOtpAuthenticatorDetailCell(item, index)}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+                {secondaryAuthenticatorLists.isSecondaryOOBOTPSMSEnabled ? (
+                  <button
+                    type="button"
+                    className={styles.addAuthenticatorButton}
+                    onClick={() => setAdd2FAPhoneDialogOpen(true)}
+                  >
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="UserDetails.account-security.secondary.add-oob-otp-phone" />
+                  </button>
+                ) : null}
               </div>
             ) : null}
             {secondaryAuthenticatorLists.password.length > 0 ? (

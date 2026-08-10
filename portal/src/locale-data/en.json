@@ -369,6 +369,8 @@
   "UserDetails.account-security.primary": "Primary Authenticators",
   "UserDetails.account-security.secondary": "2-Factor Authentication Methods",
   "UserDetails.account-security.secondary.add": "Add 2FA",
+  "UserDetails.account-security.secondary.add-oob-otp-email": "Add OTP Code/Login Link via Email",
+  "UserDetails.account-security.secondary.add-oob-otp-phone": "Add OTP Code via Phone",
   "UserDetails.account-security.primary.empty": "No Primary Authenticator yet.",
   "UserDetails.account-security.primary.password.add": "Add Password",
   "UserDetails.account-security.secondary.empty": "No 2FA Method Enabled Yet",

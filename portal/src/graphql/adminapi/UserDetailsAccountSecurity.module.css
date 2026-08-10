@@ -13,6 +13,8 @@
   padding: 24px;
   border: 1px solid var(--gray-6);
   border-radius: 12px;
+  min-width: 0;
+  @apply tablet:grid-cols-1 tablet:gap-4 tablet:p-4;
 }
 
 .header {
@@ -23,25 +25,70 @@
 
 .authenticatorKindHeader {
   display: contents;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    grid-column: 1;
+    width: 100%;
+  }
 }
 
 .authenticatorKindHeader > .header {
   grid-column: 1;
   grid-row: 1;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: unset;
+    grid-row: unset;
+  }
 }
 
 .authenticatorKindHeader > :not(.header) {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: unset;
+    grid-row: unset;
+    justify-self: unset;
+    flex-shrink: 0;
+  }
 }
 
 .authenticatorContainer > :not(.authenticatorKindHeader) {
   grid-column: 2;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: 1;
+  }
 }
 
 .authenticatorTypeSection + .authenticatorTypeSection {
   margin-top: 12px;
+}
+
+.authenticatorTypeGroup + .authenticatorTypeGroup {
+  margin-top: 12px;
+}
+
+.authenticatorTypeGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.addAuthenticatorButton {
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  align-self: flex-start;
+  margin-top: 16px;
+  color: var(--accent-9);
 }
 
 .authenticatorTypeSection--password {
@@ -94,6 +141,7 @@
   justify-content: space-between;
   gap: 24px;
   min-width: 0;
+  @apply tablet:flex-col tablet:items-stretch;
 }
 
 .passwordCellMetadata {
@@ -101,6 +149,7 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  @apply tablet:flex-wrap;
 }
 
 .passwordCellDesc {
@@ -116,6 +165,7 @@
   padding: 16px;
   border: 1px solid var(--gray-5);
   border-radius: 12px;
+  @apply tablet:flex-col tablet:items-stretch;
 }
 
 .passwordCellChangeOnLoginText {
@@ -234,13 +284,6 @@
   @apply py-2;
 }
 
-.secondaryOverview {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-}
-
 .secondaryEmpty {
   display: flex;
   flex: 1;
@@ -262,4 +305,78 @@
   font-size: 14px;
   line-height: 20px;
   color: var(--gray-a11);
+}
+
+.authenticatorTable {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.authenticatorTableHeader {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 12px;
+}
+
+.authenticatorTableGroupTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.authenticatorTableCell {
+  display: grid;
+  grid-template-areas: "value date action";
+  grid-template-columns: minmax(0, 1fr) max-content 32px;
+  gap: 16px;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 12px;
+  border-top: 1px solid var(--gray-a6);
+  border-bottom: 0;
+  background-color: var(--gray-a2);
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-template-areas:
+      "value action"
+      "date date";
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    row-gap: 8px;
+  }
+}
+
+.authenticatorTableCell:last-child {
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.authenticatorTableValue {
+  grid-area: value;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  @apply tablet:flex-wrap;
+}
+
+.authenticatorTableDate {
+  grid-area: date;
+  white-space: nowrap;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    white-space: normal;
+  }
+}
+
+.authenticatorTableCell .actionButton {
+  grid-area: action;
+  justify-self: end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
