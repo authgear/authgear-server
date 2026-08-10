@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Text } from "@radix-ui/themes";
-import { MessageBar, MessageBarType, ProgressIndicator } from "@fluentui/react";
+import { ProgressIndicator } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import cn from "classnames";
@@ -12,6 +12,7 @@ import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { Callout } from "../../components/v2/Callout/Callout";
 import UserDetailSummary from "./UserDetailSummary";
 import UserProfileForm, {
   CustomAttributesState,
@@ -336,17 +337,24 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 ) {
   const { auditLogEnabled } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
-  const { selectedKey, onChangeKey } = usePivotNavigation([
-    USER_PROFILE_KEY,
-    ACCOUNT_SECURITY_PIVOT_KEY,
-    CONNECTED_IDENTITIES_PIVOT_KEY,
-    SESSION_PIVOT_KEY,
-    ROLES_KEY,
-    GROUPS_KEY,
-    ACCOUNT_STATUS_KEY,
-    ...(auditLogEnabled ? [LOGS_KEY] : []),
-  ]);
   const { form, data, appConfig, refreshUser, profileContentRef } = props;
+  const pivotItemKeys = useMemo(
+    () =>
+      data.isAnonymized
+        ? [ACCOUNT_STATUS_KEY, ...(auditLogEnabled ? [LOGS_KEY] : [])]
+        : [
+            USER_PROFILE_KEY,
+            ACCOUNT_SECURITY_PIVOT_KEY,
+            CONNECTED_IDENTITIES_PIVOT_KEY,
+            SESSION_PIVOT_KEY,
+            ROLES_KEY,
+            GROUPS_KEY,
+            ACCOUNT_STATUS_KEY,
+            ...(auditLogEnabled ? [LOGS_KEY] : []),
+          ],
+    [data.isAnonymized, auditLogEnabled]
+  );
+  const { selectedKey, onChangeKey } = usePivotNavigation(pivotItemKeys);
   const { state, setState } = form;
   const { renderToString, locale } = React.useContext(Context);
   const [selectedProfileImage, setSelectedProfileImage] =
@@ -549,10 +557,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             lastLoginAtISO={data.lastLoginAt ?? null}
             accountStatus={data}
           />
-          <AccountStatusMessageBar accountStatus={data} />
-          <MessageBar messageBarType={MessageBarType.info}>
-            <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
-          </MessageBar>
+          <Callout
+            type="warning"
+            color="yellow"
+            showCloseButton={false}
+            text={
+              <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
+            }
+          />
           <OverflowTabs
             className={styles.tabs}
             value={selectedKey}
@@ -562,10 +574,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             tabs={tabsForAnonymized}
           />
           {selectedKey === ACCOUNT_STATUS_KEY ? (
-            <UserDetailsAccountStatus data={data} />
+            <div className={styles.tabContent}>
+              <UserDetailsAccountStatus data={data} />
+            </div>
           ) : null}
           {selectedKey === LOGS_KEY ? (
-            <UserDetailsLogs userID={data.id} />
+            <div className={styles.tabContent}>
+              <UserDetailsLogs userID={data.id} />
+            </div>
           ) : null}
         </div>
         {profilePictureDialog}
