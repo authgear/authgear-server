@@ -319,3 +319,5 @@ tool (
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 )
+
+replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260810215310-a251ccc4eb09
