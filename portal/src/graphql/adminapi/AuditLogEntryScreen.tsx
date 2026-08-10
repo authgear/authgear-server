@@ -86,8 +86,11 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
       ? (formatDatetime(locale, auditLog.createdAt) ?? undefined)
       : undefined;
   const rawUserID = auditLog != null ? getRawUserIDFromAuditLog(auditLog) : undefined;
+  const userID = auditLog?.user?.id ?? undefined;
   const deleted = auditLog != null && auditLog.user?.id == null && rawUserID != null;
   const ipAddress = auditLog?.ipAddress ?? undefined;
+  const geoLocationCode: string | undefined =
+    auditLog?.data?.context?.geo_location_code ?? undefined;
   const userAgent = auditLog?.userAgent ?? undefined;
   const clientID = auditLog?.clientID ?? undefined;
   const code =
@@ -167,6 +170,12 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
                             <FormattedMessage id="AuditLogEntryScreen.field.user-id.deleted" />
                           </span>
                         </>
+                      ) : userID != null ? (
+                        <Link
+                          to={`/project/${appID}/user-management/users/${userID}/details`}
+                        >
+                          {rawUserID}
+                        </Link>
                       ) : (
                         rawUserID
                       )
@@ -179,7 +188,11 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
                     label={
                       <FormattedMessage id="AuditLogEntryScreen.field.ip-address" />
                     }
-                    value={ipAddress}
+                    value={
+                      geoLocationCode != null
+                        ? `${ipAddress} (${geoLocationCode})`
+                        : ipAddress
+                    }
                   />
                 ) : null}
 
@@ -192,14 +205,12 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
                   />
                 ) : null}
 
-                {clientID != null ? (
-                  <TableRow
-                    label={
-                      <FormattedMessage id="AuditLogEntryScreen.field.client-id" />
-                    }
-                    value={clientID}
-                  />
-                ) : null}
+                <TableRow
+                  label={
+                    <FormattedMessage id="AuditLogEntryScreen.field.client-id" />
+                  }
+                  value={clientID != null && clientID !== "" ? clientID : "-"}
+                />
               </div>
             </div>
           </div>
