@@ -25,19 +25,21 @@
 }
 
 /* ── Table ── */
+/* Column min widths: 24 + 18 + 18 + 2.75 = 62.75rem */
 
 .table {
-  min-width: 40rem;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
 }
 
 /* ── Header row ── */
 
 .tableHeader {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  width: max-content;
+  min-width: 100%;
   min-height: 2.75rem;
-  min-width: 40rem;
   background-color: var(--gray-2);
   border-top-left-radius: var(--radius-3);
   border-top-right-radius: var(--radius-3);
@@ -48,16 +50,29 @@
   z-index: 1;
 }
 
+.tableHeader::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: var(--gray-a6);
+  pointer-events: none;
+}
+
 .headerCellUser,
 .headerCellActivityType,
 .headerCellCreatedAt,
 .headerCellChevron {
   display: flex;
   align-items: center;
+  box-sizing: border-box;
   padding: 12px 16px;
   font-size: 14px;
   font-weight: 600;
   color: var(--gray-12);
+  background-color: var(--gray-2);
 }
 
 .headerCellUser {
@@ -75,20 +90,24 @@
   flex: 1 1 0;
   min-width: 18rem;
   padding: 0;
+  align-self: stretch;
 }
 
 .headerCellChevron {
   width: 2.75rem;
   flex-shrink: 0;
+  padding: 12px 8px;
 }
 
 /* ── Sort button inside Created At header ── */
 
 .sortButton {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 auto;
   align-items: center;
+  align-self: stretch;
   gap: 4px;
-  background: none;
+  background-color: var(--gray-2);
   border: none;
   cursor: pointer;
   padding: 12px 16px;
@@ -96,6 +115,7 @@
   font-weight: 600;
   color: var(--gray-12);
   width: 100%;
+  min-height: 100%;
   white-space: nowrap;
 }
 
@@ -110,29 +130,31 @@
 /* ── Data rows ── */
 
 .tableRow {
+  position: relative;
   display: flex;
   align-items: center;
-  min-width: 40rem;
+  width: max-content;
+  min-width: 100%;
   min-height: 3.25rem;
-  border-top: 1px solid var(--gray-a6);
+}
+
+.tableRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--gray-a6);
+  pointer-events: none;
+}
+
+.tableHeader + .tableRow::before {
+  display: none;
 }
 
 .tableRow:hover {
   background-color: var(--gray-a2);
-}
-
-.emptyRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3.25rem;
-  padding: 16px;
-  border-top: 1px solid var(--gray-a6);
-}
-
-.emptyText {
-  color: var(--gray-11);
-  text-align: center;
 }
 
 .cellUser,
@@ -144,6 +166,33 @@
   padding: 12px 16px;
   font-size: 14px;
   color: var(--gray-12);
+}
+
+.emptyRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: 100%;
+  min-height: 3.25rem;
+  padding: 16px;
+}
+
+.emptyRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--gray-a6);
+  pointer-events: none;
+}
+
+.emptyText {
+  color: var(--gray-11);
+  text-align: center;
 }
 
 .cellUser {
@@ -218,12 +267,28 @@
 /* ── Shimmer skeleton ── */
 
 .shimmerRow {
+  position: relative;
   display: flex;
   align-items: center;
-  min-width: 40rem;
+  width: max-content;
+  min-width: 100%;
   min-height: 3.25rem;
-  border-top: 1px solid var(--gray-a6);
   animation: shimmer-pulse 1.5s ease-in-out infinite;
+}
+
+.shimmerRow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--gray-a6);
+  pointer-events: none;
+}
+
+.tableHeader + .shimmerRow::before {
+  display: none;
 }
 
 @keyframes shimmer-pulse {
