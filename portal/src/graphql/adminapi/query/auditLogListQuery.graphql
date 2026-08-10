@@ -4,7 +4,6 @@ fragment AuditLogEdgesNode on AuditLog {
   activityType
   user {
     id
-    standardAttributes
     formattedName
     endUserAccountID
   }

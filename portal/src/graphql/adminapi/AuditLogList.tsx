@@ -53,34 +53,13 @@ function getUserDisplayFromAuditLog(
 ): { primary: string; secondary: string | null } {
   const user = node.user;
   if (user != null) {
-    const attrs = (user.standardAttributes ?? {}) as {
-      email?: string;
-      phone_number?: string;
-      preferred_username?: string;
-    };
-    const email = attrs.email?.trim() || null;
-    const phone = attrs.phone_number?.trim() || null;
-    const username = attrs.preferred_username?.trim() || null;
     const name = user.formattedName?.trim() || null;
-
-    if (email != null && name != null) {
-      return { primary: email, secondary: name };
-    }
-    if (email != null) {
-      return { primary: email, secondary: null };
-    }
-    if (phone != null) {
-      return { primary: phone, secondary: name };
-    }
-    if (username != null && name != null) {
-      return { primary: username, secondary: name };
-    }
-    if (username != null) {
-      return { primary: username, secondary: null };
-    }
-
-    const fallback = name ?? user.endUserAccountID ?? extractRawID(user.id);
-    return { primary: fallback, secondary: null };
+    const rawID = extractRawID(user.id);
+    const primary = name ?? user.endUserAccountID ?? rawID;
+    return {
+      primary,
+      secondary: primary === rawID ? null : rawID,
+    };
   }
 
   // No linked user record; fall back to the raw id from the event payload.
@@ -106,7 +85,11 @@ function UserCellContent(props: {
         {primary}
       </Text>
       {secondary != null ? (
-        <Text size="2" className={cn(styles.cellText, styles.userSecondary)}>
+        <Text
+          size="1"
+          color="gray"
+          className={cn(styles.cellText, styles.userSecondary)}
+        >
           {secondary}
         </Text>
       ) : null}
@@ -236,7 +219,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
                 const detailState: any = { searchParams };
                 const userHref =
                   item.userID != null
-                    ? `/project/${appID}/users/${item.userID}/details`
+                    ? `/project/${appID}/user-management/users/${item.userID}/details#logs`
                     : null;
 
                 return (
