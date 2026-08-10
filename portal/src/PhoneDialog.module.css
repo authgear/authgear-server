@@ -1,0 +1,26 @@
+/*
+ * Dialog content hosting PhoneTextField. Keep the intl-tel-input dropdown inside
+ * the dialog RemoveScroll shard so wheel scrolling works, and allow it to extend
+ * past dialog overflow clipping.
+ */
+.phoneDialogContent:global(.rt-BaseDialogContent) {
+  overflow: visible;
+}
+
+:global(.rt-BaseDialogScroll:has([data-phone-dialog="true"])) {
+  overflow: visible;
+}
+
+.phoneDialogForm :global(.iti) {
+  position: relative;
+  z-index: 2;
+}
+
+.phoneDialogForm :global(.iti__dropdown-content) {
+  z-index: 3;
+}
+
+.phoneDialogActions {
+  position: relative;
+  z-index: 1;
+}

@@ -1,7 +1,9 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import cn from "classnames";
 import { Button, Dialog } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import PhoneTextField from "../../PhoneTextField";
+import phoneDialogStyles from "../../PhoneDialog.module.css";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import { useCreateAuthenticatorMutation } from "../../graphql/adminapi/mutations/createAuthenticatorMutation";
 import {
@@ -90,20 +92,13 @@ export function Add2FAPhoneDialog({
     [createAuthenticator, e164, loading, onCreated, onOpenChange]
   );
 
-  // Country picker is portaled; prevent dialog close while interacting with it.
-  const onInteractOutside = useCallback((event: Event) => {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest(".iti__country-list, .iti__dropdown-content")) {
-      event.preventDefault();
-    }
-  }, []);
-
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         maxWidth="480px"
         size="3"
-        onInteractOutside={onInteractOutside}
+        className={phoneDialogStyles.phoneDialogContent}
+        data-phone-dialog="true"
       >
         <Dialog.Title>
           <FormattedMessage id="Add2FAScreen.title.phone" />
@@ -111,7 +106,10 @@ export function Add2FAPhoneDialog({
         <Dialog.Description size="2">
           <FormattedMessage id="Add2FAScreen.phone.description" />
         </Dialog.Description>
-        <form className={styles.form} onSubmit={onSubmit}>
+        <form
+          className={cn(styles.form, phoneDialogStyles.phoneDialogForm)}
+          onSubmit={onSubmit}
+        >
           <PhoneTextField
             key={fieldKey}
             label={renderToString("Add2FAScreen.phone.label")}
@@ -124,7 +122,7 @@ export function Add2FAPhoneDialog({
               setRawInputValue(values.rawInputValue);
             }}
           />
-          <div className={styles.actions}>
+          <div className={cn(styles.actions, phoneDialogStyles.phoneDialogActions)}>
             <SecondaryButton
               size="2"
               disabled={loading}
