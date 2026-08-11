@@ -761,6 +761,7 @@
   "AddSingleSignOnConfigurationScreen.card.wechat.web.description": "Allow your users to Sign in with their WeChat",
   "AddSingleSignOnConfigurationScreen.card.wechat.mobile.description": "Allow your users to Sign in with their WeChat",
   "EditSingleSignOnConfigurationScreen.title": "Edit Social Connection",
+  "SingleSignOnConfigurationWidget.advancedOptions": "Advanced Options",
   "SingleSignOnConfigurationWidget.providers.apple.inactiveMessage": "Client ID, Client Secret, Key ID or Team ID is missing. Please configure with your own keys to enable the login.",
   "SingleSignOnConfigurationWidget.providers.google.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
   "SingleSignOnConfigurationWidget.providers.facebook.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
