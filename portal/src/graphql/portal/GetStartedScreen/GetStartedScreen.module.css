@@ -208,6 +208,7 @@
 
 .featureIcon {
   flex: 0 0 auto;
+  color: var(--accent-9);
 }
 
 .featureTitle {
@@ -334,6 +335,7 @@
 
 .resourceIcon {
   flex: 0 0 auto;
+  color: var(--accent-9);
 }
 
 .resourceTextBlock {
@@ -348,6 +350,10 @@
   font-weight: 600;
   font-size: 14px;
   overflow-wrap: break-word;
+
+  /* The row is wrapped in a link; keep the title in body text color
+     instead of inheriting the link color. */
+  color: var(--gray-12);
 }
 
 .resourceDescription {

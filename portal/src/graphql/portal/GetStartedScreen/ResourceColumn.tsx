@@ -1,6 +1,6 @@
+import { Text } from "@radix-ui/themes";
 import React from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, useTheme } from "@fluentui/react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
@@ -34,8 +34,6 @@ function ResourceRow(props: ResourceRowProps): React.ReactElement {
     externalHref,
     onClick,
   } = props;
-  const theme = useTheme();
-
   const body = (
     <>
       <div className={styles.resourceIconWrapper}>
@@ -43,18 +41,17 @@ function ResourceRow(props: ResourceRowProps): React.ReactElement {
           className={styles.resourceIcon}
           width={20}
           height={20}
-          color={theme.palette.themePrimary}
           aria-hidden={true}
         />
       </div>
       <div className={styles.resourceTextBlock}>
-        <Text block={true} className={styles.resourceTitle}>
+        <p className={styles.resourceTitle}>
           <FormattedMessage id={titleMessageID} />
-        </Text>
+        </p>
         {descriptionMessageID != null ? (
-          <Text block={true} className={styles.resourceDescription}>
+          <p className={styles.resourceDescription}>
             <FormattedMessage id={descriptionMessageID} />
-          </Text>
+          </p>
         ) : null}
       </div>
     </>
@@ -87,7 +84,7 @@ export default function ResourceColumn(
   const { headingMessageID, rows } = props;
   return (
     <div className={styles.resourceColumn}>
-      <Text as="h3" block={true} className={styles.resourceHeading}>
+      <Text as="p" className={styles.resourceHeading}>
         <FormattedMessage id={headingMessageID} />
       </Text>
       <div className={styles.resourceRows}>
