@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Text } from "@radix-ui/themes";
+import { Spinner, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import {
   RolesListQueryDocument,
@@ -65,7 +65,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(0);
   }, []);
 
-  const { data, loading, error, refetch } = useQuery<
+  const { data, previousData, loading, error, refetch } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
@@ -77,23 +77,26 @@ const RolesScreen: React.VFC = function RolesScreen() {
     fetchPolicy: "network-only",
   });
 
-  const isLoading = loading || data == null;
+  const currentData = data ?? previousData;
+  // Only the very first load has no data at all; subsequent refetches keep
+  // showing the previous data so the chrome does not flicker.
+  const isInitialLoading = loading && currentData == null;
 
-  const isEmpty = !isLoading && data.roles?.totalCount === 0;
+  const isEmpty = !loading && currentData?.roles?.totalCount === 0;
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
   }, []);
 
   const headerSubItem = useMemo(() => {
-    return !isEmpty ? (
+    return !isInitialLoading && !isEmpty ? (
       <ReactRouterLinkComponent
         component={RolesAndGroupsEmptyView.CreateButton}
         to={`/project/${appID}/user-management/roles/add-role`}
         text={<FormattedMessage id="RolesEmptyView.button.text" />}
       />
     ) : null;
-  }, [appID, isEmpty]);
+  }, [appID, isInitialLoading, isEmpty]);
 
   if (error != null) {
     // eslint-disable-next-line @typescript-eslint/strict-void-return
@@ -105,14 +108,14 @@ const RolesScreen: React.VFC = function RolesScreen() {
       headerBreadcrumbs={items}
       headerSubitem={headerSubItem}
       headerDescription={
-        !isEmpty ? (
+        !isInitialLoading && !isEmpty ? (
           <Text as="p" size="2" color="gray">
             <FormattedMessage id="RolesScreen.description" />
           </Text>
         ) : null
       }
     >
-      {!isEmpty ? (
+      {!isInitialLoading && !isEmpty ? (
         <div className={styles.searchField}>
           <TextField
             size="2"
@@ -137,17 +140,21 @@ const RolesScreen: React.VFC = function RolesScreen() {
           />
         </div>
       ) : null}
-      {isEmpty ? (
+      {isInitialLoading ? (
+        <div className={styles.loadingContainer}>
+          <Spinner size="3" />
+        </div>
+      ) : isEmpty ? (
         <RolesEmptyView className={styles.emptyStateContainer} />
       ) : (
         <RolesList
           className={styles.list}
           isSearch={isSearch}
-          loading={isLoading}
+          loading={loading}
           offset={offset}
           pageSize={pageSize}
-          roles={data?.roles ?? null}
-          totalCount={data?.roles?.totalCount ?? undefined}
+          roles={currentData?.roles ?? null}
+          totalCount={currentData?.roles?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
         />
       )}

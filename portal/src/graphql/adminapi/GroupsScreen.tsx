@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Text } from "@radix-ui/themes";
+import { Spinner, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import {
   GroupsListQueryDocument,
@@ -65,7 +65,7 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     setOffset(0);
   }, []);
 
-  const { data, loading, error, refetch } = useQuery<
+  const { data, previousData, loading, error, refetch } = useQuery<
     GroupsListQueryQuery,
     GroupsListQueryQueryVariables
   >(GroupsListQueryDocument, {
@@ -77,23 +77,26 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     fetchPolicy: "network-only",
   });
 
-  const isLoading = loading || data == null;
+  const currentData = data ?? previousData;
+  // Only the very first load has no data at all; subsequent refetches keep
+  // showing the previous data so the chrome does not flicker.
+  const isInitialLoading = loading && currentData == null;
 
-  const isEmpty = !isLoading && data.groups?.totalCount === 0;
+  const isEmpty = !loading && currentData?.groups?.totalCount === 0;
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="GroupsScreen.title" /> }];
   }, []);
 
   const headerSubItem = useMemo(() => {
-    return !isEmpty ? (
+    return !isInitialLoading && !isEmpty ? (
       <ReactRouterLinkComponent
         component={RolesAndGroupsEmptyView.CreateButton}
         to={`/project/${appID}/user-management/groups/add-group`}
         text={<FormattedMessage id="GroupsEmptyView.button.text" />}
       />
     ) : null;
-  }, [appID, isEmpty]);
+  }, [appID, isInitialLoading, isEmpty]);
 
   if (error != null) {
     // eslint-disable-next-line @typescript-eslint/strict-void-return
@@ -105,14 +108,14 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
       headerBreadcrumbs={items}
       headerSubitem={headerSubItem}
       headerDescription={
-        !isEmpty ? (
+        !isInitialLoading && !isEmpty ? (
           <Text as="p" size="2" color="gray">
             <FormattedMessage id="GroupsScreen.description" />
           </Text>
         ) : null
       }
     >
-      {!isEmpty ? (
+      {!isInitialLoading && !isEmpty ? (
         <div className={styles.searchField}>
           <TextField
             size="2"
@@ -137,17 +140,21 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
           />
         </div>
       ) : null}
-      {isEmpty ? (
+      {isInitialLoading ? (
+        <div className={styles.loadingContainer}>
+          <Spinner size="3" />
+        </div>
+      ) : isEmpty ? (
         <GroupsEmptyView className={styles.emptyStateContainer} />
       ) : (
         <GroupsList
           className={styles.list}
           isSearch={isSearch}
-          loading={isLoading}
+          loading={loading}
           offset={offset}
           pageSize={pageSize}
-          groups={data?.groups ?? null}
-          totalCount={data?.groups?.totalCount ?? undefined}
+          groups={currentData?.groups ?? null}
+          totalCount={currentData?.groups?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
         />
       )}

@@ -28,3 +28,9 @@
 
   @apply mobile:flex-none mobile:min-h-min;
 }
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
