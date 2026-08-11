@@ -96,6 +96,8 @@
 .userIdPill {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
   gap: 4px;
   background-color: var(--gray-a3);
   border-radius: 4px;
