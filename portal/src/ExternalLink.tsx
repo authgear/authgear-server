@@ -1,8 +1,8 @@
 import React, { ReactElement } from "react";
-// eslint-disable-next-line no-restricted-imports
-import { ILinkProps, Link as FluentLink } from "@fluentui/react";
+import { Link as RadixLink } from "@radix-ui/themes";
 
-export interface ExternalLinkProps extends Omit<ILinkProps, "rel"> {}
+export interface ExternalLinkProps
+  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "color"> {}
 
 export const DEFAULT_EXTERNAL_LINK_PROPS = {
   target: "_blank",
@@ -10,5 +10,5 @@ export const DEFAULT_EXTERNAL_LINK_PROPS = {
 };
 
 export default function ExternalLink(props: ExternalLinkProps): ReactElement {
-  return <FluentLink {...DEFAULT_EXTERNAL_LINK_PROPS} {...props} />;
+  return <RadixLink {...DEFAULT_EXTERNAL_LINK_PROPS} {...props} />;
 }

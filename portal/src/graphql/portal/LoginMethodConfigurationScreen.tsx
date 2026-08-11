@@ -10,7 +10,6 @@ import cn from "classnames";
 import {
   Checkbox,
   Flex,
-  Heading,
   RadioGroup,
   Select,
   Separator,
@@ -112,7 +111,10 @@ import {
   tryProduce,
 } from "../../util/input";
 import styles from "./LoginMethodConfigurationScreen.module.css";
-import ChoiceButton from "../../ChoiceButton";
+import {
+  IconRadioCards,
+  IconRadioCardOption,
+} from "../../components/v2/IconRadioCards/IconRadioCards";
 import {
   formatDuration,
   formatOptionalDuration,
@@ -1551,73 +1553,6 @@ const AUTHENTICATION_BUTTON_ICON: Record<LoginMethodSecondLevelOption, string> =
     password: "forms",
   };
 
-interface AuthenticationButtonProps {
-  targetValue: LoginMethodSecondLevelOption;
-  currentValue: LoginMethodSecondLevelOption | null;
-  disabled?: boolean;
-  onClick?: (secondLevelOption: LoginMethodSecondLevelOption) => void;
-}
-
-function AuthenticationButton(props: AuthenticationButtonProps) {
-  const { targetValue, currentValue, disabled, onClick: onClickProp } = props;
-  const checked = targetValue === currentValue;
-  const iconName = AUTHENTICATION_BUTTON_ICON[targetValue];
-
-  const { renderToString } = useContext(Context);
-
-  const IconComponent = useCallback(
-    (props) => {
-      return (
-        <i
-          className={cn(
-            styles.authenticationButtonIcon,
-            "ti",
-            `ti-${iconName}`
-          )}
-          style={{
-            color: disabled === true ? props.disabledColor : undefined,
-          }}
-        ></i>
-      );
-    },
-    [disabled, iconName]
-  );
-
-  const onClick = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onClickProp?.(targetValue);
-    },
-    [onClickProp, targetValue]
-  );
-
-  const buttonStyles = useMemo(() => {
-    return {
-      flexContainer: {
-        columnGap: "16px",
-      },
-    };
-  }, []);
-
-  return (
-    <ChoiceButton
-      className={styles.authenticationButton}
-      styles={buttonStyles}
-      disabled={disabled}
-      checked={checked}
-      text={renderToString(
-        `LoginMethodConfigurationScreen.second-level.${targetValue}.title`
-      )}
-      secondaryText={renderToString(
-        `LoginMethodConfigurationScreen.second-level.${targetValue}.description`
-      )}
-      IconComponent={IconComponent}
-      onClick={onClick}
-    />
-  );
-}
-
 function buildLoginMethodFirstLevelButtons(opts: {
   phoneLoginIDDisabled: boolean;
   firstLevelOption: LoginMethodFirstLevelOption | null;
@@ -1822,6 +1757,33 @@ export function LoginMethodAuthenticationSection(
     showSubtitle = true,
   } = props;
 
+  const { renderToString } = useContext(Context);
+
+  const options = useMemo<
+    IconRadioCardOption<LoginMethodSecondLevelOption>[]
+  >(() => {
+    const values: LoginMethodSecondLevelOption[] = ["passwordless", "password"];
+    return values.map((value) => ({
+      value,
+      icon: (
+        <i
+          className={cn(
+            styles.authenticationButtonIcon,
+            "ti",
+            `ti-${AUTHENTICATION_BUTTON_ICON[value]}`
+          )}
+        ></i>
+      ),
+      title: renderToString(
+        `LoginMethodConfigurationScreen.second-level.${value}.title`
+      ),
+      disabled:
+        value === "passwordless"
+          ? !["email", "phone", "phone-email"].includes(firstLevelOption)
+          : undefined,
+    }));
+  }, [firstLevelOption, renderToString]);
+
   return (
     <>
       {showSubtitle ? (
@@ -1829,21 +1791,14 @@ export function LoginMethodAuthenticationSection(
           <FormattedMessage id="LoginMethodConfigurationScreen.chooser.subtitle" />
         </WidgetSubtitle>
       ) : null}
-      <div className={styles.chooserFlex}>
-        <AuthenticationButton
-          targetValue="passwordless"
-          currentValue={secondLevelOption}
-          disabled={
-            !["email", "phone", "phone-email"].includes(firstLevelOption)
-          }
-          onClick={onChangeSecondLevelOption}
-        />
-        <AuthenticationButton
-          targetValue="password"
-          currentValue={secondLevelOption}
-          onClick={onChangeSecondLevelOption}
-        />
-      </div>
+      <IconRadioCards
+        size="3"
+        value={secondLevelOption}
+        onValueChange={onChangeSecondLevelOption}
+        options={options}
+        itemMinWidth={220}
+        itemFillSpaces={true}
+      />
     </>
   );
 }
@@ -2576,9 +2531,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
     >
       <div className="flex flex-col gap-8">
         <section className="flex flex-col gap-4">
-          <SectionTitle>
+          <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
-          </SectionTitle>
+          </WidgetSubtitle>
           {phoneInputFeatureConfig?.allowlist &&
           phoneInputFeatureConfig.allowlist.length > 0 ? (
             <Callout
@@ -2613,9 +2568,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <SectionTitle>
+          <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.preSelectCountryCode.title" />
-          </SectionTitle>
+          </WidgetSubtitle>
           <Toggle
             text={renderToString(
               "LoginIDConfigurationScreen.phone.preselect-by-ip"
@@ -2626,9 +2581,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <SectionTitle>
+          <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.title" />
-          </SectionTitle>
+          </WidgetSubtitle>
           <RadioGroup.Root
             value={
               phoneInputConfig.validation.libphonenumber?.validation_method ??
@@ -2655,9 +2610,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <SectionTitle>
+          <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.userPhoneNumberPermissions.title" />
-          </SectionTitle>
+          </WidgetSubtitle>
           <LabeledCheckbox
             label={renderToString(
               "LoginIDConfigurationScreen.phone.create-disabled"
@@ -4087,14 +4042,6 @@ const LoginMethodConfigurationScreen: React.VFC =
   };
 
 export default LoginMethodConfigurationScreen;
-
-function SectionTitle({ children }: { children: React.ReactChild }) {
-  return (
-    <Heading as="h3" size="3" className="font-semibold">
-      {children}
-    </Heading>
-  );
-}
 
 function PasskeySection({
   className,
