@@ -3,13 +3,16 @@
   z-index: 10001;
 }
 
-.tooltip :global(.ms-Link) {
+/* Links are hard to read in the tooltip's dark bubble with the default
+   accent color; use a lighter blue. Target plain anchors so it applies
+   to any link component. */
+.tooltip a {
   color: var(--blue-8);
   text-decoration: none;
 }
 
-.tooltip :global(.ms-Link:hover),
-.tooltip :global(.ms-Link:focus) {
+.tooltip a:hover,
+.tooltip a:focus {
   color: var(--blue-7);
   text-decoration: none;
 }

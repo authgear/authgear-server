@@ -1,7 +1,7 @@
 import React, { useMemo, useContext, useCallback, ReactElement } from "react";
 import { produce } from "immer";
 import cn from "classnames";
-import { Checkbox, Select, Separator, Text } from "@radix-ui/themes";
+import { Checkbox, Select, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import {
   AuthenticatorPasswordConfig,
@@ -544,17 +544,13 @@ export default function PasswordSettings<T extends State>(
   );
 
   return (
-    <SettingsSectionCard
-      className={className}
-      contentClassName="gap-4"
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.title" />
-      }
-    >
-      <div className={styles.section}>
-        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+    <div className={cn(styles.cards, className)}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.resetPassword.title" />
-        </Text>
+        }
+      >
         <FormField
           size="2"
           labelSize="2"
@@ -631,22 +627,17 @@ export default function PasswordSettings<T extends State>(
           onChange={onChangeCodeExpirySeconds}
           disabled={!(isLoginIDEmailEnabled || isLoginIDPhoneEnabled)}
         />
-      </div>
+      </SettingsSectionCard>
 
-      <Separator size="4" className={styles.separator} />
-
-      <div className={styles.section}>
-        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
-        </Text>
-        <Text
-          as="p"
-          size="2"
-          color="gray"
-          className={styles.sectionDescription}
-        >
+        }
+        description={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
-        </Text>
+        }
+      >
         <Toggle
           checked={authenticatorPasswordConfig.force_change ?? false}
           onCheckedChange={onChangeForceChange}
@@ -704,14 +695,14 @@ export default function PasswordSettings<T extends State>(
             onCheckedChange={onChangeSymbolRequired}
           />
         </div>
-      </div>
+      </SettingsSectionCard>
 
-      <Separator size="4" className={styles.separator} />
-
-      <div className={styles.section}>
-        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements.advanced" />
-        </Text>
+        }
+      >
         {anyAdvancedPolicyDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
@@ -787,22 +778,17 @@ export default function PasswordSettings<T extends State>(
           }
           onChange={onChangeHistorySize}
         />
-      </div>
+      </SettingsSectionCard>
 
-      <Separator size="4" className={styles.separator} />
-
-      <div className={styles.section}>
-        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry" />
-        </Text>
-        <Text
-          as="p"
-          size="2"
-          color="gray"
-          className={styles.sectionDescription}
-        >
+        }
+        description={
           <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.description" />
-        </Text>
+        }
+      >
         <Toggle
           checked={isPasswordExpiryForceChangeEnabled}
           onCheckedChange={onChangeExpiryForceChangeEnabled}
@@ -823,42 +809,36 @@ export default function PasswordSettings<T extends State>(
           onChange={onChangeExpiryForceChangeDays}
           onBlur={onBlurExpiryForceChangeDays}
         />
-      </div>
+      </SettingsSectionCard>
 
-      <Separator size="4" className={styles.separator} />
-
-      <div
+      <SettingsSectionCard
+        contentClassName="gap-4"
         className={cn(
           passwordPolicyFeatureConfig?.excluded_keywords?.disabled &&
             styles.sectionDisabled
         )}
+        title={
+          <FormattedMessage id="PasswordSettings.excludedKeywords.title" />
+        }
+        description={
+          <FormattedMessage id="PasswordSettings.excludedKeywords.description" />
+        }
       >
-        <FormField
-          size="2"
-          labelSize="2"
-          labelSpace="1"
-          label={
-            <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
-          }
-        >
-          <div className={styles.excludedKeywordsTagPicker}>
-            <CustomTagPicker
-              inputProps={{
-                "aria-label": renderToString(
-                  "PasswordPolicyConfigurationScreen.excluded-keywords.label"
-                ),
-              }}
-              disabled={
-                passwordPolicyFeatureConfig?.excluded_keywords?.disabled
-              }
-              selectedItems={excludedKeywords}
-              onChange={onChangeExcludedKeywords}
-              onResolveSuggestions={onResolveSuggestionsExcludedKeywords}
-              onAdd={onAddExcludedKeywords}
-            />
-          </div>
-        </FormField>
-      </div>
-    </SettingsSectionCard>
+        <div className={styles.excludedKeywordsTagPicker}>
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "PasswordPolicyConfigurationScreen.excluded-keywords.label"
+              ),
+            }}
+            disabled={passwordPolicyFeatureConfig?.excluded_keywords?.disabled}
+            selectedItems={excludedKeywords}
+            onChange={onChangeExcludedKeywords}
+            onResolveSuggestions={onResolveSuggestionsExcludedKeywords}
+            onAdd={onAddExcludedKeywords}
+          />
+        </div>
+      </SettingsSectionCard>
+    </div>
   );
 }

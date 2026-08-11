@@ -1,5 +1,5 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
@@ -109,12 +109,16 @@
   width: 100%;
 }
 
-.cardSeparator {
-  width: 100%;
-}
-
 .tabContent {
   padding-top: 24px;
+}
+
+/* Stack of SettingsSectionCards inside a tab; matches the page-level
+   row gap of ScreenContent. */
+.tabCards {
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
 }
 
 .infoIcon {

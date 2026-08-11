@@ -7,14 +7,7 @@ import React, {
   useRef,
 } from "react";
 import cn from "classnames";
-import {
-  Checkbox,
-  Flex,
-  RadioGroup,
-  Select,
-  Separator,
-  Text,
-} from "@radix-ui/themes";
+import { Checkbox, Flex, RadioGroup, Select, Text } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import {
   OverflowTabs,
@@ -1905,40 +1898,38 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   }, [authenticators, loginIDs]);
 
   return (
-    <SettingsSectionCard
-      contentClassName="gap-4"
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.title" />
-      }
-    >
+    <div className={styles.tabCards}>
       {phoneLoginIDDisabled ? (
         <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
       ) : null}
-      <WidgetSubsection>
-        <WidgetSubtitle>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.title" />
-        </WidgetSubtitle>
-        <WidgetDescription>
+        }
+        description={
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.description" />
-        </WidgetDescription>
-      </WidgetSubsection>
-      <PriorityList
-        items={loginIDs}
-        checkedColumnLabel={renderToString("activate")}
-        keyColumnLabel={renderToString(
-          "LoginMethodConfigurationScreen.custom-login-methods.login-id.title"
-        )}
-        onChangeChecked={onChangeLoginIDChecked}
-        onMove={onMoveLoginID}
-      />
-      <Separator size="4" className={styles.cardSeparator} />
-      <WidgetSubsection>
-        <WidgetSubtitle>
+        }
+      >
+        <PriorityList
+          items={loginIDs}
+          checkedColumnLabel={renderToString("activate")}
+          keyColumnLabel={renderToString(
+            "LoginMethodConfigurationScreen.custom-login-methods.login-id.title"
+          )}
+          onChangeChecked={onChangeLoginIDChecked}
+          onMove={onMoveLoginID}
+        />
+      </SettingsSectionCard>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.title" />
-        </WidgetSubtitle>
-        <WidgetDescription>
+        }
+        description={
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.description" />
-        </WidgetDescription>
+        }
+      >
         {authenticatorWarning != null ? (
           <Callout
             className="w-full"
@@ -1947,17 +1938,17 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
             showCloseButton={false}
           />
         ) : null}
-      </WidgetSubsection>
-      <PriorityList
-        items={authenticators}
-        checkedColumnLabel={renderToString("activate")}
-        keyColumnLabel={renderToString(
-          "LoginMethodConfigurationScreen.custom-login-methods.authenticator.title"
-        )}
-        onChangeChecked={onChangePrimaryAuthenticatorChecked}
-        onMove={onMovePrimaryAuthenticator}
-      />
-    </SettingsSectionCard>
+        <PriorityList
+          items={authenticators}
+          checkedColumnLabel={renderToString("activate")}
+          keyColumnLabel={renderToString(
+            "LoginMethodConfigurationScreen.custom-login-methods.authenticator.title"
+          )}
+          onChangeChecked={onChangePrimaryAuthenticatorChecked}
+          onMove={onMovePrimaryAuthenticator}
+        />
+      </SettingsSectionCard>
+    </div>
   );
 }
 
@@ -2155,156 +2146,182 @@ function EmailSettings(props: EmailSettingsProps) {
   );
 
   return (
-    <SettingsSectionCard
-      contentClassName="gap-4"
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.email.title" />
-      }
-      description={
-        <FormattedMessage id="LoginMethodConfigurationScreen.email.description" />
-      }
-    >
-      <LabeledCheckbox
-        label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
-        checked={loginIDEmailConfig.case_sensitive}
-        onCheckedChange={onChangeCaseSensitive}
-      />
-      <LabeledCheckbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.ignoreDotLocal"
-        )}
-        checked={loginIDEmailConfig.ignore_dot_sign}
-        onCheckedChange={onChangeIgnoreDotSign}
-      />
-      <CheckboxWithTooltip
-        label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
-        checked={loginIDEmailConfig.block_plus_sign}
-        tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
-        onCheckedChange={onChangeBlockPlusSign}
-      />
-      <CheckboxWithContentLayout>
-        <CheckboxWithTooltip
+    <div className={styles.tabCards}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.format.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.format.description" />
+        }
+      >
+        <LabeledCheckbox
           label={renderToString(
-            "LoginIDConfigurationScreen.email.domainBlocklist"
+            "LoginIDConfigurationScreen.email.caseSensitive"
           )}
-          checked={loginIDEmailConfig.domain_blocklist_enabled}
-          onCheckedChange={onChangeBlocklistEnabled}
-          disabled={loginIDEmailConfig.domain_allowlist_enabled}
-          tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
+          checked={loginIDEmailConfig.case_sensitive}
+          onCheckedChange={onChangeCaseSensitive}
         />
-        <CustomTagPicker
-          inputProps={{
-            "aria-label": renderToString(
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.ignoreDotLocal"
+          )}
+          checked={loginIDEmailConfig.ignore_dot_sign}
+          onCheckedChange={onChangeIgnoreDotSign}
+        />
+        <CheckboxWithTooltip
+          label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
+          checked={loginIDEmailConfig.block_plus_sign}
+          tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
+          onCheckedChange={onChangeBlockPlusSign}
+        />
+      </SettingsSectionCard>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.domains.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.domains.description" />
+        }
+      >
+        <CheckboxWithContentLayout>
+          <CheckboxWithTooltip
+            label={renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
-            ),
-          }}
-          disabled={!loginIDEmailConfig.domain_blocklist_enabled}
-          selectedItems={blocklist}
-          onChange={onChangeBlocklist}
-          onResolveSuggestions={onResolveSuggestionsBlocklist}
-          onAdd={onAddBlocklist}
-        />
-      </CheckboxWithContentLayout>
-      <LabeledCheckbox
-        label={
-          <FormattedMessage
-            id={
-              "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
-            }
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              externalLink: (chunks: React.ReactNode) => (
-                <ExternalLink
-                  href="https://github.com/Kikobeats/free-email-domains/blob/master/domains.json"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {chunks}
-                </ExternalLink>
+            )}
+            checked={loginIDEmailConfig.domain_blocklist_enabled}
+            onCheckedChange={onChangeBlocklistEnabled}
+            disabled={loginIDEmailConfig.domain_allowlist_enabled}
+            tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
+          />
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "LoginIDConfigurationScreen.email.domainBlocklist"
               ),
             }}
+            disabled={!loginIDEmailConfig.domain_blocklist_enabled}
+            selectedItems={blocklist}
+            onChange={onChangeBlocklist}
+            onResolveSuggestions={onResolveSuggestionsBlocklist}
+            onAdd={onAddBlocklist}
           />
-        }
-        checked={loginIDEmailConfig.block_free_email_provider_domains}
-        disabled={loginIDEmailConfig.domain_allowlist_enabled}
-        onCheckedChange={onChangeBlockFreeEmailProviderDomains}
-      />
-      <LabeledCheckbox
-        label={
-          <FormattedMessage
-            id={"LoginIDConfigurationScreen.email.blockDisposableEmailDomains"}
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              externalLink: (chunks: React.ReactNode) => (
-                <ExternalLink
-                  href="https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {chunks}
-                </ExternalLink>
-              ),
-            }}
-          />
-        }
-        checked={loginIDEmailConfig.block_disposable_email_domains}
-        disabled={loginIDEmailConfig.domain_allowlist_enabled}
-        onCheckedChange={onChangeBlockDisposableEmailDomains}
-      />
-      <CheckboxWithContentLayout>
-        <CheckboxWithTooltip
-          label={renderToString(
-            "LoginIDConfigurationScreen.email.domainAllowlist"
-          )}
-          checked={loginIDEmailConfig.domain_allowlist_enabled}
-          onCheckedChange={onChangeAllowlistEnabled}
-          disabled={loginIDEmailConfig.domain_blocklist_enabled}
-          tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
+        </CheckboxWithContentLayout>
+        <LabeledCheckbox
+          label={
+            <FormattedMessage
+              id={
+                "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
+              }
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink
+                    href="https://github.com/Kikobeats/free-email-domains/blob/master/domains.json"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          }
+          checked={loginIDEmailConfig.block_free_email_provider_domains}
+          disabled={loginIDEmailConfig.domain_allowlist_enabled}
+          onCheckedChange={onChangeBlockFreeEmailProviderDomains}
         />
-        <CustomTagPicker
-          inputProps={{
-            "aria-label": renderToString(
+        <LabeledCheckbox
+          label={
+            <FormattedMessage
+              id={
+                "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
+              }
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                externalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink
+                    href="https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          }
+          checked={loginIDEmailConfig.block_disposable_email_domains}
+          disabled={loginIDEmailConfig.domain_allowlist_enabled}
+          onCheckedChange={onChangeBlockDisposableEmailDomains}
+        />
+        <CheckboxWithContentLayout>
+          <CheckboxWithTooltip
+            label={renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
-            ),
-          }}
-          disabled={!loginIDEmailConfig.domain_allowlist_enabled}
-          selectedItems={allowlist}
-          onChange={onChangeAllowlist}
-          onResolveSuggestions={onResolveSuggestionsAllowlist}
-          onAdd={onAddAllowlist}
+            )}
+            checked={loginIDEmailConfig.domain_allowlist_enabled}
+            onCheckedChange={onChangeAllowlistEnabled}
+            disabled={loginIDEmailConfig.domain_blocklist_enabled}
+            tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
+          />
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "LoginIDConfigurationScreen.email.domainAllowlist"
+              ),
+            }}
+            disabled={!loginIDEmailConfig.domain_allowlist_enabled}
+            selectedItems={allowlist}
+            onChange={onChangeAllowlist}
+            onResolveSuggestions={onResolveSuggestionsAllowlist}
+            onAdd={onAddAllowlist}
+          />
+        </CheckboxWithContentLayout>
+      </SettingsSectionCard>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.userEmailPermissions.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.email.section.userEmailPermissions.description" />
+        }
+      >
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.create-disabled"
+          )}
+          checked={
+            loginIDKeyConfigsControl.find((a) => a.value.type === "email")
+              ?.value.create_disabled ?? false
+          }
+          onCheckedChange={onChangeCreateDisabled}
         />
-      </CheckboxWithContentLayout>
-      <LabeledCheckbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.create-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
-            .create_disabled ?? false
-        }
-        onCheckedChange={onChangeCreateDisabled}
-      />
-      <LabeledCheckbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.update-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
-            .update_disabled ?? false
-        }
-        onCheckedChange={onChangeUpdateDisabled}
-      />
-      <LabeledCheckbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.delete-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
-            .delete_disabled ?? false
-        }
-        onCheckedChange={onChangeDeleteDisabled}
-      />
-    </SettingsSectionCard>
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.update-disabled"
+          )}
+          checked={
+            loginIDKeyConfigsControl.find((a) => a.value.type === "email")
+              ?.value.update_disabled ?? false
+          }
+          onCheckedChange={onChangeUpdateDisabled}
+        />
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.delete-disabled"
+          )}
+          checked={
+            loginIDKeyConfigsControl.find((a) => a.value.type === "email")
+              ?.value.delete_disabled ?? false
+          }
+          onCheckedChange={onChangeDeleteDisabled}
+        />
+      </SettingsSectionCard>
+    </div>
   );
 }
 
@@ -2413,17 +2430,17 @@ function PhoneSettings(props: PhoneSettingsProps) {
   );
 
   return (
-    <SettingsSectionCard
-      contentClassName="gap-4"
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.phone.title" />
-      }
-    >
-      <div className="flex flex-col gap-8">
-        <section className="flex flex-col gap-4">
-          <WidgetSubtitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
-          </WidgetSubtitle>
+    <div className={styles.tabCards}>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.description" />
+        }
+      >
+        <>
           {phoneInputFeatureConfig?.allowlist &&
           phoneInputFeatureConfig.allowlist.length > 0 ? (
             <Callout
@@ -2455,54 +2472,70 @@ function PhoneSettings(props: PhoneSettingsProps) {
             featureAllowlist={phoneInputFeatureConfig?.allowlist}
             onChange={onChangePhoneList}
           />
-        </section>
+        </>
+      </SettingsSectionCard>
 
-        <section className="flex flex-col gap-4">
-          <WidgetSubtitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.preSelectCountryCode.title" />
-          </WidgetSubtitle>
-          <Toggle
-            text={renderToString(
-              "LoginIDConfigurationScreen.phone.preselect-by-ip"
-            )}
-            checked={phoneInputConfig.preselect_by_ip_disabled !== true}
-            onCheckedChange={onChangePreselectByIP}
-          />
-        </section>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.preSelectCountryCode.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.preSelectCountryCode.description" />
+        }
+      >
+        <Toggle
+          text={renderToString(
+            "LoginIDConfigurationScreen.phone.preselect-by-ip"
+          )}
+          checked={phoneInputConfig.preselect_by_ip_disabled !== true}
+          onCheckedChange={onChangePreselectByIP}
+        />
+      </SettingsSectionCard>
 
-        <section className="flex flex-col gap-4">
-          <WidgetSubtitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.title" />
-          </WidgetSubtitle>
-          <RadioGroup.Root
-            value={
-              phoneInputConfig.validation.libphonenumber?.validation_method ??
-              ""
-            }
-            onValueChange={onPhoneValidationMethodChange}
-          >
-            <Flex direction="column" gap="3">
-              {phoneValidationOptions.map((option) => (
-                <Text
-                  key={option.value}
-                  as="label"
-                  size="2"
-                  className={styles.radioOption}
-                >
-                  <Flex gap="2" align="center">
-                    <RadioGroup.Item value={option.value} />
-                    <span>{option.label}</span>
-                  </Flex>
-                </Text>
-              ))}
-            </Flex>
-          </RadioGroup.Root>
-        </section>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.description" />
+        }
+      >
+        <RadioGroup.Root
+          value={
+            phoneInputConfig.validation.libphonenumber?.validation_method ?? ""
+          }
+          onValueChange={onPhoneValidationMethodChange}
+        >
+          <Flex direction="column" gap="3">
+            {phoneValidationOptions.map((option) => (
+              <Text
+                key={option.value}
+                as="label"
+                size="2"
+                className={styles.radioOption}
+              >
+                <Flex gap="2" align="center">
+                  <RadioGroup.Item value={option.value} />
+                  <span>{option.label}</span>
+                </Flex>
+              </Text>
+            ))}
+          </Flex>
+        </RadioGroup.Root>
+      </SettingsSectionCard>
 
-        <section className="flex flex-col gap-4">
-          <WidgetSubtitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.userPhoneNumberPermissions.title" />
-          </WidgetSubtitle>
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.userPhoneNumberPermissions.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.userPhoneNumberPermissions.description" />
+        }
+      >
+        <>
           <LabeledCheckbox
             label={renderToString(
               "LoginIDConfigurationScreen.phone.create-disabled"
@@ -2533,9 +2566,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
             }
             onCheckedChange={onChangeDeleteDisabled}
           />
-        </section>
-      </div>
-    </SettingsSectionCard>
+        </>
+      </SettingsSectionCard>
+    </div>
   );
 }
 
@@ -2773,7 +2806,6 @@ function useVerificationOnChangeEnabled(
 }
 
 interface VerificationSettingsProps {
-  isPasswordlessEnabled: boolean;
   showEmailSettings: boolean;
   showPhoneSettings: boolean;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
@@ -2793,7 +2825,6 @@ interface VerificationSettingsProps {
 
 function VerificationSettings(props: VerificationSettingsProps) {
   const {
-    isPasswordlessEnabled,
     showEmailSettings,
     showPhoneSettings,
     setState,
@@ -3028,59 +3059,49 @@ function VerificationSettings(props: VerificationSettingsProps) {
     );
 
   return (
-    <SettingsSectionCard
-      contentClassName="gap-4"
-      title={
-        <FormattedMessage
-          id={
-            isPasswordlessEnabled
-              ? "LoginMethodConfigurationScreen.verificationAndPasswordless.title"
-              : "LoginMethodConfigurationScreen.verification.title"
-          }
-        />
-      }
-      description={
-        <FormattedMessage
-          id={
-            isPasswordlessEnabled
-              ? "LoginMethodConfigurationScreen.verificationAndPasswordless.description"
-              : "LoginMethodConfigurationScreen.verification.description"
-          }
-        />
-      }
-    >
+    <div className={styles.tabCards}>
       {showEmailSettings && showPhoneSettings ? (
-        <div>
-          <CriteriaLabel />
-          <Select.Root
-            value={verificationCriteria}
-            onValueChange={onChangeCriteria}
-            size="2"
-          >
-            <Select.Trigger
-              variant="surface"
-              className={styles.selectTrigger}
-            />
-            <Select.Content>
-              {criteriaOptions.map((opt) => (
-                <Select.Item key={opt.key} value={opt.key}>
-                  {opt.text}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select.Root>
-        </div>
+        <SettingsSectionCard
+          contentClassName="gap-4"
+          title={
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.criteria.title" />
+          }
+          description={
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.criteria.description" />
+          }
+        >
+          <div>
+            <CriteriaLabel />
+            <Select.Root
+              value={verificationCriteria}
+              onValueChange={onChangeCriteria}
+              size="2"
+            >
+              <Select.Trigger
+                variant="surface"
+                className={styles.selectTrigger}
+              />
+              <Select.Content>
+                {criteriaOptions.map((opt) => (
+                  <Select.Item key={opt.key} value={opt.key}>
+                    {opt.text}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          </div>
+        </SettingsSectionCard>
       ) : null}
       {showEmailSettings ? (
-        <>
-          {showPhoneSettings ? (
-            // The criteria select above is shown iff both email and phone
-            // are shown; only separate from it when it is there.
-            <Separator size="4" className={styles.cardSeparator} />
-          ) : null}
-          <WidgetSubtitle>
+        <SettingsSectionCard
+          contentClassName="gap-4"
+          title={
             <FormattedMessage id="LoginMethodConfigurationScreen.verification.email" />
-          </WidgetSubtitle>
+          }
+          description={
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.email.cardDescription" />
+          }
+        >
           <Toggle
             textWeight="medium"
             checked={verificationClaims?.email?.required ?? true}
@@ -3144,18 +3165,18 @@ function VerificationSettings(props: VerificationSettingsProps) {
             value={emailVerificationDailyLimit?.toFixed(0) ?? ""}
             onChange={onChangeDailyVerificationLimit}
           />
-        </>
+        </SettingsSectionCard>
       ) : null}
       {showPhoneSettings ? (
-        <>
-          {showEmailSettings ? (
-            // Separate from the email section / criteria select above;
-            // when phone is the first block there is nothing to separate.
-            <Separator size="4" className={styles.cardSeparator} />
-          ) : null}
-          <WidgetSubtitle>
+        <SettingsSectionCard
+          contentClassName="gap-4"
+          title={
             <FormattedMessage id="LoginMethodConfigurationScreen.verification.phone" />
-          </WidgetSubtitle>
+          }
+          description={
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.phone.cardDescription" />
+          }
+        >
           <Toggle
             textWeight="medium"
             checked={verificationClaims?.phone_number?.required ?? true}
@@ -3225,49 +3246,58 @@ function VerificationSettings(props: VerificationSettingsProps) {
               onChange={onChangeDailySMSLimit}
             />
           ) : null}
-        </>
+        </SettingsSectionCard>
       ) : null}
-      <Separator size="4" className={styles.cardSeparator} />
-      <TextField
-        size="2"
-        labelSize="2"
-        type="text"
-        label={renderToString(
-          "VerificationConfigurationScreen.otp-valid-seconds.label"
-        )}
-        value={sixDigitOTPValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeOTPValidPeriodSeconds}
-      />
-      <div className={styles.otpFailedAttemptContainer}>
-        <Text as="p" size="2" weight="medium">
-          <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.label" />
-        </Text>
-        <Toggle
-          text={
-            anyOTPRevokeFailedAttemptsEnabled
-              ? renderToString("Toggle.on")
-              : renderToString(
-                  "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
-                )
-          }
-          checked={anyOTPRevokeFailedAttemptsEnabled}
-          onCheckedChange={onChangeOTPFailedAttemptEnabled}
+      <SettingsSectionCard
+        contentClassName="gap-4"
+        title={
+          <FormattedMessage id="LoginMethodConfigurationScreen.verification.otp.title" />
+        }
+        description={
+          <FormattedMessage id="LoginMethodConfigurationScreen.verification.otp.description" />
+        }
+      >
+        <TextField
+          size="2"
+          labelSize="2"
+          type="text"
+          label={renderToString(
+            "VerificationConfigurationScreen.otp-valid-seconds.label"
+          )}
+          value={sixDigitOTPValidPeriodSeconds?.toFixed(0) ?? ""}
+          onChange={onChangeOTPValidPeriodSeconds}
         />
-        {anyOTPRevokeFailedAttemptsEnabled ? (
-          <TextField
-            size="2"
-            parentJSONPointer="/authentication/rate_limits/oob_otp/email/max_failed_attempts_revoke_otp"
-            fieldName="size"
-            type="text"
-            value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
-            onChange={onChangeOTPFailedAttemptSize}
+        <div className={styles.otpFailedAttemptContainer}>
+          <Text as="p" size="2" weight="medium">
+            <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.label" />
+          </Text>
+          <Toggle
+            text={
+              anyOTPRevokeFailedAttemptsEnabled
+                ? renderToString("Toggle.on")
+                : renderToString(
+                    "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
+                  )
+            }
+            checked={anyOTPRevokeFailedAttemptsEnabled}
+            onCheckedChange={onChangeOTPFailedAttemptEnabled}
           />
-        ) : null}
-        <WidgetDescription>
-          <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.description" />
-        </WidgetDescription>
-      </div>
-    </SettingsSectionCard>
+          {anyOTPRevokeFailedAttemptsEnabled ? (
+            <TextField
+              size="2"
+              parentJSONPointer="/authentication/rate_limits/oob_otp/email/max_failed_attempts_revoke_otp"
+              fieldName="size"
+              type="text"
+              value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
+              onChange={onChangeOTPFailedAttemptSize}
+            />
+          ) : null}
+          <WidgetDescription>
+            <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.description" />
+          </WidgetDescription>
+        </div>
+      </SettingsSectionCard>
+    </div>
   );
 }
 
@@ -3604,6 +3634,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     // The old Fluent Pivot was uncontrolled.
     // We keep the last selection sticky and fall back to the first
     // available tab when the selected one is hidden, matching the old behavior.
+    // With Social / Enterprise only there are no tabs at all.
     const [selectedTab, setSelectedTab] = useState<string | null>(null);
     const activeTab = useMemo(() => {
       if (
@@ -3612,7 +3643,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       ) {
         return selectedTab;
       }
-      return tabOptions[0].value;
+      return tabOptions.length > 0 ? tabOptions[0].value : null;
     }, [selectedTab, tabOptions]);
 
     return (
@@ -3663,106 +3694,111 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             passkeyShowDoNotAskAgain={passkeyShowDoNotAskAgain}
             onChangePasskeyShowDoNotAskAgain={onChangePasskeyShowDoNotAskAgain}
           />
-          <div
-            className={cn(
-              styles.widget,
-              isDirty && styles.settingsCardSaveBarClearance
-            )}
-          >
-            <OverflowTabs
-              value={activeTab}
-              onValueChange={setSelectedTab}
-              tabs={tabOptions}
-            />
-            {activeTab === "custom" ? (
-              <div className={styles.tabContent}>
-                <CustomLoginMethods
-                  phoneLoginIDDisabled={phoneLoginIDDisabled}
-                  primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                  onChangeLoginIDChecked={onChangeLoginIDChecked}
-                  onMoveLoginID={onMoveLoginID}
-                  onChangePrimaryAuthenticatorChecked={
-                    onChangePrimaryAuthenticatorChecked
-                  }
-                  onMovePrimaryAuthenticator={onMovePrimaryAuthenticator}
-                />
-              </div>
-            ) : null}
-            {activeTab === "email" ? (
-              <div className={styles.tabContent}>
-                <EmailSettings
-                  resources={resources}
-                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                  loginIDEmailConfig={loginIDEmailConfig}
-                  setState={setState}
-                />
-              </div>
-            ) : null}
-            {activeTab === "phone" ? (
-              <div className={styles.tabContent}>
-                <PhoneSettings
-                  appID={appID}
-                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                  phoneInputConfig={phoneInputConfig}
-                  phoneInputFeatureConfig={state.phoneInputFeatureConfig}
-                  setState={setState}
-                />
-              </div>
-            ) : null}
-            {activeTab === "username" ? (
-              <div className={styles.tabContent}>
-                <UsernameSettings
-                  resources={resources}
-                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                  loginIDUsernameConfig={loginIDUsernameConfig}
-                  setState={setState}
-                />
-              </div>
-            ) : null}
-            {activeTab === "verification" ? (
-              <div className={styles.tabContent}>
-                <VerificationSettings
-                  isPasswordlessEnabled={isPasswordlessEnabled}
-                  showEmailSettings={showEmailSettings}
-                  showPhoneSettings={showPhoneSettings}
-                  authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
-                  authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
-                  verificationClaims={verificationClaims}
-                  verificationCriteria={verificationCriteria}
-                  sixDigitOTPValidPeriodSeconds={sixDigitOTPValidPeriodSeconds}
-                  smsOTPCooldownPeriodSeconds={smsOTPCooldownPeriodSeconds}
-                  emailOTPCooldownPeriodSeconds={emailOTPCooldownPeriodSeconds}
-                  anyOTPRevokeFailedAttemptsEnabled={
-                    anyOTPRevokeFailedAttemptsEnabled
-                  }
-                  anyOTPRevokeFailedAttempts={anyOTPRevokeFailedAttempts}
-                  smsDailySendLimit={smsDailySendLimit}
-                  emailVerificationDailyLimit={emailVerificationDailyLimit}
-                  setState={setState}
-                />
-              </div>
-            ) : null}
-            {activeTab === "password" ? (
-              <div className={styles.tabContent}>
-                <PasswordSettings
-                  forgotPasswordLinkValidPeriodSeconds={
-                    forgotPasswordLinkValidPeriodSeconds
-                  }
-                  forgotPasswordCodeValidPeriodSeconds={
-                    forgotPasswordCodeValidPeriodSeconds
-                  }
-                  resetPasswordWithEmailBy={resetPasswordWithEmailBy}
-                  resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
-                  authenticatorPasswordConfig={authenticatorPasswordConfig}
-                  passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
-                  isLoginIDEmailEnabled={isLoginIDEmailEnabled}
-                  isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
-                  setState={setState}
-                />
-              </div>
-            ) : null}
-          </div>
+          {activeTab != null ? (
+            <div
+              className={cn(
+                styles.widget,
+                isDirty && styles.settingsCardSaveBarClearance
+              )}
+            >
+              <OverflowTabs
+                value={activeTab}
+                onValueChange={setSelectedTab}
+                tabs={tabOptions}
+              />
+              {activeTab === "custom" ? (
+                <div className={styles.tabContent}>
+                  <CustomLoginMethods
+                    phoneLoginIDDisabled={phoneLoginIDDisabled}
+                    primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    onChangeLoginIDChecked={onChangeLoginIDChecked}
+                    onMoveLoginID={onMoveLoginID}
+                    onChangePrimaryAuthenticatorChecked={
+                      onChangePrimaryAuthenticatorChecked
+                    }
+                    onMovePrimaryAuthenticator={onMovePrimaryAuthenticator}
+                  />
+                </div>
+              ) : null}
+              {activeTab === "email" ? (
+                <div className={styles.tabContent}>
+                  <EmailSettings
+                    resources={resources}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    loginIDEmailConfig={loginIDEmailConfig}
+                    setState={setState}
+                  />
+                </div>
+              ) : null}
+              {activeTab === "phone" ? (
+                <div className={styles.tabContent}>
+                  <PhoneSettings
+                    appID={appID}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    phoneInputConfig={phoneInputConfig}
+                    phoneInputFeatureConfig={state.phoneInputFeatureConfig}
+                    setState={setState}
+                  />
+                </div>
+              ) : null}
+              {activeTab === "username" ? (
+                <div className={styles.tabContent}>
+                  <UsernameSettings
+                    resources={resources}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    loginIDUsernameConfig={loginIDUsernameConfig}
+                    setState={setState}
+                  />
+                </div>
+              ) : null}
+              {activeTab === "verification" ? (
+                <div className={styles.tabContent}>
+                  <VerificationSettings
+                    showEmailSettings={showEmailSettings}
+                    showPhoneSettings={showPhoneSettings}
+                    authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
+                    authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                    verificationClaims={verificationClaims}
+                    verificationCriteria={verificationCriteria}
+                    sixDigitOTPValidPeriodSeconds={
+                      sixDigitOTPValidPeriodSeconds
+                    }
+                    smsOTPCooldownPeriodSeconds={smsOTPCooldownPeriodSeconds}
+                    emailOTPCooldownPeriodSeconds={
+                      emailOTPCooldownPeriodSeconds
+                    }
+                    anyOTPRevokeFailedAttemptsEnabled={
+                      anyOTPRevokeFailedAttemptsEnabled
+                    }
+                    anyOTPRevokeFailedAttempts={anyOTPRevokeFailedAttempts}
+                    smsDailySendLimit={smsDailySendLimit}
+                    emailVerificationDailyLimit={emailVerificationDailyLimit}
+                    setState={setState}
+                  />
+                </div>
+              ) : null}
+              {activeTab === "password" ? (
+                <div className={styles.tabContent}>
+                  <PasswordSettings
+                    forgotPasswordLinkValidPeriodSeconds={
+                      forgotPasswordLinkValidPeriodSeconds
+                    }
+                    forgotPasswordCodeValidPeriodSeconds={
+                      forgotPasswordCodeValidPeriodSeconds
+                    }
+                    resetPasswordWithEmailBy={resetPasswordWithEmailBy}
+                    resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
+                    authenticatorPasswordConfig={authenticatorPasswordConfig}
+                    passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
+                    isLoginIDEmailEnabled={isLoginIDEmailEnabled}
+                    isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
+                    setState={setState}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </ShowOnlyIfSIWEIsDisabled>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
