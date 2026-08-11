@@ -97,7 +97,6 @@ import PasswordSettings, {
 } from "./PasswordSettings";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
-import { fixTagPickerStyles } from "../../bugs";
 import {
   ResourcesFormState,
   useResourceForm,
@@ -2301,7 +2300,6 @@ function EmailSettings(props: EmailSettingsProps) {
           tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
         />
         <CustomTagPicker
-          styles={fixTagPickerStyles}
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
@@ -2371,7 +2369,6 @@ function EmailSettings(props: EmailSettingsProps) {
           tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
         />
         <CustomTagPicker
-          styles={fixTagPickerStyles}
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
@@ -2754,7 +2751,6 @@ function UsernameSettings(props: UsernameSettingsProps) {
           tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
         />
         <CustomTagPicker
-          styles={fixTagPickerStyles}
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.username.excludeKeywords"
@@ -3184,7 +3180,11 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showEmailSettings ? (
         <>
-          <Separator size="4" className={styles.cardSeparator} />
+          {showPhoneSettings ? (
+            // The criteria select above is shown iff both email and phone
+            // are shown; only separate from it when it is there.
+            <Separator size="4" className={styles.cardSeparator} />
+          ) : null}
           <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.verification.email" />
           </WidgetSubtitle>
@@ -3255,7 +3255,11 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showPhoneSettings ? (
         <>
-          <Separator size="4" className={styles.cardSeparator} />
+          {showEmailSettings ? (
+            // Separate from the email section / criteria select above;
+            // when phone is the first block there is nothing to separate.
+            <Separator size="4" className={styles.cardSeparator} />
+          ) : null}
           <WidgetSubtitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.verification.phone" />
           </WidgetSubtitle>

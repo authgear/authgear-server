@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
-import { IDropdownOption, ITag } from "@fluentui/react";
+import { IDropdownOption } from "@fluentui/react";
+import { Tag } from "../CustomTagPicker";
 import { deduplicate } from "../util/array";
 
 export function useTextField(onChange: (value: string) => void): {
@@ -36,13 +37,13 @@ export const useTagPickerWithNewTags = (
   list: string[],
   onListChange: (list: string[]) => void
 ): {
-  selectedItems: ITag[];
-  onChange: (items?: ITag[]) => void;
-  onResolveSuggestions: (filterText: string, _tagList?: ITag[]) => ITag[];
+  selectedItems: Tag[];
+  onChange: (items?: Tag[]) => void;
+  onResolveSuggestions: (filterText: string, _tagList?: Tag[]) => Tag[];
   onAdd: (value: string) => void;
 } => {
   const onChange = React.useCallback(
-    (items?: ITag[]) => {
+    (items?: Tag[]) => {
       if (items == null) {
         return;
       }
@@ -72,7 +73,7 @@ export const useTagPickerWithNewTags = (
   );
 
   const onResolveSuggestions = React.useCallback(
-    (filterText: string, _tagList?: ITag[]): ITag[] => {
+    (filterText: string, _tagList?: Tag[]): Tag[] => {
       return [{ key: filterText, name: filterText }];
     },
     []

@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
 import { FraudProtectionDecisionAction } from "../../types";
 import FormTextField from "../../FormTextField";
-import CustomTagPicker from "../../CustomTagPicker";
+import CustomTagPicker, { Tag } from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
 import { APIError } from "../../error/error";
 import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
@@ -10,7 +10,7 @@ import ChoiceGroupWithDescriptions, {
   ChoiceGroupWithDescriptionOption,
 } from "../common/ChoiceGroupWithDescriptions";
 import styles from "./FraudProtectionSettingsTab.module.css";
-import { IChoiceGroupOption, ITag } from "@fluentui/react";
+import { IChoiceGroupOption } from "@fluentui/react";
 
 export interface FraudProtectionSettingsTabProps {
   isModifiable: boolean;
@@ -31,8 +31,8 @@ export interface FraudProtectionSettingsTabProps {
     event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
     newValue?: string
   ) => void;
-  onIPCountryAllowlistChange: (items?: ITag[]) => void;
-  onPhoneCountryAllowlistChange: (items?: ITag[]) => void;
+  onIPCountryAllowlistChange: (items?: Tag[]) => void;
+  onPhoneCountryAllowlistChange: (items?: Tag[]) => void;
 }
 
 const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
@@ -126,7 +126,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
     );
 
     const onResolveCountryCodeSuggestions = useCallback(
-      (filter: string): ITag[] => {
+      (filter: string): Tag[] => {
         const matchedOptions = alpha2Options.filter(
           (opt) =>
             opt.key.startsWith(filter.toUpperCase()) ||
@@ -151,7 +151,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       [alpha2Options]
     );
 
-    const selectedIPCountryTags: ITag[] = useMemo(
+    const selectedIPCountryTags: Tag[] = useMemo(
       () =>
         ipCountryAllowlist.map((alpha2) => ({
           key: alpha2,
@@ -160,7 +160,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       [ipCountryAllowlist, alpha2Options]
     );
 
-    const selectedPhoneCountryTags: ITag[] = useMemo(
+    const selectedPhoneCountryTags: Tag[] = useMemo(
       () =>
         phoneCountryAllowlist.map((alpha2) => ({
           key: alpha2,

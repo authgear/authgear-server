@@ -2,7 +2,6 @@ import React, { useMemo, useContext, useCallback, ReactElement } from "react";
 import { produce } from "immer";
 import cn from "classnames";
 import { Checkbox, Select, Separator, Text } from "@radix-ui/themes";
-import { IBasePickerStyles } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import {
   AuthenticatorPasswordConfig,
@@ -21,7 +20,6 @@ import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/Set
 import CustomTagPicker from "../../CustomTagPicker";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
-import { fixTagPickerStyles } from "../../bugs";
 import {
   ensurePositiveNumber,
   parseIntegerAllowLeadingZeros,
@@ -30,13 +28,6 @@ import {
 } from "../../util/input";
 import { formatDuration, parseDuration } from "../../util/duration";
 import styles from "./PasswordSettings.module.css";
-
-const excludedKeywordsTagPickerStyles: Partial<IBasePickerStyles> = {
-  ...fixTagPickerStyles,
-  root: {
-    width: "100%",
-  },
-};
 
 export enum ResetPasswordWithEmailMethod {
   Link = "link",
@@ -852,7 +843,6 @@ export default function PasswordSettings<T extends State>(
         >
           <div className={styles.excludedKeywordsTagPicker}>
             <CustomTagPicker
-              styles={excludedKeywordsTagPickerStyles}
               inputProps={{
                 "aria-label": renderToString(
                   "PasswordPolicyConfigurationScreen.excluded-keywords.label"

@@ -2,13 +2,11 @@ import React, { useCallback, useMemo } from "react";
 import { Callout } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "../../intl";
-import CustomTagPicker from "../../CustomTagPicker";
+import CustomTagPicker, { Tag } from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
-import { ITag, IBasePickerStyles } from "@fluentui/react";
 import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
 import { APIError } from "../../error/error";
 import { Address4, Address6 } from "ip-address";
-import { fixTagPickerStyles } from "../../bugs";
 import { Toggle } from "../v2/Toggle/Toggle";
 import { TextArea } from "../v2/TextArea/TextArea";
 import { FormField } from "../v2/FormField/FormField";
@@ -30,13 +28,6 @@ export interface IPBlocklistFormProps {
   state: IPBlocklistFormState;
   setState: (fn: (state: IPBlocklistFormState) => IPBlocklistFormState) => void;
 }
-
-const countryTagPickerStyles: Partial<IBasePickerStyles> = {
-  ...fixTagPickerStyles,
-  root: {
-    width: "100%",
-  },
-};
 
 export function toCIDRs(blockedIPCIDRsStr: string): string[] {
   return blockedIPCIDRsStr
@@ -75,7 +66,7 @@ export function IPBlocklistForm({
   const { alpha2Options } = useMakeAlpha2Options();
 
   const onResolveCountryCodeSuggestions = useCallback(
-    (filter: string): ITag[] => {
+    (filter: string): Tag[] => {
       const matchedOptions = alpha2Options.filter(
         (opt) =>
           opt.key.startsWith(filter.toUpperCase()) ||
@@ -112,7 +103,7 @@ export function IPBlocklistForm({
   );
 
   const onCountryItemChange = useCallback(
-    (items?: ITag[]) => {
+    (items?: Tag[]) => {
       if (items == null) {
         return;
       }
@@ -131,7 +122,7 @@ export function IPBlocklistForm({
     [setState]
   );
 
-  const selectedCountryTags: ITag[] = useMemo(() => {
+  const selectedCountryTags: Tag[] = useMemo(() => {
     return state.blockedCountryAlpha2s.map((alpha2) => {
       const option = alpha2Options.find((opt) => opt.key === alpha2);
       return {
@@ -225,7 +216,6 @@ export function IPBlocklistForm({
           >
             <div className={styles.countryTagPicker}>
               <CustomTagPicker
-                styles={countryTagPickerStyles}
                 onResolveSuggestions={onResolveCountryCodeSuggestions}
                 selectedItems={selectedCountryTags}
                 onChange={onCountryItemChange}
