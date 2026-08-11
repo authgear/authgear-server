@@ -37,6 +37,7 @@ interface AuditLogFilterBarProps {
   availableActivityTypes: AuditLogActivityType[];
   lastUpdatedAt: Date;
   wideActivityTypeDropdown?: boolean;
+  trailingActions?: React.ReactNode;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -51,6 +52,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     availableActivityTypes,
     lastUpdatedAt,
     wideActivityTypeDropdown = false,
+    trailingActions,
   }) {
     const { renderToString } = useContext(MessageContext);
 
@@ -139,6 +141,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
           </div>
           <div className={styles.filterActionContainer}>
             <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
+            {trailingActions}
           </div>
         </div>
         {selectedActivityTypeSummary != null ? (

@@ -5,23 +5,11 @@
   row-gap: 16px;
 }
 
-.toolbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
 .filterBar {
   flex: 1 1 auto;
   min-width: 0;
   padding-left: 0;
-}
-
-.viewAuditLogAction {
-  display: flex;
-  height: 44px;
-  align-items: center;
+  padding-right: 0;
 }
 
 .tableArea {

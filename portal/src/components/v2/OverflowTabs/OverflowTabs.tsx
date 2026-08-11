@@ -26,13 +26,18 @@ export interface OverflowTabsProps {
   tabs: OverflowTabOption[];
 }
 
-function calculateVisibleTabCount(
+// The selected tab is always kept visible: when it would fall into the
+// overflow menu, it is shown as the last visible tab instead and the
+// displaced tabs collapse into the menu (matching the old Fluent Pivot).
+function calculateVisibleTabValues(
   containerWidth: number,
+  tabs: readonly OverflowTabOption[],
   tabWidths: readonly number[],
+  selectedValue: string,
   overflowButtonWidth: number
-): number {
-  if (tabWidths.length === 0) {
-    return 0;
+): string[] {
+  if (tabs.length === 0) {
+    return [];
   }
 
   const totalWidth = tabWidths.reduce(
@@ -40,29 +45,41 @@ function calculateVisibleTabCount(
     0
   );
   if (totalWidth <= containerWidth) {
-    return tabWidths.length;
+    return tabs.map((tab) => tab.value);
   }
+
+  const budget = containerWidth - TAB_GAP_PX - overflowButtonWidth;
 
   let usedWidth = 0;
   let visibleCount = 0;
   for (let index = 0; index < tabWidths.length; index++) {
     const tabWidth = tabWidths[index] + (visibleCount > 0 ? TAB_GAP_PX : 0);
-    const remainingTabs = tabWidths.length - (index + 1);
-    const reserveOverflow =
-      remainingTabs > 0 ? TAB_GAP_PX + overflowButtonWidth : 0;
-
-    if (
-      usedWidth + tabWidth + reserveOverflow > containerWidth &&
-      visibleCount > 0
-    ) {
+    if (usedWidth + tabWidth > budget && visibleCount > 0) {
       break;
     }
-
     usedWidth += tabWidth;
     visibleCount++;
   }
+  visibleCount = Math.max(1, Math.min(visibleCount, tabWidths.length));
 
-  return Math.max(1, Math.min(visibleCount, tabWidths.length));
+  const selectedIndex = tabs.findIndex((tab) => tab.value === selectedValue);
+  if (selectedIndex < visibleCount) {
+    return tabs.slice(0, visibleCount).map((tab) => tab.value);
+  }
+
+  // The selected tab overflows: show it as the last visible tab, keeping
+  // as many preceding tabs as still fit.
+  usedWidth = tabWidths[selectedIndex];
+  const prefixValues: string[] = [];
+  for (let index = 0; index < selectedIndex; index++) {
+    const tabWidth = tabWidths[index] + TAB_GAP_PX;
+    if (usedWidth + tabWidth > budget) {
+      break;
+    }
+    usedWidth += tabWidth;
+    prefixValues.push(tabs[index].value);
+  }
+  return [...prefixValues, selectedValue];
 }
 
 export function OverflowTabs({
@@ -74,7 +91,9 @@ export function OverflowTabs({
 }: OverflowTabsProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureListRef = useRef<HTMLDivElement>(null);
-  const [visibleCount, setVisibleCount] = useState(tabs.length);
+  const [visibleValues, setVisibleValues] = useState<string[]>(() =>
+    tabs.map((tab) => tab.value)
+  );
 
   const tabKeys = useMemo(
     () => tabs.map((tab) => tab.value).join("\0"),
@@ -91,14 +110,16 @@ export function OverflowTabs({
     const tabWidths = Array.from(measureList.children).map(
       (child) => (child as HTMLElement).offsetWidth
     );
-    setVisibleCount(
-      calculateVisibleTabCount(
+    setVisibleValues(
+      calculateVisibleTabValues(
         container.clientWidth,
+        tabs,
         tabWidths,
+        value,
         OVERFLOW_BUTTON_WIDTH_PX
       )
     );
-  }, []);
+  }, [tabs, value]);
 
   useLayoutEffect(() => {
     updateVisibleCount();
@@ -119,10 +140,9 @@ export function OverflowTabs({
     };
   }, [updateVisibleCount]);
 
-  const visibleTabs = tabs.slice(0, visibleCount);
-  const overflowTabs = tabs.slice(visibleCount);
+  const visibleTabs = tabs.filter((tab) => visibleValues.includes(tab.value));
+  const overflowTabs = tabs.filter((tab) => !visibleValues.includes(tab.value));
   const hasOverflow = overflowTabs.length > 0;
-  const hasSelectedOverflow = overflowTabs.some((tab) => tab.value === value);
 
   return (
     <Tabs.Root
@@ -142,10 +162,7 @@ export function OverflowTabs({
               <DropdownMenu.Trigger>
                 <button
                   type="button"
-                  className={cn(
-                    styles.overflowTrigger,
-                    hasSelectedOverflow && styles.overflowTriggerActive
-                  )}
+                  className={styles.overflowTrigger}
                   aria-label="More tabs"
                 >
                   <DotsHorizontalIcon className={styles.overflowIcon} />

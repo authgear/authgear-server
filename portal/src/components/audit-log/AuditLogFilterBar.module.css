@@ -83,7 +83,7 @@
 }
 
 .filterActionContainer {
-  @apply flex shrink-0 items-center justify-end;
+  @apply flex shrink-0 items-center justify-end gap-x-4;
   @apply h-11;
 
   @apply tablet:w-full;

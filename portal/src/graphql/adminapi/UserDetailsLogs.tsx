@@ -354,25 +354,23 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
 
     return (
       <div className={styles.root}>
-        <div className={styles.toolbar}>
-          <AuditLogFilterBar
-            className={styles.filterBar}
-            filters={filters}
-            onFilterChange={onFilterChange}
-            onRefresh={onClickRefresh}
-            hideSearchBox={true}
-            dateRange={filtersDateRange}
-            availableActivityTypes={USER_ACTIVITY_TYPES}
-            lastUpdatedAt={lastUpdatedAt}
-          />
-          <div className={styles.viewAuditLogAction}>
+        <AuditLogFilterBar
+          className={styles.filterBar}
+          filters={filters}
+          onFilterChange={onFilterChange}
+          onRefresh={onClickRefresh}
+          hideSearchBox={true}
+          dateRange={filtersDateRange}
+          availableActivityTypes={USER_ACTIVITY_TYPES}
+          lastUpdatedAt={lastUpdatedAt}
+          trailingActions={
             <SecondaryButton
               size="2"
               text={<FormattedMessage id="UserDetails.logs.view-user-logs" />}
               onClick={onClickViewUserLogs}
             />
-          </div>
-        </div>
+          }
+        />
         {error != null ? (
           // eslint-disable-next-line @typescript-eslint/strict-void-return
           <ShowError error={error} onRetry={refetch} />
