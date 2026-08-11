@@ -3,11 +3,12 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { ParsedAPIError } from "./error/parse";
 import { Text } from "@radix-ui/themes";
-import { Callout } from "./components/v2/Callout/Callout";
+import { useCalloutToast } from "./components/v2/Callout/Callout";
 import { FormattedMessage } from "./intl";
 import { Link } from "react-router-dom";
 import ExternalLink from "./ExternalLink";
@@ -23,6 +24,53 @@ export interface ErrorMessageBarProps {
   children?: React.ReactNode;
 }
 
+function renderError(err: ParsedAPIError, key: number): React.ReactElement {
+  return (
+    <Text as="p" size="2" key={key}>
+      {err.messageID ? (
+        <FormattedMessage
+          id={err.messageID ?? ""}
+          values={{
+            ...err.arguments,
+
+            reactRouterLink: (chunks: React.ReactNode) => (
+              <Link to={err.arguments?.to ?? err.arguments?.href}>
+                {chunks}
+              </Link>
+            ),
+
+            externalLink: (chunks: React.ReactNode) => (
+              <ExternalLink
+                href={err.arguments?.to ?? err.arguments?.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {chunks}
+              </ExternalLink>
+            ),
+
+            docLink: (chunks: React.ReactNode) => (
+              <ExternalLink href={err.arguments?.to ?? err.arguments?.href}>
+                {chunks}
+              </ExternalLink>
+            ),
+
+            b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+
+            strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+
+            code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+          }}
+        />
+      ) : (
+        err.message ?? ""
+      )}
+    </Text>
+  );
+}
+
+// Despite the name, errors are surfaced as an error toast in the bottom
+// right corner; the children are always rendered in place.
 export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
   props: ErrorMessageBarProps
 ) => {
@@ -31,58 +79,20 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
     throw new Error("ErrorMessageBarContext not provided");
   }
   const { errors } = ctx;
-  if (errors.length === 0) {
-    return <>{props.children}</>;
-  }
+  const { showToast } = useCalloutToast();
 
-  return (
-    <Callout
-      type="error"
-      showCloseButton={false}
-      text={errors.map((err, i) => (
-        <Text as="p" size="2" key={i}>
-          {err.messageID ? (
-            <FormattedMessage
-              id={err.messageID ?? ""}
-              values={{
-                ...err.arguments,
-                // eslint-disable-next-line react/no-unstable-nested-components
-                reactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to={err.arguments?.to ?? err.arguments?.href}>
-                    {chunks}
-                  </Link>
-                ),
-                // eslint-disable-next-line react/no-unstable-nested-components
-                externalLink: (chunks: React.ReactNode) => (
-                  <ExternalLink
-                    href={err.arguments?.to ?? err.arguments?.href}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {chunks}
-                  </ExternalLink>
-                ),
-                // eslint-disable-next-line react/no-unstable-nested-components
-                docLink: (chunks: React.ReactNode) => (
-                  <ExternalLink href={err.arguments?.to ?? err.arguments?.href}>
-                    {chunks}
-                  </ExternalLink>
-                ),
-                // eslint-disable-next-line react/no-unstable-nested-components
-                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-                // eslint-disable-next-line react/no-unstable-nested-components
-                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                // eslint-disable-next-line react/no-unstable-nested-components
-                code: (chunks: React.ReactNode) => <code>{chunks}</code>,
-              }}
-            />
-          ) : (
-            err.message ?? ""
-          )}
-        </Text>
-      ))}
-    />
-  );
+  const shownErrorsRef = useRef<readonly ParsedAPIError[]>([]);
+  useEffect(() => {
+    if (errors.length > 0 && errors !== shownErrorsRef.current) {
+      showToast({
+        type: "error",
+        text: errors.map((err, i) => renderError(err, i)),
+      });
+    }
+    shownErrorsRef.current = errors;
+  }, [errors, showToast]);
+
+  return <>{props.children}</>;
 };
 
 export const ErrorMessageBarContextProvider: React.VFC<
