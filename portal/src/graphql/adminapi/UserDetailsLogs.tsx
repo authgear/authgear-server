@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { addDays } from "@fluentui/react";
+import { addDays } from "../../util/date";
 import {
   Callout as RadixCallout,
   Spinner,

@@ -139,7 +139,6 @@ const FraudProtectionLogEntryScreen: React.VFC =
       <CommandBarContainer
         isLoading={loading}
         messageBar={messageBar}
-        hideCommandBar={true}
       >
         <ScreenContent layout="list">
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />

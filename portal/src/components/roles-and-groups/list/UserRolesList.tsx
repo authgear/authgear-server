@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { ColumnActionsMode, IColumn } from "@fluentui/react";
 import { Context as MessageContext } from "../../../intl";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -12,7 +11,9 @@ import {
 } from "../../../graphql/adminapi/globalTypes.generated";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
-import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import RolesAndGroupsBaseList, {
+  RolesAndGroupsListColumn,
+} from "./common/RolesAndGroupsBaseList";
 import DeleteUserRoleDialog, {
   DeleteUserRoleDialogData,
 } from "../dialog/DeleteUserRoleDialog";
@@ -80,45 +81,42 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
       [user]
     );
 
-    const columns: IColumn[] = useMemo((): IColumn[] => {
-      return [
-        {
-          key: UserRolesListColumnKey.Name,
-          fieldName: "name",
-          name: renderToString("UserRolesList.column.name"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Key,
-          fieldName: "key",
-          name: renderToString("UserRolesList.column.key"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Group,
-          fieldName: "group",
-          name: renderToString("UserRolesList.column.group"),
-          minWidth: 100,
-          maxWidth: 9999,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Action,
-          fieldName: "action",
-          name: "",
-          minWidth: 56,
-          maxWidth: 56,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-      ];
-    }, [renderToString]);
+    const columns: RolesAndGroupsListColumn[] =
+      useMemo((): RolesAndGroupsListColumn[] => {
+        return [
+          {
+            key: UserRolesListColumnKey.Name,
+            fieldName: "name",
+            name: renderToString("UserRolesList.column.name"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Key,
+            fieldName: "key",
+            name: renderToString("UserRolesList.column.key"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Group,
+            fieldName: "group",
+            name: renderToString("UserRolesList.column.group"),
+            minWidth: 100,
+            maxWidth: 9999,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Action,
+            fieldName: "action",
+            name: "",
+            minWidth: 56,
+            maxWidth: 56,
+          },
+        ];
+      }, [renderToString]);
 
     const onItemClick = useCallback(
       (item: UserRolesListItem) => {
@@ -128,7 +126,11 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
     );
 
     const onRenderItemColumn = useCallback(
-      (item: UserRolesListItem, _index?: number, column?: IColumn) => {
+      (
+        item: UserRolesListItem,
+        _index?: number,
+        column?: RolesAndGroupsListColumn
+      ) => {
         switch (column?.key) {
           case UserRolesListColumnKey.Action: {
             return (

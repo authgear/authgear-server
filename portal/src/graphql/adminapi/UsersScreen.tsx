@@ -215,12 +215,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
   );
 
   return (
-    <CommandBarContainer
-      className={styles.root}
-      isLoading={isLoading}
-      messageBar={messageBar}
-      hideCommandBar={true}
-    >
+    <CommandBarContainer className={styles.root} messageBar={messageBar}>
       <ScreenContent className={styles.content} layout="list">
         <div className={styles.widget}>
           <div className={styles.pageTitleRow}>

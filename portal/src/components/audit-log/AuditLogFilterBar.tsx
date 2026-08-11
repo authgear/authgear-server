@@ -3,7 +3,6 @@ import cn from "classnames";
 import { Cross2Icon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Text, TextField as RadixTextField } from "@radix-ui/themes";
 import styles from "./AuditLogFilterBar.module.css";
-import { ISearchBoxProps } from "@fluentui/react";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import {
   AuditLogDateRangeFilterDropdown,
@@ -16,6 +15,10 @@ import { RefreshButton } from "./RefreshButton";
 export interface AuditLogFilter {
   searchKeyword: string;
   activityTypes: AuditLogActivityType[];
+}
+
+export interface AuditLogSearchBoxProps {
+  placeholder?: string;
 }
 
 export interface AuditLogFilterBarPropsDateRange {
@@ -31,7 +34,7 @@ interface AuditLogFilterBarProps {
   filters: AuditLogFilter;
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
   onRefresh: () => void;
-  searchBoxProps?: ISearchBoxProps;
+  searchBoxProps?: AuditLogSearchBoxProps;
   hideSearchBox?: boolean;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];

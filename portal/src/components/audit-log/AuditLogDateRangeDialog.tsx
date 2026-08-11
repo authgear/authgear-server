@@ -1,10 +1,9 @@
-import React, { useCallback, useContext } from "react";
-import { DatePicker } from "@fluentui/react";
-import { Dialog, Flex, Text } from "@radix-ui/themes";
-import { Context as MessageContext, FormattedMessage } from "../../intl";
+import React, { useCallback, useMemo } from "react";
+import { Dialog, Flex } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
-import { formatDateOnly } from "../../util/formatDateOnly";
+import { DateFieldDate, toDateString } from "../v2/DateField/DateField";
 import styles from "./AuditLogDateRangeDialog.module.css";
 
 interface AuditLogDateRangeDialogProps {
@@ -22,6 +21,13 @@ interface AuditLogDateRangeDialogProps {
   onSelectRangeTo?: (date: Date | null | undefined) => void;
   onCommitDateRange?: (e?: React.MouseEvent<unknown>) => void;
   onDismiss?: (e?: React.MouseEvent<unknown>) => void;
+}
+
+function toMinMaxString(date: Date | undefined): string | undefined {
+  if (date == null) {
+    return undefined;
+  }
+  return toDateString(date);
 }
 
 const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
@@ -43,18 +49,6 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
       onDismiss,
     } = props;
 
-    const { locale } = useContext(MessageContext);
-
-    const formatDate = useCallback(
-      (date?: Date) => {
-        if (date == null) {
-          return "";
-        }
-        return formatDateOnly(locale, date) ?? "";
-      },
-      [locale]
-    );
-
     const onOpenChange = useCallback(
       (open: boolean) => {
         if (!open) {
@@ -64,47 +58,60 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
       [onDismiss]
     );
 
-    // The FluentUI DatePicker renders its calendar in a portaled FluentUI Layer
-    // outside the Radix dialog. Without this guard, interacting with the calendar
-    // counts as an "outside" interaction and closes the dialog.
-    const onInteractOutside = useCallback((e: Event) => {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest(".ms-Layer, .ms-Callout, .ms-DatePicker-callout")) {
-        e.preventDefault();
-      }
-    }, []);
+    const onChangeRangeFrom = useCallback(
+      (date: Date | null) => {
+        onSelectRangeFrom?.(date);
+      },
+      [onSelectRangeFrom]
+    );
+
+    const onChangeRangeTo = useCallback(
+      (date: Date | null) => {
+        onSelectRangeTo?.(date);
+      },
+      [onSelectRangeTo]
+    );
+
+    const fromMin = useMemo(
+      () => toMinMaxString(fromDatePickerMinDate),
+      [fromDatePickerMinDate]
+    );
+    const fromMax = useMemo(
+      () => toMinMaxString(fromDatePickerMaxDate),
+      [fromDatePickerMaxDate]
+    );
+    const toMin = useMemo(
+      () => toMinMaxString(toDatePickerMinDate),
+      [toDatePickerMinDate]
+    );
+    const toMax = useMemo(
+      () => toMinMaxString(toDatePickerMaxDate),
+      [toDatePickerMaxDate]
+    );
 
     return (
       <Dialog.Root open={!hidden} onOpenChange={onOpenChange}>
-        <Dialog.Content
-          maxWidth="400px"
-          size="3"
-          onInteractOutside={onInteractOutside}
-        >
+        <Dialog.Content maxWidth="400px" size="3">
           <Dialog.Title>{title}</Dialog.Title>
           <div className={styles.fields}>
             <div className={styles.field}>
-              <Text as="label" size="2" weight="medium">
-                {fromDatePickerLabel}
-              </Text>
-              <DatePicker
-                value={rangeFrom}
-                minDate={fromDatePickerMinDate}
-                maxDate={fromDatePickerMaxDate}
-                formatDate={formatDate}
-                onSelectDate={onSelectRangeFrom}
+              <DateFieldDate
+                size="2"
+                label={fromDatePickerLabel}
+                value={rangeFrom ?? null}
+                min={fromMin}
+                max={fromMax}
+                onChange={onChangeRangeFrom}
               />
             </div>
             <div className={styles.field}>
-              <Text as="label" size="2" weight="medium">
-                {toDatePickerLabel}
-              </Text>
-              <DatePicker
-                value={rangeTo}
-                minDate={toDatePickerMinDate}
-                maxDate={toDatePickerMaxDate}
-                formatDate={formatDate}
-                onSelectDate={onSelectRangeTo}
+              <DateFieldDate
+                size="2"
+                label={toDatePickerLabel}
+                value={rangeTo ?? null}
+                min={toMin}
+                max={toMax}
+                onChange={onChangeRangeTo}
               />
             </div>
           </div>

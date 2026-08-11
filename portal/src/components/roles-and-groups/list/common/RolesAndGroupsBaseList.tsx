@@ -1,9 +1,17 @@
 import React from "react";
-import { IColumn } from "@fluentui/react";
 import { Spinner, Table, Text } from "@radix-ui/themes";
 import styles from "./RolesAndGroupsBaseList.module.css";
 import cn from "classnames";
 import PaginationWidget from "../../../../PaginationWidget";
+
+export interface RolesAndGroupsListColumn {
+  key: string;
+  name: string;
+  fieldName?: string;
+  minWidth?: number;
+  maxWidth?: number;
+  isResizable?: boolean;
+}
 
 interface PaginationProps {
   isSearch: boolean;
@@ -21,10 +29,10 @@ interface RolesAndGroupsBaseListProps<T> {
   onRenderItemColumn: (
     item: T,
     index?: number,
-    column?: IColumn
+    column?: RolesAndGroupsListColumn
   ) => React.ReactNode;
   items: T[];
-  columns: IColumn[];
+  columns: RolesAndGroupsListColumn[];
   emptyText: string;
   onItemClick?: (item: T) => void;
 }

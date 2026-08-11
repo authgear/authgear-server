@@ -6,7 +6,6 @@ import React, {
   useRef,
   Children,
 } from "react";
-import type { IDropdownOption } from "@fluentui/react";
 import { Select, Text } from "@radix-ui/themes";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
@@ -66,7 +65,13 @@ export interface StandardAttributesState {
 
 export type CustomAttributesState = Record<string, string>;
 
-export interface UserProfileFormProps {
+export interface DropdownOption {
+  key: string | number;
+  text: string;
+  hidden?: boolean;
+}
+
+interface UserProfileFormProps {
   identities: Identity[];
   standardAttributes: StandardAttributesState;
   onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
@@ -109,7 +114,7 @@ interface ProfileSelectFieldProps {
   className?: string;
   label: React.ReactNode;
   value: string;
-  options: IDropdownOption[];
+  options: DropdownOption[];
   onValueChange: (value: string) => void;
   disabled?: boolean;
   parentJSONPointer?: string;
@@ -256,7 +261,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     enum: enu,
   } = attributeConfig;
 
-  const enumOptions: IDropdownOption[] = useMemo(() => {
+  const enumOptions: DropdownOption[] = useMemo(() => {
     const options = [
       {
         key: "",
@@ -634,8 +639,8 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
       (
         stdAttrKey: keyof StandardAttributesState,
         identityClaimKey: keyof IdentityClaims
-      ): IDropdownOption[] => {
-        const options: IDropdownOption[] = [];
+      ): DropdownOption[] => {
+        const options: DropdownOption[] = [];
         const value = standardAttributes[stdAttrKey];
         const seen = new Set();
 
@@ -694,8 +699,8 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     const [genderString, setGenderString] = useState<string>(
       standardAttributes.gender
     );
-    const genderOptions: IDropdownOption[] = useMemo(() => {
-      const options: IDropdownOption[] = [
+    const genderOptions: DropdownOption[] = useMemo(() => {
+      const options: DropdownOption[] = [
         { key: "", text: "" },
         { key: "male", text: "male" },
         { key: "female", text: "female" },
@@ -804,7 +809,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
     const locale = standardAttributes.locale;
     const localeOptions = useMemo(() => {
       let found = false;
-      const options: IDropdownOption[] = [
+      const options: DropdownOption[] = [
         {
           key: "",
           text: "",

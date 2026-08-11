@@ -11,7 +11,6 @@ import {
   useSearchParams,
   URLSearchParamsInit,
 } from "react-router-dom";
-import { addDays, ISearchBoxProps } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -21,6 +20,7 @@ import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
 import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRangeDialog";
 import { encodeOffsetToCursor } from "../../util/pagination";
+import { addDays } from "../../util/date";
 import useTransactionalState from "../../hook/useTransactionalState";
 import {
   AuditLogListQueryQuery,
@@ -40,6 +40,7 @@ import {
   AuditLogFilter,
   AuditLogFilterBar,
   AuditLogFilterBarPropsDateRange,
+  AuditLogSearchBoxProps,
 } from "../../components/audit-log/AuditLogFilterBar";
 import {
   parseActivityTypesFromQuery,
@@ -554,7 +555,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return renderToString("AuditLogScreen.search-by-user-id");
   }, [searchIncludesEmail, searchIncludesPhone, renderToString]);
 
-  const searchBoxProps = useMemo<ISearchBoxProps>(() => {
+  const searchBoxProps = useMemo<AuditLogSearchBoxProps>(() => {
     return {
       placeholder: searchBoxPlaceholder,
     };
@@ -699,7 +700,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           <CommandBarContainer
             isLoading={listLoading}
             messageBar={messageBar}
-            hideCommandBar={true}
             className={styles.commandBarContainerContent}
             headerPosition="static"
           >
