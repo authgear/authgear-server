@@ -299,6 +299,142 @@ function AddEmailDialog({
   );
 }
 
+interface AddUsernameDialogProps {
+  open: boolean;
+  userID: string;
+  identityToEdit?: {
+    id: string;
+    value: string;
+  };
+  onOpenChange: (open: boolean) => void;
+  onCreated?: () => unknown;
+}
+
+function AddUsernameDialog({
+  open,
+  userID,
+  identityToEdit,
+  onOpenChange,
+  onCreated,
+}: AddUsernameDialogProps): React.ReactElement {
+  const [username, setUsername] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const { createIdentity, loading, error } =
+    useCreateLoginIDIdentityMutation(userID);
+  const {
+    updateIdentity,
+    loading: updating,
+    error: updateError,
+  } = useUpdateLoginIDIdentityMutation(userID);
+  const isLoading = loading || updating;
+  useLoading(isLoading);
+  useProvideError(error ?? updateError);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
+    setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
+    setUsername(open ? identityToEdit?.value ?? "" : "");
+  }
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const value = username.trim();
+      if (value === "" || isLoading) {
+        return;
+      }
+
+      try {
+        const identity =
+          identityToEdit == null
+            ? await createIdentity({ key: "username", value })
+            : await updateIdentity(identityToEdit.id, {
+                key: "username",
+                value,
+              });
+        if (identity != null) {
+          await onCreated?.();
+          onOpenChange(false);
+        }
+      } catch {
+        // The mutation error is surfaced by useProvideError.
+      }
+    },
+    [
+      createIdentity,
+      username,
+      identityToEdit,
+      isLoading,
+      onCreated,
+      onOpenChange,
+      updateIdentity,
+    ]
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="480px" size="3">
+        <Dialog.Title>
+          <FormattedMessage
+            id={
+              identityToEdit == null
+                ? "UsernameScreen.add.title"
+                : "UsernameScreen.edit.title"
+            }
+          />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          {identityToEdit == null ? (
+            <FormattedMessage id="UsernameScreen.add.description" />
+          ) : (
+            <FormattedMessage
+              id="UsernameScreen.edit.current-value"
+              values={{ value: identityToEdit.value }}
+            />
+          )}
+        </Dialog.Description>
+        <form
+          className={styles.addIdentityForm}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
+        >
+          <TextField
+            size="2"
+            type="text"
+            label={<FormattedMessage id="UsernameScreen.username.label" />}
+            value={username}
+            onChange={(event) => {
+              setUsername(event.currentTarget.value);
+            }}
+          />
+          <div className={styles.addIdentityDialogActions}>
+            <SecondaryButton
+              size="2"
+              disabled={isLoading}
+              text={<FormattedMessage id="cancel" />}
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            />
+            <Button
+              type="submit"
+              size="2"
+              loading={isLoading}
+              disabled={username.trim() === ""}
+            >
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
+            </Button>
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
 interface AddPhoneDialogProps {
   open: boolean;
   userID: string;
@@ -1062,6 +1198,12 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       value: string;
     }>();
     const [isAddPhoneDialogOpen, setIsAddPhoneDialogOpen] = useState(false);
+    const [isAddUsernameDialogOpen, setIsAddUsernameDialogOpen] =
+      useState(false);
+    const [usernameIdentityToEdit, setUsernameIdentityToEdit] = useState<{
+      id: string;
+      value: string;
+    }>();
 
     const [confirmationDialogData, setConfirmationDialogData] =
       useState<ConfirmationDialogData>({
@@ -1237,9 +1379,11 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       ) => {
         switch (loginIDKey) {
           case "username":
-            navigate(
-              generatePath("./edit-username/:identityID", { identityID })
-            );
+            setUsernameIdentityToEdit({
+              id: identityID,
+              value: identityValue,
+            });
+            setIsAddUsernameDialogOpen(true);
             break;
           case "phone":
             navigate(generatePath("./edit-phone/:identityID", { identityID }));
@@ -1362,14 +1506,18 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       [renderToString, setVerifiedStatus, onRemoveClicked, onEditLoginIDClicked]
     );
 
-    // Always show Email → Phone number → User name in that order.
-    // Hide the username section when this user has no username identity.
+    // Sections appear in Email → Phone number → User name order.
+    // Show a section when the login ID type is enabled in the project, or
+    // when the user already has such an identity (it may have been added
+    // before the configuration changed).
     const loginIdentityTypesToShow = useMemo(
       () =>
         loginIdIdentityTypes.filter(
-          (type) => type !== "username" || identityLists.username.length > 0
+          (type) =>
+            availableLoginIdIdentities.includes(type) ||
+            identityLists[type].length > 0
         ),
-      [identityLists.username.length]
+      [availableLoginIdIdentities, identityLists]
     );
 
     const confirmationDialogContentProps = useMemo(() => {
@@ -1422,6 +1570,18 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           onOpenChange={setIsAddPhoneDialogOpen}
           onCreated={onIdentityCreated}
         />
+        <AddUsernameDialog
+          open={isAddUsernameDialogOpen}
+          userID={userID}
+          identityToEdit={usernameIdentityToEdit}
+          onOpenChange={(open) => {
+            setIsAddUsernameDialogOpen(open);
+            if (!open) {
+              setUsernameIdentityToEdit(undefined);
+            }
+          }}
+          onCreated={onIdentityCreated}
+        />
         <section className={styles.headerSection}>
           <Text as="p" size="3" weight="medium" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />
@@ -1464,7 +1624,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                       } else if (type === "phone") {
                         setIsAddPhoneDialogOpen(true);
                       } else {
-                        void navigate(`./add-${type}`);
+                        setUsernameIdentityToEdit(undefined);
+                        setIsAddUsernameDialogOpen(true);
                       }
                     }}
                   >
