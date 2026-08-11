@@ -50,6 +50,7 @@ import { useRemoveMFAGracePeriodMutation } from "./mutations/removeMFAGracePerio
 import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CancelMFAGracePeriodConfirmationDialog";
 import { Add2FAPhoneDialog } from "../../components/users/Add2FAPhoneDialog";
 import { Add2FAEmailDialog } from "../../components/users/Add2FAEmailDialog";
+import { Add2FAPasswordDialog } from "../../components/users/Add2FAPasswordDialog";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
 
@@ -884,6 +885,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     const navigate = useNavigate();
     const [add2FAPhoneDialogOpen, setAdd2FAPhoneDialogOpen] = useState(false);
     const [add2FAEmailDialogOpen, setAdd2FAEmailDialogOpen] = useState(false);
+    const [add2FAPasswordDialogOpen, setAdd2FAPasswordDialogOpen] =
+      useState(false);
 
     const { user } = useUserQuery(userID);
 
@@ -1401,7 +1404,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 <FormattedMessage id="UserDetails.account-security.secondary" />
               </Text>
             </div>
-            {!secondaryAuthenticatorLists.hasVisibleList ? (
+            {secondaryAuthicatorIsRequired &&
+            !secondaryAuthenticatorLists.hasVisibleList ? (
               <div className={styles.secondaryEmpty}>
                 <Text
                   as="p"
@@ -1545,34 +1549,53 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 ) : null}
               </div>
             ) : null}
-            {secondaryAuthenticatorLists.password.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
-                  size="2"
-                  weight="medium"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.password" />
-                  {!secondaryAuthenticatorLists.isSecondaryPasswordEnabled ? (
-                    <>
-                      {" "}
-                      <FormattedMessage id="UserDetails.account-security.disabled" />
-                    </>
-                  ) : null}
-                </Text>
-                <div
-                  className={cn(
-                    styles.authenticatorTypeSection,
-                    styles["authenticatorTypeSection--password"]
-                  )}
-                >
-                  {secondaryAuthenticatorLists.password.map((item, index) => (
-                    <React.Fragment key={item.id}>
-                      {onRenderPasswordAuthenticatorDetailCell(item, index)}
-                    </React.Fragment>
-                  ))}
+            {secondaryAuthenticatorLists.isSecondaryPasswordEnabled ||
+            secondaryAuthenticatorLists.password.length > 0 ? (
+              <div className={styles.authenticatorTypeGroup}>
+                <div className={styles.authenticatorTypeSection}>
+                  <Text
+                    as="p"
+                    size="2"
+                    weight="medium"
+                    className={cn(
+                      styles.header,
+                      styles.authenticatorTypeHeader
+                    )}
+                  >
+                    <FormattedMessage id="AuthenticatorType.secondary.password" />
+                    {!secondaryAuthenticatorLists.isSecondaryPasswordEnabled ? (
+                      <>
+                        {" "}
+                        <FormattedMessage id="UserDetails.account-security.disabled" />
+                      </>
+                    ) : null}
+                  </Text>
+                  <div
+                    className={cn(
+                      styles.authenticatorTypeSection,
+                      styles["authenticatorTypeSection--password"]
+                    )}
+                  >
+                    {secondaryAuthenticatorLists.password.map(
+                      (item, index) => (
+                        <React.Fragment key={item.id}>
+                          {onRenderPasswordAuthenticatorDetailCell(item, index)}
+                        </React.Fragment>
+                      )
+                    )}
+                  </div>
                 </div>
+                {secondaryAuthenticatorLists.isSecondaryPasswordEnabled &&
+                secondaryAuthenticatorLists.password.length === 0 ? (
+                  <button
+                    type="button"
+                    className={styles.addAuthenticatorButton}
+                    onClick={() => setAdd2FAPasswordDialogOpen(true)}
+                  >
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="UserDetails.account-security.secondary.add-password" />
+                  </button>
+                ) : null}
               </div>
             ) : null}
             {secondaryAuthicatorIsRequired &&
@@ -1660,6 +1683,13 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           open={add2FAEmailDialogOpen}
           userID={userID}
           onOpenChange={setAdd2FAEmailDialogOpen}
+          onCreated={onAuthenticatorCreated}
+        />
+        <Add2FAPasswordDialog
+          open={add2FAPasswordDialogOpen}
+          userID={userID}
+          passwordPolicy={authenticatorConfig?.password?.policy ?? {}}
+          onOpenChange={setAdd2FAPasswordDialogOpen}
           onCreated={onAuthenticatorCreated}
         />
       </div>
