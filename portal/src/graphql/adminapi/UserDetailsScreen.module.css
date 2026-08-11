@@ -65,29 +65,3 @@
   gap: 24px;
 }
 
-.profileTabSidebar {
-  order: 2;
-  align-self: flex-start;
-  width: 100%;
-  max-width: 848px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dateItem {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.dateItemValue {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.dateItemDate {
-  white-space: nowrap;
-  min-width: 100px;
-}

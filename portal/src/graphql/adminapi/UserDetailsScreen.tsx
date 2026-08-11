@@ -1,6 +1,5 @@
 import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Text } from "@radix-ui/themes";
 import { ProgressIndicator } from "@fluentui/react";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
@@ -42,7 +41,6 @@ import {
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { extractRawID } from "../../util/graphql";
-import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
@@ -288,44 +286,6 @@ function makeCustomAttributesFromState(
   return out;
 }
 
-interface DateSidebarItemProps {
-  label: React.ReactNode;
-  datetime: string | null;
-}
-
-function DateSidebarItem({
-  label,
-  datetime,
-}: DateSidebarItemProps): React.ReactElement | null {
-  if (datetime == null) {
-    return null;
-  }
-  const parts = datetime.split(" ");
-  // Try to split into date and time parts: "Feb 7, 2025" and "3:55:13 PM UTC+08:00"
-  // The formatDatetime function returns something like "Feb 7, 2025, 3:55:13 PM GMT+08:00"
-  // We'll split on the comma after the year
-  const commaIdx = datetime.indexOf(", ", datetime.indexOf(", ") + 1);
-  const datePart =
-    commaIdx >= 0 ? datetime.slice(0, commaIdx) : parts.slice(0, 3).join(" ");
-  const timePart =
-    commaIdx >= 0 ? datetime.slice(commaIdx + 2) : parts.slice(3).join(" ");
-
-  return (
-    <div className={styles.dateItem}>
-      <Text as="p" size="2" weight="bold">
-        {label}
-      </Text>
-      <div className={styles.dateItemValue}>
-        <Text as="span" size="2" color="gray" className={styles.dateItemDate}>
-          {datePart}
-        </Text>
-        <Text as="span" size="2" color="gray">
-          {timePart}
-        </Text>
-      </div>
-    </div>
-  );
-}
 
 const progressIndicatorStyles = {
   itemProgress: {
@@ -357,7 +317,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   );
   const { selectedKey, onChangeKey } = usePivotNavigation(pivotItemKeys);
   const { state, setState } = form;
-  const { renderToString, locale } = React.useContext(Context);
+  const { renderToString } = React.useContext(Context);
   const [selectedProfileImage, setSelectedProfileImage] =
     React.useState<File | null>(null);
 
@@ -477,10 +437,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     return level === "readwrite";
   }, [standardAttributeAccessControl]);
 
-  const formattedLastLogin = useMemo(
-    () => formatDatetime(locale, data.lastLoginAt ?? null),
-    [locale, data.lastLoginAt]
-  );
   const tabs = useMemo(
     () => [
       {
@@ -614,12 +570,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
         {selectedKey === USER_PROFILE_KEY ? (
           <div className={styles.profileTabContent}>
-            <aside className={styles.profileTabSidebar}>
-              <DateSidebarItem
-                label={<FormattedMessage id="UserDetails.last-login" />}
-                datetime={formattedLastLogin}
-              />
-            </aside>
             <div ref={profileContentRef} className={styles.profileTabMain}>
               <UserProfileForm
                 identities={identities}

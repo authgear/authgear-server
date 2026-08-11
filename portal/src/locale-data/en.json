@@ -352,7 +352,6 @@
   "UsersList.empty.search": "No results matched your search.",
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
-  "UserDetails.last-login": "Last login",
   "UserDetails.signed-up-label": "Signed up",
   "UserDetails.last-update": "Last update",
   "UserDetails.account-status.active": "Active",
