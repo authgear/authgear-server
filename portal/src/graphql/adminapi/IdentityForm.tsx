@@ -11,7 +11,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { useUpdateLoginIDIdentityMutation } from "./mutations/updateIdentityMutation";
 
@@ -135,7 +135,7 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
 
   if (!canCreateLoginIDIdentity(appConfig)) {
     return (
-      <Text className={styles.helpText}>
+      <Text as="p" size="2" color="gray" className={styles.helpText}>
         <FormattedMessage id="CreateIdentity.require-login-id" />
       </Text>
     );
@@ -147,7 +147,9 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
         {title}
         {currentValueMessage != null ? (
           <div className={styles.currentValue}>
-            <Text>{currentValueMessage}</Text>
+            <Text as="p" size="2">
+              {currentValueMessage}
+            </Text>
           </div>
         ) : null}
         <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />

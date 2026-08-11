@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { ProgressIndicator } from "@fluentui/react";
+import { Progress } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import cn from "classnames";
@@ -285,13 +285,6 @@ function makeCustomAttributesFromState(
 
   return out;
 }
-
-
-const progressIndicatorStyles = {
-  itemProgress: {
-    padding: 0,
-  },
-};
 
 const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
@@ -751,11 +744,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       <ErrorMessageBarContextProvider>
         <div className={styles.screenRoot}>
           <div className={styles.topBar}>
-            <ProgressIndicator
-              styles={progressIndicatorStyles}
-              className={!isLoading ? "hidden" : ""}
-              barHeight={4}
-            />
+            {isLoading ? <Progress size="1" radius="none" /> : null}
             <ErrorMessageBar />
           </div>
           <FormContainer

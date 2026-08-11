@@ -6,7 +6,8 @@ import React, {
   useState,
 } from "react";
 import { ParsedAPIError } from "./error/parse";
-import { MessageBar, MessageBarType, Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { Callout } from "./components/v2/Callout/Callout";
 import { FormattedMessage } from "./intl";
 import { Link } from "react-router-dom";
 import ExternalLink from "./ExternalLink";
@@ -35,9 +36,11 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
   }
 
   return (
-    <MessageBar messageBarType={MessageBarType.error}>
-      {errors.map((err, i) => (
-        <Text key={i}>
+    <Callout
+      type="error"
+      showCloseButton={false}
+      text={errors.map((err, i) => (
+        <Text as="p" size="2" key={i}>
           {err.messageID ? (
             <FormattedMessage
               id={err.messageID ?? ""}
@@ -78,7 +81,7 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
           )}
         </Text>
       ))}
-    </MessageBar>
+    />
   );
 };
 

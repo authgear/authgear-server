@@ -1,17 +1,8 @@
 import React, { useMemo } from "react";
-import {
-  CommandBar,
-  ICommandBarItemProps,
-  ProgressIndicator,
-} from "@fluentui/react";
+import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
+import { Progress } from "@radix-ui/themes";
 import styles from "./CommandBarContainer.module.css";
 import cn from "classnames";
-
-const progressIndicatorStyles = {
-  itemProgress: {
-    padding: 0,
-  },
-};
 
 const commandBarStyles = {
   root: {
@@ -48,17 +39,18 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
     } = props;
 
     const defaultHeaderContent = useMemo(() => {
-      // When the command bar is hidden, only mount the ProgressIndicator while
+      // When the command bar is hidden, only mount the progress bar while
       // loading. Keeping a visibility:hidden indicator still reserves height and
       // leaves a thin white sticky strip above the page title.
       const progressIndicator =
         hideCommandBar === true ? (
           isLoading ? (
-            <ProgressIndicator styles={progressIndicatorStyles} />
+            <Progress size="1" radius="none" />
           ) : null
         ) : (
-          <ProgressIndicator
-            styles={progressIndicatorStyles}
+          <Progress
+            size="1"
+            radius="none"
             className={!isLoading ? styles.hidden : ""}
           />
         );
