@@ -635,7 +635,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         ) : null}
 
         {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
-          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+          <div className={styles.tabContent}>
             <UserDetailsAccountSecurity
               userID={data.id}
               authenticationConfig={appConfig.authentication}
@@ -650,7 +650,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         ) : null}
 
         {selectedKey === CONNECTED_IDENTITIES_PIVOT_KEY ? (
-          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+          <div className={styles.tabContent}>
             <UserDetailsConnectedIdentities
               identities={identities}
               verifiedClaims={verifiedClaims}
@@ -663,7 +663,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         ) : null}
 
         {selectedKey === SESSION_PIVOT_KEY ? (
-          <div className={`${styles.tabContent} ${styles.fullWidthTabContent}`}>
+          <div className={cn(styles.tabContent, styles.fullWidthTabContent)}>
             <UserDetailsSession
               sessions={sessions}
               oauthClients={oauthClientConfig}
