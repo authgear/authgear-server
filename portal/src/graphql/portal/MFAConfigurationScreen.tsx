@@ -14,7 +14,7 @@ import {
   PortalAPIFeatureConfig,
   AuthenticatorPasswordConfig,
 } from "../../types";
-import { swap } from "../../OrderButtons";
+import { move } from "../../OrderButtons";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -479,11 +479,11 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       [setState]
     );
 
-    const onSwapSecondaryAuthenticator = useCallback(
-      (index1: number, index2: number) => {
+    const onMoveSecondaryAuthenticator = useCallback(
+      (fromIndex: number, toIndex: number) => {
         setState((prev) => ({
           ...prev,
-          secondary: swap(prev.secondary, index1, index2),
+          secondary: move(prev.secondary, fromIndex, toIndex),
         }));
       },
       [setState]
@@ -632,7 +632,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
                 "AuthenticatorConfigurationScreen.columns.authenticator"
               )}
               onChangeChecked={onChangeSecondaryAuthenticatorChecked}
-              onSwap={onSwapSecondaryAuthenticator}
+              onMove={onMoveSecondaryAuthenticator}
             />
             <UnreasonableWarning primary={primary} secondary={secondary} />
           </SettingsSectionCard>

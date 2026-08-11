@@ -1237,7 +1237,6 @@
   "PaginationWidget.Next": "Go to the next page",
   "PaginationWidget.Last": "Go to the last page",
   "PaginationWidget.Page": "Go to page {PAGE}",
-  "PriorityList.order": "Order",
   "OrderButtons.move-up": "Move up",
   "OrderButtons.move-down": "Move down",
   "NavigationBlockerDialog.title": "Discard all changes?",

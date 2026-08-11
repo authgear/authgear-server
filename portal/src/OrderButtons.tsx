@@ -12,6 +12,21 @@ interface OrderButtonsProps {
   onSwapClicked: (index1: number, index2: number) => void;
 }
 
+export function move<T>(items: T[], fromIndex: number, toIndex: number): T[] {
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= items.length ||
+    toIndex >= items.length
+  ) {
+    return items;
+  }
+  const newItems = [...items];
+  const [item] = newItems.splice(fromIndex, 1);
+  newItems.splice(toIndex, 0, item);
+  return newItems;
+}
+
 export function swap<T>(items: T[], index1: number, index2: number): T[] {
   const newItems = [...items];
   const thisItem = newItems[index1];

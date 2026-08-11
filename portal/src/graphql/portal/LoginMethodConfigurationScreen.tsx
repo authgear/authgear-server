@@ -398,19 +398,22 @@ function controlListCheckWithPlainValue<U, T>(
   });
 }
 
-function controlListSwap<T>(
-  index1: number,
-  index2: number,
+function controlListMove<T>(
+  fromIndex: number,
+  toIndex: number,
   ts: ControlList<T>
 ): ControlList<T> {
-  const newItems = [...ts];
-  const thisItem = newItems[index1];
-  const thatItem = newItems[index2];
-  if (index1 < 0 || index2 < 0 || index1 >= ts.length || index2 >= ts.length) {
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= ts.length ||
+    toIndex >= ts.length
+  ) {
     return ts;
   }
-  newItems[index1] = thatItem;
-  newItems[index2] = thisItem;
+  const newItems = [...ts];
+  const [item] = newItems.splice(fromIndex, 1);
+  newItems.splice(toIndex, 0, item);
   return newItems;
 }
 
@@ -1946,12 +1949,12 @@ interface CustomLoginMethodsProps {
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   onChangeLoginIDChecked: (key: LoginIDKeyType, checked: boolean) => void;
-  onSwapLoginID: (index1: number, index2: number) => void;
+  onMoveLoginID: (fromIndex: number, toIndex: number) => void;
   onChangePrimaryAuthenticatorChecked: (
     key: PrimaryAuthenticatorType,
     checked: boolean
   ) => void;
-  onSwapPrimaryAuthenticator: (index1: number, index2: number) => void;
+  onMovePrimaryAuthenticator: (fromIndex: number, toIndex: number) => void;
 }
 
 function CustomLoginMethods(props: CustomLoginMethodsProps) {
@@ -1960,10 +1963,10 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     loginIDKeyConfigsControl,
     primaryAuthenticatorsControl,
     onChangeLoginIDChecked: onChangeLoginIDCheckedProp,
-    onSwapLoginID: onSwapLoginIDProp,
+    onMoveLoginID: onMoveLoginIDProp,
     onChangePrimaryAuthenticatorChecked:
       onChangePrimaryAuthenticatorCheckedProp,
-    onSwapPrimaryAuthenticator: onSwapPrimaryAuthenticatorProp,
+    onMovePrimaryAuthenticator: onMovePrimaryAuthenticatorProp,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -1994,11 +1997,11 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     [onChangeLoginIDCheckedProp]
   );
 
-  const onSwapLoginID = useCallback(
-    (index1: number, index2: number) => {
-      onSwapLoginIDProp(index1, index2);
+  const onMoveLoginID = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      onMoveLoginIDProp(fromIndex, toIndex);
     },
-    [onSwapLoginIDProp]
+    [onMoveLoginIDProp]
   );
 
   const authenticators = useMemo(() => {
@@ -2030,11 +2033,11 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     [onChangePrimaryAuthenticatorCheckedProp]
   );
 
-  const onSwapPrimaryAuthenticator = useCallback(
-    (index1: number, index2: number) => {
-      onSwapPrimaryAuthenticatorProp(index1, index2);
+  const onMovePrimaryAuthenticator = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      onMovePrimaryAuthenticatorProp(fromIndex, toIndex);
     },
-    [onSwapPrimaryAuthenticatorProp]
+    [onMovePrimaryAuthenticatorProp]
   );
 
   const authenticatorWarning = useMemo(() => {
@@ -2079,7 +2082,7 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
           "LoginMethodConfigurationScreen.custom-login-methods.login-id.title"
         )}
         onChangeChecked={onChangeLoginIDChecked}
-        onSwap={onSwapLoginID}
+        onMove={onMoveLoginID}
       />
       <Separator size="4" className={styles.cardSeparator} />
       <WidgetSubsection>
@@ -2105,7 +2108,7 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
           "LoginMethodConfigurationScreen.custom-login-methods.authenticator.title"
         )}
         onChangeChecked={onChangePrimaryAuthenticatorChecked}
-        onSwap={onSwapPrimaryAuthenticator}
+        onMove={onMovePrimaryAuthenticator}
       />
     </SettingsSectionCard>
   );
@@ -3631,13 +3634,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
-    const onSwapLoginID = useCallback(
-      (index1: number, index2: number) => {
+    const onMoveLoginID = useCallback(
+      (fromIndex: number, toIndex: number) => {
         setState((prev) =>
           produce(prev, (prev) => {
-            prev.loginIDKeyConfigsControl = controlListSwap(
-              index1,
-              index2,
+            prev.loginIDKeyConfigsControl = controlListMove(
+              fromIndex,
+              toIndex,
               prev.loginIDKeyConfigsControl
             );
           })
@@ -3662,13 +3665,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
-    const onSwapPrimaryAuthenticator = useCallback(
-      (index1: number, index2: number) => {
+    const onMovePrimaryAuthenticator = useCallback(
+      (fromIndex: number, toIndex: number) => {
         setState((prev) =>
           produce(prev, (prev) => {
-            prev.primaryAuthenticatorsControl = controlListSwap(
-              index1,
-              index2,
+            prev.primaryAuthenticatorsControl = controlListMove(
+              fromIndex,
+              toIndex,
               prev.primaryAuthenticatorsControl
             );
           })
@@ -3843,11 +3846,11 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   primaryAuthenticatorsControl={primaryAuthenticatorsControl}
                   loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                   onChangeLoginIDChecked={onChangeLoginIDChecked}
-                  onSwapLoginID={onSwapLoginID}
+                  onMoveLoginID={onMoveLoginID}
                   onChangePrimaryAuthenticatorChecked={
                     onChangePrimaryAuthenticatorChecked
                   }
-                  onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+                  onMovePrimaryAuthenticator={onMovePrimaryAuthenticator}
                 />
               </div>
             ) : null}
