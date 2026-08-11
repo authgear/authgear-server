@@ -426,7 +426,7 @@
   "UserDetailsAccountStatus.anonymize-user.action.anonymize-now": "Anonymize now",
   "UserDetailsAccountStatus.anonymize-user.action.cancel": "Cancel anonymization",
   "UserDetailsAccountStatus.remove-user.title": "Remove User",
-  "UserDetailsAccountStatus.remove-user.body": "Permanently deletes the user's account and all related data. This action is irreversible.",
+  "UserDetailsAccountStatus.remove-user.body": "Permanently deletes the user's account and all related data.",
   "UserDetailsAccountStatus.remove-user.action.remove": "Remove user",
   "UserDetailsAccountStatus.remove-user.action.remove-now": "Remove now",
   "UserDetailsAccountStatus.remove-user.action.cancel": "Cancel removal",
