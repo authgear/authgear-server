@@ -19,6 +19,7 @@ interface AuditLogDateRangeFilterDropdownProps {
   rangeFrom?: Date | null;
   rangeTo?: Date | null;
   onOpenCustomDateRangeDialog?: () => void;
+  presets?: AuditLogDateRangePresetKey[];
 }
 
 export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterDropdownProps> =
@@ -29,6 +30,7 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
     rangeFrom = null,
     rangeTo = null,
     onOpenCustomDateRangeDialog,
+    presets = AUDIT_LOG_DATE_RANGE_PRESET_ORDER,
   }) {
     const { renderToString, locale } = useContext(MessageContext);
     const [open, setOpen] = useState(false);
@@ -126,7 +128,7 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
                 onSelectOption(nextValue as AuditLogDateRangePresetKey);
               }}
             >
-              {AUDIT_LOG_DATE_RANGE_PRESET_ORDER.map((optionKey) => (
+              {presets.map((optionKey) => (
                 <div key={optionKey} className={styles.optionGroup}>
                   <label
                     className={styles.option}

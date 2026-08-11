@@ -27,14 +27,6 @@
   gap: 12px;
 }
 
-.dateButtonLabel {
-  color: var(--gray-12);
-}
-
-.dateButtonValue {
-  color: var(--gray-a11);
-}
-
 .loadingSpinner {
   margin-left: 4px;
 }

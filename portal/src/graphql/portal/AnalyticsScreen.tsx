@@ -1,7 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useConst } from "@fluentui/react-hooks";
-import { CalendarIcon, ResetIcon } from "@radix-ui/react-icons";
-import { Button, Spinner, Text } from "@radix-ui/themes";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Spinner, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
@@ -16,6 +20,8 @@ import ShowError from "../../ShowError";
 import styles from "./AnalyticsScreen.module.css";
 import useTransactionalState from "../../hook/useTransactionalState";
 import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRangeDialog";
+import { AuditLogDateRangeFilterDropdown } from "../../components/audit-log/AuditLogDateRangeFilterDropdown";
+import { AuditLogDateRangePresetKey } from "../../components/audit-log/dateRangePresets";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseDate } from "../../util/date";
 
@@ -36,8 +42,8 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     return parseDate(analyticEpochStr);
   }, [analyticEpochStr]);
 
-  // eslint-disable-next-line react-hooks/purity
-  const today = useConst(new Date(Date.now()));
+   
+  const [today] = useState(() => new Date(Date.now()));
   const yesterday = useMemo(() => {
     const d = new Date(
       Date.UTC(
@@ -49,20 +55,34 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     return d;
   }, [today]);
 
-  const defaultRangeTo = useMemo(() => yesterday, [yesterday]);
-  const defaultRangeFrom = useMemo(() => {
-    const d = new Date(
-      Date.UTC(
-        defaultRangeTo.getUTCFullYear() - 1,
-        defaultRangeTo.getUTCMonth(),
-        defaultRangeTo.getUTCDate()
-      )
-    );
-    if (analyticEpochDate && analyticEpochDate > d) {
-      return analyticEpochDate;
-    }
-    return d;
-  }, [defaultRangeTo, analyticEpochDate]);
+  // Analytics data is bucketed by UTC date, so preset ranges are computed
+  // at UTC midnight rather than local midnight.
+  const getPresetDateRangeUTC = useCallback(
+    (preset: "last7Days" | "last30Days"): { from: Date; to: Date } => {
+      const to = yesterday;
+      const days = preset === "last7Days" ? 6 : 29;
+      let from = new Date(
+        Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate() - days)
+      );
+      if (analyticEpochDate && analyticEpochDate > from) {
+        from = analyticEpochDate;
+      }
+      return { from, to };
+    },
+    [yesterday, analyticEpochDate]
+  );
+
+  const defaultRange = useMemo(
+    () => getPresetDateRangeUTC("last30Days"),
+    [getPresetDateRangeUTC]
+  );
+  const defaultRangeTo = defaultRange.to;
+  const defaultRangeFrom = defaultRange.from;
+
+  const [dateRangePreset, setDateRangePreset] =
+    useState<AuditLogDateRangePresetKey>("last30Days");
+  const presetBeforeCustomDialogRef =
+    useRef<AuditLogDateRangePresetKey>("last30Days");
 
   const {
     committedValue: rangeFrom,
@@ -112,30 +132,47 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     signupByMethodsChart,
   } = useAnalyticChartsQuery(appID, periodical, rangeFromStr, rangeToStr);
 
-  const onClickDateRange = useCallback(() => {
+  const onOpenCustomDateRangeDialog = useCallback(() => {
+    presetBeforeCustomDialogRef.current = dateRangePreset;
     setDateRangeDialogHidden(false);
-  }, []);
+  }, [dateRangePreset]);
 
-  const onClickResetDateRange = useCallback(() => {
-    setRangeFromImmediately(defaultRangeFrom);
-    setRangeToImmediately(defaultRangeTo);
-  }, [
-    setRangeFromImmediately,
-    setRangeToImmediately,
-    defaultRangeFrom,
-    defaultRangeTo,
-  ]);
+  const onChangeDateRangePreset = useCallback(
+    (preset: AuditLogDateRangePresetKey) => {
+      if (preset === "custom") {
+        presetBeforeCustomDialogRef.current = dateRangePreset;
+        setDateRangePreset(preset);
+        setDateRangeDialogHidden(false);
+        return;
+      }
+      if (preset === "today") {
+        return;
+      }
+      setDateRangePreset(preset);
+      const range = getPresetDateRangeUTC(preset);
+      setRangeFromImmediately(range.from);
+      setRangeToImmediately(range.to);
+    },
+    [
+      dateRangePreset,
+      getPresetDateRangeUTC,
+      setRangeFromImmediately,
+      setRangeToImmediately,
+    ]
+  );
 
   const onDismissDateRangeDialog = useCallback(() => {
     setDateRangeDialogHidden(true);
     rollbackRangeFrom();
     rollbackRangeTo();
+    setDateRangePreset(presetBeforeCustomDialogRef.current);
   }, [rollbackRangeFrom, rollbackRangeTo]);
 
   const commitDateRange = useCallback(() => {
     setDateRangeDialogHidden(true);
     commitRangeFrom();
     commitRangeTo();
+    setDateRangePreset("custom");
   }, [commitRangeFrom, commitRangeTo]);
 
   const onSelectRangeFrom = useCallback(
@@ -234,39 +271,14 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
             </Text>
           </div>
           <div className={cn(styles.widget, styles.filterBar)}>
-            <Button
-              size="2"
-              variant="outline"
-              color="gray"
-              onClick={onClickDateRange}
-            >
-              <CalendarIcon width="1rem" height="1rem" />
-              <span className={styles.dateButtonLabel}>
-                <FormattedMessage id="AnalyticsScreen.start-date.label" />
-              </span>
-              <span className={styles.dateButtonValue}>{rangeFromStr}</span>
-            </Button>
-            <Button
-              size="2"
-              variant="outline"
-              color="gray"
-              onClick={onClickDateRange}
-            >
-              <CalendarIcon width="1rem" height="1rem" />
-              <span className={styles.dateButtonLabel}>
-                <FormattedMessage id="AnalyticsScreen.end-date.label" />
-              </span>
-              <span className={styles.dateButtonValue}>{rangeToStr}</span>
-            </Button>
-            <Button
-              size="2"
-              variant="ghost"
-              color="gray"
-              onClick={onClickResetDateRange}
-            >
-              <ResetIcon width="1rem" height="1rem" />
-              <FormattedMessage id="AnalyticsScreen.clear-date-range.label" />
-            </Button>
+            <AuditLogDateRangeFilterDropdown
+              presets={["last7Days", "last30Days", "custom"]}
+              value={dateRangePreset}
+              onChange={onChangeDateRangePreset}
+              rangeFrom={rangeFrom}
+              rangeTo={rangeTo}
+              onOpenCustomDateRangeDialog={onOpenCustomDateRangeDialog}
+            />
             {loading ? (
               <Spinner size="2" className={styles.loadingSpinner} />
             ) : null}
