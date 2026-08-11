@@ -44,7 +44,7 @@ function WithCheckboxAndTooltipRender() {
       <CheckboxWithTooltip
         label="Enable domain blocklist"
         checked={checked}
-        onChange={(_, v) => setChecked(v ?? false)}
+        onCheckedChange={setChecked}
         tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
       />
       <Text variant="small" styles={{ root: { marginTop: 8 } }}>

@@ -1,7 +1,22 @@
 .root {
   display: flex;
+  align-items: center;
 }
 
-.tooltip {
-  display: flex;
+.checkboxLabel {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- graceful degradation: cosmetic cursor/color only */
+.checkboxLabel:has(:disabled) {
+  cursor: not-allowed;
+  color: var(--gray-a10);
+}
+
+.infoIcon {
+  display: inline;
+  vertical-align: text-bottom;
+  margin-left: 4px;
+  color: #176df3;
+  cursor: pointer;
 }

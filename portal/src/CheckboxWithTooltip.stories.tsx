@@ -31,7 +31,7 @@ function CheckboxWithTooltipDefaultRender(
     <CheckboxWithTooltip
       {...args}
       checked={checked}
-      onChange={(_, v) => setChecked(v ?? false)}
+      onCheckedChange={setChecked}
     />
   );
 }
@@ -44,7 +44,7 @@ function CheckboxWithTooltipCheckedRender(
     <CheckboxWithTooltip
       {...args}
       checked={checked}
-      onChange={(_, v) => setChecked(v ?? false)}
+      onCheckedChange={setChecked}
     />
   );
 }

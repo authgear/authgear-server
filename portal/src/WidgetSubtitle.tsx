@@ -1,14 +1,14 @@
 import React, { ReactNode, ReactElement } from "react";
-import { Text } from "@fluentui/react";
+import { Heading } from "@radix-ui/themes";
 
 export interface WidgetSubtitleProps {
   children?: ReactNode;
 }
 
-const FIELD_TITLE_STYLES = {
-  root: {
-    fontWeight: "600",
-  },
+const FIELD_TITLE_STYLE: React.CSSProperties = {
+  // Match the previous Fluent UI medium variant (semibold).
+  fontWeight: 600,
+  lineHeight: "20px",
 };
 
 export default function WidgetSubtitle(
@@ -16,8 +16,8 @@ export default function WidgetSubtitle(
 ): ReactElement {
   const { children } = props;
   return (
-    <Text as="h3" block={true} variant="medium" styles={FIELD_TITLE_STYLES}>
+    <Heading as="h3" size="2" style={FIELD_TITLE_STYLE}>
       {children}
-    </Text>
+    </Heading>
   );
 }
