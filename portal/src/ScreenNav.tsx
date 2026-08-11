@@ -303,6 +303,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         children: [
           {
             type: "link" as const,
+            textKey: "ScreenNav.account-lockout",
+            url: `/project/${appID}/attack-protection/account-lockout`,
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.bot-protection",
             url: `/project/${appID}/attack-protection/bot-protection`,
           },

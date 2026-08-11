@@ -199,6 +199,9 @@ const FraudProtectionLogEntryScreen = lazy(
 const IPBlocklistScreen = lazy(
   async () => import("./graphql/portal/IPBlocklistScreen")
 );
+const AccountLockoutScreen = lazy(
+  async () => import("./graphql/portal/AccountLockoutScreen")
+);
 const SubscriptionRedirect = lazy(
   async () => import("./graphql/portal/SubscriptionRedirect")
 );
@@ -838,6 +841,16 @@ const AppRoot: React.VFC = function AppRoot() {
           </Route>
 
           <Route path="attack-protection">
+            <Route path="account-lockout">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AccountLockoutScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
             <Route path="bot-protection">
               <Route
                 index={true}

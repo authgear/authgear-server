@@ -114,17 +114,7 @@ import {
   IconRadioCards,
   IconRadioCardOption,
 } from "../../components/v2/IconRadioCards/IconRadioCards";
-import {
-  formatDuration,
-  formatOptionalDuration,
-  parseDuration,
-} from "../../util/duration";
-import LockoutSettings, { State as LockoutFormState } from "./LockoutSettings";
-import { APIError } from "../../error/error";
-import {
-  LocalValidationError,
-  makeLocalValidationError,
-} from "../../error/validation";
+import { formatDuration, parseDuration } from "../../util/duration";
 import { useUIImplementation } from "../../hook/useUIImplementation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
@@ -482,7 +472,6 @@ interface ConfigFormState {
   passkeyChecked: boolean;
   passkeyShowDoNotAskAgain: boolean;
   combineSignupLoginFlowChecked: boolean;
-  lockout: LockoutFormState;
 
   verificationClaims?: VerificationClaimsConfig;
   verificationCriteria?: VerificationCriteria;
@@ -823,14 +812,6 @@ function parseOptionalDuration(s: string | undefined) {
   return parseDuration(s);
 }
 
-function parseOptionalDurationIntoMinutes(s: string | undefined) {
-  const seconds = parseOptionalDuration(s);
-  if (seconds === undefined) {
-    return undefined;
-  }
-  return seconds / 60;
-}
-
 function getRateLimitDailyLimit(
   config: RateLimitConfig | undefined
 ): number | undefined {
@@ -929,9 +910,6 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const emailVerificationDailyLimit = getRateLimitDailyLimit(
     config.verification?.rate_limits?.email?.trigger_per_user ?? {}
   );
-
-  const isLockoutEnabled =
-    (config.authentication?.lockout?.max_attempts ?? 0) > 0;
 
   const state: ConfigFormState = {
     uiImplementation: config.ui?.implementation,
@@ -1057,43 +1035,6 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       config.ui?.passkey_upselling_opt_out_enabled ?? false,
     combineSignupLoginFlowChecked:
       config.ui?.signup_login_flow_enabled ?? false,
-    lockout: {
-      isEnabled: isLockoutEnabled,
-      maxAttempts: isLockoutEnabled
-        ? config.authentication?.lockout?.max_attempts
-        : 10,
-      historyDurationMins: isLockoutEnabled
-        ? parseOptionalDurationIntoMinutes(
-            config.authentication?.lockout?.history_duration
-          )
-        : 1440,
-      minimumDurationMins: isLockoutEnabled
-        ? parseOptionalDurationIntoMinutes(
-            config.authentication?.lockout?.minimum_duration
-          )
-        : 1,
-      maximumDurationMins: isLockoutEnabled
-        ? parseOptionalDurationIntoMinutes(
-            config.authentication?.lockout?.maximum_duration
-          )
-        : 60,
-      backoffFactorRaw: isLockoutEnabled
-        ? config.authentication?.lockout?.backoff_factor?.toString()
-        : "2",
-      lockoutType: config.authentication?.lockout?.lockout_type ?? "per_user",
-      isEnabledForPassword: isLockoutEnabled
-        ? config.authentication?.lockout?.password?.enabled ?? false
-        : true,
-      isEnabledForTOTP: isLockoutEnabled
-        ? config.authentication?.lockout?.totp?.enabled ?? false
-        : true,
-      isEnabledForOOBOTP: isLockoutEnabled
-        ? config.authentication?.lockout?.oob_otp?.enabled ?? false
-        : true,
-      isEnabledForRecoveryCode: isLockoutEnabled
-        ? config.authentication?.lockout?.recovery_code?.enabled ?? false
-        : true,
-    },
     sixDigitOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
     emailOTPCooldownPeriodSeconds,
@@ -1140,7 +1081,6 @@ function constructConfig(
     config.authentication.rate_limits.oob_otp ??= {};
     config.authentication.rate_limits.oob_otp.email ??= {};
     config.authentication.rate_limits.oob_otp.sms ??= {};
-    config.authentication.lockout ??= {};
     config.identity ??= {};
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
@@ -1271,53 +1211,6 @@ function constructConfig(
       config.authentication.rate_limits.oob_otp.sms.trigger_cooldown =
         undefined;
       config.verification.rate_limits.sms.trigger_cooldown = undefined;
-    }
-
-    if (!currentState.lockout.isEnabled) {
-      config.authentication.lockout = undefined;
-    } else {
-      const backoffFactor = Number(currentState.lockout.backoffFactorRaw);
-      config.authentication.lockout.backoff_factor = Number.isFinite(
-        backoffFactor
-      )
-        ? backoffFactor
-        : undefined;
-      config.authentication.lockout.history_duration = formatOptionalDuration(
-        currentState.lockout.historyDurationMins,
-        "m"
-      );
-      config.authentication.lockout.lockout_type =
-        currentState.lockout.lockoutType;
-      config.authentication.lockout.max_attempts =
-        currentState.lockout.maxAttempts;
-      config.authentication.lockout.maximum_duration = formatOptionalDuration(
-        currentState.lockout.maximumDurationMins,
-        "m"
-      );
-      config.authentication.lockout.minimum_duration = formatOptionalDuration(
-        currentState.lockout.minimumDurationMins,
-        "m"
-      );
-      if (currentState.lockout.isEnabledForOOBOTP) {
-        config.authentication.lockout.oob_otp = { enabled: true };
-      } else {
-        config.authentication.lockout.oob_otp = undefined;
-      }
-      if (currentState.lockout.isEnabledForPassword) {
-        config.authentication.lockout.password = { enabled: true };
-      } else {
-        config.authentication.lockout.password = undefined;
-      }
-      if (currentState.lockout.isEnabledForRecoveryCode) {
-        config.authentication.lockout.recovery_code = { enabled: true };
-      } else {
-        config.authentication.lockout.recovery_code = undefined;
-      }
-      if (currentState.lockout.isEnabledForTOTP) {
-        config.authentication.lockout.totp = { enabled: true };
-      } else {
-        config.authentication.lockout.totp = undefined;
-      }
     }
 
     if (currentState.emailOTPCooldownPeriodSeconds != null) {
@@ -3639,17 +3532,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
-    const setLockoutState = useCallback(
-      (fn: (lockoutState: LockoutFormState) => LockoutFormState) => {
-        setState((prev) =>
-          produce(prev, (prev) => {
-            prev.lockout = fn(prev.lockout);
-          })
-        );
-      },
-      [setState]
-    );
-
     const uiImplementation = useUIImplementation(projectUIImplementation);
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
@@ -3707,12 +3589,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ),
         });
       }
-      options.push({
-        value: "lockout",
-        label: renderToString(
-          "LoginMethodConfigurationScreen.pivot.lockout.title"
-        ),
-      });
       return options;
     }, [
       loginMethod,
@@ -3886,58 +3762,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 />
               </div>
             ) : null}
-            {activeTab === "lockout" ? (
-              <div className={styles.tabContent}>
-                <LockoutSettings
-                  {...state.lockout}
-                  setState={setLockoutState}
-                />
-              </div>
-            ) : null}
           </div>
         </ShowOnlyIfSIWEIsDisabled>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };
-
-function validateFormState(state: ConfigFormState): APIError | null {
-  if (!state.lockout.isEnabled) {
-    return null;
-  }
-
-  const errors: LocalValidationError[] = [];
-
-  if ((state.lockout.maxAttempts ?? 0) < 1) {
-    errors.push({
-      messageID: "errors.validation.minimum",
-      arguments: {
-        minimum: 1,
-      },
-      location: "/authentication/lockout/max_attempts",
-    });
-  }
-
-  if (
-    [
-      state.lockout.isEnabledForOOBOTP,
-      state.lockout.isEnabledForPassword,
-      state.lockout.isEnabledForRecoveryCode,
-      state.lockout.isEnabledForTOTP,
-    ].every((enabled) => !enabled)
-  ) {
-    errors.push({
-      messageID:
-        "LoginMethodConfigurationScreen.lockout.errors.mustEnableForAtLeastOneAuthenticator",
-    });
-  }
-
-  if (errors.length < 1) {
-    return null;
-  }
-
-  return makeLocalValidationError(errors);
-}
 
 const LoginMethodConfigurationScreen: React.VFC =
   function LoginMethodConfigurationScreen() {
@@ -3951,7 +3781,6 @@ const LoginMethodConfigurationScreen: React.VFC =
       appID,
       constructFormState,
       constructConfig,
-      validate: validateFormState,
     });
 
     const resourceForm = useResourceForm(appID, specifiers);
