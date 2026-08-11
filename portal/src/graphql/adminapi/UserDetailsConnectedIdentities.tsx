@@ -27,14 +27,17 @@ import ListCellLayout from "../../ListCellLayout";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
 import { LoginIDKeyType, OAuthSSOProviderType } from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 
 import styles from "./UserDetailsConnectedIdentities.module.css";
+import listStyles from "./UserDetailsListTable.module.css";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import ExternalLink, { ExternalLinkProps } from "../../ExternalLink";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
@@ -114,6 +117,7 @@ interface LoginIDIdentityListItem {
   claimValue: string;
   verified?: boolean;
   connectedOn: string;
+  connectedOnDateOnly: string;
 }
 
 interface BiometricIdentityListItem {
@@ -819,6 +823,7 @@ const BaseIdentityListCellButtonGroup: React.VFC<
 };
 
 interface BaseIdentityListCellActionButtonProps {
+  className?: string;
   identityID?: string;
   identityType: IdentityType;
   identityName?: string;
@@ -838,6 +843,7 @@ const BaseIdentityListCellActionButton: React.VFC<
   BaseIdentityListCellActionButtonProps
 > = (props) => {
   const {
+    className,
     identityID,
     identityType,
     identityName,
@@ -889,12 +895,12 @@ const BaseIdentityListCellActionButton: React.VFC<
     shouldShowVerifyButton || shouldShowEditButton || shouldShowRemoveButton;
 
   return (
-    <div className={styles.actionButton}>
+    <div className={className ?? styles.actionButton}>
       {hasActions ? (
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             <IconButton
-              className={styles.rowActionsButton}
+              className={listStyles.rowActionsButton}
               size="2"
               variant="soft"
               color="gray"
@@ -997,6 +1003,7 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
 
 interface LoginIDIdentityListCellProps extends BaseIdentityListCellProps {
   loginIDKey: LoginIDKeyType;
+  connectedOnDateOnly: string;
   onEditClicked: (
     identityID: string,
     loginIDKey: LoginIDKeyType,
@@ -1016,6 +1023,7 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
     claimValue,
     verified,
     connectedOn,
+    connectedOnDateOnly,
     setVerifiedStatus,
     onRemoveClicked,
     onEditClicked: _onEditClicked,
@@ -1026,9 +1034,11 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   }, [_onEditClicked, identityID, identityName, loginIDKey]);
 
   return (
-    <ListCellLayout className={styles.loginIdentityCell}>
-      <div className={styles.loginIdentityValue}>
-        <Text size="2">{identityName}</Text>
+    <ListCellLayout className={listStyles.row}>
+      <div className={listStyles.rowValue}>
+        <Text size="2" className={listStyles.rowValueText}>
+          {identityName}
+        </Text>
         {verified != null ? (
           <span
             className={cn(
@@ -1045,13 +1055,16 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
           </span>
         ) : null}
       </div>
-      <Text size="2" color="gray" className={styles.loginIdentityDate}>
-        <FormattedMessage
-          id="UserDetails.connected-identities.added-on"
-          values={{ datetime: connectedOn }}
-        />
-      </Text>
+      <Tooltip content={connectedOn}>
+        <Text size="2" color="gray" className={listStyles.rowDate}>
+          <FormattedMessage
+            id="UserDetails.connected-identities.added-on"
+            values={{ datetime: connectedOnDateOnly }}
+          />
+        </Text>
+      </Tooltip>
       <BaseIdentityListCellActionButton
+        className={listStyles.rowAction}
         verified={verified}
         identityID={identityID}
         identityName={identityName}
@@ -1222,6 +1235,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
 
       for (const identity of identities) {
         const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
+        const createdAtDateOnlyStr =
+          formatDateOnly(locale, identity.createdAt) ?? "";
         if (identity.type === "OAUTH") {
           const providerType =
             identity.claims["https://authgear.com/claims/oauth/provider_type"]!;
@@ -1266,6 +1281,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue
               ),
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
 
@@ -1288,6 +1304,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue
               ),
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
 
@@ -1302,6 +1319,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
               claimName: "preferred_username",
               claimValue: identity.claims.preferred_username!,
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
         }
@@ -1440,6 +1458,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue={item.claimValue}
                 verified={verified}
                 connectedOn={connectedOn}
+                connectedOnDateOnly={item.connectedOnDateOnly}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
                 onEditClicked={onEditLoginIDClicked}
@@ -1594,13 +1613,13 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           <section className={styles.identityLists}>
             {loginIdentityTypesToShow.map((type) => (
               <div className={styles.loginIdentityGroup} key={type}>
-                <div className={styles.loginIdentityTable}>
-                  <div className={styles.loginIdentityTableHeader}>
+                <div className={listStyles.table}>
+                  <div className={listStyles.tableHeader}>
                     <Text
                       as="p"
                       size="2"
                       weight="medium"
-                      className={styles.loginIdentityGroupTitle}
+                      className={listStyles.tableTitle}
                     >
                       <FormattedMessage
                         id={`UserDetails.connected-identities.${type}`}
@@ -1616,7 +1635,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 {availableLoginIdIdentities.includes(type) ? (
                   <button
                     type="button"
-                    className={styles.addIdentityButton}
+                    className={listStyles.addButton}
                     onClick={() => {
                       if (type === "email") {
                         setEmailIdentityToEdit(undefined);

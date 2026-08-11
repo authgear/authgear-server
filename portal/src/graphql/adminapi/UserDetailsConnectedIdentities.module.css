@@ -33,61 +33,6 @@
   gap: 24px;
 }
 
-.loginIdentityGroupTitle {
-  margin: 0;
-  color: var(--gray-12);
-}
-
-.loginIdentityTable {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-}
-
-.loginIdentityTableHeader {
-  display: flex;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: 12px;
-}
-
-.loginIdentityCell {
-  display: grid;
-  grid-template-areas: "value date action";
-  grid-template-columns: minmax(0, 1fr) max-content 32px;
-  gap: 16px;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: 12px;
-  border-top: 1px solid var(--gray-a6);
-  border-bottom: 0;
-  background-color: var(--gray-a2);
-
-  /* stylelint-disable-next-line media-query-no-invalid */
-  @media screen(tablet) {
-    grid-template-areas:
-      "value action"
-      "date date";
-    grid-template-columns: minmax(0, 1fr) max-content;
-    align-items: start;
-    row-gap: 8px;
-  }
-}
-
-.loginIdentityCell:last-child {
-  border-bottom: 1px solid var(--gray-a6);
-}
-
-.loginIdentityValue {
-  grid-area: value;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  @apply tablet:flex-wrap;
-}
-
 .verificationStatus {
   display: inline-flex;
   align-items: center;
@@ -95,6 +40,7 @@
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .verifiedStatus {
@@ -110,35 +56,9 @@
   height: 16px;
 }
 
-.loginIdentityDate {
-  grid-area: date;
-  white-space: nowrap;
-
-  /* stylelint-disable-next-line media-query-no-invalid */
-  @media screen(tablet) {
-    white-space: normal;
-  }
-}
-
 .actionButton {
   grid-area: button-group;
   justify-self: end;
-}
-
-.loginIdentityCell .actionButton {
-  grid-area: action;
-  justify-self: end;
-}
-
-.rowActionsButton:not(:hover):not([data-state="open"]) {
-  background-color: transparent;
-}
-
-.addIdentityButton {
-  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
-  align-self: flex-start;
-  margin-top: 16px;
-  color: var(--accent-9);
 }
 
 .addIdentityForm {
