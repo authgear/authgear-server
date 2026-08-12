@@ -53,11 +53,6 @@ const AddUserScreen = lazy(
 const UserDetailsScreen = lazy(
   async () => import("./graphql/adminapi/UserDetailsScreen")
 );
-const EmailScreen = lazy(async () => import("./graphql/adminapi/EmailScreen"));
-const PhoneScreen = lazy(async () => import("./graphql/adminapi/PhoneScreen"));
-const UsernameScreen = lazy(
-  async () => import("./graphql/adminapi/UsernameScreen")
-);
 const ChangePasswordScreen = lazy(
   async () => import("./graphql/adminapi/ChangePasswordScreen")
 );
@@ -461,54 +456,6 @@ const AppRoot: React.VFC = function AppRoot() {
                     element={
                       <Suspense fallback={<ShowLoading />}>
                         <UserDetailsScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="add-email"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <EmailScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-email/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <EmailScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="add-phone"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <PhoneScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-phone/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <PhoneScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="add-username"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <UsernameScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-username/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <UsernameScreen />
                       </Suspense>
                     }
                   />

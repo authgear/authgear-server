@@ -1,4 +1,0 @@
-.widget {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-}

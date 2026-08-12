@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
-import { generatePath, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "../../intl";
 import {
   Button,
@@ -442,6 +442,10 @@ function AddUsernameDialog({
 interface AddPhoneDialogProps {
   open: boolean;
   userID: string;
+  identityToEdit?: {
+    id: string;
+    value: string;
+  };
   phoneInputAllowlist?: string[];
   phoneInputPinnedList?: string[];
   onOpenChange: (open: boolean) => void;
@@ -451,27 +455,42 @@ interface AddPhoneDialogProps {
 function AddPhoneDialog({
   open,
   userID,
+  identityToEdit,
   phoneInputAllowlist,
   phoneInputPinnedList,
   onOpenChange,
   onCreated,
 }: AddPhoneDialogProps): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const [e164, setE164] = useState("");
-  const [rawInputValue, setRawInputValue] = useState("");
+  const [e164, setE164] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const [rawInputValue, setRawInputValue] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
   const [fieldKey, setFieldKey] = useState(0);
   const { createIdentity, loading, error } =
     useCreateLoginIDIdentityMutation(userID);
-  useLoading(loading);
-  useProvideError(error);
+  const {
+    updateIdentity,
+    loading: updating,
+    error: updateError,
+  } = useUpdateLoginIDIdentityMutation(userID);
+  const isLoading = loading || updating;
+  useLoading(isLoading);
+  useProvideError(error ?? updateError);
 
   const [prevOpen, setPrevOpen] = useState(open);
-  if (prevOpen !== open) {
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
     setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
     if (!open) {
       setE164("");
       setRawInputValue("");
     } else {
+      setE164(identityToEdit?.value ?? "");
+      setRawInputValue(identityToEdit?.value ?? "");
       setFieldKey((key) => key + 1);
     }
   }
@@ -479,15 +498,18 @@ function AddPhoneDialog({
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (e164 === "" || loading) {
+      if (e164 === "" || isLoading) {
         return;
       }
 
       try {
-        const identity = await createIdentity({
-          key: "phone",
-          value: e164,
-        });
+        const identity =
+          identityToEdit == null
+            ? await createIdentity({ key: "phone", value: e164 })
+            : await updateIdentity(identityToEdit.id, {
+                key: "phone",
+                value: e164,
+              });
         if (identity != null) {
           await onCreated?.();
           onOpenChange(false);
@@ -496,7 +518,15 @@ function AddPhoneDialog({
         // The mutation error is surfaced by useProvideError.
       }
     },
-    [createIdentity, e164, loading, onCreated, onOpenChange]
+    [
+      createIdentity,
+      e164,
+      identityToEdit,
+      isLoading,
+      onCreated,
+      onOpenChange,
+      updateIdentity,
+    ]
   );
 
   return (
@@ -508,10 +538,23 @@ function AddPhoneDialog({
         data-phone-dialog="true"
       >
         <Dialog.Title>
-          <FormattedMessage id="PhoneScreen.add.title" />
+          <FormattedMessage
+            id={
+              identityToEdit == null
+                ? "PhoneScreen.add.title"
+                : "PhoneScreen.edit.title"
+            }
+          />
         </Dialog.Title>
         <Dialog.Description size="2">
-          <FormattedMessage id="PhoneScreen.add.description" />
+          {identityToEdit == null ? (
+            <FormattedMessage id="PhoneScreen.add.description" />
+          ) : (
+            <FormattedMessage
+              id="PhoneScreen.edit.current-value"
+              values={{ value: identityToEdit.value }}
+            />
+          )}
         </Dialog.Description>
         <form
           className={cn(
@@ -541,7 +584,7 @@ function AddPhoneDialog({
           >
             <SecondaryButton
               size="2"
-              disabled={loading}
+              disabled={isLoading}
               text={<FormattedMessage id="cancel" />}
               onClick={() => {
                 onOpenChange(false);
@@ -550,10 +593,10 @@ function AddPhoneDialog({
             <Button
               type="submit"
               size="2"
-              loading={loading}
+              loading={isLoading}
               disabled={e164 === ""}
             >
-              <FormattedMessage id="add" />
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
             </Button>
           </div>
         </form>
@@ -1178,7 +1221,6 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
     const { locale, renderToString } = useContext(Context);
 
     const { userID } = useParams() as { userID: string };
-    const navigate = useNavigate();
 
     /* TODO: implement save primary identities
   const [remountIdentifier, setRemountIdentifier] = useState(0);
@@ -1211,6 +1253,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       value: string;
     }>();
     const [isAddPhoneDialogOpen, setIsAddPhoneDialogOpen] = useState(false);
+    const [phoneIdentityToEdit, setPhoneIdentityToEdit] = useState<{
+      id: string;
+      value: string;
+    }>();
     const [isAddUsernameDialogOpen, setIsAddUsernameDialogOpen] =
       useState(false);
     const [usernameIdentityToEdit, setUsernameIdentityToEdit] = useState<{
@@ -1404,7 +1450,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             setIsAddUsernameDialogOpen(true);
             break;
           case "phone":
-            navigate(generatePath("./edit-phone/:identityID", { identityID }));
+            setPhoneIdentityToEdit({ id: identityID, value: identityValue });
+            setIsAddPhoneDialogOpen(true);
             break;
           case "email":
             setEmailIdentityToEdit({ id: identityID, value: identityValue });
@@ -1417,7 +1464,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             break;
         }
       },
-      [navigate]
+      []
     );
 
     const onDismissConfirmationDialog = useCallback(() => {
@@ -1584,9 +1631,15 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         <AddPhoneDialog
           open={isAddPhoneDialogOpen}
           userID={userID}
+          identityToEdit={phoneIdentityToEdit}
           phoneInputAllowlist={phoneInputAllowlist}
           phoneInputPinnedList={phoneInputPinnedList}
-          onOpenChange={setIsAddPhoneDialogOpen}
+          onOpenChange={(open) => {
+            setIsAddPhoneDialogOpen(open);
+            if (!open) {
+              setPhoneIdentityToEdit(undefined);
+            }
+          }}
           onCreated={onIdentityCreated}
         />
         <AddUsernameDialog
