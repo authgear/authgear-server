@@ -16,6 +16,12 @@ describe("isValidWebhookHookURI", () => {
     );
   });
 
+  it("accepts path-less URLs whose query or fragment contains slashes", () => {
+    expect(isValidWebhookHookURI("https://example.com?next=/../x")).toBe(true);
+    expect(isValidWebhookHookURI("https://example.com?a=b/c//d")).toBe(true);
+    expect(isValidWebhookHookURI("https://example.com#/../x")).toBe(true);
+  });
+
   it("rejects invalid URLs", () => {
     expect(isValidWebhookHookURI("https://")).toBe(false);
     expect(isValidWebhookHookURI("foobar")).toBe(false);

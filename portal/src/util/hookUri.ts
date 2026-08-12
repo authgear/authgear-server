@@ -4,24 +4,29 @@ function getRawPathFromURL(url: string): string | null {
     return null;
   }
 
-  const rest = url.slice(schemeEnd + 3);
-  const pathStart = rest.indexOf("/");
-  if (pathStart === -1) {
-    return "";
-  }
-
-  const pathAndAfter = rest.slice(pathStart);
-  const queryStart = pathAndAfter.indexOf("?");
-  const hashStart = pathAndAfter.indexOf("#");
-  let end = pathAndAfter.length;
+  // The path ends at the first "?" or "#", and the authority cannot
+  // contain "/", so cut the query/fragment off before looking for the
+  // start of the path. Otherwise, in a path-less URL like
+  // "https://example.com?next=/x", the "/" inside the query would be
+  // mistaken for the start of the path.
+  let rest = url.slice(schemeEnd + 3);
+  const queryStart = rest.indexOf("?");
+  const hashStart = rest.indexOf("#");
+  let end = rest.length;
   if (queryStart !== -1) {
     end = Math.min(end, queryStart);
   }
   if (hashStart !== -1) {
     end = Math.min(end, hashStart);
   }
+  rest = rest.slice(0, end);
 
-  return pathAndAfter.slice(0, end);
+  const pathStart = rest.indexOf("/");
+  if (pathStart === -1) {
+    return "";
+  }
+
+  return rest.slice(pathStart);
 }
 
 function isValidAbsoluteURLPath(pathname: string): boolean {
