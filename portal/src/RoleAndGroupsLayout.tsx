@@ -1,8 +1,7 @@
 import React, { ReactNode, useMemo } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Progress, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
-import { ProgressIndicator } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import styles from "./RoleAndGroupsLayout.module.css";
 import { BreadcrumbItem } from "./NavBreadcrumb";
@@ -18,12 +17,6 @@ interface RoleAndGroupsLayoutProps {
   headerSubitem?: ReactNode;
   headerDescription?: ReactNode;
 }
-
-const progressIndicatorStyles = {
-  itemProgress: {
-    padding: 0,
-  },
-};
 
 function resolveBreadcrumbPath(to: string, appID: string): string {
   if (to === "" || to === ".") {
@@ -65,11 +58,7 @@ export const RoleAndGroupsLayout: React.VFC<
     <ErrorMessageBarContextProvider>
       <div className={styles.root}>
         <div className={styles.topBar}>
-          <ProgressIndicator
-            styles={progressIndicatorStyles}
-            className={!isLoading ? "hidden" : ""}
-            barHeight={4}
-          />
+          {isLoading ? <Progress size="1" radius="none" /> : null}
           <ErrorMessageBar />
         </div>
         <div className={styles.main}>
