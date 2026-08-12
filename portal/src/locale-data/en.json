@@ -649,7 +649,6 @@
   "calling-code-area.international": "International Networks",
   "AuthenticatorConfigurationScreen.columns.activate": "Activate",
   "AuthenticatorConfigurationScreen.columns.authenticator": "Authenticator",
-  "SIWE.disable-first": "Your project has enabled Sign in with Ethereum. Disable it <reactRouterLink>here</reactRouterLink> beforing choosing other login methods.",
   "VerificationConfigurationScreen.otp-valid-seconds.label": "6-digit OTP valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "<code>isVerified</code> is true when ...",
   "VerificationConfigurationScreen.criteria.tooltip": "More info in the <docLink>UserInfo endpoint</docLink>",

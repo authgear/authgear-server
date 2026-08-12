@@ -17,7 +17,6 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import Link from "../../Link";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
@@ -131,7 +130,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           <OAuthClientItem
             initialAlias={alias}
             providerItemKey={providerItemKey}
@@ -140,7 +139,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             effectiveSecretConfig={effectiveSecretConfig}
             publicOrigin={publicOrigin}
           />
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );

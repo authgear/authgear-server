@@ -21,7 +21,6 @@ import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.css";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 
 interface FormState {
   enabled: boolean;
@@ -113,7 +112,7 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
             <FormattedMessage id="BiometricConfigurationScreen.description" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           <SettingsSectionCard
             className={cn(
               styles.widget,
@@ -148,7 +147,7 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
               />
             ) : null}
           </SettingsSectionCard>
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );

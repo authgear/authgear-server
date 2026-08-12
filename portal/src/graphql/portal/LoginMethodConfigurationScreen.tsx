@@ -88,7 +88,6 @@ import PasswordSettings, {
   getResetPasswordWithPhoneMethod,
   setUIForgotPasswordConfig,
 } from "./PasswordSettings";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import {
   ResourcesFormState,
@@ -3659,7 +3658,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             <FormattedMessage id="LoginMethodConfigurationScreen.description" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           {isAuthgearOnce &&
           isSMSRequiredForSomeEnabledFeatures &&
           !smsProviderConfigured ? (
@@ -3799,7 +3798,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               ) : null}
             </div>
           ) : null}
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );

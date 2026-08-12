@@ -29,7 +29,6 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -502,7 +501,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
             <FormattedMessage id="MFAConfigurationScreen.description" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           {isAuthgearOnce &&
           isSMSRequiredForSomeEnabledFeatures &&
           !smsProviderConfigured ? (
@@ -707,7 +706,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               </>
             ) : null}
           </SettingsSectionCard>
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );

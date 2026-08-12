@@ -26,9 +26,7 @@ function renderPortalMessageBar(
         <BlueMessageBar isMultiline={isMultiline}>{children}</BlueMessageBar>
       );
     case "Error":
-      return (
-        <RedMessageBar isMultiline={isMultiline}>{children}</RedMessageBar>
-      );
+      return <RedMessageBar>{children}</RedMessageBar>;
     case "Warning":
       return (
         <MessageBar

@@ -36,7 +36,6 @@ import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
 import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -403,7 +402,7 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
             <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           <SettingsSectionCard
             className={styles.widget}
             contentClassName="gap-4"
@@ -452,7 +451,7 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
               isDirty ? styles.settingsCardSaveBarClearance : undefined
             }
           />
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );

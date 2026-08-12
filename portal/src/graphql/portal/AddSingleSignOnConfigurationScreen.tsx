@@ -19,7 +19,6 @@ import {
   OAuthSSOWeChatAppType,
   parseOAuthSSOProviderItemKey,
 } from "../../types";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AddSingleSignOnConfigurationScreen.module.css";
 import SingleSignOnConfigurationWidget, {
   OAuthClientCard,
@@ -169,7 +168,7 @@ const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFo
             <FormattedMessage id="AddSingleSignOnConfigurationScreen.title" />
           </Text>
         </div>
-        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+        <>
           {newAlias != null && selectedProviderKey != null ? (
             <OAuthClientForm
               initialAlias={newAlias}
@@ -181,7 +180,7 @@ const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFo
           ) : (
             <OAuthClientMenu form={form} onSelect={onMenuSelect} />
           )}
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
         {selectedProviderKey != null ? (
           <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
         ) : null}

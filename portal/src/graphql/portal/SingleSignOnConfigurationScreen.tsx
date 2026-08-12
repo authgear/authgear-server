@@ -12,7 +12,6 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
@@ -141,7 +140,7 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
             />
           ) : null}
         </div>
-        <ShowOnlyIfSIWEIsDisabled>
+        <>
           <div className={styles.content}>
             {form.state.providers.length > 0 ? (
               <div className={styles.list}>
@@ -188,7 +187,7 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
               </div>
             )}
           </div>
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
       </ScreenContent>
     );
   };
