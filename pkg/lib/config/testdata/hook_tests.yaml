@@ -47,6 +47,15 @@ value:
 
 ---
 part: NonBlockingHookHandlersConfig
+name: valid-with-name
+error: null
+value:
+  name: Send welcome email
+  events: ["*"]
+  url: "https://example.com/callback"
+
+---
+part: NonBlockingHookHandlersConfig
 name: missing-url
 error: |-
   invalid value:
