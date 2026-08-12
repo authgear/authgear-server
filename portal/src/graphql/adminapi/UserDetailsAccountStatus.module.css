@@ -12,6 +12,10 @@
   padding: 24px;
   border: 1px solid var(--gray-6);
   border-radius: 12px;
+
+  /* Stack the title above the content on narrow screens, matching the
+     SettingsSectionCard layout used by the other tabs. */
+  @apply tablet:grid-cols-1 tablet:gap-4;
 }
 
 .dangerZoneCard {
@@ -92,6 +96,10 @@
   @apply gap-x-6 gap-y-1;
   @apply py-6;
   border-bottom: 1px solid var(--gray-5);
+
+  /* Below the tablet breakpoint the action button no longer fits beside
+     the text without crushing it, so stack everything into one column. */
+  @apply tablet:flex tablet:flex-col tablet:gap-2;
 }
 
 .dangerZoneCard .actionCell {
@@ -126,6 +134,9 @@
 .actionCellActionButtonContainer {
   @apply flex flex-col place-self-center justify-between items-end gap-4;
   grid-area: paction;
+
+  /* Once stacked, left-align the button under the text. */
+  @apply tablet:place-self-auto tablet:items-start;
 }
 
 .statusActionButton {
@@ -135,4 +146,6 @@
 .actionCellActionButton {
   @apply place-self-center;
   grid-area: paction;
+
+  @apply tablet:place-self-start;
 }
