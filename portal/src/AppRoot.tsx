@@ -178,9 +178,6 @@ const AnalyticsScreen = lazy(
 const IntegrationsConfigurationScreen = lazy(
   async () => import("./graphql/portal/IntegrationsConfigurationScreen")
 );
-const GoogleTagManagerConfigurationScreen = lazy(
-  async () => import("./graphql/portal/GoogleTagManagerConfigurationScreen")
-);
 const BotProtectionConfigurationScreen = lazy(
   async () => import("./graphql/portal/BotProtectionConfigurationScreen")
 );
@@ -855,14 +852,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <IntegrationsConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="google-tag-manager"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <GoogleTagManagerConfigurationScreen />
                   </Suspense>
                 }
               />
