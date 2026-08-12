@@ -56,7 +56,7 @@ import {
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import AppLogoHeightSetter from "../../../components/design/AppLogoHeightSetter";
 import { useTester } from "../../../hook/tester";
-import Tooltip from "../../../Tooltip";
+import { Tooltip } from "../../../components/v2/Tooltip/Tooltip";
 import Link from "../../../Link";
 
 interface OrganisationConfigurationProps {
@@ -1024,23 +1024,30 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
                 <div className={styles.titleActions}>
                   <PreviewLanguageSelect designForm={form} />
                   <Tooltip
-                    isHidden={!canSave}
-                    tooltipMessageId="DesignScreen.action.try.disabledHint"
+                    disabled={!canSave}
+                    content={
+                      <FormattedMessage id="DesignScreen.action.try.disabledHint" />
+                    }
                   >
-                    <SecondaryButton
-                      size="2"
-                      text={
-                        <span className={styles.livePreviewButton}>
-                          <ExternalLinkIcon
-                            className={styles.livePreviewIcon}
-                          />
-                          <FormattedMessage id="DesignScreen.action.livePreview" />
-                        </span>
-                      }
-                      onClick={onTry}
-                      disabled={canSave || isTryLoading}
-                      loading={isTryLoading}
-                    />
+                    {/* Wrap the button so the tooltip still triggers while
+                        the button is disabled (a disabled element does not
+                        fire the hover events Radix listens for). */}
+                    <span className={styles.livePreviewTooltipTarget}>
+                      <SecondaryButton
+                        size="2"
+                        text={
+                          <span className={styles.livePreviewButton}>
+                            <ExternalLinkIcon
+                              className={styles.livePreviewIcon}
+                            />
+                            <FormattedMessage id="DesignScreen.action.livePreview" />
+                          </span>
+                        }
+                        onClick={onTry}
+                        disabled={canSave || isTryLoading}
+                        loading={isTryLoading}
+                      />
+                    </span>
                   </Tooltip>
                 </div>
               </div>

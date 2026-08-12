@@ -12,3 +12,39 @@
   outline: 2px solid var(--accent-8);
   outline-offset: -2px;
 }
+
+.swatch {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-1);
+  border: 1px solid var(--gray-a6);
+  overflow: hidden;
+}
+
+.swatchInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  opacity: 0;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- cosmetic pointer cursor only */
+  cursor: pointer;
+}
+
+.textInput {
+  margin-left: 8px;
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--gray-12);
+  min-width: 0;
+}

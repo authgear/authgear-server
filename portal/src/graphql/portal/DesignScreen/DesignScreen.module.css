@@ -267,3 +267,7 @@
 .configTabContentAccordion {
   padding: 0;
 }
+
+.livePreviewTooltipTarget {
+  display: inline-flex;
+}
