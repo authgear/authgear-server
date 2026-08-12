@@ -20,6 +20,9 @@ export interface CalloutProps {
   size?: "1" | "2" | "3";
   text?: React.ReactNode;
   showCloseButton?: boolean;
+  /** Called when the close button is clicked. Defaults to dismissing the
+   * surrounding toast; provide this for inline (non-toast) callouts. */
+  onClose?: () => void;
 }
 
 function typeToColor(type: CalloutType) {
@@ -55,12 +58,17 @@ export function Callout({
   size = "2",
   text,
   showCloseButton = true,
+  onClose: onCloseProp,
 }: CalloutProps): React.ReactElement {
   const toastContext = useMaybeToastContext();
 
   const onClose = useCallback(() => {
+    if (onCloseProp != null) {
+      onCloseProp();
+      return;
+    }
     toastContext?.setOpen(false);
-  }, [toastContext]);
+  }, [onCloseProp, toastContext]);
 
   return (
     <RadixCallout.Root

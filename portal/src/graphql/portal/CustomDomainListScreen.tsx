@@ -3,7 +3,6 @@ import cn from "classnames";
 import { produce } from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
-import { MessageBar, MessageBarType } from "@fluentui/react";
 import {
   Button,
   Dialog,
@@ -835,12 +834,13 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
     <>
       <FormContainerBase form={form}>
         {isVerifySuccessMessageVisible ? (
-          <MessageBar
-            messageBarType={MessageBarType.success}
-            onDismiss={dismissVerifySuccessMessageBar}
-          >
-            <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
-          </MessageBar>
+          <Callout
+            type="success"
+            onClose={dismissVerifySuccessMessageBar}
+            text={
+              <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
+            }
+          />
         ) : null}
         <FormErrorMessageBar></FormErrorMessageBar>
         <CustomDomainListContent
