@@ -353,8 +353,6 @@ const MASKED_SECRET = "***************";
 
 const WEBHOOK_SIGNATURE_ID = "webhook-signature";
 
-const EMPTY_ENDPOINT_ERROR_INDICES: ReadonlySet<number> = new Set();
-
 function isBlockingEvent(event: string): event is BlockingEvent {
   return (BLOCK_EVENT_TYPES as readonly string[]).includes(event);
 }
@@ -549,7 +547,7 @@ interface BlockingHooksTableProps {
   makeDefaultHandler: () => BlockingEventHandler;
   onEditDeno: (index: number, value: BlockingEventHandler) => void;
   addDisabled: boolean;
-  endpointErrorIndices: ReadonlySet<number>;
+  showEndpointErrors: boolean;
   autoExpandIndex: number | null;
   autoExpandRequest: number;
 }
@@ -561,7 +559,7 @@ function BlockingHooksTable({
   makeDefaultHandler,
   onEditDeno,
   addDisabled,
-  endpointErrorIndices,
+  showEndpointErrors,
   autoExpandIndex,
   autoExpandRequest,
 }: BlockingHooksTableProps): React.ReactElement {
@@ -575,18 +573,37 @@ function BlockingHooksTable({
 
   useEffect(() => {
     if (!isDirty) {
+      // Collapse when the form becomes clean (saved or reset).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedIndex(null);
       setDraft(null);
     }
   }, [isDirty]);
 
+  // Expand a row only when the parent bumps autoExpandRequest (a failed
+  // save with an invalid endpoint). The ref guard makes each request
+  // fire at most once: without it, `handlers` changing identity (every
+  // edit to any row) would re-run this effect and snap the expansion
+  // back to a stale index. The ref starts as null instead of the
+  // mount-time request value because this table unmounts with its tab:
+  // a failed save from the other tab both bumps the request and
+  // switches to this tab, so the request must still fire on mount.
+  const handledAutoExpandRequestRef = useRef<number | null>(null);
   useEffect(() => {
+    if (autoExpandRequest === 0) {
+      return;
+    }
+    if (autoExpandRequest === handledAutoExpandRequestRef.current) {
+      return;
+    }
+    handledAutoExpandRequestRef.current = autoExpandRequest;
     if (autoExpandIndex == null) {
       return;
     }
     if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpandedIndex(autoExpandIndex);
     setDraft({ ...handlers[autoExpandIndex] });
   }, [autoExpandRequest, autoExpandIndex, handlers]);
@@ -709,10 +726,13 @@ function BlockingHooksTable({
   );
 
   const draftEndpointFormatError = useMemo(() => {
-    if (expandedIndex == null || !endpointErrorIndices.has(expandedIndex)) {
+    if (!showEndpointErrors) {
       return null;
     }
     if (draft?.kind !== "webhook") {
+      return null;
+    }
+    if (draft.url !== "" && isValidWebhookHookURI(draft.url)) {
       return null;
     }
     return (
@@ -721,7 +741,7 @@ function BlockingHooksTable({
         values={{ format: "other" }}
       />
     );
-  }, [endpointErrorIndices, expandedIndex, draft]);
+  }, [showEndpointErrors, draft]);
 
   const onClickEditScript = useCallback(() => {
     if (expandedIndex == null) {
@@ -982,18 +1002,37 @@ function NonBlockingHooksTable({
 
   useEffect(() => {
     if (!isDirty) {
+      // Collapse when the form becomes clean (saved or reset).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedIndex(null);
       setDraft(null);
     }
   }, [isDirty]);
 
+  // Expand a row only when the parent bumps autoExpandRequest (a failed
+  // save with an invalid endpoint). The ref guard makes each request
+  // fire at most once: without it, `handlers` changing identity (every
+  // edit to any row) would re-run this effect and snap the expansion
+  // back to a stale index. The ref starts as null instead of the
+  // mount-time request value because this table unmounts with its tab:
+  // a failed save from the other tab both bumps the request and
+  // switches to this tab, so the request must still fire on mount.
+  const handledAutoExpandRequestRef = useRef<number | null>(null);
   useEffect(() => {
+    if (autoExpandRequest === 0) {
+      return;
+    }
+    if (autoExpandRequest === handledAutoExpandRequestRef.current) {
+      return;
+    }
+    handledAutoExpandRequestRef.current = autoExpandRequest;
     if (autoExpandIndex == null) {
       return;
     }
     if (autoExpandIndex < 0 || autoExpandIndex >= handlers.length) {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpandedIndex(autoExpandIndex);
     setDraft({ ...handlers[autoExpandIndex] });
   }, [autoExpandRequest, autoExpandIndex, handlers]);
@@ -1456,66 +1495,72 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       [checkDenoHookReset]
     );
 
+    const finishEditing = useCallback(async () => {
+      if (codeEditorState != null) {
+        const { eventKind, index, value } = codeEditorState;
+
+        if (value != null) {
+          try {
+            await checkDenoHook(value);
+          } catch {
+            // error is handled in the hook.
+            return;
+          }
+        }
+
+        setState((prev) =>
+          produce(prev, (prev) => {
+            switch (eventKind) {
+              case "blocking": {
+                const h = state.blocking_handlers[index];
+                const path = getDenoScriptPathFromURL(h.url);
+                for (const r of prev.resources) {
+                  if (r.path === path) {
+                    // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
+                    // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
+                    // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
+                    // We encountered this bug before.
+                    r.nullableValue = value ?? r.nullableValue ?? "";
+                  }
+                }
+                break;
+              }
+              case "nonblocking": {
+                const h = state.non_blocking_handlers[index];
+                const path = getDenoScriptPathFromURL(h.url);
+                for (const r of prev.resources) {
+                  if (r.path === path) {
+                    // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
+                    // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
+                    // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
+                    // We encountered this bug before.
+                    r.nullableValue = value ?? r.nullableValue ?? "";
+                  }
+                }
+                break;
+              }
+            }
+          })
+        );
+      }
+      setCodeEditorState(null);
+    }, [
+      checkDenoHook,
+      codeEditorState,
+      setState,
+      state.blocking_handlers,
+      state.non_blocking_handlers,
+    ]);
+
     const onClickFinishEditing = useCallback(
-      async (e) => {
+      (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (codeEditorState != null) {
-          const { eventKind, index, value } = codeEditorState;
-
-          if (value != null) {
-            try {
-              await checkDenoHook(value);
-            } catch {
-              // error is handled in the hook.
-              return;
-            }
-          }
-
-          setState((prev) =>
-            produce(prev, (prev) => {
-              switch (eventKind) {
-                case "blocking": {
-                  const h = state.blocking_handlers[index];
-                  const path = getDenoScriptPathFromURL(h.url);
-                  for (const r of prev.resources) {
-                    if (r.path === path) {
-                      // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
-                      // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
-                      // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
-                      // We encountered this bug before.
-                      r.nullableValue = value ?? r.nullableValue ?? "";
-                    }
-                  }
-                  break;
-                }
-                case "nonblocking": {
-                  const h = state.non_blocking_handlers[index];
-                  const path = getDenoScriptPathFromURL(h.url);
-                  for (const r of prev.resources) {
-                    if (r.path === path) {
-                      // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
-                      // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
-                      // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
-                      // We encountered this bug before.
-                      r.nullableValue = value ?? r.nullableValue ?? "";
-                    }
-                  }
-                  break;
-                }
-              }
-            })
-          );
-        }
-        setCodeEditorState(null);
+        finishEditing().catch(() => {
+          // Errors are handled inside finishEditing.
+        });
       },
-      [
-        checkDenoHook,
-        codeEditorState,
-        setState,
-        state.blocking_handlers,
-        state.non_blocking_handlers,
-      ]
+      [finishEditing]
     );
 
     const onChangeCode = useCallback((value) => {
@@ -1864,8 +1909,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     }, [state.non_blocking_handlers]);
 
     const [showEndpointErrors, setShowEndpointErrors] = useState(false);
-    const [blockingEndpointErrorIndices, setBlockingEndpointErrorIndices] =
-      useState<ReadonlySet<number>>(() => new Set());
     const [blockingAutoExpandIndex, setBlockingAutoExpandIndex] = useState<
       number | null
     >(null);
@@ -1879,7 +1922,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const beforeSave = useCallback(async () => {
       if (hasInvalidWebhookURL) {
         setShowEndpointErrors(true);
-        setBlockingEndpointErrorIndices(blockingInvalidEndpointIndices);
 
         const firstBlockingInvalid = minSetIndex(
           blockingInvalidEndpointIndices
@@ -1902,7 +1944,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         throw new Error("invalid webhook endpoint");
       }
       setShowEndpointErrors(false);
-      setBlockingEndpointErrorIndices(new Set());
     }, [
       blockingInvalidEndpointIndices,
       hasInvalidWebhookURL,
@@ -1913,10 +1954,13 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       if (hasUnsavedChanges) {
         return;
       }
+      // Stop showing endpoint errors and drop any pending auto-expand
+      // once the form becomes clean (saved or reset), so a stale
+      // request cannot replay when a table remounts.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowEndpointErrors(false);
-      setBlockingEndpointErrorIndices((prev) =>
-        prev.size === 0 ? prev : EMPTY_ENDPOINT_ERROR_INDICES
-      );
+      setBlockingAutoExpandIndex(null);
+      setNonBlockingAutoExpandIndex(null);
     }, [hasUnsavedChanges]);
 
     const onTabValueChange = useCallback(
@@ -2123,7 +2167,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                             makeDefaultHandler={makeDefaultHandler}
                             onEditDeno={onEditBlocking}
                             addDisabled={blockingHandlerLimitReached}
-                            endpointErrorIndices={blockingEndpointErrorIndices}
+                            showEndpointErrors={showEndpointErrors}
                             autoExpandIndex={blockingAutoExpandIndex}
                             autoExpandRequest={blockingAutoExpandRequest}
                           />
