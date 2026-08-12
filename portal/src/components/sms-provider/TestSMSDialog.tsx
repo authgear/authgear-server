@@ -129,6 +129,17 @@ export function TestSMSDialog({
       .catch(console.warn);
   }, [input, onDismiss, sendTestSMS, showToast, to]);
 
+  const onSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!to || sendTestSMSLoading) {
+        return;
+      }
+      onSend();
+    },
+    [onSend, sendTestSMSLoading, to]
+  );
+
   return (
     <FormProvider
       loading={sendTestSMSLoading}
@@ -148,7 +159,10 @@ export function TestSMSDialog({
           <Dialog.Description size="2">
             <FormattedMessage id="TestSMSDialog.description" />
           </Dialog.Description>
-          <div className={cn(styles.form, phoneDialogStyles.phoneDialogForm)}>
+          <form
+            className={cn(styles.form, phoneDialogStyles.phoneDialogForm)}
+            onSubmit={onSubmit}
+          >
             <FormPhoneTextField
               parentJSONPointer=""
               fieldName="to"
@@ -171,16 +185,15 @@ export function TestSMSDialog({
                 onClick={onDismiss}
               />
               <Button
-                type="button"
+                type="submit"
                 size="2"
                 loading={sendTestSMSLoading}
                 disabled={!to || sendTestSMSLoading}
-                onClick={onSend}
               >
                 <FormattedMessage id="TestSMSDialog.send" />
               </Button>
             </div>
-          </div>
+          </form>
         </Dialog.Content>
       </Dialog.Root>
       <ErrorToast onDismiss={onDismiss} />
