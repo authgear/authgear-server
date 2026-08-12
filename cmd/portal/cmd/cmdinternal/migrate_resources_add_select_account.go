@@ -29,8 +29,13 @@ var cmdInternalMigrateAddSelectAccount = &cobra.Command{
 		}
 
 		internal.MigrateResources(cmd.Context(), &internal.MigrateResourcesOptions{
-			DatabaseURL:            dbURL,
-			DatabaseSchema:         dbSchema,
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+			// A necessary condition for migrateAddSelectAccount to change
+			// anything, so filtering on it cannot skip an app that would have
+			// been migrated. Without it every app's full resource payload is
+			// loaded just to find the handful that define login flows.
+			AuthgearYAMLContains:   "authentication_flow:",
 			UpdateConfigSourceFunc: migrateAddSelectAccount,
 			DryRun:                 &MigrateResourcesDryRun,
 		})

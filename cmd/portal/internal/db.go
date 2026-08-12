@@ -60,6 +60,47 @@ type ConfigSource struct {
 	Data  map[string]string
 }
 
+// selectAppIDsByAuthgearYAMLSubstring returns the app IDs whose decoded
+// authgear.yaml contains substr.
+//
+// Only app_id crosses the wire: the base64 decode happens in the database, so
+// the resource payloads of non-matching apps are never transferred or
+// allocated client-side.
+func selectAppIDsByAuthgearYAMLSubstring(ctx context.Context, queryer Queryer, substr string) ([]string, error) {
+	builder := newSQLBuilder().
+		Select("app_id").
+		From(pq.QuoteIdentifier("_portal_config_source")).
+		Where(
+			"position(? in convert_from(decode(data ->> 'authgear.yaml', 'base64'), 'UTF8')) > 0",
+			substr,
+		)
+
+	q, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := queryer.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []string
+	for rows.Next() {
+		var appID string
+		if err := rows.Scan(&appID); err != nil {
+			return nil, err
+		}
+		result = append(result, appID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func selectConfigSources(ctx context.Context, queryer Queryer, appID []string) ([]*ConfigSource, error) {
 	builder := newSQLBuilder().
 		Select(
