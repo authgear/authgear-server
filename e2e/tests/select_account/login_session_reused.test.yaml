@@ -1,0 +1,129 @@
+name: Completing select_account reuses the existing session as-is, never rotating it
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: select_account
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-select-account-session-reused-1
+      token: e2eselectaccountsessionreusedtoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_select_account';
+steps:
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT u.id FROM _auth_user u
+        WHERE u.app_id = '{{ .AppID }}' AND
+        u.standard_attributes ->> 'preferred_username' = 'e2e_select_account'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+
+  - action: "create"
+    session_cookie:
+      idp_session_id: e2e-select-account-session-reused-1
+      idp_session_token: e2eselectaccountsessionreusedtoken1
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                {
+                  "identification": "select_account",
+                  "display_name": "e2e_select_account"
+                }
+              ]
+            }
+          }
+        }
+
+  - action: input
+    session_cookie:
+      idp_session_id: e2e-select-account-session-reused-1
+      idp_session_token: e2eselectaccountsessionreusedtoken1
+    input: |
+      {
+        "identification": "select_account",
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: query_sessions
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query getUser($userID: ID!) {
+          node(id: $userID) {
+            ... on User {
+              id
+              sessions(first: 10) {
+                totalCount
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "node": {
+              "id": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}",
+              "sessions": {
+                "totalCount": 1,
+                "edges": [
+                  {
+                    "node": {
+                      "id": "{{ nodeID "Session" "e2e-select-account-session-reused-1" }}"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }

@@ -25,8 +25,12 @@ func MakeMinimalRequest(r *http.Request, trustProxy bool) (req *http.Request) {
 	ctx := r.Context()
 	// Detach the deadline so that the context is not canceled along with the request.
 	ctx = context.WithoutCancel(ctx)
+	var err error
 	// #nosec G704 -- This mirrors the current incoming request for Sentry context only.
-	req, _ = http.NewRequestWithContext(ctx, r.Method, u.String(), nil)
+	req, err = http.NewRequestWithContext(ctx, r.Method, u.String(), nil)
+	if err != nil {
+		panic(err)
+	}
 
 	for _, name := range HeaderWhiteList {
 		if header := r.Header.Get(name); header != "" {

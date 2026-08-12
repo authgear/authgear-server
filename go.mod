@@ -74,7 +74,7 @@ require (
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -175,7 +175,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -319,3 +319,5 @@ tool (
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 )
+
+replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260810215310-a251ccc4eb09

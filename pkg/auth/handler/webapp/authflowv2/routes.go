@@ -121,6 +121,12 @@ const (
 
 	AuthflowV2RouteSettingsIdentityListOAuth     = "/settings/identity/oauth"
 	AuthflowV2RouteSettingsIdentityOAuthCallback = "/settings/identity/oauth/callback"
+
+	// The following routes were removed from the settings UI, but older SDKs
+	// may still link to them directly. Keep them as redirects to /settings
+	// for backward compatibility.
+	AuthflowV2RouteSettingsIdentityDeprecated   = "/settings/identity"
+	AuthflowV2RouteSettingsIdentitiesDeprecated = "/settings/identities"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
@@ -383,6 +389,10 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 	case model.AuthenticationFlowIdentificationLDAP:
 		// Not expected to trigger this case
 		panic(fmt.Errorf("not expected to trigger: %v", identification))
+	case model.AuthenticationFlowIdentificationSelectAccount:
+		// Resume on the select-account page itself — there is no dedicated
+		// per-identification screen for it, unlike oauth/passkey.
+		n.NavigateSelectAccount(result)
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}

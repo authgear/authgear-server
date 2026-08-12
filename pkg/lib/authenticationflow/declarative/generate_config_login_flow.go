@@ -36,6 +36,12 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 		Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
 	}
 
+	// select_account is a session-continuation mechanism, independent of
+	// which identity types the project has enabled — always offer it first.
+	step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
+		Identification: model.AuthenticationFlowIdentificationSelectAccount,
+	})
+
 	for _, identityType := range cfg.Authentication.Identities {
 		switch identityType {
 		case model.IdentityTypeLoginID:

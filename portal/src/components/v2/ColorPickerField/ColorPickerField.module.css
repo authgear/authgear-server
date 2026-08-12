@@ -4,6 +4,9 @@
   border-radius: var(--radius-2);
 }
 
-.colorPickerField__pickerButton {
-  @apply top-0 left-0 right-0 bottom-0 absolute bg-transparent;
+.colorPickerField__pickerInput {
+  @apply absolute top-0 left-0 h-full w-full cursor-pointer opacity-0;
+  padding: 0;
+  margin: 0;
+  border: none;
 }

@@ -260,7 +260,8 @@ type UIURLBuilder struct {
 
 func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
-	if client != nil && client.CustomUIURI != "" {
+	isCustomUI := client != nil && client.CustomUIURI != ""
+	if isCustomUI {
 		var err error
 		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI)
 		if err != nil {
@@ -271,6 +272,27 @@ func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, 
 	}
 
 	b.addToEndpoint(endpoint, r, e)
+
+	if isCustomUI {
+		// The built-in AuthUI does not need these forwarded: it resolves
+		// login_hint/id_token_hint server-side from the oauth session (see
+		// UIInfoResolver.ResolveForAuthorizationEndpoint). A Custom UI has no
+		// such server-side access before it even makes its first API call,
+		// so it needs them in its own initial page load to do anything with
+		// them client-side (e.g. deciding whether to attempt select_account
+		// at all, or pre-filling an identifier field) - and, when it forwards
+		// them back to us in its own url_query, they are picked up again by
+		// AuthenticationFlowV1CreateHandler.makeSessionOptionsFromQuery.
+		q := endpoint.Query()
+		if loginHint, ok := r.LoginHint(); ok {
+			q.Set("login_hint", loginHint)
+		}
+		if idTokenHint, ok := r.IDTokenHint(); ok {
+			q.Set("id_token_hint", idTokenHint)
+		}
+		endpoint.RawQuery = q.Encode()
+	}
+
 	return endpoint, nil
 }
 

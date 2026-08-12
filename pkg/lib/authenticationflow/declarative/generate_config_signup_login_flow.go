@@ -22,6 +22,14 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 		Type: config.AuthenticationFlowSignupLoginFlowStepTypeIdentify,
 	}
 
+	// select_account never signs up, so it must not get a SignupFlow (Part 1's
+	// schema hard-forbids it) — a dedicated construction instead of
+	// newSignupLoginFlowOneOf, which always sets both flows.
+	step.OneOf = append(step.OneOf, &config.AuthenticationFlowSignupLoginFlowOneOf{
+		Identification: model.AuthenticationFlowIdentificationSelectAccount,
+		LoginFlow:      nameGeneratedFlow,
+	})
+
 	for _, identityType := range cfg.Authentication.Identities {
 		switch identityType {
 		case model.IdentityTypeLoginID:

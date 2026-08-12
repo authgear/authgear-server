@@ -1,0 +1,76 @@
+name: Login directly by continuing the existing session via select_account
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: select_account
+          - identification: username
+            steps:
+            - type: authenticate
+              one_of:
+              - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-select-account-session-1
+      token: e2eselectaccountsessiontoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_select_account';
+steps:
+  - action: "create"
+    session_cookie:
+      idp_session_id: e2e-select-account-session-1
+      idp_session_token: e2eselectaccountsessiontoken1
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                {
+                  "identification": "select_account",
+                  "display_name": "e2e_select_account"
+                },
+                {
+                  "identification": "username"
+                }
+              ]
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "select_account",
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "finished"
+          }
+        }

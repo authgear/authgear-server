@@ -1,0 +1,96 @@
+name: select_account with a mismatched login_hint redirects straight to /login
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: lSo1Ui9pr2_uxxYYJeX3kYmXFqc2xEg5-t7JYLY_K_4
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 302
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/login?{{ (urlParse .steps.authorize_1.result.http_response_headers.location).query }}"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: select-account-webapp@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_password
+  - name: submit_password
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_password: password
+    http_output:
+      http_status: 302
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_password.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - name: oauth_exchange_code_1
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "C~higTZz5CcHWA2UfOg1X.u~EX0OoJkERLbso0YeFfEaqi3eki.JTEQ5SXJR5fE~"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # Second OAuth authorization with a login_hint for a DIFFERENT login_id
+  # than the currently-signed-in user. This should be treated as if there
+  # is no session at all, and bounce straight to /login without ever
+  # rendering "Continue as X".
+  - name: authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: _KHfZq_nzdUr8mdstm_JWKdzbxQIeCW-pKjxf9IJEnc
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      login_hint: "https://authgear.com/login_hint?type=login_id&email=select-account-webapp-2%40example.com"
+    http_output:
+      http_status: 200
+      redirect_path: /login

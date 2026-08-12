@@ -1,0 +1,25 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "e2e_select_account",
+
+      "name": "Select Account",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    },
+    {
+      "preferred_username": "e2e_select_account_2",
+
+      "name": "Select Account 2",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

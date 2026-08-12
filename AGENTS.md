@@ -69,6 +69,7 @@ authgear-server/
 | Core auth logic (OAuth, OIDC, sessions, flows) | `pkg/lib/` |
 | Background jobs / workers | `cmd/authgear/background/` |
 | Config schema & validation | `pkg/lib/config/`, `cmd/authgear/config/` |
+| Feature config (`authgear.features.yaml`) | `pkg/lib/config/feature_*.go` — **merge must be field-level, see `update-feature-config` skill** |
 | E2E tests | `e2e/tests/` |
 
 ## Documentation map
@@ -134,6 +135,7 @@ Use existing repo skills instead of one-off instructions when they fit:
 - `review-pr` — **mandatory before marking any code change complete** (see Verification below), also usable on demand for "review this PR/branch"
 - `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls, hardcoded/untranslated text)
 - `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects)
+- `update-feature-config` — **use this before adding or changing any `pkg/lib/config/feature_*.go` field or `Merge` implementation** (field-level merge is a hard requirement, plus required test coverage in `merge_feature.yaml`)
 - `write-e2e-test` — **includes patterns for testing feature variants and actual functionality. Use this before writing, editing, or running e2e tests** (see "Common Patterns" section)
 - Repo-local skills for Go tests, Portal GraphQL operations, Go version updates, important-module updates, and vetted-position updates
 

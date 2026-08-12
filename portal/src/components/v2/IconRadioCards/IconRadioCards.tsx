@@ -1,6 +1,10 @@
 import cn from "classnames";
-import { RadioCards as RadixRadioCards, Text } from "@radix-ui/themes";
-import React, { useCallback, useMemo } from "react";
+import {
+  CheckboxCards as RadixCheckboxCards,
+  RadioCards as RadixRadioCards,
+  Text,
+} from "@radix-ui/themes";
+import React, { useCallback } from "react";
 import styles from "./IconRadioCards.module.css";
 import { Tooltip } from "../Tooltip/Tooltip";
 
@@ -65,38 +69,54 @@ export function MultiSelectIconRadioCards<T extends string>({
   values,
   onValuesChange,
   options,
-  ...rootProps
+  size,
+  itemMinWidth = 160,
+  itemFillSpaces = false,
+  numberOfColumns,
 }: MultiSelectIconRadioCardsProps<T>): React.ReactElement {
-  const checkedValuesSet = useMemo(() => new Set(values), [values]);
-
-  const onToggleCallbacks = useMemo(() => {
-    return options.map((option) => {
-      const fn = () => {
-        const newValues = new Set(checkedValuesSet);
-        if (!checkedValuesSet.has(option.value)) {
-          newValues.add(option.value);
-        } else {
-          newValues.delete(option.value);
-        }
-        onValuesChange(Array.from(newValues));
-      };
-      return fn;
-    });
-  }, [checkedValuesSet, onValuesChange, options]);
+  // A radio group can only ever hold one value, so the multi-select variant
+  // is backed by CheckboxCards; its Root is controlled by the whole value
+  // list, which also keeps a forced-on disabled item rendered as checked.
+  const handleValueChange = useCallback(
+    (newValues: string[]) => {
+      onValuesChange(newValues as T[]);
+    },
+    [onValuesChange]
+  );
 
   return (
-    <Root {...rootProps}>
-      {options.map((option, idx) => {
+    <RadixCheckboxCards.Root
+      className={cn(styles.iconRadioCards__root)}
+      size={size}
+      variant="surface"
+      color="indigo"
+      value={values}
+      onValueChange={handleValueChange}
+      columns={`repeat(${gridColumnRepeat(
+        numberOfColumns
+      )}, minmax(${itemMinWidth}px, ${itemMaxSize(itemFillSpaces)}))`}
+    >
+      {options.map((option) => {
         return (
-          <OptionItem
+          <Tooltip
             key={option.value}
-            option={option}
-            checked={checkedValuesSet.has(option.value)}
-            onToggle={onToggleCallbacks[idx]}
-          />
+            content={option.tooltip}
+            disabled={option.tooltip == null}
+          >
+            {/* We need this extra div because Tooltip and RadixCheckboxCards.Item both write to data-state attribute causing bugs */}
+            <div className={styles.iconRadioCards__itemWrapper}>
+              <RadixCheckboxCards.Item
+                className={styles.iconRadioCards__item}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                <OptionItemContent option={option} />
+              </RadixCheckboxCards.Item>
+            </div>
+          </Tooltip>
         );
       })}
-    </Root>
+    </RadixCheckboxCards.Root>
   );
 }
 
@@ -138,19 +158,9 @@ function Root({
 
 function OptionItem<T extends string>({
   option,
-  checked,
-  onToggle,
 }: {
   option: IconRadioCardOption<T>;
-  checked?: boolean;
-  onToggle?: () => void;
 }) {
-  // RadioGroup.Item spreads the props it receives over the checked state it
-  // derives from the Root, so an explicit `checked: undefined` would clear it
-  // and leave every item unchecked. Only the multi-select variant, whose Root
-  // cannot hold more than one value, supplies the override.
-  const checkedProp: { checked?: boolean } = checked == null ? {} : { checked };
-
   return (
     <Tooltip content={option.tooltip} disabled={option.tooltip == null}>
       {/* We need this extra div because Tooltip and RadixRadioCards.Item both write to data-state attribute causing bugs */}
@@ -160,43 +170,49 @@ function OptionItem<T extends string>({
           key={option.value}
           value={option.value}
           disabled={option.disabled}
-          {...checkedProp}
-          onClick={onToggle}
         >
-          <div
-            className={cn(
-              styles.iconRadioCards__itemContainer,
-              option.subtitle == null &&
-                styles["iconRadioCards__itemContainer--center"]
-            )}
-          >
-            <div className={styles.iconRadioCards__iconContainer}>
-              {option.icon}
-            </div>
-            <div className={styles.iconRadioCards__itemTextContainer}>
-              <Text
-                as="p"
-                size={"2"}
-                weight={"medium"}
-                className={styles.iconRadioCards__itemTextTitle}
-              >
-                {option.title}
-              </Text>
-              {option.subtitle ? (
-                <Text
-                  as="p"
-                  size={"2"}
-                  weight={"regular"}
-                  className={styles.iconRadioCards__itemTextSubtitle}
-                >
-                  {option.subtitle}
-                </Text>
-              ) : null}
-            </div>
-          </div>
+          <OptionItemContent option={option} />
         </RadixRadioCards.Item>
       </div>
     </Tooltip>
+  );
+}
+
+function OptionItemContent<T extends string>({
+  option,
+}: {
+  option: IconRadioCardOption<T>;
+}) {
+  return (
+    <div
+      className={cn(
+        styles.iconRadioCards__itemContainer,
+        option.subtitle == null &&
+          styles["iconRadioCards__itemContainer--center"]
+      )}
+    >
+      <div className={styles.iconRadioCards__iconContainer}>{option.icon}</div>
+      <div className={styles.iconRadioCards__itemTextContainer}>
+        <Text
+          as="p"
+          size={"2"}
+          weight={"medium"}
+          className={styles.iconRadioCards__itemTextTitle}
+        >
+          {option.title}
+        </Text>
+        {option.subtitle ? (
+          <Text
+            as="p"
+            size={"2"}
+            weight={"regular"}
+            className={styles.iconRadioCards__itemTextSubtitle}
+          >
+            {option.subtitle}
+          </Text>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

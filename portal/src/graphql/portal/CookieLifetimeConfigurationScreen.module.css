@@ -24,6 +24,23 @@
   padding-bottom: 5.5rem;
 }
 
+.behaviorRadioOption {
+  cursor: pointer;
+}
+
+.behaviorRadioItem {
+  @apply shrink-0;
+  margin-top: 0.125rem;
+}
+
+.behaviorRadioContent {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.behaviorRadioContent p {
+  margin: 0;
+}
+
 .settingsCardSaveBarClearance {
   margin-bottom: 5.5rem;
 }

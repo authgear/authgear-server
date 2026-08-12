@@ -319,3 +319,49 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 `)
 	})
 }
+
+func TestInputSchemaStepIdentifySelectAccount(t *testing.T) {
+	Convey("InputSchemaStepIdentify select_account", t, func() {
+		test := func(s *InputSchemaStepIdentify, expected string) {
+			b := s.SchemaBuilder()
+			bytes, err := json.Marshal(b)
+			So(err, ShouldBeNil)
+			So(string(bytes), ShouldEqualJSON, expected)
+		}
+
+		// select_account's "index" is Const-validated against its own
+		// position in the full Options slice, not the position among
+		// select_account entries specifically.
+		test(&InputSchemaStepIdentify{
+			Options: []IdentificationOption{
+				{
+					Identification: model.AuthenticationFlowIdentificationEmail,
+				},
+				{
+					Identification: model.AuthenticationFlowIdentificationSelectAccount,
+					DisplayName:    "user@example.com",
+				},
+			},
+		}, `
+{
+    "type": "object",
+    "oneOf": [
+        {
+            "properties": {
+                "identification": { "const": "email" },
+                "login_id": { "type": "string" }
+            },
+            "required": ["identification", "login_id"]
+        },
+        {
+            "properties": {
+                "identification": { "const": "select_account" },
+                "index": { "type": "integer", "const": 1 }
+            },
+            "required": ["identification", "index"]
+        }
+    ]
+}
+`)
+	})
+}

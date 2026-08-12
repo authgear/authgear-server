@@ -111,8 +111,7 @@
 /pkg/auth/handler/webapp/authflowv2/reset_password.go:169:35: requestcontext
 /pkg/auth/handler/webapp/authflowv2/reset_password.go:173:27: requestcontext
 /pkg/auth/handler/webapp/authflowv2/reset_password_success.go:60:36: requestcontext
-/pkg/auth/handler/webapp/authflowv2/select_account.go:111:32: requestcontext
-/pkg/auth/handler/webapp/authflowv2/select_account.go:250:27: requestcontext
+/pkg/auth/handler/webapp/authflowv2/select_account.go:187:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings.go:89:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_advanced.go:46:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_biometric.go:101:30: requestcontext
@@ -324,6 +323,11 @@
 /pkg/portal/transport/stripe_webhook_handler.go:49:9: requestcontext
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/resolver/handler/resolve.go:40:9: requestcontext
+/pkg/siteadmin/transport/handler_app_feature_config_get.go:28:47: requestcontext
+/pkg/siteadmin/transport/handler_app_feature_config_preview.go:45:75: requestcontext
+/pkg/siteadmin/transport/handler_app_feature_config_preview.go:60:51: requestcontext
+/pkg/siteadmin/transport/handler_app_feature_config_update.go:47:74: requestcontext
+/pkg/siteadmin/transport/handler_app_feature_config_update.go:62:50: requestcontext
 /pkg/siteadmin/transport/handler_app_get.go:40:33: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:47:65: requestcontext
 /pkg/siteadmin/transport/handler_app_plan_change.go:63:38: requestcontext
