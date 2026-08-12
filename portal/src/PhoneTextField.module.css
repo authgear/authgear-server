@@ -1,6 +1,18 @@
 .container {
   width: 100%;
   height: var(--space-6);
+
+  /* Establish a stacking context above sibling controls so the
+     intl-tel-input country dropdown (below) is never painted behind a
+     following element such as a dialog's action buttons. Done here once
+     so every PhoneTextField instance is covered instead of each dialog
+     re-applying its own z-index override. */
+  position: relative;
+  z-index: 1;
+}
+
+.container :global(.iti__dropdown-content) {
+  z-index: 100;
 }
 
 .label {
