@@ -1,8 +1,8 @@
 /* global process */
 import React, { useCallback } from "react";
-import { MessageBar, MessageBarType } from "@fluentui/react";
+import { Button, Callout } from "@radix-ui/themes";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "./intl";
-import MessageBarButton from "./MessageBarButton";
 
 interface ShowErrorProps {
   error: unknown;
@@ -40,20 +40,26 @@ const ShowError: React.VFC<ShowErrorProps> = function ShowError(
     children.push(<React.Fragment key="4">{String(error)}</React.Fragment>);
   }
 
-  let actions;
-  if (onRetry != null) {
-    actions = (
-      <MessageBarButton
-        onClick={onClickRetry}
-        text={<FormattedMessage id="show-error.retry" />}
-      />
-    );
-  }
-
   return (
-    <MessageBar messageBarType={MessageBarType.error} actions={actions}>
-      {children}
-    </MessageBar>
+    <Callout.Root color="red" variant="surface" size="1">
+      <Callout.Icon>
+        <ExclamationTriangleIcon />
+      </Callout.Icon>
+      <Callout.Text>{children}</Callout.Text>
+      {onRetry != null ? (
+        <div>
+          <Button
+            type="button"
+            size="1"
+            variant="soft"
+            color="red"
+            onClick={onClickRetry}
+          >
+            <FormattedMessage id="show-error.retry" />
+          </Button>
+        </div>
+      ) : null}
+    </Callout.Root>
   );
 };
 
