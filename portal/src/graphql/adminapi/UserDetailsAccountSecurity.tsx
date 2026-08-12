@@ -1418,21 +1418,45 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   color="gray"
                   className={styles.secondaryEmptyDescription}
                 >
-                  <FormattedMessage
-                    id="UserDetails.account-security.secondary.empty-description"
-                    values={{
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      gracePeriod: (chunks: React.ReactNode) => (
-                        <LinkButton
-                          className={styles.authenticatorGrantGracePeriod}
-                          onClick={setMFAGracePeriodConfirmationDialog.show}
-                        >
-                          {chunks}
-                        </LinkButton>
-                      ),
-                    }}
-                  />
+                  {!isWithinMFAGracePeriod ? (
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.empty-description"
+                      values={{
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        gracePeriod: (chunks: React.ReactNode) => (
+                          <LinkButton
+                            className={styles.authenticatorGrantGracePeriod}
+                            onClick={setMFAGracePeriodConfirmationDialog.show}
+                          >
+                            {chunks}
+                          </LinkButton>
+                        ),
+                      }}
+                    />
+                  ) : farthestMFAGracePeriodEndAt != null ? (
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.within-grace-period"
+                      values={{
+                        gracePeriodEndAt:
+                          formatDatetime(locale, farthestMFAGracePeriodEndAt) ??
+                          "",
+                      }}
+                    />
+                  ) : (
+                    <FormattedMessage id="UserDetails.account-security.secondary.within-grace-period.no-deadline" />
+                  )}
                 </Text>
+                {canExtendMFAGracePeriod ? (
+                  <div className={styles.updateMFAGracePeriodContainer}>
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.update-existing-grace-period"
+                      values={{
+                        extend: onRenderExtendedMFAGracePeriod,
+                        cancel: onRenderCancelMFAGracePeriod,
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {secondaryAuthenticatorLists.totp.length > 0 ? (
