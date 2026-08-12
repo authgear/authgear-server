@@ -10,19 +10,12 @@ import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { DateTime } from "luxon";
 import {
-  Text,
-  DefaultEffects,
+  Tabs,
+  Text as RadixText,
   Dialog,
-  DialogType,
-  DialogFooter,
-  IDialogContentProps,
-  ThemeProvider,
-  PartialTheme,
+  Button,
   Spinner,
-  SpinnerSize,
-} from "@fluentui/react";
-import { Tabs, Text as RadixText } from "@radix-ui/themes";
-import { useConst } from "@fluentui/react-hooks";
+} from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -37,14 +30,12 @@ import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import styles from "./SubscriptionScreen.module.css";
 import { useLoading, useIsLoading } from "./../../hook/loading";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
 import {
@@ -74,16 +65,6 @@ import { CancelSubscriptionSurveyDialog } from "../../components/billing/CancelS
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
-const CONTACT_US_BUTTON_THEME: PartialTheme = {
-  palette: {
-    themePrimary: "#c8c8c8",
-    neutralPrimary: "#c8c8c8",
-  },
-  semanticColors: {
-    linkHovered: "#c8c8c8",
-  },
-};
-
 function PlansSection({
   currentPlanName,
   subscriptionCancelled,
@@ -99,9 +80,6 @@ function PlansSection({
   onClickContactUs: () => void;
   onClickCancelSubscription: () => void;
 }) {
-  const {
-    themes: { destructive },
-  } = useSystemConfig();
   const { locale } = useContext(Context);
   const [upgradeToPlan, setUpgradeToPlan] = useState<string | null>(null);
   const [downgradeToPlan, setDowngradeToPlan] = useState<string | null>(null);
@@ -284,57 +262,6 @@ function PlansSection({
       : null;
   const formattedDate = formatDateOnly(locale, nextBillingDate ?? null);
 
-  // @ts-expect-error
-  const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionScreen.upgrade.title" />,
-      subText:
-        amountDue == null ? (
-          <FormattedMessage id="loading" />
-        ) : (
-          <FormattedMessage
-            id="SubscriptionScreen.upgrade.description"
-            values={{
-              amount: amountDue,
-              date: formattedDate ?? "",
-            }}
-          />
-        ),
-    };
-  }, [amountDue, formattedDate]);
-
-  // @ts-expect-error
-  const downgradeDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionScreen.downgrade.title" />,
-      subText:
-        amountDue == null ? (
-          <FormattedMessage id="loading" />
-        ) : (
-          <FormattedMessage
-            id="SubscriptionScreen.downgrade.description"
-            values={{
-              amount: amountDue,
-              date: formattedDate ?? "",
-            }}
-          />
-        ),
-    };
-  }, [amountDue, formattedDate]);
-
-  // @ts-expect-error
-  const reactivateDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionScreen.reactivate.title" />,
-      subText: (
-        <FormattedMessage id="SubscriptionScreen.reactivate.confirmation" />
-      ),
-    };
-  }, []);
-
   const isLoading = useIsLoading();
 
   const onDismissUpgradeDialog = useCallback(() => {
@@ -393,61 +320,123 @@ function PlansSection({
           ),
         }}
       />
-      <Dialog
-        hidden={upgradeToPlan == null}
-        onDismiss={onDismissUpgradeDialog}
-        dialogContentProps={upgradeDialogContentProps}
+      <Dialog.Root
+        open={upgradeToPlan != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismissUpgradeDialog();
+          }
+        }}
       >
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onConfirmUpgrade}
-            disabled={isLoading}
-            text={<FormattedMessage id="SubscriptionScreen.label.upgrade" />}
-          />
-          <DefaultButton
-            onClick={onDismissUpgradeDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
-      <Dialog
-        hidden={downgradeToPlan == null}
-        onDismiss={onDismissDowngradeDialog}
-        dialogContentProps={downgradeDialogContentProps}
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>
+            <FormattedMessage id="SubscriptionScreen.upgrade.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
+            {amountDue == null ? (
+              <FormattedMessage id="loading" />
+            ) : (
+              <FormattedMessage
+                id="SubscriptionScreen.upgrade.description"
+                values={{
+                  amount: amountDue,
+                  date: formattedDate ?? "",
+                }}
+              />
+            )}
+          </Dialog.Description>
+          <div className={styles.actions}>
+            <SecondaryButton
+              size="2"
+              onClick={onDismissUpgradeDialog}
+              text={<FormattedMessage id="cancel" />}
+            />
+            <PrimaryButton
+              size="2"
+              onClick={onConfirmUpgrade}
+              disabled={isLoading}
+              text={<FormattedMessage id="SubscriptionScreen.label.upgrade" />}
+            />
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
+      <Dialog.Root
+        open={downgradeToPlan != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismissDowngradeDialog();
+          }
+        }}
       >
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onConfirmDowngrade}
-            theme={destructive}
-            disabled={isLoading}
-            text={<FormattedMessage id="SubscriptionScreen.label.downgrade" />}
-          />
-          <DefaultButton
-            onClick={onDismissDowngradeDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
-      <Dialog
-        hidden={isReactiveDialogHidden}
-        onDismiss={onDismissReactiveDialog}
-        dialogContentProps={reactivateDialogContentProps}
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>
+            <FormattedMessage id="SubscriptionScreen.downgrade.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
+            {amountDue == null ? (
+              <FormattedMessage id="loading" />
+            ) : (
+              <FormattedMessage
+                id="SubscriptionScreen.downgrade.description"
+                values={{
+                  amount: amountDue,
+                  date: formattedDate ?? "",
+                }}
+              />
+            )}
+          </Dialog.Description>
+          <div className={styles.actions}>
+            <SecondaryButton
+              size="2"
+              onClick={onDismissDowngradeDialog}
+              text={<FormattedMessage id="cancel" />}
+            />
+            <Button
+              size="2"
+              variant="solid"
+              color="red"
+              disabled={isLoading}
+              onClick={onConfirmDowngrade}
+            >
+              <FormattedMessage id="SubscriptionScreen.label.downgrade" />
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
+      <Dialog.Root
+        open={!isReactiveDialogHidden}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismissReactiveDialog();
+          }
+        }}
       >
-        <DialogFooter>
-          <ButtonWithLoading
-            loading={reactivateSubscriptionLoading}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
-            onClick={onClickConfirmReactivate}
-            disabled={isReactiveDialogHidden}
-            labelId="confirm"
-          />
-          <DefaultButton
-            onClick={onDismissReactiveDialog}
-            disabled={isReactiveDialogHidden || reactivateSubscriptionLoading}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>
+            <FormattedMessage id="SubscriptionScreen.reactivate.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
+            <FormattedMessage id="SubscriptionScreen.reactivate.confirmation" />
+          </Dialog.Description>
+          <div className={styles.actions}>
+            <SecondaryButton
+              size="2"
+              onClick={onDismissReactiveDialog}
+              disabled={isReactiveDialogHidden || reactivateSubscriptionLoading}
+              text={<FormattedMessage id="cancel" />}
+            />
+            <Button
+              size="2"
+              loading={reactivateSubscriptionLoading}
+              disabled={isReactiveDialogHidden}
+              // eslint-disable-next-line @typescript-eslint/strict-void-return
+              onClick={onClickConfirmReactivate}
+            >
+              <FormattedMessage id="confirm" />
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
     </>
   );
 }
@@ -478,7 +467,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     thisMonthSubscriptionUsage,
     previousMonthSubscriptionUsage,
   } = props;
-  const { themes } = useSystemConfig();
 
   const hasSubscription = useMemo(() => !!subscription, [subscription]);
 
@@ -514,48 +502,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     },
     [onTabChange]
   );
-
-  const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
-      // @ts-expect-error
-      subText: (
-        <FormattedMessage
-          id="SubscriptionScreen.enterprise.instructions"
-          values={{
-            // eslint-disable-next-line react/no-unstable-nested-components
-            ExternalLink: (chunks: React.ReactNode) => (
-              <ExternalLink href="mailto:hello@authgear.com">
-                {chunks}
-              </ExternalLink>
-            ),
-          }}
-        />
-      ) as IDialogContentProps["subText"],
-    };
-  }, []);
-
-  const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
-    if (!subscription) {
-      return {
-        type: DialogType.normal,
-        title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
-        // @ts-expect-error
-        subText: (
-          <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan" />
-        ) as IDialogContentProps["subText"],
-      };
-    }
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
-      // @ts-expect-error
-      subText: (
-        <FormattedMessage id="SubscriptionScreen.cancel.confirmation" />
-      ) as IDialogContentProps["subText"],
-    };
-  }, [subscription]);
 
   const onClickContactUs = useCallback(() => {
     setEnterpriseDialogHidden(false);
@@ -603,38 +549,54 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
   return (
     <>
-      <Dialog
-        hidden={cancelDialogHidden}
-        onDismiss={onDismiss}
-        dialogContentProps={cancelDialogContentProps}
+      <Dialog.Root
+        open={!cancelDialogHidden}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
       >
-        <DialogFooter>
-          {!!subscription ? (
-            <ButtonWithLoading
-              theme={themes.destructive}
-              loading={cancelSubscriptionLoading}
-              // eslint-disable-next-line @typescript-eslint/strict-void-return
-              onClick={onClickCancelSubscriptionConfirm}
-              disabled={cancelDialogHidden}
-              labelId="confirm"
-            />
-          ) : (
-            <PrimaryButton
-              href="mailto:hello@authgear.com"
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>
+            <FormattedMessage id="SubscriptionScreen.cancel.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
+            {!subscription ? (
+              <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan" />
+            ) : (
+              <FormattedMessage id="SubscriptionScreen.cancel.confirmation" />
+            )}
+          </Dialog.Description>
+          <div className={styles.actions}>
+            <SecondaryButton
+              size="2"
               onClick={onDismiss}
-              disabled={cancelDialogHidden}
-              text={
-                <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan.button" />
-              }
+              disabled={cancelSubscriptionLoading || cancelDialogHidden}
+              text={<FormattedMessage id="cancel" />}
             />
-          )}
-          <DefaultButton
-            onClick={onDismiss}
-            disabled={cancelSubscriptionLoading || cancelDialogHidden}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+            {!!subscription ? (
+              <Button
+                size="2"
+                variant="solid"
+                color="red"
+                loading={cancelSubscriptionLoading}
+                disabled={cancelDialogHidden}
+                // eslint-disable-next-line @typescript-eslint/strict-void-return
+                onClick={onClickCancelSubscriptionConfirm}
+              >
+                <FormattedMessage id="confirm" />
+              </Button>
+            ) : (
+              <Button asChild={true} size="2" variant="solid" color="indigo">
+                <a href="mailto:hello@authgear.com" onClick={onDismiss}>
+                  <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan.button" />
+                </a>
+              </Button>
+            )}
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
       <CancelSubscriptionSurveyDialog
         isHidden={cancelSurveyDialogHidden}
         onDismiss={useCallback(() => {
@@ -658,19 +620,40 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           ),
         }}
       />
-      <Dialog
-        hidden={enterpriseDialogHidden}
-        onDismiss={onDismiss}
-        dialogContentProps={enterpriseDialogContentProps}
+      <Dialog.Root
+        open={!enterpriseDialogHidden}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
       >
-        <DialogFooter>
-          <PrimaryButton
-            href="mailto:hello@authgear.com"
-            onClick={onDismiss}
-            text={<FormattedMessage id="SubscriptionScreen.enterprise.cta" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        <Dialog.Content maxWidth="400px" size="3">
+          <Dialog.Title>
+            <FormattedMessage id="SubscriptionScreen.enterprise.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
+            <FormattedMessage
+              id="SubscriptionScreen.enterprise.instructions"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                ExternalLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="mailto:hello@authgear.com">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
+          </Dialog.Description>
+          <div className={styles.actions}>
+            <Button asChild={true} size="2" variant="solid" color="indigo">
+              <a href="mailto:hello@authgear.com" onClick={onDismiss}>
+                <FormattedMessage id="SubscriptionScreen.enterprise.cta" />
+              </a>
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
 
       <ScreenContent layout="auto-rows">
         <div className={cn(styles.widget, styles.pageHeader)}>
@@ -711,9 +694,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                 onClickCancelSubscription={onClickCancel}
               />
               <footer className={styles.section}>
-                <Text block={true}>
+                <RadixText as="p">
                   <FormattedMessage id="SubscriptionScreen.footer.tax" />
-                </Text>
+                </RadixText>
               </footer>
             </div>
           </Tabs.Content>
@@ -872,58 +855,47 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
         <RadixText as="p" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="SubscriptionScreen.title" />
         </RadixText>
-        <div
-          className={cn(styles.processingPaymentSection)}
-          style={{
-            boxShadow: DefaultEffects.elevation4,
-          }}
-        >
+        <div className={cn(styles.processingPaymentSection)}>
           {paymentStatus === "IsProcessing" ? (
             <>
-              <Spinner
-                className={styles.processingPaymentSpinner}
-                labelPosition="right"
-                label={renderToString("SubscriptionScreen.processing-payment")}
-                size={SpinnerSize.large}
-                styles={{
-                  label: {
-                    whiteSpace: "pre-line",
-                    textAlign: "left",
-                    marginLeft: "16px",
-                    fontSize: "14px",
-                    lineHeight: "20px",
-                  },
-                }}
-              />
-              <ThemeProvider theme={CONTACT_US_BUTTON_THEME}>
-                <ExternalLink href={"mailto:hello@authgear.com"}>
-                  <Text>
-                    <FormattedMessage id="SubscriptionScreen.contact-us.label" />
-                  </Text>
-                </ExternalLink>
-              </ThemeProvider>
+              <div className={styles.processingPaymentSpinner}>
+                <Spinner size="3" />
+                <RadixText
+                  as="span"
+                  className={styles.processingPaymentSpinnerLabel}
+                >
+                  {renderToString("SubscriptionScreen.processing-payment")}
+                </RadixText>
+              </div>
+              <Button asChild={true} size="2" variant="outline" color="gray">
+                <a href="mailto:hello@authgear.com">
+                  <FormattedMessage id="SubscriptionScreen.contact-us.label" />
+                </a>
+              </Button>
             </>
           ) : null}
           {paymentStatus === "CardDeclined" ? (
             <>
-              <Text className={styles.processingPaymentErrorMessage}>
+              <RadixText className={styles.processingPaymentErrorMessage}>
                 <FormattedMessage id="SubscriptionScreen.payment-declined.description" />
-              </Text>
+              </RadixText>
               <div className={styles.processingPaymentButtonContainer}>
-                <ButtonWithLoading
+                <Button
+                  size="2"
                   loading={cancelFailedSubscriptionLoading}
                   // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onClickCancelFailedSubscription}
-                  labelId="SubscriptionScreen.cancel-transaction.label"
-                />
+                >
+                  <FormattedMessage id="SubscriptionScreen.cancel-transaction.label" />
+                </Button>
               </div>
             </>
           ) : null}
           {paymentStatus === "UnknownError" ? (
             <>
-              <Text className={styles.processingPaymentErrorMessage}>
+              <RadixText className={styles.processingPaymentErrorMessage}>
                 <FormattedMessage id="SubscriptionScreen.unknown-error.description" />
-              </Text>
+              </RadixText>
             </>
           ) : null}
           <ErrorDialog
@@ -937,7 +909,7 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
   };
 
 const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
-  const now = useConst(new Date());
+  const [now] = useState(() => new Date());
   const thisMonth = useMemo(() => {
     return now.toISOString();
   }, [now]);

@@ -1,13 +1,9 @@
-import {
-  Dialog,
-  DialogFooter,
-  DialogType,
-  IDialogContentProps,
-} from "@fluentui/react";
-import React, { useMemo } from "react";
+import { Dialog } from "@radix-ui/themes";
+import React from "react";
 import { FormattedMessage } from "../../intl";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
+import styles from "./CancelSubscriptionSurveyDialog.module.css";
 
 interface CancelSubscriptionSurveyDialogProps {
   isHidden: boolean;
@@ -22,37 +18,40 @@ export function CancelSubscriptionSurveyDialog({
   onConfirm,
   onCancel,
 }: CancelSubscriptionSurveyDialogProps): React.ReactElement {
-  const dialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      type: DialogType.normal,
-      title: <FormattedMessage id="CancelSubscriptionSurveyDialog.title" />,
-      subText: (
-        <FormattedMessage id="CancelSubscriptionSurveyDialog.body" />
-      ) as unknown as IDialogContentProps["subText"],
-    };
-  }, []);
-
   return (
-    <Dialog
-      hidden={isHidden}
-      onDismiss={onDismiss}
-      dialogContentProps={dialogContentProps}
+    <Dialog.Root
+      open={!isHidden}
+      onOpenChange={(open) => {
+        if (!open) {
+          onDismiss();
+        }
+      }}
     >
-      <DialogFooter>
-        <PrimaryButton
-          onClick={onConfirm}
-          disabled={isHidden}
-          text={
-            <FormattedMessage id="CancelSubscriptionSurveyDialog.button.yes" />
-          }
-        />
-        <DefaultButton
-          onClick={onCancel}
-          text={
-            <FormattedMessage id="CancelSubscriptionSurveyDialog.button.no" />
-          }
-        />
-      </DialogFooter>
-    </Dialog>
+      <Dialog.Content maxWidth="400px" size="3">
+        <Dialog.Title>
+          <FormattedMessage id="CancelSubscriptionSurveyDialog.title" />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          <FormattedMessage id="CancelSubscriptionSurveyDialog.body" />
+        </Dialog.Description>
+        <div className={styles.actions}>
+          <SecondaryButton
+            size="2"
+            onClick={onCancel}
+            text={
+              <FormattedMessage id="CancelSubscriptionSurveyDialog.button.no" />
+            }
+          />
+          <PrimaryButton
+            size="2"
+            onClick={onConfirm}
+            disabled={isHidden}
+            text={
+              <FormattedMessage id="CancelSubscriptionSurveyDialog.button.yes" />
+            }
+          />
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
