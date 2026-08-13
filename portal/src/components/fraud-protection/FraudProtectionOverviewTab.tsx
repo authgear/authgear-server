@@ -117,9 +117,11 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
     }, []);
 
     const enforcementTitle = renderToString(
-      enabled
-        ? "FraudProtectionConfigurationScreen.overview.enforcement.enabled.title"
-        : "FraudProtectionConfigurationScreen.overview.enforcement.disabled.title"
+      !enabled
+        ? "FraudProtectionConfigurationScreen.overview.enforcement.disabled.title"
+        : isObserveMode
+        ? "FraudProtectionConfigurationScreen.overview.enforcement.observe.title"
+        : "FraudProtectionConfigurationScreen.overview.enforcement.enabled.title"
     );
     const enforcementDescription = renderToString(
       isObserveMode

@@ -38,13 +38,10 @@
 }
 
 .overviewCardsRow {
-  @apply grid grid-cols-2 gap-4;
-}
-
-@media (min-width: 900px) {
-  .overviewCardsRow {
-    @apply grid-cols-4;
-  }
+  @apply grid gap-4;
+  /* Fit as many cards as the container allows, wrapping to fewer columns on
+     narrow widths (min() prevents overflow when the container is < 200px). */
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
 }
 
 .overviewBottomRow {

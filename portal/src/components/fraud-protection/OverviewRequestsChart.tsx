@@ -314,7 +314,11 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             grid: { display: false },
             ticks: {
               maxRotation: 0,
-              autoSkip: false,
+              // Let Chart.js drop labels that don't fit so the axis stays
+              // readable on narrow screens (all 24 hourly labels overlap
+              // otherwise); it still shows every label when there is room.
+              autoSkip: true,
+              autoSkipPadding: 8,
               font: {
                 size: 11,
                 family: chartColors.fontFamily,

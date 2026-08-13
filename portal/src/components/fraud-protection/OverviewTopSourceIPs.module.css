@@ -8,9 +8,8 @@
   @apply flex items-center w-full;
 }
 
-.headerToggle {
-  @apply flex flex-none items-center justify-end;
-  width: 156px;
+.footerToggle {
+  @apply mt-auto flex items-center pt-1;
 }
 
 .headerToggleButton {

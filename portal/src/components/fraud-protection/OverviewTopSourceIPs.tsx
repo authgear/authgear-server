@@ -102,15 +102,6 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
               ) : null}
             </div>
           </div>
-          <div className={styles.headerToggle}>
-            <button
-              type="button"
-              className={styles.headerToggleButton}
-              onClick={onToggleShowAll}
-            >
-              {renderToString(showAll ? showLessKey : toggleKey)}
-            </button>
-          </div>
         </div>
 
         {/* Column headers */}
@@ -170,6 +161,16 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
               </div>
             );
           })}
+        </div>
+
+        <div className={styles.footerToggle}>
+          <button
+            type="button"
+            className={styles.headerToggleButton}
+            onClick={onToggleShowAll}
+          >
+            {renderToString(showAll ? showLessKey : toggleKey)}
+          </button>
         </div>
       </div>
     );
