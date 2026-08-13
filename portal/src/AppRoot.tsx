@@ -7,7 +7,6 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
-import { useUIImplementation } from "./hook/useUIImplementation";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   ScreenNavQueryDocument,
@@ -105,9 +104,6 @@ const CustomDomainListScreen = lazy(
 );
 const VerifyDomainScreen = lazy(
   async () => import("./graphql/portal/VerifyDomainScreen")
-);
-const UISettingsScreen = lazy(
-  async () => import("./graphql/portal/UISettingsScreen")
 );
 const DesignScreen = lazy(
   async () => import("./graphql/portal/DesignScreen/DesignScreen")
@@ -256,10 +252,6 @@ const AppRoot: React.VFC = function AppRoot() {
       ? screenNavQuery.data.node.tutorialStatus.data.project_wizard
       : null;
 
-  const uiImplementation = useUIImplementation(
-    effectiveAppConfig?.ui?.implementation
-  );
-
   if (loading || screenNavQuery.loading) {
     return <ShowLoading />;
   }
@@ -300,8 +292,6 @@ const AppRoot: React.VFC = function AppRoot() {
   }
 
   // In other cases, skip the wizard if it is not started
-
-  const useAuthUIV2 = uiImplementation === "authflowv2";
 
   return (
     <ApolloProvider client={client}>
@@ -534,7 +524,7 @@ const AppRoot: React.VFC = function AppRoot() {
               path="design"
               element={
                 <Suspense fallback={<ShowLoading />}>
-                  {useAuthUIV2 ? <DesignScreen /> : <UISettingsScreen />}
+                  <DesignScreen />
                 </Suspense>
               }
             />
