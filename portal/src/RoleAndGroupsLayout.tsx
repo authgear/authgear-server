@@ -1,11 +1,10 @@
 import React, { ReactNode, useMemo } from "react";
 import cn from "classnames";
-import { Progress, Text } from "@radix-ui/themes";
+import { Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import styles from "./RoleAndGroupsLayout.module.css";
 import { BreadcrumbItem } from "./NavBreadcrumb";
-import { useIsLoading } from "./hook/loading";
 import {
   ErrorMessageBar,
   ErrorMessageBarContextProvider,
@@ -33,7 +32,6 @@ export const RoleAndGroupsLayout: React.VFC<
   headerDescription,
   children,
 }) {
-  const isLoading = useIsLoading();
   const { appID } = useParams() as { appID: string };
 
   const { title, backLink } = useMemo(() => {
@@ -58,7 +56,6 @@ export const RoleAndGroupsLayout: React.VFC<
     <ErrorMessageBarContextProvider>
       <div className={styles.root}>
         <div className={styles.topBar}>
-          {isLoading ? <Progress size="1" radius="none" /> : null}
           <ErrorMessageBar />
         </div>
         <div className={styles.main}>

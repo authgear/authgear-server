@@ -1,6 +1,5 @@
 import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Progress } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import cn from "classnames";
@@ -119,7 +118,6 @@ import {
   ErrorMessageBarContextProvider,
 } from "../../ErrorMessageBar";
 import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
-import { useIsLoading } from "../../hook/loading";
 import { ProfilePictureDialog } from "./ProfilePictureDialog";
 
 interface UserDetailsProps {
@@ -738,13 +736,10 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       submit,
     });
 
-    const isLoading = useIsLoading();
-
     return (
       <ErrorMessageBarContextProvider>
         <div className={styles.screenRoot}>
           <div className={styles.topBar}>
-            {isLoading ? <Progress size="1" radius="none" /> : null}
             <ErrorMessageBar />
           </div>
           <FormContainer

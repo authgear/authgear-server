@@ -698,7 +698,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         />
         <div className={styles.listContainer}>
           <CommandBarContainer
-            isLoading={listLoading}
             messageBar={messageBar}
             className={styles.commandBarContainerContent}
             headerPosition="static"
