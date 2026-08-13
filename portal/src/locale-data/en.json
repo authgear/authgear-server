@@ -1312,7 +1312,7 @@
   "HookConfigurationScreen.timeout.label": "Per-hook timeout (seconds)",
   "HookConfigurationScreen.header.type.label": "Type",
   "HookConfigurationScreen.header.event.label": "Event",
-  "HookConfigurationScreen.action.endpoint.label": "Endpoint:",
+  "HookConfigurationScreen.action.endpoint.label": "Endpoint",
   "HookConfigurationScreen.action.script.label": "Script",
   "HookConfigurationScreen.hook-kind.label": "Kind",
   "HookConfigurationScreen.hook-kind.webhook": "Webhook",

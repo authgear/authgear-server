@@ -71,7 +71,6 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
-import { FormField } from "../../components/v2/FormField/FormField";
 import { TextField as RadixTextField } from "../../components/v2/TextField/TextField";
 import { isValidWebhookHookURI } from "../../util/hookUri";
 import ExternalLink from "../../ExternalLink";
@@ -924,14 +923,15 @@ function BlockingHooksTable({
                       </div>
                     </div>
                     {draft.kind === "webhook" ? (
-                      <FormField
-                        size="2"
-                        labelSpace="1"
-                        label={
+                      <div className={styles.hookAccordionField}>
+                        <RadixText
+                          as="label"
+                          size="1"
+                          weight="medium"
+                          color="gray"
+                        >
                           <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-                        }
-                        error={draftEndpointFormatError}
-                      >
+                        </RadixText>
                         <RadixTextField.Input
                           size="2"
                           value={draft.url}
@@ -941,7 +941,12 @@ function BlockingHooksTable({
                         >
                           {null}
                         </RadixTextField.Input>
-                      </FormField>
+                        {draftEndpointFormatError != null ? (
+                          <RadixText as="p" size="1" color="red">
+                            {draftEndpointFormatError}
+                          </RadixText>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 ) : null}
@@ -1304,14 +1309,15 @@ function NonBlockingHooksTable({
                       </div>
                     </div>
                     {draft.kind === "webhook" ? (
-                      <FormField
-                        size="2"
-                        labelSpace="1"
-                        label={
+                      <div className={styles.hookAccordionField}>
+                        <RadixText
+                          as="label"
+                          size="1"
+                          weight="medium"
+                          color="gray"
+                        >
                           <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-                        }
-                        error={draftEndpointFormatError}
-                      >
+                        </RadixText>
                         <RadixTextField.Input
                           size="2"
                           value={draft.url}
@@ -1321,7 +1327,12 @@ function NonBlockingHooksTable({
                         >
                           {null}
                         </RadixTextField.Input>
-                      </FormField>
+                        {draftEndpointFormatError != null ? (
+                          <RadixText as="p" size="1" color="red">
+                            {draftEndpointFormatError}
+                          </RadixText>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 ) : null}
