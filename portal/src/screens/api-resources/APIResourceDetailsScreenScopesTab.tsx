@@ -171,16 +171,16 @@ export function APIResourceDetailsScreenScopesTab({
   return (
     <FormContainerBase form={form}>
       <div className={styles.root}>
-        <div className={styles.body}>
-          <SettingsSectionCard
-            title={
-              <FormattedMessage id="APIResourceDetailsScreen.scopes.list.title" />
-            }
-            description={
-              <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
-            }
-            contentClassName={styles.addCardContent}
-          >
+        <SettingsSectionCard
+          title={
+            <FormattedMessage id="APIResourceDetailsScreen.scopes.list.title" />
+          }
+          description={
+            <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
+          }
+          contentClassName={styles.cardContent}
+        >
+          <div className={styles.addSection}>
             <Text as="p" size="3" weight="medium" className={styles.addHeading}>
               <FormattedMessage id="APIResourceDetailsScreen.scopes.add.title" />
             </Text>
@@ -189,13 +189,9 @@ export function APIResourceDetailsScreenScopesTab({
               state={form.state}
               setState={form.setState}
             />
-          </SettingsSectionCard>
-          <SettingsSectionCard
-            title={
-              <FormattedMessage id="APIResourceDetailsScreen.scopes.list.title" />
-            }
-            contentClassName={styles.listCardContent}
-          >
+          </div>
+          <hr className={styles.divider} />
+          <div className={styles.listSection}>
             {hasListContent ? (
               <>
                 <div className={styles.searchField}>
@@ -243,8 +239,8 @@ export function APIResourceDetailsScreenScopesTab({
                 <FormattedMessage id="APIResourceDetailsScreen.scopes.list.empty" />
               </Text>
             )}
-          </SettingsSectionCard>
-        </div>
+          </div>
+        </SettingsSectionCard>
       </div>
       <EditScopeDialog
         resourceURI={resource.resourceURI}

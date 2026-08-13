@@ -2,12 +2,12 @@
   @apply pt-5 flex flex-col gap-4;
 }
 
-.body {
-  @apply flex flex-col gap-5;
+.cardContent {
+  @apply gap-6;
 }
 
-.addCardContent {
-  @apply gap-4;
+.addSection {
+  @apply flex flex-col gap-4;
 }
 
 .addHeading {
@@ -18,8 +18,14 @@
   @apply w-full min-w-0;
 }
 
-.listCardContent {
-  @apply gap-4;
+.divider {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--gray-a5);
+}
+
+.listSection {
+  @apply flex flex-col gap-4;
 }
 
 .searchField {
