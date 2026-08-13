@@ -8,6 +8,7 @@ import { TextField, TextFieldIcon } from "../v2/TextField/TextField";
 
 export interface EditApplicationScopesListItem {
   scope: string;
+  description?: string | null;
   isAssigned: boolean;
 }
 
@@ -115,13 +116,16 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
         >
           <div className={styles.table}>
             <div className={styles.tableHeader}>
-              <div className={styles.tableHeaderCell}>
+              <div className={styles.tableHeaderCellScope}>
                 <FormattedMessage id="EditApplicationScopesList.columns.scope" />
+              </div>
+              <div className={styles.tableHeaderCellDescription}>
+                <FormattedMessage id="EditApplicationScopesList.columns.description" />
               </div>
             </div>
             {filteredScopes.map((item) => (
-              <div key={item.scope} className={styles.tableRow}>
-                <label className={styles.tableCell}>
+              <label key={item.scope} className={styles.tableRow}>
+                <div className={styles.tableCellScope}>
                   <Checkbox
                     checked={item.isAssigned}
                     onCheckedChange={(checked) => {
@@ -132,8 +136,13 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
                     }}
                   />
                   <Text size="2">{item.scope}</Text>
-                </label>
-              </div>
+                </div>
+                <div className={styles.tableCellDescription}>
+                  <Text size="2" color="gray" className={styles.description}>
+                    {item.description}
+                  </Text>
+                </div>
+              </label>
             ))}
           </div>
           {filteredScopes.length === 0 ? (

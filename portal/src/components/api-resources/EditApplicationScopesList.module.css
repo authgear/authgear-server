@@ -67,13 +67,24 @@
   background-color: var(--gray-a2);
 }
 
-.tableHeaderCell {
-  @apply flex items-center px-4 py-3 text-sm font-semibold;
+.tableHeaderCellScope,
+.tableHeaderCellDescription {
+  @apply flex min-w-0 items-center px-4 py-3 text-sm font-semibold;
   color: var(--gray-12);
 }
 
+.tableHeaderCellScope {
+  @apply flex-1;
+  min-width: 10rem;
+}
+
+.tableHeaderCellDescription {
+  @apply flex-[1.5];
+  min-width: 12rem;
+}
+
 .tableRow {
-  @apply flex w-full items-center;
+  @apply flex w-full items-center cursor-pointer;
   min-height: 2.75rem;
   border-top: 1px solid var(--gray-a4);
   background-color: transparent;
@@ -84,8 +95,19 @@
   background-color: var(--gray-a2);
 }
 
-.tableCell {
-  @apply flex min-w-0 flex-1 items-center gap-3 px-4 py-3 cursor-pointer;
+.tableCellScope {
+  @apply flex min-w-0 flex-1 items-center gap-3 px-4 py-3;
+  min-width: 10rem;
+}
+
+.tableCellDescription {
+  @apply flex min-w-0 flex-[1.5] items-center overflow-hidden px-4 py-3;
+  min-width: 12rem;
+}
+
+.description {
+  @apply min-w-0 truncate;
+  margin: 0;
 }
 
 .empty {

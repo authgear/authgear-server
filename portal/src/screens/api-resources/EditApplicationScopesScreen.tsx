@@ -96,6 +96,7 @@ export function EditApplicationScopesScreenContent({
       [];
     return allScopes.map((scope) => ({
       scope: scope.scope,
+      description: scope.description,
       isAssigned: assignedScopes.has(scope.scope),
     }));
   }, [assignedScopes, resource]);

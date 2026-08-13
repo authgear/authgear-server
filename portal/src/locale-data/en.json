@@ -2424,6 +2424,7 @@
   "ScopeList.columns.scope": "Scope",
   "ScopeList.columns.description": "Description",
   "EditApplicationScopesList.columns.scope": "Authorized Scope",
+  "EditApplicationScopesList.columns.description": "Description",
   "EditApplicationScopesList.select": "Select",
   "EditApplicationScopesList.buttons.all": "All",
   "EditApplicationScopesList.buttons.none": "None",
