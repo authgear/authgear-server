@@ -17,6 +17,7 @@ import {
 import { TextField } from "../../v2/TextField/TextField";
 import { TextArea } from "../../v2/TextArea/TextArea";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
+import { SettingsSectionCard } from "../../v2/SettingsSectionCard/SettingsSectionCard";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUpdateRoleMutation } from "../../../graphql/adminapi/mutations/updateRoleMutation";
 import { APIError } from "../../../error/error";
@@ -65,41 +66,45 @@ function RoleDetailsSettingsFormContent({
 
   return (
     <div>
-      <RoleAndGroupsVeriticalFormLayout>
-        <TextField
-          size="2"
-          required={true}
-          fieldName="name"
-          parentJSONPointer=""
-          type="text"
-          label={renderToString("AddRoleScreen.roleName.title")}
-          hint={<FormattedMessage id="AddRoleScreen.roleName.description" />}
-          value={formState.roleName}
-          onChange={onFormStateChangeCallbacks.roleName}
-        />
-        <TextField
-          size="2"
-          required={true}
-          fieldName="key"
-          parentJSONPointer=""
-          type="text"
-          label={renderToString("AddRoleScreen.roleKey.title")}
-          hint={<FormattedMessage id="AddRoleScreen.roleKey.description" />}
-          placeholder={generateRoleKeyFromName(formState.roleName)}
-          value={formState.roleKey}
-          onChange={onFormStateChangeCallbacks.roleKey}
-        />
-        <TextArea
-          size="2"
-          fieldName="description"
-          parentJSONPointer=""
-          label={renderToString("AddRoleScreen.roleDescription.title")}
-          value={formState.roleDescription}
-          onChange={onFormStateChangeCallbacks.roleDescription}
-        />
-      </RoleAndGroupsVeriticalFormLayout>
+      <SettingsSectionCard
+        title={<FormattedMessage id="RoleDetailsScreen.tabs.settings" />}
+      >
+        <RoleAndGroupsVeriticalFormLayout>
+          <TextField
+            size="2"
+            required={true}
+            fieldName="name"
+            parentJSONPointer=""
+            type="text"
+            label={renderToString("AddRoleScreen.roleName.title")}
+            hint={<FormattedMessage id="AddRoleScreen.roleName.description" />}
+            value={formState.roleName}
+            onChange={onFormStateChangeCallbacks.roleName}
+          />
+          <TextField
+            size="2"
+            required={true}
+            fieldName="key"
+            parentJSONPointer=""
+            type="text"
+            label={renderToString("AddRoleScreen.roleKey.title")}
+            hint={<FormattedMessage id="AddRoleScreen.roleKey.description" />}
+            placeholder={generateRoleKeyFromName(formState.roleName)}
+            value={formState.roleKey}
+            onChange={onFormStateChangeCallbacks.roleKey}
+          />
+          <TextArea
+            size="2"
+            fieldName="description"
+            parentJSONPointer=""
+            label={renderToString("AddRoleScreen.roleDescription.title")}
+            value={formState.roleDescription}
+            onChange={onFormStateChangeCallbacks.roleDescription}
+          />
+        </RoleAndGroupsVeriticalFormLayout>
+      </SettingsSectionCard>
 
-      <RoleAndGroupsFormFooter className="mt-12">
+      <RoleAndGroupsFormFooter className="mt-8">
         <PrimaryButton
           size="2"
           disabled={!canSave || isUpdating}

@@ -17,6 +17,7 @@ import {
 import { TextField } from "../../v2/TextField/TextField";
 import { TextArea } from "../../v2/TextArea/TextArea";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
+import { SettingsSectionCard } from "../../v2/SettingsSectionCard/SettingsSectionCard";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUpdateGroupMutation } from "../../../graphql/adminapi/mutations/updateGroupMutation";
 import { APIError } from "../../../error/error";
@@ -65,47 +66,51 @@ function GroupDetailsSettingsFormContent({
 
   return (
     <div>
-      <RoleAndGroupsVeriticalFormLayout>
-        <TextField
-          size="2"
-          required={true}
-          fieldName="name"
-          parentJSONPointer=""
-          type="text"
-          label={renderToString("GroupDetailsSettingsForm.groupName.title")}
-          hint={
-            <FormattedMessage id="GroupDetailsSettingsForm.groupName.description" />
-          }
-          value={formState.groupName}
-          onChange={onFormStateChangeCallbacks.groupName}
-        />
-        <TextField
-          size="2"
-          required={true}
-          fieldName="key"
-          parentJSONPointer=""
-          type="text"
-          label={renderToString("GroupDetailsSettingsForm.groupKey.title")}
-          hint={
-            <FormattedMessage id="GroupDetailsSettingsForm.groupKey.description" />
-          }
-          placeholder={generateGroupKeyFromName(formState.groupName)}
-          value={formState.groupKey}
-          onChange={onFormStateChangeCallbacks.groupKey}
-        />
-        <TextArea
-          size="2"
-          fieldName="description"
-          parentJSONPointer=""
-          label={renderToString(
-            "GroupDetailsSettingsForm.groupDescription.title"
-          )}
-          value={formState.groupDescription}
-          onChange={onFormStateChangeCallbacks.groupDescription}
-        />
-      </RoleAndGroupsVeriticalFormLayout>
+      <SettingsSectionCard
+        title={<FormattedMessage id="GroupDetailsScreen.tabs.settings" />}
+      >
+        <RoleAndGroupsVeriticalFormLayout>
+          <TextField
+            size="2"
+            required={true}
+            fieldName="name"
+            parentJSONPointer=""
+            type="text"
+            label={renderToString("GroupDetailsSettingsForm.groupName.title")}
+            hint={
+              <FormattedMessage id="GroupDetailsSettingsForm.groupName.description" />
+            }
+            value={formState.groupName}
+            onChange={onFormStateChangeCallbacks.groupName}
+          />
+          <TextField
+            size="2"
+            required={true}
+            fieldName="key"
+            parentJSONPointer=""
+            type="text"
+            label={renderToString("GroupDetailsSettingsForm.groupKey.title")}
+            hint={
+              <FormattedMessage id="GroupDetailsSettingsForm.groupKey.description" />
+            }
+            placeholder={generateGroupKeyFromName(formState.groupName)}
+            value={formState.groupKey}
+            onChange={onFormStateChangeCallbacks.groupKey}
+          />
+          <TextArea
+            size="2"
+            fieldName="description"
+            parentJSONPointer=""
+            label={renderToString(
+              "GroupDetailsSettingsForm.groupDescription.title"
+            )}
+            value={formState.groupDescription}
+            onChange={onFormStateChangeCallbacks.groupDescription}
+          />
+        </RoleAndGroupsVeriticalFormLayout>
+      </SettingsSectionCard>
 
-      <RoleAndGroupsFormFooter className="mt-12">
+      <RoleAndGroupsFormFooter className="mt-8">
         <PrimaryButton
           size="2"
           disabled={!canSave || isUpdating}
