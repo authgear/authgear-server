@@ -107,6 +107,7 @@ interface OAuthIdentityListItem {
   claimValue?: string;
   verified?: boolean;
   connectedOn: string;
+  connectedOnDateOnly: string;
 }
 
 interface LoginIDIdentityListItem {
@@ -153,13 +154,6 @@ export interface IdentityLists {
   biometric: BiometricIdentityListItem[];
   anonymous: AnonymousIdentityListItem[];
   ldap: LDAPIdentityListItem[];
-}
-
-interface VerifyButtonProps {
-  disabled?: boolean;
-  verified: boolean;
-  verifying: boolean;
-  toggleVerified: (verified: boolean) => void;
 }
 
 interface ConfirmationDialogData {
@@ -678,49 +672,6 @@ function checkIsClaimVerified(
   return matchedClaim != null;
 }
 
-const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
-  props: VerifyButtonProps
-) {
-  const { verified, verifying, toggleVerified } = props;
-  const loading = useIsLoading();
-
-  const onClickVerify = useCallback(() => {
-    toggleVerified(true);
-  }, [toggleVerified]);
-
-  const onClickUnverify = useCallback(() => {
-    toggleVerified(false);
-  }, [toggleVerified]);
-
-  if (verified) {
-    return (
-      <Button
-        className={cn(styles.controlButton, styles.unverifyButton)}
-        size="1"
-        variant="outline"
-        disabled={loading || verifying}
-        onClick={onClickUnverify}
-        loading={verifying}
-      >
-        <FormattedMessage id="make-as-unverified" />
-      </Button>
-    );
-  }
-
-  return (
-    <Button
-      className={cn(styles.controlButton, styles.verifyButton)}
-      size="1"
-      variant="solid"
-      disabled={loading || verifying}
-      onClick={onClickVerify}
-      loading={verifying}
-    >
-      <FormattedMessage id="make-as-verified" />
-    </Button>
-  );
-};
-
 interface BaseIdentityListCellTitleProps {
   icon?: React.ReactNode;
   as?: "ExternalLink" | "Text";
@@ -783,85 +734,6 @@ const BaseIdentityListCellDescription: React.VFC<
       ) : null}
       {children}
     </Text>
-  );
-};
-
-interface BaseIdentityListCellButtonGroupProps {
-  identityID?: string;
-  identityType: IdentityType;
-  identityName?: string;
-  claimName?: string;
-  claimValue?: string;
-  verified?: boolean;
-  setVerifiedStatus?: (
-    claimName: string,
-    claimValue: string,
-    verified: boolean
-  ) => Promise<boolean>;
-  onRemoveClicked?: (identityID: string, identityName: string) => void;
-}
-
-const BaseIdentityListCellButtonGroup: React.VFC<
-  BaseIdentityListCellButtonGroupProps
-> = (props) => {
-  const {
-    identityID,
-    identityType,
-    identityName,
-    claimName,
-    claimValue,
-    verified,
-    setVerifiedStatus,
-    onRemoveClicked: _onRemoveClicked,
-  } = props;
-
-  const loading = useIsLoading();
-  const [verifying, setVerifying] = useState(false);
-  const onRemoveClicked = useCallback(() => {
-    if (identityID == null || identityName == null) {
-      return;
-    }
-
-    _onRemoveClicked?.(identityID, identityName);
-  }, [identityID, identityName, _onRemoveClicked]);
-
-  const onVerifyClicked = useCallback(
-    (verified: boolean) => {
-      if (claimName === undefined || claimValue === undefined) {
-        return;
-      }
-      setVerifying(true);
-      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
-        setVerifying(false);
-      });
-    },
-    [setVerifiedStatus, claimName, claimValue]
-  );
-
-  const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
-
-  return (
-    <div className={styles.buttonGroup}>
-      {shouldShowVerifyButton ? (
-        <VerifyButton
-          verified={verified}
-          verifying={verifying}
-          toggleVerified={onVerifyClicked}
-        />
-      ) : null}
-      {removeButtonTextId[identityType] !== "" ? (
-        <Button
-          className={cn(styles.controlButton, styles.removeButton)}
-          disabled={loading}
-          size="1"
-          variant="outline"
-          color="red"
-          onClick={onRemoveClicked}
-        >
-          <FormattedMessage id={removeButtonTextId[identityType]} />
-        </Button>
-      ) : null}
-    </div>
   );
 };
 
@@ -1122,7 +994,9 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   );
 };
 
-interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {}
+interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {
+  connectedOnDateOnly: string;
+}
 
 const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
   props
@@ -1136,22 +1010,44 @@ const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
     claimValue,
     verified,
     connectedOn,
+    connectedOnDateOnly,
     setVerifiedStatus,
     onRemoveClicked,
   } = props;
 
   return (
-    <ListCellLayout className={styles.cellContainer}>
-      <BaseIdentityListCellTitle as="Text" icon={icon}>
-        {identityName}
-      </BaseIdentityListCellTitle>
-      <BaseIdentityListCellDescription verified={verified}>
-        <FormattedMessage
-          id="UserDetails.connected-identities.connected-on"
-          values={{ datetime: connectedOn }}
-        />
-      </BaseIdentityListCellDescription>
-      <BaseIdentityListCellButtonGroup
+    <ListCellLayout className={listStyles.row}>
+      <div className={listStyles.rowValue}>
+        <span className={styles.socialIcon}>{icon}</span>
+        <Text size="2" className={listStyles.rowValueText}>
+          {identityName}
+        </Text>
+        {verified != null ? (
+          <span
+            className={cn(
+              styles.verificationStatus,
+              verified ? styles.verifiedStatus : styles.unverifiedStatus
+            )}
+          >
+            {verified ? (
+              <CheckCircledIcon className={styles.verificationIcon} />
+            ) : (
+              <CrossCircledIcon className={styles.verificationIcon} />
+            )}
+            <FormattedMessage id={verified ? "verified" : "unverified"} />
+          </span>
+        ) : null}
+      </div>
+      <Tooltip content={connectedOn}>
+        <Text size="2" color="gray" className={listStyles.rowDate}>
+          <FormattedMessage
+            id="UserDetails.connected-identities.connected-on"
+            values={{ datetime: connectedOnDateOnly }}
+          />
+        </Text>
+      </Tooltip>
+      <BaseIdentityListCellActionButton
+        className={listStyles.rowAction}
         verified={verified}
         identityID={identityID}
         identityName={identityName}
@@ -1304,6 +1200,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 ? undefined
                 : checkIsClaimVerified(verifiedClaims, claimName, claimValue),
             connectedOn: createdAtStr,
+            connectedOnDateOnly: createdAtDateOnlyStr,
           });
         }
 
@@ -1522,6 +1419,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue={item.claimValue}
                 verified={verified}
                 connectedOn={connectedOn}
+                connectedOnDateOnly={item.connectedOnDateOnly}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
               />
