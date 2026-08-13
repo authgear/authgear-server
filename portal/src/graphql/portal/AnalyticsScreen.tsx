@@ -42,7 +42,6 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     return parseDate(analyticEpochStr);
   }, [analyticEpochStr]);
 
-   
   const [today] = useState(() => new Date(Date.now()));
   const yesterday = useMemo(() => {
     const d = new Date(

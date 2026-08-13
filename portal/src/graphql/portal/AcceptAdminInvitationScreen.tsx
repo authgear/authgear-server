@@ -163,7 +163,9 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
           type="submit"
           loading={loading}
           onClick={onAccept}
-          text={<FormattedMessage id="AcceptAdminInvitationScreen.accept.label" />}
+          text={
+            <FormattedMessage id="AcceptAdminInvitationScreen.accept.label" />
+          }
         />
       </AcceptAdminInvitationContent>
     );
@@ -264,7 +266,9 @@ const AcceptAdminInvitationScreen: React.VFC =
           <PrimaryButton
             size="3"
             onClick={() => goToAuth("login")}
-            text={<FormattedMessage id="AcceptAdminInvitationScreen.login.label" />}
+            text={
+              <FormattedMessage id="AcceptAdminInvitationScreen.login.label" />
+            }
           />
           <SecondaryButton
             size="3"

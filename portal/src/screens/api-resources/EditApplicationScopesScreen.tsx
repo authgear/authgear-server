@@ -117,29 +117,29 @@ export function EditApplicationScopesScreenContent({
             scopes={scopes}
             bottomInset={form.getIsDirty()}
             onToggleAssignedScopes={useCallback(
-            (
-              updatedScopes: EditApplicationScopesListItem[],
-              isAssigned: boolean
-            ) => {
-              form.setState((state) => {
-                const currentAssignedScopes = state.assignedScopes;
-                const newSet = new Set(currentAssignedScopes);
+              (
+                updatedScopes: EditApplicationScopesListItem[],
+                isAssigned: boolean
+              ) => {
+                form.setState((state) => {
+                  const currentAssignedScopes = state.assignedScopes;
+                  const newSet = new Set(currentAssignedScopes);
 
-                updatedScopes.forEach((scopeItem) => {
-                  if (isAssigned) {
-                    newSet.add(scopeItem.scope);
-                  } else {
-                    newSet.delete(scopeItem.scope);
-                  }
+                  updatedScopes.forEach((scopeItem) => {
+                    if (isAssigned) {
+                      newSet.add(scopeItem.scope);
+                    } else {
+                      newSet.delete(scopeItem.scope);
+                    }
+                  });
+
+                  return {
+                    assignedScopes: Array.from(newSet),
+                  };
                 });
-
-                return {
-                  assignedScopes: Array.from(newSet),
-                };
-              });
-            },
-            [form]
-          )}
+              },
+              [form]
+            )}
           />
         </div>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
