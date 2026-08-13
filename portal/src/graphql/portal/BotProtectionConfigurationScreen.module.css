@@ -37,10 +37,6 @@
   margin-bottom: 5.5rem;
 }
 
-.settingsCardAlignCenter {
-  align-items: center;
-}
-
 .enableToggle {
   display: flex;
   align-items: center;

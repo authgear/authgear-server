@@ -28,5 +28,8 @@
 }
 
 .settingsCardAlignCenter {
-  align-items: center;
+  /* Vertically centre the title against the single toggle in the wide
+     (columns) layout, but revert to the card's stretch alignment once it
+     stacks, so the title stays top-left instead of centring horizontally. */
+  @apply items-center tablet:items-stretch;
 }
