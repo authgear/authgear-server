@@ -220,7 +220,7 @@ export function APIResourceDetailsScreenTestTab({
                   values={{
                     // eslint-disable-next-line react/no-unstable-nested-components
                     ExternalLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://djwt.authgear.com/">
+                      <ExternalLink href="https://www.authgear.com/tools/jwt-jwe-debugger/?utm_source=portal&utm_medium=link&utm_campaign=jwt_jwe_debugger">
                         {chunks}
                       </ExternalLink>
                     ),
