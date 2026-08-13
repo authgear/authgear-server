@@ -67,6 +67,7 @@ function GroupDetailsSettingsFormContent({
   return (
     <div>
       <SettingsSectionCard
+        className="max-w-[640px]"
         title={<FormattedMessage id="GroupDetailsScreen.tabs.settings" />}
       >
         <RoleAndGroupsVeriticalFormLayout>
