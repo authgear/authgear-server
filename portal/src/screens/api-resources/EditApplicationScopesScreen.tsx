@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
 import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormattedMessage } from "../../intl";
 import {
@@ -21,6 +21,7 @@ import { OAuthClientConfig } from "../../types";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
 import FormContainer from "../../FormContainer";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const pageSize = 1000;
@@ -42,6 +43,7 @@ export function EditApplicationScopesScreenContent({
 }): React.ReactElement {
   const [replaceScopesOfClientIdMutation] =
     useReplaceScopesOfClientIdMutation();
+  const contentWidthAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const resource =
     resourceScopesQueryData.node?.__typename === "Resource"
@@ -102,14 +104,18 @@ export function EditApplicationScopesScreenContent({
     <FormContainer
       form={form}
       className="flex-1-0-auto flex flex-col"
-      stickyFooterComponent={true}
-      showDiscardButton={true}
+      hideFooterComponent={true}
     >
       <APIResourceScreenLayout breadcrumbItems={breadcrumbItems}>
-        <EditApplicationScopesList
-          className="flex-1-0-auto col-span-full"
-          scopes={scopes}
-          onToggleAssignedScopes={useCallback(
+        <div
+          ref={contentWidthAnchorRef}
+          className="col-span-full flex-1-0-auto flex flex-col"
+        >
+          <EditApplicationScopesList
+            className="flex-1-0-auto"
+            scopes={scopes}
+            bottomInset={form.getIsDirty()}
+            onToggleAssignedScopes={useCallback(
             (
               updatedScopes: EditApplicationScopesListItem[],
               isAssigned: boolean
@@ -133,7 +139,9 @@ export function EditApplicationScopesScreenContent({
             },
             [form]
           )}
-        />
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </APIResourceScreenLayout>
     </FormContainer>
   );

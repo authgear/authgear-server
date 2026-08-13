@@ -14,6 +14,9 @@ export interface EditApplicationScopesListItem {
 interface EditApplicationScopesListProps {
   className?: string;
   scopes: EditApplicationScopesListItem[];
+  /** Reserve space at the bottom of the scroll area so the floating
+   * SaveFunctionBar does not cover the last rows. */
+  bottomInset?: boolean;
   onToggleAssignedScopes: (
     items: EditApplicationScopesListItem[],
     isAssigned: boolean
@@ -22,7 +25,7 @@ interface EditApplicationScopesListProps {
 
 export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps> =
   function EditApplicationScopesList(props: EditApplicationScopesListProps) {
-    const { className, scopes, onToggleAssignedScopes } = props;
+    const { className, scopes, bottomInset, onToggleAssignedScopes } = props;
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
 
@@ -104,7 +107,12 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
             </button>
           </div>
         </div>
-        <div className={styles.listWrapper}>
+        <div
+          className={cn(
+            styles.listWrapper,
+            bottomInset ? styles.listWrapperInset : null
+          )}
+        >
           <div className={styles.table}>
             <div className={styles.tableHeader}>
               <div className={styles.tableHeaderCell}>
