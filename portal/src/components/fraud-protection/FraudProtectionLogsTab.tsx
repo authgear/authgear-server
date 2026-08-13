@@ -3,38 +3,22 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import cn from "classnames";
+import { Button, Checkbox, Popover, Select, Text } from "@radix-ui/themes";
 import {
-  Callout,
-  Checkbox,
-  ColumnActionsMode,
-  ComboBox,
-  DetailsListLayoutMode,
-  DetailsRow,
-  DirectionalHint,
-  Dropdown,
-  IColumn,
-  IComboBox,
-  IComboBoxOption,
-  IDetailsList,
-  IDetailsRowProps,
-  IDropdownOption,
-  MessageBar,
-  SearchBox,
-  SelectionMode,
-  ShimmeredDetailsList,
-} from "@fluentui/react";
+  ChevronDownIcon,
+  Cross2Icon,
+  MixerHorizontalIcon,
+  UpdateIcon,
+} from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import ShowError from "../../ShowError";
-import WidgetTitle from "../../WidgetTitle";
 import PaginationWidget from "../../PaginationWidget";
-import CommandBarButton from "../../CommandBarButton";
-import PrimaryButton from "../../PrimaryButton";
-import DateRangeDialog from "../../graphql/portal/DateRangeDialog";
+import { TextField, TextFieldIcon } from "../v2/TextField/TextField";
+import FraudProtectionDateRangeDialog from "./FraudProtectionDateRangeDialog";
 import { DateRangeFilterDropdown } from "../audit-log/DateRangeFilterDropdown";
 import useTransactionalState from "../../hook/useTransactionalState";
 import { FraudProtectionWarningType } from "../../types";
@@ -55,6 +39,7 @@ import {
 import styles from "./FraudProtectionLogsTab.module.css";
 
 const PAGE_SIZE = 20;
+const SHIMMER_ROW_COUNT = 8;
 
 type ResultFilterKey = "all" | "allowed" | "flagged" | "blocked";
 type ActionFilterKey = "smsotp";
@@ -78,25 +63,6 @@ interface FraudProtectionLogEntry {
   phoneNumber: string;
   phoneCountryCode: string;
 }
-
-interface FraudProtectionLogEntryViewModel extends FraudProtectionLogEntry {
-  isExpanded: boolean;
-}
-
-interface FraudProtectionLogPrimaryRow {
-  kind: "entry";
-  entry: FraudProtectionLogEntryViewModel;
-}
-
-interface FraudProtectionLogDetailRow {
-  kind: "details";
-  id: string;
-  entry: FraudProtectionLogEntryViewModel;
-}
-
-type FraudProtectionLogRowItem =
-  | FraudProtectionLogPrimaryRow
-  | FraudProtectionLogDetailRow;
 
 function ensureFraudDecisionNodeID(id: string): string {
   try {
@@ -195,18 +161,15 @@ function mapLogNodeToEntry(
 
 // ---- ResultCell ----
 
-interface ResultCellProps {
-  entry: FraudProtectionLogEntry;
-}
-
-const ResultCell: React.VFC<ResultCellProps> = function ResultCell({ entry }) {
-  const { renderToString } = useContext(Context);
-  return (
-    <span className={`${styles.resultBadge} ${getResultClassName(entry)}`}>
-      {renderToString(getResultMessageID(entry))}
-    </span>
-  );
-};
+const ResultCell: React.VFC<{ entry: FraudProtectionLogEntry }> =
+  function ResultCell({ entry }) {
+    const { renderToString } = useContext(Context);
+    return (
+      <span className={cn(styles.resultBadge, getResultClassName(entry))}>
+        {renderToString(getResultMessageID(entry))}
+      </span>
+    );
+  };
 
 // ---- Column definitions ----
 
@@ -225,8 +188,9 @@ interface ColumnDef {
   alwaysShown: boolean;
   defaultVisible: boolean;
   minWidth: number;
+  grow?: boolean;
+  /** Caps a grow column so long content truncates instead of widening it. */
   maxWidth?: number;
-  fieldName?: string;
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
@@ -234,59 +198,63 @@ const COLUMN_DEFS: ColumnDef[] = [
     key: "timestamp",
     alwaysShown: true,
     defaultVisible: true,
-    minWidth: 200,
-    maxWidth: 240,
-    fieldName: "createdAt",
+    minWidth: 210,
   },
   {
     key: "action",
     alwaysShown: true,
     defaultVisible: true,
-    minWidth: 80,
-    maxWidth: 100,
+    minWidth: 96,
   },
   {
     key: "result",
     alwaysShown: true,
     defaultVisible: true,
-    minWidth: 80,
-    maxWidth: 100,
+    minWidth: 100,
   },
   {
     key: "reasonCodes",
     alwaysShown: false,
     defaultVisible: true,
-    minWidth: 480,
+    minWidth: 200,
+    grow: true,
+    maxWidth: 320,
   },
   {
     key: "ip",
     alwaysShown: true,
     defaultVisible: true,
-    minWidth: 120,
-    maxWidth: 150,
+    minWidth: 140,
   },
   {
     key: "ipCountry",
     alwaysShown: false,
     defaultVisible: true,
-    minWidth: 100,
-    maxWidth: 130,
+    minWidth: 120,
   },
   {
     key: "phone",
     alwaysShown: false,
     defaultVisible: false,
-    minWidth: 140,
-    maxWidth: 180,
+    minWidth: 160,
   },
   {
     key: "phoneCountry",
     alwaysShown: false,
     defaultVisible: false,
-    minWidth: 100,
-    maxWidth: 130,
+    minWidth: 120,
   },
 ];
+
+function columnStyle(def: ColumnDef): React.CSSProperties {
+  if (def.grow === true) {
+    // maxWidth caps the flex item so long content truncates (via the cell's
+    // overflow:hidden + .cellText) instead of stretching the table and
+    // pushing later columns (IP, country) out of view.
+    return { flex: "1 1 0", minWidth: def.minWidth, maxWidth: def.maxWidth };
+  }
+  return { width: def.minWidth, minWidth: def.minWidth, flexShrink: 0 };
+}
 
 const FRAUD_PROTECTION_LOGS_COLUMNS_STORAGE_KEY_PREFIX =
   "fraud-protection-logs-visible-columns-v2:";
@@ -356,16 +324,6 @@ const ColumnsDropdown: React.VFC<ColumnsDropdownProps> =
     const [draftOptionalColumns, setDraftOptionalColumns] = useState<
       Set<ColumnKey>
     >(() => new Set(visibleOptionalColumns));
-    const buttonRef = useRef<HTMLButtonElement | null>(null);
-
-    const onOpen = useCallback(() => {
-      setDraftOptionalColumns(new Set(visibleOptionalColumns));
-      setIsOpen(true);
-    }, [visibleOptionalColumns]);
-
-    const onClose = useCallback(() => {
-      setIsOpen(false);
-    }, []);
 
     const alwaysShown = useMemo(
       () => columnDefs.filter((c) => c.alwaysShown),
@@ -374,6 +332,16 @@ const ColumnsDropdown: React.VFC<ColumnsDropdownProps> =
     const optional = useMemo(
       () => columnDefs.filter((c) => !c.alwaysShown),
       [columnDefs]
+    );
+
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (open) {
+          setDraftOptionalColumns(new Set(visibleOptionalColumns));
+        }
+        setIsOpen(open);
+      },
+      [visibleOptionalColumns]
     );
 
     const onToggleDraftColumn = useCallback((key: ColumnKey) => {
@@ -390,107 +358,218 @@ const ColumnsDropdown: React.VFC<ColumnsDropdownProps> =
 
     const onClickSave = useCallback(() => {
       onSaveColumns(draftOptionalColumns);
-      onClose();
-    }, [draftOptionalColumns, onSaveColumns, onClose]);
+      setIsOpen(false);
+    }, [draftOptionalColumns, onSaveColumns]);
 
     return (
-      <div className={styles.columnsDropdownWrapper}>
-        <button
-          ref={buttonRef}
-          type="button"
-          className={styles.columnsButton}
-          onClick={isOpen ? onClose : onOpen}
+      <Popover.Root open={isOpen} onOpenChange={onOpenChange}>
+        <Popover.Trigger>
+          <button type="button" className={styles.filterButton}>
+            <MixerHorizontalIcon className={styles.filterButtonIcon} />
+            {renderToString(
+              "FraudProtectionConfigurationScreen.logs.columns.button"
+            )}
+          </button>
+        </Popover.Trigger>
+        <Popover.Content
+          className={styles.columnsContent}
+          sideOffset={4}
+          align="end"
         >
-          <span className={styles.columnsButtonIcon}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect
-                x="1"
-                y="2"
-                width="3"
-                height="10"
-                rx="0.5"
-                fill="currentColor"
-                opacity="0.7"
-              />
-              <rect
-                x="5.5"
-                y="2"
-                width="3"
-                height="10"
-                rx="0.5"
-                fill="currentColor"
-              />
-              <rect
-                x="10"
-                y="2"
-                width="3"
-                height="10"
-                rx="0.5"
-                fill="currentColor"
-                opacity="0.7"
-              />
-            </svg>
-          </span>
-          {renderToString(
-            "FraudProtectionConfigurationScreen.logs.columns.button"
-          )}
-        </button>
-        {isOpen ? (
-          <Callout
-            target={buttonRef}
-            onDismiss={onClose}
-            directionalHint={DirectionalHint.bottomLeftEdge}
-            gapSpace={4}
-            isBeakVisible={false}
-            doNotLayer={true}
+          <Text as="p" size="1" weight="medium" className={styles.columnsLabel}>
+            {renderToString(
+              "FraudProtectionConfigurationScreen.logs.columns.alwaysShown"
+            )}
+          </Text>
+          {alwaysShown.map((col) => (
+            <label key={col.key} className={styles.columnsItem}>
+              <Checkbox checked={true} disabled={true} />
+              <Text as="span" size="2">
+                {renderToString(
+                  `FraudProtectionConfigurationScreen.logs.column.${col.key}`
+                )}
+              </Text>
+            </label>
+          ))}
+          <Text
+            as="p"
+            size="1"
+            weight="medium"
+            className={cn(styles.columnsLabel, styles.columnsLabelOptional)}
           >
-            <div className={styles.columnsCallout}>
-              <div className={styles.columnsSectionLabel}>
+            {renderToString(
+              "FraudProtectionConfigurationScreen.logs.columns.optional"
+            )}
+          </Text>
+          {optional.map((col) => (
+            <label key={col.key} className={styles.columnsItem}>
+              <Checkbox
+                checked={draftOptionalColumns.has(col.key)}
+                onCheckedChange={() => onToggleDraftColumn(col.key)}
+              />
+              <Text as="span" size="2">
                 {renderToString(
-                  "FraudProtectionConfigurationScreen.logs.columns.alwaysShown"
+                  `FraudProtectionConfigurationScreen.logs.column.${col.key}`
                 )}
-              </div>
-              {alwaysShown.map((col) => (
-                <Checkbox
-                  key={col.key}
-                  className={styles.columnsCheckboxAlways}
-                  checked={true}
-                  disabled={true}
-                  label={renderToString(
-                    `FraudProtectionConfigurationScreen.logs.column.${col.key}`
-                  )}
-                />
-              ))}
-              <div
-                className={`${styles.columnsSectionLabel} ${styles.columnsSectionLabelOptional}`}
-              >
-                {renderToString(
-                  "FraudProtectionConfigurationScreen.logs.columns.optional"
-                )}
-              </div>
-              {optional.map((col) => (
-                <Checkbox
-                  key={col.key}
-                  className={styles.columnsCheckbox}
-                  checked={draftOptionalColumns.has(col.key)}
-                  onChange={() => onToggleDraftColumn(col.key)}
-                  label={renderToString(
-                    `FraudProtectionConfigurationScreen.logs.column.${col.key}`
-                  )}
-                />
-              ))}
-              <div className={styles.columnsCalloutFooter}>
-                <PrimaryButton
-                  text={<FormattedMessage id="save" />}
-                  onClick={onClickSave}
-                />
-              </div>
-            </div>
-          </Callout>
-        ) : null}
-      </div>
+              </Text>
+            </label>
+          ))}
+          <div className={styles.columnsFooter}>
+            <Button size="2" variant="solid" onClick={onClickSave}>
+              <FormattedMessage id="save" />
+            </Button>
+          </div>
+        </Popover.Content>
+      </Popover.Root>
     );
   };
+
+// ---- ReasonCodesDropdown ----
+
+interface ReasonCodesDropdownProps {
+  selectedReasonCodes: string[];
+  onChange: (codes: string[]) => void;
+}
+
+const ReasonCodesDropdown: React.VFC<ReasonCodesDropdownProps> =
+  function ReasonCodesDropdown({ selectedReasonCodes, onChange }) {
+    const { renderToString } = useContext(Context);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const selectedSet = useMemo(
+      () => new Set(selectedReasonCodes),
+      [selectedReasonCodes]
+    );
+
+    const onToggle = useCallback(
+      (code: string, checked: boolean) => {
+        if (checked) {
+          onChange([...selectedReasonCodes, code]);
+        } else {
+          onChange(selectedReasonCodes.filter((c) => c !== code));
+        }
+      },
+      [onChange, selectedReasonCodes]
+    );
+
+    const onClear = useCallback(
+      (e: React.MouseEvent | React.KeyboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onChange([]);
+      },
+      [onChange]
+    );
+
+    const hasSelection = selectedReasonCodes.length > 0;
+    const triggerLabel = hasSelection
+      ? renderToString(
+          "FraudProtectionConfigurationScreen.logs.reasonCodes.selected",
+          { count: selectedReasonCodes.length }
+        )
+      : renderToString(
+          "FraudProtectionConfigurationScreen.logs.reasonCodes.placeholder"
+        );
+
+    return (
+      <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+        <Popover.Trigger>
+          <button
+            type="button"
+            className={cn(
+              styles.filterSelectTrigger,
+              styles.reasonCodesTrigger
+            )}
+          >
+            <span
+              className={cn(
+                styles.filterSelectValue,
+                !hasSelection && styles.filterSelectPlaceholder
+              )}
+            >
+              {triggerLabel}
+            </span>
+            {hasSelection ? (
+              <span
+                role="button"
+                tabIndex={0}
+                className={styles.filterClearButton}
+                aria-label={renderToString(
+                  "FraudProtectionConfigurationScreen.logs.reasonCodes.clear"
+                )}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={onClear}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    onClear(e);
+                  }
+                }}
+              >
+                <Cross2Icon className={styles.filterSelectIcon} />
+              </span>
+            ) : (
+              <ChevronDownIcon className={styles.filterSelectIcon} />
+            )}
+          </button>
+        </Popover.Trigger>
+        <Popover.Content
+          className={styles.reasonCodesContent}
+          sideOffset={4}
+          align="start"
+        >
+          {KNOWN_REASON_CODES.map((code) => (
+            <label key={code} className={styles.columnsItem}>
+              <Checkbox
+                checked={selectedSet.has(code)}
+                onCheckedChange={(checked) => onToggle(code, checked === true)}
+              />
+              <Text as="span" size="2">
+                {renderToString(
+                  `FraudProtectionConfigurationScreen.logs.reasonCode.${code}`
+                )}
+              </Text>
+            </label>
+          ))}
+        </Popover.Content>
+      </Popover.Root>
+    );
+  };
+
+// ---- Cell rendering ----
+
+function renderCellContent(
+  columnKey: ColumnKey,
+  entry: FraudProtectionLogEntry,
+  locale: string
+): React.ReactNode {
+  switch (columnKey) {
+    case "timestamp":
+      return formatDatetime(locale, entry.createdAt) ?? "—";
+    case "action":
+      return (
+        <span className={styles.actionCell}>
+          <FormattedMessage id="FraudProtectionConfigurationScreen.logs.action.smsotp" />
+        </span>
+      );
+    case "result":
+      return <ResultCell entry={entry} />;
+    case "reasonCodes":
+      return entry.reasonCodes.length > 0 ? entry.reasonCodes.join(", ") : "—";
+    case "ip":
+      return entry.ipAddress || "—";
+    case "ipCountry":
+      return entry.geoLocationCode || "—";
+    case "phone":
+      return entry.phoneNumber || "—";
+    case "phoneCountry":
+      return entry.phoneCountryCode || "—";
+    default:
+      return "—";
+  }
+}
 
 // ---- FraudProtectionLogsTab ----
 
@@ -505,7 +584,6 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
   const [resultFilter, setResultFilter] = useState<ResultFilterKey>("all");
   const [selectedReasonCodes, setSelectedReasonCodes] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
-  const detailsListRef = useRef<IDetailsList | null>(null);
   const [visibleOptionalColumns, setVisibleOptionalColumns] = useState<
     Set<ColumnKey>
   >(() => loadVisibleOptionalColumns(appID));
@@ -586,7 +664,7 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
     fetchPolicy: "network-only",
   });
 
-  const allEntries = useMemo<FraudProtectionLogEntry[]>(() => {
+  const entries = useMemo<FraudProtectionLogEntry[]>(() => {
     const edges = data?.fraudProtectionLogs?.edges ?? [];
     return edges
       .map((edge) => edge?.node)
@@ -595,20 +673,6 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
       )
       .map(mapLogNodeToEntry);
   }, [data]);
-
-  const entries = useMemo<FraudProtectionLogEntryViewModel[]>(
-    () =>
-      allEntries.map((entry) => ({
-        ...entry,
-        isExpanded: false,
-      })),
-    [allEntries]
-  );
-
-  const rowItems = useMemo<FraudProtectionLogRowItem[]>(
-    () => entries.map((entry) => ({ kind: "entry" as const, entry })),
-    [entries]
-  );
 
   // Reset offset when filters change
   useEffect(() => {
@@ -678,82 +742,16 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
     [setRangeTo, setRangeFrom, uncommittedRangeFrom]
   );
 
-  const resultOptions = useMemo<IDropdownOption[]>(
-    () => [
-      {
-        key: "all",
-        text: renderToString(
-          "FraudProtectionConfigurationScreen.logs.result.all"
-        ),
-      },
-      {
-        key: "allowed",
-        text: renderToString(
-          "FraudProtectionConfigurationScreen.logs.result.allowed"
-        ),
-      },
-      {
-        key: "flagged",
-        text: renderToString(
-          "FraudProtectionConfigurationScreen.logs.result.flagged"
-        ),
-      },
-      {
-        key: "blocked",
-        text: renderToString(
-          "FraudProtectionConfigurationScreen.logs.result.blocked"
-        ),
-      },
-    ],
-    [renderToString]
-  );
-
-  const onChangeResult = useCallback(
-    (_e: unknown, option?: IDropdownOption) => {
-      if (option?.key != null) {
-        setResultFilter(option.key as ResultFilterKey);
-      }
-    },
-    []
-  );
-
-  const actionOptions = useMemo<IDropdownOption[]>(
-    () => [
-      {
-        key: "smsotp",
-        text: renderToString(
-          "FraudProtectionConfigurationScreen.logs.action.smsotp"
-        ),
-      },
-    ],
-    [renderToString]
-  );
-
-  const reasonCodeOptions = useMemo<IComboBoxOption[]>(
-    () =>
-      KNOWN_REASON_CODES.map((code) => ({
-        key: code,
-        text: renderToString(
-          `FraudProtectionConfigurationScreen.logs.reasonCode.${code}`
-        ),
-      })),
-    [renderToString]
-  );
-
-  const onChangeReasonCodes = useCallback(
-    (_ev: React.FormEvent<IComboBox>, option?: IComboBoxOption) => {
-      if (option == null) return;
-      const key = option.key as string;
-      setSelectedReasonCodes((prev) =>
-        option.selected ? [...prev, key] : prev.filter((k) => k !== key)
-      );
-    },
-    []
-  );
-
-  const onChangeSearch = useCallback((_: unknown, newValue?: string) => {
-    setSearchText(newValue ?? "");
+  const onChangeResult = useCallback((value: string) => {
+    setResultFilter(value as ResultFilterKey);
   }, []);
+
+  const onChangeSearch = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchText(e.currentTarget.value);
+    },
+    []
+  );
 
   const onClearSearch = useCallback(() => {
     setSearchText("");
@@ -769,100 +767,20 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
     [appID, navigate]
   );
 
-  const onRenderItemColumn = useCallback(
-    (item?: FraudProtectionLogRowItem, _index?: number, column?: IColumn) => {
-      if (item == null) return null;
-      if (item.kind === "details") return null;
-      const entry = item.entry;
-      switch (column?.key) {
-        case "columnSettings":
-          return null;
-        case "timestamp":
-          return <span>{formatDatetime(locale, entry.createdAt) ?? "—"}</span>;
-        case "action":
-          return (
-            <span className={styles.actionCell}>
-              <FormattedMessage id="FraudProtectionConfigurationScreen.logs.action.smsotp" />
-            </span>
-          );
-        case "result":
-          return <ResultCell entry={entry} />;
-        case "reasonCodes":
-          return (
-            <span>
-              {entry.reasonCodes.length > 0
-                ? entry.reasonCodes.join(", ")
-                : "—"}
-            </span>
-          );
-        case "ip":
-          return <span>{entry.ipAddress || "—"}</span>;
-        case "ipCountry":
-          return <span>{entry.geoLocationCode || "—"}</span>;
-        case "phoneCountry":
-          return <span>{entry.phoneCountryCode || "—"}</span>;
-        case "phone":
-          return <span>{entry.phoneNumber || "—"}</span>;
-        default: {
-          const fieldName = column?.fieldName as
-            | keyof FraudProtectionLogEntryViewModel
-            | undefined;
-          const value = fieldName != null ? (entry[fieldName] as string) : "";
-          return <span>{value}</span>;
-        }
-      }
-    },
-    [locale]
-  );
-
-  const onRenderRow = useCallback(
-    (rowProps?: IDetailsRowProps) => {
-      if (rowProps == null) return null;
-      const item = rowProps.item as FraudProtectionLogRowItem | undefined;
-      if (item == null) {
-        return <DetailsRow {...rowProps} />;
-      }
-      return (
-        <div
-          className={styles.logRow}
-          onClick={() => onClickRow(item.entry.id)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onClickRow(item.entry.id);
-            }
-          }}
-        >
-          <DetailsRow {...rowProps} />
-        </div>
-      );
-    },
-    [onClickRow]
-  );
-
   const onChangeOffset = useCallback((newOffset: number) => {
     setOffset(newOffset);
   }, []);
 
-  const localizedColumns = useMemo<IColumn[]>(() => {
-    return COLUMN_DEFS.filter(
-      (def) => def.alwaysShown || visibleOptionalColumns.has(def.key)
-    ).map((def) => ({
-      key: def.key,
-      name: renderToString(
-        `FraudProtectionConfigurationScreen.logs.column.${def.key}`
+  const visibleColumns = useMemo<ColumnDef[]>(
+    () =>
+      COLUMN_DEFS.filter(
+        (def) => def.alwaysShown || visibleOptionalColumns.has(def.key)
       ),
-      fieldName: def.fieldName,
-      minWidth: def.minWidth,
-      maxWidth: def.maxWidth,
-      columnActionsMode: ColumnActionsMode.disabled,
-    }));
-  }, [renderToString, visibleOptionalColumns]);
+    [visibleOptionalColumns]
+  );
 
   const totalCount = data?.fraudProtectionLogs?.totalCount ?? 0;
-  const isEmpty = !loading && rowItems.length === 0;
+  const isEmpty = !loading && entries.length === 0;
 
   if (error != null) {
     return <ShowError error={error} onRetry={onClickRefresh} />;
@@ -870,114 +788,196 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
 
   return (
     <section className={styles.section}>
-      <WidgetTitle>
+      <Text as="p" size="4" weight="bold" className={styles.title}>
         <FormattedMessage id="FraudProtectionConfigurationScreen.tab.logs.title" />
-      </WidgetTitle>
+      </Text>
 
-      <div>
-        <div className={styles.filterRow}>
-          <div className={styles.filterGroup}>
-            <DateRangeFilterDropdown
-              className={cn(
-                styles.dateRangeFilter,
-                isCustomDateRange && styles.dateRangeFilterCustom
-              )}
-              value={isCustomDateRange ? "customDateRange" : "allDateRange"}
-              customRangeLabel={customDateRangeLabel}
-              onClickAllDateRange={onClickAllDateRange}
-              onClickCustomDateRange={onClickCustomDateRange}
-            />
-            <Dropdown
-              className={styles.actionDropdown}
-              selectedKey={actionFilter}
-              options={actionOptions}
-              disabled={true}
-            />
-            <Dropdown
-              className={styles.resultDropdown}
-              selectedKey={resultFilter}
-              options={resultOptions}
-              onChange={onChangeResult}
-            />
-          </div>
-          <div className={styles.bottomRow}>
-            <ComboBox
-              className={styles.reasonCodeComboBox}
-              multiSelect={true}
-              options={reasonCodeOptions}
-              selectedKey={selectedReasonCodes}
-              onChange={onChangeReasonCodes}
-              placeholder={renderToString(
-                "FraudProtectionConfigurationScreen.logs.reasonCodes.placeholder"
-              )}
-              allowFreeInput={false}
-            />
-            <SearchBox
-              className={styles.searchBoxFilter}
+      <div className={styles.filterRow}>
+        <div className={styles.filterGroup}>
+          <DateRangeFilterDropdown
+            className={cn(
+              styles.dateRangeFilter,
+              isCustomDateRange && styles.dateRangeFilterCustom
+            )}
+            value={isCustomDateRange ? "customDateRange" : "allDateRange"}
+            customRangeLabel={customDateRangeLabel}
+            onClickAllDateRange={onClickAllDateRange}
+            onClickCustomDateRange={onClickCustomDateRange}
+          />
+          <Select.Root value={actionFilter} disabled={true} size="2">
+            <Select.Trigger className={styles.filterSelect} />
+            <Select.Content position="popper">
+              <Select.Item value="smsotp">
+                {renderToString(
+                  "FraudProtectionConfigurationScreen.logs.action.smsotp"
+                )}
+              </Select.Item>
+            </Select.Content>
+          </Select.Root>
+          <Select.Root
+            value={resultFilter}
+            onValueChange={onChangeResult}
+            size="2"
+          >
+            <Select.Trigger className={styles.filterSelect} />
+            <Select.Content position="popper">
+              <Select.Item value="all">
+                {renderToString(
+                  "FraudProtectionConfigurationScreen.logs.result.all"
+                )}
+              </Select.Item>
+              <Select.Item value="allowed">
+                {renderToString(
+                  "FraudProtectionConfigurationScreen.logs.result.allowed"
+                )}
+              </Select.Item>
+              <Select.Item value="flagged">
+                {renderToString(
+                  "FraudProtectionConfigurationScreen.logs.result.flagged"
+                )}
+              </Select.Item>
+              <Select.Item value="blocked">
+                {renderToString(
+                  "FraudProtectionConfigurationScreen.logs.result.blocked"
+                )}
+              </Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </div>
+        <div className={styles.bottomRow}>
+          <ReasonCodesDropdown
+            selectedReasonCodes={selectedReasonCodes}
+            onChange={setSelectedReasonCodes}
+          />
+          <div className={styles.searchBoxFilter}>
+            <TextField
+              size="2"
+              type="search"
               value={searchText}
-              onChange={onChangeSearch}
-              onClear={onClearSearch}
               placeholder={renderToString(
                 "FraudProtectionConfigurationScreen.logs.search.placeholder"
               )}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              onChange={onChangeSearch}
+              suffixPlain={true}
+              suffix={
+                searchText !== "" ? (
+                  <button
+                    type="button"
+                    className={styles.searchClearButton}
+                    aria-label={renderToString(
+                      "FraudProtectionConfigurationScreen.logs.search.clear"
+                    )}
+                    onClick={onClearSearch}
+                  >
+                    <Cross2Icon className={styles.searchClearIcon} />
+                  </button>
+                ) : undefined
+              }
             />
-            <div className={styles.filterActions}>
-              <ColumnsDropdown
-                columnDefs={COLUMN_DEFS}
-                visibleOptionalColumns={visibleOptionalColumns}
-                onSaveColumns={onSaveColumns}
-              />
-              <CommandBarButton
-                className={styles.refreshButton}
-                iconProps={{ iconName: "Sync" }}
-                text={renderToString(
-                  "FraudProtectionConfigurationScreen.logs.refresh"
-                )}
-                onClick={onClickRefresh}
-              />
-            </div>
+          </div>
+          <div className={styles.filterActions}>
+            <ColumnsDropdown
+              columnDefs={COLUMN_DEFS}
+              visibleOptionalColumns={visibleOptionalColumns}
+              onSaveColumns={onSaveColumns}
+            />
+            <Button
+              type="button"
+              size="2"
+              variant="ghost"
+              color="gray"
+              highContrast={true}
+              className={styles.refreshButton}
+              onClick={onClickRefresh}
+            >
+              <UpdateIcon />
+              {renderToString(
+                "FraudProtectionConfigurationScreen.logs.refresh"
+              )}
+            </Button>
           </div>
         </div>
-
-        {!isEmpty ? (
-          <>
-            <div className={styles.tableWrapper}>
-              <ShimmeredDetailsList
-                componentRef={detailsListRef}
-                enableShimmer={loading}
-                enableUpdateAnimations={false}
-                items={rowItems}
-                columns={localizedColumns}
-                getKey={(item?: FraudProtectionLogRowItem, index?: number) => {
-                  if (item == null) {
-                    return String(index ?? "");
-                  }
-                  return `${item.entry.id}-row`;
-                }}
-                selectionMode={SelectionMode.none}
-                layoutMode={DetailsListLayoutMode.justified}
-                onRenderRow={onRenderRow}
-                onRenderItemColumn={onRenderItemColumn}
-                className={styles.list}
-              />
-            </div>
-
-            <PaginationWidget
-              className={styles.pagination}
-              offset={offset}
-              pageSize={PAGE_SIZE}
-              totalCount={totalCount}
-              onChangeOffset={onChangeOffset}
-            />
-          </>
-        ) : (
-          <MessageBar>
-            <FormattedMessage id="FraudProtectionConfigurationScreen.logs.empty" />
-          </MessageBar>
-        )}
       </div>
 
-      <DateRangeDialog
+      <div className={styles.tableWrapper}>
+        <div className={styles.table}>
+          <div className={styles.tableHeader}>
+            {visibleColumns.map((def) => (
+              <div
+                key={def.key}
+                className={styles.headerCell}
+                style={columnStyle(def)}
+              >
+                {renderToString(
+                  `FraudProtectionConfigurationScreen.logs.column.${def.key}`
+                )}
+              </div>
+            ))}
+          </div>
+          {loading ? (
+            Array.from({ length: SHIMMER_ROW_COUNT }).map((_, i) => (
+              <div key={`shimmer-${i}`} className={styles.shimmerRow}>
+                {visibleColumns.map((def) => (
+                  <div
+                    key={def.key}
+                    className={styles.cell}
+                    style={columnStyle(def)}
+                  >
+                    <div className={styles.shimmerCell} />
+                  </div>
+                ))}
+              </div>
+            ))
+          ) : isEmpty ? (
+            <div className={styles.emptyRow}>
+              <Text size="2" className={styles.emptyText}>
+                <FormattedMessage id="FraudProtectionConfigurationScreen.logs.empty" />
+              </Text>
+            </div>
+          ) : (
+            entries.map((entry) => (
+              <div
+                key={entry.id}
+                className={styles.tableRow}
+                role="button"
+                tabIndex={0}
+                onClick={() => onClickRow(entry.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClickRow(entry.id);
+                  }
+                }}
+              >
+                {visibleColumns.map((def) => (
+                  <div
+                    key={def.key}
+                    className={styles.cell}
+                    style={columnStyle(def)}
+                  >
+                    <span className={styles.cellText}>
+                      {renderCellContent(def.key, entry, locale)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {!isEmpty ? (
+        <PaginationWidget
+          className={styles.pagination}
+          offset={offset}
+          pageSize={PAGE_SIZE}
+          totalCount={totalCount}
+          onChangeOffset={onChangeOffset}
+        />
+      ) : null}
+
+      <FraudProtectionDateRangeDialog
         hidden={dateRangeDialogHidden}
         title={renderToString(
           "FraudProtectionConfigurationScreen.logs.dateRange.dialog.title"
@@ -996,7 +996,6 @@ const FraudProtectionLogsTab: React.VFC = function FraudProtectionLogsTab() {
         onSelectRangeTo={onSelectRangeTo}
         onCommitDateRange={commitDateRange}
         onDismiss={onDismissDateRangeDialog}
-        showTimePicker={true}
       />
     </section>
   );

@@ -2,29 +2,35 @@
   @apply flex flex-col gap-6;
 }
 
+.overviewTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
 .overviewHeaderRow {
   @apply flex items-end justify-between gap-4;
 }
 
 .overviewTimeRange {
   @apply flex items-center gap-3 text-xs;
-  color: #605e5c;
-  font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system,
-    BlinkMacSystemFont, "Noto Sans", "Helvetica", "Arial", sans-serif;
+  color: var(--gray-11);
 }
 
 .overviewTimeRangeGroup {
-  @apply inline-flex items-center rounded-[6px] bg-[#f3f2f1] p-[2px];
+  @apply inline-flex items-center rounded-[6px] p-[2px];
+  background-color: var(--gray-a3);
 }
 
 .overviewTimeRangeButton {
-  @apply appearance-none border-0 bg-transparent px-[14px] py-[5px] text-sm leading-5;
-  color: #605e5c;
+  @apply cursor-pointer appearance-none border-0 bg-transparent px-[14px] py-[5px] text-sm leading-5;
+  color: var(--gray-11);
 }
 
 .overviewTimeRangeButtonSelected {
-  @apply rounded-[4px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] font-medium;
-  color: #176df3;
+  @apply rounded-[4px] font-medium;
+  background-color: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  color: var(--accent-11);
 }
 
 .overviewLayout {

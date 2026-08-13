@@ -1,158 +1,109 @@
-.widget {
-  @apply col-span-12 tablet:col-span-full;
+.content {
+  @apply col-span-full flex w-full min-w-0 flex-col gap-5;
+  padding-bottom: 2rem;
 }
 
-.summaryCard {
-  @apply col-span-12 tablet:col-span-full bg-white rounded-lg p-5;
-  border: 1.25px solid #edebe9;
+.card {
+  @apply flex flex-col gap-4 p-6;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
 }
 
-.summaryRow {
-  @apply flex flex-wrap;
-  column-gap: 32px;
-  row-gap: 24px;
+.cardTitle {
+  margin: 0;
+  color: var(--gray-12);
 }
 
-.summaryItem {
-  @apply flex flex-col gap-1;
-}
-
-.summaryLabel {
-  @apply mb-2;
-  color: #201f1e;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.summaryValue {
-  color: #201f1e;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.summaryValuePrimary {
-  color: #176df3;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.summaryBadge {
-  @apply inline-block rounded;
-  padding: 3px 10px;
-  font-size: 14px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.summaryBadgeAllowed {
-  color: #16a34a;
-  background: #eef6ef;
-}
-
-.summaryBadgeFlagged {
-  color: #c2410c;
-  background: #fff7ed;
-}
-
-.summaryBadgeBlocked {
-  color: #dc2626;
-  background: #fef2f2;
+.summaryGrid {
+  @apply grid gap-x-8 gap-y-5;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
 }
 
 .detailsGrid {
-  @apply col-span-12 tablet:col-span-full grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  @apply gap-6;
+  @apply grid gap-5;
+  /* Give Risk Assessment 50% (2fr) and Device/Target 25% each (1fr) so the
+     long reason codes have room. minmax(0, …) lets the cells shrink so their
+     content can wrap/truncate instead of widening the grid. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
 }
 
-.section {
-  @apply bg-white rounded-lg p-5;
-  border: 1.25px solid #edebe9;
+.cardFull {
+  grid-column: 1 / -1;
 }
 
-.sectionFull {
-  @apply col-span-full;
-}
-
-.sectionTitle {
-  @apply block mb-4;
-  color: #201f1e;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.detailRow {
-  @apply flex flex-wrap gap-2 min-w-0;
-}
-
-.detailLabel {
-  color: #8a8886;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.detailValue {
-  color: #201f1e;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.detailValueMonospace {
-  color: #201f1e;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.reasonCodes {
-  @apply inline-flex flex-wrap gap-1 min-w-0 max-w-full;
-}
-
-.reasonCodeTag {
-  @apply inline-block max-w-full;
-  color: #c2410c;
-  background: #fff7ed;
-  border-radius: 3px;
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: 400;
-  overflow-wrap: anywhere;
-}
-
-.rawLogHeader {
-  @apply mb-4;
-  color: #201f1e;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.rawLogContent {
-  @apply flex;
-  background: #f9f9f9;
-  border: 1.25px solid #edebe9;
-  @apply rounded;
-}
-
-.rawLogPre {
-  @apply m-0 p-3;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-}
-
-@media (max-width: 1280px) {
-  .detailsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .detailsGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.field {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.fieldLabel {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.fieldValue {
+  @apply break-words;
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.fieldValueMono {
+  font-family: var(--code-font-family, monospace);
+}
+
+/* Result badge */
+
+.badge {
+  @apply inline-flex w-fit items-center rounded px-2 py-0.5 text-xs font-medium;
+}
+
+.badgeAllowed {
+  background-color: var(--green-3);
+  color: var(--green-11);
+}
+
+.badgeFlagged {
+  background-color: var(--amber-3);
+  color: var(--amber-11);
+}
+
+.badgeBlocked {
+  background-color: var(--red-3);
+  color: var(--red-11);
+}
+
+/* Reason codes */
+
+.reasonCodes {
+  @apply flex w-full flex-col items-start gap-1.5;
+  min-width: 0;
+}
+
+.reasonCodeTag {
+  @apply block rounded px-2 py-0.5 text-xs;
+  max-width: 100%;
+  width: fit-content;
+  font-family: var(--code-font-family, monospace);
+  background-color: var(--amber-3);
+  color: var(--amber-11);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Raw event log */
+
+.rawLogPre {
+  @apply overflow-x-auto p-4 text-xs leading-5;
+  margin: 0;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-2);
+  background-color: var(--gray-2);
+  color: var(--gray-12);
+  font-family: var(--code-font-family, monospace);
 }

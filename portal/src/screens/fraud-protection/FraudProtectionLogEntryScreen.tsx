@@ -1,10 +1,11 @@
 import React, { useContext, useMemo } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
-import CommandBarContainer from "../../CommandBarContainer";
-import NavBreadcrumb from "../../NavBreadcrumb";
-import ScreenContent from "../../ScreenContent";
+import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
+import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { formatDatetime } from "../../util/formatDatetime";
 import { FraudProtectionDecision } from "../../graphql/adminapi/globalTypes.generated";
@@ -28,26 +29,31 @@ function getResultMessageID(
   return "FraudProtectionConfigurationScreen.logs.result.allowed";
 }
 
+const Field: React.VFC<{
+  label: React.ReactNode;
+  children: React.ReactNode;
+  monospace?: boolean;
+}> = function Field({ label, children, monospace }) {
+  return (
+    <div className={styles.field}>
+      <Text as="p" size="1" className={styles.fieldLabel}>
+        {label}
+      </Text>
+      <Text
+        as="p"
+        size="2"
+        className={cn(styles.fieldValue, monospace && styles.fieldValueMono)}
+      >
+        {children}
+      </Text>
+    </div>
+  );
+};
+
 const FraudProtectionLogEntryScreen: React.VFC =
   function FraudProtectionLogEntryScreen() {
     const { logID, appID } = useParams() as { logID: string; appID: string };
     const { renderToString, locale } = useContext(Context);
-
-    const navBreadcrumbItems = useMemo(
-      () => [
-        {
-          to: `/project/${appID}/attack-protection/fraud-protection#logs`,
-          label: (
-            <FormattedMessage id="FraudProtectionLogEntryScreen.breadcrumb.root" />
-          ),
-        },
-        {
-          to: ".",
-          label: <FormattedMessage id="FraudProtectionLogEntryScreen.title" />,
-        },
-      ],
-      [appID]
-    );
 
     const { data, loading, error, refetch } = useQuery<
       FraudProtectionLogEntryQueryQuery,
@@ -56,70 +62,53 @@ const FraudProtectionLogEntryScreen: React.VFC =
       variables: { logID },
     });
 
-    const messageBar = useMemo(() => {
-      if (error != null) {
-        // eslint-disable-next-line @typescript-eslint/strict-void-return
-        return <ShowError error={error} onRetry={refetch} />;
-      }
-      return null;
-    }, [error, refetch]);
-
     const node =
       data?.node?.__typename === "FraudProtectionDecisionRecord"
         ? data.node
         : null;
 
-    const createdAt = useMemo(() => {
-      return node != null ? formatDatetime(locale, node.createdAt) ?? "—" : "—";
-    }, [locale, node]);
+    const createdAt =
+      node != null ? formatDatetime(locale, node.createdAt) ?? "—" : "—";
 
-    const action = (() => {
-      if (node == null) {
-        return "—";
-      }
-      return renderToString(
-        "FraudProtectionConfigurationScreen.logs.action.smsotp"
-      );
-    })();
+    const action =
+      node != null
+        ? renderToString(
+            "FraudProtectionConfigurationScreen.logs.action.smsotp"
+          )
+        : "—";
 
     const triggeredWarnings: readonly string[] = node?.triggeredWarnings ?? [];
     const decision: FraudProtectionDecision | null = node?.decision ?? null;
 
-    const verdict = (() => {
-      if (decision == null) return "—";
-      return renderToString(getResultMessageID(decision, triggeredWarnings));
-    })();
+    const verdict =
+      decision == null
+        ? "—"
+        : renderToString(getResultMessageID(decision, triggeredWarnings));
 
     const verdictClassName = (() => {
       if (decision === FraudProtectionDecision.Blocked) {
-        return styles.summaryBadgeBlocked;
+        return styles.badgeBlocked;
       }
       if (triggeredWarnings.length > 0) {
-        return styles.summaryBadgeFlagged;
+        return styles.badgeFlagged;
       }
-      return styles.summaryBadgeAllowed;
+      return styles.badgeAllowed;
     })();
 
     const ipAddress = node?.ipAddress || "—";
     const geoLocationCode = node?.geoLocationCode || "—";
     const userAgent = node?.userAgent || "—";
 
-    const phoneNumber = (() => {
-      switch (node?.actionDetail.__typename) {
-        case "FraudProtectionDecisionSendSMSActionDetail":
-          return node.actionDetail.recipient;
-        default:
-          return "—";
-      }
-    })();
-    const phoneCountryCode = (() => {
-      switch (node?.actionDetail.__typename) {
-        case "FraudProtectionDecisionSendSMSActionDetail":
-          return node.actionDetail.phoneNumberCountryCode ?? "—";
-        default:
-          return "—";
-      }
-    })();
+    const phoneNumber =
+      node?.actionDetail.__typename ===
+      "FraudProtectionDecisionSendSMSActionDetail"
+        ? node.actionDetail.recipient
+        : "—";
+    const phoneCountryCode =
+      node?.actionDetail.__typename ===
+      "FraudProtectionDecisionSendSMSActionDetail"
+        ? node.actionDetail.phoneNumberCountryCode ?? "—"
+        : "—";
 
     const rawEventLog = useMemo(() => {
       if (node?.data == null) return "{}";
@@ -136,117 +125,166 @@ const FraudProtectionLogEntryScreen: React.VFC =
     }
 
     return (
-      <CommandBarContainer
-        isLoading={loading}
-        messageBar={messageBar}
+      <APIResourceScreenLayout
+        layout="list"
+        breadcrumbItems={[
+          {
+            to: "~/attack-protection/fraud-protection#logs",
+            label: (
+              <FormattedMessage id="FraudProtectionLogEntryScreen.breadcrumb.root" />
+            ),
+          },
+          {
+            to: "",
+            label: (
+              <FormattedMessage id="FraudProtectionLogEntryScreen.title" />
+            ),
+          },
+        ]}
       >
-        <ScreenContent layout="list">
-          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <section className={styles.summaryCard}>
-            <div className={styles.summaryRow}>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.timestamp" />
-                </span>
-                <span className={styles.summaryValue}>{createdAt}</span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.action" />
-                </span>
-                <span className={styles.summaryValue}>{action}</span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.result" />
-                </span>
-                <span className={`${styles.summaryBadge} ${verdictClassName}`}>
-                  {verdict}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.ip" />
-                </span>
-                <span className={styles.summaryValue}>{ipAddress}</span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.geoLocation" />
-                </span>
-                <span className={styles.summaryValue}>{geoLocationCode}</span>
-              </div>
-            </div>
-          </section>
-
-          <div className={styles.detailsGrid}>
-            <section className={styles.section}>
-              <span className={styles.sectionTitle}>
-                <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.deviceInfo" />
-              </span>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.userAgent" />
-                </span>
-                <span className={styles.detailValueMonospace}>{userAgent}</span>
-              </div>
-            </section>
-
-            <section className={styles.section}>
-              <span className={styles.sectionTitle}>
-                <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.targetInfo" />
-              </span>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.phone" />
-                </span>
-                <span className={styles.detailValueMonospace}>
-                  {phoneNumber}
-                </span>
-              </div>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.phoneCountryCode" />
-                </span>
-                <span className={styles.detailValue}>{phoneCountryCode}</span>
-              </div>
-            </section>
-
-            <section className={styles.section}>
-              <span className={styles.sectionTitle}>
-                <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.riskAssessment" />
-              </span>
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>
-                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.reasonCodes" />
-                </span>
-                {triggeredWarnings.length > 0 ? (
-                  <div className={styles.reasonCodes}>
-                    {triggeredWarnings.map((code) => (
-                      <span key={code} className={styles.reasonCodeTag}>
-                        {code}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className={styles.detailValue}>
-                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.none" />
+        {error != null ? (
+          <ShowError
+            error={error}
+            onRetry={() => {
+              void refetch();
+            }}
+          />
+        ) : loading ? (
+          <ShowLoading />
+        ) : (
+          <div className={styles.content}>
+            <section className={styles.card}>
+              <div className={styles.summaryGrid}>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.timestamp" />
+                  }
+                >
+                  {createdAt}
+                </Field>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.action" />
+                  }
+                >
+                  {action}
+                </Field>
+                <div className={styles.field}>
+                  <Text as="p" size="1" className={styles.fieldLabel}>
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.result" />
+                  </Text>
+                  <span className={cn(styles.badge, verdictClassName)}>
+                    {verdict}
                   </span>
-                )}
+                </div>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.column.ip" />
+                  }
+                  monospace={true}
+                >
+                  {ipAddress}
+                </Field>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.geoLocation" />
+                  }
+                >
+                  {geoLocationCode}
+                </Field>
               </div>
             </section>
 
-            <section className={`${styles.section} ${styles.sectionFull}`}>
-              <div className={styles.rawLogHeader}>
-                <FormattedMessage id="FraudProtectionLogEntryScreen.rawEventLog" />
-              </div>
-              <div className={styles.rawLogContent}>
+            <div className={styles.detailsGrid}>
+              <section className={styles.card}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cardTitle}
+                >
+                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.deviceInfo" />
+                </Text>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.userAgent" />
+                  }
+                  monospace={true}
+                >
+                  {userAgent}
+                </Field>
+              </section>
+
+              <section className={styles.card}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cardTitle}
+                >
+                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.targetInfo" />
+                </Text>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.phone" />
+                  }
+                  monospace={true}
+                >
+                  {phoneNumber}
+                </Field>
+                <Field
+                  label={
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.phoneCountryCode" />
+                  }
+                >
+                  {phoneCountryCode}
+                </Field>
+              </section>
+
+              <section className={styles.card}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cardTitle}
+                >
+                  <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.riskAssessment" />
+                </Text>
+                <div className={styles.field}>
+                  <Text as="p" size="1" className={styles.fieldLabel}>
+                    <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.reasonCodes" />
+                  </Text>
+                  {triggeredWarnings.length > 0 ? (
+                    <div className={styles.reasonCodes}>
+                      {triggeredWarnings.map((code) => (
+                        <span key={code} className={styles.reasonCodeTag}>
+                          {code}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <Text as="p" size="2" className={styles.fieldValue}>
+                      <FormattedMessage id="FraudProtectionConfigurationScreen.logs.details.none" />
+                    </Text>
+                  )}
+                </div>
+              </section>
+
+              <section className={cn(styles.card, styles.cardFull)}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.cardTitle}
+                >
+                  <FormattedMessage id="FraudProtectionLogEntryScreen.rawEventLog" />
+                </Text>
                 <pre className={styles.rawLogPre}>{rawEventLog}</pre>
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
-        </ScreenContent>
-      </CommandBarContainer>
+        )}
+      </APIResourceScreenLayout>
     );
   };
 

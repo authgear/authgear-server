@@ -1,8 +1,13 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import { Text } from "@radix-ui/themes";
+import {
+  EnvelopeClosedIcon,
+  ExclamationTriangleIcon,
+  CircleBackslashIcon,
+} from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import WidgetTitle from "../../WidgetTitle";
 import { FraudProtectionDecisionAction } from "../../types";
 import { useFraudProtectionOverviewQueryQuery } from "../../graphql/adminapi/query/fraudProtectionOverviewQuery.generated";
 import OverviewMetricCard from "./OverviewMetricCard";
@@ -146,9 +151,9 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
           <ShowError error={overviewError} onRetry={onRetryOverview} />
         ) : null}
         <div className={styles.overviewHeaderRow}>
-          <WidgetTitle>
+          <Text as="p" size="4" weight="bold" className={styles.overviewTitle}>
             <FormattedMessage id="FraudProtectionConfigurationScreen.tab.overview.title" />
-          </WidgetTitle>
+          </Text>
           <div className={styles.overviewTimeRange}>
             <span>
               <FormattedMessage id="FraudProtectionConfigurationScreen.overview.timeRange.label" />
@@ -182,7 +187,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 onChangeToSettings={onChangeToSettings}
               />
               <OverviewMetricCard
-                iconName="Message"
+                icon={<EnvelopeClosedIcon />}
                 iconVariant="default"
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.total.title"
@@ -190,7 +195,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 value={formatCount(displayMetrics.total)}
               />
               <OverviewMetricCard
-                iconName="Warning"
+                icon={<ExclamationTriangleIcon />}
                 iconVariant="warning"
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.flagged.title"
@@ -198,7 +203,7 @@ const FraudProtectionOverviewTab: React.VFC<FraudProtectionOverviewTabProps> =
                 value={formatCount(displayMetrics.flagged)}
               />
               <OverviewMetricCard
-                iconName="BlockContact"
+                icon={<CircleBackslashIcon />}
                 iconVariant="blocked"
                 title={renderToString(
                   "FraudProtectionConfigurationScreen.overview.blocked.title"

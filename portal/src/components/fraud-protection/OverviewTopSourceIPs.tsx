@@ -1,8 +1,7 @@
 import React, { useContext, useMemo } from "react";
-import { Icon, Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { DesktopIcon, MobileIcon, GlobeIcon } from "@radix-ui/react-icons";
 import { Context } from "../../intl";
-import ActionButton from "../../ActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./OverviewTopSourceIPs.module.css";
 
 export interface SourceRow {
@@ -20,7 +19,7 @@ export interface SourceIPRow extends SourceRow {
 
 export interface OverviewTopListProps {
   rows: SourceRow[];
-  iconName: string;
+  icon: React.ReactNode;
   titleKey: string;
   subtitleKey?: string;
   toggleKey: string;
@@ -63,7 +62,7 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
   function OverviewTopList(props) {
     const {
       rows,
-      iconName,
+      icon,
       titleKey,
       subtitleKey,
       toggleKey,
@@ -71,7 +70,6 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
       showAll,
       onToggleShowAll,
     } = props;
-    const { themes } = useSystemConfig();
     const { renderToString } = useContext(Context);
 
     const maxSlots = showAll ? 10 : 5;
@@ -87,47 +85,31 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
       <div className={styles.topSourceSection}>
         <div className={styles.topSourceIPsHeader}>
           <div className={styles.topSourceIPsHeaderLeft}>
-            <div className={styles.topSourceIPsIcon}>
-              <Icon iconName={iconName} />
-            </div>
+            <div className={styles.topSourceIPsIcon}>{icon}</div>
             <div className={styles.topSourceIPsTitleGroup}>
               <Text
-                as="h3"
-                variant="medium"
-                block={true}
+                as="p"
+                size="2"
+                weight="medium"
                 className={styles.topSourceIPsTitle}
               >
                 {renderToString(titleKey)}
               </Text>
               {subtitleKey != null ? (
-                <Text
-                  as="p"
-                  variant="small"
-                  block={true}
-                  className={styles.topSourceIPsSubtitle}
-                >
+                <Text as="p" size="1" className={styles.topSourceIPsSubtitle}>
                   {renderToString(subtitleKey)}
                 </Text>
               ) : null}
             </div>
           </div>
           <div className={styles.headerToggle}>
-            <ActionButton
-              styles={{
-                root: {
-                  height: "auto",
-                  margin: 0,
-                  padding: 0,
-                  minWidth: 0,
-                  fontSize: 12,
-                },
-                label: { fontSize: 12, margin: 0 },
-                flexContainer: { margin: 0, padding: 0 },
-              }}
-              theme={themes.actionButton}
+            <button
+              type="button"
+              className={styles.headerToggleButton}
               onClick={onToggleShowAll}
-              text={renderToString(showAll ? showLessKey : toggleKey)}
-            />
+            >
+              {renderToString(showAll ? showLessKey : toggleKey)}
+            </button>
           </div>
         </div>
 
@@ -215,7 +197,7 @@ const OverviewTopSourceIPs: React.VFC<OverviewTopSourceIPsProps> =
         rows={rows}
         showAll={showAll}
         onToggleShowAll={onToggleShowAll}
-        iconName="ServerEnviroment"
+        icon={<DesktopIcon />}
         titleKey="FraudProtectionConfigurationScreen.overview.topSourceIPs.title"
         subtitleKey="FraudProtectionConfigurationScreen.overview.topSourceIPs.subtitle"
         toggleKey="FraudProtectionConfigurationScreen.overview.topSourceIPs.toggle"
@@ -254,7 +236,7 @@ export const OverviewTopSMSOrigins: React.VFC<OverviewTopSMSOriginsProps> =
         rows={rows}
         showAll={showAll}
         onToggleShowAll={onToggleShowAll}
-        iconName="CellPhone"
+        icon={<MobileIcon />}
         titleKey="FraudProtectionConfigurationScreen.overview.topSMSOrigins.title"
         subtitleKey="FraudProtectionConfigurationScreen.overview.topSMSOrigins.subtitle"
         toggleKey="FraudProtectionConfigurationScreen.overview.topSMSOrigins.toggle"
@@ -293,7 +275,7 @@ export const OverviewTopIPLocations: React.VFC<OverviewTopIPLocationsProps> =
         rows={rows}
         showAll={showAll}
         onToggleShowAll={onToggleShowAll}
-        iconName="Globe"
+        icon={<GlobeIcon />}
         titleKey="FraudProtectionConfigurationScreen.overview.topIPLocations.title"
         subtitleKey="FraudProtectionConfigurationScreen.overview.topIPLocations.subtitle"
         toggleKey="FraudProtectionConfigurationScreen.overview.topIPLocations.toggle"
