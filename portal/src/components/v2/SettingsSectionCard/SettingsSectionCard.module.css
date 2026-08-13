@@ -12,6 +12,11 @@
 .titleColumn {
   @apply flex shrink-0 flex-col gap-1;
   width: 200px;
+
+  /* The fixed width is for the two-column layout; once the card stacks at
+     the tablet breakpoint, let the title/description use the full width so
+     the description doesn't wrap in a narrow 200px column. */
+  @apply tablet:w-auto;
 }
 
 .titleColumn--stacked {

@@ -42,6 +42,10 @@
   flex-shrink: 0;
   width: 200px;
   color: var(--gray-12);
+
+  /* Use the full width once the section stacks at the tablet breakpoint,
+     so the heading/description don't wrap in a narrow 200px column. */
+  @apply tablet:w-auto;
 }
 
 .sectionContent {
