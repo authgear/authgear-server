@@ -570,6 +570,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
                 customAttributesConfig={customAttributesConfig}
                 customAttributes={state.customAttributes}
                 onChangeCustomAttributes={onChangeCustomAttributes}
+                profileImageEditable={profileImageEditable}
+                onSelectProfileImage={setSelectedProfileImage}
               />
             </div>
           </div>

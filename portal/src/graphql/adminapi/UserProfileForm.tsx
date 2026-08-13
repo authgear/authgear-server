@@ -6,9 +6,12 @@ import React, {
   useRef,
   Children,
 } from "react";
-import { Select, Text } from "@radix-ui/themes";
+import { Button, Select, Text } from "@radix-ui/themes";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { PROFILE_PICTURE_ACCEPT } from "./ProfilePictureDialog";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate } from "../../util/birthdate";
@@ -79,6 +82,8 @@ interface UserProfileFormProps {
   customAttributesConfig: CustomAttributesAttributeConfig[];
   customAttributes: CustomAttributesState;
   onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
+  profileImageEditable?: boolean;
+  onSelectProfileImage?: (file: File) => void;
 }
 
 type GenderVariant = "" | "male" | "female" | "other";
@@ -221,28 +226,85 @@ function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
   );
 }
 
-interface StandardAttributeLabelProps {
-  standardAttributes: StandardAttributesState;
-  fieldName: keyof StandardAttributes;
-  className?: string;
+interface ProfilePictureFieldProps {
+  picture: string;
+  editable: boolean;
+  onSelectFile?: (file: File) => void;
+  onRemove: () => void;
 }
 
-function StandardAttributeLabel(props: StandardAttributeLabelProps) {
-  const { standardAttributes, fieldName, className } = props;
+function ProfilePictureField(props: ProfilePictureFieldProps) {
+  const { picture, editable, onSelectFile, onRemove } = props;
   const { renderToString } = useContext(Context);
-  const value = (standardAttributes as any)[fieldName];
-  const label = "standard-attribute." + fieldName;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasPicture = picture !== "";
+
+  const onClickUpload = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const onChangeFile = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      if (file != null) {
+        onSelectFile?.(file);
+      }
+      // Reset so selecting the same file again still fires onChange.
+      event.currentTarget.value = "";
+    },
+    [onSelectFile]
+  );
+
   return (
-    <div className={className}>
-      <TextField
-        size="2"
-        type="url"
-        value={value ?? ""}
-        label={renderToString(label)}
-        disabled={true}
-        readOnly={true}
+    <FormField size="2" label={renderToString("standard-attribute.picture")}>
+      <div className={styles.pictureBody}>
+        {hasPicture ? (
+          <TextField
+            size="2"
+            type="url"
+            value={picture}
+            readOnly={true}
+            suffixPlain={true}
+            suffix={<CopyIconButton textToCopy={picture} />}
+          />
+        ) : null}
+        {editable ? (
+          <div className={styles.pictureActions}>
+            <SecondaryButton
+              size="2"
+              onClick={onClickUpload}
+              text={
+                <FormattedMessage
+                  id={
+                    hasPicture
+                      ? "UserProfileForm.picture.change"
+                      : "UserProfileForm.picture.upload"
+                  }
+                />
+              }
+            />
+            {hasPicture ? (
+              <Button
+                type="button"
+                size="2"
+                variant="outline"
+                color="red"
+                onClick={onRemove}
+              >
+                <FormattedMessage id="remove" />
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      <input
+        ref={fileInputRef}
+        className={styles.pictureFileInput}
+        type="file"
+        accept={PROFILE_PICTURE_ACCEPT}
+        onChange={onChangeFile}
       />
-    </div>
+    </FormField>
   );
 }
 
@@ -521,6 +583,8 @@ interface StandardAttributesFormProps {
   standardAttributes: StandardAttributesState;
   onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
   standardAttributeAccessControl: Record<string, AccessControlLevelString>;
+  profileImageEditable?: boolean;
+  onSelectProfileImage?: (file: File) => void;
 }
 
 const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
@@ -530,7 +594,19 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
       onChangeStandardAttributes,
       identities,
       standardAttributeAccessControl,
+      profileImageEditable,
+      onSelectProfileImage,
     } = props;
+
+    const onRemovePicture = useCallback(() => {
+      onChangeStandardAttributes?.({
+        ...standardAttributes,
+        picture: "",
+      });
+    }, [onChangeStandardAttributes, standardAttributes]);
+
+    const pictureEditable =
+      (profileImageEditable ?? false) && onChangeStandardAttributes != null;
 
     const { availableLanguages } = useSystemConfig();
     const { renderToString } = useContext(Context);
@@ -997,9 +1073,11 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
               ) : null}
             </Div>
             {isReadable("picture") ? (
-              <StandardAttributeLabel
-                fieldName="picture"
-                standardAttributes={standardAttributes}
+              <ProfilePictureField
+                picture={standardAttributes.picture}
+                editable={pictureEditable}
+                onSelectFile={onSelectProfileImage}
+                onRemove={onRemovePicture}
               />
             ) : null}
             <Div className={styles.singleColumnGroup}>
@@ -1181,6 +1259,8 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
       customAttributes,
       onChangeCustomAttributes,
       customAttributesConfig,
+      profileImageEditable,
+      onSelectProfileImage,
     } = props;
 
     return (
@@ -1190,6 +1270,8 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
           standardAttributes={standardAttributes}
           onChangeStandardAttributes={onChangeStandardAttributes}
           standardAttributeAccessControl={standardAttributeAccessControl}
+          profileImageEditable={profileImageEditable}
+          onSelectProfileImage={onSelectProfileImage}
         />
         {customAttributesConfig.length > 0 ? (
           <CustomAttributesForm

@@ -154,3 +154,20 @@
 .customAttributeControl {
   grid-column: 1 / span 1;
 }
+
+.pictureBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pictureActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pictureFileInput {
+  display: none;
+}

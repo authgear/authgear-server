@@ -1850,6 +1850,8 @@
   "standard-attribute.middle_name": "Middle Name",
   "standard-attribute.nickname": "Nickname",
   "standard-attribute.picture": "Picture",
+  "UserProfileForm.picture.upload": "Upload",
+  "UserProfileForm.picture.change": "Change",
   "standard-attribute.profile": "Profile",
   "standard-attribute.website": "Website",
   "standard-attribute.email": "Primary Email",
