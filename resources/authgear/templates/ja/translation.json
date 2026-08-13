@@ -467,6 +467,7 @@
   "v2.error.email-required-github": "GitHubプロフィールに「公開メールアドレス」を追加してください。プロフィールの管理は<a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>から行えます。",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {メールアドレス} phone {電話番号} username {ユーザー名} other {{ LoginIDKey, select, email {メールアドレス} phone {電話番号} username {ユーザー名} other {認証情報} }} }",
   "v2.error.error-account-not-found-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
+  "v2.error.flow-misconfigured": "認証フローの設定に誤りがあります。管理者にお問い合わせください。",
   "v2.error.hook-delivery-failed": "操作は許可されていません。Webhookの配信中に不明なエラーが発生したためです。",
   "v2.error.hook-delivery-timeout": "Webhookの配信がタイムアウトしたため、操作は許可されていません。",
   "v2.error.hook-disallowed": "操作は許可されていません",

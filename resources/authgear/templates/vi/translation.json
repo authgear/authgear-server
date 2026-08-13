@@ -467,6 +467,7 @@
   "v2.error.email-required-github": "Vui lòng thêm \"Email công khai\" vào hồ sơ GitHub của bạn. Quản lý hồ sơ của bạn tại đây: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {số điện thoại} username {tên người dùng} other {{ LoginIDKey, select, email {email} phone {số điện thoại} username {tên người dùng} other {định danh} }} }",
   "v2.error.error-account-not-found-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
+  "v2.error.flow-misconfigured": "Luồng xác thực bị cấu hình sai. Vui lòng liên hệ quản trị viên.",
   "v2.error.hook-delivery-failed": "Hoạt động bị cấm vì việc gửi webhook đã gặp lỗi không xác định.",
   "v2.error.hook-delivery-timeout": "Hoạt động không được phép vì việc giao hàng webhook đã kết thúc do hết thời gian.",
   "v2.error.hook-disallowed": "Hoạt động không được phép",
