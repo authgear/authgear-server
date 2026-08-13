@@ -15,5 +15,10 @@ export interface LinkProps
 // Use ExternalLink when you want to render an external link.
 // Use LinkButton when you want to show a button that looks like a link.
 export default function Link(props: LinkProps): ReactElement {
-  return <ReactRouterLinkComponent {...props} component={RadixLink} />;
+  // color="indigo" pins the link accent so it stays link-colored even inside a
+  // gray <Text>, which would otherwise remap the accent scale to gray. Matches
+  // ExternalLink and LinkButton.
+  return (
+    <ReactRouterLinkComponent color="indigo" {...props} component={RadixLink} />
+  );
 }
