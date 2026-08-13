@@ -23,6 +23,7 @@ import {
   TextField,
   TextFieldIcon,
 } from "../../components/v2/TextField/TextField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import styles from "./APIResourceDetailsApplicationsTab.module.css";
 
 export function APIResourceDetailsScreenApplicationsTab({
@@ -215,69 +216,71 @@ export function APIResourceDetailsScreenApplicationsTab({
 
   return (
     <div className={styles.root}>
-      <header className={styles.header}>
-        <Text as="p" size="3" weight="medium" className={styles.title}>
-          <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
-        </Text>
-        <Text as="p" size="2" color="gray" className={styles.description}>
-          <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
-        </Text>
-        {isEmpty ? (
-          <Text as="p" size="2" color="gray" className={styles.description}>
-            <FormattedMessage
-              id="APIResourceDetailsScreen.applications.empty"
-              values={{
-                // eslint-disable-next-line react/no-unstable-nested-components
-                ReactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to={`/project/${appID}/configuration/apps`}>
-                    {chunks}
-                  </Link>
-                ),
-              }}
-            />
-          </Text>
-        ) : null}
-      </header>
-
-      {isEmpty ? null : (
-        <>
-          <div className={styles.searchField}>
-            <TextField
-              size="2"
-              type="search"
-              onChange={onSearchQueryChange}
-              value={searchKeyword}
-              placeholder={renderToString("search")}
-              iconStart={TextFieldIcon.MagnifyingGlass}
-              suffixPlain={true}
-              suffix={
-                searchKeyword !== "" ? (
-                  <button
-                    type="button"
-                    className={styles.searchClearButton}
-                    aria-label={renderToString(
-                      "APIResourcesScreen.clear-search"
-                    )}
-                    onClick={onClearSearchKeyword}
-                  >
-                    <Cross2Icon className={styles.searchClearIcon} />
-                  </button>
-                ) : undefined
-              }
-            />
-          </div>
-          <div className={styles.listContainer}>
-            <ApplicationList
-              applications={filteredApplications}
-              className={styles.list}
-              loading={false}
-              onToggleAuthorized={onToggleAuthorized}
-              onManageScopes={onManageScopes}
-              disabledToggleClientIDs={disabledToggleClientIDs}
-            />
-          </div>
-        </>
-      )}
+      <div className={styles.body}>
+        <SettingsSectionCard
+          title={
+            <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
+          }
+          description={
+            <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
+          }
+          contentClassName={styles.cardContent}
+        >
+          {isEmpty ? (
+            <Text as="p" size="2" color="gray" className={styles.empty}>
+              <FormattedMessage
+                id="APIResourceDetailsScreen.applications.empty"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ReactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appID}/configuration/apps`}>
+                      {chunks}
+                    </Link>
+                  ),
+                }}
+              />
+            </Text>
+          ) : (
+            <>
+              <div className={styles.searchField}>
+                <TextField
+                  size="2"
+                  type="search"
+                  onChange={onSearchQueryChange}
+                  value={searchKeyword}
+                  placeholder={renderToString("search")}
+                  iconStart={TextFieldIcon.MagnifyingGlass}
+                  suffixPlain={true}
+                  suffix={
+                    searchKeyword !== "" ? (
+                      <button
+                        type="button"
+                        className={styles.searchClearButton}
+                        aria-label={renderToString(
+                          "APIResourcesScreen.clear-search"
+                        )}
+                        onClick={onClearSearchKeyword}
+                      >
+                        <Cross2Icon className={styles.searchClearIcon} />
+                      </button>
+                    ) : undefined
+                  }
+                />
+              </div>
+              <div className={styles.listContainer}>
+                <ApplicationList
+                  applications={filteredApplications}
+                  className={styles.list}
+                  loading={false}
+                  onToggleAuthorized={onToggleAuthorized}
+                  onManageScopes={onManageScopes}
+                  disabledToggleClientIDs={disabledToggleClientIDs}
+                />
+              </div>
+            </>
+          )}
+        </SettingsSectionCard>
+      </div>
       <UnauthorizeApplicationDialog
         data={
           applicationToUnauthorize
