@@ -69,7 +69,7 @@ func TestFirstAuthSinkNoop(t *testing.T) {
 
 		Convey("ignores non-auth events", func() {
 			e := &event.Event{
-				Type:    event.Type("user.created"),
+				Type:    event.Type("identity.email.updated"),
 				Context: event.Context{AppID: "app-1", ClientID: "client-abc"},
 			}
 			So(sink.ReceiveNonBlockingEvent(ctx, e), ShouldBeNil)
@@ -91,11 +91,25 @@ func TestFirstAuthSinkNoop(t *testing.T) {
 			So(sink.ReceiveNonBlockingEvent(ctx, e), ShouldBeNil)
 		})
 
-		Convey("handles both auth event types in the filter", func() {
-			for _, t := range []event.Type{nonblocking.UserAuthenticated, nonblocking.M2MTokenCreated} {
+		Convey("handles all three auth event types in the filter", func() {
+			for _, t := range []event.Type{nonblocking.UserAuthenticated, nonblocking.M2MTokenCreated, nonblocking.UserCreated} {
 				e := &event.Event{
 					Type:    t,
 					Context: event.Context{AppID: "app-1", ClientID: "client-abc"},
+				}
+				So(sink.ReceiveNonBlockingEvent(ctx, e), ShouldBeNil)
+			}
+		})
+
+		Convey("ignores Admin API triggered events even with a client_id", func() {
+			for _, t := range []event.Type{nonblocking.UserAuthenticated, nonblocking.UserCreated} {
+				e := &event.Event{
+					Type: t,
+					Context: event.Context{
+						AppID:       "app-1",
+						ClientID:    "client-abc",
+						TriggeredBy: event.TriggeredByTypeAdminAPI,
+					},
 				}
 				So(sink.ReceiveNonBlockingEvent(ctx, e), ShouldBeNil)
 			}

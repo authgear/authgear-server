@@ -10,7 +10,7 @@ All data is in PostHog; no manual SQL against the audit DB is needed.
 | `createApplication.viewed` | portal (GTM) | `wizard_version` |
 | `createApplication.selected-type` | portal (GTM) | `application_type`, `wizard_version` |
 | `createApplication.created` | portal (GTM) | `client_id`, `application_type`, `wizard_version` |
-| `application.first_auth` | auth server (real-time event sink) | `client_id`, `app_id` |
+| `application.first_auth` | auth server (real-time event sink) — fires on first login/M2M token issuance, or first signup that logs the user in | `client_id`, `app_id` |
 
 ## Insight A — Wizard completion / drop-off (person funnel)
 
@@ -55,9 +55,14 @@ GROUP BY created.wizard_version;
 ## Caveats
 
 - **Emitted in real time.** `application.first_auth` is sent by an auth-server event sink the moment
-  a client first authenticates (`user.authenticated` / `m2m.token.created`), so there is no cron lag.
-  Its `timestamp` is the real auth time, so time-to-integration and the 14-day window are accurate.
-  Baseline accrues forward from PR-1 ship — no retroactive analysis.
+  a client first authenticates (`user.authenticated` / `m2m.token.created`), or the moment a brand-new
+  user signs up and is logged in through the client (`user.created` — signup flows don't dispatch
+  `user.authenticated`), so there is no cron lag. Its `timestamp` is the real event time, so
+  time-to-integration and the 14-day window are accurate. Admin API-triggered user/session creation is
+  excluded. Baseline accrues forward from PR-1 ship — no retroactive analysis.
+- **Signup without a completed session still counts.** If a user record is created but the signup flow
+  is abandoned before a session is issued (e.g. drops off during email/phone verification), the sink
+  still marks that client as activated. This is an accepted best-effort approximation.
 - **M2M defines "auth" differently** (`m2m.token.created`, a client-credentials grant). Keep it on
   its own line via `application_type`; never blend it into the interactive number.
 - **Internal/test apps** inflate creation and deflate activation — exclude known internal `app_id`s.

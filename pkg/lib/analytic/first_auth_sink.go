@@ -40,8 +40,19 @@ func (s *FirstAuthSink) ReceiveBlockingEvent(ctx context.Context, e *event.Event
 func (s *FirstAuthSink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error {
 	logger := FirstAuthSinkLogger.GetLogger(ctx)
 
-	// Only successful-auth events count as a "first auth".
-	if e.Type != nonblocking.UserAuthenticated && e.Type != nonblocking.M2MTokenCreated {
+	// Successful end-user auth events count as a "first auth". user.created is
+	// included because signup flows (all flow engines) never dispatch
+	// user.authenticated when they create a session immediately after signup —
+	// see do_ensure_session.go's CreateReasonLogin/Reauthenticate guard.
+	switch e.Type {
+	case nonblocking.UserAuthenticated, nonblocking.M2MTokenCreated, nonblocking.UserCreated:
+	default:
+		return nil
+	}
+
+	// Admin API actions (e.g. Admin API user/session creation) are not real
+	// end-user authentications.
+	if e.Context.TriggeredBy == event.TriggeredByTypeAdminAPI {
 		return nil
 	}
 
