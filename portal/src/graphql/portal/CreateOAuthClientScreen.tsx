@@ -644,7 +644,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
         rules={errorRules}
       >
         <FormErrorMessageBar />
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className={styles.scrollArea}>
           <CreateOAuthClientContent
             form={form}
             hasNoAPIResources={hasNoAPIResources}
