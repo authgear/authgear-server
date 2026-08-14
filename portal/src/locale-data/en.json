@@ -142,6 +142,7 @@
   "Toggle.on": "On",
   "Toggle.off": "Off",
   "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.open-menu": "Open navigation menu",
   "ScreenNav.all-projects": "All projects",
   "ScreenNav.getting-started": "Getting Started",
   "ScreenNav.analytics": "Analytics",

@@ -1,21 +1,25 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { Context } from "./intl";
-import {
-  IconButton,
-  Panel,
-  PanelType,
-  IRenderFunction,
-  IPanelProps,
-} from "@fluentui/react";
 import { Avatar, DropdownMenu } from "@radix-ui/themes";
-import { CalendarIcon, FileTextIcon } from "@radix-ui/react-icons";
+import {
+  CalendarIcon,
+  Cross1Icon,
+  FileTextIcon,
+  HamburgerMenuIcon,
+} from "@radix-ui/react-icons";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import ScreenNav from "./ScreenNav";
 import Link from "./Link";
 
 import styles from "./ScreenHeader.module.css";
-import { useBoolean } from "@fluentui/react-hooks";
 import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
 import { useSettingsAnchor } from "./hook/authgear";
@@ -45,33 +49,32 @@ const HeaderAppSection: React.VFC<HeaderAppSectionProps> = (props) => {
 interface MobileViewHeaderIconSectionProps {
   onClick: () => void;
   showHamburger: boolean;
+  menuLabel: string;
 }
 
 const MobileViewHeaderIconSection: React.VFC<
   MobileViewHeaderIconSectionProps
 > = (props) => {
-  const { onClick, showHamburger } = props;
+  const { onClick, showHamburger, menuLabel } = props;
 
-  return (
-    <>
-      {showHamburger ? (
-        <IconButton
-          ariaLabel="hamburger"
-          iconProps={{ iconName: "WaffleOffice365" }}
-          className={styles.hamburger}
-          onClick={onClick}
-        />
-      ) : (
-        <Link to="/" className={styles.logoLink}>
-          {/* inverted renders the colored logo (logo-inverted.png), which is
-              the dark/colored variant meant for a light background. */}
-          <Logo
-            inverted={true}
-            containerClassName={logoStyles.logo__containerHeader}
-          />
-        </Link>
-      )}
-    </>
+  return showHamburger ? (
+    <button
+      type="button"
+      className={styles.hamburger}
+      aria-label={menuLabel}
+      onClick={onClick}
+    >
+      <HamburgerMenuIcon className={styles.hamburgerIcon} />
+    </button>
+  ) : (
+    <Link to="/" className={styles.logoLink}>
+      {/* inverted renders the colored logo (logo-inverted.png), which is
+          the dark/colored variant meant for a light background. */}
+      <Logo
+        inverted={true}
+        containerClassName={logoStyles.logo__containerHeader}
+      />
+    </Link>
   );
 };
 
@@ -88,28 +91,6 @@ const DesktopViewHeaderIconSection: React.VFC = () => {
   );
 };
 
-const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-  const onClick: () => void = props?.onDismiss!;
-  return (
-    <div className={styles.headerMobile}>
-      <IconButton
-        ariaLabel="hamburger"
-        iconProps={{ iconName: "WaffleOffice365" }}
-        className={styles.hamburger}
-        onClick={onClick}
-      />
-      <Logo inverted={true} />
-    </div>
-  );
-};
-
-const MobileViewNavbarBody: IRenderFunction<IPanelProps> = (props) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-  const onClick: () => void = props?.onDismiss!;
-  return <ScreenNav mobileView={true} onLinkClick={onClick} />;
-};
-
 interface ScreenNavProps {
   showHamburger?: boolean;
 }
@@ -120,8 +101,44 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const capture = useCapture();
   const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
-  const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
-    useBoolean(false);
+  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+  // Kept mounted through the close animation, then unmounted.
+  const [isNavbarMounted, setIsNavbarMounted] = useState(false);
+  const openNavbar = useCallback(() => {
+    // Mount immediately so the slide-in animation plays from the start.
+    setIsNavbarMounted(true);
+    setIsNavbarOpen(true);
+  }, []);
+  const dismissNavbar = useCallback(() => setIsNavbarOpen(false), []);
+
+  // Delay unmount so the slide-out animation (200ms, matching the CSS) can
+  // play before the drawer leaves the DOM.
+  useEffect(() => {
+    if (isNavbarOpen || !isNavbarMounted) {
+      return undefined;
+    }
+    const timer = setTimeout(() => setIsNavbarMounted(false), 200);
+    return () => clearTimeout(timer);
+  }, [isNavbarOpen, isNavbarMounted]);
+
+  // Close the mobile drawer on Escape and lock body scroll while it is open.
+  useEffect(() => {
+    if (!isNavbarOpen) {
+      return undefined;
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsNavbarOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isNavbarOpen]);
 
   const logout = useLogout();
 
@@ -184,17 +201,48 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         <MobileViewHeaderIconSection
           showHamburger={showHamburger}
           onClick={openNavbar}
+          menuLabel={renderToString("ScreenNav.open-menu")}
         />
         {appID ? <HeaderAppSection appID={appID} /> : null}
-        <Panel
-          isLightDismiss={true}
-          hasCloseButton={false}
-          isOpen={isNavbarOpen}
-          onDismiss={dismissNavbar}
-          type={PanelType.smallFixedNear}
-          onRenderNavigation={MobileViewNavbarHeader}
-          onRenderBody={MobileViewNavbarBody}
-        />
+        {isNavbarMounted ? (
+          <div
+            className={cn(styles.drawer, !isNavbarOpen && styles.drawerClosing)}
+            role="dialog"
+            aria-modal={true}
+          >
+            <button
+              type="button"
+              className={styles.drawerOverlay}
+              aria-label={renderToString("close")}
+              onClick={dismissNavbar}
+            />
+            <div className={styles.drawerPanel}>
+              <div className={styles.drawerHeader}>
+                <button
+                  type="button"
+                  className={styles.hamburger}
+                  aria-label={renderToString("close")}
+                  onClick={dismissNavbar}
+                >
+                  <Cross1Icon className={styles.hamburgerIcon} />
+                </button>
+                <Link
+                  to="/"
+                  className={styles.logoLink}
+                  onClick={dismissNavbar}
+                >
+                  <Logo
+                    inverted={true}
+                    containerClassName={logoStyles.logo__containerHeader}
+                  />
+                </Link>
+              </div>
+              <div className={styles.drawerBody}>
+                <ScreenNav mobileView={true} onLinkClick={dismissNavbar} />
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
       <div className={styles.desktopView}>
         <DesktopViewHeaderIconSection />

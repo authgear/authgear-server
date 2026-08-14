@@ -9,6 +9,11 @@
   position: sticky;
   top: 0;
   z-index: 9999;
+  /* Right padding for the avatar/links; on mobile also pad the left so the
+     hamburger isn't flush against the edge (on desktop the logo pads left). */
+  padding-right: 16px;
+
+  @apply mobile:pl-4;
 }
 
 .mobileView {
@@ -17,13 +22,6 @@
 
 .desktopView {
   @apply mobile:hidden flex flex-row items-center;
-}
-
-.headerMobile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: var(--screen-header-height);
 }
 
 .headerDivider {
@@ -41,13 +39,128 @@
 }
 
 .hamburger {
-  margin: 8px 20px 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  color: var(--gray-12);
+}
+
+.hamburger:hover {
+  background-color: var(--gray-a3);
+}
+
+.hamburgerIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.drawerOverlay {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background-color: var(--black-a6);
+  cursor: pointer;
+  animation: drawerOverlayIn 0.2s ease;
+}
+
+.drawerPanel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 280px;
+  max-width: 85vw;
+  flex-direction: column;
+  background-color: var(--color-background);
+  box-shadow: var(--shadow-5);
+  animation: drawerPanelIn 0.2s ease;
+}
+
+/* Exit animations while the drawer is closing (still mounted). */
+.drawerClosing .drawerOverlay {
+  animation: drawerOverlayOut 0.2s ease forwards;
+}
+
+.drawerClosing .drawerPanel {
+  animation: drawerPanelOut 0.2s ease forwards;
+}
+
+@keyframes drawerOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawerOverlayOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawerPanelIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerPanelOut {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  height: var(--screen-header-height);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.drawerBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .actions {
   @apply ml-auto flex items-center;
   gap: 16px;
-  margin-right: 16px;
 }
 
 .actionLinks {

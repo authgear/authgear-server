@@ -82,19 +82,20 @@
   padding-left: calc(var(--space-2) + 18px + var(--space-2));
 }
 
-/* Mobile drawer user actions */
+/* Mobile drawer footer links (Docs / Schedule a demo) */
 .userActions {
-  @apply flex flex-col gap-3;
-  padding: var(--space-3) var(--space-4) var(--space-5);
-}
-
-.userActionEmail {
-  font-size: var(--font-size-1);
-  font-weight: 600;
-  color: var(--gray-a11);
+  @apply flex flex-col;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+  /* Left padding aligns the icons with the nav-item icons above. */
+  padding: var(--space-4) calc(var(--space-3) + var(--space-2)) var(--space-5);
+  border-top: 1px solid var(--gray-a5);
 }
 
 .userActionItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   width: max-content;
   border: none;
   background: transparent;
@@ -102,7 +103,18 @@
   margin: 0;
   cursor: pointer;
   font-size: var(--font-size-2);
-  color: var(--accent-a11);
+  color: var(--gray-a11);
   text-decoration: none;
   text-align: left;
+}
+
+.userActionItem:hover {
+  color: var(--gray-12);
+  text-decoration: none;
+}
+
+.userActionIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }

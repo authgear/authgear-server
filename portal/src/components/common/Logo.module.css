@@ -8,7 +8,10 @@
   @apply px-6 py-3;
 }
 
-/* Header nav: smaller right padding (overrides px-6 from .logo__container). */
+/* Header nav: match the header's 16px horizontal edge padding on the left
+   (so the logo aligns symmetrically with the avatar on the right), and use a
+   smaller right padding before the divider. Both override px-6. */
 .logo__container.logo__containerHeader {
+  padding-left: 16px;
   padding-right: 0.5rem;
 }

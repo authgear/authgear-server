@@ -5,10 +5,12 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   AvatarIcon,
   BarChartIcon,
+  CalendarIcon,
   ChevronRightIcon,
   CodeIcon,
   DashboardIcon,
   ExclamationTriangleIcon,
+  FileTextIcon,
   GearIcon,
   GlobeIcon,
   HomeIcon,
@@ -21,7 +23,6 @@ import {
   RocketIcon,
 } from "@radix-ui/react-icons";
 import { Context } from "./intl";
-import authgear from "@authgear/web";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   ScreenNavQueryQuery,
@@ -31,7 +32,7 @@ import { usePortalClient } from "./graphql/portal/apollo";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
-import { useSettingsAnchor } from "./hook/authgear";
+import { useCapture } from "./gtm_v2";
 
 type NavIconComponent = typeof RocketIcon;
 
@@ -486,18 +487,27 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     setExpandState((s) => ({ ...s, [urlPrefix]: !Boolean(s[urlPrefix]) }));
   }, []);
 
-  const redirectURI = window.location.origin + "/";
-  const onClickLogout = useCallback(() => {
-    authgear
-      .logout({
-        redirectURI,
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [redirectURI]);
+  const capture = useCapture();
 
-  const { href: settingURL, onClick: onClickSettings } = useSettingsAnchor();
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const scheduleDemoLink = useMemo(() => {
+    const url = new URL("https://www.authgear.com/schedule-demo");
+    if (viewer?.email) {
+      url.searchParams.append("email", viewer.email);
+    }
+    if (viewer?.formattedName) {
+      url.searchParams.append("name", viewer.formattedName);
+    }
+    return url.toString();
+  }, [viewer?.email, viewer?.formattedName]);
+
+  const onClickDocs = useCallback(() => {
+    capture("header.clicked-docs");
+  }, [capture]);
+
+  const onClickContactUs = useCallback(() => {
+    capture("header.clicked-contact_us");
+  }, [capture]);
 
   const renderLink = (item: NavLink, isChild: boolean) => {
     const Icon = item.icon;
@@ -569,22 +579,26 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       </nav>
       {mobileView ? (
         <div className={styles.userActions}>
-          <span className={styles.userActionEmail}>{viewer?.email}</span>
           <a
-            href={settingURL}
-            target="_self"
             className={styles.userActionItem}
-            onClick={onClickSettings}
+            href="https://docs.authgear.com/"
+            target="_blank"
+            rel="noreferrer"
+            onClick={onClickDocs}
           >
-            {renderToString("ScreenHeader.settings")}
+            <FileTextIcon className={styles.userActionIcon} />
+            {renderToString("ScreenHeader.links.documentation")}
           </a>
-          <button
-            type="button"
+          <a
             className={styles.userActionItem}
-            onClick={onClickLogout}
+            href={scheduleDemoLink}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onClickContactUs}
           >
-            {renderToString("ScreenHeader.sign-out")}
-          </button>
+            <CalendarIcon className={styles.userActionIcon} />
+            {renderToString("ScreenHeader.links.schedule-demo")}
+          </a>
         </div>
       ) : null}
     </>
