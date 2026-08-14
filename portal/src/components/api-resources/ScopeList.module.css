@@ -2,83 +2,17 @@
   @apply flex flex-col;
 }
 
-.tableWrapper {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.table {
-  min-width: 100%;
-  border: 1px solid var(--gray-a5);
-  border-radius: var(--radius-3);
-  overflow: hidden;
-  background-color: var(--color-panel-solid);
-}
-
-.tableHeader {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  background-color: var(--gray-a2);
-}
-
-.tableHeaderCellScope,
-.tableHeaderCellDescription,
-.tableHeaderCellActions {
-  @apply flex items-center px-4 py-3 text-sm font-semibold;
-  color: var(--gray-12);
-}
-
-.tableHeaderCellScope {
-  @apply min-w-0 flex-1;
-  min-width: 10rem;
-}
-
-.tableHeaderCellDescription {
-  @apply min-w-0 flex-[1.5];
-  min-width: 12rem;
-}
-
-.tableHeaderCellActions {
-  width: 3.5rem;
-  flex-shrink: 0;
-  @apply justify-end;
-}
-
-.tableRow {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a4);
-  background-color: transparent;
-  transition: background-color 0.12s ease;
-}
-
-.tableRow:hover {
-  background-color: var(--gray-a2);
-}
-
-.tableCellScope,
-.tableCellDescription,
-.tableCellActions {
-  @apply flex items-center px-4 py-3 text-sm;
-  color: var(--gray-12);
-}
-
-.tableCellScope {
+.colScope {
   @apply min-w-0 flex-1 overflow-hidden;
   min-width: 10rem;
 }
 
-.tableCellDescription {
+.colDescription {
   @apply min-w-0 flex-[1.5] overflow-hidden;
   min-width: 12rem;
 }
 
-.tableCellActions {
+.colActions {
   width: 3.5rem;
   flex-shrink: 0;
   @apply justify-end;

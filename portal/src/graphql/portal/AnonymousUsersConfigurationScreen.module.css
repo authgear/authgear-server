@@ -65,86 +65,20 @@
   cursor: help;
 }
 
-.tableWrapper {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.colName,
+.colIdleTimeout,
+.colLifetime {
+  @apply min-w-0 flex-1 overflow-hidden;
 }
 
-@media (min-width: 1081px) {
-  .tableWrapper {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .tableWrapper::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.table {
-  min-width: 100%;
-}
-
-.tableHeader {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-}
-
-.headerCellName,
-.headerCellIdleTimeout,
-.headerCellLifetime,
-.headerCellActions {
-  @apply flex items-center px-3 py-3 text-sm font-semibold;
-  color: var(--gray-12);
-}
-
-.headerCellName,
-.headerCellIdleTimeout,
-.headerCellLifetime {
-  @apply min-w-0 flex-1;
-}
-
-.headerCellActions {
+.colActions {
   width: 3.5rem;
   flex-shrink: 0;
   @apply justify-end;
-}
-
-.tableRow {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a6);
-  background-color: var(--gray-a2);
-}
-
-.cellName,
-.cellIdleTimeout,
-.cellLifetime,
-.cellActions {
-  @apply flex items-center px-3 py-3 text-sm;
-  color: var(--gray-12);
-}
-
-.cellName,
-.cellIdleTimeout,
-.cellLifetime {
-  @apply min-w-0 flex-1 overflow-hidden;
 }
 
 .cellNameText {
   @apply min-w-0 truncate;
-}
-
-.cellActions {
-  width: 3.5rem;
-  flex-shrink: 0;
-  @apply justify-end;
 }
 
 .rowActionsButton:not(:hover):not([data-state="open"]) {

@@ -50,6 +50,7 @@ import { nullishCoalesce, or_ } from "../../util/operators";
 import { getHostFromOrigin, getOriginFromDomain } from "../../util/domain";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { CardTable } from "../../components/v2/CardTable/CardTable";
 import { Callout } from "../../components/v2/Callout/Callout";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
@@ -261,14 +262,14 @@ const DomainRow: React.VFC<DomainRowProps> = function DomainRow(props) {
   })();
 
   return (
-    <div className={styles.domainsTableRow}>
-      <div className={styles.domainsTableCellDomain}>
+    <CardTable.Row>
+      <CardTable.Cell className={styles.colDomain}>
         <Text size="2" className={styles.domainName}>
           {item.domain}
         </Text>
-      </div>
-      <div className={styles.domainsTableCellStatus}>{statusNode}</div>
-      <div className={styles.domainsTableCellActions}>
+      </CardTable.Cell>
+      <CardTable.Cell className={styles.colStatus}>{statusNode}</CardTable.Cell>
+      <CardTable.Cell className={styles.colActions}>
         {hasActions ? (
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
@@ -324,8 +325,8 @@ const DomainRow: React.VFC<DomainRowProps> = function DomainRow(props) {
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         ) : null}
-      </div>
-    </div>
+      </CardTable.Cell>
+    </CardTable.Row>
   );
 };
 
@@ -694,30 +695,28 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               </span>
             }
           >
-            <div className={styles.domainsTableWrapper}>
-              <div className={styles.domainsTable}>
-                <div className={styles.domainsTableHeader}>
-                  <div className={styles.domainsTableHeaderCellDomain}>
-                    <FormattedMessage id="CustomDomainListScreen.domain-list.header.domain" />
-                  </div>
-                  <div className={styles.domainsTableHeaderCellStatus}>
-                    <FormattedMessage id="CustomDomainListScreen.domain-list.header.status" />
-                  </div>
-                  <div
-                    className={styles.domainsTableHeaderCellActions}
-                    aria-hidden={true}
-                  />
-                </div>
-                {domainListItems.map((item) => (
-                  <DomainRow
-                    key={item.id ?? item.domain}
-                    item={item}
-                    onDeleteClick={onDeleteClick}
-                    onDomainActivate={onDomainActivate}
-                  />
-                ))}
-              </div>
-            </div>
+            <CardTable>
+              <CardTable.Header>
+                <CardTable.HeaderCell className={styles.colDomain}>
+                  <FormattedMessage id="CustomDomainListScreen.domain-list.header.domain" />
+                </CardTable.HeaderCell>
+                <CardTable.HeaderCell className={styles.colStatus}>
+                  <FormattedMessage id="CustomDomainListScreen.domain-list.header.status" />
+                </CardTable.HeaderCell>
+                <CardTable.HeaderCell
+                  className={styles.colActions}
+                  aria-hidden={true}
+                />
+              </CardTable.Header>
+              {domainListItems.map((item) => (
+                <DomainRow
+                  key={item.id ?? item.domain}
+                  item={item}
+                  onDeleteClick={onDeleteClick}
+                  onDomainActivate={onDomainActivate}
+                />
+              ))}
+            </CardTable>
 
             {!customDomainDisabled ? (
               <button

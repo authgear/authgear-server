@@ -21,6 +21,8 @@ import { downloadStringAsFile } from "../../util/download";
 import { formatCertificateFilename } from "../../model/saml";
 import styles from "./EditSAMLCertificateForm.module.css";
 import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
+import { Badge } from "../v2/Badge/Badge";
+import { CardTable } from "../v2/CardTable/CardTable";
 
 interface EditSAMLCertificateFormProps {
   configAppID: string;
@@ -49,85 +51,83 @@ function SAMLCertificatesTable({
   onActivate,
 }: SAMLCertificatesTableProps): React.ReactElement {
   return (
-    <div className={styles.keysTableWrapper}>
-      <div className={styles.keysTable}>
-        <div className={styles.keysTableHeader}>
-          <div className={styles.keysTableHeaderCellFingerprint}>
-            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.fingerprint" />
-          </div>
-          <div className={styles.keysTableHeaderCellStatus}>
-            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status" />
-          </div>
-          <div
-            className={styles.keysTableHeaderCellActions}
-            aria-hidden={true}
-          />
-        </div>
-        {certificates.map((cert) => {
-          const isActive = activeKeyID === cert.keyID;
-          const isActivating = activatingKeyID === cert.keyID;
-          return (
-            <div key={cert.keyID} className={styles.keysTableRow}>
-              <div className={styles.keysTableCellFingerprint}>
-                <Text size="2" className={styles.keysTableCellFingerprintText}>
-                  {cert.certificateFingerprint}
-                </Text>
-              </div>
-              <div className={styles.keysTableCellStatus}>
-                {isActive || isActivating ? (
-                  <CertificateActiveStatus isLoading={isActivating} />
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.activateButton}
-                    disabled={formDisabled}
-                    onClick={() => onActivate(cert)}
+    <CardTable>
+      <CardTable.Header>
+        <CardTable.HeaderCell className={styles.colFingerprint}>
+          <FormattedMessage id="EditSAMLCertificateForm.certificates.column.fingerprint" />
+        </CardTable.HeaderCell>
+        <CardTable.HeaderCell className={styles.colStatus}>
+          <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status" />
+        </CardTable.HeaderCell>
+        <CardTable.HeaderCell
+          className={styles.colActions}
+          aria-hidden={true}
+        />
+      </CardTable.Header>
+      {certificates.map((cert) => {
+        const isActive = activeKeyID === cert.keyID;
+        const isActivating = activatingKeyID === cert.keyID;
+        return (
+          <CardTable.Row key={cert.keyID}>
+            <CardTable.Cell className={styles.colFingerprint}>
+              <Text size="2" className={styles.keysTableCellFingerprintText}>
+                {cert.certificateFingerprint}
+              </Text>
+            </CardTable.Cell>
+            <CardTable.Cell className={styles.colStatus}>
+              {isActive || isActivating ? (
+                <CertificateActiveStatus isLoading={isActivating} />
+              ) : (
+                <button
+                  type="button"
+                  className={styles.activateButton}
+                  disabled={formDisabled}
+                  onClick={() => onActivate(cert)}
+                >
+                  <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.activate" />
+                </button>
+              )}
+            </CardTable.Cell>
+            <CardTable.Cell className={styles.colActions}>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <RadixIconButton
+                    className={styles.rowActionsButton}
+                    variant="soft"
+                    color="gray"
+                    size="2"
                   >
-                    <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.activate" />
-                  </button>
-                )}
-              </div>
-              <div className={styles.keysTableCellActions}>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger>
-                    <RadixIconButton
-                      className={styles.rowActionsButton}
-                      variant="soft"
-                      color="gray"
-                      size="2"
-                    >
-                      <DotsVerticalIcon width="1rem" height="1rem" />
-                    </RadixIconButton>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Content align="end">
-                    <DropdownMenu.Item
-                      onSelect={() => {
-                        onDownload(cert);
-                      }}
-                    >
-                      <DownloadIcon />
-                      <FormattedMessage id="download" />
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      color="red"
-                      disabled={isActive || formDisabled}
-                      onSelect={() => {
-                        if (!isActive) {
-                          onRemove(cert);
-                        }
-                      }}
-                    >
-                      <TrashIcon />
-                      <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Root>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+                    <DotsVerticalIcon width="1rem" height="1rem" />
+                  </RadixIconButton>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content align="end">
+                  <DropdownMenu.Item
+                    onSelect={() => {
+                      onDownload(cert);
+                    }}
+                  >
+                    <DownloadIcon />
+                    <FormattedMessage id="download" />
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    color="red"
+                    disabled={isActive || formDisabled}
+                    onSelect={() => {
+                      if (!isActive) {
+                        onRemove(cert);
+                      }
+                    }}
+                  >
+                    <TrashIcon />
+                    <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </CardTable.Cell>
+          </CardTable.Row>
+        );
+      })}
+    </CardTable>
   );
 }
 
@@ -267,17 +267,14 @@ export function EditSAMLCertificateForm({
 function CertificateActiveStatus({ isLoading }: { isLoading: boolean }) {
   return (
     <div className={styles.activeStatus}>
-      <Text
-        as="p"
-        size="2"
-        weight="medium"
-        className={cn(
-          styles.activeStatusText,
-          isLoading ? "invisible" : undefined
-        )}
-      >
-        <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
-      </Text>
+      <Badge
+        size="1"
+        variant="success"
+        className={cn(isLoading ? "invisible" : undefined)}
+        text={
+          <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
+        }
+      />
       {isLoading ? (
         <div className={styles.activeStatusSpinner}>
           <Spinner size="1" />

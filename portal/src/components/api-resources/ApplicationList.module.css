@@ -2,86 +2,18 @@
   @apply flex flex-col;
 }
 
-.tableWrapper {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.table {
-  min-width: 100%;
-  border: 1px solid var(--gray-a5);
-  border-radius: var(--radius-3);
-  overflow: hidden;
-  background-color: var(--color-panel-solid);
-}
-
-.tableHeader {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  background-color: var(--gray-a2);
-}
-
-.tableHeaderCellApplication,
-.tableHeaderCellAuthorized,
-.tableHeaderCellActions {
-  @apply flex items-center px-4 py-3 text-sm font-semibold;
-  color: var(--gray-12);
-}
-
-.tableHeaderCellApplication {
-  @apply min-w-0 flex-1;
-  min-width: 10rem;
-}
-
-.tableHeaderCellAuthorized {
-  width: 8rem;
-  min-width: 8rem;
-  flex-shrink: 0;
-}
-
-.tableHeaderCellActions {
-  width: 9rem;
-  min-width: 9rem;
-  flex-shrink: 0;
-  @apply justify-end;
-}
-
-.tableRow {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a4);
-  background-color: transparent;
-  transition: background-color 0.12s ease;
-}
-
-.tableRow:hover {
-  background-color: var(--gray-a2);
-}
-
-.tableCellApplication,
-.tableCellAuthorized,
-.tableCellActions {
-  @apply flex items-center px-4 py-3 text-sm;
-  color: var(--gray-12);
-}
-
-.tableCellApplication {
+.colApplication {
   @apply min-w-0 flex-1 overflow-hidden;
   min-width: 10rem;
 }
 
-.tableCellAuthorized {
+.colAuthorized {
   width: 8rem;
   min-width: 8rem;
   flex-shrink: 0;
 }
 
-.tableCellActions {
+.colActions {
   width: 9rem;
   min-width: 9rem;
   flex-shrink: 0;

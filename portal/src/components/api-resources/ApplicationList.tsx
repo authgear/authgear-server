@@ -4,6 +4,7 @@ import { Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import styles from "./ApplicationList.module.css";
 import { Toggle } from "../v2/Toggle/Toggle";
+import { CardTable } from "../v2/CardTable/CardTable";
 
 export interface ApplicationListItem {
   clientID: string;
@@ -37,54 +38,52 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
 
     return (
       <div className={cn(className, styles.listRoot)}>
-        <div className={styles.tableWrapper}>
-          <div className={styles.table}>
-            <div className={styles.tableHeader}>
-              <div className={styles.tableHeaderCellApplication}>
-                <FormattedMessage id="ApplicationList.columns.application" />
-              </div>
-              <div className={styles.tableHeaderCellAuthorized}>
-                <FormattedMessage id="ApplicationList.columns.authorized" />
-              </div>
-              <div className={styles.tableHeaderCellActions} />
-            </div>
-            {applications.map((item) => {
-              const toggleDisabled = disabledToggleClientIDsSet.has(
-                item.clientID
-              );
-              const showManageScopes = item.authorized && !toggleDisabled;
-              return (
-                <div key={item.clientID} className={styles.tableRow}>
-                  <div className={styles.tableCellApplication}>
-                    <Text size="2" className={styles.applicationName}>
-                      {item.name}
-                    </Text>
-                  </div>
-                  <div className={styles.tableCellAuthorized}>
-                    <Toggle
-                      checked={item.authorized}
-                      disabled={toggleDisabled}
-                      onCheckedChange={(checked) => {
-                        onToggleAuthorized(item, checked);
-                      }}
-                    />
-                  </div>
-                  <div className={styles.tableCellActions}>
-                    {showManageScopes ? (
-                      <button
-                        type="button"
-                        className={styles.manageScopesButton}
-                        onClick={() => onManageScopes(item)}
-                      >
-                        {renderToString("ApplicationList.columns.manageScopes")}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <CardTable>
+          <CardTable.Header>
+            <CardTable.HeaderCell className={styles.colApplication}>
+              <FormattedMessage id="ApplicationList.columns.application" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colAuthorized}>
+              <FormattedMessage id="ApplicationList.columns.authorized" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colActions} />
+          </CardTable.Header>
+          {applications.map((item) => {
+            const toggleDisabled = disabledToggleClientIDsSet.has(
+              item.clientID
+            );
+            const showManageScopes = item.authorized && !toggleDisabled;
+            return (
+              <CardTable.Row key={item.clientID}>
+                <CardTable.Cell className={styles.colApplication}>
+                  <Text size="2" className={styles.applicationName}>
+                    {item.name}
+                  </Text>
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colAuthorized}>
+                  <Toggle
+                    checked={item.authorized}
+                    disabled={toggleDisabled}
+                    onCheckedChange={(checked) => {
+                      onToggleAuthorized(item, checked);
+                    }}
+                  />
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colActions}>
+                  {showManageScopes ? (
+                    <button
+                      type="button"
+                      className={styles.manageScopesButton}
+                      onClick={() => onManageScopes(item)}
+                    >
+                      {renderToString("ApplicationList.columns.manageScopes")}
+                    </button>
+                  ) : null}
+                </CardTable.Cell>
+              </CardTable.Row>
+            );
+          })}
+        </CardTable>
       </div>
     );
   };

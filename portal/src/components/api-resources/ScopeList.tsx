@@ -13,6 +13,7 @@ import {
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
 import { Context, FormattedMessage } from "../../intl";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
+import { CardTable } from "../v2/CardTable/CardTable";
 import styles from "./ScopeList.module.css";
 
 interface ScopeListProps {
@@ -30,59 +31,57 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
 
   return (
     <div className={cn(className, styles.listRoot)}>
-      <div className={styles.tableWrapper}>
-        <div className={styles.table}>
-          <div className={styles.tableHeader}>
-            <div className={styles.tableHeaderCellScope}>
-              <FormattedMessage id="ScopeList.columns.scope" />
-            </div>
-            <div className={styles.tableHeaderCellDescription}>
-              <FormattedMessage id="ScopeList.columns.description" />
-            </div>
-            <div className={styles.tableHeaderCellActions} />
-          </div>
-          {scopes.map((scope) => (
-            <div key={scope.id} className={styles.tableRow}>
-              <div className={styles.tableCellScope}>
-                <span className={styles.scopeChip}>{scope.scope}</span>
-              </div>
-              <div className={styles.tableCellDescription}>
-                <Text size="2" className={styles.description}>
-                  {scope.description}
-                </Text>
-              </div>
-              <div className={styles.tableCellActions}>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger>
-                    <RadixIconButton
-                      className={styles.rowActionsButton}
-                      variant="soft"
-                      color="gray"
-                      size="2"
-                      aria-label={renderToString("ScopeList.row-actions")}
-                    >
-                      <DotsVerticalIcon width="1rem" height="1rem" />
-                    </RadixIconButton>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Content align="end">
-                    <DropdownMenu.Item onSelect={() => onEdit(scope)}>
-                      <Pencil1Icon />
-                      <FormattedMessage id="edit" />
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      color="red"
-                      onSelect={() => onDelete(scope)}
-                    >
-                      <TrashIcon />
-                      <FormattedMessage id="delete" />
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Root>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <CardTable>
+        <CardTable.Header>
+          <CardTable.HeaderCell className={styles.colScope}>
+            <FormattedMessage id="ScopeList.columns.scope" />
+          </CardTable.HeaderCell>
+          <CardTable.HeaderCell className={styles.colDescription}>
+            <FormattedMessage id="ScopeList.columns.description" />
+          </CardTable.HeaderCell>
+          <CardTable.HeaderCell className={styles.colActions} />
+        </CardTable.Header>
+        {scopes.map((scope) => (
+          <CardTable.Row key={scope.id}>
+            <CardTable.Cell className={styles.colScope}>
+              <span className={styles.scopeChip}>{scope.scope}</span>
+            </CardTable.Cell>
+            <CardTable.Cell className={styles.colDescription}>
+              <Text size="2" className={styles.description}>
+                {scope.description}
+              </Text>
+            </CardTable.Cell>
+            <CardTable.Cell className={styles.colActions}>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <RadixIconButton
+                    className={styles.rowActionsButton}
+                    variant="soft"
+                    color="gray"
+                    size="2"
+                    aria-label={renderToString("ScopeList.row-actions")}
+                  >
+                    <DotsVerticalIcon width="1rem" height="1rem" />
+                  </RadixIconButton>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content align="end">
+                  <DropdownMenu.Item onSelect={() => onEdit(scope)}>
+                    <Pencil1Icon />
+                    <FormattedMessage id="edit" />
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    color="red"
+                    onSelect={() => onDelete(scope)}
+                  >
+                    <TrashIcon />
+                    <FormattedMessage id="delete" />
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </CardTable.Cell>
+          </CardTable.Row>
+        ))}
+      </CardTable>
       <PaginationWidget className={styles.paginator} {...pagination} />
     </div>
   );

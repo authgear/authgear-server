@@ -26,6 +26,7 @@ import { FormField } from "../../components/v2/FormField/FormField";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { CardTable } from "../../components/v2/CardTable/CardTable";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import {
@@ -425,108 +426,108 @@ const SupportedLanguagesList: React.VFC<SupportedLanguagesListProps> =
           </div>
         </div>
 
-        <div className={styles.languagesTableWrapper}>
-          <div className={styles.languagesTable}>
-            <div className={styles.languagesTableHeader}>
-              <div className={styles.languagesTableHeaderCellLanguage}>
-                <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.column.language" />
-              </div>
-              <div
-                className={styles.languagesTableHeaderCellActions}
-                aria-hidden={true}
-              />
-            </div>
-            {selectedLanguages.length === 0 ? (
-              <div className={styles.languagesTableEmptyRow}>
+        <CardTable>
+          <CardTable.Header>
+            <CardTable.HeaderCell className={styles.colLanguage}>
+              <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.column.language" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell
+              className={styles.colActions}
+              aria-hidden={true}
+            />
+          </CardTable.Header>
+          {selectedLanguages.length === 0 ? (
+            <CardTable.Row>
+              <CardTable.Cell className={styles.colLanguage}>
                 <Text as="p" size="2" color="gray">
                   <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.empty" />
                 </Text>
-              </div>
-            ) : (
-              selectedLanguages.map((lang) => {
-                const isCustom = !builtinLanguageSet.has(lang);
-                const canDelete = lang !== primaryLanguage && lang !== "en";
-                return (
-                  <div key={lang} className={styles.languagesTableRow}>
-                    <div className={styles.languagesTableCellLanguage}>
-                      <div className={styles.languagesTableCellLanguageInner}>
-                        <Text
+              </CardTable.Cell>
+            </CardTable.Row>
+          ) : (
+            selectedLanguages.map((lang) => {
+              const isCustom = !builtinLanguageSet.has(lang);
+              const canDelete = lang !== primaryLanguage && lang !== "en";
+              return (
+                <CardTable.Row key={lang}>
+                  <CardTable.Cell className={styles.colLanguage}>
+                    <div className={styles.languagesTableCellLanguageInner}>
+                      <Text
+                        size="2"
+                        className={styles.languagesTableCellLanguageText}
+                      >
+                        {getLanguageDisplayText(lang)}
+                      </Text>
+                      {isCustom ? (
+                        <Badge
+                          size="1"
+                          variant="neutral"
+                          text={
+                            <FormattedMessage id="LanguagesConfigurationScreen.custom-language-badge" />
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  </CardTable.Cell>
+                  <CardTable.Cell className={styles.colActions}>
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger>
+                        <RadixIconButton
+                          className={styles.rowActionsButton}
+                          variant="soft"
+                          color="gray"
                           size="2"
-                          className={styles.languagesTableCellLanguageText}
-                        >
-                          {getLanguageDisplayText(lang)}
-                        </Text>
-                        {isCustom ? (
-                          <Badge
-                            size="1"
-                            variant="neutral"
-                            text={
-                              <FormattedMessage id="LanguagesConfigurationScreen.custom-language-badge" />
-                            }
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className={styles.languagesTableCellActions}>
-                      <DropdownMenu.Root>
-                        <DropdownMenu.Trigger>
-                          <RadixIconButton
-                            className={styles.rowActionsButton}
-                            variant="soft"
-                            color="gray"
-                            size="2"
-                            aria-label={renderToString(
-                              "LanguagesConfigurationScreen.supportedLanguages.row-actions"
-                            )}
-                          >
-                            <DotsVerticalIcon width="1rem" height="1rem" />
-                          </RadixIconButton>
-                        </DropdownMenu.Trigger>
-                        <DropdownMenu.Content align="end">
-                          {lang === "en" ? (
-                            <Tooltip
-                              content={
-                                <FormattedMessage id="LanguagesConfigurationScreen.cannot-remove-default-language" />
-                              }
-                            >
-                              <span
-                                className={styles.disabledDeleteTooltipTarget}
-                              >
-                                <DropdownMenu.Item
-                                  color="red"
-                                  disabled={true}
-                                  onSelect={(e) => {
-                                    e.preventDefault();
-                                  }}
-                                >
-                                  <TrashIcon />
-                                  <FormattedMessage id="delete" />
-                                </DropdownMenu.Item>
-                              </span>
-                            </Tooltip>
-                          ) : (
-                            <DropdownMenu.Item
-                              color="red"
-                              disabled={!canDelete}
-                              onSelect={() => {
-                                if (canDelete) {
-                                  onRemoveLanguage(lang);
-                                }
-                              }}
-                            >
-                              <TrashIcon />
-                              <FormattedMessage id="delete" />
-                            </DropdownMenu.Item>
+                          aria-label={renderToString(
+                            "LanguagesConfigurationScreen.supportedLanguages.row-actions"
                           )}
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Root>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+                        >
+                          <DotsVerticalIcon width="1rem" height="1rem" />
+                        </RadixIconButton>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Content align="end">
+                        {lang === "en" ? (
+                          <Tooltip
+                            content={
+                              <FormattedMessage id="LanguagesConfigurationScreen.cannot-remove-default-language" />
+                            }
+                          >
+                            <span
+                              className={styles.disabledDeleteTooltipTarget}
+                            >
+                              <DropdownMenu.Item
+                                color="red"
+                                disabled={true}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                }}
+                              >
+                                <TrashIcon />
+                                <FormattedMessage id="delete" />
+                              </DropdownMenu.Item>
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <DropdownMenu.Item
+                            color="red"
+                            disabled={!canDelete}
+                            onSelect={() => {
+                              if (canDelete) {
+                                onRemoveLanguage(lang);
+                              }
+                            }}
+                          >
+                            <TrashIcon />
+                            <FormattedMessage id="delete" />
+                          </DropdownMenu.Item>
+                        )}
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Root>
+                  </CardTable.Cell>
+                </CardTable.Row>
+              );
+            })
+          )}
+        </CardTable>
       </div>
     );
   };

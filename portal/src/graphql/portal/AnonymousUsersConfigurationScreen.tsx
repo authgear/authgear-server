@@ -35,6 +35,7 @@ import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { CardTable } from "../../components/v2/CardTable/CardTable";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
 import FormContainer from "../../FormContainer";
@@ -252,82 +253,83 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.token.title" />
           </Text>
-          <div className={styles.tableWrapper}>
-            <div className={styles.table}>
-              <div className={styles.tableHeader}>
-                <div className={styles.headerCellName}>
-                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name" />
+          <CardTable>
+            <CardTable.Header>
+              <CardTable.HeaderCell className={styles.colName}>
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name" />
+              </CardTable.HeaderCell>
+              <CardTable.HeaderCell className={styles.colIdleTimeout}>
+                <div className={styles.tooltipLabel}>
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-idle-timeout" />
+                  <Tooltip
+                    content={
+                      <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout" />
+                    }
+                  >
+                    <InfoCircledIcon className={styles.infoIcon} />
+                  </Tooltip>
                 </div>
-                <div className={styles.headerCellIdleTimeout}>
-                  <div className={styles.tooltipLabel}>
-                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-idle-timeout" />
-                    <Tooltip
-                      content={
-                        <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout" />
-                      }
-                    >
-                      <InfoCircledIcon className={styles.infoIcon} />
-                    </Tooltip>
-                  </div>
+              </CardTable.HeaderCell>
+              <CardTable.HeaderCell className={styles.colLifetime}>
+                <div className={styles.tooltipLabel}>
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-lifetime" />
+                  <Tooltip
+                    content={
+                      <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime" />
+                    }
+                  >
+                    <InfoCircledIcon className={styles.infoIcon} />
+                  </Tooltip>
                 </div>
-                <div className={styles.headerCellLifetime}>
-                  <div className={styles.tooltipLabel}>
-                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-lifetime" />
-                    <Tooltip
-                      content={
-                        <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime" />
-                      }
-                    >
-                      <InfoCircledIcon className={styles.infoIcon} />
-                    </Tooltip>
-                  </div>
-                </div>
-                <div className={styles.headerCellActions} aria-hidden={true} />
-              </div>
-              {items.map((item) => (
-                <div key={item.clientID} className={styles.tableRow}>
-                  <div className={styles.cellName}>
-                    <Text size="2" className={styles.cellNameText}>
-                      {item.name}
-                    </Text>
-                  </div>
-                  <div className={styles.cellIdleTimeout}>
-                    <Text size="2">{item.refreshTokenIdleTimeout}</Text>
-                  </div>
-                  <div className={styles.cellLifetime}>
-                    <Text size="2">{item.refreshTokenLifetime}</Text>
-                  </div>
-                  <div className={styles.cellActions}>
-                    <DropdownMenu.Root>
-                      <DropdownMenu.Trigger>
-                        <RadixIconButton
-                          className={styles.rowActionsButton}
-                          variant="soft"
-                          color="gray"
-                          size="2"
-                          aria-label={renderToString(
-                            "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.row-actions"
-                          )}
-                        >
-                          <DotsVerticalIcon width="1rem" height="1rem" />
-                        </RadixIconButton>
-                      </DropdownMenu.Trigger>
-                      <DropdownMenu.Content align="end">
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            onEditApplication(item.clientID);
-                          }}
-                        >
-                          <Pencil1Icon />
-                          <FormattedMessage id="edit" />
-                        </DropdownMenu.Item>
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Root>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+              </CardTable.HeaderCell>
+              <CardTable.HeaderCell
+                className={styles.colActions}
+                aria-hidden={true}
+              />
+            </CardTable.Header>
+            {items.map((item) => (
+              <CardTable.Row key={item.clientID}>
+                <CardTable.Cell className={styles.colName}>
+                  <Text size="2" className={styles.cellNameText}>
+                    {item.name}
+                  </Text>
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colIdleTimeout}>
+                  <Text size="2">{item.refreshTokenIdleTimeout}</Text>
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colLifetime}>
+                  <Text size="2">{item.refreshTokenLifetime}</Text>
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colActions}>
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger>
+                      <RadixIconButton
+                        className={styles.rowActionsButton}
+                        variant="soft"
+                        color="gray"
+                        size="2"
+                        aria-label={renderToString(
+                          "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.row-actions"
+                        )}
+                      >
+                        <DotsVerticalIcon width="1rem" height="1rem" />
+                      </RadixIconButton>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content align="end">
+                      <DropdownMenu.Item
+                        onSelect={() => {
+                          onEditApplication(item.clientID);
+                        }}
+                      >
+                        <Pencil1Icon />
+                        <FormattedMessage id="edit" />
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Root>
+                </CardTable.Cell>
+              </CardTable.Row>
+            ))}
+          </CardTable>
         </div>
 
         <Text as="p" size="2" color="gray" className={styles.applicationsLink}>

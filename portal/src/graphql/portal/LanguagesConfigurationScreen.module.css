@@ -109,77 +109,14 @@
 
 /* ── Built-in Translation: languages table (aligned with Admin API keys) ── */
 
-.languagesTableWrapper {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.colLanguage {
+  @apply min-w-0 flex-1 overflow-hidden;
 }
 
-/* Hide horizontal scrollbar on desktop (large screens). */
-@media (min-width: 1081px) {
-  .languagesTableWrapper {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge Legacy */
-  }
-
-  .languagesTableWrapper::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-  }
-}
-
-.languagesTable {
-  min-width: 100%;
-}
-
-.languagesTableHeader {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-}
-
-.languagesTableHeaderCellLanguage,
-.languagesTableHeaderCellActions {
-  @apply flex items-center px-3 py-3 text-sm font-semibold;
-  color: var(--gray-12);
-}
-
-.languagesTableHeaderCellLanguage {
-  @apply min-w-0 flex-1;
-}
-
-.languagesTableHeaderCellActions {
+.colActions {
   width: 3.5rem;
   flex-shrink: 0;
   @apply justify-end;
-}
-
-.languagesTableRow {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a6);
-  background-color: var(--gray-a2);
-}
-
-.languagesTableEmptyRow {
-  @apply flex w-full items-center px-3 py-3;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a6);
-  background-color: var(--gray-a2);
-}
-
-.languagesTableCellLanguage,
-.languagesTableCellActions {
-  @apply flex items-center px-3 py-3 text-sm;
-  color: var(--gray-12);
-}
-
-.languagesTableCellLanguage {
-  @apply flex min-w-0 flex-1 items-center overflow-hidden;
 }
 
 .languagesTableCellLanguageInner {
