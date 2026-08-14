@@ -255,7 +255,7 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   return (
     <>
       <ScreenLayoutScrollView>
-        <ScreenContent layout="auto-rows">
+        <ScreenContent layout="auto-rows" className={styles.content}>
           <div className={cn(styles.widget, styles.pageHeader)}>
             <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
               <FormattedMessage id="AnalyticsScreen.title" />

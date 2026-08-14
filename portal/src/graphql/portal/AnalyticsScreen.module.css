@@ -1,3 +1,13 @@
+/* ScreenContent's auto-rows layout uses fixed 80px columns (~1136px total),
+   which overflows and forces horizontal scroll whenever the content area is
+   narrower (e.g. sidebar shown on a < 1440px viewport). Make the columns fill
+   the available width instead, keeping the auto rows. The doubled class raises
+   specificity so it wins over the .autoRows grid-template-columns on the same
+   element without needing !important. */
+.content.content {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
 .widget {
   grid-column: 1 / span 12;
 
