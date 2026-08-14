@@ -113,7 +113,8 @@ interface StepAuthorizeResourceProps {
 const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
   function StepAuthorizeResource(props) {
     const { client, form, onClickSave, onClickBack } = props;
-    const { isDirty, isUpdating } = form;
+    const { getIsDirty, isUpdating } = form;
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [offset, setOffset] = useState(0);
