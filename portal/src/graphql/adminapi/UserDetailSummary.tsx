@@ -107,10 +107,15 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       renderToString,
     ]);
 
+    // Mirror the avatar fallback used by the Users list (UsersList.tsx): prefer
+    // the formatted name, then the end-user account identifier (which itself
+    // resolves email > phone > username), then the raw user ID. This keeps the
+    // initial aligned with the displayed name (e.g. "Alice B" -> "A") instead
+    // of the email.
     const initials = React.useMemo(() => {
-      const name = endUserAccountIdentifier || rawUserID || "U";
-      return name[0].toUpperCase();
-    }, [endUserAccountIdentifier, rawUserID]);
+      const source = formattedName || endUserAccountIdentifier || rawUserID;
+      return source.trim().charAt(0).toUpperCase() || "U";
+    }, [formattedName, endUserAccountIdentifier, rawUserID]);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const onChangeProfileImage = React.useCallback(
