@@ -24,7 +24,9 @@
 .nav {
   width: 260px;
   border-right: 1px solid var(--gray-a6);
-  background-color: var(--gray-2);
+  /* Figma "Accent Alpha 2" (#0066ff0a) → theme accent alpha token; resolves to
+     indigo-a2 with the current accent and stays theme/dark-mode aware. */
+  background-color: var(--accent-a2);
   /* Allow scrolling along y-axis */
   overflow-y: auto;
   overflow-x: hidden;
