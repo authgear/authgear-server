@@ -35,6 +35,8 @@ import {
 
 import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 
 import styles from "./UsersList.module.css";
 import { useDebounced } from "../../hook/useDebounced";
@@ -81,7 +83,9 @@ interface UserListItem {
   temporarilyDisabledFrom: string | null;
   temporarilyDisabledUntil: string | null;
   createdAt: string | null;
+  createdAtDateOnly: string | null;
   lastLoginAt: string | null;
+  lastLoginAtDateOnly: string | null;
   profilePictureURL: string | null;
   formattedName: string | null;
   endUserAccountID: string | null;
@@ -183,6 +187,32 @@ function UserTextCell({ value }: { value: string | null }) {
   );
 }
 
+// Shows the date only, with the full datetime (incl. timezone) on hover.
+function DateCell({
+  dateOnly,
+  datetime,
+}: {
+  dateOnly: string | null;
+  datetime: string | null;
+}) {
+  if (dateOnly == null || datetime == null) {
+    return (
+      <div className={styles.tableCellDate}>
+        <CellText value={dateOnly} />
+      </div>
+    );
+  }
+  return (
+    <div className={styles.tableCellDate}>
+      <Tooltip content={datetime}>
+        <Text size="2" className={styles.cellText}>
+          {dateOnly}
+        </Text>
+      </Tooltip>
+    </div>
+  );
+}
+
 function getRelatedItemsText(
   relatedItems: UserListRoles | UserListGroups
 ): string {
@@ -267,7 +297,9 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             temporarilyDisabledFrom: node.temporarilyDisabledFrom,
             temporarilyDisabledUntil: node.temporarilyDisabledUntil,
             createdAt: formatDatetime(locale, node.createdAt),
+            createdAtDateOnly: formatDateOnly(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
+            lastLoginAtDateOnly: formatDateOnly(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
             formattedName: node.formattedName ?? null,
             endUserAccountID: node.endUserAccountID ?? null,
@@ -455,12 +487,14 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
                         />
                       </>
                     ) : null}
-                    <div className={styles.tableCellDate}>
-                      <CellText value={item.createdAt} />
-                    </div>
-                    <div className={styles.tableCellDate}>
-                      <CellText value={item.lastLoginAt} />
-                    </div>
+                    <DateCell
+                      dateOnly={item.createdAtDateOnly}
+                      datetime={item.createdAt}
+                    />
+                    <DateCell
+                      dateOnly={item.lastLoginAtDateOnly}
+                      datetime={item.lastLoginAt}
+                    />
                     <div
                       className={styles.tableCellAction}
                       onClick={(e) => e.stopPropagation()}
