@@ -1097,6 +1097,7 @@ export type Viewer = Node & {
   /** The ID of an object */
   id: Scalars['ID']['output'];
   isOnboardingSurveyCompleted?: Maybe<Scalars['Boolean']['output']>;
+  picture?: Maybe<Scalars['String']['output']>;
   projectOwnerCount: Scalars['Int']['output'];
   projectQuota?: Maybe<Scalars['Int']['output']>;
 };

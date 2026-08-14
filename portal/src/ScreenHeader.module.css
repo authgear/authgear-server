@@ -3,7 +3,8 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid var(--gray-a6);
+  background-color: var(--color-background);
   height: var(--screen-header-height);
   position: sticky;
   top: 0;
@@ -11,11 +12,11 @@
 }
 
 .mobileView {
-  @apply hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
+  @apply hidden mobile:flex mobile:flex-row mobile:items-center;
 }
 
 .desktopView {
-  @apply mobile:hidden flex flex-row items-center text-white;
+  @apply mobile:hidden flex flex-row items-center;
 }
 
 .headerMobile {
@@ -29,52 +30,80 @@
   display: inline-block;
   flex-shrink: 0;
   width: 1px;
-  height: 16px;
-  margin: 0 10px;
-  background-color: rgb(255 255 255 / 0.5);
+  height: 20px;
+  margin: 0 12px;
+  background-color: var(--gray-a5);
 }
 
 .logoLink {
   display: flex;
-}
-
-.logo {
-  height: 24px;
-  margin: 12px 10px;
-}
-
-.logoNavHeader {
-  height: 24px;
-  margin: 12px;
-}
-
-.logoutButton {
-  display: block;
-  padding: 6px;
-  margin: 6px;
-  border-radius: 2px;
-  background-color: orange;
+  align-items: center;
 }
 
 .hamburger {
   margin: 8px 20px 8px 16px;
 }
 
-.links {
-  @apply ml-auto mr-5 mobile:mr-4;
-  @apply flex;
-  @apply gap-10 tablet:gap-4;
+.actions {
+  @apply ml-auto flex items-center;
+  gap: 16px;
+  margin-right: 16px;
 }
 
-.link {
-  @apply inline-flex;
-  @apply text-center;
+.actionLinks {
+  @apply mobile:hidden flex items-center;
+  gap: 20px;
+}
 
-  &:hover {
-    text-decoration: none;
-  }
+.actionLink {
+  @apply inline-flex items-center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--gray-a11);
+}
 
-  span {
-    @apply text-white;
-  }
+.actionLink:hover {
+  text-decoration: none;
+  color: var(--gray-12);
+}
+
+.actionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.avatarButton {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 9999px;
+}
+
+.userMenuIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 220px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.userMenuName {
+  font-size: var(--font-size-2);
+  font-weight: 500;
+  color: var(--gray-12);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuEmail {
+  font-size: var(--font-size-1);
+  color: var(--gray-a11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

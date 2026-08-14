@@ -2,23 +2,20 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Context } from "./intl";
 import {
-  Text,
-  CommandButton,
   IconButton,
   Panel,
   PanelType,
   IRenderFunction,
   IPanelProps,
-  IContextualMenuProps,
 } from "@fluentui/react";
+import { Avatar, DropdownMenu } from "@radix-ui/themes";
+import { CalendarIcon, FileTextIcon } from "@radix-ui/react-icons";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import ScreenNav from "./ScreenNav";
 import Link from "./Link";
 
 import styles from "./ScreenHeader.module.css";
-import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
-import ExternalLink from "./ExternalLink";
 import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
 import { useSettingsAnchor } from "./hook/authgear";
@@ -32,7 +29,6 @@ interface HeaderAppSectionProps {
 
 const HeaderAppSection: React.VFC<HeaderAppSectionProps> = (props) => {
   const { appID } = props;
-  const { themes } = useSystemConfig();
 
   return (
     <>
@@ -41,19 +37,9 @@ const HeaderAppSection: React.VFC<HeaderAppSectionProps> = (props) => {
         role="separator"
         aria-hidden={true}
       />
-      <ProjectSelector appID={appID} theme={themes.inverted} />
+      <ProjectSelector appID={appID} />
     </>
   );
-};
-
-const commandButtonStyles = {
-  label: {
-    fontSize: "12px",
-  },
-  menuIcon: {
-    fontSize: "12px",
-    color: "white",
-  },
 };
 
 interface MobileViewHeaderIconSectionProps {
@@ -65,7 +51,6 @@ const MobileViewHeaderIconSection: React.VFC<
   MobileViewHeaderIconSectionProps
 > = (props) => {
   const { onClick, showHamburger } = props;
-  const { themes } = useSystemConfig();
 
   return (
     <>
@@ -74,12 +59,16 @@ const MobileViewHeaderIconSection: React.VFC<
           ariaLabel="hamburger"
           iconProps={{ iconName: "WaffleOffice365" }}
           className={styles.hamburger}
-          theme={themes.inverted}
           onClick={onClick}
         />
       ) : (
         <Link to="/" className={styles.logoLink}>
-          <Logo containerClassName={logoStyles.logo__containerHeader} />
+          {/* inverted renders the colored logo (logo-inverted.png), which is
+              the dark/colored variant meant for a light background. */}
+          <Logo
+            inverted={true}
+            containerClassName={logoStyles.logo__containerHeader}
+          />
         </Link>
       )}
     </>
@@ -89,7 +78,12 @@ const MobileViewHeaderIconSection: React.VFC<
 const DesktopViewHeaderIconSection: React.VFC = () => {
   return (
     <Link to="/" className={styles.logoLink}>
-      <Logo containerClassName={logoStyles.logo__containerHeader} />
+      {/* inverted renders the colored logo (logo-inverted.png), which is
+          the dark/colored variant meant for a light background. */}
+      <Logo
+        inverted={true}
+        containerClassName={logoStyles.logo__containerHeader}
+      />
     </Link>
   );
 };
@@ -124,7 +118,6 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { showHamburger = true } = props;
   const { renderToString } = useContext(Context);
   const capture = useCapture();
-  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
   const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
@@ -166,58 +159,27 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
     return url.toString();
   }, [viewer?.email, viewer?.formattedName]);
 
-  const headerStyle = useMemo(
-    () => ({
-      backgroundColor: themes.main.palette.themePrimary,
-    }),
-    [themes.main]
-  );
-
   const { href: settingURL, onClick: onClickSettings } = useSettingsAnchor();
 
-  const menuProps = useMemo(() => {
-    const items = [
-      {
-        key: "settings",
-        text: renderToString("ScreenHeader.settings"),
-        iconProps: {
-          iconName: "PlayerSettings",
-        },
-        href: settingURL,
-        onClick: onClickSettings,
-      },
-      {
-        key: "logout",
-        text: renderToString("ScreenHeader.sign-out"),
-        iconProps: {
-          iconName: "SignOut",
-        },
-        onClick: onClickLogout,
-      },
-    ] satisfies IContextualMenuProps["items"];
+  // Name is optional; fall back to showing the email as the primary line.
+  const menuName =
+    viewer?.formattedName != null && viewer.formattedName.trim() !== ""
+      ? viewer.formattedName.trim()
+      : null;
+  const menuEmail =
+    viewer?.email != null && viewer.email !== "" ? viewer.email : null;
 
-    if (window.Osano !== undefined) {
-      items.splice(1, 0, {
-        key: "cookie",
-        text: renderToString("ScreenHeader.cookie-preference"),
-        iconProps: {
-          iconName: "Cookies",
-        },
-        onClick: onClickCookiePreference,
-      });
-    }
+  // Fallback shown when there is no profile picture: the first letter of the
+  // name, or of the email when no name is set.
+  const avatarFallback = useMemo(() => {
+    const base = menuName ?? menuEmail ?? "";
+    return base.trim().charAt(0).toUpperCase() || "?";
+  }, [menuName, menuEmail]);
 
-    return { items } satisfies IContextualMenuProps;
-  }, [
-    renderToString,
-    settingURL,
-    onClickSettings,
-    onClickLogout,
-    onClickCookiePreference,
-  ]);
+  const hasOsano = window.Osano !== undefined;
 
   return (
-    <header className={styles.header} style={headerStyle}>
+    <header className={styles.header}>
       <div className={styles.mobileView}>
         <MobileViewHeaderIconSection
           showHamburger={showHamburger}
@@ -238,36 +200,87 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         <DesktopViewHeaderIconSection />
         {appID ? <HeaderAppSection appID={appID} /> : null}
       </div>
-      <div className={styles.links}>
-        <ExternalLink
-          href={scheduleDemoLink}
-          className={styles.link}
-          onClick={onClickContactUs}
-        >
-          <Text variant="small">
-            {renderToString("ScreenHeader.links.schedule-demo")}
-          </Text>
-        </ExternalLink>
-        <ExternalLink
-          href="https://docs.authgear.com/"
-          className={styles.link}
-          onClick={onClickDocs}
-        >
-          <Text variant="small">
+      <div className={styles.actions}>
+        <div className={styles.actionLinks}>
+          <a
+            className={styles.actionLink}
+            href="https://docs.authgear.com/"
+            target="_blank"
+            rel="noreferrer"
+            onClick={onClickDocs}
+          >
+            <FileTextIcon className={styles.actionIcon} />
             {renderToString("ScreenHeader.links.documentation")}
-          </Text>
-        </ExternalLink>
+          </a>
+          <a
+            className={styles.actionLink}
+            href={scheduleDemoLink}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onClickContactUs}
+          >
+            <CalendarIcon className={styles.actionIcon} />
+            {renderToString("ScreenHeader.links.schedule-demo")}
+          </a>
+        </div>
+        {viewer != null ? (
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <button
+                type="button"
+                className={styles.avatarButton}
+                aria-label={renderToString("ScreenHeader.user-menu")}
+              >
+                <Avatar
+                  size="2"
+                  radius="full"
+                  variant="soft"
+                  color="blue"
+                  src={viewer.picture ?? undefined}
+                  fallback={avatarFallback}
+                />
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              {menuName != null || menuEmail != null ? (
+                <>
+                  <div className={styles.userMenuIdentity}>
+                    {menuName != null ? (
+                      <span className={styles.userMenuName}>{menuName}</span>
+                    ) : null}
+                    {menuEmail != null ? (
+                      <span
+                        className={
+                          menuName != null
+                            ? styles.userMenuEmail
+                            : styles.userMenuName
+                        }
+                      >
+                        {menuEmail}
+                      </span>
+                    ) : null}
+                  </div>
+                  <DropdownMenu.Separator />
+                </>
+              ) : null}
+              {hasOsano ? (
+                <DropdownMenu.Item onSelect={onClickCookiePreference}>
+                  {renderToString("ScreenHeader.cookie-preference")}
+                </DropdownMenu.Item>
+              ) : null}
+              <DropdownMenu.Item asChild={true}>
+                <a href={settingURL} onClick={onClickSettings}>
+                  {renderToString("ScreenHeader.settings")}
+                </a>
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item color="red" onSelect={onClickLogout}>
+                {renderToString("ScreenHeader.sign-out")}
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        ) : null}
       </div>
-      {viewer != null ? (
-        <CommandButton
-          className={styles.desktopView}
-          menuProps={menuProps}
-          theme={themes.inverted}
-          styles={commandButtonStyles}
-        >
-          {viewer.email}
-        </CommandButton>
-      ) : null}
     </header>
   );
 };

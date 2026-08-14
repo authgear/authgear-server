@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type ViewerQueryQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type ViewerQueryQuery = { __typename?: 'Query', viewer?: { __typename?: 'Viewer', id: string, email?: string | null, formattedName?: string | null, projectQuota?: number | null, projectOwnerCount: number, geoIPCountryCode?: string | null, isOnboardingSurveyCompleted?: boolean | null } | null };
+export type ViewerQueryQuery = { __typename?: 'Query', viewer?: { __typename?: 'Viewer', id: string, email?: string | null, formattedName?: string | null, picture?: string | null, projectQuota?: number | null, projectOwnerCount: number, geoIPCountryCode?: string | null, isOnboardingSurveyCompleted?: boolean | null } | null };
 
 
 export const ViewerQueryDocument = gql`
@@ -15,6 +15,7 @@ export const ViewerQueryDocument = gql`
     id
     email
     formattedName
+    picture
     projectQuota
     projectOwnerCount
     geoIPCountryCode

@@ -1469,6 +1469,9 @@ type Viewer implements Node {
   isOnboardingSurveyCompleted: Boolean
 
   """"""
+  picture: String
+
+  """"""
   projectOwnerCount: Int!
 
   """"""
