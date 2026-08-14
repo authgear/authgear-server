@@ -94,16 +94,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 			}
 		}
 	case event.NonBlockingPayload:
-		// A non-blocking payload is resolved again in WillCommitTx. Resolving it
-		// here as well is only observable when the later resolve cannot find the
-		// user: resolve.go swallows ErrUserNotFound and keeps whatever was
-		// resolved earlier. That happens exactly when the user row is gone by
-		// commit time, which the payload declares via DeletedUserIDs.
-		if len(typedPayload.DeletedUserIDs()) > 0 {
-			if err = s.Resolver.Resolve(ctx, payload); err != nil {
-				return
-			}
-		}
+		// A non-blocking payload is resolved once, later, in WillCommitTx.
 		s.NonBlockingPayloads = append(s.NonBlockingPayloads, typedPayload)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))

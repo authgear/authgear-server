@@ -451,7 +451,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("DispatchEventOnCommit with a non-blocking payload whose DeletedUserIDs is non-empty resolves twice", func() {
+		Convey("DispatchEventOnCommit with a non-blocking payload whose DeletedUserIDs is non-empty still resolves exactly once, in WillCommitTx", func() {
 			userID := "user-id"
 			user := model.User{
 				Meta: model.Meta{ID: userID},
@@ -465,7 +465,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
 			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
-			resolver.EXPECT().Resolve(ctx, payload).Times(2).Return(nil)
+			resolver.EXPECT().Resolve(ctx, payload).Times(1).Return(nil)
 
 			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
