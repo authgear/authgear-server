@@ -1,14 +1,26 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import cn from "classnames";
 import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Context } from "./intl";
 import {
-  INavLink,
-  INavLinkGroup,
-  INavStyleProps,
-  Nav,
-  Text,
-} from "@fluentui/react";
+  AvatarIcon,
+  BarChartIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  DashboardIcon,
+  ExclamationTriangleIcon,
+  GearIcon,
+  GlobeIcon,
+  HomeIcon,
+  IdCardIcon,
+  LockClosedIcon,
+  MixerHorizontalIcon,
+  Pencil2Icon,
+  PersonIcon,
+  ReaderIcon,
+  RocketIcon,
+} from "@radix-ui/react-icons";
+import { Context } from "./intl";
 import authgear from "@authgear/web";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
@@ -19,19 +31,9 @@ import { usePortalClient } from "./graphql/portal/apollo";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
-import ExternalLink from "./ExternalLink";
 import { useSettingsAnchor } from "./hook/authgear";
 
-function getStyles(props: INavStyleProps) {
-  return {
-    chevronButton: {
-      backgroundColor: "transparent",
-    },
-    chevronIcon: {
-      transform: props.isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
-    },
-  };
-}
+type NavIconComponent = typeof RocketIcon;
 
 type NavLinkItem = NavLink | NavLinkGroup;
 
@@ -40,6 +42,7 @@ interface NavLinkGroup {
   textKey: string;
   urlPrefix: string;
   url?: string;
+  icon: NavIconComponent;
   children: NavLink[];
 }
 
@@ -47,6 +50,7 @@ interface NavLink {
   type: "link";
   textKey: string;
   url: string;
+  icon?: NavIconComponent;
 }
 
 interface ScreenNavProps {
@@ -112,7 +116,7 @@ function getSelectedKey(
 // 4. isExpanded is true if urlPrefix is a prefix of pathname.
 // 5. selectedKey is the longest prefix match.
 const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
-  const { mobileView = false } = props;
+  const { mobileView = false, onLinkClick: onLinkClickProp } = props;
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
@@ -150,13 +154,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const label = renderToString("ScreenNav.label");
 
   const links: NavLinkItem[] = useMemo(() => {
-    const links = [
+    const links: NavLinkItem[] = [
       ...(mobileView
         ? [
             {
               type: "link" as const,
               textKey: "ScreenNav.all-projects",
               url: "/",
+              icon: HomeIcon,
             },
           ]
         : []),
@@ -164,6 +169,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "link" as const,
         textKey: "ScreenNav.getting-started",
         url: `/project/${appID}/getting-started`,
+        icon: RocketIcon,
       },
       ...(analyticEnabled
         ? [
@@ -171,6 +177,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               type: "link" as const,
               textKey: "ScreenNav.analytics",
               url: `/project/${appID}/analytics`,
+              icon: BarChartIcon,
             },
           ]
         : []),
@@ -178,6 +185,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.user-management",
         urlPrefix: `/project/${appID}/user-management`,
+        icon: PersonIcon,
         children: [
           {
             type: "link" as const,
@@ -200,6 +208,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.authentication",
         urlPrefix: `/project/${appID}/configuration/authentication`,
+        icon: LockClosedIcon,
         children: [
           {
             type: "link" as const,
@@ -241,16 +250,19 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "link" as const,
         textKey: "ScreenNav.client-applications",
         url: `/project/${appID}/configuration/apps`,
+        icon: DashboardIcon,
       },
       {
         type: "link" as const,
         textKey: "ScreenNav.api-resources",
         url: `/project/${appID}/api-resources`,
+        icon: CodeIcon,
       },
       {
         type: "group" as const,
         textKey: "ScreenNav.branding",
         urlPrefix: `/project/${appID}/branding`,
+        icon: Pencil2Icon,
         children: [
           {
             type: "link" as const,
@@ -278,11 +290,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "link" as const,
         textKey: "ScreenNav.languages",
         url: `/project/${appID}/configuration/languages`,
+        icon: GlobeIcon,
       },
       {
         type: "group" as const,
         textKey: "ScreenNav.user-profile",
         urlPrefix: `/project/${appID}/configuration/user-profile`,
+        icon: AvatarIcon,
         children: [
           {
             type: "link" as const,
@@ -300,6 +314,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.attack-protection",
         urlPrefix: `/project/${appID}/attack-protection`,
+        icon: ExclamationTriangleIcon,
         children: [
           {
             type: "link" as const,
@@ -333,6 +348,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               type: "link" as const,
               textKey: "ScreenNav.integrations",
               url: `/project/${appID}/integrations`,
+              icon: GearIcon,
             },
           ]
         : []),
@@ -343,6 +359,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               type: "link" as const,
               textKey: "ScreenNav.license",
               url: `/project/${appID}/license`,
+              icon: IdCardIcon,
             },
           ]
         : [
@@ -350,6 +367,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               type: "link" as const,
               textKey: "ScreenNav.billing",
               url: `/project/${appID}/billing`,
+              icon: IdCardIcon,
             },
           ]),
 
@@ -357,6 +375,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.advanced",
         urlPrefix: `/project/${appID}/advanced`,
+        icon: MixerHorizontalIcon,
         children: [
           {
             type: "link" as const,
@@ -420,6 +439,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
               type: "link" as const,
               textKey: "ScreenNav.audit-log",
               url: `/project/${appID}/audit-log`,
+              icon: ReaderIcon,
             },
           ]
         : []),
@@ -427,6 +447,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "link" as const,
         textKey: "PortalAdminSettings.title",
         url: `/project/${appID}/portal-admins`,
+        icon: PersonIcon,
       },
     ];
 
@@ -453,68 +474,17 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     [links, pathname]
   );
 
-  const navItem = useCallback(
-    (item: NavLinkItem): INavLink => {
-      switch (item.type) {
-        case "group": {
-          return {
-            isExpanded:
-              Boolean(expandState[item.urlPrefix]) ||
-              pathname.startsWith(item.urlPrefix),
-            key: item.urlPrefix,
-            name: renderToString(item.textKey),
-            url: item.url ?? "",
-            // eslint-disable-next-line react-hooks/immutability
-            links: item.children.map((child) => navItem(child)),
-          };
-        }
-        case "link": {
-          return {
-            key: item.url,
-            name: renderToString(item.textKey),
-            url: item.url,
-          };
-        }
-        default:
-          throw new Error("unreachable");
-      }
+  const goTo = useCallback(
+    (url: string) => {
+      navigate(url);
+      onLinkClickProp?.();
     },
-    [expandState, pathname, renderToString]
+    [navigate, onLinkClickProp]
   );
 
-  const navGroups: INavLinkGroup[] = useMemo(
-    () => [
-      {
-        links: links.map((item) => navItem(item)),
-      },
-    ],
-    [navItem, links]
-  );
-
-  const onLinkClick = useCallback(
-    (e?: React.MouseEvent, item?: INavLink) => {
-      e?.stopPropagation();
-      e?.preventDefault();
-
-      const url = item?.url;
-      if (url != null && url !== "") {
-        navigate(url);
-        props.onLinkClick?.();
-      }
-    },
-    [navigate, props]
-  );
-  const onLinkExpandClick = useCallback(
-    (e?: React.MouseEvent, item?: INavLink) => {
-      e?.stopPropagation();
-      e?.preventDefault();
-      const key = item?.key;
-      if (key != null) {
-        setExpandState((s) => ({ ...s, [key]: !Boolean(s[key]) }));
-      }
-    },
-    []
-  );
+  const toggleGroup = useCallback((urlPrefix: string) => {
+    setExpandState((s) => ({ ...s, [urlPrefix]: !Boolean(s[urlPrefix]) }));
+  }, []);
 
   const redirectURI = window.location.origin + "/";
   const onClickLogout = useCallback(() => {
@@ -529,43 +499,91 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
   const { href: settingURL, onClick: onClickSettings } = useSettingsAnchor();
 
+  const renderLink = (item: NavLink, isChild: boolean) => {
+    const Icon = item.icon;
+    const selected = selectedKey === item.url;
+    return (
+      <a
+        key={item.url}
+        href={item.url}
+        className={cn(
+          styles.item,
+          isChild && styles.childItem,
+          selected && styles.itemSelected
+        )}
+        aria-current={selected ? "page" : undefined}
+        onClick={(e) => {
+          e.preventDefault();
+          goTo(item.url);
+        }}
+      >
+        {!isChild && Icon != null ? <Icon className={styles.itemIcon} /> : null}
+        <span className={styles.itemLabel}>{renderToString(item.textKey)}</span>
+      </a>
+    );
+  };
+
+  const renderGroup = (item: NavLinkGroup) => {
+    const Icon = item.icon;
+    const expanded =
+      Boolean(expandState[item.urlPrefix]) ||
+      pathname.startsWith(item.urlPrefix);
+    return (
+      <div key={item.urlPrefix} className={styles.group}>
+        <button
+          type="button"
+          className={styles.item}
+          aria-expanded={expanded}
+          onClick={() => toggleGroup(item.urlPrefix)}
+        >
+          <Icon className={styles.itemIcon} />
+          <span className={styles.itemLabel}>
+            {renderToString(item.textKey)}
+          </span>
+          <ChevronRightIcon
+            className={cn(
+              styles.groupChevron,
+              expanded && styles.groupChevronExpanded
+            )}
+          />
+        </button>
+        {expanded ? (
+          <div className={styles.groupChildren}>
+            {item.children.map((child) => renderLink(child, true))}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   if (queryResult.loading) {
     return null;
   }
 
   return (
     <>
-      <Nav
-        ariaLabel={label}
-        groups={navGroups}
-        onLinkClick={onLinkClick}
-        onLinkExpandClick={onLinkExpandClick}
-        selectedKey={selectedKey}
-        styles={getStyles}
-      />
+      <nav className={styles.navList} aria-label={label}>
+        {links.map((item) =>
+          item.type === "group" ? renderGroup(item) : renderLink(item, false)
+        )}
+      </nav>
       {mobileView ? (
         <div className={styles.userActions}>
-          <Text variant="small" className={styles.userActionEmail}>
-            {viewer?.email}
-          </Text>
-          <ExternalLink
+          <span className={styles.userActionEmail}>{viewer?.email}</span>
+          <a
             href={settingURL}
             target="_self"
             className={styles.userActionItem}
             onClick={onClickSettings}
           >
-            <Text variant="small">
-              {renderToString("ScreenHeader.settings")}
-            </Text>
-          </ExternalLink>
+            {renderToString("ScreenHeader.settings")}
+          </a>
           <button
             type="button"
             className={styles.userActionItem}
             onClick={onClickLogout}
           >
-            <Text variant="small">
-              {renderToString("ScreenHeader.sign-out")}
-            </Text>
+            {renderToString("ScreenHeader.sign-out")}
           </button>
         </div>
       ) : null}

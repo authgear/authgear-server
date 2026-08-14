@@ -23,7 +23,8 @@
 
 .nav {
   width: 260px;
-  border: 1px solid #edebe9;
+  border-right: 1px solid var(--gray-a6);
+  background-color: var(--gray-2);
   /* Allow scrolling along y-axis */
   overflow-y: auto;
   overflow-x: hidden;
