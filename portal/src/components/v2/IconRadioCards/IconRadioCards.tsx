@@ -1,6 +1,10 @@
 import cn from "classnames";
-import { RadioCards as RadixRadioCards, Text } from "@radix-ui/themes";
-import React, { useMemo } from "react";
+import {
+  CheckboxCards as RadixCheckboxCards,
+  RadioCards as RadixRadioCards,
+  Text,
+} from "@radix-ui/themes";
+import React, { useCallback } from "react";
 import styles from "./IconRadioCards.module.css";
 import { Tooltip } from "../Tooltip/Tooltip";
 
@@ -33,29 +37,23 @@ export function IconRadioCards<T extends string>({
   options,
   ...rootProps
 }: IconRadioCardsProps<T>): React.ReactElement {
-  const onToggleCallbacks = useMemo(() => {
-    return options.map((option) => {
-      const fn = () => {
-        if (value === option.value) {
-          return;
-        }
-        onValueChange(option.value);
-      };
-      return fn;
-    });
-  }, [onValueChange, options, value]);
+  // The checked visual of RadixRadioCards.Item is derived solely from
+  // Root's value === Item's value, so the Root must be controlled; a
+  // `checked` prop on Item is ignored by the Radix primitive.
+  const handleValueChange = useCallback(
+    (newValue: string) => {
+      if (newValue === value) {
+        return;
+      }
+      onValueChange(newValue as T);
+    },
+    [onValueChange, value]
+  );
 
   return (
-    <Root {...rootProps}>
-      {options.map((option, idx) => {
-        return (
-          <OptionItem
-            key={option.value}
-            option={option}
-            checked={value === option.value}
-            onToggle={onToggleCallbacks[idx]}
-          />
-        );
+    <Root {...rootProps} value={value ?? ""} onValueChange={handleValueChange}>
+      {options.map((option) => {
+        return <OptionItem key={option.value} option={option} />;
       })}
     </Root>
   );
@@ -71,38 +69,54 @@ export function MultiSelectIconRadioCards<T extends string>({
   values,
   onValuesChange,
   options,
-  ...rootProps
+  size,
+  itemMinWidth = 160,
+  itemFillSpaces = false,
+  numberOfColumns,
 }: MultiSelectIconRadioCardsProps<T>): React.ReactElement {
-  const checkedValuesSet = useMemo(() => new Set(values), [values]);
-
-  const onToggleCallbacks = useMemo(() => {
-    return options.map((option) => {
-      const fn = () => {
-        const newValues = new Set(checkedValuesSet);
-        if (!checkedValuesSet.has(option.value)) {
-          newValues.add(option.value);
-        } else {
-          newValues.delete(option.value);
-        }
-        onValuesChange(Array.from(newValues));
-      };
-      return fn;
-    });
-  }, [checkedValuesSet, onValuesChange, options]);
+  // A radio group can only ever hold one value, so the multi-select variant
+  // is backed by CheckboxCards; its Root is controlled by the whole value
+  // list, which also keeps a forced-on disabled item rendered as checked.
+  const handleValueChange = useCallback(
+    (newValues: string[]) => {
+      onValuesChange(newValues as T[]);
+    },
+    [onValuesChange]
+  );
 
   return (
-    <Root {...rootProps}>
-      {options.map((option, idx) => {
+    <RadixCheckboxCards.Root
+      className={cn(styles.iconRadioCards__root)}
+      size={size}
+      variant="surface"
+      color="indigo"
+      value={values}
+      onValueChange={handleValueChange}
+      columns={`repeat(${gridColumnRepeat(
+        numberOfColumns
+      )}, minmax(${itemMinWidth}px, ${itemMaxSize(itemFillSpaces)}))`}
+    >
+      {options.map((option) => {
         return (
-          <OptionItem
+          <Tooltip
             key={option.value}
-            option={option}
-            checked={checkedValuesSet.has(option.value)}
-            onToggle={onToggleCallbacks[idx]}
-          />
+            content={option.tooltip}
+            disabled={option.tooltip == null}
+          >
+            {/* We need this extra div because Tooltip and RadixCheckboxCards.Item both write to data-state attribute causing bugs */}
+            <div className={styles.iconRadioCards__itemWrapper}>
+              <RadixCheckboxCards.Item
+                className={styles.iconRadioCards__item}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                <OptionItemContent option={option} />
+              </RadixCheckboxCards.Item>
+            </div>
+          </Tooltip>
         );
       })}
-    </Root>
+    </RadixCheckboxCards.Root>
   );
 }
 
@@ -111,6 +125,8 @@ interface RootProps {
   itemMinWidth?: number;
   itemFillSpaces?: boolean;
   numberOfColumns?: number;
+  value?: string;
+  onValueChange?: (newValue: string) => void;
   children?: React.ReactNode;
 }
 
@@ -119,6 +135,8 @@ function Root({
   itemMinWidth = 160,
   itemFillSpaces = false,
   numberOfColumns,
+  value,
+  onValueChange,
   children,
 }: RootProps) {
   return (
@@ -127,6 +145,8 @@ function Root({
       size={size}
       variant="surface"
       color="indigo"
+      value={value}
+      onValueChange={onValueChange}
       columns={`repeat(${gridColumnRepeat(
         numberOfColumns
       )}, minmax(${itemMinWidth}px, ${itemMaxSize(itemFillSpaces)}))`}
@@ -138,12 +158,8 @@ function Root({
 
 function OptionItem<T extends string>({
   option,
-  checked,
-  onToggle,
 }: {
   option: IconRadioCardOption<T>;
-  checked?: boolean;
-  onToggle?: () => void;
 }) {
   return (
     <Tooltip content={option.tooltip} disabled={option.tooltip == null}>
@@ -154,37 +170,49 @@ function OptionItem<T extends string>({
           key={option.value}
           value={option.value}
           disabled={option.disabled}
-          checked={checked}
-          onClick={onToggle}
         >
-          <div className={styles.iconRadioCards__itemContainer}>
-            <div className={styles.iconRadioCards__iconContainer}>
-              {option.icon}
-            </div>
-            <div className={styles.iconRadioCards__itemTextContainer}>
-              <Text
-                as="p"
-                size={"2"}
-                weight={"medium"}
-                className={styles.iconRadioCards__itemTextTitle}
-              >
-                {option.title}
-              </Text>
-              {option.subtitle ? (
-                <Text
-                  as="p"
-                  size={"2"}
-                  weight={"regular"}
-                  className={styles.iconRadioCards__itemTextSubtitle}
-                >
-                  {option.subtitle}
-                </Text>
-              ) : null}
-            </div>
-          </div>
+          <OptionItemContent option={option} />
         </RadixRadioCards.Item>
       </div>
     </Tooltip>
+  );
+}
+
+function OptionItemContent<T extends string>({
+  option,
+}: {
+  option: IconRadioCardOption<T>;
+}) {
+  return (
+    <div
+      className={cn(
+        styles.iconRadioCards__itemContainer,
+        option.subtitle == null &&
+          styles["iconRadioCards__itemContainer--center"]
+      )}
+    >
+      <div className={styles.iconRadioCards__iconContainer}>{option.icon}</div>
+      <div className={styles.iconRadioCards__itemTextContainer}>
+        <Text
+          as="p"
+          size={"2"}
+          weight={"medium"}
+          className={styles.iconRadioCards__itemTextTitle}
+        >
+          {option.title}
+        </Text>
+        {option.subtitle ? (
+          <Text
+            as="p"
+            size={"2"}
+            weight={"regular"}
+            className={styles.iconRadioCards__itemTextSubtitle}
+          >
+            {option.subtitle}
+          </Text>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

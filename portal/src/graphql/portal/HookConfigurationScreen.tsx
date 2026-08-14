@@ -266,7 +266,7 @@ interface FormState extends ConfigFormState {
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -786,8 +786,10 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const form: FormModel = {
       isLoading: config.isLoading || resources.isLoading,
       isUpdating: config.isUpdating || resources.isUpdating,
-      isDirty:
-        config.isDirty || resources.isDirty || codeEditorState?.value != null,
+      getIsDirty: () =>
+        config.getIsDirty() ||
+        resources.getIsDirty() ||
+        codeEditorState?.value != null,
       loadError: config.loadError ?? resources.loadError,
       updateError: config.updateError ?? resources.updateError,
       state,

@@ -75,6 +75,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			u := *r.URL
 			u.Scheme = string(h.HTTPProto)
 			u.Host = string(h.ImagesCDNHost)
+			// #nosec G710 -- u.Scheme and u.Host are set from the server-configured ImagesCDNHost, not user input.
 			http.Redirect(w, r, u.String(), http.StatusFound)
 			return
 		}

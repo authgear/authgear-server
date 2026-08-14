@@ -42,6 +42,7 @@ func TestAppConfigSchema(t *testing.T) {
 		"testdata/account_anonymization_tests.yaml",
 		"testdata/google_tag_manager_tests.yaml",
 		"testdata/rate_limit_tests.yaml",
+		"testdata/session_tests.yaml",
 		"testdata/authentication_flow_object_name_tests.yaml",
 		"testdata/authentication_flow_type_identify_tests.yaml",
 		"testdata/signup_flow_tests.yaml",

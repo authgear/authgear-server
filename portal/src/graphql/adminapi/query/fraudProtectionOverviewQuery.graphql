@@ -6,6 +6,25 @@ query fraudProtectionOverviewQuery($rangeFrom: DateTime, $rangeTo: DateTime) {
       flagged
       topSourceIPs {
         ipAddress
+        geoCountryCode
+        total
+        blocked
+        flagged
+      }
+      topIPLocations {
+        geoCountryCode
+        total
+        blocked
+        flagged
+      }
+      topSMSOrigins {
+        phoneCountryCode
+        total
+        blocked
+        flagged
+      }
+      timeBuckets {
+        hour
         total
         blocked
         flagged

@@ -1,7 +1,43 @@
 .widget {
-  @apply col-span-8 tablet:col-span-full;
+  grid-column: 1 / span 9;
+
+  @apply tablet:col-span-full;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}
+
+.editorCard {
+  @apply min-w-0 overflow-hidden rounded-xl border border-solid;
+  border-color: var(--gray-a6);
+}
+
+.editorCardHeader {
+  @apply border-b border-solid px-6 py-4;
+  border-color: var(--gray-a6);
 }
 
 .codeEditor {
-  height: 70vh; /* 680 / 960 ref https://www.figma.com/design/msiE4O5imHONAG5EjhZeiZ/Authgear-UI?node-id=10346-12112&t=ubpO59nWLEfmakyL-0 */
+  display: block;
+  height: 70vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }

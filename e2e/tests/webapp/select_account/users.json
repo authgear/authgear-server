@@ -1,0 +1,21 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "select-account-webapp@example.com",
+      "name": "Select Account Webapp",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    },
+    {
+      "email": "select-account-webapp-2@example.com",
+      "name": "Select Account Webapp 2",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

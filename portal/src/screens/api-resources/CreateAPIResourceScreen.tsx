@@ -46,8 +46,6 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
       }
       return result.data.createResource.resource.id;
     },
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   useEffect(() => {

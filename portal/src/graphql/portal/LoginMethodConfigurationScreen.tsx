@@ -533,7 +533,7 @@ interface FormState
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -3985,7 +3985,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         featureConfig.isLoading ||
         secretConfig.isLoading,
       isUpdating: configForm.isUpdating || resourceForm.isUpdating,
-      isDirty: configForm.isDirty || resourceForm.isDirty,
+      getIsDirty: () => configForm.getIsDirty() || resourceForm.getIsDirty(),
       loadError:
         configForm.loadError ??
         resourceForm.loadError ??

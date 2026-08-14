@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
@@ -151,6 +152,41 @@ type MilestoneDoCreatePasskey interface {
 type MilestoneDoUseUser interface {
 	authflow.Milestone
 	authflow.MilestoneDoUseUser
+}
+
+// MilestoneDoUseExistingSession is implemented by a node that resolved the
+// authenticated user by continuing an already-existing session (select_account)
+// rather than by creating a new one. When found anywhere in the flow, the
+// flow's final NodeDoCreateSession must not mint a new session — the
+// existing one identified here is reused as-is (see
+// docs/specs/custom-ui-select-account.md's "Completing identification with
+// the existing session").
+type MilestoneDoUseExistingSession interface {
+	authflow.Milestone
+	MilestoneDoUseExistingSession() (sessionType session.Type, sessionID string)
+}
+
+func getExistingSessionToReuse(flows authflow.Flows) (sessionType session.Type, sessionID string, ok bool) {
+	// Traversal errors are impossible here: neither callback ever returns a
+	// non-nil error, unlike collectIdentitySpecs/collectAuthenticationLockoutMethod's
+	// callbacks, which propagate errors from other milestones they call.
+	_ = authflow.TraverseFlow(authflow.Traverser{
+		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+			if n, mOk := nodeSimple.(MilestoneDoUseExistingSession); mOk {
+				sessionType, sessionID = n.MilestoneDoUseExistingSession()
+				ok = true
+			}
+			return nil
+		},
+		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+			if i, mOk := intent.(MilestoneDoUseExistingSession); mOk {
+				sessionType, sessionID = i.MilestoneDoUseExistingSession()
+				ok = true
+			}
+			return nil
+		},
+	}, flows.Root)
+	return
 }
 
 type MilestoneFlowUseIdentity interface {

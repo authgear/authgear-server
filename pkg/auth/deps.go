@@ -110,7 +110,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountSuccessUIInfoResolver), new(*authenticationinfo.UIService)),
 
 	wire.Bind(new(handlerwebapp.ControllerAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
-	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountSuccessAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsDeleteAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
@@ -217,7 +216,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(handlerwebapp.GlobalEmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
-	wire.Bind(new(handlerwebappauthflowv2.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),

@@ -1,5 +1,6 @@
 import { z } from "@zod/mini";
-import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../../hook/useFormWithExternalInitialState";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedEffect } from "../../../hook/useDebouncedEffect";
 import { produce } from "immer";
@@ -107,7 +108,7 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
   const { saveOnboardingSurvey } = useSaveOnboardingSurveyMutation();
   const { refetch: refetchViewer } = useViewerQuery();
 
-  const [initialState, setInitialState] = useState<FormState>(() => {
+  const [initialState] = useState<FormState>(() => {
     return (
       readFormStateFromStorage(STORAGE) ?? {
         step: OnboardingSurveyStep.start,
@@ -122,13 +123,12 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
       await saveOnboardingSurvey(stateJsonStr);
       await refetchViewer();
       deleteFormStateFromStorage(STORAGE);
-      setInitialState(formState);
+      return { result: undefined, nextInitialState: formState };
     },
     [capture, refetchViewer, saveOnboardingSurvey]
   );
 
-  const form = useSimpleForm<FormState>({
-    stateMode: "UpdateInitialStateWithUseEffect",
+  const form = useFormWithExternalInitialState<FormState>({
     defaultState: initialState,
     submit,
   });

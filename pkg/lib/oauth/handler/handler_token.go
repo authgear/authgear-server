@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"reflect"
 	"slices"
 	"strings"
@@ -258,6 +259,29 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			resultErr.InternalError = true
 		}
 		return resultErr
+	}
+
+	// Prefer client authentication in the request body over the Authorization
+	// header: an Authorization header may come from an unrelated proxy (e.g.
+	// one protecting a staging environment with HTTP Basic auth) rather than
+	// the client itself, so it must not take precedence over, or conflict
+	// with, credentials the client actually placed in the body.
+	if r.ClientID() == "" && r.ClientSecret() == "" {
+		if username, password, ok := req.BasicAuth(); ok {
+			// RFC 6749 Appendix B: client_id and client_secret are encoded with
+			// application/x-www-form-urlencoded before being used in HTTP Basic auth.
+			clientID, err := url.QueryUnescape(username)
+			if err != nil {
+				return errorResult(protocol.NewError("invalid_request", "invalid client_id in Authorization header"))
+			}
+			clientSecret, err := url.QueryUnescape(password)
+			if err != nil {
+				return errorResult(protocol.NewError("invalid_request", "invalid client_secret in Authorization header"))
+			}
+
+			r["client_id"] = []string{clientID}
+			r["client_secret"] = []string{clientSecret}
+		}
 	}
 
 	ipRateLimitBucket := NewBucketSpecOAuthTokenPerIP(string(h.RemoteIP))
@@ -1891,8 +1915,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				panic(fmt.Errorf("unknown session type: %v", typ))
 			}
 		}
-	} else if client.IsConfidential() {
-		// allow issuing access tokens if scopes don't contain offline_access and the client is confidential
+	} else {
+		// allow issuing access tokens if scopes don't contain offline_access
 		// fill the response with nil for not returning the refresh token
 		offlineGrant, _, err := h.issueOfflineGrant(
 			ctx,

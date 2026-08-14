@@ -202,6 +202,8 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 		return
 	} else if result.sloSession.Entry.PostLogoutRedirectURI != "" {
 		// This is not a logout triggered by SP, redirect to post logout url
+		// #nosec G710 -- PostLogoutRedirectURI is only ever populated from webapp.ResolvePostLogoutRedirectURI,
+		// which allow-lists it against the OAuth client's registered PostLogoutRedirectURIs or enforces same-origin.
 		http.Redirect(rw, r, result.sloSession.Entry.PostLogoutRedirectURI, http.StatusFound)
 		return
 	} else {

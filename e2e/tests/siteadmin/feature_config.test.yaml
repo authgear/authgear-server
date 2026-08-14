@@ -1,0 +1,262 @@
+name: Site Admin - App Feature Config
+app_id: e2e-portal
+authgear.yaml:
+  override: |
+    http:
+      public_origin: "http://localhost:4000"
+before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_actor.sql
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_feature_config.sql
+
+steps:
+# ── Authentication ─────────────────────────────────────────────────────────
+- name: generate_token
+  action: generate_refresh_token
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000001"
+  generate_refresh_token_client_id: e2e
+
+- name: get_access_token
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://localhost:4000/oauth2/token
+  http_request_form_urlencoded_body:
+    grant_type: refresh_token
+    refresh_token: "{{ .steps.generate_token.result.refresh_token }}"
+    client_id: e2e
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "access_token": "[[string]]"
+      }
+
+# ── Get initial feature config (no override yet) ─────────────────────────────
+- name: get_initial
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "plan_name": "e2e-feature-config-plan",
+        "app_feature_config_yaml": "",
+        "effective_plan_feature_config": {
+          "collaborator": {
+            "maximum": 3
+          }
+        },
+        "effective_app_feature_config": {
+          "collaborator": {
+            "maximum": 3
+          }
+        }
+      }
+
+# ── Preview a candidate override — nothing persisted ──────────────────────────
+- name: preview_candidate
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config/preview
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "collaborator:\n  soft_maximum: 1\n"}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "plan_name": "e2e-feature-config-plan",
+        "effective_app_feature_config": {
+          "collaborator": {
+            "maximum": 3,
+            "soft_maximum": 1
+          }
+        }
+      }
+
+- name: verify_preview_persisted_nothing
+  action: query
+  query: |
+    SELECT data::text AS data FROM _portal_config_source
+    WHERE app_id = 'e2e-feature-config-app'
+  query_output:
+    rows: |
+      [{"data": "{}"}]
+
+# ── Preview an invalid candidate — 400 with field-addressable causes ─────────
+- name: preview_invalid_returns_causes_with_location
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config/preview
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "oauth:\n  client:\n    maximum: \"not-a-number\"\n"}
+  http_output:
+    http_status: 400
+    json_body: |
+      {
+        "error": {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "code": 400,
+          "info": {
+            "causes": [
+              {
+                "location": "/oauth/client/maximum",
+                "kind": "type"
+              }
+            ]
+          }
+        }
+      }
+
+# ── Save the override via PUT ────────────────────────────────────────────────
+- name: update_override
+  action: http_request
+  http_request_method: PUT
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "collaborator:\n  soft_maximum: 1\n"}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "plan_name": "e2e-feature-config-plan",
+        "app_feature_config_yaml": "collaborator:\n  soft_maximum: 1\n",
+        "effective_app_feature_config": {
+          "collaborator": {
+            "maximum": 3,
+            "soft_maximum": 1
+          }
+        }
+      }
+
+- name: verify_override_stored
+  action: query
+  query: |
+    SELECT convert_from(decode(data->>'authgear.features.yaml', 'base64'), 'UTF8') AS override
+    FROM _portal_config_source
+    WHERE app_id = 'e2e-feature-config-app'
+  query_output:
+    rows: |
+      [{"override": "collaborator:\n  soft_maximum: 1\n"}]
+
+- name: audit_update
+  action: audit_query
+  audit_query: |
+    SELECT
+      activity_type,
+      data->'payload'->>'app_id' AS app_id,
+      data->'payload'->>'new_app_feature_config_yaml' AS new_yaml
+    FROM _audit_log
+    WHERE app_id = 'e2e-portal'
+      AND activity_type = 'site_admin.app.feature_config.updated'
+      AND data->'payload'->>'app_id' = 'e2e-feature-config-app'
+    ORDER BY created_at DESC
+    LIMIT 1
+  audit_query_output:
+    rows: |
+      [
+        {
+          "activity_type": "site_admin.app.feature_config.updated",
+          "app_id": "e2e-feature-config-app",
+          "new_yaml": "collaborator:\n  soft_maximum: 1\n"
+        }
+      ]
+
+# ── Clear the override ───────────────────────────────────────────────────────
+- name: clear_override
+  action: http_request
+  http_request_method: PUT
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": ""}
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "plan_name": "e2e-feature-config-plan",
+        "app_feature_config_yaml": ""
+      }
+
+- name: verify_override_cleared
+  action: query
+  query: |
+    SELECT data ? 'authgear.features.yaml' AS has_key
+    FROM _portal_config_source
+    WHERE app_id = 'e2e-feature-config-app'
+  query_output:
+    rows: |
+      [{"has_key": false}]
+
+# ── Multi-document YAML is rejected without causes ──────────────────────────
+- name: update_invalid_yaml_returns_400_no_causes
+  action: http_request
+  http_request_method: PUT
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/e2e-feature-config-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "a: 1\n---\nb: 2\n"}
+  http_output:
+    http_status: 400
+    json_body: |
+      {
+        "error": {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "code": 400,
+          "info": "[[never]]"
+        }
+      }
+
+# ── Non-existent app returns 404 on all three endpoints ──────────────────────
+- name: update_non_existent_app_returns_404
+  action: http_request
+  http_request_method: PUT
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "collaborator:\n  soft_maximum: 1\n"}
+  http_output:
+    http_status: 404
+
+- name: get_non_existent_app_returns_404
+  action: http_request
+  http_request_method: GET
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app/feature-config
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+  http_output:
+    http_status: 404
+
+- name: preview_non_existent_app_returns_404
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://127.0.0.1:4003/api/v1/apps/non-existent-app/feature-config/preview
+  http_request_headers:
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
+    Content-Type: application/json
+  http_request_body: |
+    {"app_feature_config_yaml": "collaborator:\n  soft_maximum: 1\n"}
+  http_output:
+    http_status: 404

@@ -7,10 +7,15 @@ import FormConfirmOverridingDialog from "./FormConfirmOverridingDialog";
 
 export interface FormModel {
   updateError: unknown;
-  isDirty: boolean;
   isUpdating: boolean;
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
+  // Always-fresh dirty check, safe to call from anywhere (see
+  // useSyncFormStates) -- e.g. by NavigationBlockerDialog, so that
+  // afterSave() can navigate immediately after save() resolves without
+  // racing React's render timing. FormContainerBase derives its own
+  // render-time isDirty boolean from this for the Save/Reset buttons.
+  getIsDirty: () => boolean;
 }
 
 export interface FormContainerBaseProps<Form = FormModel> {
@@ -29,7 +34,7 @@ export interface FormContainerBaseValues<Form = FormModel> {
   canReset: boolean;
   canSave: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   onReset: () => void;
   onSave: () => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -50,9 +55,14 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     beforeSave,
     afterSave,
   }) {
-    const { updateError, isDirty, isUpdating, reset, save } = form;
+    const { updateError, isUpdating, reset, save, getIsDirty } = form;
 
     const contextError = useConsumeError();
+
+    // getIsDirty's identity changes exactly when the underlying
+    // dirtiness does (see useSyncFormStates' useLiveState), so this
+    // memo correctly recomputes only when it needs to.
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
     const callSave = useCallback(
       (ignoreConflict: boolean = false) => {
@@ -90,7 +100,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
         canReset: !isResetDisabled,
         canSave: !isSaveDisabled,
         isUpdating,
-        isDirty,
+        getIsDirty,
         onReset: reset,
         onSave: callSave,
         onSubmit: onFormSubmit,
@@ -98,7 +108,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     }, [
       form,
       callSave,
-      isDirty,
+      getIsDirty,
       isResetDisabled,
       isSaveDisabled,
       isUpdating,
@@ -116,7 +126,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
         >
           {children}
           <NavigationBlockerDialog
-            blockNavigation={isDirty}
+            getIsDirty={getIsDirty}
             onConfirmNavigation={onConfirmNavigation}
           />
           <FormConfirmOverridingDialog save={callSave} />

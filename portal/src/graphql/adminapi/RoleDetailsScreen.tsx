@@ -22,7 +22,8 @@ import { RoleQueryNodeFragment } from "./query/roleQuery.generated";
 import { validateRole } from "../../model/role";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
-import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
@@ -191,6 +192,7 @@ function RoleDetailsScreenSettingsFormContainer({
         name: sanitizedRole.name,
         description: sanitizedRole.description,
       });
+      return { result: undefined };
     },
     [role.id, updateRole]
   );
@@ -203,8 +205,7 @@ function RoleDetailsScreenSettingsFormContainer({
     };
   }, [role]);
 
-  const form = useSimpleForm({
-    stateMode: "UpdateInitialStateWithUseEffect",
+  const form = useFormWithExternalInitialState({
     defaultState,
     submit,
     validate,

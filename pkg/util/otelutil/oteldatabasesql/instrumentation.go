@@ -13,15 +13,18 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/semconv/v1.34.0"
 	dbconv "go.opentelemetry.io/otel/semconv/v1.34.0/dbconv"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/authgear/authgear-server/pkg/util/databasesqlwrapper"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 var meter = otel.Meter("github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql")
+var tracer = otel.Tracer("github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql")
 
 func mustInt64ObservableGauge(name string, options ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge {
 	counter, err := meter.Int64ObservableGauge(name, options...)
@@ -151,6 +154,7 @@ type Conn struct {
 	ctx         context.Context
 	conn        *sql.Conn
 	startTime   time.Time
+	span        trace.Span
 	commonAttrs []attribute.KeyValue
 	poolAttrs   []attribute.KeyValue
 }
@@ -164,6 +168,7 @@ func (c *Conn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, err
 }
 
 func (c *Conn) Close() error {
+	err := c.conn.Close()
 	defer func() {
 		elapsed := time.Since(c.startTime)
 		seconds := elapsed.Seconds()
@@ -173,8 +178,13 @@ func (c *Conn) Close() error {
 			metric.WithAttributes(c.commonAttrs...),
 			metric.WithAttributes(c.poolAttrs...),
 		)
+		if err != nil {
+			c.span.RecordError(err)
+			c.span.SetStatus(codes.Error, err.Error())
+		}
+		c.span.End()
 	}()
-	return c.conn.Close()
+	return err
 }
 
 type ConnPool_ interface {
@@ -197,7 +207,11 @@ type ConnPool struct {
 	poolAttrs   []attribute.KeyValue
 }
 
-func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
+func (p *ConnPool) Conn(ctx context.Context) (_ Conn_, err error) {
+	waitCtx, waitSpan := tracer.Start(ctx, "DB Connection Wait",
+		trace.WithAttributes(p.commonAttrs...),
+		trace.WithAttributes(p.poolAttrs...),
+	)
 
 	// Intentionally not calling .UTC() to use monotonic clock.
 	startTime := time.Now()
@@ -205,11 +219,16 @@ func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
 		elapsed := time.Since(startTime)
 		seconds := elapsed.Seconds()
 		DBClientConnectionWaitTimeHistogram.Inst().Record(
-			ctx,
+			waitCtx,
 			seconds,
 			metric.WithAttributes(p.commonAttrs...),
 			metric.WithAttributes(p.poolAttrs...),
 		)
+		if err != nil {
+			waitSpan.RecordError(err)
+			waitSpan.SetStatus(codes.Error, err.Error())
+		}
+		waitSpan.End()
 	}()
 
 	Conn_blocking_ended := make(chan struct{}, 1)
@@ -226,7 +245,7 @@ func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
 		}()
 	}
 
-	sqlConn, err := p.db.Conn(ctx)
+	sqlConn, err := p.db.Conn(waitCtx)
 	if debug_connectionTimeout > 0 {
 		Conn_blocking_ended <- struct{}{}
 	}
@@ -234,8 +253,17 @@ func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
 		return nil, err
 	}
 
+	// Started as a sibling of the wait span (parented off the original ctx,
+	// not waitCtx) since connection use logically follows, rather than nests
+	// inside, the wait for the connection.
+	useCtx, useSpan := tracer.Start(ctx, "DB Connection Use",
+		trace.WithAttributes(p.commonAttrs...),
+		trace.WithAttributes(p.poolAttrs...),
+	)
+
 	return &Conn{
-		ctx: ctx,
+		ctx:  useCtx,
+		span: useSpan,
 		// Intentionally not calling .UTC() to use monotonic clock.
 		startTime:   time.Now(),
 		conn:        sqlConn,

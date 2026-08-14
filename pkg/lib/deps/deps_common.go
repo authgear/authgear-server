@@ -126,7 +126,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(handlersaml.SAMLAuthenticationInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
-		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 
 	wire.NewSet(
@@ -234,6 +233,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oauth.ServiceIDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oidc.IDTokenHintResolverSessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(oidchandler.IDTokenHintSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(workflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerIDPSessionProvider), new(*idpsession.Provider)),
@@ -489,6 +489,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
 		wire.Bind(new(oidc.IDTokenHintResolverOfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(oidchandler.IDTokenHintOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(oauthhandler.RevokeHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(oauthhandler.RevokeHandlerAccessGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(saml.OfflineGrantService), new(*oauth.OfflineGrantService)),
@@ -503,6 +504,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(authenticationflow.IDTokenService), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
+		wire.Bind(new(oidchandler.IDTokenVerifier), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.TokenServiceAccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.UIURLBuilder), new(*oidc.UIURLBuilder)),

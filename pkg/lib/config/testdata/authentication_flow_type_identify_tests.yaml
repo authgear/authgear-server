@@ -3,7 +3,7 @@ name: AuthenticationFlowLoginFlowIdentify
 error: |-
   invalid value:
   /identification: enum
-    map[actual:foobar expected:[email phone username oauth passkey ldap id_token]]
+    map[actual:foobar expected:[email phone username oauth passkey ldap id_token select_account]]
 value:
   identification: foobar
 ---
@@ -21,7 +21,7 @@ name: AuthenticationFlowSignupLoginFlowIdentify
 error: |-
   invalid value:
   /identification: enum
-    map[actual:foobar expected:[email phone username oauth passkey ldap id_token]]
+    map[actual:foobar expected:[email phone username oauth passkey ldap id_token select_account]]
 value:
   identification: foobar
   login_flow: a

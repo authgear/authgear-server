@@ -5,23 +5,40 @@ import styles from "./DateRangeDialog.module.css";
 import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import DateTimePicker from "../../DateTimePicker";
 
-interface DateRangeDialogProps {
+interface DateRangeDialogBaseProps {
   hidden: boolean;
   title: string;
   fromDatePickerLabel: string;
   toDatePickerLabel: string;
   rangeFrom?: Date;
   rangeTo?: Date;
-  fromDatePickerMinDate?: Date;
-  fromDatePickerMaxDate?: Date;
-  toDatePickerMinDate?: Date;
-  toDatePickerMaxDate?: Date;
   onSelectRangeFrom?: (date: Date | null | undefined) => void;
   onSelectRangeTo?: (date: Date | null | undefined) => void;
   onCommitDateRange?: (e?: React.MouseEvent<unknown>) => void;
   onDismiss?: (e?: React.MouseEvent<unknown>) => void;
 }
+
+// DateTimePicker only supports "now" as its lower bound (see DateTimePickerProps.minDateTime),
+// so fromDatePickerMinDate/toDatePickerMinDate have no equivalent when showTimePicker is true.
+// Splitting the props by showTimePicker prevents them from being passed (and silently ignored)
+// together.
+type DateRangeDialogProps = DateRangeDialogBaseProps &
+  (
+    | {
+        showTimePicker: true;
+        fromDatePickerMaxDate?: Date;
+        toDatePickerMaxDate?: Date;
+      }
+    | {
+        showTimePicker?: false;
+        fromDatePickerMinDate?: Date;
+        fromDatePickerMaxDate?: Date;
+        toDatePickerMinDate?: Date;
+        toDatePickerMaxDate?: Date;
+      }
+  );
 
 const DateRangeDialog: React.VFC<DateRangeDialogProps> =
   function DateRangeDialog(props) {
@@ -32,15 +49,20 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
       toDatePickerLabel,
       rangeFrom,
       rangeTo,
-      fromDatePickerMinDate,
       fromDatePickerMaxDate,
-      toDatePickerMinDate,
       toDatePickerMaxDate,
       onSelectRangeFrom,
       onSelectRangeTo,
       onCommitDateRange,
       onDismiss,
+      showTimePicker = false,
     } = props;
+    const fromDatePickerMinDate = props.showTimePicker
+      ? undefined
+      : props.fromDatePickerMinDate;
+    const toDatePickerMinDate = props.showTimePicker
+      ? undefined
+      : props.toDatePickerMinDate;
 
     const dateRangeDialogContentProps = useMemo(() => {
       return {
@@ -53,28 +75,59 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
         hidden={hidden}
         onDismiss={onDismiss}
         dialogContentProps={dateRangeDialogContentProps}
-        /* https://developer.microsoft.com/en-us/fluentui#/controls/web/dialog
-         * Best practice says the max width is 340 */
-        minWidth={340}
+        minWidth={showTimePicker ? 480 : 340}
       >
         {/* Dialog is based on Modal, which will focus the first child on open. *
     However, we do not want the date picker to be opened at the same time. *
     So we make the first focusable element a hidden TextField */}
         <TextField className={styles.hidden} />
-        <DatePicker
-          label={fromDatePickerLabel}
-          value={rangeFrom}
-          minDate={fromDatePickerMinDate}
-          maxDate={fromDatePickerMaxDate}
-          onSelectDate={onSelectRangeFrom}
-        />
-        <DatePicker
-          label={toDatePickerLabel}
-          value={rangeTo}
-          minDate={toDatePickerMinDate}
-          maxDate={toDatePickerMaxDate}
-          onSelectDate={onSelectRangeTo}
-        />
+        {showTimePicker ? (
+          <>
+            <DateTimePicker
+              className={styles.dateTimePicker}
+              label={
+                <span className={styles.dateTimePickerLabel}>
+                  {fromDatePickerLabel}
+                </span>
+              }
+              pickedDateTime={rangeFrom ?? null}
+              minDateTime={null}
+              maxDateTime={fromDatePickerMaxDate ?? null}
+              onPickDateTime={onSelectRangeFrom ?? (() => {})}
+              showClearButton={false}
+            />
+            <DateTimePicker
+              className={styles.dateTimePicker}
+              label={
+                <span className={styles.dateTimePickerLabel}>
+                  {toDatePickerLabel}
+                </span>
+              }
+              pickedDateTime={rangeTo ?? null}
+              minDateTime={null}
+              maxDateTime={toDatePickerMaxDate ?? null}
+              onPickDateTime={onSelectRangeTo ?? (() => {})}
+              showClearButton={false}
+            />
+          </>
+        ) : (
+          <>
+            <DatePicker
+              label={fromDatePickerLabel}
+              value={rangeFrom}
+              minDate={fromDatePickerMinDate}
+              maxDate={fromDatePickerMaxDate}
+              onSelectDate={onSelectRangeFrom}
+            />
+            <DatePicker
+              label={toDatePickerLabel}
+              value={rangeTo}
+              minDate={toDatePickerMinDate}
+              maxDate={toDatePickerMaxDate}
+              onSelectDate={onSelectRangeTo}
+            />
+          </>
+        )}
         <DialogFooter>
           <PrimaryButton
             onClick={onCommitDateRange}

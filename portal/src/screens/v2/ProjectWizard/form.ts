@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../../hook/useFormWithExternalInitialState";
 import { produce } from "immer";
 import { parse as parseCSS } from "postcss";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -49,6 +50,7 @@ import {
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import { TranslationKey } from "../../../model/translations";
+import { escapeMessageFormatText } from "../../../util/messageFormat";
 import { deriveColors } from "../../../util/theme";
 import { ImageValue } from "../../../components/v2/ImageInput/ImageInput";
 import { usePortalClient } from "../../../graphql/portal/apollo";
@@ -404,7 +406,7 @@ export function useProjectWizardForm(
     skip: true,
   });
 
-  const [defaultState, setDefaultState] = useState(() => {
+  const [defaultState] = useState(() => {
     if (initialState != null) {
       return initialState;
     }
@@ -425,7 +427,9 @@ export function useProjectWizardForm(
   );
 
   const submit = useCallback(
-    async (formState: FormState): Promise<string | null> => {
+    async (
+      formState: FormState
+    ): Promise<{ result: string | null; nextInitialState: FormState }> => {
       const sanitizedFormState = sanitizeFormState(formState);
       if (!computeCanSave(sanitizedFormState)) {
         throw new Error(
@@ -455,23 +459,23 @@ export function useProjectWizardForm(
               sanitizedFormState.projectID,
               updatedState
             );
-            setDefaultState(updatedState);
-            return `/project/${encodeURIComponent(appID!)}/wizard`;
+            return {
+              result: `/project/${encodeURIComponent(appID!)}/wizard`,
+              nextInitialState: updatedState,
+            };
             // eslint-disable-next-line no-else-return
           } else {
             await saveProjectWizardDataMutation(
               existingAppNodeID,
               updatedState
             );
-            setDefaultState(updatedState);
-            return null;
+            return { result: null, nextInitialState: updatedState };
           }
         }
         case ProjectWizardStep.step2:
           capture("projectWizard.set-auth");
           await saveProjectWizardDataMutation(existingAppNodeID!, updatedState);
-          setDefaultState(updatedState);
-          return null;
+          return { result: null, nextInitialState: updatedState };
         case ProjectWizardStep.step3: {
           capture("projectWizard.set-branding");
           if (rawAppConfig == null) {
@@ -492,9 +496,11 @@ export function useProjectWizardForm(
           await reloadAppConfig();
           // Reload the tutorial data, so portal will not redirect user back to wizard again
           await reloadScreenNavQuery();
-          setDefaultState(updatedState);
 
-          return `/project/${existingAppNodeID}`;
+          return {
+            result: `/project/${existingAppNodeID}`,
+            nextInitialState: updatedState,
+          };
         }
       }
     },
@@ -512,9 +518,8 @@ export function useProjectWizardForm(
     ]
   );
 
-  const form = useSimpleForm<FormState>({
-    stateMode: "UpdateInitialStateWithUseEffect",
-    defaultState: defaultState,
+  const form = useFormWithExternalInitialState<FormState, string | null>({
+    defaultState,
     submit,
   });
 
@@ -675,7 +680,7 @@ function useProjectWizardResourceForm(
             if (value === "") {
               delete jsonValue[key];
             } else {
-              jsonValue[key] = value;
+              jsonValue[key] = escapeMessageFormatText(value);
             }
             draft.resources[specifierId(specifier)] = {
               specifier: specifier,

@@ -74,8 +74,6 @@ const InviteAdminScreen: React.VFC = function InviteAdminScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
   });

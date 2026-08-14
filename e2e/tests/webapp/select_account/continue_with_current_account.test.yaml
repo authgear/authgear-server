@@ -1,0 +1,222 @@
+name: select_account (default generated flow) reuses the existing session via the authentication flow engine
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # First OAuth authorization - no session yet, log in with email/password.
+  #
+  # NOTE: We deliberately build the /oauth2/authorize request manually
+  # instead of using `action: oauth_setup`, because SetupOAuth() always
+  # sends x_sso_enabled=false, which makes the authorization request
+  # suppress the IDP session cookie (see
+  # AuthorizationRequest.SuppressIDPSessionCookie() in
+  # pkg/lib/oauth/protocol/authz.go). That is fine for a test that only
+  # cares about the OAuth code/token exchange, but this test needs the
+  # webapp login to actually persist an IDP session cookie so that the
+  # second authorization below can be resolved by /authflow/v2/select_account.
+  - name: authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: lSo1Ui9pr2_uxxYYJeX3kYmXFqc2xEg5-t7JYLY_K_4
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      # x_sso_enabled=true so the offline grant produced by the second
+      # authorization below is SSO-enabled, matching how a real SSO-enabled
+      # client drives this flow, and so the userinfo check
+      # below actually exercises the SSO-enabled + continued-session
+      # combination.
+      x_sso_enabled: "true"
+    http_output:
+      http_status: 302
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/login?{{ (urlParse .steps.authorize_1.result.http_response_headers.location).query }}"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+      html_xpath_exists:
+        - /html/body//form//input[@name='x_login_id']
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: select-account-webapp@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_password
+      html_xpath_exists:
+        - /html/body//form//input[@name='x_password']
+  - name: submit_password
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_password: password
+    http_output:
+      http_status: 302
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_password.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - name: oauth_exchange_code_1
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "C~higTZz5CcHWA2UfOg1X.u~EX0OoJkERLbso0YeFfEaqi3eki.JTEQ5SXJR5fE~"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # Second OAuth authorization while the session established by the first
+  # login is still valid (and not suppressed this time). This should reach
+  # /authflow/v2/select_account and render "Continue as X" because the
+  # default (auto-generated) login flow now always includes a leading
+  # select_account entry (see generate_config_login_flow.go), and the
+  # select_account handler resolves that flow via the authentication flow
+  # engine instead of independently re-deriving eligibility.
+  - name: authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: _KHfZq_nzdUr8mdstm_JWKdzbxQIeCW-pKjxf9IJEnc
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "true"
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/select_account
+      html_xpath_exists:
+        - "//form//button[@name='x_action'][@value='continue']"
+        - "//form//button[@name='x_action'][@value='login']"
+      html_text_contains:
+        - "Proceed to continue."
+
+  # Continue with the current account. Internally this advances the login
+  # flow's identify step with {"identification": "select_account", "index": 0}
+  # (the new engine path) rather than minting a session directly.
+  - name: select_account_continue
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.authorize_2.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_action: continue
+    http_output:
+      http_status: 302
+  - name: finish_flow_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.select_account_continue.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - name: oauth_exchange_code_2
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "H8ZPD~2mS4BtiJwzd6fudpzZktJxod.3WA1Oz9l0~uccW9Gjux4FiRitWlhX_PEU"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow_2.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # Drop the still-valid IDP session cookie from the jar before the next
+  # request. Otherwise the userinfo call below would authenticate via that
+  # cookie instead of the Authorization header, silently passing even if the
+  # access token itself is broken - defeating the point of this check (see
+  # Client.ClearCookies's doc comment on this exact cookie-jar-leak pitfall).
+  - name: clear_cookies_before_userinfo
+    action: clear_cookies
+
+  # The offline grant backing this access token is SSO-enabled (x_sso_enabled
+  # above) and was issued by continuing the existing session rather than
+  # minting a new one. Calling userinfo with it confirms the continued
+  # session's IDP session id was actually recorded on the offline grant -
+  # otherwise resolving this token later fails with invalid_grant because an
+  # SSO-enabled offline grant with no idp_session_id can never be resolved
+  # (see accessOfflineGrant in pkg/lib/oauth/resolver.go).
+  - name: userinfo_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.oauth_exchange_code_2.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+  # user.authenticated should fire once per login (twice total), with the
+  # second one carrying continue_from_session - proving the new engine path
+  # reused the existing session rather than rotating it.
+  - name: verify_event_count
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+      ORDER BY created_at
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.authenticated"
+          },
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]
+  - name: verify_continue_from_session
+    action: audit_query
+    audit_query: |
+      SELECT data->'payload'->'continue_from_session' AS continue_from_session
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.authenticated'
+        AND data->'payload'->'continue_from_session' IS NOT NULL
+      LIMIT 1
+    audit_query_output:
+      rows: |
+        [
+          {
+            "continue_from_session": "[[object]]"
+          }
+        ]

@@ -228,23 +228,62 @@ func (c *Client) OAuthRedirect(url string, redirectUntil string) (finalURL strin
 	}
 }
 
-func (c *Client) SetupOAuth() (output map[string]any, err error) {
+type SetupOAuthOptions struct {
+	// ClientID defaults to "e2e" when empty.
+	ClientID string
+	// Scope defaults to {"openid", "offline_access", "https://authgear.com/scopes/full-access"} when empty.
+	Scope []string
+	// SSOEnabled controls x_sso_enabled. It defaults to false (matching the
+	// historical hardcoded behavior): the IDP session cookie is suppressed,
+	// and the client only relies on the returned tokens. Set to true when the
+	// test needs a real IDP session cookie to be set (e.g. testing
+	// session-cookie-dependent behavior like RP-initiated logout).
+	SSOEnabled bool
+	// SSOEnabledOmitted, when true, omits x_sso_enabled from the request
+	// entirely (SSOEnabled is then ignored). This models a real OIDC client
+	// that doesn't know about Authgear's x_sso_enabled extension at all --
+	// distinct from explicitly requesting SSOEnabled=false. Per
+	// AuthorizationRequest.SuppressIDPSessionCookie's backward-compatibility
+	// default, an absent x_sso_enabled still gets a real IDP session cookie,
+	// but AuthorizationRequest.SSOEnabled() still defaults to false, so the
+	// resulting offline grant ends up with IDPSessionID set but
+	// SSOEnabled=false -- a real, common combination distinct from either
+	// SSOEnabled: true or SSOEnabled: false above.
+	SSOEnabledOmitted bool
+}
+
+func (c *Client) SetupOAuth(opts SetupOAuthOptions) (output map[string]any, err error) {
+	clientID := opts.ClientID
+	if clientID == "" {
+		clientID = "e2e"
+	}
+	scope := opts.Scope
+	if len(scope) == 0 {
+		scope = []string{
+			"openid",
+			"offline_access",
+			"https://authgear.com/scopes/full-access",
+		}
+	}
+
 	u := c.MainEndpoint.JoinPath("/oauth2/authorize")
 
 	values := make(url.Values)
-	values.Set("client_id", "e2e")
+	values.Set("client_id", clientID)
 	values.Set("redirect_uri", "http://localhost:4000")
 	values.Set("response_type", "code")
 	values.Set("code_challenge_method", "S256")
 
 	codeVerifier := pkce.GenerateS256Verifier()
 	values.Set("code_challenge", codeVerifier.Challenge())
-	values.Set("scope", strings.Join([]string{
-		"openid",
-		"offline_access",
-		"https://authgear.com/scopes/full-access",
-	}, " "))
-	values.Set("x_sso_enabled", "false")
+	values.Set("scope", strings.Join(scope, " "))
+	if !opts.SSOEnabledOmitted {
+		if opts.SSOEnabled {
+			values.Set("x_sso_enabled", "true")
+		} else {
+			values.Set("x_sso_enabled", "false")
+		}
+	}
 
 	u.RawQuery = values.Encode()
 
@@ -276,11 +315,24 @@ func (c *Client) SetupOAuth() (output map[string]any, err error) {
 type OAuthExchangeCodeOptions struct {
 	CodeVerifier string
 	RedirectURI  string
+	// ClientID defaults to "e2e" when empty.
+	ClientID string
+	// ClientSecret is omitted from the token request when empty.
+	ClientSecret string
 }
 
 type OAuthExchangeCodeResult struct {
 	IDToken     map[string]any `json:"id_token"`
 	AccessToken string         `json:"access_token"`
+	// RawIDToken is the signed JWT string as returned by the token endpoint,
+	// for use as id_token_hint in a later request (IDToken only exposes the
+	// decoded claims, not the string needed for that).
+	RawIDToken string `json:"raw_id_token"`
+	// RefreshToken lets a test independently verify that a logout actually
+	// revoked the underlying offline grant: presenting it again via a
+	// refresh_token grant after logout must fail, since ParseRefreshToken
+	// looks the grant up from storage, not from any in-request state.
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
@@ -313,14 +365,22 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 		code = redirectURI.Query().Get("code")
 	}
 
+	clientID := opts.ClientID
+	if clientID == "" {
+		clientID = "e2e"
+	}
+
 	u := c.MainEndpoint.JoinPath("/oauth2/token")
 
 	values := make(url.Values)
 	values.Set("grant_type", "authorization_code")
-	values.Set("client_id", "e2e")
+	values.Set("client_id", clientID)
 	values.Set("code", code)
 	values.Set("redirect_uri", "http://localhost:4000")
 	values.Set("code_verifier", opts.CodeVerifier)
+	if opts.ClientSecret != "" {
+		values.Set("client_secret", opts.ClientSecret)
+	}
 
 	tokenReq, err := http.NewRequestWithContext(
 		c.Context,
@@ -365,10 +425,66 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 	}
 
 	accessToken, _ := tokenRespBody["access_token"].(string)
+	refreshToken, _ := tokenRespBody["refresh_token"].(string)
 
 	result = &OAuthExchangeCodeResult{
-		IDToken:     idTokenMap,
-		AccessToken: accessToken,
+		IDToken:      idTokenMap,
+		AccessToken:  accessToken,
+		RawIDToken:   idTokenStr,
+		RefreshToken: refreshToken,
+	}
+	return
+}
+
+// ApproveConsent approves the OAuth consent screen for a non-first-party
+// client on its first grant. redirectURI is the login flow's
+// finish_redirect_uri: reaching the consent page requires following the
+// same-origin redirect chain from there (through /oauth2/authorize deciding
+// consent is required) down to /oauth2/consent, which carries the oauth
+// session reference in its query/cookie state - unlike SetupOAuth's redirect,
+// there is no fixed, parameter-free consent URL to GET directly.
+// It assumes the current cookie jar already holds a session cookie from a
+// prior login.
+func (c *Client) ApproveConsent(redirectURI string) (output map[string]any, err error) {
+	getReq, err := http.NewRequestWithContext(c.Context, "GET", redirectURI, nil)
+	if err != nil {
+		return
+	}
+
+	// Follow the same-origin redirect chain (finish_redirect_uri ->
+	// /oauth2/authorize -> /oauth2/consent) down to the rendered consent
+	// page; unlike the post-consent redirect to the client's redirect_uri,
+	// every hop here stays on Authgear's own origin.
+	getResp, err := c.HTTPClient.Do(getReq)
+	if err != nil {
+		return
+	}
+	defer getResp.Body.Close()
+
+	consentURL := getResp.Request.URL.String()
+
+	values := make(url.Values)
+	values.Set("x_action", "consent")
+
+	postReq, err := http.NewRequestWithContext(
+		c.Context,
+		"POST",
+		consentURL,
+		strings.NewReader(values.Encode()),
+	)
+	if err != nil {
+		return
+	}
+	postReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	postResp, err := c.NoRedirectClient.Do(postReq)
+	if err != nil {
+		return
+	}
+	defer postResp.Body.Close()
+
+	output = map[string]any{
+		"redirect_uri": postResp.Header.Get("Location"),
 	}
 	return
 }
@@ -409,6 +525,40 @@ func (c *Client) InjectSession(idpSessionID string, idpSessionToken string) {
 	c.CookieJar.SetCookies(urlWithProjectHost, []*http.Cookie{
 		{Name: "session", Value: encodedToken},
 	})
+}
+
+// ClearCookies discards every cookie the client has accumulated so far
+// (e.g. a prior login's session and same-site-strict companion cookie) by
+// replacing the jar with a fresh, empty one. Unlike a real browser, this
+// client's cookiejar does not model SameSite policy at all, so cookies set
+// by an earlier interactive step (which a real cross-site caller would
+// never see attached) otherwise leak into later requests in the same test
+// case and mask SameSite-dependent behavior. If names is non-empty, only
+// those cookies (by exact name) are removed; everything else (e.g. the
+// current session cookie) is preserved.
+func (c *Client) ClearCookies(names ...string) {
+	if len(names) == 0 {
+		jar, err := cookiejar.New(nil)
+		if err != nil {
+			panic(err)
+		}
+		hostAwareJar := &HostAwareCookieJar{
+			Jar:           jar,
+			CorrectedHost: string(c.HTTPHost),
+		}
+		c.CookieJar = hostAwareJar
+		c.HTTPClient.Jar = hostAwareJar
+		c.NoRedirectClient.Jar = hostAwareJar
+		return
+	}
+
+	urlWithProjectHost := c.MainEndpoint.JoinPath("")
+	urlWithProjectHost.Host = string(c.HTTPHost)
+	expired := make([]*http.Cookie, len(names))
+	for i, name := range names {
+		expired[i] = &http.Cookie{Name: name, Value: "", MaxAge: -1}
+	}
+	c.CookieJar.SetCookies(urlWithProjectHost, expired)
 }
 
 func (c *Client) SendSAMLRequest(

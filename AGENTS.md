@@ -69,6 +69,7 @@ authgear-server/
 | Core auth logic (OAuth, OIDC, sessions, flows) | `pkg/lib/` |
 | Background jobs / workers | `cmd/authgear/background/` |
 | Config schema & validation | `pkg/lib/config/`, `cmd/authgear/config/` |
+| Feature config (`authgear.features.yaml`) | `pkg/lib/config/feature_*.go` — **merge must be field-level, see `update-feature-config` skill** |
 | E2E tests | `e2e/tests/` |
 
 ## Documentation map
@@ -129,10 +130,12 @@ Use existing repo skills instead of one-off instructions when they fit:
 
 - `api-design`
 - `bootstrap-local-dev` — **use this for first-time setup on a fresh machine** (asdf + Homebrew install, env files, DB migrations, MinIO, bootstrap account)
-- `dep-audit`
+- `update-deps`
 - `new-siteadmin-api`
-- `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls)
+- `review-pr` — **mandatory before marking any code change complete** (see Verification below), also usable on demand for "review this PR/branch"
+- `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls, hardcoded/untranslated text)
 - `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects)
+- `update-feature-config` — **use this before adding or changing any `pkg/lib/config/feature_*.go` field or `Merge` implementation** (field-level merge is a hard requirement, plus required test coverage in `merge_feature.yaml`)
 - `write-e2e-test` — **includes patterns for testing feature variants and actual functionality. Use this before writing, editing, or running e2e tests** (see "Common Patterns" section)
 - Repo-local skills for Go tests, Portal GraphQL operations, Go version updates, important-module updates, and vetted-position updates
 
@@ -186,3 +189,4 @@ The **PR number is appended** to the subject of the squash-merge commit (added b
 - Go changes: run `go test` on the affected package(s), and wider tests if the change is shared infrastructure.
 - Frontend changes: run the relevant `npm run build` or `npm run typecheck` command in the affected package.
 - Generated files: rerun the generator that owns the file, not a manual edit.
+- **Before marking any code change complete, run the `review-pr` skill on the diff and resolve every Bugs/Security/Performance/Code quality finding it reports** (or, if a finding is a false positive, say why). `review-pr` also runs the CI-equivalent lint/typecheck/test/build commands for every touched package — a change isn't complete until those pass, not just until the code "looks right." Don't rely on skills like `update-portal-ui` alone to catch issues: those encode specific known pitfalls, not a general correctness/performance/security review — `review-pr` is the general-purpose gate that catches what the narrower skills don't anticipate.

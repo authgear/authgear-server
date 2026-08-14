@@ -145,6 +145,7 @@ func (h *TesterHandler) triggerAuth(ctx context.Context, token string, w http.Re
 
 	redirectTo := h.OauthEndpointsProvider.AuthorizeEndpointURL()
 	redirectTo.RawQuery = q.Encode()
+	// #nosec G710 -- redirectTo's scheme/host come from the server-configured AuthorizeEndpointURL; only the query string (built from fixed keys above) is set.
 	http.Redirect(w, r, redirectTo.String(), http.StatusFound)
 
 	return nil
@@ -245,6 +246,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 
 	redirectTo := h.TesterEndpointsProvider.TesterURL()
 	redirectTo.RawQuery = q.Encode()
+	// #nosec G710 -- redirectTo's scheme/host come from the server-configured TesterURL; only the query string (built from fixed keys above) is set.
 	http.Redirect(w, r, redirectTo.String(), http.StatusFound)
 
 	return nil

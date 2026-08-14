@@ -1,0 +1,86 @@
+name: SignupLogin switch succeeds even when select_account sits at a different index in the source and target flows
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            signup_flow: default
+            login_flow: default_login
+          - identification: select_account
+            login_flow: default_login
+      login_flows:
+      - name: default_login
+        steps:
+        - type: identify
+          one_of:
+          - identification: select_account
+          - identification: username
+            steps:
+            - type: authenticate
+              one_of:
+              - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-select-account-index-mismatch-session-1
+      token: e2eselectaccountindexmismatchsessiontoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_select_account';
+steps:
+  - action: "create"
+    session_cookie:
+      idp_session_id: e2e-select-account-index-mismatch-session-1
+      idp_session_token: e2eselectaccountindexmismatchsessiontoken1
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup_login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                {
+                  "identification": "username"
+                },
+                {
+                  "identification": "select_account",
+                  "display_name": "e2e_select_account"
+                }
+              ]
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "select_account",
+        "index": 1
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default_login",
+          "action": {
+            "type": "finished"
+          }
+        }

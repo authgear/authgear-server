@@ -1,19 +1,48 @@
 name: Site Admin - Audit Logs
 app_id: e2e-portal
+authgear.yaml:
+  override: |
+    http:
+      public_origin: "http://localhost:4000"
 before:
+- type: custom_sql
+  custom_sql:
+    path: fixture/seed_siteadmin_actor.sql
 - type: custom_audit_sql
   custom_audit_sql:
     path: fixture/seed_siteadmin_audit_logs.sql
 
 steps:
+# ── Authentication ─────────────────────────────────────────────────────────
+# Generate a Bearer access token for the test actor via the e2e-portal OAuth
+# server at localhost:4000 (SITEADMIN_AUTHGEAR_ENDPOINT).
+- name: generate_token
+  action: generate_refresh_token
+  generate_refresh_token_user_id: "00000000-0000-0000-0000-000000000001"
+  generate_refresh_token_client_id: e2e
+
+- name: get_access_token
+  action: http_request
+  http_request_method: POST
+  http_request_url: http://localhost:4000/oauth2/token
+  http_request_form_urlencoded_body:
+    grant_type: refresh_token
+    refresh_token: "{{ .steps.generate_token.result.refresh_token }}"
+    client_id: e2e
+  http_output:
+    http_status: 200
+    json_body: |
+      {
+        "access_token": "[[string]]"
+      }
+
 # ── List: basic structure ──────────────────────────────────────────────────
 - name: list_audit_logs
   action: http_request
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -31,8 +60,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     affected_app_id: "e2e-audit-log-app"
   http_output:
@@ -51,8 +79,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     affected_app_id: "e2e-audit-log-app"
     order: "desc"
@@ -74,8 +101,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     affected_app_id: "e2e-audit-log-app"
     order: "asc"
@@ -97,8 +123,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_request_query:
     affected_app_id: "e2e-audit-log-app"
     page_size: "1"
@@ -119,8 +144,7 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs/e2e000000000003
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 200
     json_body: |
@@ -140,7 +164,6 @@ steps:
   http_request_method: GET
   http_request_url: http://127.0.0.1:4003/api/v1/audit-logs/0000000000000000
   http_request_headers:
-    X-Authgear-Session-Valid: "true"
-    X-Authgear-User-Id: "00000000-0000-0000-0000-000000000001"
+    Authorization: "Bearer {{ .steps.get_access_token.result.http_json_body.access_token }}"
   http_output:
     http_status: 404

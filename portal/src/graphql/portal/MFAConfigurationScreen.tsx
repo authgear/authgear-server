@@ -108,7 +108,7 @@ interface FormState
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -698,7 +698,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     isLoading:
       configForm.isLoading || featureConfig.isLoading || secretConfig.isLoading,
     isUpdating: configForm.isUpdating,
-    isDirty: configForm.isDirty,
+    getIsDirty: configForm.getIsDirty,
     loadError:
       configForm.loadError ?? featureConfig.loadError ?? secretConfig.loadError,
     updateError: configForm.updateError,

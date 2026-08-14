@@ -811,16 +811,192 @@ func newAppPlanChangeHandler(p *deps.RequestProvider) http.Handler {
 	return appPlanChangeHandler
 }
 
+func newAppFeatureConfigGetHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
+	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	featureConfigService := &service.FeatureConfigService{
+		GlobalDatabase:    handle,
+		PlanStore:         store,
+		ConfigSourceStore: configsourceStore,
+		AuditService:      siteAdminAuditService,
+		BaseResources:     appBaseResources,
+		Clock:             clockClock,
+	}
+	appFeatureConfigGetHandler := &transport.AppFeatureConfigGetHandler{
+		Service: featureConfigService,
+	}
+	return appFeatureConfigGetHandler
+}
+
+func newAppFeatureConfigUpdateHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
+	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	featureConfigService := &service.FeatureConfigService{
+		GlobalDatabase:    handle,
+		PlanStore:         store,
+		ConfigSourceStore: configsourceStore,
+		AuditService:      siteAdminAuditService,
+		BaseResources:     appBaseResources,
+		Clock:             clockClock,
+	}
+	appFeatureConfigUpdateHandler := &transport.AppFeatureConfigUpdateHandler{
+		Service: featureConfigService,
+	}
+	return appFeatureConfigUpdateHandler
+}
+
+func newAppFeatureConfigPreviewHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := newSiteadminGlobalHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	authgearConfig := rootProvider.AuthgearConfig
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	siteAdminAuditService := &service.SiteAdminAuditService{
+		AuditDatabase:     writeHandle,
+		SQLBuilder:        auditdbSQLBuilder,
+		WriteSQLExecutor:  writeSQLExecutor,
+		Clock:             clockClock,
+		AuthgearConfig:    authgearConfig,
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		HTTPRequestURL:    httpRequestURL,
+		Request:           request,
+		GlobalDatabase:    handle,
+		GlobalSQLBuilder:  sqlBuilder,
+		GlobalSQLExecutor: sqlExecutor,
+	}
+	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	featureConfigService := &service.FeatureConfigService{
+		GlobalDatabase:    handle,
+		PlanStore:         store,
+		ConfigSourceStore: configsourceStore,
+		AuditService:      siteAdminAuditService,
+		BaseResources:     appBaseResources,
+		Clock:             clockClock,
+	}
+	appFeatureConfigPreviewHandler := &transport.AppFeatureConfigPreviewHandler{
+		Service: featureConfigService,
+	}
+	return appFeatureConfigPreviewHandler
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
 	httpClient := session.NewHTTPClient()
 	clockClock := _wireSystemClockValue
-	sessionInfoMiddleware := &session.SessionInfoMiddleware{
-		AuthgearConfig: authgearConfig,
-		HTTPClient:     httpClient,
-		Clock:          clockClock,
-	}
+	sessionInfoMiddleware := provideSiteAdminSessionInfoMiddleware(authgearConfig, httpClient, clockClock)
 	return sessionInfoMiddleware
 }
 

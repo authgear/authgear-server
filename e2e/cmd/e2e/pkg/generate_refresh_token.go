@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -19,6 +21,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+// isUniqueViolation reports whether err is a Postgres unique_violation (23505).
+func isUniqueViolation(err error) bool {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == "23505"
+	}
+	return false
+}
 
 const refreshTokenLifetime = 30 * 24 * time.Hour
 
@@ -71,26 +82,38 @@ func (c *End2End) GenerateRefreshToken(ctx context.Context, appID, userID, clien
 		scopes := []string{oauth.ScopeOpenID, oauth.OfflineAccess, oauth.FullAccessScope}
 
 		var authz *oauth.Authorization
-		err := appProvider.AppDatabase.WithTx(ctx, func(ctx context.Context) error {
-			existing, err := authzStore.Get(ctx, userID, clientID)
-			if err != nil && !errors.Is(err, oauth.ErrAuthorizationNotFound) {
-				return err
-			}
-			if existing != nil {
-				authz = existing
-				return nil
-			}
-			authz = &oauth.Authorization{
-				ID:        uuid.New(),
-				AppID:     string(appIDCfg),
-				ClientID:  clientID,
-				UserID:    userID,
-				CreatedAt: now,
-				UpdatedAt: now,
-				Scopes:    scopes,
-			}
-			return authzStore.Create(ctx, authz)
-		})
+		getOrCreate := func() error {
+			return appProvider.AppDatabase.WithTx(ctx, func(ctx context.Context) error {
+				existing, err := authzStore.Get(ctx, userID, clientID)
+				if err != nil && !errors.Is(err, oauth.ErrAuthorizationNotFound) {
+					return err
+				}
+				if existing != nil {
+					authz = existing
+					return nil
+				}
+				authz = &oauth.Authorization{
+					ID:        uuid.New(),
+					AppID:     string(appIDCfg),
+					ClientID:  clientID,
+					UserID:    userID,
+					CreatedAt: now,
+					UpdatedAt: now,
+					Scopes:    scopes,
+				}
+				return authzStore.Create(ctx, authz)
+			})
+		}
+		err := getOrCreate()
+		if err != nil && isUniqueViolation(err) {
+			// Lost a Get-then-Create race to a concurrent call for the same
+			// (app, user, client) e.g. when e2e tests share an actor across
+			// parallel test cases. By the time Postgres reports the unique
+			// violation, the winning transaction has already committed, so a
+			// retry will find the row via Get.
+			authz = nil
+			err = getOrCreate()
+		}
 		if err != nil {
 			return err
 		}

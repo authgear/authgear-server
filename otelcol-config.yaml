@@ -15,6 +15,51 @@ processors:
         value: local
         action: upsert
 
+  # Stamp which otelcol replica processes this data, using OTEL_K8S_POD_NAME,
+  # which the opentelemetry-collector Helm chart injects by default via the
+  # downward API (metadata.name). This is only STABLE across restarts if the
+  # chart is deployed with `mode: statefulset` (ordinals like otel-collector-0)
+  # rather than `deployment` (random suffix per restart). In local dev
+  # (docker-compose, no Kubernetes), we set it to a fixed value ourselves,
+  # see docker-compose.yaml.
+  # This runs before transform/metrics_resource_allowlist and
+  # deltatocumulative below, so that every metric this replica processes
+  # carries its own ID. That makes each replica's deltatocumulative
+  # accumulator self-contained: a given (metric, project_id,
+  # collector.replica_id) combination can only ever be produced by this one
+  # replica, so no consistent/sticky routing is required upstream (plain
+  # round-robin across otelcol replicas is fine).
+  # Query with sum by (project_id) (increase(...)) to add the replicas'
+  # partial series back together.
+  resource/collector_replica_id:
+    attributes:
+      - key: collector.replica_id
+        value: ${env:OTEL_K8S_POD_NAME}
+        action: insert
+
+  # Allowlist resource attributes for metrics.
+  # host.name, container.id, service.version etc. churn on every pod
+  # recreation/deploy. With delta temporality, that churn creates new
+  # series (and new deltatocumulative accumulator state in this collector)
+  # every time, so we only keep service.name (and collector.replica_id,
+  # added above) here.
+  # deployment.environment.name does not need to be listed: it is set by
+  # the `attributes` processor above at the metric-datapoint level, not on
+  # the Resource, so it is unaffected by this resource-scoped allowlist.
+  transform/metrics_resource_allowlist:
+    metric_statements:
+      - context: resource
+        statements:
+          - keep_keys(attributes, ["service.name", "collector.replica_id"])
+
+  # Prometheus (and prometheusremotewrite) only understands cumulative
+  # counters, so convert the delta samples we now emit back to cumulative
+  # here. Must run after transform/metrics_resource_allowlist so that
+  # series from different pods of the same service (but the same
+  # collector.replica_id) collapse into one accumulator instead of one per pod.
+  deltatocumulative:
+    max_stale: 15m
+
 exporters:
   prometheusremotewrite:
     endpoint: http://prometheus:9090/api/v1/write
@@ -31,7 +76,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [attributes]
+      processors: [attributes, resource/collector_replica_id, transform/metrics_resource_allowlist, deltatocumulative]
       exporters: [prometheusremotewrite]
     traces:
       receivers: [otlp]

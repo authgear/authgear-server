@@ -1,0 +1,16 @@
+.card {
+  @apply flex min-w-0 flex-row items-start gap-8 rounded-lg border border-solid bg-white p-6;
+  border-color: var(--gray-5);
+
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-4;
+}
+
+.title {
+  @apply shrink-0;
+  width: 200px;
+  color: var(--gray-12);
+}
+
+.content {
+  @apply flex w-full min-w-0 flex-1 flex-col;
+}

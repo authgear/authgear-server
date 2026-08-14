@@ -97,6 +97,25 @@ value:
         one_of:
         - authentication: secondary_totp
 ---
+part: AuthenticationFlowLoginFlow
+name: select_account
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: select_account
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: secondary_totp
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_password
+---
 part: AuthenticationFlowLoginFlowStep
 name: optional-true
 error: null

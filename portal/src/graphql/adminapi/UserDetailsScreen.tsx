@@ -22,7 +22,8 @@ import UserDetailsSession from "./UserDetailsSession";
 import UserDetailsAuthorization from "./UserDetailsAuthorization";
 
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
-import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { useUserQuery } from "./query/userQuery";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
@@ -532,12 +533,12 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           )
         );
         refreshUser?.();
+        return { result: undefined };
       },
       [updateUser, customAttributesConfig, refreshUser]
     );
 
-    const form = useSimpleForm({
-      stateMode: "UpdateInitialStateWithUseEffect",
+    const form = useFormWithExternalInitialState({
       defaultState,
       submit,
     });

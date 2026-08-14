@@ -81,7 +81,29 @@ func (c *TestModeFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConf
 	if layer.TestMode == nil {
 		return c
 	}
-	return layer.TestMode
+
+	merged := c
+	if merged == nil {
+		merged = &TestModeFeatureConfig{}
+	}
+
+	if layer.TestMode.FixedOOBOTP != nil {
+		merged.FixedOOBOTP = layer.TestMode.FixedOOBOTP
+	}
+	if layer.TestMode.DeterministicLinkOTP != nil {
+		merged.DeterministicLinkOTP = layer.TestMode.DeterministicLinkOTP
+	}
+	if layer.TestMode.SMS != nil {
+		merged.SMS = layer.TestMode.SMS
+	}
+	if layer.TestMode.Whatsapp != nil {
+		merged.Whatsapp = layer.TestMode.Whatsapp
+	}
+	if layer.TestMode.Email != nil {
+		merged.Email = layer.TestMode.Email
+	}
+
+	return merged
 }
 
 type TestModeFixedOOBOTPFeatureConfig struct {

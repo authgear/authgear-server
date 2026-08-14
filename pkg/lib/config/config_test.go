@@ -82,6 +82,25 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 			So(appConfig.UI.PhoneInput.AllowList, ShouldBeNil)
 		})
 
+		Convey("explicit empty feature allowlist means allow all, same as nil", func() {
+			appConfig := &config.AppConfig{
+				UI: &config.UIConfig{
+					PhoneInput: &config.PhoneInputConfig{
+						AllowList: []string{"SG", "MY", "TH"},
+					},
+				},
+			}
+			featureConfig := &config.FeatureConfig{
+				UI: &config.UIFeatureConfig{
+					PhoneInput: &config.PhoneInputFeatureConfig{
+						AllowList: []string{}, // explicit empty, not nil -- an app override clearing a plan restriction
+					},
+				},
+			}
+			config.ApplyFeatureConfigConstraints(appConfig, featureConfig)
+			So(appConfig.UI.PhoneInput.AllowList, ShouldResemble, []string{"SG", "MY", "TH"})
+		})
+
 		Convey("does not panic when phone input config is absent", func() {
 			So(func() {
 				config.ApplyFeatureConfigConstraints(&config.AppConfig{}, &config.FeatureConfig{})

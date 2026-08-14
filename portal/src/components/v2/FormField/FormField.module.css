@@ -21,6 +21,10 @@
   color: var(--white-a6);
 }
 
+.formField__labelRequired {
+  color: var(--red-11);
+}
+
 .formField__inputContainer {
   @apply grid grid-cols-1 content-start text-left grid-flow-row;
   gap: var(--space-1);

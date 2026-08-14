@@ -94,7 +94,7 @@ interface FormState extends ResourcesFormState {
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -1183,7 +1183,7 @@ const LocalizationConfigurationScreen: React.VFC =
       () => ({
         isLoading: config.isLoading || resources.isLoading,
         isUpdating: resources.isUpdating,
-        isDirty: resources.isDirty,
+        getIsDirty: resources.getIsDirty,
         loadError: config.loadError ?? resources.loadError,
         updateError: resources.updateError,
         state,

@@ -8,7 +8,8 @@ import React, {
 import { useSystemConfig } from "../../../context/SystemConfigContext";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
-import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
+import { SimpleFormModel } from "../../../hook/useSimpleForm";
+import { useFormWithExternalInitialState } from "../../../hook/useFormWithExternalInitialState";
 import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsVeriticalFormLayout,
@@ -169,6 +170,7 @@ export const GroupDetailsSettingsForm: React.VFC<{
         name: sanitizedGroup.name,
         description: sanitizedGroup.description,
       });
+      return { result: undefined };
     },
     [group.id, updateGroup]
   );
@@ -181,8 +183,7 @@ export const GroupDetailsSettingsForm: React.VFC<{
     };
   }, [group]);
 
-  const form = useSimpleForm({
-    stateMode: "UpdateInitialStateWithUseEffect",
+  const form = useFormWithExternalInitialState({
     defaultState,
     submit,
     validate,

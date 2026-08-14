@@ -1,3 +1,11 @@
 .secondaryButton {
   font-weight: var(--font-weight-medium);
 }
+
+.secondaryButton:where([data-disabled]) {
+  background-color: var(--gray-a3);
+  color: var(--gray-a8);
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}

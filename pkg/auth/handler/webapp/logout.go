@@ -120,6 +120,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// If no saml service provider is pending logout
+		// #nosec G710 -- redirectURI comes from webapp.GetRedirectURI, which enforces same-origin, or webapp.ResolvePostLogoutRedirectURI, which allow-lists against the OAuth client's registered PostLogoutRedirectURIs.
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 

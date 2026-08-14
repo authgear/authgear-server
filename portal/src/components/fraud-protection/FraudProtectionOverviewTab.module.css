@@ -9,6 +9,8 @@
 .overviewTimeRange {
   @apply flex items-center gap-3 text-xs;
   color: #605e5c;
+  font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system,
+    BlinkMacSystemFont, "Noto Sans", "Helvetica", "Arial", sans-serif;
 }
 
 .overviewTimeRangeGroup {
@@ -26,33 +28,31 @@
 }
 
 .overviewLayout {
-  @apply flex flex-wrap gap-4;
+  @apply flex flex-col gap-4;
 }
 
-.overviewMain {
+.overviewCardsRow {
+  @apply grid grid-cols-2 gap-4;
+}
+
+@media (min-width: 900px) {
+  .overviewCardsRow {
+    @apply grid-cols-4;
+  }
+}
+
+.overviewBottomRow {
   @apply grid grid-cols-1 gap-4;
-  min-width: min(100%, 480px);
-  flex: 2 1 0px;
 }
 
-@media (min-width: 640px) {
-  .overviewMain {
+@media (min-width: 768px) {
+  .overviewBottomRow {
     @apply grid-cols-2;
   }
 }
 
-.overviewMainRow1 {
-  @apply col-span-1 grid grid-cols-1 gap-4;
-}
-
-@media (min-width: 640px) {
-  .overviewMainRow1 {
-    @apply col-span-2 grid-cols-2;
+@media (min-width: 1200px) {
+  .overviewBottomRow {
+    @apply grid-cols-3;
   }
-}
-
-.overviewSide {
-  @apply flex flex-none flex-col self-start;
-  flex: 1 1 0px;
-  min-width: min(100%, 300px);
 }

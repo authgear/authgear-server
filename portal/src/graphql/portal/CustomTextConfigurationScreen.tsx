@@ -42,7 +42,7 @@ interface FormState extends ResourcesFormState {
 interface FormModel {
   isLoading: boolean;
   isUpdating: boolean;
-  isDirty: boolean;
+  getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
   state: FormState;
@@ -111,7 +111,7 @@ const CustomTextConfigurationScreen: React.VFC =
       () => ({
         isLoading: config.isLoading || resourceForm.isLoading,
         isUpdating: resourceForm.isUpdating,
-        isDirty: resourceForm.isDirty,
+        getIsDirty: resourceForm.getIsDirty,
         loadError: config.loadError ?? resourceForm.loadError,
         updateError: resourceForm.updateError,
         state,

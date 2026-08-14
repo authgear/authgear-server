@@ -13,9 +13,23 @@ import (
 )
 
 type MigrateResourcesOptions struct {
-	DatabaseURL            string
-	DatabaseSchema         string
-	DryRun                 *bool
+	DatabaseURL    string
+	DatabaseSchema string
+	DryRun         *bool
+
+	// AuthgearYAMLContains, when non-empty, narrows the config sources loaded
+	// into memory to those whose decoded authgear.yaml contains this substring.
+	//
+	// This exists purely for speed. A config source's data holds every resource
+	// the app has customised -- templates, translations, base64 images -- so
+	// loading all of them costs far more than the authgear.yaml the migration
+	// actually looks at. Filtering in the database avoids shipping (and
+	// allocating) the payloads of apps the migration would skip anyway.
+	//
+	// It MUST be a necessary condition for UpdateConfigSourceFunc to make a
+	// change, otherwise apps are silently skipped.
+	AuthgearYAMLContains string
+
 	UpdateConfigSourceFunc func(ctx context.Context, appID string, configSourceData map[string]string, DryRun bool) error
 }
 
@@ -23,7 +37,23 @@ type MigrateResourcesOptions struct {
 func MigrateResources(ctx context.Context, opt *MigrateResourcesOptions) {
 	db := openDB(opt.DatabaseURL, opt.DatabaseSchema)
 
-	configSourceList, err := selectConfigSources(ctx, db, nil)
+	var appIDs []string
+	if opt.AuthgearYAMLContains != "" {
+		var err error
+		appIDs, err = selectAppIDsByAuthgearYAMLSubstring(ctx, db, opt.AuthgearYAMLContains)
+		if err != nil {
+			log.Fatalf("failed to select candidate app ids: %s", err)
+		}
+		log.Printf("narrowed to %d apps whose authgear.yaml contains %q", len(appIDs), opt.AuthgearYAMLContains)
+		if len(appIDs) == 0 {
+			// selectConfigSources treats an empty slice as "no filter", so stop
+			// here rather than loading every config source.
+			log.Printf("nothing to do")
+			return
+		}
+	}
+
+	configSourceList, err := selectConfigSources(ctx, db, appIDs)
 	if err != nil {
 		log.Fatalf("failed to connect db: %s", err)
 	}

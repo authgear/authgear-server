@@ -325,7 +325,8 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 				"oauth",
 				"passkey",
 				"ldap",
-				"id_token"
+				"id_token",
+				"select_account"
 			]
 		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
@@ -418,7 +419,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowStep", `
 var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 {
 	"type": "object",
-	"required": ["identification", "signup_flow", "login_flow"],
+	"required": ["identification"],
 	"properties": {
 		"identification": {
 			"type": "string",
@@ -429,13 +430,30 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 				"oauth",
 				"passkey",
 				"ldap",
-				"id_token"
+				"id_token",
+				"select_account"
 			]
 		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
-	}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"identification": { "const": "select_account" }
+				}
+			},
+			"then": {
+				"required": ["login_flow"],
+				"not": { "required": ["signup_flow"] }
+			},
+			"else": {
+				"required": ["signup_flow", "login_flow"]
+			}
+		}
+	]
 }
 `)
 

@@ -90,16 +90,7 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 		return "", err
 	}
 
-	cfg, err := config.Parse(ctx, []byte(authgearYAML))
-	if err != nil {
-		return "", err
-	}
-
-	mergedYAML, err := mergeYAMLObjects(authgearYAML, []byte(overrideYAML))
-	if err != nil {
-		return "", err
-	}
-	cfg, err = config.Parse(ctx, mergedYAML)
+	cfg, err := config.Parse(ctx, authgearYAML)
 	if err != nil {
 		return "", err
 	}
@@ -107,7 +98,18 @@ func (c *End2End) createTempConfigSource(ctx context.Context, appID string, base
 	cfg.ID = config.AppID(appID)
 	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.authgeare2e.localhost:4000", appID)
 
-	newAuthgearYAML, err := exportConfig(cfg)
+	defaultedYAML, err := exportConfig(cfg)
+	if err != nil {
+		return "", err
+	}
+
+	// Merge the override last so explicit values win over the hardcoded defaults above.
+	newAuthgearYAML, err := mergeYAMLObjects(defaultedYAML, []byte(overrideYAML))
+	if err != nil {
+		return "", err
+	}
+	// Validate only — we write the raw YAML bytes, not a re-exported struct.
+	_, err = config.Parse(ctx, newAuthgearYAML)
 	if err != nil {
 		return "", err
 	}

@@ -170,7 +170,13 @@ func (s *ReadStore) queryFraudProtectionDecisionRecordsBase(
 	opts FraudProtectionDecisionRecordQueryOptions,
 ) db.SelectBuilder {
 	query := s.SQLBuilder.
-		Select("id", "created_at", "data").
+		Select(
+			"id",
+			"created_at",
+			"data",
+			"COALESCE(host(ip_address)::text, '') AS ip_address",
+			"COALESCE(user_agent, '') AS user_agent",
+		).
 		From(s.SQLBuilder.TableName("_audit_log"))
 	return opts.Apply(query)
 }
@@ -299,7 +305,9 @@ func (s *ReadStore) scanFraudProtectionDecisionRecord(
 ) (*FraudProtectionDecisionRecord, error) {
 	record := &FraudProtectionDecisionRecord{}
 	var raw []byte
-	if err := scn.Scan(&record.ID, &record.CreatedAt, &raw); err != nil {
+	var columnIPAddress string
+	var columnUserAgent string
+	if err := scn.Scan(&record.ID, &record.CreatedAt, &raw, &columnIPAddress, &columnUserAgent); err != nil {
 		return nil, err
 	}
 
@@ -312,5 +320,11 @@ func (s *ReadStore) scanFraudProtectionDecisionRecord(
 		return nil, err
 	}
 	record.Record = payload.Payload.Record
+	if record.Record.IPAddress == "" && columnIPAddress != "" {
+		record.Record.IPAddress = columnIPAddress
+	}
+	if record.Record.UserAgent == "" && columnUserAgent != "" {
+		record.Record.UserAgent = columnUserAgent
+	}
 	return record, nil
 }

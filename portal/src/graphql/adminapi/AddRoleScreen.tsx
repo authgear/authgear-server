@@ -70,8 +70,6 @@ const AddRoleScreen: React.VFC = function AddRoleScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

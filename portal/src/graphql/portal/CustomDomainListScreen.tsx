@@ -479,7 +479,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       appConfigForm: {
         state,
         setState,
-        isDirty,
+        getIsDirty,
         isUpdating,
         save,
         reset,
@@ -487,6 +487,8 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       },
       featureConfig,
     } = props;
+
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
 
     const { renderToString } = useContext(Context);
 

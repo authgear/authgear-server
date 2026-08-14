@@ -68,5 +68,6 @@ func (h *NoProjectSSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	redirectURL.RawQuery = r.URL.RawQuery
 
 	// Use 307 so that method and body is kept
+	// #nosec G710 -- redirectURL's scheme/host come from the app's server-configured PublicOrigin (resolved via the validated state token), not user input; only RawQuery is copied from the request.
 	http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
 }

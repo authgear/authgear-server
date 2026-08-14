@@ -57,8 +57,6 @@ import ExternalLink from "../../ExternalLink";
 
 const MASKED_SECRET = "***************";
 
-const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
-
 const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
 
 const DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs =
@@ -547,7 +545,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
             className={secretInputClassname}
-            id={SECRET_KEY_FORM_FIELD_ID}
             type="text"
             label={renderToString(
               "BotProtectionConfigurationScreen.provider.recaptchav2.secretKey.label"
@@ -597,7 +594,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
             className={secretInputClassname}
-            id={SECRET_KEY_FORM_FIELD_ID}
             type="text"
             label={renderToString(
               "BotProtectionConfigurationScreen.provider.cloudflare.secretKey.label"
@@ -668,37 +664,40 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       [setState, state.providerType]
     );
 
-    const locationState = useLocationEffect((state: LocationState) => {
-      if (state.isOAuthRedirect) {
-        window.location.hash = "";
-        window.location.hash = "#" + SECRET_KEY_FORM_FIELD_ID;
+    const locationState = useLocationEffect(
+      useCallback(
+        (state: LocationState) => {
+          if (state.isOAuthRedirect) {
+            // Restore form state from local storage on reauth redirection
+            // Specifically, we need to keep the secret from state,
+            // and take the rest from storedFormState.
+            setState((state) => {
+              return produce(storedFormState, (storedFormState) => {
+                for (const [providerType, providerConfig] of Object.entries(
+                  storedFormState.providerConfigs
+                )) {
+                  if (storedFormState.providerType === providerType) {
+                    const newlyFetchedProviderConfig =
+                      state.providerConfigs[providerType];
+                    storedFormState.providerConfigs[providerType] = {
+                      ...providerConfig,
+                      originalSecretKey:
+                        newlyFetchedProviderConfig.originalSecretKey,
+                      editingSecretKey:
+                        newlyFetchedProviderConfig.editingSecretKey,
+                    };
+                  }
+                }
+              });
+            });
 
-        // Restore form state from local storage on reauth redirection
-        // Specifically, we need to keep the secret from state,
-        // and take the rest from storedFormState.
-        setState((state) => {
-          return produce(storedFormState, (storedFormState) => {
-            for (const [providerType, providerConfig] of Object.entries(
-              storedFormState.providerConfigs
-            )) {
-              if (storedFormState.providerType === providerType) {
-                const newlyFetchedProviderConfig =
-                  state.providerConfigs[providerType];
-                storedFormState.providerConfigs[providerType] = {
-                  ...providerConfig,
-                  originalSecretKey:
-                    newlyFetchedProviderConfig.originalSecretKey,
-                  editingSecretKey: newlyFetchedProviderConfig.editingSecretKey,
-                };
-              }
-            }
-          });
-        });
-
-        // Remove local storage form state after consuming
-        removeStoredFormState();
-      }
-    });
+            // Remove local storage form state after consuming
+            removeStoredFormState();
+          }
+        },
+        [setState, storedFormState, removeStoredFormState]
+      )
+    );
 
     const [reauthed, setReauthed] = useState(locationState?.isOAuthRedirect);
 

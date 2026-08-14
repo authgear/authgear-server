@@ -13,8 +13,13 @@ type FormFieldLabelSpace = "1" | "2";
 export interface FormFieldProps {
   darkMode?: boolean;
   size: FormFieldSize;
+  /** Label typography size; defaults to `size` when omitted. */
+  labelSize?: FormFieldSize;
   label?: React.ReactNode;
+  /** Associates the label with the control it wraps (renders the label as a `<label htmlFor>`). */
+  htmlFor?: string;
   optional?: boolean;
+  required?: boolean;
   error?: React.ReactNode;
   hint?: React.ReactNode;
   children?: React.ReactNode;
@@ -29,8 +34,11 @@ export interface FormFieldProps {
 export function FormField({
   darkMode,
   size,
+  labelSize,
   label,
+  htmlFor,
   optional,
+  required,
   error: propsError,
   hint,
   children,
@@ -57,6 +65,23 @@ export function FormField({
 
   const error = propsError ?? fieldProps.errorMessage;
 
+  const labelContent = label ? (
+    <>
+      {label}
+      {required ? (
+        <span className={styles.formField__labelRequired} aria-hidden="true">
+          &nbsp;*
+        </span>
+      ) : null}
+      {optional ? (
+        <span className={styles.formField__labelOptional}>
+          &nbsp;
+          <FormattedMessage id="FormField.optional" />
+        </span>
+      ) : null}
+    </>
+  ) : null;
+
   return (
     <div
       className={cn(
@@ -65,21 +90,27 @@ export function FormField({
         darkMode ? "dark" : null
       )}
     >
-      {label ? (
-        <Text
-          as="p"
-          size={size}
-          weight={"medium"}
-          className={styles.formField__label}
-        >
-          {label}
-          {optional ? (
-            <span className={styles.formField__labelOptional}>
-              &nbsp;
-              <FormattedMessage id="FormField.optional" />
-            </span>
-          ) : null}
-        </Text>
+      {labelContent != null ? (
+        htmlFor != null ? (
+          <Text
+            as="label"
+            htmlFor={htmlFor}
+            size={labelSize ?? size}
+            weight={"medium"}
+            className={styles.formField__label}
+          >
+            {labelContent}
+          </Text>
+        ) : (
+          <Text
+            as="p"
+            size={labelSize ?? size}
+            weight={"medium"}
+            className={styles.formField__label}
+          >
+            {labelContent}
+          </Text>
+        )
       ) : null}
       <div className={styles.formField__inputContainer}>
         {children}

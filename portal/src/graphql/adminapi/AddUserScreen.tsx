@@ -822,8 +822,6 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
   );
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
     validate,

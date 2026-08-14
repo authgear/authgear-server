@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func init() {
@@ -25,10 +26,10 @@ func init() {
 //   IntentLookupIdentityPasskey (MilestoneIdentificationMethod)
 
 type IntentSignupLoginFlowStepIdentify struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName      string                 `json:"step_name,omitempty"`
-	Options       []IdentificationOption `json:"options"`
+	FlowReference authflow.FlowReference         `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T                  `json:"json_pointer,omitempty"`
+	StepName      string                         `json:"step_name,omitempty"`
+	Options       []InternalIdentificationOption `json:"options"`
 }
 
 var _ authflow.Intent = &IntentSignupLoginFlowStepIdentify{}
@@ -41,7 +42,7 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 	}
 	step := i.step(current)
 
-	options := []IdentificationOption{}
+	options := []InternalIdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
 		case model.AuthenticationFlowIdentificationEmail:
@@ -50,7 +51,7 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 			fallthrough
 		case model.AuthenticationFlowIdentificationUsername:
 			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
-			options = append(options, c)
+			options = append(options, InternalIdentificationOption{Option: c})
 		case model.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
 				flows,
@@ -60,7 +61,9 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 				deps.Config.BotProtection,
 				deps.SSOOAuthDemoCredentials,
 			)
-			options = append(options, oauthOptions...)
+			for _, o := range oauthOptions {
+				options = append(options, InternalIdentificationOption{Option: o})
+			}
 		case model.AuthenticationFlowIdentificationPasskey:
 			// Passkey is for login only.
 			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions(ctx)
@@ -68,17 +71,25 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 				return nil, err
 			}
 			c := NewIdentificationOptionPasskey(flows, requestOptions, b.BotProtection, deps.Config.BotProtection)
-			options = append(options, c)
+			options = append(options, InternalIdentificationOption{Option: c})
 		case model.AuthenticationFlowIdentificationLDAP:
 			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
-			options = append(options, ldapOptions...)
+			for _, o := range ldapOptions {
+				options = append(options, InternalIdentificationOption{Option: o})
+			}
 			break
 		case model.AuthenticationFlowIdentificationIDToken:
 			// ID token is an advanced usage, and it inheritly does not support user interaction.
 			// Thus bot protection is not supported.
 			var botProtection *config.AuthenticationFlowBotProtection = nil
 			c := NewIdentificationOptionIDToken(flows, b.Identification, botProtection, deps.Config.BotProtection)
-			options = append(options, c)
+			options = append(options, InternalIdentificationOption{Option: c})
+		case model.AuthenticationFlowIdentificationSelectAccount:
+			selectAccountOptions, err := NewIdentificationOptionsSelectAccount(ctx, deps, flows, b.BotProtection, deps.Config.BotProtection)
+			if err != nil {
+				return nil, err
+			}
+			options = append(options, selectAccountOptions...)
 		}
 	}
 
@@ -101,7 +112,7 @@ func (i *IntentSignupLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps
 		return &InputSchemaStepIdentify{
 			FlowRootObject:            flowRootObject,
 			JSONPointer:               i.JSONPointer,
-			Options:                   i.Options,
+			Options:                   slice.Map(i.Options, InternalIdentificationOption.ToIdentificationOption),
 			ShouldBypassBotProtection: shouldBypassBotProtection,
 			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
@@ -163,6 +174,22 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 					Identification: identification,
 					SyntheticInput: syntheticInput,
 				}), nil
+			case model.AuthenticationFlowIdentificationSelectAccount:
+				var inputTakeIdentificationOptionIndex inputTakeIdentificationOptionIndex
+				if !authflow.AsInput(input, &inputTakeIdentificationOptionIndex) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+				optionsIndex := inputTakeIdentificationOptionIndex.GetIdentificationOptionIndex()
+				if optionsIndex < 0 || optionsIndex >= len(i.Options) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+				expectedUserID := i.Options[optionsIndex].Option.UserID
+
+				return authflow.NewSubFlow(&IntentLookupIdentitySelectAccount{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					ExpectedUserID: expectedUserID,
+				}), nil
 			}
 		}
 	}
@@ -172,7 +199,7 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 
 func (i *IntentSignupLoginFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NewIdentificationData(IdentificationData{
-		Options: i.Options,
+		Options: slice.Map(i.Options, InternalIdentificationOption.ToIdentificationOption),
 	}), nil
 }
 

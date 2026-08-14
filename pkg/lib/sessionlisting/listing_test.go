@@ -212,7 +212,12 @@ func TestSessionListingService(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
-					{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+					// offlineGrant (SSOEnabled: false) is still IDPSessionID-created
+					// from idpSession directly, so it's current too: creating a
+					// grant from an existing/created IDP session is what makes it
+					// part of that session's group, regardless of whether the
+					// client also asked for SSOEnabled.
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true, IsCurrent: true},
 					{Session: idpSession2.ToAPIModel()},
 				})
 			})
@@ -230,7 +235,10 @@ func TestSessionListingService(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
-					{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+					// Same reasoning as above: offlineGrant's IDPSessionID names
+					// the same IDP session that offlineGrant2 (the current
+					// session here) was also created from.
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true, IsCurrent: true},
 					{Session: idpSession2.ToAPIModel()},
 				})
 			})

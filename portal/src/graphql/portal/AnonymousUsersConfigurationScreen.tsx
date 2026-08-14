@@ -56,7 +56,6 @@ interface FormState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
   oauthClients: OAuthClientConfig[];
-  sessionPersistentCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   sessionIdleTimeoutEnabled: boolean;
   sessionIdleTimeoutSeconds: number | undefined;
@@ -72,7 +71,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     enabled,
     promotionConflictBehaviour,
     oauthClients,
-    sessionPersistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     sessionIdleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     sessionIdleTimeoutSeconds: config.session?.idle_timeout_seconds,
@@ -136,7 +134,6 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
       sessionIdleTimeoutEnabled,
       sessionIdleTimeoutSeconds,
       sessionLifetimeSeconds,
-      sessionPersistentCookie,
       oauthClients,
     } = props.form.state;
 
@@ -322,17 +319,6 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                       ? formatSeconds(locale, sessionLifetimeSeconds) ?? ""
                       : "",
                 }}
-              />
-            </Text>
-            <div className={styles.tooltipLabel}>
-              <Text variant="medium">
-                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie" />
-              </Text>
-              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie" />
-            </div>
-            <Text variant="medium">
-              <FormattedMessage
-                id={sessionPersistentCookie ? "enabled" : "disabled"}
               />
             </Text>
           </div>
