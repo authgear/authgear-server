@@ -684,9 +684,18 @@ Both checks run **before** the `Authorization` header is parsed and before any I
 
 `checkRateLimit` returns `protocol.NewErrorStatusCode("x_rate_limited", "rate limit exceeded, please try again later.", http.StatusTooManyRequests)` — byte-identical to what `/oauth2/token` already returns (`handler_token.go:2299`). RFC 7591 §3.2.2 defines no rate-limit error code, and `x_rate_limited` is the established Authgear extension, so reusing it keeps the two OAuth endpoints consistent. §5.2's HTTP wrapper already renders any `*protocol.OAuthProtocolError` with its `StatusCode`, so no change is needed there.
 
-#### Residual risk, and what is deliberately *not* solved here
+#### Residual risk — accepted, not solved
 
-The per-project bucket slows quota exhaustion from seconds to hours; it does not make it impossible. An attacker willing to spend a day can still fill a project's `oauth_client_dcr` quota under open registration, after which legitimate registration fails until an admin deletes clients. Fully closing that needs something this plan does not include — TTL-based eviction of never-used DCR clients, bot protection on the endpoint, or a per-IP share of the standing quota. Flag to the spec author as follow-up work, and in the meantime recommend that projects enabling open registration also configure a lower `action: alert` entry alongside their `action: block` entry (Part 5 §2.2) so the admin hears about it while there are still slots left.
+Under open registration a caller can still fill a project's `oauth_client_dcr` quota (roughly a minute at `quota: 20`, per the note above), after which legitimate registration is refused until an admin deletes clients.
+
+**Decision: accept this. No further mitigation is in scope for DCR.** A per-project usage limit plus a rate limit are the two controls Authgear applies to every comparable endpoint, both are now in place, and an availability attack against a deliberately open, unauthenticated endpoint cannot be fully prevented — a project that cannot tolerate that should leave `initial_access_token_required: true`, which is the default.
+
+Two things to keep visible rather than treat as solved:
+
+- **A standing limit does not self-heal, unlike every other limit in the system.** A rate-limit bucket refills; a periodic usage limit resets each period; an exhausted `oauth_client_dcr` quota stays exhausted until a human calls `deleteDynamicClient`. That asymmetry — not the attacker's ability to send requests — is what makes this failure mode worse than it looks. If it ever needs addressing, TTL-based eviction of DCR clients that were registered but never used in an authorization flow is the cheap fix, because it restores the self-healing property without adding a new control surface. Explicitly **not** built here.
+- Recommend that projects enabling open registration configure a lower `action: alert` entry alongside their `action: block` entry (Part 5 §2.2), so an admin hears about exhaustion rather than discovering it from a support ticket.
+
+The same asymmetry applies to `oauth_client_cimd`, and more sharply: cimd.md notes that deleting a CIMD client is not a durable ban, since the same URL can be presented again on the next authorization request.
 
 ### 5.2 `pkg/auth/handler/oauth/register.go` (new file) — thin HTTP wrapper, mirrors `token.go` exactly
 
@@ -1142,3 +1151,17 @@ e2e tests (`e2e/tests/dcr_register.yaml`, `write-e2e-test` skill):
 7. **`[DCR] Add POST /oauth2/register endpoint`** — §5 (`handler_register.go` including the rate-limit checks and `checkRateLimit`, `pkg/auth/handler/oauth/register.go`, route wiring, discovery metadata) + regenerated `wire_gen.go`.
 8. **`[DCR] Add unified OAuthClient GraphQL type and dynamicClients/deleteDynamicClient Admin API`** — §6 in full + regenerated `wire_gen.go` + regenerated GraphQL schema/gentype artifacts.
 9. **`[DCR] Add e2e tests for client registration and Admin API`** — `e2e/tests/dcr_register.yaml`.
+
+## 10. Note on the spec doc fixes
+
+Each part's commit 1 is a doc fix to `docs/specs/`. **These are the implementer's to apply, not open questions.** Every one is either an internal contradiction in a spec, or a spec statement that conflicts with already-shipped code, and each has its exact replacement wording written out at the commit-1 entry of the part that needs it:
+
+| Part | Doc fixes |
+|---|---|
+| 1 | `token_type` column in dcr.md's IAT `CREATE TABLE`; UC1's `expiresAt` selection moved under `initialAccessToken` |
+| 2 | `dynamicClients` Connection type names and nullability; `application_type` acceptance under an IAT; `client_secret` leftovers in §Response; `deleteDynamicClient` token-revocation gap; client.md's "Dynamic clients" used in two senses; client.md's "project defaults" for token lifetimes; the new `x_rate_limited` error row and rate-limit tables |
+| 4 | `invalid_resource` → `invalid_target` in api-resource.md; first-party `resource` support and multi-`resource` marked not-yet-implemented in api-resource.md and access-token-audience-binding.md |
+
+The only ones that assert a *product* decision rather than fixing an inconsistency are Part 4's two: deferring first-party and multi-resource support. Both were confirmed as intended, so they are settled — the doc fix records the decision rather than making it.
+
+One coordination point: the specs on this branch are being actively authored, so if spec edits should stay with their author rather than landing from an implementation PR, say so and the commit-1 entries become "spec change required, applied separately" instead. Nothing else in the plans depends on which way that goes.
