@@ -820,6 +820,24 @@ type CreateIdentityPayload {
 }
 
 """"""
+input CreateInitialAccessTokenInput {
+  """Token lifetime in seconds. If omitted, a server default is used."""
+  expiresIn: Int
+
+  """Defaults to THIRD_PARTY."""
+  type: InitialAccessTokenType
+}
+
+""""""
+type CreateInitialAccessTokenPayload {
+  """"""
+  initialAccessToken: InitialAccessToken!
+
+  """The opaque IAT value. Returned ONCE only."""
+  token: String!
+}
+
+""""""
 input CreateResourceInput {
   """The optional name of the resource."""
   name: String
@@ -1399,6 +1417,30 @@ enum IdentityType {
   SIWE
 }
 
+"""Initial Access Token for Dynamic Client Registration"""
+type InitialAccessToken implements Node {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The expiry time of the initial access token."""
+  expiresAt: DateTime!
+
+  """The ID of an object"""
+  id: ID!
+
+  """The type of the initial access token."""
+  type: InitialAccessTokenType!
+}
+
+""""""
+enum InitialAccessTokenType {
+  """"""
+  FIRST_PARTY
+
+  """"""
+  THIRD_PARTY
+}
+
 """A locked IP address and when its lock expires"""
 type LockedIP {
   """The locked IP address"""
@@ -1445,6 +1487,11 @@ type Mutation {
 
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
+
+  """
+  Creates an opaque Initial Access Token for use with POST /oauth2/register.
+  """
+  createInitialAccessToken(input: CreateInitialAccessTokenInput!): CreateInitialAccessTokenPayload!
 
   """Create a new resource."""
   createResource(input: CreateResourceInput!): CreateResourcePayload!
@@ -1530,6 +1577,11 @@ type Mutation {
 
   """Revoke all sessions of user"""
   revokeAllSessions(input: RevokeAllSessionsInput!): RevokeAllSessionsPayload!
+
+  """
+  Revokes an Initial Access Token so it can no longer be used for registration.
+  """
+  revokeInitialAccessToken(input: RevokeInitialAccessTokenInput!): RevokeInitialAccessTokenPayload!
 
   """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
@@ -1645,6 +1697,11 @@ type Query {
 
   """All groups"""
   groups(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): GroupConnection
+
+  """
+  Returns all active (non-expired) Initial Access Tokens for the project.
+  """
+  initialAccessTokens: [InitialAccessToken!]!
 
   """Fetches an object given its ID"""
   node(
@@ -1899,6 +1956,18 @@ input RevokeAllSessionsInput {
 type RevokeAllSessionsPayload {
   """"""
   user: User!
+}
+
+""""""
+input RevokeInitialAccessTokenInput {
+  """Target initial access token ID."""
+  id: ID!
+}
+
+""""""
+type RevokeInitialAccessTokenPayload {
+  """"""
+  ok: Boolean
 }
 
 """"""

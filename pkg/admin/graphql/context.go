@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -58,6 +59,10 @@ type ResourceClientLoader interface {
 }
 
 type ScopeLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type InitialAccessTokenLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
@@ -230,20 +235,27 @@ type ResourceScopeFacade interface {
 	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 }
 
+type DCRFacade interface {
+	CreateInitialAccessToken(ctx context.Context, options *dcr.NewInitialAccessTokenOptions) (token string, iat *apimodel.OAuthInitialAccessToken, err error)
+	RevokeInitialAccessToken(ctx context.Context, id string) error
+	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
+}
+
 type Context struct {
 	Config                *config.AppConfig
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
-	Users           UserLoader
-	Identities      IdentityLoader
-	Authenticators  AuthenticatorLoader
-	Roles           RoleLoader
-	Groups          GroupLoader
-	AuditLogs       AuditLogLoader
-	Resources       ResourceLoader
-	ResourceClients ResourceClientLoader
-	Scopes          ScopeLoader
+	Users               UserLoader
+	Identities          IdentityLoader
+	Authenticators      AuthenticatorLoader
+	Roles               RoleLoader
+	Groups              GroupLoader
+	AuditLogs           AuditLogLoader
+	Resources           ResourceLoader
+	ResourceClients     ResourceClientLoader
+	Scopes              ScopeLoader
+	InitialAccessTokens InitialAccessTokenLoader
 
 	UserFacade           UserFacade
 	RolesGroupsFacade    RolesGroupsFacade
@@ -261,6 +273,7 @@ type Context struct {
 	Events               EventService
 	ResourceScopeFacade  ResourceScopeFacade
 	AccountLockoutFacade AccountLockoutFacade
+	DCRFacade            DCRFacade
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

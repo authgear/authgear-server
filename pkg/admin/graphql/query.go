@@ -485,6 +485,15 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
+		"initialAccessTokens": &graphql.Field{
+			Description: "Returns all active (non-expired) Initial Access Tokens for the project.",
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeInitialAccessToken))),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+				return gqlCtx.DCRFacade.ListInitialAccessTokens(ctx)
+			},
+		},
 		"getUsersByStandardAttribute": &graphql.Field{
 			Description: "Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.",
 			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeUser))),

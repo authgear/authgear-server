@@ -37,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -776,6 +777,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
 	resourceClientLoader := loader.NewResourceClientLoader(resourcescopeQueries)
 	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
+	dcrStore := &dcr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	dcrQueries := &dcr.Queries{
+		Store: dcrStore,
+		Clock: clockClock,
+	}
+	initialAccessTokenLoader := loader.NewInitialAccessTokenLoader(dcrQueries)
 	searchService := &search.Service{
 		SearchConfig:               searchConfig,
 		ElasticsearchService:       elasticsearchService,
@@ -1353,6 +1364,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LockoutConfig: authenticationLockoutConfig,
 		Lockout:       lockoutService,
 	}
+	dcrCommands := &dcr.Commands{
+		Store: dcrStore,
+	}
+	dcrFacade := &facade2.DCRFacade{
+		DCRCommands: dcrCommands,
+		DCRQueries:  dcrQueries,
+	}
 	graphqlContext := &graphql.Context{
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
@@ -1366,6 +1384,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:             resourceLoader,
 		ResourceClients:       resourceClientLoader,
 		Scopes:                scopeLoader,
+		InitialAccessTokens:   initialAccessTokenLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
@@ -1382,6 +1401,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		ResourceScopeFacade:   resourceScopeFacade,
 		AccountLockoutFacade:  lockoutFacade,
+		DCRFacade:             dcrFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
