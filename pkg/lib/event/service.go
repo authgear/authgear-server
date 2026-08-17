@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -26,6 +27,7 @@ type Database interface {
 type Sink interface {
 	ReceiveBlockingEvent(ctx context.Context, e *event.Event) error
 	ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error
+	WillDeliverBlockingEvent(eventType event.Type) bool
 }
 
 type Store interface {
@@ -34,6 +36,7 @@ type Store interface {
 
 type Resolver interface {
 	Resolve(ctx context.Context, anything any) (err error)
+	ResolveWithUser(ctx context.Context, anything any, u *model.User) (err error)
 }
 
 var EventLogger = slogutil.NewLogger("event")
@@ -69,16 +72,14 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 		s.DatabaseHooked = true
 	}
 
-	// Resolve refs once here
-	// If the event is about entity deletion,
-	// then it is not possible to resolve the entity in DidCommitTx.
-	err = s.Resolver.Resolve(ctx, payload)
-	if err != nil {
-		return
-	}
-
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
+		// A blocking payload is resolved here or not at all; there is no later pass.
+		if s.WillDeliverBlockingEvent(typedPayload.BlockingEventType()) {
+			if err = s.Resolver.Resolve(ctx, payload); err != nil {
+				return
+			}
+		}
 		eventContext := s.makeContext(ctx, payload)
 		var seq int64
 		seq, err = s.nextSeq(ctx)
@@ -93,6 +94,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 			}
 		}
 	case event.NonBlockingPayload:
+		// A non-blocking payload is resolved once, later, in WillCommitTx.
 		s.NonBlockingPayloads = append(s.NonBlockingPayloads, typedPayload)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))
@@ -104,14 +106,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 // DispatchEventImmediately dispatches the event immediately.
 func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error) {
 	logger := EventLogger.GetLogger(ctx)
-	// Resolve refs once here
-	// If the event is about entity deletion,
-	// then it is not possible to resolve the entity in DidRollbackTx.
-	err = s.Resolver.Resolve(ctx, payload)
-	if err != nil {
-		return
-	}
-
+	// resolveNonBlockingEvent is the single resolve for this path.
 	e, err := s.resolveNonBlockingEvent(ctx, payload)
 	if err != nil {
 		return err
@@ -138,14 +133,26 @@ func (s *Service) DispatchEventWithoutTx(ctx context.Context, e *event.Event) (e
 	return
 }
 
-func (s *Service) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error) {
+func (s *Service) PrepareBlockingEventWithTx(
+	ctx context.Context,
+	payload event.BlockingPayload,
+	opts event.PrepareBlockingEventOptions,
+) (e *event.Event, err error) {
 	eventContext := s.makeContext(ctx, payload)
 	var seq int64
 	seq, err = s.nextSeq(ctx)
 	if err != nil {
 		return
 	}
-	err = s.Resolver.Resolve(ctx, payload)
+	switch {
+	case !s.WillDeliverBlockingEvent(payload.BlockingEventType()):
+		// No sink will observe the payload; skip the read entirely,
+		// regardless of whether a resolved user was supplied.
+	case opts.ResolvedUser != nil:
+		err = s.Resolver.ResolveWithUser(ctx, payload, opts.ResolvedUser)
+	default:
+		err = s.Resolver.Resolve(ctx, payload)
+	}
 	if err != nil {
 		return
 	}
@@ -192,6 +199,18 @@ func (s *Service) DidCommitTx(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// WillDeliverBlockingEvent reports whether any sink will act on a blocking event
+// of this type. When it is false, the event payload is never observed, so the
+// caller may skip populating it.
+func (s *Service) WillDeliverBlockingEvent(eventType event.Type) bool {
+	for _, sink := range s.Sinks {
+		if sink.WillDeliverBlockingEvent(eventType) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Service) nextSeq(ctx context.Context) (seq int64, err error) {

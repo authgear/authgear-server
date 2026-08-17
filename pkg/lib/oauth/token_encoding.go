@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -36,29 +35,27 @@ type BaseURLProvider interface {
 
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
-	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (e *event.Event, err error)
 	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
-}
-
-type AccessTokenEncodingIdentityService interface {
-	ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error)
+	WillDeliverBlockingEvent(eventType event.Type) bool
 }
 
 type AccessTokenEncoding struct {
-	Secrets       *config.OAuthKeyMaterials
-	Clock         clock.Clock
-	IDTokenIssuer IDTokenIssuer
-	BaseURL       BaseURLProvider
-	Events        EventService
-	Identities    AccessTokenEncodingIdentityService
+	Secrets                   *config.OAuthKeyMaterials
+	Clock                     clock.Clock
+	IDTokenIssuer             IDTokenIssuer
+	BaseURL                   BaseURLProvider
+	Events                    EventService
+	UserBlockingEventContexts *UserBlockingEventContextProvider
 }
 
 type EncodeUserAccessTokenOptions struct {
-	OriginalToken      string
-	ClientConfig       *config.OAuthClientConfig
-	ClientLike         *ClientLike
-	AccessGrant        *AccessGrant
-	AuthenticationInfo authenticationinfo.T
+	OriginalToken            string
+	ClientConfig             *config.OAuthClientConfig
+	ClientLike               *ClientLike
+	AccessGrant              *AccessGrant
+	AuthenticationInfo       authenticationinfo.T
+	UserBlockingEventContext *UserBlockingEventContext
 }
 
 type EncodeClientAccessTokenOptions struct {
@@ -136,14 +133,15 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 		return nil, err
 	}
 
-	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, options.AuthenticationInfo.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	var identityModels []model.Identity
-	for _, i := range identities {
-		identityModels = append(identityModels, i.ToModel())
+	var eventUserCtx *UserBlockingEventContext
+	if e.Events.WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate) {
+		eventUserCtx = options.UserBlockingEventContext
+		if eventUserCtx == nil || eventUserCtx.UserID != options.AuthenticationInfo.UserID {
+			eventUserCtx, err = e.UserBlockingEventContexts.Get(ctx, options.AuthenticationInfo.UserID)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	eventPayload := &blocking.OIDCJWTPreCreateBlockingEventPayload{
@@ -152,13 +150,15 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 				ID: options.AuthenticationInfo.UserID,
 			},
 		},
-		Identities: identityModels,
+		Identities: eventUserCtx.GetIdentities(),
 		JWT: blocking.OIDCJWT{
 			Payload: forMutation,
 		},
 	}
 
-	event, err := e.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
+	event, err := e.Events.PrepareBlockingEventWithTx(ctx, eventPayload, event.PrepareBlockingEventOptions{
+		ResolvedUser: eventUserCtx.GetUserModel(),
+	})
 	if err != nil {
 		return nil, err
 	}

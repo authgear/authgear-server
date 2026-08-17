@@ -992,21 +992,25 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth2.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

@@ -196,8 +196,6 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role acce
 }
 
 // Batch implementation of DeriveStandardAttributes
-// TODO: Write some tests and simplify the implementation
-// nolint:gocognit
 func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 	ctx context.Context,
 	role accesscontrol.Role,
@@ -205,19 +203,35 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 	updatedAts []time.Time,
 	attrsList []map[string]any,
 ) (map[string]map[string]any, error) {
-
-	if len(userIDs) != len(updatedAts) || len(userIDs) != len(attrsList) {
-		panic("stdattrs: expeceted same length of arguments")
-	}
-
 	allClaims, err := s.ClaimStore.ListByUserIDsAndClaimNames(
 		ctx, userIDs, []string{stdattrs.Email, stdattrs.PhoneNumber})
 	if err != nil {
 		return nil, err
 	}
 
+	return s.DeriveStandardAttributesForUsersWithClaims(ctx, role, userIDs, updatedAts, attrsList, allClaims)
+}
+
+// DeriveStandardAttributesForUsersWithClaims is DeriveStandardAttributesForUsers
+// with the claims already read. claims may contain claims of any name; only
+// email and phone_number are consulted.
+// TODO: Write some tests and simplify the implementation
+// nolint:gocognit
+func (s *ServiceNoEvent) DeriveStandardAttributesForUsersWithClaims(
+	ctx context.Context,
+	role accesscontrol.Role,
+	userIDs []string,
+	updatedAts []time.Time,
+	attrsList []map[string]any,
+	claims []*verification.Claim,
+) (map[string]map[string]any, error) {
+
+	if len(userIDs) != len(updatedAts) || len(userIDs) != len(attrsList) {
+		panic("stdattrs: expeceted same length of arguments")
+	}
+
 	claimsByUserID := map[string][]*verification.Claim{}
-	for _, c := range allClaims {
+	for _, c := range claims {
 		claimsByUserID[c.UserID] = append(claimsByUserID[c.UserID], c)
 	}
 

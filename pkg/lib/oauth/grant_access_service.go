@@ -18,12 +18,13 @@ type AccessGrantService struct {
 }
 
 type PrepareUserAccessGrantOptions struct {
-	ClientConfig            *config.OAuthClientConfig
-	Scopes                  []string
-	AuthorizationID         string
-	AuthenticationInfo      authenticationinfo.T
-	SessionLike             SessionLike
-	InitialRefreshTokenHash string
+	ClientConfig             *config.OAuthClientConfig
+	Scopes                   []string
+	AuthorizationID          string
+	AuthenticationInfo       authenticationinfo.T
+	SessionLike              SessionLike
+	InitialRefreshTokenHash  string
+	UserBlockingEventContext *UserBlockingEventContext
 }
 
 type IssueAccessGrantResult struct {
@@ -65,11 +66,12 @@ func (s *AccessGrantService) PrepareUserAccessGrant(
 
 	clientLike := ClientClientLike(options.ClientConfig, options.Scopes)
 	preparation, err := s.AccessTokenIssuer.PrepareUserAccessToken(ctx, EncodeUserAccessTokenOptions{
-		OriginalToken:      token,
-		ClientConfig:       options.ClientConfig,
-		ClientLike:         clientLike,
-		AccessGrant:        accessGrant,
-		AuthenticationInfo: options.AuthenticationInfo,
+		OriginalToken:            token,
+		ClientConfig:             options.ClientConfig,
+		ClientLike:               clientLike,
+		AccessGrant:              accessGrant,
+		AuthenticationInfo:       options.AuthenticationInfo,
+		UserBlockingEventContext: options.UserBlockingEventContext,
 	})
 	if err != nil {
 		return nil, err

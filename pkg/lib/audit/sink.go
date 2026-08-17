@@ -16,6 +16,9 @@ type Sink struct {
 	Store    *WriteStore
 }
 
+// WillDeliverBlockingEvent: the audit sink does not consume blocking events.
+func (s *Sink) WillDeliverBlockingEvent(eventType event.Type) bool { return false }
+
 func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err error) {
 	// We do not log blocking event.
 	return

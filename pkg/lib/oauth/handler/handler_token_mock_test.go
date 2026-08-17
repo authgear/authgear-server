@@ -146,6 +146,20 @@ func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(ctx, payload inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), ctx, payload)
 }
 
+// WillDeliverBlockingEvent mocks base method.
+func (m *MockEventService) WillDeliverBlockingEvent(eventType event.Type) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WillDeliverBlockingEvent", eventType)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// WillDeliverBlockingEvent indicates an expected call of WillDeliverBlockingEvent.
+func (mr *MockEventServiceMockRecorder) WillDeliverBlockingEvent(eventType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WillDeliverBlockingEvent", reflect.TypeOf((*MockEventService)(nil).WillDeliverBlockingEvent), eventType)
+}
+
 // MockTokenHandlerUserFacade is a mock of TokenHandlerUserFacade interface.
 type MockTokenHandlerUserFacade struct {
 	ctrl     *gomock.Controller

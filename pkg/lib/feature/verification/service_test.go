@@ -96,89 +96,89 @@ func TestService(t *testing.T) {
 			return value
 		}
 
-		Convey("IsVerified", func() {
-			cases := []struct {
-				Identities []*identity.Info
-				Claims     []*Claim
-				AnyResult  bool
-				AllResult  bool
-			}{
-				{
-					AnyResult: false, AllResult: false,
+		cases := []struct {
+			Identities []*identity.Info
+			Claims     []*Claim
+			AnyResult  bool
+			AllResult  bool
+		}{
+			{
+				AnyResult: false, AllResult: false,
+			},
+			{
+				Identities: []*identity.Info{
+					identityAnonymous(),
 				},
-				{
-					Identities: []*identity.Info{
-						identityAnonymous(),
-					},
-					AnyResult: false, AllResult: false,
+				AnyResult: false, AllResult: false,
+			},
+			{
+				Identities: []*identity.Info{
+					identityOAuth(nil),
 				},
-				{
-					Identities: []*identity.Info{
-						identityOAuth(nil),
-					},
-					AnyResult: false, AllResult: false,
+				AnyResult: false, AllResult: false,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("email", "foo@example.com"),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("email", "foo@example.com"),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "email", "foo@example.com"),
-					},
-					AnyResult: true, AllResult: true,
+				Claims: []*Claim{
+					verifiedClaim("user-id", "email", "foo@example.com"),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("email", "foo@example.com"),
-						identityOAuth(nil),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "email", "foo@example.com"),
-					},
-					AnyResult: true, AllResult: true,
+				AnyResult: true, AllResult: true,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("email", "foo@example.com"),
+					identityOAuth(nil),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("email", "foo@example.com"),
-						identityOAuth(map[string]any{"email": "bar@example.com"}),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "email", "foo@example.com"),
-					},
-					AnyResult: true, AllResult: false,
+				Claims: []*Claim{
+					verifiedClaim("user-id", "email", "foo@example.com"),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("email", "foo@example.com"),
-						identityOAuth(map[string]any{"email": "bar@example.com"}),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "email", "foo@example.com"),
-						verifiedClaim("user-id", "email", "bar@example.com"),
-					},
-					AnyResult: true, AllResult: true,
+				AnyResult: true, AllResult: true,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("email", "foo@example.com"),
+					identityOAuth(map[string]any{"email": "bar@example.com"}),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("username", "foo"),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "phone", "+85212345678"),
-					},
-					AnyResult: false, AllResult: false,
+				Claims: []*Claim{
+					verifiedClaim("user-id", "email", "foo@example.com"),
 				},
-				{
-					Identities: []*identity.Info{
-						identityLoginID("email", "foo@example.com"),
-						identityLoginID("username", "foo"),
-					},
-					Claims: []*Claim{
-						verifiedClaim("user-id", "email", "foo@example.com"),
-					},
-					AnyResult: true, AllResult: true,
+				AnyResult: true, AllResult: false,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("email", "foo@example.com"),
+					identityOAuth(map[string]any{"email": "bar@example.com"}),
 				},
-			}
+				Claims: []*Claim{
+					verifiedClaim("user-id", "email", "foo@example.com"),
+					verifiedClaim("user-id", "email", "bar@example.com"),
+				},
+				AnyResult: true, AllResult: true,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("username", "foo"),
+				},
+				Claims: []*Claim{
+					verifiedClaim("user-id", "phone", "+85212345678"),
+				},
+				AnyResult: false, AllResult: false,
+			},
+			{
+				Identities: []*identity.Info{
+					identityLoginID("email", "foo@example.com"),
+					identityLoginID("username", "foo"),
+				},
+				Claims: []*Claim{
+					verifiedClaim("user-id", "email", "foo@example.com"),
+				},
+				AnyResult: true, AllResult: true,
+			},
+		}
 
+		Convey("IsVerified", func() {
 			for i, c := range cases {
 				Convey(fmt.Sprintf("case %d", i), func() {
 					ctx := context.Background()
@@ -191,6 +191,26 @@ func TestService(t *testing.T) {
 					So(mustBool(service.IsUserVerified(ctx, c.Identities)), ShouldEqual, c.AllResult)
 				})
 			}
+		})
+
+		Convey("AreUsersVerifiedWithClaims returns the same result as AreUsersVerified, with claims supplied directly", func() {
+			for i, c := range cases {
+				Convey(fmt.Sprintf("case %d", i), func() {
+					ctx := context.Background()
+					identitiesByUserIDs := map[string][]*identity.Info{"user-id": c.Identities}
+
+					service.Config.Criteria = config.VerificationCriteriaAny
+					results, err := service.AreUsersVerifiedWithClaims(ctx, identitiesByUserIDs, c.Claims)
+					So(err, ShouldBeNil)
+					So(results["user-id"], ShouldEqual, c.AnyResult)
+
+					service.Config.Criteria = config.VerificationCriteriaAll
+					results, err = service.AreUsersVerifiedWithClaims(ctx, identitiesByUserIDs, c.Claims)
+					So(err, ShouldBeNil)
+					So(results["user-id"], ShouldEqual, c.AllResult)
+				})
+			}
+			// ClaimStore is never consulted: the claims are supplied directly.
 		})
 	})
 }
