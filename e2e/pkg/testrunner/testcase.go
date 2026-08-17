@@ -504,8 +504,14 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 	case StepActionOAuthSetup:
+		var clientID string
+		clientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthSetupClientID)
+		if !ok {
+			return nil, state, false
+		}
+
 		output, err := client.SetupOAuth(authflowclient.SetupOAuthOptions{
-			ClientID:          step.OAuthSetupClientID,
+			ClientID:          clientID,
 			Scope:             step.OAuthSetupScope,
 			SSOEnabled:        step.OAuthSetupSSOEnabled,
 			SSOEnabledOmitted: step.OAuthSetupSSOEnabledOmitted,
@@ -551,12 +557,27 @@ func (tc *TestCase) executeStep(
 
 		var redirectURI string
 		redirectURI, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeRedirectURI)
+		if !ok {
+			return nil, state, false
+		}
+
+		var exchangeClientID string
+		exchangeClientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeClientID)
+		if !ok {
+			return nil, state, false
+		}
+
+		var exchangeClientSecret string
+		exchangeClientSecret, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeClientSecret)
+		if !ok {
+			return nil, state, false
+		}
 
 		output, err := client.OAuthExchangeCode(authflowclient.OAuthExchangeCodeOptions{
 			CodeVerifier: codeVerifier,
 			RedirectURI:  redirectURI,
-			ClientID:     step.OAuthExchangeCodeClientID,
-			ClientSecret: step.OAuthExchangeCodeClientSecret,
+			ClientID:     exchangeClientID,
+			ClientSecret: exchangeClientSecret,
 		})
 		if err != nil {
 			t.Errorf("failed to exchange code: %v\n", err)
