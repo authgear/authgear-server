@@ -38,6 +38,15 @@ const (
 	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
 	OAuthClientApplicationTypeM2M            OAuthClientApplicationType = "m2m"
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
+
+	// OAuthClientApplicationTypeDynamicThirdParty is synthetic: it is never
+	// present in authgear.yaml and is NOT added to the "OAuthClientConfig"
+	// JSON Schema's x_application_type enum below. It exists solely so a
+	// dynamically-resolved third-party client — DCR (dcr.md) or CIMD
+	// (cimd.md) — can be represented as a *OAuthClientConfig: the one client
+	// shape this codebase has never had, third-party AND public. See
+	// docs/plans/dcr/2026-08-17-03-client-resolution.md §2.
+	OAuthClientApplicationTypeDynamicThirdParty OAuthClientApplicationType = "x_dynamic_third_party"
 )
 
 func (t OAuthClientApplicationType) IsThirdParty() bool {
@@ -54,6 +63,8 @@ func (t OAuthClientApplicationType) IsThirdParty() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return true
 	default:
 		return false
 	}
@@ -77,6 +88,8 @@ func (t OAuthClientApplicationType) IsConfidential() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return true
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return false
 	}
@@ -96,6 +109,8 @@ func (t OAuthClientApplicationType) IsClientCredentialsFlowAllowed() bool {
 		return false
 	case OAuthClientApplicationTypeM2M:
 		return true
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return false
 	}
@@ -119,6 +134,8 @@ func (t OAuthClientApplicationType) HasFullAccessScope() bool {
 		return false
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return true
 	}
@@ -138,6 +155,8 @@ func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return true
 	default:
 		return false
 	}
