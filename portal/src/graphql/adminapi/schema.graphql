@@ -594,6 +594,30 @@ type AuditLogEdge {
 }
 
 """"""
+type AuthenticationFlowAllowlist {
+  """"""
+  flows: [AuthenticationFlowAllowlistFlow!]!
+
+  """"""
+  groups: [AuthenticationFlowAllowlistGroup!]!
+}
+
+""""""
+type AuthenticationFlowAllowlistFlow {
+  """"""
+  name: String!
+
+  """"""
+  type: String!
+}
+
+""""""
+type AuthenticationFlowAllowlistGroup {
+  """"""
+  name: String!
+}
+
+""""""
 type Authenticator implements Entity & Node {
   """"""
   claims(names: [String!]): AuthenticatorClaims!
@@ -977,6 +1001,18 @@ input DeleteAuthorizationInput {
 type DeleteAuthorizationPayload {
   """"""
   user: User!
+}
+
+""""""
+input DeleteDynamicClientInput {
+  """The client_id of the DCR-registered or CIMD-resolved client to delete."""
+  clientID: String!
+}
+
+""""""
+type DeleteDynamicClientPayload {
+  """"""
+  ok: Boolean
 }
 
 """"""
@@ -1515,6 +1551,11 @@ type Mutation {
   deleteAuthorization(input: DeleteAuthorizationInput!): DeleteAuthorizationPayload!
 
   """
+  Deletes a DCR-registered or CIMD-resolved client and frees one slot against its client limit.
+  """
+  deleteDynamicClient(input: DeleteDynamicClientInput!): DeleteDynamicClientPayload!
+
+  """
   Delete an existing group. The associations between the group with other roles and other users will also be deleted.
   """
   deleteGroup(input: DeleteGroupInput!): DeleteGroupPayload!
@@ -1649,6 +1690,155 @@ interface Node {
   id: ID!
 }
 
+"""
+A client that exists outside authgear.yaml: DCR-registered or CIMD-resolved.
+"""
+type OAuthClient implements Node {
+  """"""
+  accessTokenLifetimeSeconds: Int!
+
+  """"""
+  app2appEnabled: Boolean!
+
+  """"""
+  app2appInsecureDeviceKeyBindingEnabled: Boolean!
+
+  """"""
+  applicationType: String
+
+  """"""
+  authenticationFlowAllowlist: AuthenticationFlowAllowlist
+
+  """"""
+  clientID: String!
+
+  """"""
+  clientName: String
+
+  """"""
+  clientURI: String
+
+  """"""
+  customUIURI: String
+
+  """"""
+  dpopDisabled: Boolean!
+
+  """"""
+  grantTypes: [String!]!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  isConfidential: Boolean!
+
+  """"""
+  isServiceClient: Boolean!
+
+  """"""
+  issueJWTAccessToken: Boolean!
+
+  """"""
+  kind: OAuthClientKind!
+
+  """"""
+  lastFetchedAt: DateTime
+
+  """"""
+  logoURI: String
+
+  """"""
+  maxConcurrentSession: Int!
+
+  """"""
+  name: String!
+
+  """"""
+  policyURI: String
+
+  """"""
+  postLogoutRedirectURIs: [String!]!
+
+  """"""
+  preAuthenticatedURLAllowedOrigins: [String!]!
+
+  """"""
+  preAuthenticatedURLEnabled: Boolean!
+
+  """"""
+  redirectURIs: [String!]!
+
+  """"""
+  refreshTokenIdleTimeoutEnabled: Boolean!
+
+  """"""
+  refreshTokenIdleTimeoutSeconds: Int!
+
+  """"""
+  refreshTokenLifetimeSeconds: Int!
+
+  """"""
+  refreshTokenRotationEnabled: Boolean!
+
+  """"""
+  registeredAt: DateTime
+
+  """"""
+  replaceProjectLogoWithLogoURI: Boolean!
+
+  """"""
+  responseTypes: [String!]!
+
+  """"""
+  source: OAuthClientSource!
+
+  """"""
+  tosURI: String
+}
+
+"""A connection to a list of items."""
+type OAuthClientConnection {
+  """Information to aid in pagination."""
+  edges: [OAuthClientEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type OAuthClientEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: OAuthClient
+}
+
+""""""
+enum OAuthClientKind {
+  """"""
+  FIRST_PARTY
+
+  """"""
+  THIRD_PARTY
+}
+
+""""""
+enum OAuthClientSource {
+  """"""
+  CIMD
+
+  """"""
+  DCR
+
+  """"""
+  STATIC
+}
+
 """"""
 enum OTPPurpose {
   """"""
@@ -1677,6 +1867,11 @@ type PageInfo {
 type Query {
   """Audit logs"""
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
+
+  """
+  Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients.
+  """
+  dynamicClients(after: String, before: String, first: Int, last: Int): OAuthClientConnection
 
   """Fraud protection decision records"""
   fraudProtectionLogs(after: String, before: String, first: Int, last: Int, maximumWarningCount: Int, minimumWarningCount: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection

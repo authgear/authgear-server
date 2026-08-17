@@ -317,6 +317,23 @@ export type AuditLogEdge = {
   node?: Maybe<AuditLog>;
 };
 
+export type AuthenticationFlowAllowlist = {
+  __typename?: 'AuthenticationFlowAllowlist';
+  flows: Array<AuthenticationFlowAllowlistFlow>;
+  groups: Array<AuthenticationFlowAllowlistGroup>;
+};
+
+export type AuthenticationFlowAllowlistFlow = {
+  __typename?: 'AuthenticationFlowAllowlistFlow';
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type AuthenticationFlowAllowlistGroup = {
+  __typename?: 'AuthenticationFlowAllowlistGroup';
+  name: Scalars['String']['output'];
+};
+
 export type Authenticator = Entity & Node & {
   __typename?: 'Authenticator';
   claims: Scalars['AuthenticatorClaims']['output'];
@@ -587,6 +604,16 @@ export type DeleteAuthorizationInput = {
 export type DeleteAuthorizationPayload = {
   __typename?: 'DeleteAuthorizationPayload';
   user: User;
+};
+
+export type DeleteDynamicClientInput = {
+  /** The client_id of the DCR-registered or CIMD-resolved client to delete. */
+  clientID: Scalars['String']['input'];
+};
+
+export type DeleteDynamicClientPayload = {
+  __typename?: 'DeleteDynamicClientPayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DeleteGroupInput = {
@@ -972,6 +999,8 @@ export type Mutation = {
   deleteAuthenticator: DeleteAuthenticatorPayload;
   /** Delete authorization */
   deleteAuthorization: DeleteAuthorizationPayload;
+  /** Deletes a DCR-registered or CIMD-resolved client and frees one slot against its client limit. */
+  deleteDynamicClient: DeleteDynamicClientPayload;
   /** Delete an existing group. The associations between the group with other roles and other users will also be deleted. */
   deleteGroup: DeleteGroupPayload;
   /** Delete identity of user */
@@ -1152,6 +1181,11 @@ export type MutationDeleteAuthenticatorArgs = {
 
 export type MutationDeleteAuthorizationArgs = {
   input: DeleteAuthorizationInput;
+};
+
+
+export type MutationDeleteDynamicClientArgs = {
+  input: DeleteDynamicClientInput;
 };
 
 
@@ -1360,6 +1394,77 @@ export type Node = {
   id: Scalars['ID']['output'];
 };
 
+/** A client that exists outside authgear.yaml: DCR-registered or CIMD-resolved. */
+export type OAuthClient = Node & {
+  __typename?: 'OAuthClient';
+  accessTokenLifetimeSeconds: Scalars['Int']['output'];
+  app2appEnabled: Scalars['Boolean']['output'];
+  app2appInsecureDeviceKeyBindingEnabled: Scalars['Boolean']['output'];
+  applicationType?: Maybe<Scalars['String']['output']>;
+  authenticationFlowAllowlist?: Maybe<AuthenticationFlowAllowlist>;
+  clientID: Scalars['String']['output'];
+  clientName?: Maybe<Scalars['String']['output']>;
+  clientURI?: Maybe<Scalars['String']['output']>;
+  customUIURI?: Maybe<Scalars['String']['output']>;
+  dpopDisabled: Scalars['Boolean']['output'];
+  grantTypes: Array<Scalars['String']['output']>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  isConfidential: Scalars['Boolean']['output'];
+  isServiceClient: Scalars['Boolean']['output'];
+  issueJWTAccessToken: Scalars['Boolean']['output'];
+  kind: OAuthClientKind;
+  lastFetchedAt?: Maybe<Scalars['DateTime']['output']>;
+  logoURI?: Maybe<Scalars['String']['output']>;
+  maxConcurrentSession: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  policyURI?: Maybe<Scalars['String']['output']>;
+  postLogoutRedirectURIs: Array<Scalars['String']['output']>;
+  preAuthenticatedURLAllowedOrigins: Array<Scalars['String']['output']>;
+  preAuthenticatedURLEnabled: Scalars['Boolean']['output'];
+  redirectURIs: Array<Scalars['String']['output']>;
+  refreshTokenIdleTimeoutEnabled: Scalars['Boolean']['output'];
+  refreshTokenIdleTimeoutSeconds: Scalars['Int']['output'];
+  refreshTokenLifetimeSeconds: Scalars['Int']['output'];
+  refreshTokenRotationEnabled: Scalars['Boolean']['output'];
+  registeredAt?: Maybe<Scalars['DateTime']['output']>;
+  replaceProjectLogoWithLogoURI: Scalars['Boolean']['output'];
+  responseTypes: Array<Scalars['String']['output']>;
+  source: OAuthClientSource;
+  tosURI?: Maybe<Scalars['String']['output']>;
+};
+
+/** A connection to a list of items. */
+export type OAuthClientConnection = {
+  __typename?: 'OAuthClientConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<OAuthClientEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type OAuthClientEdge = {
+  __typename?: 'OAuthClientEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<OAuthClient>;
+};
+
+export enum OAuthClientKind {
+  FirstParty = 'FIRST_PARTY',
+  ThirdParty = 'THIRD_PARTY'
+}
+
+export enum OAuthClientSource {
+  Cimd = 'CIMD',
+  Dcr = 'DCR',
+  Static = 'STATIC'
+}
+
 export enum OtpPurpose {
   Login = 'LOGIN',
   Verification = 'VERIFICATION'
@@ -1382,6 +1487,8 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients. */
+  dynamicClients?: Maybe<OAuthClientConnection>;
   /** Fraud protection decision records */
   fraudProtectionLogs?: Maybe<FraudProtectionDecisionRecordConnection>;
   /** Fraud protection overview */
@@ -1421,6 +1528,14 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryDynamicClientsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
