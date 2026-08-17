@@ -154,15 +154,21 @@ Fetch timeout, maximum document size, and cache lifetime are fixed values, not p
 
 ### Client Limit
 
+The limit is configured as a [usage limit](./usage.md) under the `oauth_client_cimd` usage name:
+
 **authgear.features.yaml**
 
 ```yaml
-oauth:
-  client_id_metadata_document:
-    maximum_clients: null
+usage:
+  limits:
+    oauth_client_cimd:
+      - quota: 20
+        action: block
 ```
 
-- `oauth.client_id_metadata_document.maximum_clients`: Optional. Integer. Default `null` (no limit). The maximum number of CIMD-resolved clients the project may have persisted at once, checked against the current count of `OAuthClient` records with `source: CIMD`. Once at `maximum_clients`, resolving a `client_id` with no existing persisted record fails the authorization request with `access_denied` (see [Error Handling](#error-handling)). A `client_id` that already has a persisted record is unaffected regardless of the limit, since resolving it again doesn't create a new one.
+- `usage.limits.oauth_client_cimd`: Optional. Default absent (no limit). The maximum number of CIMD-resolved clients the project may have persisted at once, checked against the current count of `OAuthClient` records with `source: CIMD` — a [standing usage name](./usage.md#supported-usage-names), like [`oauth_client_dcr`](./dcr.md#client-limit). Once at `quota`, resolving a `client_id` with no existing persisted record fails the authorization request with `access_denied` (see [Error Handling](#error-handling)), via the matching entry's `action: block`. A `client_id` that already has a persisted record is unaffected regardless of the limit, since resolving it again doesn't create a new one.
+
+This is a plan-tier limit, set in `authgear.features.yaml`'s feature-config hierarchy, not something a project admin edits directly.
 
 An admin can free a slot with [`deleteDynamicClient`](./dcr.md#new-mutation), but for a CIMD client this only evicts the current persisted record — the same `client_id` can produce a new one on its next successful resolution. It is not a durable ban; see [Domain Trust](#domain-trust) for the closest thing to one.
 

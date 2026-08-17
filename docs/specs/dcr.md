@@ -247,17 +247,21 @@ oauth:
 
 A DCR client is created by anyone holding a valid IAT (or, under open registration, by anyone at all) — no per-client admin action is required, unlike a static client. Left uncapped, this lets the project's client population grow without bound.
 
+The limit is configured as a [usage limit](./usage.md) under the `oauth_client_dcr` usage name:
+
 **authgear.features.yaml**
 
 ```yaml
-oauth:
-  dynamic_client_registration:
-    maximum_clients: null
+usage:
+  limits:
+    oauth_client_dcr:
+      - quota: 20
+        action: block
 ```
 
-- `oauth.dynamic_client_registration.maximum_clients`: Optional. Integer. Default `null` (no limit). The maximum number of DCR-registered clients the project may have at once, checked against the current count of `OAuthClient` records with `source: DCR`. Once at `maximum_clients`, `POST /oauth2/register` is rejected with `access_denied` (see [Errors](#errors)) regardless of IAT validity.
+- `usage.limits.oauth_client_dcr`: Optional. Default absent (no limit). The maximum number of DCR-registered clients the project may have at once, checked against the current count of `OAuthClient` records with `source: DCR` — a [standing usage name](./usage.md#supported-usage-names). Once at `quota`, `POST /oauth2/register` is rejected with `access_denied` (see [Errors](#errors)) regardless of IAT validity, via the matching entry's `action: block`.
 
-This is a plan-tier limit, set in `authgear.features.yaml`, not something a project admin edits directly — distinct in both file and purpose from `oauth.dynamic_client_registration.*` in `authgear.yaml` above.
+This is a plan-tier limit, set in `authgear.features.yaml`'s feature-config hierarchy, not something a project admin edits directly — distinct in both file and purpose from `oauth.dynamic_client_registration.*` in `authgear.yaml` above.
 
 ## OIDC Discovery Metadata
 
