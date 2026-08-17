@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cn from "classnames";
 import {
   Dialog,
@@ -29,6 +36,7 @@ import type {
   OAuthClientConfig,
   OAuthClientSecretKey,
 } from "../../types";
+import { useCapture } from "../../gtm_v2";
 import { useEndpoints } from "../../hook/useEndpoints";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
@@ -76,6 +84,22 @@ export function EditOAuthClientFormFrameworkQuickStart<
   const [applying, setApplying] = useState(false);
 
   const framework = findFramework(client.x_framework);
+
+  const capture = useCapture();
+  const viewedRef = useRef(false);
+  useEffect(() => {
+    if (viewedRef.current) {
+      return;
+    }
+    viewedRef.current = true;
+    capture("quickstart.viewed", {
+      client_id: client.client_id,
+      framework_id: client.x_framework ?? "",
+      // This tab also renders for clients created by the legacy flow
+      // (no x_framework); keep the cohort split accurate.
+      wizard_version: client.x_framework != null ? "framework_first" : "legacy",
+    });
+  }, [capture, client.client_id, client.x_framework]);
 
   const openDialog = useCallback(() => setDialogVisible(true), []);
   const closeDialog = useCallback(() => {

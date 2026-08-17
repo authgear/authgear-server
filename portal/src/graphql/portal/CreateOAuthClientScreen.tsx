@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
@@ -28,6 +35,7 @@ import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
+import { useCapture } from "../../gtm_v2";
 import { useLoadableView } from "../../hook/useLoadableView";
 import { updateClientConfig } from "./EditOAuthClientForm";
 
@@ -174,6 +182,17 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
+    const capture = useCapture();
+    const viewedRef = useRef(false);
+    useEffect(() => {
+      if (viewedRef.current) {
+        return;
+      }
+      viewedRef.current = true;
+      capture("createApplication.viewed", {
+        wizard_version: "framework_first",
+      });
+    }, [capture]);
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -216,6 +235,13 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         const picked = findFramework(id);
         const defaultStage2: Stage2Choice | null =
           picked?.stage2 === "token-or-cookie" ? "token" : null;
+        if (picked != null) {
+          capture("createApplication.selected-type", {
+            application_type: picked.resolveType(defaultStage2 ?? undefined),
+            framework_id: picked.id,
+            wizard_version: "framework_first",
+          });
+        }
         setState((s) => ({
           ...s,
           frameworkId: id,
@@ -223,17 +249,21 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           m2mSelected: false,
         }));
       },
-      [setState]
+      [setState, capture]
     );
 
     const onSelectM2M = useCallback(() => {
+      capture("createApplication.selected-type", {
+        application_type: "m2m",
+        wizard_version: "framework_first",
+      });
       setState((s) => ({
         ...s,
         frameworkId: null,
         stage2: null,
         m2mSelected: true,
       }));
-    }, [setState]);
+    }, [setState, capture]);
 
     const onChangeStage2 = useCallback(
       (value: Stage2Choice) => {
@@ -269,6 +299,16 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       save()
         .then(
           () => {
+            if (framework != null) {
+              capture("createApplication.created", {
+                client_id: clientId,
+                application_type: framework.resolveType(
+                  state.stage2 ?? undefined
+                ),
+                framework_id: framework.id,
+                wizard_version: "framework_first",
+              });
+            }
             const nextPath = `/project/${appID}/configuration/apps/${encodeURIComponent(
               clientId
             )}/edit`;
@@ -287,7 +327,16 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [canSubmit, save, appID, clientId, navigate]);
+    }, [
+      canSubmit,
+      save,
+      appID,
+      clientId,
+      navigate,
+      framework,
+      state.stage2,
+      capture,
+    ]);
 
     return (
       <ScreenContent className="flex-1-0-auto" layout={"list"}>

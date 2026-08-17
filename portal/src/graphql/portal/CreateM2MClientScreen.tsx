@@ -21,6 +21,7 @@ import {
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { PaginationProps } from "../../PaginationWidget";
 import { useDebounced } from "../../hook/useDebounced";
+import { useCapture } from "../../gtm_v2";
 import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResourceToClientID.generated";
 
 import ScreenContent from "../../ScreenContent";
@@ -233,6 +234,7 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
     const { state, save } = form;
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
+    const capture = useCapture();
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -257,6 +259,11 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
       save()
         .then(
           () => {
+            capture("createApplication.created", {
+              client_id: clientId,
+              application_type: "m2m",
+              wizard_version: "framework_first",
+            });
             const nextPath = `/project/${appID}/configuration/apps/${encodeURIComponent(
               clientId
             )}/edit`;
@@ -272,7 +279,7 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [save, appID, clientId, navigate]);
+    }, [save, appID, clientId, navigate, capture]);
 
     const onClickBack = useCallback(() => {
       navigate(`/project/${appID}/configuration/apps/add`);
@@ -300,8 +307,7 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
 
   // The application name is entered on the New Application screen (/add) and
   // passed here via router state; fall back to a default on direct navigation.
-  const initialName =
-    (location.state as { name?: string } | null)?.name ?? "";
+  const initialName = (location.state as { name?: string } | null)?.name ?? "";
   const constructInitialCurrentStateWithName = useCallback(
     (state: FormState): FormState =>
       produce(state, (state) => {
