@@ -17,9 +17,8 @@ var createInitialAccessTokenInput = graphql.NewInputObject(graphql.InputObjectCo
 			Description: "Token lifetime in seconds. If omitted, a server default is used.",
 		},
 		"type": &graphql.InputObjectFieldConfig{
-			Type:         initialAccessTokenType,
-			DefaultValue: string(dcr.InitialAccessTokenTypeThirdParty),
-			Description:  "Defaults to THIRD_PARTY.",
+			Type:        initialAccessTokenType,
+			Description: "Defaults to THIRD_PARTY.",
 		},
 	},
 })
@@ -54,7 +53,10 @@ var _ = registerMutationField(
 			if v, ok := input["expiresIn"].(int); ok {
 				expiresIn = &v
 			}
-			iatType := dcr.InitialAccessTokenType(input["type"].(string))
+			iatType := dcr.InitialAccessTokenTypeThirdParty
+			if v, ok := input["type"].(string); ok {
+				iatType = dcr.InitialAccessTokenType(v)
+			}
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
