@@ -4034,14 +4034,16 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	commands := &oauthclient.Commands{
-		Store: oauthclientStore,
-	}
 	appredisHandle := appProvider.Redis
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
+	}
+	commands := &oauthclient.Commands{
+		Store:    oauthclientStore,
+		Database: handle,
+		Cache:    clientCache,
 	}
 	queries := &oauthclient.Queries{
 		Store:       oauthclientStore,
