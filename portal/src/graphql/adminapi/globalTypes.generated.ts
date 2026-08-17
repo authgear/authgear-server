@@ -478,6 +478,20 @@ export type CreateIdentityPayload = {
   user: User;
 };
 
+export type CreateInitialAccessTokenInput = {
+  /** Token lifetime in seconds. If omitted, a server default is used. */
+  expiresIn?: InputMaybe<Scalars['Int']['input']>;
+  /** Defaults to THIRD_PARTY. */
+  type?: InputMaybe<InitialAccessTokenType>;
+};
+
+export type CreateInitialAccessTokenPayload = {
+  __typename?: 'CreateInitialAccessTokenPayload';
+  initialAccessToken: InitialAccessToken;
+  /** The opaque IAT value. Returned ONCE only. */
+  token: Scalars['String']['output'];
+};
+
 export type CreateResourceInput = {
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
@@ -889,6 +903,24 @@ export enum IdentityType {
   Siwe = 'SIWE'
 }
 
+/** Initial Access Token for Dynamic Client Registration */
+export type InitialAccessToken = Node & {
+  __typename?: 'InitialAccessToken';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The expiry time of the initial access token. */
+  expiresAt: Scalars['DateTime']['output'];
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The type of the initial access token. */
+  type: InitialAccessTokenType;
+};
+
+export enum InitialAccessTokenType {
+  FirstParty = 'FIRST_PARTY',
+  ThirdParty = 'THIRD_PARTY'
+}
+
 /** A locked IP address and when its lock expires */
 export type LockedIp = {
   __typename?: 'LockedIP';
@@ -924,6 +956,8 @@ export type Mutation = {
   createGroup: CreateGroupPayload;
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
+  /** Creates an opaque Initial Access Token for use with POST /oauth2/register. */
+  createInitialAccessToken: CreateInitialAccessTokenPayload;
   /** Create a new resource. */
   createResource: CreateResourcePayload;
   /** Create a new role. */
@@ -978,6 +1012,8 @@ export type Mutation = {
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
   revokeAllSessions: RevokeAllSessionsPayload;
+  /** Revokes an Initial Access Token so it can no longer be used for registration. */
+  revokeInitialAccessToken: RevokeInitialAccessTokenPayload;
   /** Revoke session of user */
   revokeSession: RevokeSessionPayload;
   /** Schedule account anonymization */
@@ -1076,6 +1112,11 @@ export type MutationCreateGroupArgs = {
 
 export type MutationCreateIdentityArgs = {
   input: CreateIdentityInput;
+};
+
+
+export type MutationCreateInitialAccessTokenArgs = {
+  input: CreateInitialAccessTokenInput;
 };
 
 
@@ -1214,6 +1255,11 @@ export type MutationRevokeAllSessionsArgs = {
 };
 
 
+export type MutationRevokeInitialAccessTokenArgs = {
+  input: RevokeInitialAccessTokenInput;
+};
+
+
 export type MutationRevokeSessionArgs = {
   input: RevokeSessionInput;
 };
@@ -1348,6 +1394,8 @@ export type Query = {
   getUsersByStandardAttribute: Array<User>;
   /** All groups */
   groups?: Maybe<GroupConnection>;
+  /** Returns all active (non-expired) Initial Access Tokens for the project. */
+  initialAccessTokens: Array<InitialAccessToken>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
@@ -1664,6 +1712,16 @@ export type RevokeAllSessionsInput = {
 export type RevokeAllSessionsPayload = {
   __typename?: 'RevokeAllSessionsPayload';
   user: User;
+};
+
+export type RevokeInitialAccessTokenInput = {
+  /** Target initial access token ID. */
+  id: Scalars['ID']['input'];
+};
+
+export type RevokeInitialAccessTokenPayload = {
+  __typename?: 'RevokeInitialAccessTokenPayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type RevokeSessionInput = {

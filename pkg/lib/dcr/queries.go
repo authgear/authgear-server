@@ -20,6 +20,18 @@ func (q *Queries) GetInitialAccessTokenByID(ctx context.Context, id string) (*mo
 	return t.ToModel(), nil
 }
 
+func (q *Queries) GetManyInitialAccessTokens(ctx context.Context, ids []string) ([]*model.OAuthInitialAccessToken, error) {
+	ts, err := q.Store.GetManyInitialAccessTokensByID(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	models := make([]*model.OAuthInitialAccessToken, len(ts))
+	for i, t := range ts {
+		models[i] = t.ToModel()
+	}
+	return models, nil
+}
+
 func (q *Queries) ListInitialAccessTokens(ctx context.Context) ([]*model.OAuthInitialAccessToken, error) {
 	ts, err := q.Store.ListActiveInitialAccessTokens(ctx)
 	if err != nil {

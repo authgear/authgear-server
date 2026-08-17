@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
@@ -90,6 +91,27 @@ func (s *Store) GetInitialAccessTokenByHash(ctx context.Context, tokenHash strin
 	}
 
 	return t, nil
+}
+
+func (s *Store) GetManyInitialAccessTokensByID(ctx context.Context, ids []string) ([]*InitialAccessToken, error) {
+	q := s.selectInitialAccessTokenQuery().Where("id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tokens []*InitialAccessToken
+	for rows.Next() {
+		t, err := s.scanInitialAccessToken(rows)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, t)
+	}
+
+	return tokens, nil
 }
 
 func (s *Store) DeleteInitialAccessToken(ctx context.Context, id string) error {
