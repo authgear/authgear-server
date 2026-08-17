@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -721,7 +722,20 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -1048,7 +1062,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -1706,7 +1719,20 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -2033,7 +2059,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -2808,7 +2833,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -3919,7 +3956,19 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -4424,7 +4473,20 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -4752,7 +4814,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -5278,7 +5339,20 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -5606,7 +5680,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -6206,7 +6279,19 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -7131,7 +7216,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -8208,7 +8305,20 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -8528,7 +8638,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -9273,7 +9382,20 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -9593,7 +9715,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -10316,7 +10437,20 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	limiter := &ratelimit.Limiter{
 		Database:     handle,
 		Storage:      storageRedis,
@@ -10843,7 +10977,20 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -11168,7 +11315,6 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -12025,7 +12171,20 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -12350,7 +12509,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -13214,7 +13372,20 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -13539,7 +13710,6 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -14438,7 +14608,20 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -14756,7 +14939,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -15486,7 +15668,20 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	limiter := &ratelimit.Limiter{
 		Database:     appdbHandle,
 		Storage:      storageRedis,
@@ -15837,7 +16032,6 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -16610,7 +16804,20 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -16928,7 +17135,6 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -17717,7 +17923,20 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -18035,7 +18254,6 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -18820,7 +19038,20 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -19138,7 +19369,6 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -19938,7 +20168,20 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -20256,7 +20499,6 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -21028,7 +21270,20 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -21346,7 +21601,6 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -22145,7 +22399,20 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -22463,7 +22730,6 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -23261,7 +23527,20 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -23579,7 +23858,6 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -24377,7 +24655,20 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -24695,7 +24986,6 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -25482,7 +25772,20 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -25800,7 +26103,6 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -26607,7 +26909,20 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -26925,7 +27240,6 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -27723,7 +28037,20 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -28041,7 +28368,6 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -28840,7 +29166,20 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -29158,7 +29497,6 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -29966,7 +30304,20 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -30284,7 +30635,6 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -31082,7 +31432,20 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -31400,7 +31763,6 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -32190,7 +32552,20 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -32508,7 +32883,6 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -33328,7 +33702,20 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -33646,7 +34033,6 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -34445,7 +34831,20 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -34763,7 +35162,6 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -35550,7 +35948,20 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -35868,7 +36279,6 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -36651,7 +37061,20 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -36969,7 +37392,6 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -37732,7 +38154,20 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -38050,7 +38485,6 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -38809,7 +39243,20 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -39127,7 +39574,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -39983,7 +40429,20 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -40301,7 +40760,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -41042,7 +41500,20 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -41367,7 +41838,6 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -42224,7 +42694,20 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -42549,7 +43032,6 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -43424,7 +43906,20 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -43742,7 +44237,6 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -44517,7 +45011,20 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -44835,7 +45342,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -45535,7 +46041,20 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -45853,7 +46372,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -46552,7 +47070,20 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -46870,7 +47401,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -47629,7 +48159,20 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -47947,7 +48490,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -48834,7 +49376,20 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -49159,7 +49714,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -49859,7 +50413,20 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -50186,7 +50753,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -50840,7 +51406,20 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -51167,7 +51746,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -51855,7 +52433,20 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -52180,7 +52771,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -52882,7 +53472,20 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -53207,7 +53810,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -53985,7 +54587,20 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -54310,7 +54925,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -55056,7 +55670,20 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -55383,7 +56010,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -56159,7 +56785,20 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -56507,7 +57146,6 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -57067,7 +57705,20 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -57415,7 +58066,6 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -58001,7 +58651,20 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -58326,7 +58989,6 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -59207,7 +59869,20 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -59532,7 +60207,6 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -60406,7 +61080,20 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -60731,7 +61418,6 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -61595,7 +62281,20 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -61920,7 +62619,6 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -62781,7 +63479,20 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -63106,7 +63817,6 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -63971,7 +64681,20 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -64296,7 +65019,6 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -65159,7 +65881,20 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -65484,7 +66219,6 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -66345,7 +67079,20 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -66670,7 +67417,6 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -67527,7 +68273,20 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -67852,7 +68611,6 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -68709,7 +69467,20 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -69034,7 +69805,6 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -69896,7 +70666,20 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -70221,7 +71004,6 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -71084,7 +71866,20 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -71409,7 +72204,6 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -72266,7 +73060,20 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -72591,7 +73398,6 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -73452,7 +74258,20 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -73777,7 +74596,6 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -74634,7 +75452,20 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -74959,7 +75790,6 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -75816,7 +76646,20 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -76141,7 +76984,6 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -76998,7 +77840,20 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -77323,7 +78178,6 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -78180,7 +79034,20 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -78505,7 +79372,6 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -79369,7 +80235,20 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -79694,7 +80573,6 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -80553,7 +81431,20 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -80878,7 +81769,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -81736,7 +82626,20 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -82061,7 +82964,6 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -82935,7 +83837,20 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -83253,7 +84168,6 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -84193,7 +85107,20 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -84518,7 +85445,6 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -85729,7 +86655,20 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -86054,7 +86993,6 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -86911,7 +87849,20 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -87236,7 +88187,6 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -88093,7 +89043,20 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -88418,7 +89381,6 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -89393,7 +90355,20 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -89718,7 +90693,6 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -90577,7 +91551,20 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -90902,7 +91889,6 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -91751,7 +92737,20 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -92079,7 +93078,6 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -92634,7 +93632,20 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -92962,7 +93973,6 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -93547,7 +94557,20 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -93875,7 +94898,6 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -94453,7 +95475,20 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -94781,7 +95816,6 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -95389,7 +96423,20 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -95707,7 +96754,6 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -96478,7 +97524,20 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -96796,7 +97855,6 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -97582,7 +98640,20 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -97900,7 +98971,6 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -98688,7 +99758,20 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    serviceStore,
 		Password: passwordProvider,
@@ -99006,7 +100089,6 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -99780,7 +100862,20 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -100098,7 +101193,6 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -100889,7 +101983,20 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    serviceStore,
 		Password: passwordProvider,
@@ -101207,7 +102314,6 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -102004,7 +103110,20 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -102322,7 +103441,6 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -103101,7 +104219,20 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -103419,7 +104550,6 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -104206,7 +105336,20 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -104524,7 +105667,6 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -105313,7 +106455,20 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    serviceStore,
 		Password: passwordProvider,
@@ -105631,7 +106786,6 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -106405,7 +107559,20 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    serviceStore,
 		Password: passwordProvider,
@@ -106723,7 +107890,6 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -107515,7 +108681,20 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -107833,7 +109012,6 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -108612,7 +109790,20 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -108930,7 +110121,6 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -109721,7 +110911,20 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    serviceStore,
 		Password: passwordProvider,
@@ -110039,7 +111242,6 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -110757,7 +111959,20 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -111105,7 +112320,6 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -111862,7 +113076,20 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -112210,7 +113437,6 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -112970,7 +114196,20 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -113318,7 +114557,6 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -114120,7 +115358,20 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -114438,7 +115689,6 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -115845,7 +117095,19 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -116719,7 +117981,20 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -117037,7 +118312,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -117773,7 +119047,20 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -118101,7 +119388,6 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -118705,7 +119991,20 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -119033,7 +120332,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -119637,7 +120935,20 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	limiter := &ratelimit.Limiter{
 		Database:     handle,
 		Storage:      storageRedis,
@@ -120071,7 +121382,20 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	limiter := &ratelimit.Limiter{
 		Database:     handle,
 		Storage:      storageRedis,
