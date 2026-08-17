@@ -18,12 +18,13 @@ func NewTranslationService(app *model.App) *translation.Service {
 		ProvideDefaultLanguageTag,
 		ProvideSupportedLanguageTags,
 		ProvideNilSMTPServerCredentialsSecretItem,
-		ProvideEmptyOAuthConfig,
+		ProvideOAuthClientResolver,
 
 		translation.DependencySet,
 		template.DependencySet,
 
 		wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 		wire.Bind(new(translation.StaticAssetResolver), new(*NoopStaticAssetResolver)),
+		wire.Bind(new(translation.OAuthClientResolver), new(*NoopOAuthClientResolver)),
 	))
 }

@@ -28,12 +28,12 @@ func NewTranslationService(app *model.App) *translation.Service {
 	}
 	noopStaticAssetResolver := ProvideStaticAssetResolver()
 	smtpServerCredentialsSecretItem := ProvideNilSMTPServerCredentialsSecretItem()
-	oAuthConfig := ProvideEmptyOAuthConfig()
+	noopOAuthClientResolver := ProvideOAuthClientResolver()
 	service := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    noopStaticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             noopOAuthClientResolver,
 	}
 	return service
 }
