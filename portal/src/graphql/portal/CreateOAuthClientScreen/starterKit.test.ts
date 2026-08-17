@@ -4,7 +4,8 @@ import type { StarterKit } from "./frameworks";
 
 const KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
-  downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {

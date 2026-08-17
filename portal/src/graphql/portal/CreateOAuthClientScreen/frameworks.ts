@@ -243,7 +243,8 @@ const VITE_DOTENV_VARS: StarterKitConfig = {
 
 const REACT_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
-  downloadUrl: "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
@@ -254,7 +255,8 @@ const REACT_STARTER_KIT: StarterKit = {
 
 const VUE_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-vue",
-  downloadUrl: "https://github.com/authgear/authgear-example-vue/archive/HEAD.zip",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-vue/archive/HEAD.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
