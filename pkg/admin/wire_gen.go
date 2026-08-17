@@ -1372,10 +1372,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oauthclientCommands := &oauthclient.Commands{
 		Store: oauthclientStore,
 	}
-	dcrCommands := &dcr.Commands{
-		Store:       dcrStore,
-		OAuthClient: oauthclientCommands,
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
 		OAuthConfig: oAuthConfig,
+	}
+	dcrCommands := &dcr.Commands{
+		Store:              dcrStore,
+		OAuthClient:        oauthclientCommands,
+		OAuthClientQueries: oauthclientQueries,
+		OAuthConfig:        oAuthConfig,
 	}
 	dcrFacade := &facade2.DCRFacade{
 		DCRCommands: dcrCommands,
