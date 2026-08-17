@@ -937,9 +937,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

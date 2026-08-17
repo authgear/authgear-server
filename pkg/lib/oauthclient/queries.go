@@ -67,17 +67,19 @@ func (q *Queries) CountClientsBySource(ctx context.Context, source model.OAuthCl
 
 // GetClientConfigByClientID resolves clientID to a synthesized
 // *config.OAuthClientConfig for runtime use — see
-// docs/plans/dcr/2026-08-17-03-client-resolution.md. defaults comes from
-// whichever project config governs this row's source (see
-// ResolveTokenLifetimes); it is resolved by the caller because the config
-// is not persisted and must reflect the current authgear.yaml, not the
-// cached row.
-func (q *Queries) GetClientConfigByClientID(ctx context.Context, clientID string, defaults *config.OAuthDynamicClientRegistrationDefaultClientConfig) (*config.OAuthClientConfig, error) {
+// docs/plans/dcr/2026-08-17-03-client-resolution.md. Token lifetimes are
+// resolved via ResolveTokenLifetimes against the fetched row's own Source,
+// exactly like GetClientModelByID/ListClients/GetManyClientModels — not a
+// caller-supplied value, since the caller cannot know which config key
+// governs the row until after it is fetched. This also means the config
+// itself, not the cached row, is what is re-read on every call, so an
+// admin edit to default_client_config takes effect immediately.
+func (q *Queries) GetClientConfigByClientID(ctx context.Context, clientID string) (*config.OAuthClientConfig, error) {
 	c, err := q.getClientByClientIDCached(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
-	return c.ToClientConfig(defaults), nil
+	return c.ToClientConfig(ResolveTokenLifetimes(q.OAuthConfig, c.Source)), nil
 }
 
 // getClientByClientIDCached consults Redis first and only touches Postgres
