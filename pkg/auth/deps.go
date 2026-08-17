@@ -312,14 +312,15 @@ func ProvideNoopErrorService() *NoopErrorService {
 	return &NoopErrorService{}
 }
 
-// noopOAuthClientResolver backs RequestMiddlewareDependencySet's
-// WebappOAuthClientResolver. That set builds WebAppRequestMiddleware, which
-// runs *before* any app is resolved (it is what resolves the app), so there
-// is no legitimate app-scoped DB/Redis connection — nor any real client to
-// resolve — at the one place this dependency is used: rendering the generic
-// "app not found" page via BaseViewModeler. A DB-backed *oauthclient.Resolver
-// cannot be constructed in this scope at all; do not reuse this stub
-// anywhere an app has already been resolved.
+// noopOAuthClientResolver backs RequestMiddlewareDependencySet's and
+// NoProjectDependencySet's OAuthClientResolver-shaped dependencies. Both
+// sets build things that run *before* any app is resolved (in
+// RequestMiddlewareDependencySet's case, it is what resolves the app), so
+// there is no legitimate app-scoped DB/Redis connection — nor any real
+// client to resolve — wherever this dependency is used (e.g. rendering the
+// generic "app not found" page via BaseViewModeler). A DB-backed
+// *oauthclient.Resolver cannot be constructed in either scope at all; do not
+// reuse this stub anywhere an app has already been resolved.
 type noopOAuthClientResolver struct{}
 
 func (noopOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
@@ -327,6 +328,10 @@ func (noopOAuthClientResolver) ResolveClient(ctx context.Context, clientID strin
 }
 
 func ProvideNoopOAuthClientResolver() viewmodelswebapp.WebappOAuthClientResolver {
+	return noopOAuthClientResolver{}
+}
+
+func ProvideNoopTranslationOAuthClientResolver() translation.OAuthClientResolver {
 	return noopOAuthClientResolver{}
 }
 
@@ -380,6 +385,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Bind(new(endpoints.EndpointsUIImplementationService), new(*web.UIImplementationService)),
 
 	ProvideNoopOAuthClientResolver,
+	ProvideNoopTranslationOAuthClientResolver,
 
 	wire.Struct(new(WebAppRequestMiddleware), "*"),
 )
@@ -434,4 +440,5 @@ var NoProjectDependencySet = wire.NewSet(
 
 	translation.DependencySet,
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+	ProvideNoopTranslationOAuthClientResolver,
 )
