@@ -171,7 +171,7 @@ type FlashMessage interface {
 }
 
 type WebappOAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type BaseViewModeler struct {
@@ -213,7 +213,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	now := m.Clock.NowUTC().Unix()
 	uiParam := uiparam.GetUIParam(ctx)
 	clientID := uiParam.ClientID
-	client := m.OAuthClientResolver.ResolveClient(clientID)
+	client := m.OAuthClientResolver.ResolveClient(ctx, clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	clientName := ""
 	if client != nil {

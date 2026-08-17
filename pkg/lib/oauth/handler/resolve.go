@@ -19,11 +19,11 @@ type oauthRequest interface {
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 func resolveClient(ctx context.Context, resolver OAuthClientResolver, clientID string) (context.Context, *config.OAuthClientConfig) {
-	client := resolver.ResolveClient(clientID)
+	client := resolver.ResolveClient(ctx, clientID)
 	if client != nil {
 		otelauthgear.SetClientID(ctx, clientID)
 	}

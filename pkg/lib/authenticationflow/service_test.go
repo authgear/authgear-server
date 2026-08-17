@@ -392,7 +392,7 @@ func TestServiceContext(t *testing.T) {
 			store.EXPECT().DeleteSession(gomock.Any(), gomock.Any()).Return(nil)
 			store.EXPECT().DeleteFlow(gomock.Any(), gomock.Any()).Return(nil)
 
-			oauthClientResolver.EXPECT().ResolveClient("client-id").Return(&config.OAuthClientConfig{})
+			oauthClientResolver.EXPECT().ResolveClient(gomock.Any(), "client-id").Return(&config.OAuthClientConfig{})
 
 			output, err := service.CreateNewFlow(ctx, intent, &SessionOptions{
 				ClientID: "client-id",
