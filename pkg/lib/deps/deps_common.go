@@ -420,6 +420,8 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		dcr.DependencySet,
+		wire.Bind(new(oauthhandler.RegistrationHandlerDCRService), new(*dcr.Commands)),
+		wire.Bind(new(oauthhandler.RegistrationHandlerIATService), new(*dcr.Queries)),
 	),
 
 	wire.NewSet(
@@ -588,6 +590,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(oauthhandler.TokenHandlerRateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(oauthhandler.RegistrationHandlerRateLimiter), new(*ratelimit.Limiter)),
 	),
 
 	wire.NewSet(

@@ -9,9 +9,18 @@ import (
 )
 
 type Commands struct {
-	Store       *Store
-	OAuthClient *oauthclient.Commands
-	OAuthConfig *config.OAuthConfig
+	Store              *Store
+	OAuthClient        *oauthclient.Commands
+	OAuthClientQueries *oauthclient.Queries
+	OAuthConfig        *config.OAuthConfig
+}
+
+// CountClientsBySource is re-exported from oauthclient.Queries so that
+// RegistrationHandlerDCRService depends on one collaborator rather than
+// reaching into pkg/lib/oauthclient directly. Present now for symmetry;
+// wired up by the client usage-limit check (docs/plans/dcr/2026-08-17-05-client-usage-limit.md).
+func (c *Commands) CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error) {
+	return c.OAuthClientQueries.CountClientsBySource(ctx, source)
 }
 
 func (c *Commands) CreateInitialAccessToken(ctx context.Context, options *NewInitialAccessTokenOptions) (plaintext string, iat *model.OAuthInitialAccessToken, err error) {

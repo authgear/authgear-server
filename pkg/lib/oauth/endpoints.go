@@ -7,4 +7,5 @@ type EndpointsProvider interface {
 	ConsentEndpointURL() *url.URL
 	TokenEndpointURL() *url.URL
 	RevokeEndpointURL() *url.URL
+	RegistrationEndpointURL() *url.URL
 }
