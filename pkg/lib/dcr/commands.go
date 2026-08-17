@@ -4,10 +4,14 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 )
 
 type Commands struct {
-	Store *Store
+	Store       *Store
+	OAuthClient *oauthclient.Commands
+	OAuthConfig *config.OAuthConfig
 }
 
 func (c *Commands) CreateInitialAccessToken(ctx context.Context, options *NewInitialAccessTokenOptions) (plaintext string, iat *model.OAuthInitialAccessToken, err error) {
