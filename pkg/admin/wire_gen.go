@@ -782,11 +782,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+	}
 	dcrQueries := &dcr.Queries{
-		Store: dcrStore,
-		Clock: clockClock,
+		Store:              dcrStore,
+		Clock:              clockClock,
+		OAuthClientQueries: oauthclientQueries,
 	}
 	initialAccessTokenLoader := loader.NewInitialAccessTokenLoader(dcrQueries)
+	dynamicClientLoader := loader.NewDynamicClientLoader(oauthclientQueries)
 	searchService := &search.Service{
 		SearchConfig:               searchConfig,
 		ElasticsearchService:       elasticsearchService,
@@ -1364,17 +1375,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LockoutConfig: authenticationLockoutConfig,
 		Lockout:       lockoutService,
 	}
-	oauthclientStore := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	oauthclientCommands := &oauthclient.Commands{
 		Store: oauthclientStore,
-	}
-	oauthclientQueries := &oauthclient.Queries{
-		Store:       oauthclientStore,
-		OAuthConfig: oAuthConfig,
 	}
 	dcrCommands := &dcr.Commands{
 		Store:              dcrStore,
@@ -1400,6 +1402,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ResourceClients:       resourceClientLoader,
 		Scopes:                scopeLoader,
 		InitialAccessTokens:   initialAccessTokenLoader,
+		DynamicClients:        dynamicClientLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,

@@ -4048,8 +4048,9 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:        oAuthConfig,
 	}
 	dcrQueries := &dcr.Queries{
-		Store: store,
-		Clock: clockClock,
+		Store:              store,
+		Clock:              clockClock,
+		OAuthClientQueries: queries,
 	}
 	request := p.Request
 	rootProvider := appProvider.RootProvider

@@ -4,12 +4,22 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Queries struct {
-	Store *Store
-	Clock clock.Clock
+	Store              *Store
+	Clock              clock.Clock
+	OAuthClientQueries *oauthclient.Queries
+}
+
+// ListClients is re-exported from oauthclient.Queries so that
+// pkg/admin/facade.DCRQueries depends on one collaborator rather than
+// reaching into pkg/lib/oauthclient directly.
+func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) (*oauthclient.ListClientResult, error) {
+	return q.OAuthClientQueries.ListClients(ctx, pageArgs)
 }
 
 func (q *Queries) GetInitialAccessTokenByID(ctx context.Context, id string) (*model.OAuthInitialAccessToken, error) {

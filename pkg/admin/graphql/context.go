@@ -66,6 +66,10 @@ type InitialAccessTokenLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type DynamicClientLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type AuditLogFacade interface {
 	GetFraudProtectionDecisionRecordByID(ctx context.Context, id string) (*audit.FraudProtectionDecisionRecord, error)
 	GetFraudProtectionOverview(ctx context.Context, opts audit.FraudProtectionOverviewQueryOptions) (*audit.FraudProtectionOverview, error)
@@ -239,6 +243,9 @@ type DCRFacade interface {
 	CreateInitialAccessToken(ctx context.Context, options *dcr.NewInitialAccessTokenOptions) (token string, iat *apimodel.OAuthInitialAccessToken, err error)
 	RevokeInitialAccessToken(ctx context.Context, id string) error
 	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
+
+	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	DeleteClient(ctx context.Context, clientID string) error
 }
 
 type Context struct {
@@ -256,6 +263,7 @@ type Context struct {
 	ResourceClients     ResourceClientLoader
 	Scopes              ScopeLoader
 	InitialAccessTokens InitialAccessTokenLoader
+	DynamicClients      DynamicClientLoader
 
 	UserFacade           UserFacade
 	RolesGroupsFacade    RolesGroupsFacade

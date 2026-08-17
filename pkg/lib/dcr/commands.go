@@ -35,3 +35,10 @@ func (c *Commands) CreateInitialAccessToken(ctx context.Context, options *NewIni
 func (c *Commands) RevokeInitialAccessToken(ctx context.Context, id string) error {
 	return c.Store.DeleteInitialAccessToken(ctx, id)
 }
+
+// DeleteClient is re-exported from oauthclient.Commands so that
+// pkg/admin/facade.DCRCommands depends on one collaborator rather than
+// reaching into pkg/lib/oauthclient directly.
+func (c *Commands) DeleteClient(ctx context.Context, clientID string) error {
+	return c.OAuthClient.DeleteClient(ctx, clientID)
+}
