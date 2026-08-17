@@ -13,6 +13,7 @@ Authgear supports Dynamic Client Registration as defined by:
 - [Use Cases](#use-cases)
 - [Configuration](#configuration)
   - [Client Limit](#client-limit)
+  - [Rate Limits](#rate-limits)
 - [OIDC Discovery Metadata](#oidc-discovery-metadata)
 - [Initial Access Token](#initial-access-token)
 - [Registration Endpoint](#registration-endpoint)
@@ -66,7 +67,9 @@ Call the `createInitialAccessToken` Admin API mutation (see [Admin API](#admin-a
 mutation {
   createInitialAccessToken(input: { type: FIRST_PARTY, expiresIn: 3600 }) {
     token      # iat_fp_Xf2kLmNpQrStUvWx
-    expiresAt
+    initialAccessToken {
+      expiresAt
+    }
   }
 }
 ```
@@ -128,7 +131,7 @@ The PR preview backend validates the token as follows:
 4. Check `aud` includes `https://myapp.authgear.cloud`.
 5. Check `exp` has not elapsed.
 
-> Client deletion is not supported in this version. See [Future Works](#future-works).
+> When the PR is closed, the CI can remove the client with the [`deleteDynamicClient`](#new-mutation) Admin API mutation, which also frees a slot against the project's [client limit](#client-limit). Client *self*-service management — a client reading, updating or deleting its own registration — is deferred to RFC 7592; see [Future Works](#future-works).
 
 ---
 
@@ -237,11 +240,11 @@ oauth:
 ```
 
 - `oauth.dynamic_client_registration.enabled`: Optional. Boolean. Default `false`. Enables `POST /oauth2/register`.
-- `oauth.dynamic_client_registration.initial_access_token_required`: Optional. Boolean. Default `true`. When `true`, registration requires a valid IAT in the `Authorization: Bearer` header; all `application_type` values are accepted. When `false`, open registration is permitted but only `application_type: web` and `application_type: native` are accepted.
+- `oauth.dynamic_client_registration.initial_access_token_required`: Optional. Boolean. Default `true`. When `true`, registration requires a valid IAT in the `Authorization: Bearer` header. When `false`, open registration is permitted and every client is registered as third-party. The set of accepted `application_type` values does not depend on this setting: it is always `web` and `native` only — see [Accepted Client Metadata](#accepted-client-metadata). What the IAT determines is whether the registered client is first-party or third-party, not which `application_type` values are allowed.
 
 - `oauth.dynamic_client_registration.default_client_config`: Optional. Object. The default client config applied to all DCR-registered clients. Useful when stricter settings are needed for the DCR cohort. Per-client overrides are not yet supported; see [Future Works](#future-works). Supports a subset of the fields defined in [Custom Client Metadata](./oidc.md#custom-client-metadata): `access_token_lifetime_seconds`, `refresh_token_lifetime_seconds`, `refresh_token_idle_timeout_enabled`, `refresh_token_idle_timeout_seconds`.
 
-> **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to all third-party clients, including DCR-registered ones. See [API Resources and Scopes](./api-resource.md#access-policy).
+> **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to dynamic third-party clients — DCR-registered today, CIMD-resolved later — not to a static `third_party_app` client declared in `authgear.yaml`, which has no mechanism to be granted resource access for these grants. See [API Resources and Scopes](./api-resource.md#access-policy).
 
 ### Client Limit
 
@@ -262,6 +265,39 @@ usage:
 - `usage.limits.oauth_client_dcr`: Optional. Default absent (no limit). The maximum number of DCR-registered clients the project may have at once, checked against the current count of `OAuthClient` records with `source: DCR` — a [standing usage name](./usage.md#supported-usage-names). Once at `quota`, `POST /oauth2/register` is rejected with `access_denied` (see [Errors](#errors)) regardless of IAT validity, via the matching entry's `action: block`.
 
 This is a plan-tier limit, set in `authgear.features.yaml`'s feature-config hierarchy, not something a project admin edits directly — distinct in both file and purpose from `oauth.dynamic_client_registration.*` in `authgear.yaml` above.
+
+Note that a standing limit does not recover on its own. A rate-limit bucket refills and a periodic usage limit resets each period, but once `oauth_client_dcr` is at `quota` it stays there until an admin frees a slot with [`deleteDynamicClient`](#new-mutation). Under open registration this means anyone can render further registration impossible until an admin intervenes; a project that cannot tolerate that should keep `initial_access_token_required: true` (the default). Configuring an additional lower-`quota` entry with `action: alert` is recommended so the admin is notified before the cap is reached.
+
+### Rate Limits
+
+`POST /oauth2/register` is rate limited by two project-configurable limits:
+
+| Name | Scope | Default Rate |
+|---|---|---|
+| `oauth.register.per_ip` | Per requesting IP, per project | 10 / minute |
+| `oauth.register.per_project` | Per project | 1000 / hour |
+
+Configured under `oauth.dynamic_client_registration.rate_limits` in `authgear.yaml`:
+
+```yaml
+oauth:
+  dynamic_client_registration:
+    rate_limits:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 10
+      per_project:
+        enabled: true
+        period: 1h
+        burst: 1000
+```
+
+- `oauth.dynamic_client_registration.rate_limits.per_ip` / `.per_project`: Optional. Each defaults to the rate above when omitted. A project expecting many independent, legitimate first-time registrations in a short window — e.g. an MCP-style integration where each new user's client self-registers once on first connection — may need a higher `per_project` allowance than the default; size it relative to the project's own `oauth_client_dcr` quota (above), not the default shown here.
+
+Both are consumed by every attempt, successful or not, and both are evaluated before the `Authorization` header is parsed — so an invalid IAT cannot be used to probe the endpoint more cheaply. Exceeding either returns `x_rate_limited` with HTTP 429 (see [Errors](#errors)).
+
+These limits bound request volume against an endpoint that, under open registration, is unauthenticated and creates a database record per call. They are not a substitute for the [client limit](#client-limit) above, and they do not prevent a caller from reaching that limit. See [rate-limit.md](./rate-limit.md).
 
 ## OIDC Discovery Metadata
 
@@ -310,6 +346,10 @@ CREATE TABLE _auth_oauth_initial_access_token (
   app_id text NOT NULL,
   created_at timestamp without time zone NOT NULL,
   expires_at timestamp without time zone NOT NULL,
+  -- 'THIRD_PARTY' | 'FIRST_PARTY', matching InitialAccessTokenType verbatim.
+  -- Stored explicitly because the type cannot be recovered from token_hash:
+  -- the iat_tp_ / iat_fp_ prefix is part of the hashed plaintext.
+  token_type text NOT NULL,
   token_hash text NOT NULL
 );
 CREATE UNIQUE INDEX _auth_oauth_initial_access_token_hash_unique ON _auth_oauth_initial_access_token USING btree (app_id, token_hash);
@@ -348,9 +388,7 @@ See [Accepted Client Metadata](#accepted-client-metadata) for the full list of r
 }
 ```
 
-- `client_secret` is not issued in this version. Confidential clients are not supported via DCR.
-- `client_secret_expires_at: 0` means non-expiring (per RFC 7591 §3.2.1).
-- `client_secret` is returned **once only** and is not recoverable afterwards. The caller must store it securely.
+- `client_secret` is not issued in this version, and neither is `client_secret_expires_at`. Confidential clients are not supported via DCR — every DCR-registered client is public and uses PKCE. Should confidential clients ever be supported, the once-only-return and `client_secret_expires_at: 0` semantics of RFC 7591 §3.2.1 would apply then; they do not apply to anything in this version.
 
 ### Errors
 
@@ -369,6 +407,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
 | `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
 | `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, a first-party IAT is required but a third-party IAT or no IAT was presented, or the project's [client limit](#client-limit) has been reached) |
+| `x_rate_limited` | 429 | Too many registration attempts from this IP, or too many for this project — see [Rate Limits](#rate-limits) |
 
 **`invalid_client_metadata` causes:**
 
@@ -479,7 +518,7 @@ By default, all Authgear access tokens share `aud = [<project_endpoint>]`. A res
 
 Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-register their API as a Resource in the portal and associate it with allowed clients. When a client requests a token with `resource=<uri>`, the issued access token includes that URI in `aud`, and the resource server can enforce `aud` contains its own URI.
 
-DCR-registered clients, being third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to third-party clients, and only Scopes with `access_policy.allow_dynamic_third_party_client_access: true` may be requested. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
+DCR-registered clients, being dynamic third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_dynamic_third_party_client_access: true` are accessible, and only Scopes with `access_policy.allow_dynamic_third_party_client_access: true` may be requested — this policy is dynamic-only by design, so a static `third_party_app` client cannot use it even if the flag is set. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
 
 A DCR client that requests no `resource` parameter receives an opaque access token, scoped to the userinfo endpoint only — never a JWT with the project endpoint as `aud`, which is reserved for first-party clients. See [Access Token Audience Binding — How It Works](./access-token-audience-binding.md#how-it-works).
 
@@ -577,20 +616,22 @@ extend type Query {
     after: String
     last: Int
     before: String
-  ): DynamicClientConnection!
+  ): OAuthClientConnection!
 }
 
-type DynamicClientConnection {
-  edges: [DynamicClientEdge!]!
+type OAuthClientConnection {
+  edges: [OAuthClientEdge]
   pageInfo: PageInfo!
-  totalCount: Int!
+  totalCount: Int
 }
 
-type DynamicClientEdge {
-  node: OAuthClient!
+type OAuthClientEdge {
+  node: OAuthClient
   cursor: String!
 }
 ```
+
+The Connection and Edge types are named after the node type (`OAuthClient`), and their nullability matches every other Connection in the Admin API, because they are produced by the same shared relay helper rather than hand-written for this query. "Dynamic" describes which clients the query returns, not a distinct GraphQL type.
 
 ### New mutation
 
@@ -614,6 +655,8 @@ type DeleteDynamicClientPayload {
   ok: Boolean
 }
 ```
+
+> **Implementation status:** the token and authorization revocation described above is not yet implemented. The first implementation of this mutation removes the persisted client record only, which frees the client-limit slot and stops any new authorization, but leaves already-issued access tokens valid until they expire and already-issued refresh tokens usable. Until revocation lands, deleting a DCR client is not a way to cut off a client that is actively misbehaving.
 
 For a DCR client, deletion is permanent: the same `client_id` never reappears unless a new `POST /oauth2/register` call creates it again. For a CIMD client, deletion only evicts the current persisted record — the same `client_id` URL can produce a new record on its very next successful resolution, since nothing prevents a caller from presenting that URL again. This mutation frees a slot immediately in both cases, but for CIMD it is not a durable ban; see [cimd.md — Domain Trust](./cimd.md#domain-trust) for the closest thing to one.
 

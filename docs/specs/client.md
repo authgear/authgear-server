@@ -3,8 +3,10 @@
 An Authgear **client** is any OAuth 2.0 / OIDC application that interacts with the authorization server. Clients may originate from three sources:
 
 1. **Static clients** — declared in `authgear.yaml` under `oauth.clients`. Changes require a configuration deploy.
-2. **Dynamic clients** — registered at runtime via [Dynamic Client Registration (DCR)](./dcr.md). Stored in the database.
+2. **DCR clients** — registered at runtime via [Dynamic Client Registration (DCR)](./dcr.md). Stored in the database.
 3. **Client ID Metadata Document (CIMD) clients** *(proposed, see [cimd.md](./cimd.md))* — resolved by fetching a JSON document from a `client_id` URL, then persisted as a single shared record per `client_id`, refreshed on each refetch. Not registered like a DCR client; there is no registration event, only resolution.
+
+Sources 2 and 3 are collectively referred to as **dynamic clients**: clients that exist outside `authgear.yaml` and require no per-client admin action. That is the sense in which [`dynamicClients`](./dcr.md#new-query) and [`deleteDynamicClient`](./dcr.md#new-mutation) use the word — both cover DCR and CIMD clients, and neither covers static ones.
 
 This document defines the unified client model and presents it as a GraphQL type. It then describes how each source maps into the model.
 
@@ -334,6 +336,17 @@ The resulting `OAuthClient` object is:
 }
 ```
 
-Token lifetime fields are populated from `oauth.dynamic_client_registration.default_client_config` when set, otherwise from the project defaults. All Authgear extension fields are fixed at their zero values for DCR clients and cannot be changed at registration time.
+Token lifetime fields are populated from `oauth.dynamic_client_registration.default_client_config` when set. There is no project-level token lifetime configuration to fall back on — token lifetimes exist only per client — so when a field is unset, a DCR client receives the same built-in default a static client that omits the field receives:
+
+| Field | Default |
+|---|---|
+| `accessTokenLifetimeSeconds` | `1800` (30 minutes) |
+| `refreshTokenLifetimeSeconds` | `31449600` (52 weeks) |
+| `refreshTokenIdleTimeoutEnabled` | `true` |
+| `refreshTokenIdleTimeoutSeconds` | `2592000` (30 days) |
+
+Each field falls back independently, so a `default_client_config` that sets only `access_token_lifetime_seconds` leaves the other three at the defaults above. Note that the example object shown earlier in this section reflects the `default_client_config` in [dcr.md's Configuration](./dcr.md#configuration), not these defaults.
+
+All Authgear extension fields are fixed at their zero values for DCR clients and cannot be changed at registration time.
 
 Static clients are implicitly bounded — each one requires a project admin to edit and deploy `authgear.yaml`. DCR-registered and CIMD-resolved clients are not, since neither requires a per-client admin action; each source defines its own `authgear.features.yaml` limit — see [dcr.md — Client Limit](./dcr.md#client-limit) and [cimd.md — Client Limit](./cimd.md#client-limit).

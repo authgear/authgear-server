@@ -5,8 +5,8 @@ API Resources represent protected external services identified by HTTPS URIs. To
 Resources are shared across multiple features:
 
 - **M2M** (`client_credentials` grant) — confidential clients request tokens bound to a specific Resource. See [M2M spec](./m2m.md).
-- **Third-party clients** — clients can request tokens for Resources where `access_policy.allow_dynamic_third_party_client_access` is `true`. See [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
-- **First-party clients** (all grant types) — first-party clients can request resource-bound tokens if they are explicitly associated with the Resource.
+- **Dynamic third-party clients** (DCR today, CIMD later) — clients can request tokens for Resources where `access_policy.allow_dynamic_third_party_client_access` is `true`. A static `third_party_app` client declared in `authgear.yaml` cannot use this policy at all, by design — see [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
+- **First-party clients** (all grant types) — *not yet implemented.* The intent is that a first-party client can request resource-bound tokens when explicitly associated with the Resource, but outside `client_credentials` the `resource` parameter is currently rejected with `invalid_target` for every first-party client, static or dynamic. See [Access Token Audience Binding](./access-token-audience-binding.md#implementation-status).
 
 ## Table of Contents
 
@@ -56,18 +56,18 @@ Each Resource and Scope has an `access_policy` JSON object that controls which c
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `allow_dynamic_third_party_client_access` | boolean | `false` | When `true`, all third-party clients may access this Resource or Scope without a per-client association |
+| `allow_dynamic_third_party_client_access` | boolean | `false` | When `true`, all **dynamic** third-party clients may access this Resource or Scope without a per-client association. Static third-party clients are never covered by this flag, regardless of its value — the name is literal, not a historical artifact. |
 
 ### Two-level check
 
-Both the Resource and the individual Scope must have `allow_dynamic_third_party_client_access: true` for a third-party client to successfully request that scope:
+Both the Resource and the individual Scope must have `allow_dynamic_third_party_client_access: true` for a dynamic third-party client to successfully request that scope:
 
-- **Resource level** — when `true`, any third-party client may include that Resource URI in the `resource` parameter of their authorization requests.
-- **Scope level** — when `true`, that scope may be requested by any third-party client. When `false` (the default), the scope is inaccessible to third-party clients even if the parent Resource has the flag set.
+- **Resource level** — when `true`, any dynamic third-party client may include that Resource URI in the `resource` parameter of their authorization requests.
+- **Scope level** — when `true`, that scope may be requested by any dynamic third-party client. When `false` (the default), the scope is inaccessible even if the parent Resource has the flag set.
 
-This allows fine-grained control: for example, a Resource may expose `read:orders` to third-party clients but keep `delete:orders` restricted to explicitly associated clients.
+This allows fine-grained control: for example, a Resource may expose `read:orders` to dynamic third-party clients but keep `delete:orders` restricted to explicitly associated clients.
 
-> **Rationale:** Third-party clients are not created by project collaborators and cannot be individually trusted with per-client associations. The `access_policy` on each Resource/Scope lets admins declare, once, which permissions are safe to expose to all third-party clients. Any third-party client may then access those resources without further admin action per client.
+> **Rationale:** Dynamic third-party clients (DCR/CIMD) are not created by project collaborators and cannot be individually trusted with per-client associations. The `access_policy` on each Resource/Scope lets admins declare, once, which permissions are safe to expose to all such clients. Any dynamic third-party client may then access those resources without further admin action per client. A *static* `third_party_app` client, in contrast, **is** created by a project collaborator (declared in `authgear.yaml`) — it has no mechanism to access a Resource via `authorization_code`/`refresh_token` at all today (unlike M2M's `client_credentials`, which supports explicit associations for any client kind); this is a deliberate scope limit of the current implementation, not a gap this policy is meant to fill.
 
 > **Extensibility:** `access_policy` is a JSON object rather than a plain boolean column so that new policy dimensions can be added in the future without a schema migration. New keys default to `false` when absent, preserving the behavior of existing records.
 
@@ -79,9 +79,9 @@ First-party M2M clients (using `client_credentials`) require explicit associatio
 2. The admin grants specific Scopes from that Resource to the client.
 3. The client may then request tokens using `resource=<uri>` and (optionally) `scope=<scopes>`.
 
-If a client requests a Resource it is not associated with, the server returns `invalid_resource`. If a client requests a Scope not in its grant, the server returns `invalid_scope`. If no `scope` is specified, all scopes in the client's association are granted.
+If a client requests a Resource it is not associated with, the server returns `invalid_target`. If a client requests a Scope not in its grant, the server returns `invalid_scope`. If no `scope` is specified, all scopes in the client's association are granted.
 
-Third-party clients accessing a Resource where `access_policy.allow_dynamic_third_party_client_access` is `true` do not require a per-client association.
+Dynamic third-party clients accessing a Resource where `access_policy.allow_dynamic_third_party_client_access` is `true` do not require a per-client association. Static third-party clients have no client-resource association mechanism for `authorization_code`/`refresh_token` at all — see the note on `allow_dynamic_third_party_client_access` above.
 
 ## Access Token Behavior
 
@@ -92,7 +92,7 @@ When a client requests a token with `resource=<uri>`, the issued access token ha
 
 The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of whether the Authgear project endpoint is present in `aud`. This allows clients that specify `resource` to still call userinfo if the token contains the appropriate OIDC scopes.
 
-When multiple `resource` values are requested (first-party clients only), `aud` includes all requested resource URIs and a `scope_by_aud` claim maps which scopes apply to which audience. When scopes are ambiguous across resources, the token is downscoped to the intersection. See [M2M spec](./m2m.md) for details on downscoping.
+When multiple `resource` values are requested (first-party clients only; **not yet implemented**, see [Access Token Audience Binding — Implementation Status](./access-token-audience-binding.md#implementation-status)), `aud` includes all requested resource URIs and a `scope_by_aud` claim maps which scopes apply to which audience. When scopes are ambiguous across resources, the token is downscoped to the intersection. See [M2M spec](./m2m.md) for details on downscoping.
 
 See [Access Token Audience Binding](./access-token-audience-binding.md) for the full specification of audience behavior.
 
@@ -199,8 +199,9 @@ from the underlying JSON storage.
 """
 type AccessPolicy {
   """
-  When true, all third-party clients may access this Resource or Scope
-  without a per-client association.
+  When true, all dynamic third-party clients (DCR/CIMD) may access this
+  Resource or Scope without a per-client association. Static third-party
+  clients are never covered by this flag.
   """
   allowDynamicThirdPartyClientAccess: Boolean!
 }
