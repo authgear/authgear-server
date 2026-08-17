@@ -481,6 +481,8 @@ Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-re
 
 DCR-registered clients, being third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to third-party clients, and only Scopes with `access_policy.allow_dynamic_third_party_client_access: true` may be requested. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
 
+A DCR client that requests no `resource` parameter receives an opaque access token, scoped to the userinfo endpoint only — never a JWT with the project endpoint as `aud`, which is reserved for first-party clients. See [Access Token Audience Binding — How It Works](./access-token-audience-binding.md#how-it-works).
+
 The admin configures the access policy once per Resource/Scope in the portal. Individual DCR clients then autonomously use `resource=<uri>` in their authorization requests without any further admin action per client. See [API Resources and Scopes](./api-resource.md#access-policy) and [Access Token Audience Binding](./access-token-audience-binding.md) for the full design.
 
 ## Admin API

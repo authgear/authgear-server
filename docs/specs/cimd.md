@@ -369,6 +369,8 @@ Two considerations from [spec §9](https://www.ietf.org/archive/id/draft-ietf-oa
 
 CIMD clients use the existing `allow_dynamic_third_party_client_access` policy to gain access to a Resource/Scope's audience. See [api-resource.md — Access Policy](./api-resource.md#access-policy) for the config. No new flag is introduced.
 
+Like any third-party client, a CIMD client that requests no `resource` parameter receives an opaque access token, scoped to the userinfo endpoint only. See [Access Token Audience Binding — How It Works](./access-token-audience-binding.md#how-it-works).
+
 ## Reading a CIMD Client's Stored Config
 
 CIMD clients are returned by [DCR's `dynamicClients` query](./dcr.md#new-query) alongside DCR-registered clients — no separate query is needed, since both are now backed by a real, deduplicated, per-`client_id` record (see [Where resolution happens](#where-resolution-happens)). A CIMD client is distinguished from a DCR client via `source: CIMD` on the unified `OAuthClient` model (see [client.md](./client.md#graphql-type)); `registeredAt` stays `null` (there is no registration event, only a resolution) and `lastFetchedAt` carries the freshness signal DCR clients don't have.
