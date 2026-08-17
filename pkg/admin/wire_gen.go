@@ -787,9 +787,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	oauthclientQueries := &oauthclient.Queries{
 		Store:       oauthclientStore,
 		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
 	}
 	dcrQueries := &dcr.Queries{
 		Store:              dcrStore,

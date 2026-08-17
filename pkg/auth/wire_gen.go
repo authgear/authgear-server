@@ -4037,9 +4037,17 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 	commands := &oauthclient.Commands{
 		Store: oauthclientStore,
 	}
+	appredisHandle := appProvider.Redis
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	queries := &oauthclient.Queries{
 		Store:       oauthclientStore,
 		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
 	}
 	dcrCommands := &dcr.Commands{
 		Store:              store,
@@ -4057,7 +4065,6 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	appredisHandle := appProvider.Redis
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	featureConfig := config.FeatureConfig
 	rateLimitsFeatureConfig := featureConfig.RateLimits
