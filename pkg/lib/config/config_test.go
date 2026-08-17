@@ -156,6 +156,65 @@ func TestApplyFeatureConfigConstraints(t *testing.T) {
 	})
 }
 
+func TestOAuthDynamicClientRegistrationConfig(t *testing.T) {
+	ctx := context.Background()
+	Convey("OAuthDynamicClientRegistrationConfig", t, func() {
+		base := `id: test
+http:
+  public_origin: http://test
+`
+
+		Convey("section absent: disabled, IAT required, default_client_config resolved to the built-in fallbacks", func() {
+			cfg, err := config.Parse(ctx, []byte(base))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.DynamicClientRegistration, ShouldNotBeNil)
+			So(cfg.OAuth.DynamicClientRegistration.IsEnabled(), ShouldBeFalse)
+			So(cfg.OAuth.DynamicClientRegistration.IsInitialAccessTokenRequired(), ShouldBeTrue)
+			defaults := cfg.OAuth.DynamicClientRegistration.GetDefaultClientConfig()
+			So(defaults, ShouldNotBeNil)
+			So(defaults.AccessTokenLifetime, ShouldEqual, config.DefaultAccessTokenLifetime)
+			So(defaults.RefreshTokenLifetime, ShouldEqual, config.DefaultRefreshTokenLifetime)
+			So(*defaults.RefreshTokenIdleTimeoutEnabled, ShouldEqual, config.DefaultRefreshTokenIdleTimeoutEnabled)
+			So(defaults.RefreshTokenIdleTimeout, ShouldEqual, config.DefaultRefreshTokenIdleTimeout)
+
+			rateLimits := cfg.OAuth.DynamicClientRegistration.GetRateLimits()
+			So(rateLimits, ShouldNotBeNil)
+			So(rateLimits.PerIP.IsEnabled(), ShouldBeTrue)
+			So(rateLimits.PerIP.Period, ShouldEqual, config.DurationString("1m"))
+			So(rateLimits.PerIP.Burst, ShouldEqual, 10)
+			So(rateLimits.PerProject.IsEnabled(), ShouldBeTrue)
+			So(rateLimits.PerProject.Period, ShouldEqual, config.DurationString("1h"))
+			So(rateLimits.PerProject.Burst, ShouldEqual, 1000)
+		})
+
+		Convey("rate_limits.per_project overridden: per_ip still defaults, per_project uses the override", func() {
+			data := base + "oauth:\n  dynamic_client_registration:\n    rate_limits:\n      per_project:\n        enabled: true\n        period: 1h\n        burst: 5000\n"
+			cfg, err := config.Parse(ctx, []byte(data))
+			So(err, ShouldBeNil)
+			rateLimits := cfg.OAuth.DynamicClientRegistration.GetRateLimits()
+			So(rateLimits.PerIP.Burst, ShouldEqual, 10)
+			So(rateLimits.PerProject.Burst, ShouldEqual, 5000)
+		})
+
+		Convey("section present but empty: disabled, IAT required", func() {
+			data := base + "oauth:\n  dynamic_client_registration: {}\n"
+			cfg, err := config.Parse(ctx, []byte(data))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.DynamicClientRegistration, ShouldNotBeNil)
+			So(cfg.OAuth.DynamicClientRegistration.IsEnabled(), ShouldBeFalse)
+			So(cfg.OAuth.DynamicClientRegistration.IsInitialAccessTokenRequired(), ShouldBeTrue)
+		})
+
+		Convey("initial_access_token_required explicitly false: open registration", func() {
+			data := base + "oauth:\n  dynamic_client_registration:\n    enabled: true\n    initial_access_token_required: false\n"
+			cfg, err := config.Parse(ctx, []byte(data))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.DynamicClientRegistration.IsEnabled(), ShouldBeTrue)
+			So(cfg.OAuth.DynamicClientRegistration.IsInitialAccessTokenRequired(), ShouldBeFalse)
+		})
+	})
+}
+
 func TestAppConfig(t *testing.T) {
 	ctx := context.Background()
 	Convey("AppConfig", t, func() {

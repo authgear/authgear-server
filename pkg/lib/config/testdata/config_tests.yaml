@@ -122,6 +122,61 @@ config:
         refresh_token_lifetime_seconds: 86400
         access_token_lifetime_seconds: 100
 ---
+name: dcr-default-client-config-refresh-token-lifetime-inverted
+error: |-
+  invalid configuration:
+  /oauth/dynamic_client_registration/default_client_config/refresh_token_lifetime_seconds: refresh token lifetime must be greater than or equal to access token lifetime
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    dynamic_client_registration:
+      enabled: true
+      default_client_config:
+        access_token_lifetime_seconds: 10000
+        refresh_token_lifetime_seconds: 10
+---
+name: dcr-default-client-config-refresh-token-lifetime-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    dynamic_client_registration:
+      enabled: true
+      default_client_config:
+        access_token_lifetime_seconds: 1800
+        refresh_token_lifetime_seconds: 86400
+---
+name: dcr-default-client-config-only-access-token-lifetime-set
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    dynamic_client_registration:
+      enabled: true
+      default_client_config:
+        access_token_lifetime_seconds: 1800
+---
+name: dcr-rate-limits-per-project-override
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    dynamic_client_registration:
+      enabled: true
+      rate_limits:
+        per_project:
+          enabled: true
+          period: 1h
+          burst: 5000
+---
 name: oauth-native-client-post-logout-redirect-uris
 error: null
 config:

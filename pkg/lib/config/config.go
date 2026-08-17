@@ -159,6 +159,16 @@ func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
 			)
 		}
 	}
+
+	if dcr := c.OAuth.DynamicClientRegistration; dcr != nil {
+		if d := dcr.DefaultClientConfig; d != nil {
+			if d.RefreshTokenLifetime != 0 && d.AccessTokenLifetime != 0 &&
+				d.RefreshTokenLifetime < d.AccessTokenLifetime {
+				ctx.Child("oauth", "dynamic_client_registration", "default_client_config", "refresh_token_lifetime_seconds").
+					EmitErrorMessage("refresh token lifetime must be greater than or equal to access token lifetime")
+			}
+		}
+	}
 }
 
 func (c *AppConfig) validateOAuthProvider(ctx context.Context, validationCtx *validation.Context) {

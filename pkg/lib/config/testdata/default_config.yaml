@@ -370,7 +370,22 @@ session:
   lifetime_seconds: 31449600
   idle_timeout_enabled: true
   idle_timeout_seconds: 2592000
-oauth: {}
+oauth:
+  dynamic_client_registration:
+    default_client_config:
+      access_token_lifetime_seconds: 1800
+      refresh_token_lifetime_seconds: 31449600
+      refresh_token_idle_timeout_enabled: true
+      refresh_token_idle_timeout_seconds: 2592000
+    rate_limits:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 10
+      per_project:
+        enabled: true
+        period: 1h
+        burst: 1000
 saml:
   signing:
     signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
