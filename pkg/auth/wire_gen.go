@@ -1085,9 +1085,26 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -2086,9 +2103,26 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -2412,9 +2446,26 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	resolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -2705,7 +2756,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -2716,7 +2767,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
@@ -2732,7 +2783,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -3139,7 +3190,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -3557,9 +3608,26 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	resolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -3836,7 +3904,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -3847,7 +3915,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -3962,7 +4030,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -5343,9 +5411,26 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -6213,9 +6298,26 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -6381,9 +6483,26 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	resolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -6660,7 +6779,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -6671,7 +6790,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -6786,7 +6905,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -7097,7 +7216,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -7305,9 +7424,26 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	resolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -7598,7 +7734,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -7609,7 +7745,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
@@ -7625,7 +7761,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -8032,7 +8168,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8421,15 +8557,32 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	appredisHandle := appProvider.Redis
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	appredisHandle := appProvider.Redis
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -8695,7 +8848,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -8706,7 +8859,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -8821,7 +8974,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -9126,7 +9279,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9193,10 +9346,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -9330,7 +9483,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -9378,7 +9531,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
@@ -9386,7 +9539,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
-		OfflineGrantStore:   store,
+		OfflineGrantStore:   redisStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -9423,7 +9576,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
-		AccessGrants:      store,
+		AccessGrants:      redisStore,
 		AccessTokenIssuer: oauthAccessTokenEncoding,
 		Clock:             clockClock,
 	}
@@ -9434,8 +9587,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:              oAuthConfig,
 		ClientResolver:      resolver,
 		Authorizations:      authorizationStore,
-		OfflineGrants:       store,
-		AccessGrants:        store,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
@@ -9502,15 +9655,32 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	appredisHandle := appProvider.Redis
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	appredisHandle := appProvider.Redis
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -9776,7 +9946,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -9787,7 +9957,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -9902,7 +10072,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -10207,7 +10377,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -10274,10 +10444,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -10411,7 +10581,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -10459,7 +10629,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
@@ -10467,7 +10637,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
-		OfflineGrantStore:   store,
+		OfflineGrantStore:   redisStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -10504,7 +10674,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
-		AccessGrants:      store,
+		AccessGrants:      redisStore,
 		AccessTokenIssuer: oauthAccessTokenEncoding,
 		Clock:             clockClock,
 	}
@@ -10515,8 +10685,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Config:              oAuthConfig,
 		ClientResolver:      resolver,
 		Authorizations:      authorizationStore,
-		OfflineGrants:       store,
-		AccessGrants:        store,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
@@ -11869,9 +12039,26 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -13067,9 +13254,26 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -14272,9 +14476,26 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -14741,19 +14962,36 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -15018,7 +15256,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -15029,7 +15267,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -15144,7 +15382,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -15449,7 +15687,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15514,10 +15752,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -15650,7 +15888,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -16354,9 +16592,26 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	redisStore := &redis.Store{
 		Redis:       handle,
@@ -16937,19 +17192,36 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -17214,7 +17486,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -17225,7 +17497,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -17340,7 +17612,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -17645,7 +17917,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -17710,10 +17982,10 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -17846,7 +18118,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -18056,19 +18328,36 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -18333,7 +18622,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -18344,7 +18633,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -18459,7 +18748,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -18764,7 +19053,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -18829,10 +19118,10 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -18965,7 +19254,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -19171,19 +19460,36 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -19448,7 +19754,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -19459,7 +19765,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -19574,7 +19880,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -19879,7 +20185,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -19944,10 +20250,10 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -20080,7 +20386,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -20209,7 +20515,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -20222,7 +20528,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -20301,19 +20607,36 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -20578,7 +20901,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -20589,7 +20912,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -20704,7 +21027,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -21009,7 +21332,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -21074,10 +21397,10 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -21210,7 +21533,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -21403,19 +21726,36 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -21680,7 +22020,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -21691,7 +22031,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -21806,7 +22146,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -22111,7 +22451,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22176,10 +22516,10 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -22312,7 +22652,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -22441,7 +22781,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -22454,7 +22794,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -22532,19 +22872,36 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -22809,7 +23166,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -22820,7 +23177,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -22935,7 +23292,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -23240,7 +23597,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -23305,10 +23662,10 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -23441,7 +23798,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -23570,7 +23927,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -23583,7 +23940,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -23660,19 +24017,36 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -23937,7 +24311,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -23948,7 +24322,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -24063,7 +24437,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -24368,7 +24742,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -24433,10 +24807,10 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -24569,7 +24943,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -24698,7 +25072,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -24711,7 +25085,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -24788,19 +25162,36 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -25065,7 +25456,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -25076,7 +25467,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -25191,7 +25582,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -25496,7 +25887,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -25561,10 +25952,10 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -25697,7 +26088,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -25816,7 +26207,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -25829,7 +26220,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -25905,19 +26296,36 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -26182,7 +26590,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -26193,7 +26601,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -26308,7 +26716,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -26613,7 +27021,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -26678,10 +27086,10 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -26814,7 +27222,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -26943,7 +27351,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -26956,7 +27364,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -27042,19 +27450,36 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -27319,7 +27744,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -27330,7 +27755,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -27445,7 +27870,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -27750,7 +28175,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -27815,10 +28240,10 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -27951,7 +28376,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -28080,7 +28505,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -28093,7 +28518,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -28170,19 +28595,36 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -28447,7 +28889,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -28458,7 +28900,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -28573,7 +29015,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -28878,7 +29320,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28943,10 +29385,10 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -29079,7 +29521,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -29208,7 +29650,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -29221,7 +29663,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -29299,19 +29741,36 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -29576,7 +30035,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -29587,7 +30046,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -29702,7 +30161,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -30007,7 +30466,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -30072,10 +30531,10 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -30208,7 +30667,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -30337,7 +30796,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -30350,7 +30809,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -30437,19 +30896,36 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -30714,7 +31190,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -30725,7 +31201,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -30840,7 +31316,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -31145,7 +31621,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -31210,10 +31686,10 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -31346,7 +31822,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -31475,7 +31951,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Authentication:      authenticationConfig,
 		Biometric:           biometricConfig,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -31488,7 +31964,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -31565,19 +32041,36 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -31842,7 +32335,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -31853,7 +32346,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -31968,7 +32461,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -32273,7 +32766,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -32338,10 +32831,10 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -32474,7 +32967,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -32593,7 +33086,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -32606,7 +33099,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -32685,19 +33178,36 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -32962,7 +33472,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -32973,7 +33483,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -33088,7 +33598,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -33393,7 +33903,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -33458,10 +33968,10 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -33594,7 +34104,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -33737,7 +34247,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -33750,7 +34260,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -33835,19 +34345,36 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -34112,7 +34639,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -34123,7 +34650,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -34238,7 +34765,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -34543,7 +35070,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -34608,10 +35135,10 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -34744,7 +35271,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -34882,7 +35409,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
@@ -34890,7 +35417,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
-		OfflineGrantStore:   store,
+		OfflineGrantStore:   redisStore,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
@@ -34964,19 +35491,36 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -35241,7 +35785,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -35252,7 +35796,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -35367,7 +35911,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -35672,7 +36216,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -35737,10 +36281,10 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -35873,7 +36417,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -35992,7 +36536,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -36005,7 +36549,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -36081,19 +36625,36 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -36358,7 +36919,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -36369,7 +36930,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -36484,7 +37045,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -36789,7 +37350,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -36854,10 +37415,10 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -36990,7 +37551,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -37194,19 +37755,36 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -37471,7 +38049,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -37482,7 +38060,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -37597,7 +38175,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -37902,7 +38480,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -37967,10 +38545,10 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -38103,7 +38681,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -38287,19 +38865,36 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -38564,7 +39159,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -38575,7 +39170,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -38690,7 +39285,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -38995,7 +39590,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -39060,10 +39655,10 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -39196,7 +39791,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -39376,19 +39971,36 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -39653,7 +40265,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -39664,7 +40276,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -39779,7 +40391,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -40084,7 +40696,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -40149,10 +40761,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -40285,7 +40897,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -40437,7 +41049,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	samlService := &saml.Service{
 		Clock:                       clockClock,
@@ -40566,19 +41178,36 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -40843,7 +41472,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -40854,7 +41483,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -40969,7 +41598,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -41274,7 +41903,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -41339,10 +41968,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -41475,7 +42104,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -42408,9 +43037,26 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -43606,9 +44252,26 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -44051,19 +44714,36 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -44328,7 +45008,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -44339,7 +45019,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -44454,7 +45134,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -44759,7 +45439,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -44824,10 +45504,10 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -44960,7 +45640,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -45155,20 +45835,37 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -45433,7 +46130,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -45444,7 +46141,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -45559,7 +46256,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -45864,7 +46561,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -45929,10 +46626,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -46065,7 +46762,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -46185,20 +46882,37 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -46463,7 +47177,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -46474,7 +47188,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -46589,7 +47303,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -46894,7 +47608,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -46959,10 +47673,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -47095,7 +47809,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -47215,19 +47929,36 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -47492,7 +48223,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -47503,7 +48234,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -47618,7 +48349,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -47923,7 +48654,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -47988,10 +48719,10 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -48124,7 +48855,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -48304,19 +49035,36 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -48581,7 +49329,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -48592,7 +49340,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -48707,7 +49455,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -49012,7 +49760,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -49077,10 +49825,10 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -49213,7 +49961,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -49347,7 +50095,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
@@ -49355,7 +50103,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
-		OfflineGrantStore:   store,
+		OfflineGrantStore:   redisStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -49383,13 +50131,13 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	}
 	accessGrantService := &oauth.AccessGrantService{
 		AppID:             appID,
-		AccessGrants:      store,
+		AccessGrants:      redisStore,
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
-		PreAuthenticatedURLTokens: store,
+		PreAuthenticatedURLTokens: redisStore,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
 	}
@@ -49417,8 +50165,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Config:              oAuthConfig,
 		ClientResolver:      resolver,
 		Authorizations:      authorizationStore,
-		OfflineGrants:       store,
-		AccessGrants:        store,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   oauthAccessTokenEncoding,
@@ -49435,7 +50183,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AppID:         appID,
 		CodeGenerator: tokenGenerator,
 		Clock:         clockClock,
-		CodeGrants:    store,
+		CodeGrants:    redisStore,
 	}
 	promptResolver := &oauth.PromptResolver{
 		Clock: clockClock,
@@ -49464,11 +50212,11 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		IdentityFeatureConfig:           identityFeatureConfig,
 		OAuthClientCredentials:          oAuthClientCredentials,
 		Authorizations:                  authorizationService,
-		CodeGrants:                      store,
-		SettingsActionGrantStore:        store,
+		CodeGrants:                      redisStore,
+		SettingsActionGrantStore:        redisStore,
 		IDPSessions:                     idpsessionProvider,
-		OfflineGrants:                   store,
-		AppSessionTokens:                store,
+		OfflineGrants:                   redisStore,
+		AppSessionTokens:                redisStore,
 		OfflineGrantService:             oauthOfflineGrantService,
 		PreAuthenticatedURLTokenService: preAuthenticatedURLTokenServiceImpl,
 		ClientResourceScopeService:      clientResourceScopeService,
@@ -49490,8 +50238,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		UserAgentString:                 userAgentString,
 	}
 	appSessionTokenService := &oauth.AppSessionTokenService{
-		AppSessions:         store,
-		AppSessionTokens:    store,
+		AppSessions:         redisStore,
+		AppSessionTokens:    redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
 		Cookies:             cookieManager,
 		Clock:               clockClock,
@@ -50314,9 +51062,26 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -51357,9 +52122,26 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -52350,9 +53132,26 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -53375,9 +54174,26 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -54418,9 +55234,26 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -55537,9 +56370,26 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -56626,9 +57476,26 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -57766,9 +58633,26 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -58686,9 +59570,26 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -59592,9 +60493,26 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -60814,9 +61732,26 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -62029,9 +62964,26 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -63234,9 +64186,26 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -64436,9 +65405,26 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -65642,9 +66628,26 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -66846,9 +67849,26 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -68048,9 +69068,26 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -69246,9 +70283,26 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -70444,9 +71498,26 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -71647,9 +72718,26 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -72851,9 +73939,26 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -74049,9 +75154,26 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -75251,9 +76373,26 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -76449,9 +77588,26 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -77647,9 +78803,26 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -78845,9 +80018,26 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -80043,9 +81233,26 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -81248,9 +82455,26 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -82448,9 +83672,26 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -83647,9 +84888,26 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -84091,19 +85349,36 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -84368,7 +85643,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -84379,7 +85654,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -84494,7 +85769,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -84799,7 +86074,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -84864,10 +86139,10 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -85000,7 +86275,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -85252,7 +86527,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		IDTokens:                        idTokenIssuer,
 	}
 	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
@@ -85284,7 +86559,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
 		Issuer:              idTokenIssuer,
@@ -86136,9 +87411,26 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -86612,9 +87904,30 @@ func newWebAppAuthflowV2AccountStatusHandler(p *deps.RequestProvider) http.Handl
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -86730,9 +88043,30 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -86848,9 +88182,30 @@ func newWebAppAuthflowV2OAuthProviderMissingCredentialsHandler(p *deps.RequestPr
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -87688,9 +89043,26 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -88886,9 +90258,26 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -90084,9 +91473,26 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -90560,9 +91966,30 @@ func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Han
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -91400,9 +92827,26 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -92600,9 +94044,26 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -93793,9 +95254,26 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -94692,9 +96170,26 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -95621,9 +97116,26 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -96543,9 +98055,26 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -96721,19 +98250,36 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -96998,7 +98544,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -97009,7 +98555,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -97124,7 +98670,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -97429,7 +98975,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -97494,10 +99040,10 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -97630,7 +99176,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -97822,19 +99368,36 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -98099,7 +99662,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -98110,7 +99673,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -98225,7 +99788,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -98530,7 +100093,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -98595,10 +100158,10 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -98731,7 +100294,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -98850,7 +100413,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -98863,7 +100426,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -98938,19 +100501,36 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -99215,7 +100795,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -99226,7 +100806,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -99341,7 +100921,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -99646,7 +101226,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -99711,10 +101291,10 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -99847,7 +101427,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -99966,7 +101546,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -99979,7 +101559,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -100204,9 +101784,26 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
@@ -100333,7 +101930,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -100344,7 +101941,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -100459,7 +102056,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -100764,7 +102361,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -101160,19 +102757,36 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -101437,7 +103051,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -101448,7 +103062,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -101563,7 +103177,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -101868,7 +103482,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -101933,10 +103547,10 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -102069,7 +103683,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -102188,7 +103802,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -102201,7 +103815,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -102430,9 +104044,26 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
@@ -102558,7 +104189,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -102569,7 +104200,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -102684,7 +104315,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -102989,7 +104620,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -103408,19 +105039,36 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -103685,7 +105333,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -103696,7 +105344,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -103811,7 +105459,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -104116,7 +105764,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -104181,10 +105829,10 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -104317,7 +105965,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -104517,19 +106165,36 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -104794,7 +106459,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -104805,7 +106470,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -104920,7 +106585,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -105225,7 +106890,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -105290,10 +106955,10 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -105426,7 +107091,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -105545,7 +107210,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -105558,7 +107223,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -105634,19 +107299,36 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -105911,7 +107593,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -105922,7 +107604,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -106037,7 +107719,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -106342,7 +108024,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -106407,10 +108089,10 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -106543,7 +108225,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -106662,7 +108344,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -106675,7 +108357,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -106901,9 +108583,26 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
@@ -107030,7 +108729,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -107041,7 +108740,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -107156,7 +108855,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -107461,7 +109160,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -108006,9 +109705,26 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
@@ -108134,7 +109850,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -108145,7 +109861,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -108260,7 +109976,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -108565,7 +110281,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -108979,19 +110695,36 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -109256,7 +110989,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -109267,7 +111000,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -109382,7 +111115,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -109687,7 +111420,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -109752,10 +111485,10 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -109888,7 +111621,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -110088,19 +111821,36 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -110365,7 +112115,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -110376,7 +112126,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -110491,7 +112241,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -110796,7 +112546,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -110861,10 +112611,10 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -110997,7 +112747,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -111116,7 +112866,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -111129,7 +112879,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -111357,9 +113107,26 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
@@ -111486,7 +113253,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -111497,7 +113264,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -111612,7 +113379,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -111917,7 +113684,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -113068,9 +114835,26 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -114185,9 +115969,26 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -115305,9 +117106,26 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -115656,19 +117474,36 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -115933,7 +117768,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -115944,7 +117779,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -116059,7 +117894,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -116364,7 +118199,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -116429,10 +118264,10 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -116565,7 +118400,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -116684,7 +118519,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	controllerFactory := webapp.ControllerFactory{
 		ControllerDeps: controllerDeps,
 	}
-	redisStore := &accountmanagement.RedisStore{
+	accountmanagementRedisStore := &accountmanagement.RedisStore{
 		AppID: appID,
 		Redis: appredisHandle,
 		Clock: clockClock,
@@ -116697,7 +118532,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		Config:                    appConfig,
 		HTTPOrigin:                httpOrigin,
 		Users:                     userProvider,
-		Store:                     redisStore,
+		Store:                     accountmanagementRedisStore,
 		OAuthProvider:             oAuthProviderFactory,
 		Identities:                facadeIdentityFacade,
 		Events:                    eventService,
@@ -116782,27 +118617,7 @@ func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	authUIWindowMessageAllowedOrigins := environmentConfig.AuthUIWindowMessageAllowedOrigins
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
+	webappOAuthClientResolver := ProvideNoopOAuthClientResolver()
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
 		OAuth:                             oAuthConfig,
@@ -116821,7 +118636,7 @@ func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               oauthclientResolver,
+		OAuthClientResolver:               webappOAuthClientResolver,
 	}
 	webAppRequestMiddleware := &WebAppRequestMiddleware{
 		TrustProxy:      trustProxy,
@@ -116953,9 +118768,30 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -117150,9 +118986,30 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -117271,9 +119128,30 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:                        trustProxy,
@@ -118117,9 +119995,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -118282,20 +120177,37 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
-	clockClock := _wireSystemClockValue
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &redis.Store{
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -118560,7 +120472,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -118571,7 +120483,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -118686,7 +120598,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -118991,7 +120903,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -119056,10 +120968,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -119192,7 +121104,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             resolver,
-		OfflineGrants:                   store,
+		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -119278,7 +121190,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
 		Issuer:              idTokenIssuer,
@@ -120127,9 +122039,26 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -121092,9 +123021,26 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,

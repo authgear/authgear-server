@@ -909,9 +909,26 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oauthclientQueries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

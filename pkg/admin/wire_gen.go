@@ -1042,6 +1042,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
+		Queries:         oauthclientQueries,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

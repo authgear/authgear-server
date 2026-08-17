@@ -8,6 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 )
 
@@ -21,8 +22,9 @@ func TestGetClientConfigByClientIDCacheHit(t *testing.T) {
 	Convey("Queries.GetClientConfigByClientID on a cache hit", t, func() {
 		cache, _ := newTestClientCache(t)
 		queries := &oauthclient.Queries{
-			Cache: cache,
-			Store: nil, // must not be touched by either sub-test below
+			Cache:       cache,
+			OAuthConfig: &config.OAuthConfig{},
+			Store:       nil, // must not be touched by either sub-test below
 		}
 
 		Convey("positive cache hit returns the cached client's config, without touching Store", func() {
@@ -42,7 +44,7 @@ func TestGetClientConfigByClientIDCacheHit(t *testing.T) {
 			}
 			So(cache.Set(ctx, client), ShouldBeNil)
 
-			cfg, err := queries.GetClientConfigByClientID(ctx, "dcrc_test", nil)
+			cfg, err := queries.GetClientConfigByClientID(ctx, "dcrc_test")
 			So(err, ShouldBeNil)
 			So(cfg.ClientID, ShouldEqual, "dcrc_test")
 		})
@@ -50,7 +52,7 @@ func TestGetClientConfigByClientIDCacheHit(t *testing.T) {
 		Convey("cached negative result returns ErrDynamicClientNotFound, without touching Store", func() {
 			So(cache.SetNotFound(ctx, "dcrc_missing"), ShouldBeNil)
 
-			_, err := queries.GetClientConfigByClientID(ctx, "dcrc_missing", nil)
+			_, err := queries.GetClientConfigByClientID(ctx, "dcrc_missing")
 			So(err, ShouldEqual, oauthclient.ErrDynamicClientNotFound)
 		})
 	})
