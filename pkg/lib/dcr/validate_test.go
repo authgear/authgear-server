@@ -8,7 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
 )
 
-func strptr(s string) *string { return &s }
+//go:fix inline
+func strptr(s string) *string { return new(s) }
 
 func TestValidateAndNormalize(t *testing.T) {
 	Convey("ValidateAndNormalize", t, func() {
@@ -63,7 +64,7 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("native application_type accepts a custom URI scheme", func() {
 			req := validReq()
-			req.ApplicationType = strptr("native")
+			req.ApplicationType = new("native")
 			req.RedirectURIs = []string{"com.example.app://callback"}
 			r, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldBeNil)
@@ -72,7 +73,7 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("native application_type accepts http://localhost", func() {
 			req := validReq()
-			req.ApplicationType = strptr("native")
+			req.ApplicationType = new("native")
 			req.RedirectURIs = []string{"http://localhost/callback"}
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldBeNil)
@@ -80,7 +81,7 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("native application_type rejects https", func() {
 			req := validReq()
-			req.ApplicationType = strptr("native")
+			req.ApplicationType = new("native")
 			req.RedirectURIs = []string{"https://example.com/callback"}
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRRedirectURIInvalid)
@@ -88,7 +89,7 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("native application_type rejects non-localhost http", func() {
 			req := validReq()
-			req.ApplicationType = strptr("native")
+			req.ApplicationType = new("native")
 			req.RedirectURIs = []string{"http://example.com/callback"}
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRRedirectURIInvalid)
@@ -96,7 +97,7 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("token_endpoint_auth_method other than none is rejected", func() {
 			req := validReq()
-			req.TokenEndpointAuthMethod = strptr("client_secret_post")
+			req.TokenEndpointAuthMethod = new("client_secret_post")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRTokenEndpointAuthMethodNotAccepted)
 		})
@@ -140,45 +141,45 @@ func TestValidateAndNormalize(t *testing.T) {
 
 		Convey("unsupported application_type", func() {
 			req := validReq()
-			req.ApplicationType = strptr("m2m")
+			req.ApplicationType = new("m2m")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRApplicationTypeUnsupported)
 		})
 
 		Convey("non-https logo_uri", func() {
 			req := validReq()
-			req.LogoURI = strptr("http://example.com/logo.png")
+			req.LogoURI = new("http://example.com/logo.png")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRURIFieldNotHTTPS)
 		})
 
 		Convey("non-https client_uri", func() {
 			req := validReq()
-			req.ClientURI = strptr("http://example.com")
+			req.ClientURI = new("http://example.com")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRURIFieldNotHTTPS)
 		})
 
 		Convey("non-https tos_uri", func() {
 			req := validReq()
-			req.TOSURI = strptr("http://example.com/tos")
+			req.TOSURI = new("http://example.com/tos")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRURIFieldNotHTTPS)
 		})
 
 		Convey("non-https policy_uri", func() {
 			req := validReq()
-			req.PolicyURI = strptr("http://example.com/policy")
+			req.PolicyURI = new("http://example.com/policy")
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRURIFieldNotHTTPS)
 		})
 
 		Convey("https uri fields are accepted", func() {
 			req := validReq()
-			req.LogoURI = strptr("https://example.com/logo.png")
-			req.ClientURI = strptr("https://example.com")
-			req.TOSURI = strptr("https://example.com/tos")
-			req.PolicyURI = strptr("https://example.com/policy")
+			req.LogoURI = new("https://example.com/logo.png")
+			req.ClientURI = new("https://example.com")
+			req.TOSURI = new("https://example.com/tos")
+			req.PolicyURI = new("https://example.com/policy")
 			r, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldBeNil)
 			So(*r.LogoURI, ShouldEqual, "https://example.com/logo.png")
