@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -120,25 +119,8 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		token = strings.TrimPrefix(authHeader, prefix)
 	}
 
-	var kind oauthclient.Kind
-	if token == "" {
-		if h.OAuthConfig.DynamicClientRegistration.IsInitialAccessTokenRequired() {
-			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "an initial access token is required", http.StatusUnauthorized)
-		}
-		kind = model.OAuthClientKindThirdParty
-	} else {
-		iat, err := h.IAT.ValidateAndGetByToken(ctx, token)
-		if err != nil {
-			if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
-				return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
-			}
-			return nil, err
-		}
-		if iat.Type == model.OAuthInitialAccessTokenTypeFirstParty {
-			kind = model.OAuthClientKindFirstParty
-		} else {
-			kind = model.OAuthClientKindThirdParty
-		}
+	if token == "" && h.OAuthConfig.DynamicClientRegistration.IsInitialAccessTokenRequired() {
+		return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "an initial access token is required", http.StatusUnauthorized)
 	}
 
 	var body registrationRequestBody
@@ -162,8 +144,22 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		return nil, mapDCRValidationError(err)
 	}
 
+	// The IAT lookup and the client insert must share one transaction: both
+	// go through h.Database's SQLExecutor, which requires an active tx-like
+	// context on every query.
 	var client *model.OAuthClient
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+		kind := model.OAuthClientKindThirdParty
+		if token != "" {
+			iat, err := h.IAT.ValidateAndGetByToken(ctx, token)
+			if err != nil {
+				return err
+			}
+			if iat.Type == model.OAuthInitialAccessTokenTypeFirstParty {
+				kind = model.OAuthClientKindFirstParty
+			}
+		}
+
 		c, err := h.DCR.RegisterClient(ctx, &dcr.RegisterClientOptions{
 			Kind:         kind,
 			Registration: normalized,
@@ -175,6 +171,9 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
+			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
+		}
 		return nil, err
 	}
 
