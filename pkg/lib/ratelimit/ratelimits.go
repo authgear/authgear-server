@@ -45,6 +45,9 @@ const (
 	// Token endpoint rate limits
 	RateLimitGroupOAuthTokenGeneral           RateLimitGroup = "oauth.token.general"            // #nosec G101
 	RateLimitGroupOAuthTokenClientCredentials RateLimitGroup = "oauth.token.client_credentials" // #nosec G101
+
+	// Dynamic Client Registration rate limits
+	RateLimitGroupOAuthRegister RateLimitGroup = "oauth.register"
 )
 
 const (
@@ -108,6 +111,10 @@ const (
 	// OAuth Token
 	RateLimitOAuthTokenGeneralPerIP   RateLimitName = "oauth.token.general.per_ip"   // #nosec G101
 	RateLimitOAuthTokenGeneralPerUser RateLimitName = "oauth.token.general.per_user" // #nosec G101
+
+	// Dynamic Client Registration
+	RateLimitOAuthRegisterPerIP      RateLimitName = "oauth.register.per_ip"
+	RateLimitOAuthRegisterPerProject RateLimitName = "oauth.register.per_project"
 )
 
 const (
@@ -190,6 +197,9 @@ const (
 	OAuthTokenPerUser                     BucketName = "OAuthTokenPerUser" // #nosec G101
 	OAuthTokenClientCredentialsPerClient  BucketName = "OAuthTokenClientCredentialsPerClient"
 	OAuthTokenClientCredentialsPerProject BucketName = "OAuthTokenClientCredentialsPerProject"
+
+	OAuthRegisterPerIP      BucketName = "OAuthRegisterPerIP"
+	OAuthRegisterPerProject BucketName = "OAuthRegisterPerProject"
 )
 
 func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
