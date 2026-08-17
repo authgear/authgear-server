@@ -1383,7 +1383,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Lockout:       lockoutService,
 	}
 	oauthclientCommands := &oauthclient.Commands{
-		Store: oauthclientStore,
+		Store:    oauthclientStore,
+		Database: handle,
+		Cache:    clientCache,
 	}
 	dcrCommands := &dcr.Commands{
 		Store:              dcrStore,
