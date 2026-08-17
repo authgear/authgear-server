@@ -2,15 +2,19 @@ package oauthclient
 
 import (
 	"context"
+	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Queries struct {
 	Store       *Store
 	OAuthConfig *config.OAuthConfig
+	Database    *appdb.Handle
+	Cache       *ClientCache
 }
 
 type ListClientResult struct {
@@ -59,4 +63,65 @@ func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs
 
 func (q *Queries) CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error) {
 	return q.Store.CountClientsBySource(ctx, source)
+}
+
+// GetClientConfigByClientID resolves clientID to a synthesized
+// *config.OAuthClientConfig for runtime use — see
+// docs/plans/dcr/2026-08-17-03-client-resolution.md. defaults comes from
+// whichever project config governs this row's source (see
+// ResolveTokenLifetimes); it is resolved by the caller because the config
+// is not persisted and must reflect the current authgear.yaml, not the
+// cached row.
+func (q *Queries) GetClientConfigByClientID(ctx context.Context, clientID string, defaults *config.OAuthDynamicClientRegistrationDefaultClientConfig) (*config.OAuthClientConfig, error) {
+	c, err := q.getClientByClientIDCached(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	return c.ToClientConfig(defaults), nil
+}
+
+// getClientByClientIDCached consults Redis first and only touches Postgres
+// on a miss, opening a ReadOnly scope itself when the caller has none —
+// ResolveClient is called from middleware, view models and handlers alike,
+// many with no active transaction (see the plan's §4.2). On a cache hit
+// this opens no database transaction and takes no connection from the
+// Postgres pool.
+func (q *Queries) getClientByClientIDCached(ctx context.Context, clientID string) (*Client, error) {
+	c, found, err := q.Cache.Get(ctx, clientID)
+	if err != nil {
+		// A cache failure must never take the endpoint down; fall through to
+		// the database.
+		c, found = nil, false
+	}
+	if found {
+		if c == nil {
+			// A cached negative result. Unlike an upstream draft of this
+			// plan, this returns ErrDynamicClientNotFound rather than
+			// (nil, nil) — the latter would panic downstream the moment a
+			// caller like GetClientConfigByClientID dereferences a nil
+			// *Client.
+			return nil, ErrDynamicClientNotFound
+		}
+		return c, nil
+	}
+
+	read := func(ctx context.Context) error {
+		c, err = q.Store.GetClientByClientID(ctx, clientID)
+		return err
+	}
+	if q.Database.IsInTx(ctx) {
+		err = read(ctx)
+	} else {
+		err = q.Database.ReadOnly(ctx, read)
+	}
+
+	switch {
+	case errors.Is(err, ErrDynamicClientNotFound):
+		_ = q.Cache.SetNotFound(ctx, clientID)
+		return nil, err
+	case err != nil:
+		return nil, err
+	}
+	_ = q.Cache.Set(ctx, c)
+	return c, nil
 }
