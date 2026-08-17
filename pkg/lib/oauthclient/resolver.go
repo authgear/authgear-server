@@ -1,6 +1,8 @@
 package oauthclient
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 )
@@ -10,7 +12,7 @@ type Resolver struct {
 	TesterEndpoints tester.EndpointsProvider
 }
 
-func (r *Resolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+func (r *Resolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
 	if clientID == tester.ClientIDTester {
 		return tester.NewTesterClient(r.TesterEndpoints.TesterURL().String())
 	}

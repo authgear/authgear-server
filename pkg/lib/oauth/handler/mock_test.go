@@ -101,7 +101,7 @@ type multiClientResolver struct {
 	ClientConfigs map[string]*config.OAuthClientConfig
 }
 
-func (r *multiClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+func (r *multiClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
 	client, ok := r.ClientConfigs[clientID]
 	if ok {
 		return client

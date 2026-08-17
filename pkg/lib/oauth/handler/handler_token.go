@@ -1532,7 +1532,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
 	scopes := offlineGrantSession.Scopes
 
-	originalClient := h.ClientResolver.ResolveClient(offlineGrantSession.ClientID)
+	originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrantSession.ClientID)
 	if originalClient == nil {
 		return nil, protocol.NewError("server_error", "cannot find original client for app2app")
 	}

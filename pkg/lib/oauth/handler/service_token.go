@@ -75,7 +75,7 @@ type TokenServiceAccessGrantStore interface {
 }
 
 type TokenServiceOfflineGrantService interface {
-	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+	ComputeOfflineGrantExpiry(ctx context.Context, session *oauth.OfflineGrant) (expiry time.Time, err error)
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 	CreateNewRefreshToken(
 		ctx context.Context,
@@ -180,7 +180,7 @@ func (s *TokenService) IssueOfflineGrant(
 		offlineGrant.App2AppDeviceKeyJWKJSON = string(keyStr)
 	}
 
-	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(ctx, offlineGrant)
 	if err != nil {
 		return nil, "", err
 	}

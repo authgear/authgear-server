@@ -1,6 +1,8 @@
 package oauth
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -18,10 +20,10 @@ var ClientLikeNotFound = &ClientLike{
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
-func SessionClientLike(s session.ResolvedSession, clientResolver OAuthClientResolver) *ClientLike {
+func SessionClientLike(ctx context.Context, s session.ResolvedSession, clientResolver OAuthClientResolver) *ClientLike {
 	scopes := SessionScopes(s)
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
@@ -31,7 +33,7 @@ func SessionClientLike(s session.ResolvedSession, clientResolver OAuthClientReso
 			Scopes:              scopes,
 		}
 	case *OfflineGrantSession:
-		client := clientResolver.ResolveClient(s.ClientID)
+		client := clientResolver.ResolveClient(ctx, s.ClientID)
 		if client == nil {
 			return ClientLikeNotFound
 		}
