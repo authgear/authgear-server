@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -29,7 +30,25 @@ type PosthogCredentials struct {
 	APIKey   string
 }
 
+// NewPosthogCredentials returns PostHog credentials from the analytic config,
+// or nil when either the endpoint or API key is unset. A nil result makes any
+// consumer (e.g. PosthogService.Batch, FirstAuthSink) a graceful no-op.
+func NewPosthogCredentials(c *config.AnalyticConfig) *PosthogCredentials {
+	if c.PosthogEndpoint != "" && c.PosthogAPIKey != "" {
+		return &PosthogCredentials{
+			Endpoint: c.PosthogEndpoint,
+			APIKey:   c.PosthogAPIKey,
+		}
+	}
+	return nil
+}
+
 var PosthogLogger = slogutil.NewLogger("posthog-integration")
+
+// firstAuthUUIDNamespace is a fixed namespace so that the UUIDv5 for a given
+// (app_id, client_id) is stable, making application.first_auth events idempotent
+// in PostHog.
+var firstAuthUUIDNamespace = uuid.MustParse("6f1c4d2e-0b3a-5c7d-8e9f-1a2b3c4d5e6f")
 
 type PosthogHTTPClient struct {
 	*http.Client
@@ -299,6 +318,27 @@ func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessa
 	}
 
 	return events, nil
+}
+
+// buildFirstAuthEvent builds a single application.first_auth PostHog event.
+// The uuid is a deterministic UUIDv5 of (app_id, client_id) so that re-sends
+// (e.g. after a dedup-key loss) collapse to one event in PostHog. Shared by the
+// real-time FirstAuthSink and any batch caller.
+func buildFirstAuthEvent(appID string, clientID string, firstAuthAt time.Time) (json.RawMessage, error) {
+	eventUUID := uuid.NewSHA1(firstAuthUUIDNamespace, []byte(appID+":"+clientID)).String()
+	event := map[string]any{
+		"event":       "application.first_auth",
+		"distinct_id": clientID,
+		"uuid":        eventUUID,
+		"timestamp":   firstAuthAt.UTC().Format(time.RFC3339),
+		"properties": map[string]any{
+			"client_id":               clientID,
+			"app_id":                  appID,
+			"$geoip_disable":          true,
+			"$process_person_profile": false,
+		},
+	}
+	return json.Marshal(event)
 }
 
 type PosthogBatchRequest struct {

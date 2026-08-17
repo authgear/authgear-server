@@ -93,6 +93,10 @@ var ConfigDeps = wire.NewSet(
 	secretDeps,
 )
 
+func ProvideAnalyticConfig(c *config.EnvironmentConfig) *config.AnalyticConfig {
+	return &c.Analytic
+}
+
 func ProvideDefaultLanguageTag(c *config.Config) template.DefaultLanguageTag {
 	return template.DefaultLanguageTag(*c.AppConfig.Localization.FallbackLanguage)
 }
