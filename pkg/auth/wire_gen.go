@@ -6444,9 +6444,34 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
-	appredisHandle := appProvider.Redis
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	appredisHandle := appProvider.Redis
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	storeRedis := &idpsession.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6462,11 +6487,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	store := &redis.Store{
+	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -6505,27 +6526,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
-	oauthclientStore := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       oauthclientStore,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
 	offlineGrantService := oauth.OfflineGrantService{
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
@@ -6535,10 +6535,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store,
+		Store:   redisStore,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -7308,18 +7308,19 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store,
+		OfflineGrants:   redisStore,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
-		Config:           oAuthConfig,
-		Endpoints:        endpointsEndpoints,
-		URLs:             endpointsEndpoints,
-		SessionManager:   manager2,
-		SessionCookieDef: cookieDef,
-		Cookies:          cookieManager,
-		IDTokenVerifier:  idTokenIssuer,
-		Sessions:         provider,
-		OfflineGrants:    oauthOfflineGrantService,
+		Config:              oAuthConfig,
+		OAuthClientResolver: resolver,
+		Endpoints:           endpointsEndpoints,
+		URLs:                endpointsEndpoints,
+		SessionManager:      manager2,
+		SessionCookieDef:    cookieDef,
+		Cookies:             cookieManager,
+		IDTokenVerifier:     idTokenIssuer,
+		Sessions:            provider,
+		OfflineGrants:       oauthOfflineGrantService,
 	}
 	oauthEndSessionHandler := &oauth3.EndSessionHandler{
 		Database:          handle,

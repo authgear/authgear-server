@@ -84,6 +84,21 @@ func (m *fakeCookieManager) ClearCookie(def *httputil.CookieDef) *http.Cookie {
 	return &http.Cookie{Name: def.NameSuffix, Value: "", MaxAge: -1}
 }
 
+// staticOAuthClientResolver resolves against a fixed *config.OAuthConfig,
+// mirroring the production *oauthclient.Resolver's static-config lookup
+// without needing DB/Redis wiring for these unit tests.
+type staticOAuthClientResolver struct {
+	Config *config.OAuthConfig
+}
+
+func (r staticOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
+	c, ok := r.Config.GetClient(clientID)
+	if !ok {
+		return nil
+	}
+	return c
+}
+
 func newIDToken(sid string, clientID string) jwt.Token {
 	token := jwt.New()
 	if sid != "" {
@@ -126,15 +141,16 @@ func TestEndSessionHandlerHandle(t *testing.T) {
 		offlineGrants handler.IDTokenHintOfflineGrantService,
 	) *handler.EndSessionHandler {
 		return &handler.EndSessionHandler{
-			Config:           oauthConfig,
-			Endpoints:        fakeEndpointsProvider{},
-			URLs:             urls,
-			SessionManager:   sessionManager,
-			SessionCookieDef: sessionCookieDef,
-			Cookies:          cookies,
-			IDTokenVerifier:  idTokenVerifier,
-			Sessions:         sessions,
-			OfflineGrants:    offlineGrants,
+			Config:              oauthConfig,
+			OAuthClientResolver: staticOAuthClientResolver{Config: oauthConfig},
+			Endpoints:           fakeEndpointsProvider{},
+			URLs:                urls,
+			SessionManager:      sessionManager,
+			SessionCookieDef:    sessionCookieDef,
+			Cookies:             cookies,
+			IDTokenVerifier:     idTokenVerifier,
+			Sessions:            sessions,
+			OfflineGrants:       offlineGrants,
 		}
 	}
 
