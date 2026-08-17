@@ -3,6 +3,7 @@ package dcr
 import (
 	"errors"
 	"net/url"
+	"slices"
 )
 
 var (
@@ -177,10 +178,5 @@ func validateHTTPSURI(raw string) error {
 }
 
 func containsString(ss []string, s string) bool {
-	for _, x := range ss {
-		if x == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ss, s)
 }
